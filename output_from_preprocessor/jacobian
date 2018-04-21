@@ -1,0 +1,18 @@
+
+  ! Jacobian  
+
+
+jac(1,1)  = jac(1,1) + (-1) * rateConstants(1)
+jac(1,2)  = jac(1,2) + (1) * rateConstants(2) * vmr(3) * M
+jac(1,3)  = jac(1,3) + (1) * rateConstants(2) * vmr(2) * M
+jac(2,1)  = jac(2,1) + (1) * rateConstants(1)
+jac(2,2)  = jac(2,2) + (-1) * rateConstants(2) * vmr(3) * M
+jac(2,3)  = jac(2,3) + (-1) * rateConstants(2) * vmr(2) * M
+jac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(2)
+jac(3,2)  = jac(3,2) + (0) * rateConstants(2) * vmr(3) * M
+jac(3,3)  = jac(3,3) + (0) * rateConstants(2) * vmr(2) * M
+jac(3,2)  = jac(3,2) + (2) * rateConstants(3) * vmr(2)
+jac(3,2)  = jac(3,2) + (2) * rateConstants(3) * vmr(2)

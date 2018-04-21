@@ -1,6 +1,16 @@
 # User Guides
 
-How to use the configurator.
+rawMake, its organization, its directories, and all other components need to be replaced.
+rawMake copies 
+  MICM_prototype/\* 
+  output_from_preprocessor/\*
+to
+  bld
+and 
+  pgf90 all files -o a.out
+then
+  cp a.out back to top-level directory
+
 
 How to test installation.
 
