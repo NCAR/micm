@@ -1,0 +1,31 @@
+=====================================================
+Tag name: micm_0002
+Originator(s): cacraig
+Date: May 4, 2018
+One-line Summary: First pass at making simple box model ready for CCPP
+
+Files added:
+        new file:   ChangeLog
+	   - File to contain the ongoing ChangeLog
+
+        new file:   ChangeLog_template
+	   - Template for the ChangeLog
+
+Files deleted:
+
+Files modified:
+        modified:   MICM_prototype/chemistry_specification.F90
+        modified:   MICM_prototype/driver.F90
+        modified:   MICM_prototype/forcing_and_jacobian.F90
+        modified:   MICM_prototype/ode_solve.F90
+        modified:   MICM_prototype/rate_constants.F90
+        modified:   MICM_prototype/rosenbrock.dev.F90
+        modified:   output_from_preprocessor/jacobian
+        modified:   output_from_preprocessor/rateconstants
+          - first pass modifications getting the model ready for CCPP caps
+
+        modified:   rawMake
+          - testing with gfortran
+
+Regression tests status: BFB 
+

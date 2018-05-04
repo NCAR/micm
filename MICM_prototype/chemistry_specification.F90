@@ -1,10 +1,13 @@
 module chemistry_specification
 
-! will be provided by configurator
+!-------------------------------------------
+! This module contains the parameters from the configuator based on the user's
+! specifications
+!-------------------------------------------
 
 implicit none
 private
 
-   include 'chemistrySpecifications'  
+  integer, public, parameter :: nSpecies_specified = 3  ! Number of chemical species for the run
 
 end module chemistry_specification
