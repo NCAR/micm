@@ -1,3 +1,38 @@
+
+=====================================================
+Tag name: micm_cac_0003
+Originator(s): cacraig
+Date: May 4, 2018
+One-line Summary: Renamed directory and files
+
+Purpose of Changes:
+  - Renamed MIMC_prototype to src
+  - Renamed ode_solve.F90 to chem_solve.F90
+  - Renamed rate_constants.F90 to k_rate_constants.F90
+
+Files added:
+        renamed:    MICM_prototype/README.md -> src/README.md
+        renamed:    MICM_prototype/ode_solve.F90 -> src/chem_solve.F90
+        renamed:    MICM_prototype/chemistry_specification.F90 -> src/chemistry_specification.F90
+        renamed:    MICM_prototype/driver.F90 -> src/driver.F90
+        renamed:    MICM_prototype/external_fields.F90 -> src/external_fields.F90
+        renamed:    MICM_prototype/forcing_and_jacobian.F90 -> src/forcing_and_jacobian.F90
+        renamed:    MICM_prototype/rate_constants.F90 -> src/k_rate_constants.F90
+        renamed:    MICM_prototype/precision.F90 -> src/precision.F90
+        renamed:    MICM_prototype/rosenbrock.dev.F90 -> src/rosenbrock.dev.F90
+        renamed:    MICM_prototype/solver_specification.F90 -> src/solver_specification.F90
+
+Files deleted:
+
+Files modified:
+        modified:   ChangeLog_template
+          - added Purpose of Changes section
+
+        modified:   rawMake
+          - needed to point to new file and directory names
+   
+Regression tests status: 
+
 =====================================================
 Tag name: micm_cac_0002
 Originator(s): cacraig
