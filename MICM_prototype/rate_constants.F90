@@ -1,55 +1,65 @@
-module rate_constants
+module k_rate_const_module
 
 
 use precision, only : r8
-use chemistry_specification, only: n_reactions
 
 implicit none
+private
 
-! rate_constants are computed at the beginning of the 
+public :: k_rate_const_register
+public :: k_rate_const_init
+public :: k_rate_const_run
+
+! k_rate_const are computed at the beginning of the 
 !   chemistry_box_solver time step.
 !   They are not computed for internal steps of the
 !   box-model time-step advancer
-! rate_constants will be thread-safe memory provided elsewhere.
+! k_rate_const will be thread-safe memory provided elsewhere.
 ! rate_constant_store will be an accessor to memory
 ! For now, it is allocated here. It is not thread safe
-
-real(r8) :: rateConstants(n_reactions)
 
 contains
 
   !---------------------------
-  ! Compute rate_constants, given M, P, T
+  ! Register the number of k_rate_const values for the run
+  !---------------------------
+  subroutine k_rate_const_register(nkReact)
+      
+    integer, parameter :: nkReact_set = 3
+    integer :: nkReact
+
+    nkReact=nkReact_set
+
+  end  subroutine k_rate_const_register
+
+  !---------------------------
+  ! Register the number of k_rate_const values for the run
+  !---------------------------
+  subroutine k_rate_const_init(nkReact, k_rate_const)
+    integer, intent(in) :: nkReact 
+    real(r8), pointer, intent(inout) :: k_rate_const(:)
+  end  subroutine k_rate_const_init
+
+  !---------------------------
+  ! Compute k_rate_const, given M, P, T
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !---------------------------
-  subroutine compute_rate_constants()
+  subroutine k_rate_const_run(k_rate_const)
   
     use external_fields, M => mass_density, P => pressure, T=>temperature
-    !use rate_constant_store, only: get_stored_rate_constants
+    !use rate_constant_store, only: get_stored_k_rate_const
   real(r8) :: t_inverse
+  real(r8),pointer :: k_rate_const(:)
   
   t_inverse = 1/T
-  
+  ! *** CALL OR USE ASSOC THIS INCLUDE
   include 'rateconstants'
 
   print*,'rate constants'
-  print*,rateConstants
+  print*,k_rate_const
   
-  end subroutine compute_rate_constants
-  
-  
-  !---------------------------
-  ! Provide rate_constants from store
-  ! This may be called multiple times from the solver
-  !---------------------------
-  function get_rate_constants()
-  real(r8), dimension(n_reactions) :: get_rate_constants
-  
-    ! rate_constants memory is allocated elsewhere
-    get_rate_constants = rateConstants
- 
-  end function get_rate_constants
+  end subroutine k_rate_const_run
   
   
-end module rate_constants
+end module k_rate_const_module
