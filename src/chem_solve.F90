@@ -3,7 +3,7 @@ module chem_solve
 !----------------------------------------------------------------------
 ! Module which solves the chemical equations
 !
-! integrates dy/dt = force(y)  from t=0 to t=time_step_size
+! integrates dy/dt = force(y)  from t=0 to t=timeEnd
 ! may require jacobian = d(force(y))/dy
 ! ignorant of anything about y, force(y)
 !----------------------------------------------------------------------
@@ -31,12 +31,12 @@ contains
   end subroutine chem_solve_register
 
   ! returns 0 for failure, 1 for success, other integers for other data
-  subroutine chem_solve_run (nkReact, initial_state, time_step_size, k_rate_const, AbsTol, RelTol, state_final, ierr)
+  subroutine chem_solve_run (nkReact, state_init, timeEnd, kRateConst, AbsTol, RelTol, state_final, ierr)
 
     integer, intent(in) :: nkReact
-    real(r8), pointer, intent(in) :: initial_state(:)
-    real(r8), intent(in) :: time_step_size
-    real(r8), pointer, intent(in) ::  k_rate_const(:)   ! rates constants for each reaction
+    real(r8), pointer, intent(in) :: state_init(:)
+    real(r8), intent(in) :: timeEnd
+    real(r8), pointer, intent(in) ::  kRateConst(:)   ! rates constants for each reaction
     real(r8), intent(in) :: AbsTol(:)
     real(r8), intent(in) :: RelTol(:)
     real(r8), intent(out) :: state_final(nSpecies)
@@ -45,23 +45,20 @@ contains
     integer  :: icntrl(20), istatus(20)
     real(r8) :: state_curr(nSpecies)
     real(r8) :: rcntrl(20), rstatus(20)
-
-    integer :: i_time_step
+ 
+    real(r8) :: timeStart = 0._r8
 
     icntrl(:) = 0 ; rcntrl(:) = 0._r8
 
     icntrl(1) = 1                                 ! autonomous, F depends only on Y
     icntrl(3) = 2                                 ! ros3 solver
 
-    state_curr(:) = initial_state(:)
+    state_curr(:) = state_init(:)
 
     ! using rosenbrock ros3 solver
-!    call Rosenbrock( nSpecies, state_curr, &
-!                     0._r8, time_step_size,  nkReact, initial_state, k_rate_const, AbsTol, RelTol, &
-!                     rcntrl, icntrl, rstatus, istatus, ierr )
 
     call Rosenbrock( nSpecies, state_curr, &
-                     0._r8, time_step_size,  nkReact, k_rate_const, AbsTol, RelTol, &
+                     timeStart, timeEnd,  nkReact, kRateConst, AbsTol, RelTol, &
                      rcntrl, icntrl, rstatus, istatus, ierr )
     state_final(:) = state_curr(:)
    
