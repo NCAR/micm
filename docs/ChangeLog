@@ -1,5 +1,41 @@
 
 =====================================================
+Tag name: micm_cac_0004
+Originator(s): cacraig
+Date: May 23, 2018
+One-line Summary: Address most of 'changes from first code review'
+
+Purpose of changes: 
+ - Introduce forcingParameter structure to pass all forcing information 
+
+Files added:
+        renamed:    ChangeLog -> docs/ChangeLog
+	renamed:    ChangeLog_template -> docs/ChangeLog_template
+
+Files deleted:
+
+Files modified:
+        modified:   output_from_preprocessor/jacobian
+	modified:   output_from_preprocessor/rateconstants
+	modified:   src/chem_solve.F90
+	modified:   src/k_rate_constants.F90
+	  - k_rate_const is now forcingParam%k_rateConst
+
+	modified:   src/driver.F90
+	  - create register and init sections
+	  - add missing _r8
+	  - rename k_rateConst
+
+	modified:   src/forcing_and_jacobian.F90
+	  - add forcingParam_type and use it
+	  - restore force as a function so it may be called directly from rosenbrock
+
+	modified:   src/rosenbrock.dev.F90
+	  - restore rosenbrock to its initial state with the addition of passing forcingParam
+
+Regression tests status: PASS
+
+=====================================================
 Tag name: micm_cac_0003
 Originator(s): cacraig
 Date: May 4, 2018

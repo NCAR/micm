@@ -3,8 +3,8 @@
 
 ! Rate Constants
 ! Y0_a
-k_rate_const(1) = 0.04
+k_rateConst(1) = 0.04
 ! Y1_Y2_M_b
-k_rate_const(2) = 1e+4
+k_rateConst(2) = 1e+4
 ! Y1_Y1_a
-k_rate_const(3) = 1.5e7 * exp(0 * t_inverse)
+k_rateConst(3) = 1.5e7 * exp(0 * t_inverse)

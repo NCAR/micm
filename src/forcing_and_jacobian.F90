@@ -3,28 +3,36 @@ module forcing_and_jacobian
 use precision, only : r8
 
 implicit none
+private
+
+public :: forcingParam_type, force, jac
+
+type forcingParam_type
+   integer           :: nkReact
+   real(r8), pointer :: k_rateConst(:)
+   real(r8), pointer :: j_rateConst(:)
+end type forcingParam_type
 
 contains
 
   !---------------------------
   ! Compute reaction rates, given vmr of each species and rate constants that have been computed elsewhere
   !---------------------------
-  subroutine compute_rates(nkReact, vmr, k_rate_const,  k_rates)
+  subroutine compute_rates(vmr, forcingParam,  k_rates)
   
     use external_fields, M =>mass_density
   
-    integer, intent(in) :: nkReact
     real(r8), intent(in) ::  vmr(:)           ! volume mixing ratios of each component in order
-    real(r8), intent(in) ::  k_rate_const(nkReact)   ! rates constants for each reaction
-    real(r8), intent(out) ::  k_rates(nkReact)   ! rates for each reaction (sometimes called velocity of reaction)
+    type(forcingParam_type), intent(in) ::  forcingParam  ! rates constants for each reaction
+    real(r8), intent(out) ::  k_rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
   
 ! Rates
 ! Y0_a
-k_rates(1) = k_rate_const(1) * vmr(1)
+k_rates(1) = forcingParam%k_rateConst(1) * vmr(1)
 ! Y1_Y2_M_b
-k_rates(2) = k_rate_const(2) * vmr(2) * vmr(3) * M
+k_rates(2) = forcingParam%k_rateConst(2) * vmr(2) * vmr(3) * M
 ! Y1_Y1_a
-k_rates(3) = k_rate_const(3) * vmr(2) * vmr(2)
+k_rates(3) = forcingParam%k_rateConst(3) * vmr(2) * vmr(2)
 
   end subroutine compute_rates
   
@@ -32,35 +40,34 @@ k_rates(3) = k_rate_const(3) * vmr(2) * vmr(2)
   !---------------------------
   ! Compute time rate of change of each molecule (vmr) given reaction rates
   !---------------------------
-  subroutine calc_force(nkReact, vmr, k_rate_const, force)
+  function force(vmr, forcingParam)
   
-    integer, intent(in)::  nkReact
     real(r8), intent(in)::  vmr(:)   ! volume mixing ratios of each component in order
-    real(r8), intent(in)::  k_rate_const(:)   ! rates constants for each reaction
-    real(r8), intent(out) ::  force(size(vmr))    ! rate of change of each molecule
+    type(forcingParam_type), intent(in)::  forcingParam   ! rates constants for each reaction
+    real(r8)            ::  force(size(vmr))    ! rate of change of each molecule
 
-    real(r8) ::  k_rates(nkReact)  ! rates of each reaction
+    real(r8) ::  k_rates(forcingParam%nkReact)  ! rates of each reaction
   
-    call compute_rates(nkReact,vmr,k_rate_const, k_rates)
+    call compute_rates(vmr,forcingParam, k_rates)
  
 ! testing
  force(1) = (-1) * k_rates(1) + (1) * k_rates(2)
  force(2) = (1) * k_rates(1) + (-1) * k_rates(2) + (-1) * k_rates(3) + (-1) * k_rates(3)
  force(3) = (0) * k_rates(2) + (2) * k_rates(3)
 
-  end subroutine calc_force
+  end function force
   
   
   !---------------------------
   ! Compute sensitivity of molecular forcing to each vmr (derivative of force w.r.t. each vmr)
   !---------------------------
-  function jac(vmr, k_rate_const)
+  function jac(vmr, forcingParam)
   
     use external_fields, M=>  mass_density
 
     real(r8), intent(in)::  vmr(:)              ! volume mixing ratios of each component in order
     real(r8) :: jac(size(vmr),size(vmr))   ! sensitivity of forcing to changes in each vmr
-    real(r8),pointer ::  k_rate_const(:)    ! forcing (rate of change) of each component in order
+    type(forcingParam_type), intent(in) ::  forcingParam    ! forcing (rate of change) of each component in order
   
     jac(:,:) = 0.
   

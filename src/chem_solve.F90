@@ -12,6 +12,7 @@ use precision, only : r8
 use chemistry_specification, only: nSpecies_specified
 use solver_specification, only: ndiv
 use rosenbrock_integrator, only: Rosenbrock
+use forcing_and_jacobian, only: forcingParam_type
 
 implicit none
 
@@ -41,7 +42,9 @@ contains
     real(r8), intent(in) :: RelTol(:)
     real(r8), intent(out) :: state_final(nSpecies)
     integer, intent(out) :: ierr
-  
+   
+    type(forcingParam_type) :: forcingParam
+
     integer  :: icntrl(20), istatus(20)
     real(r8) :: state_curr(nSpecies)
     real(r8) :: rcntrl(20), rstatus(20)
@@ -53,12 +56,16 @@ contains
     icntrl(1) = 1                                 ! autonomous, F depends only on Y
     icntrl(3) = 2                                 ! ros3 solver
 
+    allocate(forcingParam%k_rateConst(nkReact))
+
+    forcingParam%k_rateConst(:) = kRateConst(:)
+
     state_curr(:) = state_init(:)
 
     ! using rosenbrock ros3 solver
 
     call Rosenbrock( nSpecies, state_curr, &
-                     timeStart, timeEnd,  nkReact, kRateConst, AbsTol, RelTol, &
+                     timeStart, timeEnd,  forcingParam, AbsTol, RelTol, &
                      rcntrl, icntrl, rstatus, istatus, ierr )
     state_final(:) = state_curr(:)
    
