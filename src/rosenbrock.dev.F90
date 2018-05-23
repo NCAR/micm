@@ -10,6 +10,7 @@
 MODULE Rosenbrock_Integrator
 
   USE precision, only : r8
+  use forcing_and_jacobian, only : forcingParam_type
 
   IMPLICIT NONE
   PUBLIC
@@ -24,7 +25,7 @@ CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
-           nkReact, k_rate_const, AbsTol,RelTol,&
+           forcingParam, AbsTol,RelTol,&
            RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -144,8 +145,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    INTEGER,  INTENT(IN)    :: N
    REAL(r8), INTENT(INOUT) :: Y(N)
    REAL(r8), INTENT(IN)    :: Tstart,Tend
-   INTEGER, intent(in)  :: nkReact
-   REAL(r8), POINTER, INTENT(IN)    :: k_rate_const(:)
+   TYPE(forcingParam_type), INTENT(IN)    :: forcingParam
    REAL(r8), INTENT(IN)    :: AbsTol(N),RelTol(N)
    INTEGER,       INTENT(IN)    :: ICNTRL(20)
    REAL(r8), INTENT(IN)    :: RCNTRL(20)
@@ -302,7 +302,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>  CALL Rosenbrock method
    CALL ros_Integrator(Y, Tstart, Tend,          &
-        nkReact, k_rate_const, Texit,       &
+        forcingParam, Texit,       &
         AbsTol, RelTol,                          &
 !  Integration parameters
         Autonomous, VectorTol, Max_no_steps,     &
@@ -357,7 +357,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_Integrator (Y, Tstart, Tend,     &
-        nkReact,  k_rate_const, T,           &
+        forcingParam, T,           &
         AbsTol, RelTol,                          &
 !~~~> Integration parameters
         Autonomous, VectorTol, Max_no_steps,     &
@@ -375,8 +375,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
    REAL(r8), INTENT(INOUT) :: Y(N)
 !~~~> Input: integration interval
    REAL(r8), INTENT(IN) :: Tstart,Tend
-   INTEGER, intent(in)  :: nkReact
-   REAL(r8), POINTER, INTENT(IN) :: k_rate_const(:)
+   TYPE(forcingParam_type), INTENT(IN)    :: forcingParam
 !~~~> Output: time at which the solution is returned (T=Tend if success)
    REAL(r8), INTENT(OUT) ::  T
 !~~~> Input: tolerances
@@ -435,16 +434,16 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate( N, T, Y, nkReact, k_rate_const, Fcn0 )
+   CALL FunTemplate( N, T, Y, forcingParam, Fcn0 )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative( T, Roundoff, Y, Fcn0, nkReact, k_rate_const, dFdT )
+      CALL ros_FunTimeDerivative( T, Roundoff, Y, Fcn0, forcingParam, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate( N, T, Y, k_rate_const, Jac0 )
+   CALL JacTemplate( N, T, Y, forcingParam, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -470,7 +469,7 @@ Stage: DO istage = 1, ros_S
              Ynew(1:N) = Ynew(1:N) + ros_A(S_ndx+j)*K(1:N,j)
            END DO
            Tau = T + ros_Alpha(istage)*Direction*H
-           CALL FunTemplate( N, Tau, Ynew, nkReact, k_rate_const, Fcn )
+           CALL FunTemplate( N, Tau, Ynew, forcingParam, Fcn )
            ISTATUS(Nfun) = ISTATUS(Nfun) + 1
          ENDIF
          K(1:N,istage) = Fcn(1:N)
@@ -575,15 +574,14 @@ Accepted: &
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, nkReact, k_rate_const, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, forcingParam, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~> Input arguments
    REAL(r8), INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
-   INTEGER, intent(in)  :: nkReact
-   REAL(r8), pointer, intent(in)  :: k_rate_const(:)
+   TYPE(forcingParam_type), INTENT(IN)    :: forcingParam
 
 !~~~> Output arguments
    REAL(r8), INTENT(OUT) :: dFdT(N)
@@ -593,7 +591,7 @@ Accepted: &
    REAL(r8), PARAMETER :: ONE = 1.0_r8, DeltaMin = 1.0E-6_r8
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate( N, T+Delta, Y, nkReact,  k_rate_const, dFdT )
+   CALL FunTemplate( N, T+Delta, Y, forcingParam, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    factor = ONE/Delta
    dFdT(1:N) = factor*(dFdT(1:N) - Fcn0(1:N))
@@ -1126,29 +1124,28 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( N, T, Y, nkReact,  k_rate_const, Ydot )
+SUBROUTINE FunTemplate( N, T, Y, forcingParam, Ydot )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE forcing_and_jacobian, only : calc_force
+ USE forcing_and_jacobian, only : force
 !~~~> Input variables
    INTEGER, intent(in) :: N
    REAL(r8), intent(in) :: T
    REAL(r8), intent(in) :: Y(N)
-   INTEGER, intent(in)  :: nkReact
-   REAL(r8), pointer, intent(in)  :: k_rate_const(:)
+   TYPE(forcingParam_type), INTENT(IN)    :: forcingParam
 !~~~> Output variables
    REAL(r8), intent(out) :: Ydot(N)
 !~~~> Local variables
    REAL(r8) :: Told
 
-   call calc_force(nkReact, Y, k_rate_const, Ydot)
+   Ydot(:) =  Force(Y, forcingParam)
 
 END SUBROUTINE FunTemplate
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE JacTemplate( N, T, Y, k_rate_const, Jcb )
+SUBROUTINE JacTemplate( N, T, Y, forcingParam, Jcb )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1159,14 +1156,14 @@ SUBROUTINE JacTemplate( N, T, Y, k_rate_const, Jcb )
    INTEGER, intent(in) :: N
    REAL(r8), intent(in) :: T                     ! time
    REAL(r8), intent(in) :: Y(N)
-   REAL(r8), pointer, intent(in) :: k_rate_const(:)
+   TYPE(forcingParam_type), INTENT(IN)    :: forcingParam
 !~~~> Output variables
    REAL(r8), intent(inout) :: Jcb(N,N)
 !~~~> Local variables
     REAL(r8) :: Told
     INTEGER :: i, j
 
-    Jcb(:,:) = Jac( Y, k_rate_const )
+    Jcb(:,:) = Jac( Y, forcingParam )
 
 END SUBROUTINE JacTemplate
 
