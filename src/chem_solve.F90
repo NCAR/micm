@@ -56,6 +56,7 @@ contains
     icntrl(1) = 1                                 ! autonomous, F depends only on Y
     icntrl(3) = 2                                 ! ros3 solver
 
+    forcingParam%nkReact = nkReact
     allocate(forcingParam%k_rateConst(nkReact))
 
     forcingParam%k_rateConst(:) = kRateConst(:)

@@ -461,10 +461,10 @@ Stage: DO istage = 1, ros_S
          S_ndx = (istage - 1)*(istage - 2)/2
       ! For the 1st istage the function has been computed previously
          IF ( istage == 1 ) THEN
-	   Fcn(1:N) = Fcn0(1:N)
+            Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
          ELSEIF ( ros_NewF(istage) ) THEN
-	   Ynew(1:N) = Y(1:N)
+           Ynew(1:N) = Y(1:N)
            DO j = 1, istage-1
              Ynew(1:N) = Ynew(1:N) + ros_A(S_ndx+j)*K(1:N,j)
            END DO

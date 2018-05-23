@@ -11,5 +11,6 @@ cp output_from_preprocessor/* $target_bld
 cd $target_bld
 #pgf95 -g -O -Mpreprocess precision.F90 chemistry_specification.F90 external_fields.F90 k_rate_constants.F90 forcing_and_jacobian.F90 solver_specification.F90 rosenbrock.dev.F90 chem_solve.F90 driver.F90
 
-gfortran -g precision.F90 chemistry_specification.F90 external_fields.F90 k_rate_constants.F90 forcing_and_jacobian.F90 solver_specification.F90 rosenbrock.dev.F90 chem_solve.F90 driver.F90
+
+gfortran -g -pedantic -fcheck=all precision.F90 chemistry_specification.F90 external_fields.F90 k_rate_constants.F90 forcing_and_jacobian.F90 solver_specification.F90 rosenbrock.dev.F90 chem_solve.F90 driver.F90
 mv -i a.out ../micm
