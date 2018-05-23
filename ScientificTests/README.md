@@ -1,8 +1,9 @@
 # Scientific Tests
 
-What tests can be done to verify that solvers are computing expected answers (including excpetions) for given chemical systems
+There are a series of tests implemented for scientific validation.
+The first test is one of a stiff system with three components.
 
-Toy Chemistry
+Future implementations will include a series of regression tests.
 
-Superfast - Hard-coded j-rate functions(t)
+Future science tests will be an implementation of the terminator (toy) chemistry.
 
