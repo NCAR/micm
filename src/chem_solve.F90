@@ -70,7 +70,8 @@ contains
                      rcntrl, icntrl, rstatus, istatus, ierr )
     state_final(:) = state_curr(:)
    
-  
+    deallocate(forcingParam%k_rateConst)
+
   end subroutine chem_solve_run
     
   
