@@ -65,8 +65,8 @@ call k_rateConst_init(nkReact, k_rateConst)
 
 !-----------------------------------------------
 ! Simulate the XML file which CCPP will use to drive the model
-!-----------------------------------------------
 ! Only called at beginnning
+!-----------------------------------------------
     call k_rateConst_run(k_rateConst)
 
   Tstart = 0._r8
@@ -97,10 +97,14 @@ call k_rateConst_init(nkReact, k_rateConst)
   print *, advanced_vmr
 
 !-----------------------------------
-! deallocate variables
+! some of these will be deallocated by CPF
 !-----------------------------------
 
-  deallocate (vmr, advanced_vmr, k_rateConst)
+  deallocate (vmr)
+  deallocate (advanced_vmr)
+  deallocate (AbsTol)
+  deallocate (RelTol)
+  deallocate(k_rateConst)
 
 
 end program micm_driver

@@ -56,6 +56,7 @@ contains
     icntrl(1) = 1                                 ! autonomous, F depends only on Y
     icntrl(3) = 2                                 ! ros3 solver
 
+    forcingParam%nkReact = nkReact
     allocate(forcingParam%k_rateConst(nkReact))
 
     forcingParam%k_rateConst(:) = kRateConst(:)
@@ -69,7 +70,8 @@ contains
                      rcntrl, icntrl, rstatus, istatus, ierr )
     state_final(:) = state_curr(:)
    
-  
+    deallocate(forcingParam%k_rateConst)
+
   end subroutine chem_solve_run
     
   
