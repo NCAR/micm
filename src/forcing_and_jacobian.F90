@@ -26,6 +26,7 @@ contains
     type(forcingParam_type), intent(in) ::  forcingParam  ! rates constants for each reaction
     real(r8), intent(out) ::  k_rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
   
+!>>FromCafe
 ! Rates
 ! Y0_a
 k_rates(1) = forcingParam%k_rateConst(1) * vmr(1)
@@ -33,6 +34,7 @@ k_rates(1) = forcingParam%k_rateConst(1) * vmr(1)
 k_rates(2) = forcingParam%k_rateConst(2) * vmr(2) * vmr(3) * M
 ! Y1_Y1_a
 k_rates(3) = forcingParam%k_rateConst(3) * vmr(2) * vmr(2)
+!<<FromCafe
 
   end subroutine compute_rates
   
@@ -50,10 +52,12 @@ k_rates(3) = forcingParam%k_rateConst(3) * vmr(2) * vmr(2)
   
     call compute_rates(vmr,forcingParam, k_rates)
  
+!>>FromCafe
 ! testing
  force(1) = (-1) * k_rates(1) + (1) * k_rates(2)
  force(2) = (1) * k_rates(1) + (-1) * k_rates(2) + (-1) * k_rates(3) + (-1) * k_rates(3)
  force(3) = (0) * k_rates(2) + (2) * k_rates(3)
+!<<FromCafe
 
   end function force
   
@@ -71,7 +75,23 @@ k_rates(3) = forcingParam%k_rateConst(3) * vmr(2) * vmr(2)
   
     jac(:,:) = 0.
   
-    include 'jacobian'
+!>>FromCafe
+! Jacobian  
+jac(1,1)  = jac(1,1) + (-1) * forcingParam%k_rateConst(1)
+jac(1,2)  = jac(1,2) + (1) * forcingParam%k_rateConst(2) * vmr(3) * M
+jac(1,3)  = jac(1,3) + (1) * forcingParam%k_rateConst(2) * vmr(2) * M
+jac(2,1)  = jac(2,1) + (1) * forcingParam%k_rateConst(1)
+jac(2,2)  = jac(2,2) + (-1) * forcingParam%k_rateConst(2) * vmr(3) * M
+jac(2,3)  = jac(2,3) + (-1) * forcingParam%k_rateConst(2) * vmr(2) * M
+jac(2,2)  = jac(2,2) + (-1) * forcingParam%k_rateConst(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * forcingParam%k_rateConst(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * forcingParam%k_rateConst(3) * vmr(2)
+jac(2,2)  = jac(2,2) + (-1) * forcingParam%k_rateConst(3) * vmr(2)
+jac(3,2)  = jac(3,2) + (0) * forcingParam%k_rateConst(2) * vmr(3) * M
+jac(3,3)  = jac(3,3) + (0) * forcingParam%k_rateConst(2) * vmr(2) * M
+jac(3,2)  = jac(3,2) + (2) * forcingParam%k_rateConst(3) * vmr(2)
+jac(3,2)  = jac(3,2) + (2) * forcingParam%k_rateConst(3) * vmr(2)
+!<<FromCafe
 
   end function jac
 

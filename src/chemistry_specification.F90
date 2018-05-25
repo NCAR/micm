@@ -8,6 +8,8 @@ module chemistry_specification
 implicit none
 private
 
+!>>FromCafe
   integer, public, parameter :: nSpecies_specified = 3  ! Number of chemical species for the run
+!<<FromCafe
 
 end module chemistry_specification

@@ -2,11 +2,15 @@
 
 
 target_bld=bld
+
+if [ ! -d $target_bld ] 
+then 
+  mkdir $target_bld 
+fi
+
 rm $target_bld/*
 
 cp src/* $target_bld
-cp output_from_preprocessor/* $target_bld
-
 
 cd $target_bld
 #pgf95 -g -O -Mpreprocess precision.F90 chemistry_specification.F90 external_fields.F90 k_rate_constants.F90 forcing_and_jacobian.F90 solver_specification.F90 rosenbrock.dev.F90 chem_solve.F90 driver.F90

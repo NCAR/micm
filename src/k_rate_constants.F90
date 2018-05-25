@@ -52,8 +52,16 @@ contains
   real(r8),pointer :: k_rateConst(:)
   
   t_inverse = 1/T
-  ! *** CALL OR USE ASSOC THIS INCLUDE
-  include 'rateconstants'
+
+!>>FromCafe
+! Rate Constants
+! Y0_a
+k_rateConst(1) = 0.04
+! Y1_Y2_M_b
+k_rateConst(2) = 1e+4
+! Y1_Y1_a
+k_rateConst(3) = 1.5e7 * exp(0 * t_inverse)
+!<<FromCafe
 
   print*,'rate constants'
   print*,k_rateConst
