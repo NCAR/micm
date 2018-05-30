@@ -28,8 +28,8 @@ contains
   !---------------------------
   subroutine k_rateConst_register(nkReact)
       
-    integer, parameter :: nkReact_set = 3
-    integer :: nkReact
+    integer, parameter   :: nkReact_set = 3
+    integer, intent(out) :: nkReact
 
     nkReact=nkReact_set
 
