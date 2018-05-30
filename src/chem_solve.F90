@@ -64,7 +64,7 @@ contains
     integer, intent(out) :: ierr
    
     type(forcingParam_type) :: forcingParam
-    real(r8)                :: vmr_curr(nkReact)      ! Value of current VMR
+    real(r8)                :: vmr_curr(size(vmr_final))      ! Value of current VMR
 
     integer  :: icntrl(20), istatus(20)
     real(r8) :: rcntrl(20), rstatus(20)
