@@ -1,5 +1,34 @@
 
 =====================================================
+Tag name: micm_cac_0005
+Originator(s): cacraig
+Date: May 25, 2018
+One-line Summary:  Code ready to be ported into CCPP
+
+Purpose of changes: 
+  - Changes to prepare the code for integration with CCPP
+
+Files added:
+	new file:   ../docs/pull_request_template.md
+
+Files deleted:
+
+Files modified:
+        modified:   ../.gitignore
+	modified:   ../ScientificTests/README.md
+        modified:   ../rawMake
+        modified:   chem_solve.F90
+        modified:   chemistry_specification.F90
+        modified:   driver.F90
+        modified:   forcing_and_jacobian.F90
+        modified:   k_rate_constants.F90
+        modified:   rosenbrock.dev.F90
+        modified:   solver_specification.F90
+
+Regression tests status: PASS
+
+=====================================================
+=====================================================
 Tag name: micm_cac_0004
 Originator(s): cacraig
 Date: May 23, 2018

@@ -1,110 +1,87 @@
-program micm_driver
+program host_model_simulator
 
 !--------------------------------------------------------------------------------
-! Program which prototypes the MICM driver
+! Program which simulates the host model for MICM
 !--------------------------------------------------------------------------------
-use external_fields,     only: set_externals
-use chem_solve,          only: chem_solve_register,  chem_solve_run
+use chemSolve,          only: chemSolve_register,  chemSolve_init, chemSolve_run
 use k_rateConst_module, only: k_rateConst_register, k_rateConst_init, k_rateConst_run
-
-! This probably needs to be replaced
-use solver_specification, only: nStep => ndiv
-
-
-use precision, only : r8
+use precision,          only: r8
 
 implicit none
 
-integer :: nSpecies                    ! Number of chemical species in run
-integer :: nkReact                     ! Number of k reactions in run
-real(r8), pointer :: k_rateConst(:)
+integer           :: nSpecies               ! Number of chemical species in run
+integer           :: nkReact                ! Number of k reactions in run
+real(r8), pointer :: k_rateConst(:)         ! K rate constants
 
-real(r8),pointer :: vmr(:)
-real(r8),pointer :: advanced_vmr(:)
+real(r8),pointer  :: vmr_init(:)            ! Initial VMR
+real(r8),pointer  :: vmr_curr(:)            ! Current VMR
 
-! this system is unstable, so 3e+1 fails
-real(r8) :: time_step_size = 2e+1_r8 ! seconds
+real(r8)          :: timeStepSize = 2e+1_r8 ! seconds - this system is unstable, so 3e+1 fails
 
-! convergence criteria will have to be set somewhere and passed to ode solver.
-real(r8)         :: Tstart, Tend, Time
-real(r8),pointer :: RelTol(:)
-real(r8),pointer :: AbsTol(:)
-integer :: ode_retcode
+! convergence criteria will have to be set somewhere(Cafe) and passed to ode solver.
+real(r8),pointer  :: relTol(:)              ! Relative tolerance
+real(r8),pointer  :: absTol(:)              ! Absolute tolerance
+
+integer           :: ierr                   ! Error code
+
+
+! These will eventually be provided by the host model (are not currently used,  but  will be)
+
+real(r8), parameter :: temperature = 273
+real(r8), parameter :: pressure = 100000
+real(r8), parameter :: mass_density = 1
 
 !-----------------------------------------------
 ! Register the chemistry packages
 !-----------------------------------------------
 
-call chem_solve_register(nSpecies)
+call chemSolve_register(nSpecies)
 call k_rateConst_register(nkReact)
 
 
 !-----------------------------------------------
 ! Allocate the local variables  (This will be done via CPF?)
 !-----------------------------------------------
-allocate (vmr(nSpecies))
-allocate (advanced_vmr(nSpecies))
-allocate (AbsTol(nSpecies))
-allocate (RelTol(nSpecies))
-allocate(k_rateConst(nkReact))
+allocate (vmr_init(nSpecies))
+allocate (vmr_curr(nSpecies))
+allocate (absTol(nSpecies))
+allocate (relTol(nSpecies))
+allocate (k_rateConst(nkReact))
 
 !-----------------------------------------------
 ! Initialize the chemistry packages
 !-----------------------------------------------
 
 call k_rateConst_init(nkReact, k_rateConst)
+call chemSolve_init(absTol, relTol)
 
 !-----------------------------------------------
 ! Explicitly specify the data which will come from the  cpf
 !-----------------------------------------------
 
-  vmr(:) =(/1._r8, 0._r8, 0._r8/)
+  vmr_init(:) =(/1._r8, 0._r8, 0._r8/)
   print *, 'initial value'
-  print *, vmr
+  print *, vmr_init
 
 
 !-----------------------------------------------
 ! Simulate the XML file which CCPP will use to drive the model
 ! Only called at beginnning
-!-----------------------------------------------
-    call k_rateConst_run(k_rateConst)
+  call k_rateConst_run(k_rateConst)
 
-  Tstart = 0._r8
-  Tend   = Tstart + real(nstep,r8) * time_step_size
-  Time   = Tstart
-  AbsTol(:) = 1.e-9_r8
-  RelTol(:) = 1.e-4_r8
-
-! Called once to advance vmr for time_step_size seconds
-    do
-      if( Time < Tend ) then
-        call  chem_solve_run(nkReact, vmr, time_step_size, k_rateConst, AbsTol, RelTol, advanced_vmr, ode_retcode)
-
-        if( ode_retcode /= 1 ) then
-          exit
-        endif
-        vmr(:) = advanced_vmr(:)
-      else
-        exit
-      endif
-      Time = Time + time_step_size
-    end do
-
-
-! data back to cpf
+  call  chemSolve_run(nkReact, vmr_init, timeStepSize, k_rateConst, absTol, relTol, vmr_curr, ierr)
 
   print *, 'final_value'
-  print *, advanced_vmr
+  print *, vmr_curr
 
 !-----------------------------------
 ! some of these will be deallocated by CPF
 !-----------------------------------
 
-  deallocate (vmr)
-  deallocate (advanced_vmr)
-  deallocate (AbsTol)
-  deallocate (RelTol)
+  deallocate (vmr_init)
+  deallocate (vmr_curr)
+  deallocate (absTol)
+  deallocate (relTol)
   deallocate(k_rateConst)
 
-
-end program micm_driver
+end program host_model_simulator

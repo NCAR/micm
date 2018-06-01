@@ -1,3 +1,0 @@
-
-  integer, public, parameter :: n_reactions = 3
-  integer, public, parameter :: n_prognostic_variables = 3

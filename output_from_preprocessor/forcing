@@ -1,4 +1,0 @@
-! testing
- force(1) = (-1) * rates(1) + (1) * rates(2)
- force(2) = (1) * rates(1) + (-1) * rates(2) + (-1) * rates(3) + (-1) * rates(3)
- force(3) = (0) * rates(2) + (2) * rates(3)
