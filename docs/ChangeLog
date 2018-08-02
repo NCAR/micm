@@ -1,6 +1,45 @@
+=====================================================
+Tag name: micm00_0001
+Originator(s): Stacy Walters, cacraig
+Date: August 2, 2018
+One-line Summary: Stacy's original Object-Oriented 3 component catalytic chemistry
+
+Purpose of changes:
+  - Introduces a simple Object-Oriented interface
+
+Files added:
+        new file:   caps/README
+          - Directory for the CCPP auto-generated caps
+
+        new file:   src/ODE_solver.F90
+        new file:   src/half_solver.F90
+        new file:   src/kinetics.F90
+        new file:   src/kinetics_module.f90
+        new file:   src/machine.F
+        new file:   src/mozart_solver.F90
+        new file:   src/null_solver.F90
+          - Files to support the new solvers
+
+Files deleted:
+        deleted:    src/chemistry_specification.F90
+        deleted:    src/driver.F90
+        deleted:    src/external_fields.F90
+        deleted:    src/forcing_and_jacobian.F90
+        deleted:    src/k_rate_constants.F90
+        deleted:    src/precision.F90
+        deleted:    src/solver_specification.F90
+          - Files which were from the old non-object oriented code
+
+Files modified:
+        modified:   src/chem_solve.F90
+        renamed:    src/rosenbrock.dev.F90 -> src/rosenbrock_solver.F90
+          - Modifications to support the new object-oriented code
+
+Regression tests status: 
+   Ran within ibox, and got the same answers that Stacy's original code was producing
 
 =====================================================
-Tag name: micm_cac_0005
+Tag name: micm_cac_0005 (micm_preObject)
 Originator(s): cacraig
 Date: May 25, 2018
 One-line Summary:  Code ready to be ported into CCPP

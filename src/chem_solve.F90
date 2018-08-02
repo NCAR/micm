@@ -1,115 +1,122 @@
-module chemSolve
 
-!----------------------------------------------------------------------
-! Module which solves the chemical equations
-!
-! integrates dy/dt = force(y)  from t=0 to t=timeEnd
-! may require jacobian = d(force(y))/dy
-! ignorant of anything about y, force(y)
-!----------------------------------------------------------------------
+module chem_solve
 
-use precision,                   only: r8
-use chemistry_specification,     only: nSpecies_specified
-use solver_specification,        only: ndiv
-use rosenbrock_integrator,       only: Rosenbrock
-use forcing_and_jacobian,        only: forcingParam_type
+  use micm_type_defs,  only: Solver_type
+  use kinetics_module, only: kinetics_type
+  
+  implicit none
 
-implicit none
+  private
+  public :: chem_solve_init 
+  public :: chem_solve_finalize
+  public :: chem_solve_run
 
-private
-public :: chemSolve_register, chemSolve_init, chemSolve_run
-
-integer :: nSpecies
-
+  integer, parameter :: rk = selected_real_kind( 15 )
+  
 contains
 
-  subroutine chemSolve_register (nSpecies_loc)
-  !---------------------------------------------------------------
-  ! Register the chemistry constants (from the Cafe)
-  !---------------------------------------------------------------
+!> \section arg_table_chem_solve_init Argument Table
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
+!! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type |         | none   | F        |
+!! | icntrl     | ODE_icontrol                                     | ODE integer controls                    | flag      |    1 | integer     |           | in     | F        |
+!! | rcntrl     | ODE_rcontrol                                     | ODE real controls                       | none      |    1 | real        | kind_phys | in     | F        |
+!! | AbsTol     | abs_trunc_error                                  | ODE absolute step truncation error      | none      |    1 | real        | kind_phys | in     | F        |
+!! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none      |    1 | real        | kind_phys | in     | F        |
+!! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s         |    0 | real        | kind_phys | in     | F        |
+!! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s         |    0 | real        | kind_phys | in     | F        |
+!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
+!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!!
+  subroutine chem_solve_init( TimeStart, TimeEnd, AbsTol, RelTol, &
+                              icntrl, rcntrl, ODE_obj, errmsg, errflg)
 
-    integer, intent(out) :: nSpecies_loc ! number of chemical species (NOTE -- This needs to be "protected" in cap)
+    implicit none
 
-    nSpecies_loc = nSpecies_specified  ! Set the number of species to pass back to the driver
-    nSpecies     = nSpecies_specified  ! Set the module level nSpecies
+    !--- arguments
+    integer,  intent(in)            :: icntrl(:)
+    real(rk), intent(in)            :: rcntrl(:)
+    real(rk), intent(in)            :: TimeStart
+    real(rk), intent(in)            :: TimeEnd
+    real(rk), intent(in)            :: AbsTol(:)
+    real(rk), intent(in)            :: RelTol(:)
+    type(Solver_type), pointer      :: ODE_obj
+    character(len=512), intent(out) :: errmsg
+    integer,            intent(out) :: errflg
 
-  end subroutine chemSolve_register
+    errmsg = ''
+    errflg = 0
 
-  subroutine chemSolve_init (absTol, relTol)
-  use chemistry_specification, only: chemistry_init
-  !---------------------------------------------------------------
-  ! Initialize the chemistry solver
-  !---------------------------------------------------------------
-    real(r8),pointer, intent(inout) :: absTol(:) ! absolute tolerance
-    real(r8),pointer, intent(inout) :: relTol(:) ! relatvie tolerance
+    call ODE_obj%theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=AbsTol, RelTol=RelTol, &
+                                       ICNTRL=icntrl, RCNTRL=rcntrl, Ierr=errflg )
 
-    call chemistry_init(absTol, relTol)
-  
-  end subroutine chemSolve_init
+  end subroutine chem_solve_init
 
+!> \section arg_table_chem_solve_run Argument Table
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
+!! | vmr        | concentration                                    | species concentration                   | mole/mole |    1 | real        | kind_phys | none   | F        |
+!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
+!! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type   |           | none   | F        |
+!! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real          | kind_phys | in     | F        |
+!! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real          | kind_phys | in     | F        |
+!! | Time       | Simulation_time                                  | Present simulation time                 | s       |    0 | real          | kind_phys | in     | F        |
+!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
+!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
+!!
+  subroutine chem_solve_run ( TimeStart, TimeEnd, Time, vmr, theKinetics, ODE_obj, errmsg, errflg)
 
-  ! returns 0 for failure, 1 for success, other integers for other data
-  subroutine chemSolve_run (nkReact, vmr_init, timeStepSize, kRateConst, absTol, relTol, vmr_final, ierr)
-  !---------------------------------------------------------------
-  ! Run the chemistry solver
-  !---------------------------------------------------------------
+    implicit none
 
-    integer, intent(in) :: nkReact
-    real(r8), pointer, intent(in) :: vmr_init(:)
-    real(r8), intent(in) :: timeStepSize
-    real(r8), pointer, intent(in) ::  kRateConst(:)   ! rates constants for each reaction
-    real(r8), intent(in) :: absTol(:)
-    real(r8), intent(in) :: relTol(:)
-    real(r8), intent(out) :: vmr_final(:)             ! Final VMR
-    integer, intent(out) :: ierr
-   
-    type(forcingParam_type) :: forcingParam
-    real(r8)                :: vmr_curr(size(vmr_final))      ! Value of current VMR
+    !--- arguments
+    real(rk), intent(in)         :: TimeStart
+    real(rk), intent(in)         :: TimeEnd
+    real(rk), intent(inout)      :: Time
+    real(rk), intent(inout)      :: vmr(:)
+    type(kinetics_type), pointer :: theKinetics
+    type(Solver_type),   pointer :: ODE_obj
+    character(len=512), intent(out) :: errmsg
+    integer,            intent(out) :: errflg
 
-    integer  :: icntrl(20), istatus(20)
-    real(r8) :: rcntrl(20), rstatus(20)
+    !--- local variables
+    integer :: Ierr
  
-    real(r8) :: timeStart = 0._r8
-    real(r8) :: timeEnd, time
+    !--- initialize CCPP error handling variables
+    errmsg = ''
+    errflg = 0
 
-    icntrl(:) = 0 ; rcntrl(:) = 0._r8
+    !--- initialize intent(out) variables
+    ! initialize all intent(out) variables here
 
-    icntrl(1) = 1                                 ! autonomous, F depends only on Y
-    icntrl(3) = 2                                 ! ros3 solver
+    !--- actual code
+    ! add your code here
 
-    forcingParam%nkReact = nkReact
-    allocate(forcingParam%k_rateConst(nkReact))
+    call ODE_obj%theSolver%Run( Tstart=TimeStart, Tend=TimeEnd, T=Time, y=vmr, &
+                                theKinetics=theKinetics, Ierr=Ierr )
 
-    ! Allocate forcingParam arrays for use internally in rosenbrock
-    forcingParam%k_rateConst(:) = kRateConst(:)
+    ! in case of errors, set errflg to a value != 0,
+    ! create a meaningfull error message and return
 
-    ! Start the VMR array with the initial setting
-    vmr_curr(:) = vmr_init(:)
+  end subroutine chem_solve_run
 
-    ! Initialize the time keeping variables
-    timeEnd   = timeStart + real(ndiv,r8) * timeStepSize
-    time   = timeStart
+!> \section arg_table_chem_solve_finalize Argument Table
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
+!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
+!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!!
+  subroutine chem_solve_finalize( errmsg, errflg )
 
-    ! Advance vmr for timeStepSize seconds
-    do while ( time < timeEnd ) 
+    !--- arguments
+    character(len=512), intent(out)   :: errmsg
+    integer,            intent(out)   :: errflg
 
-       ! using rosenbrock ros3 solver
-        call Rosenbrock( nSpecies, vmr_curr, &
-                         timeStart, timeStepSize,  forcingParam, absTol, relTol, &
-                         rcntrl, icntrl, rstatus, istatus, ierr )
+    !--- initialize CCPP error handling variables
+    errmsg = ''
+    errflg = 0
 
-        if( ierr /= 1 ) exit
+    write(*,*) 'chem_solve_finalize: CALLED'
 
-        ! Status was good, proceed with next time step
-        vmr_final(:) = vmr_curr(:)
-        Time = Time + timeStepSize
+  end subroutine chem_solve_finalize
 
-    end do
-  
-    deallocate(forcingParam%k_rateConst)
-
-  end subroutine chemSolve_run
-    
-  
-end module chemSolve
-
+end module chem_solve
