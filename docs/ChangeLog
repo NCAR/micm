@@ -18,6 +18,7 @@ Files added:
         new file:   src/machine.F
         new file:   src/mozart_solver.F90
         new file:   src/null_solver.F90
+        new file:   CMakeLists.txt
           - Files to support the new solvers
 
 Files deleted:
