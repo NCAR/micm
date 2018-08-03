@@ -109,7 +109,7 @@ else (PROJECT STREQUAL "CCPP-FV3")
       ./src/half_solver.F90
       ./src/rosenbrock_solver.F90
       ./src/mozart_solver.F90
-      ../ibox/src/micm_type_defs.f90
+      ../MusicBox/src/micm_type_defs.f90
   )
 endif (PROJECT STREQUAL "CCPP-FV3")
 
