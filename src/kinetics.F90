@@ -30,7 +30,6 @@ contains
     integer,            intent(out) :: errflg
     type(kinetics_type), pointer    :: theKinetics
 
-    theKinetics%nkReact = nkRxt
     call theKinetics%k_rateConst_init( nkRxt )
 
     errmsg = ''
@@ -42,15 +41,17 @@ contains
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
 !! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |       | none   | F        |
+!! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real      | kind_phys | in     | F        |
 !! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
 !! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
 !!
-  subroutine kinetics_run( theKinetics, errmsg, errflg )
+  subroutine kinetics_run( theKinetics, j_rateConst, errmsg, errflg )
 
     !--- arguments
+    type(kinetics_type), pointer      :: theKinetics
+    real(rk),           intent(in)    :: j_rateConst(:)
     character(len=512), intent(out)   :: errmsg
     integer,            intent(out)   :: errflg
-    type(kinetics_type), pointer      :: theKinetics
 
     !--- local variables
     integer :: Ierr
@@ -60,7 +61,7 @@ contains
     errflg = 0
 
     !--- set the gas phase rate constants
-    call theKinetics%k_rateConst_run()
+    call theKinetics%k_rateConst_run(j_rateConst)
 
   end subroutine kinetics_run
 

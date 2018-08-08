@@ -23,7 +23,6 @@ integer, parameter :: r8 = selected_real_kind( 15 )
 ! For now, it is allocated here. It is not thread safe
 
 ! Filter with CPP for PGI compiler
-#ifndef __PGI
 !> \section arg_table_kinetics_type
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type          |    kind   | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|---------------|-----------|--------|----------|
@@ -31,12 +30,10 @@ integer, parameter :: r8 = selected_real_kind( 15 )
 !! | nkRxt       | no_gas_phase_reactions                          | ngas_phase_reactions                    | count   |    0 | integer       |           | none   | F        |
 !!
 
-#endif
-
 type kinetics_type
+  private
   integer               :: nkReact
   real(r8), allocatable :: k_rateConst(:)
-  real(r8), allocatable :: j_rateConst(:)
 contains
   private
   procedure, public :: k_rateConst_init 
@@ -71,18 +68,17 @@ contains
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine k_rateConst_run( this )
-  
-  class(kinetics_type) :: this
+  subroutine k_rateConst_run( this, j_rateConst )
 
-  ! Rate Constants
-  ! Y0_a
-  this%k_rateConst(1) = 0.04_r8
-  ! Y1_Y2_M_b
-  this%k_rateConst(2) = 1.e4_r8
-  ! Y1_Y1_a
-  this%k_rateConst(3) = 1.5e7_r8
-  
+    class(kinetics_type) :: this
+    real(r8) :: j_rateConst(:)
+    
+    ! Rate Constants
+    ! CL_CL
+    this%k_rateConst(1) = 1.000000e-5_r8
+    ! CL2
+    this%k_rateConst(2) = j_rateConst(1)
+
   end subroutine k_rateConst_run
 
   subroutine k_rateConst_print( this )
@@ -111,64 +107,61 @@ contains
   ! Compute time rate of change of each molecule (vmr) given reaction rates
   !---------------------------
   function force( this, vmr )
-  
+
     class(kinetics_type) :: this
     real(r8), intent(in)::  vmr(:)              ! volume mixing ratios of each component in order
     real(r8)            ::  force(size(vmr))    ! rate of change of each molecule
 
-    real(r8) ::  k_rates(this%nkReact)          ! rates of each reaction
-  
-    call compute_rates(this, vmr, k_rates)
- 
-   ! set the forcing array
-    force(1) = k_rates(2) - k_rates(1)
-    force(2) = k_rates(1) - k_rates(2) - 2._r8 * k_rates(3)
-    force(3) = 2._r8 * k_rates(3)
+    real(r8) ::  rates(this%nkReact)          ! rates of each reaction
+
+    call compute_rates(this, vmr, rates)
+
+    ! set the forcing array
+    force(1) = (-1) * rates(1) + (-1) * rates(1) + (2) * rates(2)
+    force(2) = (1) * rates(1) + (-1) * rates(2)
 
   end function force
-  
+
   !---------------------------
   ! Compute sensitivity of molecular forcing to each vmr (derivative of force w.r.t. each vmr)
   !---------------------------
   function jac( this, vmr )
-  
+
     class(kinetics_type) :: this
     real(r8), intent(in)::  vmr(:)         ! volume mixing ratios of each component in order
     real(r8) :: jac(size(vmr),size(vmr))   ! sensitivity of forcing to changes in each vmr
-  
+
     jac(:,:) = 0._r8
-  
+
     ! Jacobian  
-    jac(1,1)  = jac(1,1) - this%k_rateConst(1)
-    jac(1,2)  = jac(1,2) + this%k_rateConst(2) * vmr(3)
-    jac(1,3)  = jac(1,3) + this%k_rateConst(2) * vmr(2)
-
-    jac(2,1)  = jac(2,1) + this%k_rateConst(1)
-    jac(2,2)  = jac(2,2) - this%k_rateConst(2) * vmr(3)
-    jac(2,3)  = jac(2,3) - this%k_rateConst(2) * vmr(2)
-    jac(2,2)  = jac(2,2) - 4._r8 * this%k_rateConst(3) * vmr(2)
-
-    jac(3,2)  = jac(3,2) + 4._r8 * this%k_rateConst(3) * vmr(2)
-
+    
+    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
+    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
+    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
+    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
+    jac(1,2)  = jac(1,2) + (2) * this%k_rateConst(2)
+    jac(2,1)  = jac(2,1) + (1) * this%k_rateConst(1) * vmr(1)
+    jac(2,1)  = jac(2,1) + (1) * this%k_rateConst(1) * vmr(1)
+    jac(2,2)  = jac(2,2) + (-1) * this%k_rateConst(2)
+    
   end function jac
 
   !---------------------------
   ! Compute reaction rates, given vmr of each species and rate constants
   !---------------------------
-  subroutine compute_rates(this, vmr, k_rates)
-  
+  subroutine compute_rates(this, vmr, rates)
+
     class(kinetics_type)  :: this
-    real(r8), intent(in)  ::  vmr(:)           ! volume mixing ratios of each component in order
-    real(r8), intent(out) ::  k_rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
-  
-! Rates
-   ! Y0_a
-   k_rates(1) = this%k_rateConst(1) * vmr(1)
-   ! Y1_Y2_M_b
-   k_rates(2) = this%k_rateConst(2) * vmr(2) * vmr(3)
-   ! Y1_Y1_a
-   k_rates(3) = this%k_rateConst(3) * vmr(2) * vmr(2)
+    real(r8), intent(in)  :: vmr(:)     ! volume mixing ratios of each component in order
+    real(r8), intent(out) :: rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
+
+    ! Rates
+    
+    ! CL_CL
+    rates(1) = this%k_rateConst(1) * vmr(1) * vmr(1)
+    ! CL2
+    rates(2) = this%k_rateConst(2) * vmr(2)
 
   end subroutine compute_rates
-  
+
 end module kinetics_module
