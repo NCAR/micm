@@ -14,31 +14,31 @@ public :: kinetics_type
 
 integer, parameter :: r8 = selected_real_kind( 15 )
 
-! k_rateConst are computed at the beginning of the 
+! rateConst are computed at the beginning of the 
 !   chemistry_box_solver time step.
 !   They are not computed for internal steps of the
 !   box-model time-step advancer
-! k_rateConst will be thread-safe memory provided elsewhere.
+! rateConst will be thread-safe memory provided elsewhere.
 ! rate_constant_store will be an accessor to memory
 ! For now, it is allocated here. It is not thread safe
 
 ! Filter with CPP for PGI compiler
 !> \section arg_table_kinetics_type
-!! | local_name | standard_name                                    | long_name                               | units   | rank | type          |    kind   | intent | optional |
-!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|---------------|-----------|--------|----------|
-!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
-!! | nkRxt       | no_gas_phase_reactions                          | ngas_phase_reactions                    | count   |    0 | integer       |           | none   | F        |
+!! | local_name   | standard_name                                 | long_name                               | units   | rank | type          |    kind   | intent | optional |
+!! |--------------|-----------------------------------------------|-----------------------------------------|---------|------|---------------|-----------|--------|----------|
+!! | theKinetics  | kinetics_data                                 | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
+!! | nTotRxt      | num_chemical_reactions                        | total number of chemical reactions      | count   |    0 | integer       |           | none   | F        |
 !!
 
 type kinetics_type
   private
-  integer               :: nkReact
-  real(r8), allocatable :: k_rateConst(:)
+  integer :: nReact
+  real(r8), allocatable :: rateConst(:)
 contains
   private
-  procedure, public :: k_rateConst_init 
-  procedure, public :: k_rateConst_run
-  procedure, public :: k_rateConst_print
+  procedure, public :: rateConst_init 
+  procedure, public :: rateConst_update
+  procedure, public :: rateConst_print
   procedure, public :: force
   procedure, public :: jac
   final             :: DasEnder
@@ -47,62 +47,62 @@ end type kinetics_type
 contains
 
   !------------------------------------------------------
-  ! allocate k_rateConst member array
+  ! allocate rateConst member array
   !------------------------------------------------------
-  subroutine k_rateConst_init( this, nkRxt )
+  subroutine rateConst_init( this, nRxt )
       
     class(kinetics_type) :: this
-    integer, intent(in)  :: nkRxt          ! total no. gas phase rxtions
+    integer, intent(in)  :: nRxt    ! total number of reactions
 
-    this%nkReact = nkRxt
-    if( .not. allocated(this%k_rateConst) ) then
-      allocate( this%k_rateConst(nkRxt) )
+    this%nReact = nRxt
+    if( .not. allocated(this%rateConst)) then
+      allocate( this%rateConst(nRxt) )
     else
-      write(*,*) 'k_rateConst_init: k_rateConst already allocated'
+      write(*,*) 'rateConst_init: rateConst already allocated'
     endif
 
-  end subroutine k_rateConst_init
+  end subroutine rateConst_init
 
   !------------------------------------------------------
-  ! Compute k_rateConst
+  ! update rateConst
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine k_rateConst_run( this, j_rateConst )
+  subroutine rateConst_update( this, k_rateConst, j_rateConst )
 
     class(kinetics_type) :: this
-    real(r8) :: j_rateConst(:)
+    real(r8), intent(in) :: k_rateConst(:) ! externally supplied rate constants
+    real(r8), intent(in) :: j_rateConst(:)
     
-    ! Rate Constants
-    ! CL_CL
-    this%k_rateConst(1) = 1.000000e-5_r8
-    ! CL2
-    this%k_rateConst(2) = j_rateConst(1)
+    associate( rateConstants => this%rateConst )
+      ! Rate Constants
+#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/rateconstants.inc"
+    end associate
 
-  end subroutine k_rateConst_run
+  end subroutine rateConst_update
 
-  subroutine k_rateConst_print( this )
+  subroutine rateConst_print( this )
 
     class(kinetics_type) :: this
 
-    write(*,*) 'rate constants'
-    write(*,'(1p,5(1x,g0))') this%k_rateConst(:)
+    write(*,*) 'rate constants:'
+    write(*,'(1p,5(1x,g0))') this%rateConst(:)
 
-  end subroutine k_rateConst_print
+  end subroutine rateConst_print
 
   !---------------------------
   !  cleanup when k_rateConst type is removed
   !---------------------------
   subroutine DasEnder( this )
 
-  type(kinetics_type) :: this
+    type(kinetics_type) :: this
 
-  if( allocated( this%k_rateConst ) ) then
-    deallocate( this%k_rateConst )
-  endif
+    if( allocated( this%rateConst ) ) then
+       deallocate( this%rateConst )
+    endif
 
   end subroutine DasEnder
-  
+
   !---------------------------
   ! Compute time rate of change of each molecule (vmr) given reaction rates
   !---------------------------
@@ -112,13 +112,11 @@ contains
     real(r8), intent(in)::  vmr(:)              ! volume mixing ratios of each component in order
     real(r8)            ::  force(size(vmr))    ! rate of change of each molecule
 
-    real(r8) ::  rates(this%nkReact)          ! rates of each reaction
+    real(r8) :: rates(this%nReact)          ! rates of each reaction
 
     call compute_rates(this, vmr, rates)
 
-    ! set the forcing array
-    force(1) = (-1) * rates(1) + (-1) * rates(1) + (2) * rates(2)
-    force(2) = (1) * rates(1) + (-1) * rates(2)
+#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/forcing.inc"
 
   end function force
 
@@ -131,36 +129,27 @@ contains
     real(r8), intent(in)::  vmr(:)         ! volume mixing ratios of each component in order
     real(r8) :: jac(size(vmr),size(vmr))   ! sensitivity of forcing to changes in each vmr
 
+    ! Jacobian
     jac(:,:) = 0._r8
 
-    ! Jacobian  
-    
-    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
-    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
-    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
-    jac(1,1)  = jac(1,1) + (-1) * this%k_rateConst(1) * vmr(1)
-    jac(1,2)  = jac(1,2) + (2) * this%k_rateConst(2)
-    jac(2,1)  = jac(2,1) + (1) * this%k_rateConst(1) * vmr(1)
-    jac(2,1)  = jac(2,1) + (1) * this%k_rateConst(1) * vmr(1)
-    jac(2,2)  = jac(2,2) + (-1) * this%k_rateConst(2)
-    
+    associate( rateConstants => this%rateConst )
+#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/jacobian.inc"
+    end associate
+
   end function jac
 
   !---------------------------
   ! Compute reaction rates, given vmr of each species and rate constants
   !---------------------------
-  subroutine compute_rates(this, vmr, rates)
+  subroutine compute_rates(this, vmr, rates )
 
     class(kinetics_type)  :: this
     real(r8), intent(in)  :: vmr(:)     ! volume mixing ratios of each component in order
     real(r8), intent(out) :: rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
 
-    ! Rates
-    
-    ! CL_CL
-    rates(1) = this%k_rateConst(1) * vmr(1) * vmr(1)
-    ! CL2
-    rates(2) = this%k_rateConst(2) * vmr(2)
+    associate( rateConstants => this%rateConst )
+#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/rates.inc"
+    end associate
 
   end subroutine compute_rates
 
