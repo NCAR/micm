@@ -105,7 +105,7 @@ else (PROJECT STREQUAL "CCPP-FV3")
       ./src/chem_solve.F90
       ./src/kinetics.F90
       ./src/ODE_solver.F90
-      ./src/kinetics_module.f90
+      ./src/kinetics_module.F90
       ./src/half_solver.F90
       ./src/rosenbrock_solver.F90
       ./src/mozart_solver.F90
