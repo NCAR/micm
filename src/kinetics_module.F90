@@ -76,7 +76,7 @@ contains
     
     associate( rateConstants => this%rateConst )
       ! Rate Constants
-#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/rateconstants.inc"
+#include "../../MICM_chemistry/generated/rateconstants.inc"
     end associate
 
   end subroutine rateConst_update
@@ -116,7 +116,7 @@ contains
 
     call compute_rates(this, vmr, rates)
 
-#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/forcing.inc"
+#include "../../MICM_chemistry/generated/forcing.inc"
 
   end function force
 
@@ -133,7 +133,7 @@ contains
     jac(:,:) = 0._r8
 
     associate( rateConstants => this%rateConst )
-#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/jacobian.inc"
+#include "../../MICM_chemistry/generated/jacobian.inc"
     end associate
 
   end function jac
@@ -148,7 +148,7 @@ contains
     real(r8), intent(out) :: rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
 
     associate( rateConstants => this%rateConst )
-#include "/terminator-data1/home/fvitt/MusicBox/MICM_chemistry/generated/rates.inc"
+#include "../../MICM_chemistry/generated/rates.inc"
     end associate
 
   end subroutine compute_rates
