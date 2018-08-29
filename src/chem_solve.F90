@@ -1,8 +1,10 @@
 
 module chem_solve
 
-  use micm_type_defs,  only: Solver_type
+  use solver_var_defs, only: Solver_type
   use kinetics_module, only: kinetics_type
+  use machine,         only: rk => kind_phys
+
   
   implicit none
 
@@ -11,8 +13,6 @@ module chem_solve
   public :: chem_solve_finalize
   public :: chem_solve_run
 
-  integer, parameter :: rk = selected_real_kind( 15 )
-  
 contains
 
 !> \section arg_table_chem_solve_init Argument Table

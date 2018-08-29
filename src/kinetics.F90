@@ -2,6 +2,7 @@
 module kinetics
 
   use kinetics_module, only: kinetics_type
+  use machine,         only: rk => kind_phys
   
   implicit none
 
@@ -10,7 +11,7 @@ module kinetics
   public :: kinetics_run
   public :: kinetics_finalize
 
-  integer, parameter :: rk = selected_real_kind( 15 )
+
   
 contains
 
