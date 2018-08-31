@@ -1,9 +1,9 @@
 
    module ODE_solver
 
-   implicit none
+   use machine, only: r8 => kind_phys
 
-   integer, parameter :: r8 = selected_real_kind( 15 )
+   implicit none
 
    TYPE, abstract :: baseOdeSolver
      CONTAINS
