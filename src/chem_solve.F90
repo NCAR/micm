@@ -25,8 +25,8 @@ contains
 !! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none      |    1 | real        | kind_phys | in     | F        |
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s         |    0 | real        | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s         |    0 | real        | kind_phys | in     | F        |
-!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
 !!
   subroutine chem_solve_init( TimeStart, TimeEnd, AbsTol, RelTol, &
                               icntrl, rcntrl, ODE_obj, errmsg, errflg)
@@ -61,8 +61,8 @@ contains
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real          | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real          | kind_phys | in     | F        |
 !! | Time       | Simulation_time                                  | Present simulation time                 | s       |    0 | real          | kind_phys | in     | F        |
-!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
-!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
 !!
   subroutine chem_solve_run ( TimeStart, TimeEnd, Time, vmr, theKinetics, ODE_obj, errmsg, errflg)
 
@@ -102,8 +102,8 @@ contains
 !> \section arg_table_chem_solve_finalize Argument Table
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | errmsg     | error_message                                    | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | error_flag                                       | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
 !!
   subroutine chem_solve_finalize( errmsg, errflg )
 
