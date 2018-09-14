@@ -104,6 +104,7 @@ else (PROJECT STREQUAL "CCPP-FV3")
       ./src/machine.F
       ./src/chem_solve.F90
       ./src/kinetics.F90
+      ./src/k_rateConst_terminator.F90
       ./src/ODE_solver.F90
       ./src/kinetics_module.F90
       ./src/half_solver.F90
@@ -117,6 +118,7 @@ endif (PROJECT STREQUAL "CCPP-FV3")
 set(CAPS
       ./caps/chem_solve_cap.F90
       ./caps/kinetics_cap.F90
+      ./caps/k_rateConst_terminator_cap.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
