@@ -38,8 +38,7 @@ contains
     errmsg=''
     errflg=0
 
-! These are probably set by the Chemistry Cafe
-    k_rateConst(:)=1.e-5_r8
+    ! Nothing for the terminator chemistry to do at init time currently
 
   end  subroutine k_rateConst_terminator_init
 
@@ -60,11 +59,12 @@ contains
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
-  ! For the terminator chemistry, the k_rateConst do not vary
-
     errmsg=''
     errflg=0
   
+! These are probably set by the Chemistry Cafe
+    k_rateConst(:)=1.e-5_r8
+
   end subroutine k_rateConst_terminator_run
   
   subroutine k_rateConst_terminator_finalize
