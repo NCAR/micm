@@ -97,28 +97,39 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 
 #------------------------------------------------------------------------------
 # Set the sources: physics schemes
-if (PROJECT STREQUAL "CCPP-FV3")
-  include(./CCPP_SCHEMES.cmake)
-else (PROJECT STREQUAL "CCPP-FV3")
+if (PROJECT STREQUAL "3component")
   set(SCHEMES
       ./src/machine.F
       ./src/chem_solve.F90
-      ./src/kinetics.F90
-      ./src/k_rateConst_terminator.F90
+      ./src/3component/kinetics.F90
+      ./src/3component/k_rateConst.F90
       ./src/ODE_solver.F90
-      ./src/kinetics_module.F90
+      ./src/3component/kinetics_module.F90
       ./src/half_solver.F90
       ./src/rosenbrock_solver.F90
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
   )
-endif (PROJECT STREQUAL "CCPP-FV3")
+else (PROJECT STREQUAL "3component")
+  set(SCHEMES
+      ./src/machine.F
+      ./src/chem_solve.F90
+      ./src/terminator/kinetics.F90
+      ./src/terminator/k_rateConst.F90
+      ./src/ODE_solver.F90
+      ./src/terminator/kinetics_module.F90
+      ./src/half_solver.F90
+      ./src/rosenbrock_solver.F90
+      ./src/mozart_solver.F90
+      ./src/solver_var_defs.f90
+  )
+endif (PROJECT STREQUAL "3component")
 
 # Set the sources: physics scheme caps
 set(CAPS
       ./caps/chem_solve_cap.F90
       ./caps/kinetics_cap.F90
-      ./caps/k_rateConst_terminator_cap.F90
+      ./caps/k_rateConst_cap.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
