@@ -101,6 +101,7 @@ if (PROJECT STREQUAL "3component")
   set(SCHEMES
       ./src/machine.F
       ./src/chem_solve.F90
+      ./src/chemistry_driver.F90
       ./src/3component/kinetics.F90
       ./src/3component/k_rateConst.F90
       ./src/ODE_solver.F90
@@ -114,6 +115,7 @@ else (PROJECT STREQUAL "3component")
   set(SCHEMES
       ./src/machine.F
       ./src/chem_solve.F90
+      ./src/chemistry_driver.F90
       ./src/terminator/kinetics.F90
       ./src/terminator/k_rateConst.F90
       ./src/ODE_solver.F90
@@ -127,9 +129,7 @@ endif (PROJECT STREQUAL "3component")
 
 # Set the sources: physics scheme caps
 set(CAPS
-      ./caps/chem_solve_cap.F90
-      ./caps/kinetics_cap.F90
-      ./caps/k_rateConst_cap.F90
+      ./caps/chemistry_driver_cap.F90
   )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
