@@ -20,9 +20,6 @@ contains
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------------|-----------|--------|----------|
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real            | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real            | kind_phys | in     | F        |
-!! | nspecies   | Number_prognostic_constituents                   |                                         | none    |    0 | integer         |           | out    | F        |
-!! | njRxt      | Number_gas_phase_chemical_reactions              |                                         | none    |    0 | integer         |           | out    | F        |
-!! | nkRxt      | Number_photochemical_reactions                   |                                         | none    |    0 | integer         |           | out    | F        |
 !! | nTotRxt    | Number_chemical_reactions                        |                                         | none    |    0 | integer         |           | out    | F        |
 !! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type   |           | out    | F        |
 !! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type     |           | none   | F        |
@@ -31,24 +28,21 @@ contains
 !! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none    |    1 | real            | kind_phys | in     | F        |
 !! | icntrl     | ODE_icontrol                                     | ODE integer controls                    | flag    |    1 | integer         |           | in     | F        |
 !! | rcntrl     | ODE_rcontrol                                     | ODE real controls                       | none    |    1 | real            | kind_phys | in     | F        |
-!! | cnst_info  | chemistry_constituent_info                       | chemistry_constituent_info              | DDT     |    1 | const_props_type|           | out    | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character       | len=512   | out    | F        |
+!! | cnst_info  | chemistry_constituent_info                       | chemistry_constituent_info              | DDT     |    1 | const_props_type|           | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer         |           | out    | F        |
 !!
-subroutine chemistry_driver_init(TimeStart,TimeEnd, nspecies, njRxt, nkRxt, nTotRxt,  theKinetics, ODE_obj, k_rateConst, AbsTol, RelTol, icntrl, rcntrl, cnst_info, errmsg, errflg)
+subroutine chemistry_driver_init(TimeStart,TimeEnd, nTotRxt,  theKinetics, ODE_obj, k_rateConst, AbsTol, RelTol, icntrl, rcntrl, cnst_info, errmsg, errflg)
 
   implicit none
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
-  integer, intent(out) :: nSpecies   ! number prognostic constituents
-  integer, intent(out) :: nkRxt      ! number gas phase reactions
-  integer, intent(out) :: njRxt      ! number of photochemical reactions
   integer, intent(out) :: nTotRxt    ! total number of chemical reactions
 
-  ! Temporary hardwiring of environmental conditions
-  
-  
+  integer            :: nSpecies   ! number prognostic constituents
+  integer            :: nkRxt      ! number gas phase reactions
+  integer            :: njRxt      ! number of photochemical reactions
   integer            :: i, k, n
   integer            :: errflg          ! error index from CPF
   integer            :: ierr
