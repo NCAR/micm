@@ -100,30 +100,36 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 if (PROJECT STREQUAL "3component")
   set(SCHEMES
       ./src/machine.F
+      ./src/const_props_mod.F90
+      ./src/json_loader.F90
       ./src/chem_solve.F90
-      ./src/chemistry_driver.F90
       ./src/3component/kinetics.F90
       ./src/3component/k_rateConst.F90
+      ./src/3component/prepare_chemistry.F90
       ./src/ODE_solver.F90
       ./src/3component/kinetics_module.F90
       ./src/half_solver.F90
       ./src/rosenbrock_solver.F90
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
+      ./src/chemistry_driver.F90
   )
 else (PROJECT STREQUAL "3component")
   set(SCHEMES
       ./src/machine.F
+      ./src/const_props_mod.F90
+      ./src/json_loader.F90
       ./src/chem_solve.F90
-      ./src/chemistry_driver.F90
       ./src/terminator/kinetics.F90
       ./src/terminator/k_rateConst.F90
+      ./src/terminator/prepare_chemistry.F90
       ./src/ODE_solver.F90
       ./src/terminator/kinetics_module.F90
       ./src/half_solver.F90
       ./src/rosenbrock_solver.F90
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
+      ./src/chemistry_driver.F90
   )
 endif (PROJECT STREQUAL "3component")
 
@@ -165,6 +171,17 @@ endif (${CMAKE_VERSION} LESS 3.3)
 #  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/sp)
 #  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/bacio)
 #
+
+#this should call the custom FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables
+SET(NETCDF_F90 "YES")
+FIND_PACKAGE(NetCDF)
+FIND_LIBRARY(JSONFORTRAN_LIB jsonfortran)
+MESSAGE(STATUS "JSONFORTRAN_LIB: ${JSONFORTRAN_LIB}")
+
+INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
+INCLUDE_DIRECTORIES($ENV{JSONFORTRAN}/../include)
+
+
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
 #endif (PROJECT STREQUAL "CCPP-FV3")
 
