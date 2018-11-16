@@ -20,25 +20,27 @@ contains
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------------|-----------|--------|----------|
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real            | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real            | kind_phys | in     | F        |
-!! | nTotRxt    | Number_chemical_reactions                        |                                         | none    |    0 | integer         |           | out    | F        |
+!! | dt         | time_step_for_physics                            | time_step_for_physics                   | s       |    0 | real            | kind_phys | in     | F        |
 !! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type   |           | out    | F        |
 !! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type     |           | none   | F        |
 !! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real            | kind_phys | inout  | F        |
-!! | AbsTol     | abs_trunc_error                                  | ODE absolute step truncation error      | none    |    1 | real            | kind_phys | in     | F        |
-!! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none    |    1 | real            | kind_phys | in     | F        |
 !! | icntrl     | ODE_icontrol                                     | ODE integer controls                    | flag    |    1 | integer         |           | in     | F        |
 !! | rcntrl     | ODE_rcontrol                                     | ODE real controls                       | none    |    1 | real            | kind_phys | in     | F        |
-!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character       | len=512   | out    | F        |
 !! | cnst_info  | chemistry_constituent_info                       | chemistry_constituent_info              | DDT     |    1 | const_props_type|           | out    | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character       | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer         |           | out    | F        |
 !!
-subroutine chemistry_driver_init(TimeStart,TimeEnd, nTotRxt,  theKinetics, ODE_obj, k_rateConst, AbsTol, RelTol, icntrl, rcntrl, cnst_info, errmsg, errflg)
+subroutine chemistry_driver_init(TimeStart,TimeEnd, dt, theKinetics, ODE_obj, k_rateConst,  icntrl, rcntrl, cnst_info, errmsg, errflg)
+
+  use :: half_solver,       only: halfsolver
+  use :: Rosenbrock_Solver, only: RosenbrockSolver
+  use :: Mozart_Solver,     only: MozartSolver
 
   implicit none
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
-  integer, intent(out) :: nTotRxt    ! total number of chemical reactions
+  integer            :: nTotRxt    ! total number of chemical reactions
 
   integer            :: nSpecies   ! number prognostic constituents
   integer            :: nkRxt      ! number gas phase reactions
@@ -46,13 +48,16 @@ subroutine chemistry_driver_init(TimeStart,TimeEnd, nTotRxt,  theKinetics, ODE_o
   integer            :: i, k, n
   integer            :: errflg          ! error index from CPF
   integer            :: ierr
+
+  real(r8), intent(in)  :: dt
   real(kind=r8),pointer      :: k_rateConst(:)  ! host model provides photolysis rates for now
   character(len=512) :: errmsg
 
   integer  :: icntrl(20)     ! integer control array for ODE solver
   real(r8) :: rcntrl(20)     ! real control array for ODE solver
-  real(r8) :: TimeStart, TimeEnd, Time, dt
-  real(r8), intent(in) :: AbsTol(:), RelTol(:)
+  real(r8) :: TimeStart, TimeEnd, Time
+!   real(r8) :: AbsTol(:), RelTol(:)
+  real(r8), allocatable :: AbsTol(:), RelTol(:)
 
 ! declare the types
   type(Solver_type),    pointer  :: ODE_obj
@@ -64,9 +69,46 @@ subroutine chemistry_driver_init(TimeStart,TimeEnd, nTotRxt,  theKinetics, ODE_o
   write(0,*) ' Entered chemistry_driver_init'
 
 !   This routine should be called here when the main program no longer needs to allocate variables
-!   call prepare_chemistry_init(cnst_info, nSpecies, nkRxt, njRxt, nTotRxt)
+    call prepare_chemistry_init(cnst_info, nSpecies, nkRxt, njRxt)
 
-  call k_rateConst_init(k_rateConst, errflg, errmsg)
+    nTotRxt =  nkRxt + njRxt
+
+ allocate(absTol(nSpecies))
+ allocate(relTol(nSpecies))
+
+
+!-----------------------------------------------------------
+!  set ode solver "control" variable defaults
+!-----------------------------------------------------------
+  absTol(:) = 1.e-9_r8
+  relTol(:) = 1.e-4_r8
+  icntrl(:) = 0
+  rcntrl(:) = 0._r8
+
+!-----------------------------------------------------------
+!  set ode solver "control" variables
+!-----------------------------------------------------------
+  select type( baseOdeSolver => ODE_obj%theSolver )
+    class is (RosenbrockSolver)
+      icntrl(1) = 1                                 ! autonomous, F depends only on Y
+      icntrl(3) = 2                                 ! ros3 solver
+      rcntrl(2) = dt                                ! Hmax
+      rcntrl(3) = .01_r8*dt                         ! Hstart
+    class is (mozartSolver)
+      icntrl(1) = 1                                 ! autonomous, F depends only on Y
+      rcntrl(2) = dt                                ! Hmax
+      rcntrl(3) = .01_r8*dt                         ! Hstart
+  end select
+
+  write(*,*) ' '
+  write(*,*) 'icntrl settings'
+  write(*,'(10i6)') icntrl(1:10)
+  write(*,*) 'rcntrl settings'
+  write(*,'(1p,10(1x,g0))') rcntrl(1:10)
+  write(*,*) ' '
+
+
+!  call k_rateConst_init(k_rateConst, errflg, errmsg)
   write(0,*) 'inside init, k_rateConst(1)=',k_rateConst(1)
   call kinetics_init(nTotRxt, theKinetics, errmsg, errflg)
   call chem_solve_init(TimeStart, TimeEnd, AbsTol, RelTol, icntrl, rcntrl, ODE_obj, errmsg, errflg)
@@ -116,16 +158,10 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, Time, theKinetics, ODE_
   type(Solver_type),    pointer  :: ODE_obj
   type(kinetics_type),  pointer  :: theKinetics
 
-!  write(0,*) ' at point run 1'
-  call k_rateConst_run(k_rateConst, errflg, errmsg)
-!  write(0,*) ' at point  run3'
-!  write(0,*) 'inside run, k_rateConst(1)=',k_rateConst(1)
-! write(0,*) 'inside run, j_rateConst(1)=',j_rateConst(1)
+!  call k_rateConst_run(k_rateConst, errflg, errmsg)
   call kinetics_run(theKinetics, k_rateConst, j_rateConst, errmsg, errflg)
   call theKinetics%rateConst_print()
-!  write(0,*) ' at point run 4'
   call chem_solve_run(TimeStart, TimeEnd, Time, vmr, theKinetics, ODE_obj, errmsg, errflg)
-!  write(0,*) ' at point run 5'
 
 end subroutine chemistry_driver_run
 

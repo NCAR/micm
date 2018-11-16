@@ -119,6 +119,7 @@ if (PROJECT STREQUAL "3component")
   # Set the sources: physics scheme caps
   set(CAPS
       ./caps/chemistry_driver_cap.F90
+      ./caps/k_rateConst_cap.F90
   )
 elseif (PROJECT STREQUAL "terminator")
   message (STATUS "MODEL is terminator")
@@ -154,6 +155,7 @@ elseif (PROJECT STREQUAL "terminator")
   # Set the sources: physics scheme caps
   set(CAPS
       ./caps/chemistry_driver_cap.F90
+      ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
       ./caps/tuv_photolysis_cap.F90
   )
