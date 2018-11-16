@@ -98,6 +98,8 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 #------------------------------------------------------------------------------
 # Set the sources: physics schemes
 if (PROJECT STREQUAL "3component")
+  message (STATUS "MODEL is 3component")
+  INCLUDE_DIRECTORIES(generated/3component)
   set(SCHEMES
       ./src/machine.F
       ./src/const_props_mod.F90
@@ -114,7 +116,13 @@ if (PROJECT STREQUAL "3component")
       ./src/solver_var_defs.f90
       ./src/chemistry_driver.F90
   )
-else (PROJECT STREQUAL "3component")
+  # Set the sources: physics scheme caps
+  set(CAPS
+      ./caps/chemistry_driver_cap.F90
+  )
+elseif (PROJECT STREQUAL "terminator")
+  message (STATUS "MODEL is terminator")
+  INCLUDE_DIRECTORIES(generated/terminator)
   set(SCHEMES
       ./src/machine.F
       ./src/const_props_mod.F90
@@ -130,13 +138,26 @@ else (PROJECT STREQUAL "3component")
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
       ./src/chemistry_driver.F90
+      ./src/tuv/la_srb_mod.F90
+      ./src/tuv/module_params.F90
+      ./src/tuv/module_prates_tuv.F90
+      ./src/tuv/module_rxn.F90
+      ./src/tuv/module_xsections.F90
+      ./src/tuv/numer.F90
+      ./src/tuv/params_mod.F90
+      ./src/tuv/rad_trans.F90
+      ./src/tuv/tuv_error_mod.F90
+      ./src/tuv/tuv_photolysis.F90
+      ./src/tuv/tuv_subs.F90
+      ./src/photolysis_interstitial.F90
+  )
+  # Set the sources: physics scheme caps
+  set(CAPS
+      ./caps/chemistry_driver_cap.F90
+      ./caps/photolysis_interstitial_cap.F90
+      ./caps/tuv_photolysis_cap.F90
   )
 endif (PROJECT STREQUAL "3component")
-
-# Set the sources: physics scheme caps
-set(CAPS
-      ./caps/chemistry_driver_cap.F90
-  )
 
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")

@@ -81,7 +81,7 @@ end subroutine chemistry_driver_init
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real         | kind_phys | in     | F        |
 !! | Time       | Simulation_time                                  | Present simulation time                 | s       |    0 | real         | kind_phys | in     | F        |
 !! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type|           | in     | F        |
-!! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type     |           | none   | F        |
+!! | ODE_obj    | ODE_ddt                                          | ODE derived data type                   | DDT     |    0 | Solver_type  |           | none   | F        |
 !! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real         | kind_phys | in     | F        |
 !! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real         | kind_phys | inout  | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character    | len=512   | out    | F        |
@@ -116,19 +116,16 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, Time, theKinetics, ODE_
   type(Solver_type),    pointer  :: ODE_obj
   type(kinetics_type),  pointer  :: theKinetics
 
-  write(0,*) ' at point run 1'
-!  call theKinetics%rateConst_print()
-  write(0,*) ' at point  run2'
-  write(0,*) 'inside run, k_rateConst(1)=',k_rateConst(1)
+!  write(0,*) ' at point run 1'
   call k_rateConst_run(k_rateConst, errflg, errmsg)
-  write(0,*) ' at point  run3'
-  call theKinetics%rateConst_print()
-  write(0,*) 'inside run, k_rateConst(1)=',k_rateConst(1)
+!  write(0,*) ' at point  run3'
+!  write(0,*) 'inside run, k_rateConst(1)=',k_rateConst(1)
 ! write(0,*) 'inside run, j_rateConst(1)=',j_rateConst(1)
   call kinetics_run(theKinetics, k_rateConst, j_rateConst, errmsg, errflg)
-  write(0,*) ' at point run 4'
+  call theKinetics%rateConst_print()
+!  write(0,*) ' at point run 4'
   call chem_solve_run(TimeStart, TimeEnd, Time, vmr, theKinetics, ODE_obj, errmsg, errflg)
-  write(0,*) ' at point run 5'
+!  write(0,*) ' at point run 5'
 
 end subroutine chemistry_driver_run
 
