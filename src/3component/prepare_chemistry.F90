@@ -15,7 +15,7 @@ subroutine prepare_chemistry_init(cnst_info, nSpecies, nkRxt, njRxt)
 
   integer, intent(out) :: nSpecies    ! number prognostic constituents
   integer, intent(out) :: nkRxt       ! number gas phase reactions
-  integer, intent(out) :: nTotRxt     ! total number of chemical reactions
+  integer, intent(out) :: njRxt       ! number of photochemical reactions
 
   character(len=*), parameter :: jsonfile = '../../MICM_chemistry/generated/3component/3component.json'
   type(const_props_type), pointer :: cnst_info(:)

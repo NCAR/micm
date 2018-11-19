@@ -111,7 +111,7 @@ if (PROJECT STREQUAL "3component")
       ./src/ODE_solver.F90
       ./src/3component/kinetics_module.F90
       ./src/half_solver.F90
-      ./src/rosenbrock_solver.F90
+      ./src/rosenbrock_dev.F90
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
       ./src/chemistry_driver.F90
@@ -135,7 +135,7 @@ elseif (PROJECT STREQUAL "terminator")
       ./src/ODE_solver.F90
       ./src/terminator/kinetics_module.F90
       ./src/half_solver.F90
-      ./src/rosenbrock_solver.F90
+      ./src/rosenbrock_dev.F90
       ./src/mozart_solver.F90
       ./src/solver_var_defs.f90
       ./src/chemistry_driver.F90
