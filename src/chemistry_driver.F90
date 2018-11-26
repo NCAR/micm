@@ -3,7 +3,6 @@ module chemistry_driver
 use kinetics_module,  only       : kinetics_type
 use kinetics,         only       : kinetics_init, kinetics_run
 use chem_solve,       only       : chem_solve_run
-use k_rateConst,      only       : k_rateConst_init, k_rateConst_run
 use machine,          only       : r8 => kind_phys
 use const_props_mod,  only       : const_props_type
 use prepare_chemistry_mod, only  : prepare_chemistry_init
