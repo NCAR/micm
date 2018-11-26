@@ -108,17 +108,14 @@ if (PROJECT STREQUAL "3component")
       ./src/3component/kinetics.F90
       ./src/3component/k_rateConst.F90
       ./src/3component/prepare_chemistry.F90
-      ./src/ODE_solver.F90
       ./src/3component/kinetics_module.F90
-      ./src/half_solver.F90
-      ./src/rosenbrock_solver.F90
-      ./src/mozart_solver.F90
-      ./src/solver_var_defs.f90
+      ./src/rosenbrock_dev.F90
       ./src/chemistry_driver.F90
   )
   # Set the sources: physics scheme caps
   set(CAPS
       ./caps/chemistry_driver_cap.F90
+      ./caps/k_rateConst_cap.F90
   )
 elseif (PROJECT STREQUAL "terminator")
   message (STATUS "MODEL is terminator")
@@ -131,12 +128,8 @@ elseif (PROJECT STREQUAL "terminator")
       ./src/terminator/kinetics.F90
       ./src/terminator/k_rateConst.F90
       ./src/terminator/prepare_chemistry.F90
-      ./src/ODE_solver.F90
       ./src/terminator/kinetics_module.F90
-      ./src/half_solver.F90
-      ./src/rosenbrock_solver.F90
-      ./src/mozart_solver.F90
-      ./src/solver_var_defs.f90
+      ./src/rosenbrock_dev.F90
       ./src/chemistry_driver.F90
       ./src/tuv/la_srb_mod.F90
       ./src/tuv/module_params.F90
@@ -154,6 +147,7 @@ elseif (PROJECT STREQUAL "terminator")
   # Set the sources: physics scheme caps
   set(CAPS
       ./caps/chemistry_driver_cap.F90
+      ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
       ./caps/tuv_photolysis_cap.F90
   )
