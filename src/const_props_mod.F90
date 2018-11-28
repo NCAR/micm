@@ -7,7 +7,7 @@ module const_props_mod
   type, public :: const_props_type
      private
      character(len=16) :: name = 'UNSET'
-     character(len=64) :: desc = 'UNSET'
+     character(len=128) :: desc = 'UNSET'
      real :: molecwght = -huge(1.0)
      integer :: props_set = 0
    contains
@@ -58,7 +58,7 @@ contains
   
   function const_props_get_desc(this) result(x)
     class(const_props_type), intent(in) :: this
-    character(len=16) :: x
+    character(len=128) :: x
     x =  this%desc
   end function const_props_get_desc
 
