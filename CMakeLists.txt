@@ -143,6 +143,7 @@ elseif (PROJECT STREQUAL "terminator")
       ./src/tuv/tuv_photolysis.F90
       ./src/tuv/tuv_subs.F90
       ./src/photolysis_interstitial.F90
+      ./src/mass_quantities_util.F90
   )
   # Set the sources: physics scheme caps
   set(CAPS
@@ -150,6 +151,7 @@ elseif (PROJECT STREQUAL "terminator")
       ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
       ./caps/tuv_photolysis_cap.F90
+      ./caps/mass_quantities_util_cap.F90
   )
 endif (PROJECT STREQUAL "3component")
 
