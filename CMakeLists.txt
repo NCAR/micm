@@ -105,10 +105,10 @@ if (PROJECT STREQUAL "3component")
       ./src/const_props_mod.F90
       ./src/json_loader.F90
       ./src/chem_solve.F90
-      ./src/3component/kinetics.F90
-      ./src/3component/k_rateConst.F90
-      ./src/3component/prepare_chemistry.F90
-      ./src/3component/kinetics_module.F90
+      ./src/kinetics/kinetics.F90
+      ./src/kinetics/k_rateConst.F90
+      ./src/kinetics/prepare_chemistry.F90
+      ./src/kinetics/kinetics_module.F90
       ./src/rosenbrock_dev.F90
       ./src/chemistry_driver.F90
   )
@@ -125,10 +125,46 @@ elseif (PROJECT STREQUAL "terminator")
       ./src/const_props_mod.F90
       ./src/json_loader.F90
       ./src/chem_solve.F90
-      ./src/terminator/kinetics.F90
-      ./src/terminator/k_rateConst.F90
-      ./src/terminator/prepare_chemistry.F90
-      ./src/terminator/kinetics_module.F90
+      ./src/kinetics/kinetics.F90
+      ./src/kinetics/k_rateConst.F90
+      ./src/kinetics/prepare_chemistry.F90
+      ./src/kinetics/kinetics_module.F90
+      ./src/rosenbrock_dev.F90
+      ./src/chemistry_driver.F90
+      ./src/tuv/la_srb_mod.F90
+      ./src/tuv/module_params.F90
+      ./src/tuv/module_prates_tuv.F90
+      ./src/tuv/module_rxn.F90
+      ./src/tuv/module_xsections.F90
+      ./src/tuv/numer.F90
+      ./src/tuv/params_mod.F90
+      ./src/tuv/rad_trans.F90
+      ./src/tuv/tuv_error_mod.F90
+      ./src/tuv/tuv_photolysis.F90
+      ./src/tuv/tuv_subs.F90
+      ./src/photolysis_interstitial.F90
+      ./src/mass_quantities_util.F90
+  )
+  # Set the sources: physics scheme caps
+  set(CAPS
+      ./caps/chemistry_driver_cap.F90
+      ./caps/k_rateConst_cap.F90
+      ./caps/photolysis_interstitial_cap.F90
+      ./caps/tuv_photolysis_cap.F90
+      ./caps/mass_quantities_util_cap.F90
+  )
+elseif (PROJECT STREQUAL "user-defined")
+  message (STATUS "MODEL is user-defined")
+  INCLUDE_DIRECTORIES(generated/user-defined)
+  set(SCHEMES
+      ./src/machine.F
+      ./src/const_props_mod.F90
+      ./src/json_loader.F90
+      ./src/chem_solve.F90
+      ./src/kinetics/kinetics.F90
+      ./src/kinetics/k_rateConst.F90
+      ./src/kinetics/prepare_chemistry.F90
+      ./src/kinetics/kinetics_module.F90
       ./src/rosenbrock_dev.F90
       ./src/chemistry_driver.F90
       ./src/tuv/la_srb_mod.F90

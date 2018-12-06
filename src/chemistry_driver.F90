@@ -52,12 +52,13 @@ subroutine chemistry_driver_init(TimeStart,TimeEnd, dt, theKinetics,  k_rateCons
 ! declare the types
   type(const_props_type), pointer :: cnst_info(:)
 
+  character(len=40) :: model_name
   character(len=16) :: cnst_name
 
   write(0,*) ' Entered chemistry_driver_init'
 
 !   This routine should be only called here when the main program no longer needs to allocate variables
-    call prepare_chemistry_init(cnst_info, nSpecies, nkRxt, njRxt)
+    call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt)
 
     nTotRxt =  nkRxt + njRxt
 
