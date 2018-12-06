@@ -181,7 +181,7 @@ contains
 !! | press_mid  | layer_pressure                        | mid-point layer pressure       | Pa        |    1 | real      | kind_phys | in     | F        |
 !! | press_int  | layer_interface_pressure              | layer interface pressure       | Pa        |    1 | real      | kind_phys | in     | F        |
 !! | alt        | layer_altitude                        | mid-point layer altitude       | km        |    1 | real      | kind_phys | in     | F        |
-!! | temp       | temperature                           | mid-point layer temperature    | K         |    1 | real      | kind_phys | in     | F        |
+!! | temp       | layer_temperature                     | mid-point layer temperature    | K         |    1 | real      | kind_phys | in     | F        |
 !! | o2vmr      | O2_vmr_col                            | O2 volume mixing ratio column  | mole/mole |    1 | real      | kind_phys | in     | F        |
 !! | o3vmr      | O3_vmr_col                            | O3 volume mixing ratio column  | mole/mole |    1 | real      | kind_phys | in     | F        |
 !! | so2vmr     | SO2_vmr_col                           | SO2 volume mixing ratio column | mole/mole |    1 | real      | kind_phys | in     | F        |
