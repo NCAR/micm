@@ -33,13 +33,10 @@ set(AUTHORS  "Cheryl Craig" "Francis Vitt" "Andrew Conley" "Stacy Walters")
 # Enable Fortran
 enable_language(Fortran)
 
-# DH this should be a PROJECT == CCPP-SCM test
-if (NOT PROJECT STREQUAL "CCPP-FV3")
-  #------------------------------------------------------------------------------
-  # CMake Modules
-  # Set the CMake module path
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../ccpp-framework/cmake")
-endif (NOT PROJECT STREQUAL "CCPP-FV3")
+#------------------------------------------------------------------------------
+# CMake Modules
+# Set the CMake module path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../ccpp-framework/cmake")
 
 #------------------------------------------------------------------------------
 # Set OpenMP flags for C/C++/Fortran
@@ -100,63 +97,15 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 if (PROJECT STREQUAL "3component")
   message (STATUS "MODEL is 3component")
   INCLUDE_DIRECTORIES(generated/3component)
-  set(SCHEMES
-      ./src/machine.F
-      ./src/const_props_mod.F90
-      ./src/json_loader.F90
-      ./src/chem_solve.F90
-      ./src/kinetics/kinetics.F90
-      ./src/kinetics/k_rateConst.F90
-      ./src/kinetics/prepare_chemistry.F90
-      ./src/kinetics/kinetics_module.F90
-      ./src/rosenbrock_dev.F90
-      ./src/chemistry_driver.F90
-  )
-  # Set the sources: physics scheme caps
-  set(CAPS
-      ./caps/chemistry_driver_cap.F90
-      ./caps/k_rateConst_cap.F90
-  )
 elseif (PROJECT STREQUAL "terminator")
   message (STATUS "MODEL is terminator")
   INCLUDE_DIRECTORIES(generated/terminator)
-  set(SCHEMES
-      ./src/machine.F
-      ./src/const_props_mod.F90
-      ./src/json_loader.F90
-      ./src/chem_solve.F90
-      ./src/kinetics/kinetics.F90
-      ./src/kinetics/k_rateConst.F90
-      ./src/kinetics/prepare_chemistry.F90
-      ./src/kinetics/kinetics_module.F90
-      ./src/rosenbrock_dev.F90
-      ./src/chemistry_driver.F90
-      ./src/tuv/la_srb_mod.F90
-      ./src/tuv/module_params.F90
-      ./src/tuv/module_prates_tuv.F90
-      ./src/tuv/module_rxn.F90
-      ./src/tuv/module_xsections.F90
-      ./src/tuv/numer.F90
-      ./src/tuv/params_mod.F90
-      ./src/tuv/rad_trans.F90
-      ./src/tuv/tuv_error_mod.F90
-      ./src/tuv/tuv_photolysis.F90
-      ./src/tuv/tuv_subs.F90
-      ./src/photolysis_interstitial.F90
-      ./src/mass_quantities_util.F90
-  )
-  # Set the sources: physics scheme caps
-  set(CAPS
-      ./caps/chemistry_driver_cap.F90
-      ./caps/k_rateConst_cap.F90
-      ./caps/photolysis_interstitial_cap.F90
-      ./caps/tuv_photolysis_cap.F90
-      ./caps/mass_quantities_util_cap.F90
-  )
 elseif (PROJECT STREQUAL "user-defined")
   message (STATUS "MODEL is user-defined")
   INCLUDE_DIRECTORIES(generated/user-defined)
-  set(SCHEMES
+endif (PROJECT STREQUAL "3component")
+
+set(SCHEMES
       ./src/machine.F
       ./src/const_props_mod.F90
       ./src/json_loader.F90
@@ -182,15 +131,13 @@ elseif (PROJECT STREQUAL "user-defined")
       ./src/mass_quantities_util.F90
   )
   # Set the sources: physics scheme caps
-  set(CAPS
+set(CAPS
       ./caps/chemistry_driver_cap.F90
       ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
       ./caps/tuv_photolysis_cap.F90
       ./caps/mass_quantities_util_cap.F90
   )
-endif (PROJECT STREQUAL "3component")
-
 if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
 else (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
@@ -207,23 +154,6 @@ else(${CMAKE_VERSION} LESS 3.3)
   add_compile_options("$<$<COMPILE_LANGUAGE:Fortran>:${f_flags}>")
 endif (${CMAKE_VERSION} LESS 3.3)
 
-#if (PROJECT STREQUAL "CCPP-FV3")
-#  link_directories(${NCEPLIBS_DIR}/lib)
-## DH this should be a PROJECT == CCPP-SCM and else undefined test (similar in other places)
-#else (PROJECT STREQUAL "CCPP-FV3")
-#  SET(W3LIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/w3nco/v2.0.6/src)
-#  SET(BACIOLIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/bacio/v2.0.1/src)
-#  SET(SPLIB_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../external/sp/v2.0.2/src)
-#
-#  #add "sibling" directories (must specify the build directory too)
-#  ADD_SUBDIRECTORY(${W3LIB_SRC} ${CMAKE_BINARY_DIR}/w3nco)
-#  ADD_SUBDIRECTORY(${BACIOLIB_SRC} ${CMAKE_BINARY_DIR}/bacio)
-#  ADD_SUBDIRECTORY(${SPLIB_SRC} ${CMAKE_BINARY_DIR}/sp)
-#
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/w3nco)
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/sp)
-#  INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/bacio)
-#
 
 #this should call the custom FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables
 SET(NETCDF_F90 "YES")
@@ -236,16 +166,11 @@ INCLUDE_DIRECTORIES($ENV{JSONFORTRAN}/../include)
 
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
-#endif (PROJECT STREQUAL "CCPP-FV3")
 
 #------------------------------------------------------------------------------
 
 add_library(micmchem ${SCHEMES} ${CAPS})
-if (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(micmchem LINK_PUBLIC ${LIBS} sp_v2.0.2_d bacio_4 w3nco_d)
-else (PROJECT STREQUAL "CCPP-FV3")
-  target_link_libraries(micmchem LINK_PUBLIC ${LIBS} )
-endif (PROJECT STREQUAL "CCPP-FV3")
+target_link_libraries(micmchem LINK_PUBLIC ${LIBS} )
 set_target_properties(micmchem PROPERTIES VERSION ${PROJECT_VERSION}
                                      SOVERSION ${PROJECT_VERSION_MAJOR}
                                      COMPILE_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -266,17 +191,3 @@ add_custom_command(TARGET micmchem
 endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "PGI")
 # *DH end hack for PGI compiler
 
-if (PROJECT STREQUAL "CCPP-FV3")
-  # Define where to install the library
-  install(TARGETS micmchem
-          EXPORT micmchem-targets
-          ARCHIVE DESTINATION lib
-          LIBRARY DESTINATION lib
-          RUNTIME DESTINATION lib
-  )
-  # Export our configuration
-  install(EXPORT micmchem-targets
-          FILE micmchem-config.cmake
-          DESTINATION lib/cmake
-  )
-endif (PROJECT STREQUAL "CCPP-FV3")
