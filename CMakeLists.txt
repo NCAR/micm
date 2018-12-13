@@ -109,13 +109,15 @@ set(SCHEMES
       ./src/machine.F
       ./src/const_props_mod.F90
       ./src/json_loader.F90
-      ./src/chem_solve.F90
+      ./src/ODE_solver.F90
+      ./src/mozart_solver.F90
+      ./src/rosenbrock_solver.F90
       ./src/kinetics/kinetics.F90
       ./src/kinetics/k_rateConst.F90
       ./src/kinetics/prepare_chemistry.F90
       ./src/kinetics/kinetics_module.F90
-      ./src/rosenbrock_dev.F90
-      ./src/chemistry_driver.F90
+      ./src/chemistry_driver_ros.F90
+      ./src/chemistry_driver_moz.F90
       ./src/tuv/la_srb_mod.F90
       ./src/tuv/module_params.F90
       ./src/tuv/module_prates_tuv.F90
@@ -132,7 +134,8 @@ set(SCHEMES
   )
   # Set the sources: physics scheme caps
 set(CAPS
-      ./caps/chemistry_driver_cap.F90
+      ./caps/chemistry_driver_ros_cap.F90
+      ./caps/chemistry_driver_moz_cap.F90
       ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
       ./caps/tuv_photolysis_cap.F90

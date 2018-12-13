@@ -1,70 +1,69 @@
-module chemistry_driver
+!-----------------------------------------------------------------------------------------------
+! chemistry driver which uses Rosenbrock solver method
+!-----------------------------------------------------------------------------------------------
+module chemistry_driver_ros
 
 use kinetics_module,  only       : kinetics_type
 use kinetics,         only       : kinetics_init, kinetics_run
-use chem_solve,       only       : chem_solve_run
 use machine,          only       : r8 => kind_phys
 use const_props_mod,  only       : const_props_type
 use prepare_chemistry_mod, only  : prepare_chemistry_init
+use Rosenbrock_Solver, only: RosenbrockSolver
 
 implicit none
 
+type(RosenbrockSolver) :: theSolver
+type(kinetics_type), pointer :: theKinetics => null()
+
 contains
 
-
-!> \section arg_table_chemistry_driver_init Argument Table
+!> \section arg_table_chemistry_driver_ros_init Argument Table
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type            | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------------|-----------|--------|----------|
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real            | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real            | kind_phys | in     | F        |
 !! | dt         | time_step_for_physics                            | time_step_for_physics                   | s       |    0 | real            | kind_phys | in     | F        |
-!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type   |           | out    | F        |
-!! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real            | kind_phys | inout  | F        |
-!! | AbsTol     | abs_trunc_error                                  | ODE absolute step truncation error      | none    |    1 | real            | kind_phys | in     | F        |
-!! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none    |    1 | real            | kind_phys | in     | F        |
-!! | icntrl     | ODE_icontrol                                     | ODE integer controls                    | flag    |    1 | integer         |           | inout  | F        |
-!! | rcntrl     | ODE_rcontrol                                     | ODE real controls                       | none    |    1 | real            | kind_phys | inout  | F        |
-!! | cnst_info  | chemistry_constituent_info                       | chemistry_constituent_info              | DDT     |    1 | const_props_type|           | out    | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character       | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer         |           | out    | F        |
 !!
-subroutine chemistry_driver_init(TimeStart,TimeEnd, dt, theKinetics,  k_rateConst,  AbsTol, RelTol, icntrl, rcntrl, cnst_info, errmsg, errflg)
+subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
 
   implicit none
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
-  real(r8), intent(in)           :: TimeStart, TimeEnd
-  real(r8), intent(in)           :: dt
-  type(kinetics_type),  pointer  :: theKinetics
-  real(kind=r8),intent(inout)    :: k_rateConst(:)  ! host model provides photolysis rates for now
-  real(r8), intent(inout)        :: AbsTol(:), RelTol(:)
-  integer, intent(inout)         :: icntrl(:)     ! integer control array for ODE solver
-  real(r8), intent(inout)        :: rcntrl(:)     ! real control array for ODE solver
-  character(len=512),intent(out) :: errmsg
-  integer, intent(out)           :: errflg          ! error index from CPF
+  real(r8), intent(in)            :: TimeStart, TimeEnd
+  real(r8), intent(in)            :: dt
+  character(len=512),intent(out)  :: errmsg
+  integer, intent(out)            :: errflg          ! error index from CPF
 
-  integer            :: nTotRxt    ! total number of chemical reactions
+  type(const_props_type), pointer :: cnst_info(:)
   integer            :: nSpecies   ! number prognostic constituents
   integer            :: nkRxt      ! number gas phase reactions
   integer            :: njRxt      ! number of photochemical reactions
+  integer            :: nTotRxt    ! total number of chemical reactions
 
-! declare the types
-  type(const_props_type), pointer :: cnst_info(:)
-
+  integer  :: icntrl(20)     ! integer control array for ODE solver
+  real(r8) :: rcntrl(20)     ! real control array for ODE solver
+  real(r8), allocatable :: absTol(:), relTol(:)
   character(len=40) :: model_name
-  character(len=16) :: cnst_name
+  
+  write(0,*) ' Entered chemistry_driver_ros_init'
+  !--- initialize CCPP error handling variables
+  errmsg = ''
+  errflg = 0
 
-  write(0,*) ' Entered chemistry_driver_init'
+  !   This routine should be only called here when the main program no longer needs to allocate variables
+  call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt )
 
-!   This routine should be only called here when the main program no longer needs to allocate variables
-    call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt)
-
-    nTotRxt =  nkRxt + njRxt
+  nTotRxt =  nkRxt + njRxt
 
 !-----------------------------------------------------------
 !  initialize ode solver "control" variable defaults
 !-----------------------------------------------------------
+  allocate(absTol(nSpecies))
+  allocate(relTol(nSpecies))
+
   absTol(:) = 1.e-9_r8
   relTol(:) = 1.e-4_r8
   icntrl(:) = 0
@@ -85,32 +84,29 @@ subroutine chemistry_driver_init(TimeStart,TimeEnd, dt, theKinetics,  k_rateCons
   write(*,'(1p,10(1x,g0))') rcntrl(1:10)
   write(*,*) ' '
 
+  call theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=AbsTol, RelTol=RelTol, &
+                                       ICNTRL=icntrl, RCNTRL=rcntrl, Ierr=errflg )
 
 !-----------------------------------------------------------
 !  initialize the kinetics
 !-----------------------------------------------------------
+  allocate( theKinetics )
   call kinetics_init(nTotRxt, theKinetics, errmsg, errflg)
 
-end subroutine chemistry_driver_init
+end subroutine chemistry_driver_ros_init
 
-!> \section arg_table_chemistry_driver_run Argument Table
+!> \section arg_table_chemistry_driver_ros_run Argument Table
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type         | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|--------------|-----------|--------|----------|
 !! | vmr        | concentration                                    | species concentration                   | mole/mole |    1 |real        | kind_phys | inout  | F        |
 !! | TimeStart  | chem_step_start_time                             | Chem step start time                    | s       |    0 | real         | kind_phys | in     | F        |
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real         | kind_phys | in     | F        |
-!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type|           | in     | F        |
 !! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real         | kind_phys | in     | F        |
 !! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real         | kind_phys | in     | F        |
-!! | AbsTol     | abs_trunc_error                                  | ODE absolute step truncation error      | none    |    1 | real         | kind_phys | in     | F        |
-!! | RelTol     | rel_trunc_error                                  | ODE relative step truncation error      | none    |    1 | real         | kind_phys | in     | F        |
-!! | icntrl     | ODE_icontrol                                     | ODE integer controls                    | flag    |    1 | integer      |           | in     | F        |
-!! | rcntrl     | ODE_rcontrol                                     | ODE real controls                       | none    |    1 | real         | kind_phys | in     | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character    | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer      |           | out    | F        |
 !!
-subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, theKinetics,  j_rateConst,  k_rateConst, AbsTol, RelTol, &
-                                icntrl, rcntrl, errmsg, errflg)
+subroutine chemistry_driver_ros_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateConst, errmsg, errflg)
 
 
   implicit none
@@ -120,16 +116,16 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, theKinetics,  j_rateCon
 
   real(kind=r8), intent(inout)    :: vmr(:)                ! "working" concentration passed thru CPF
   real(r8), intent(in)            :: TimeStart, TimeEnd
-  type(kinetics_type),  pointer   :: theKinetics
   real(kind=r8), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=r8), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
-  real(r8), intent(in)            :: absTol(:), relTol(:)
-  integer,intent(in)              :: icntrl(:)             ! integer control array for ODE solver
-  real(r8),intent(in)             :: rcntrl(:)             ! real control array for ODE solver
   character(len=512), intent(out) :: errmsg
   integer, intent(out)            :: errflg                ! error index from CPF
 
   integer            :: i, k, n
+
+  !--- initialize CCPP error handling variables
+  errmsg = ''
+  errflg = 0
 
 !-----------------------------------------------------------
 !  update the kinetics
@@ -142,13 +138,31 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, theKinetics,  j_rateCon
 !-----------------------------------------------------------
 !  solve the current timestep's chemistry
 !-----------------------------------------------------------
-  call chem_solve_run(TimeStart, TimeEnd, vmr, theKinetics, icntrl, rcntrl, AbsTol, RelTol, errmsg, errflg)
-  if (errflg /= 0) return
+  call theSolver%Run( Tstart=TimeStart, Tend=TimeEnd, y=vmr, theKinetics=theKinetics, Ierr=errflg  )
 
-end subroutine chemistry_driver_run
+  if (errflg /= 0) then
+     errmsg = 'ERROR: theSolver%Run'
+     return
+  end if
+  
+end subroutine chemistry_driver_ros_run
 
-subroutine chemistry_driver_finalize()
-end subroutine chemistry_driver_finalize
+!> \section arg_table_chemistry_driver_ros_finalize Argument Table
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type         | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|--------------|-----------|--------|----------|
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character    | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer      |           | out    | F        |
+!!
+subroutine chemistry_driver_ros_finalize(errmsg,errflg)
+  character(len=512), intent(out) :: errmsg
+  integer, intent(out)            :: errflg                ! error index from CPF
+  errmsg = ''
+  errflg = 0
+  
+  deallocate( theKinetics )
+  nullify( theKinetics )
+  
+end subroutine chemistry_driver_ros_finalize
 
-end module chemistry_driver
+end module chemistry_driver_ros
 
