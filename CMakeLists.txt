@@ -131,6 +131,12 @@ set(SCHEMES
       ./src/tuv/tuv_subs.F90
       ./src/photolysis_interstitial.F90
       ./src/mass_quantities_util.F90
+      ./src/json_lib/json_file_module.F90
+      ./src/json_lib/json_kinds.F90
+      ./src/json_lib/json_module.F90
+      ./src/json_lib/json_parameters.F90
+      ./src/json_lib/json_string_utilities.F90
+      ./src/json_lib/json_value_module.F90
   )
   # Set the sources: physics scheme caps
 set(CAPS
@@ -161,12 +167,8 @@ endif (${CMAKE_VERSION} LESS 3.3)
 #this should call the custom FindNetCDF.cmake file in /src/cmake/modules and populate the NETCDF_INCLUDES and NETCDF_LIBRARIES variables
 SET(NETCDF_F90 "YES")
 FIND_PACKAGE(NetCDF)
-FIND_LIBRARY(JSONFORTRAN_LIB jsonfortran)
-MESSAGE(STATUS "JSONFORTRAN_LIB: ${JSONFORTRAN_LIB}")
 
 INCLUDE_DIRECTORIES(${NETCDF_INCLUDES})
-INCLUDE_DIRECTORIES($ENV{JSONFORTRAN}/../include)
-
 
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/ccpp-framework/src)
 
