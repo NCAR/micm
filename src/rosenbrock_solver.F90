@@ -1079,7 +1079,7 @@ END SUBROUTINE JacTemplate
       INTEGER, INTENT(OUT)   ::  INFO
       INTEGER, INTENT(INOUT) ::  IPVT(N)
 
-      DOUBLE PRECISION, INTENT(INOUT) :: A(N,N)
+      REAL(r8), INTENT(INOUT) :: A(N,N)
 !
 !     LOCAL VARIABLES
 !
@@ -1214,8 +1214,8 @@ END SUBROUTINE JacTemplate
       INTEGER, INTENT(IN)   ::  JOB
       INTEGER, INTENT(IN)   ::  IPVT(N)
 
-      DOUBLE PRECISION, INTENT(IN)    :: A(N,N)
-      DOUBLE PRECISION, INTENT(INOUT) :: B(N)
+      REAL(r8), INTENT(IN)    :: A(N,N)
+      REAL(r8), INTENT(INOUT) :: B(N)
 
 !
       INTEGER :: K, KM1, KP1, KB, L, NM1
