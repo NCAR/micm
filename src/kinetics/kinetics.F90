@@ -16,12 +16,12 @@ module kinetics
 contains
 
 !> \section arg_table_kinetics_init Argument Table
-!! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | nTotRxt    | num_chemical_reactions                           | total number of chemical reactions      | count   |    0 | integer   |           | none   | F        |
-!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |       | none   | F        |
-!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type          | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|---------------|-----------|--------|----------|
+!! | nTotRxt    | num_chemical_reactions                           | total number of chemical reactions      | count   |    0 | integer       |           | in     | F        |
+!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
 !!
   subroutine kinetics_init( nTotRxt, theKinetics, errmsg, errflg )
 
@@ -39,13 +39,13 @@ contains
   end subroutine kinetics_init
 
 !> \section arg_table_kinetics_run Argument Table
-!! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
-!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |       | none   | F        |
-!! | k_rateConst| gasphase_rate_constants                          | gas phase rates constants               | s-1     |    1 | real      | kind_phys | none   | F        |
-!! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real      | kind_phys | in     | F        |
-!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
+!! | local_name | standard_name                                    | long_name                               | units   | rank | type          | kind      | intent | optional |
+!! |------------|--------------------------------------------------|-----------------------------------------|---------|------|---------------|-----------|--------|----------|
+!! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
+!! | k_rateConst| gasphase_rate_constants                          | gas phase rates constants               | s-1     |    1 | real          | kind_phys | in     | F        |
+!! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real          | kind_phys | in     | F        |
+!! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
+!! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
 !!
   subroutine kinetics_run( theKinetics, k_rateConst, j_rateConst, errmsg, errflg )
 
