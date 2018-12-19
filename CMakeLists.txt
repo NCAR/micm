@@ -147,13 +147,36 @@ set(CAPS
       ./caps/tuv_photolysis_cap.F90
       ./caps/mass_quantities_util_cap.F90
   )
-if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
-else (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
-  message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
-  message ("Fortran compiler: " ${CMAKE_Fortran_COMPILER_ID})
-  message (FATAL_ERROR "This program has only been compiled with gfortran, pgf90 and ifort. If another compiler is needed, the appropriate flags must be added in ${GFS_PHYS_SRC}/CMakeLists.txt")
-endif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+  # Basic settings
+  set (CMAKE_C_FLAGS       "-O0 -g -fPIC" CACHE STRING "" FORCE)
+  set (CMAKE_CXX_FLAGS     "-O0 -g -fPIC" CACHE STRING "" FORCE)
+  set (CMAKE_Fortran_FLAGS "-O0 -g -fPIC" CACHE STRING "" FORCE)
+  # Compiler-dependent settings
+  if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -fcheck=all -fbacktrace -ffpe-trap=zero -finit-real=nan -ggdb -ffree-line-length-none -cpp -fdefault-real-8")
+  elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -fpe0 -warn -traceback -debug extended -fpp -r8")
+  elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "PGI")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -Mnoipa -traceback -Mpreprocess -r8")
+  else (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+    message (FATAL_ERROR "This program has only been compiled with gfortran, pgf90 and ifort. If another compiler is needed, the appropriate flags must be added in ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
+  endif (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+elseif (${CMAKE_BUILD_TYPE} MATCHES "Release")
+  set (CMAKE_C_FLAGS       "-O2 -g -fPIC" CACHE STRING "" FORCE)
+  set (CMAKE_CXX_FLAGS     "-O2 -g -fPIC" CACHE STRING "" FORCE)
+  set (CMAKE_Fortran_FLAGS "-O2 -g -fPIC" CACHE STRING "" FORCE)
+  # Compiler-dependent settings
+  if (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -ffree-line-length-none -cpp -fdefault-real-8")
+  elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "Intel")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -ftz -debug minimal -fpp -r8")
+  elseif (${CMAKE_Fortran_COMPILER_ID} MATCHES "PGI")
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -Mipa=noconst -Mpreprocess -r8")
+  else (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+    message (FATAL_ERROR "This program has only been compiled with gfortran, pgf90 and ifort. If another compiler is needed, the appropriate flags must be added in ${CMAKE_SOURCE_DIR}/CMakeLists.txt")
+  endif (${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
+endif (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
 #apply general fortran tags to all fortran source files
 if(${CMAKE_VERSION} LESS 3.3)
