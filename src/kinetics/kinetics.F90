@@ -80,6 +80,9 @@ contains
     character(len=512), intent(out)   :: errmsg
     integer,            intent(out)   :: errflg
 
+    errmsg = ''
+    errflg = 0
+
   end subroutine kinetics_finalize
 
 end module kinetics

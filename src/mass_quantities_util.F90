@@ -68,6 +68,10 @@ contains
     real(rk), parameter :: molar_mass_n2 = 28.0134_rk ! g/mole
     real(rk), parameter :: kboltz= 1.38064852e-16_rk ! boltzmann constant (erg/K)
    
+    !--- initialize CCPP error handling variables
+    errmsg = ''
+    errflg = 0
+
     density = 10._rk*press/(kboltz*temp)
 
     if (o2_ndx>0) then
