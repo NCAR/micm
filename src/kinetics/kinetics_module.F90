@@ -73,10 +73,21 @@ contains
     class(kinetics_type) :: this
     real(r8), intent(in) :: k_rateConst(:) ! externally supplied rate constants
     real(r8), intent(in) :: j_rateConst(:)
+  
+    integer :: i, size_krateConst, size_jrateConst
     
+    size_krateConst=size(k_rateConst)
+    size_jrateConst=size(j_rateConst)
+
     associate( rateConstants => this%rateConst )
       ! Rate Constants
-#include "rateconstants.inc"
+    
+      ! Assign the k_rateConst to the beginning of the rateConstants array
+      if (size_krateConst>  0) rateConstants(1:size_krateConst)=k_rateConst(1:size_krateConst)
+
+      ! Assign the j_rateConst to the rateConstants array after the k_rateConst
+      if (size_jrateConst > 0) rateConstants(size_krateConst+1:size_krateConst+size_jrateConst) = j_rateConst(1:size_jrateConst)
+    
     end associate
 
   end subroutine rateConst_update
