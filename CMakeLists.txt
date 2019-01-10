@@ -94,16 +94,8 @@ ADD_DEFINITIONS(-DNEMS_GSM)
 
 #------------------------------------------------------------------------------
 # Set the sources: physics schemes
-if (PROJECT STREQUAL "3component")
-  message (STATUS "MODEL is 3component")
-  INCLUDE_DIRECTORIES(generated/3component)
-elseif (PROJECT STREQUAL "terminator")
-  message (STATUS "MODEL is terminator")
-  INCLUDE_DIRECTORIES(generated/terminator)
-elseif (PROJECT STREQUAL "user-defined")
-  message (STATUS "MODEL is user-defined")
-  INCLUDE_DIRECTORIES(generated/user-defined)
-endif (PROJECT STREQUAL "3component")
+message (STATUS "MODEL is " ${PROJECT})
+INCLUDE_DIRECTORIES(generated/${PROJECT})
 
 set(SCHEMES
       ./src/machine.F

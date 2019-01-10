@@ -50,23 +50,31 @@ contains
 !! | local_name | standard_name                                    | long_name                               | units   | rank | type      | kind      | intent | optional |
 !! |------------|--------------------------------------------------|-----------------------------------------|---------|------|-----------|-----------|--------|----------|
 !! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real      | kind_phys | inout  | F        |
+!! | c_m        | total_number_density                             | total number density                    | molecules/cm3 | 0    | real| kind_phys | in     | F        |
+!! | rh         | relative humidity                                | relative humidity                       | percent |    0 | real      | kind_phys | in     | F        |
+!! | h2o_arr    | H2O_vmr_col                                      | H2O volume mixing ratio column          | mole/mole |  1 | real      | kind_phys | in     | F        |
 !! | temp_arr   | layer_temperature                                | mid-point layer temperature             | K       |    1 | real      | kind_phys | in     | F        |
 !! | photo_lev  | level_number_for_photolysis                      | level number used to set j_rateConst    | count   |    0 | integer   |           | none   | F        | 
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer   |           | out    | F        |
 !!
-  subroutine k_rateConst_run(k_rateConst, temp_arr, photo_lev, errflg, errmsg)
+  subroutine k_rateConst_run(k_rateConst, c_m, rh, h2o_arr, temp_arr, photo_lev, errflg, errmsg)
   
     real(r8),pointer, intent(inout) :: k_rateConst(:)
+    real(r8),           intent(in)  :: c_m
+    real(r8),           intent(in)  :: rh 
+    real(r8),           intent(in)  :: h2o_arr(:)
     real(r8),           intent(in)  :: temp_arr(:)
     integer,            intent(in)  :: photo_lev
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
     real(r8)                        :: TEMP
+    real(r8)                        :: c_h2o
 
     ! retrieve the temperature used by tuv (the photolysis level)
     TEMP = temp_arr(photo_lev)
+    c_h2o = h2o_arr(photo_lev)
 
     errmsg=''
     errflg=0
@@ -78,5 +86,7 @@ contains
   
   subroutine k_rateConst_finalize
   end subroutine k_rateConst_finalize
+
+#include "rate_functions.inc"
   
 end module k_rateConst
