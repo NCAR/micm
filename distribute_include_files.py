@@ -236,7 +236,7 @@ except:
 
 # Suite Definition File
 relative_source_directory_for_chemistry_suite = "../MusicBox_host/suites/";
-chemistry_suite_file = relative_source_directory_for_chemistry_suite + "suite_MusicBox_" +mechanism_name+ ".xml";
+chemistry_suite_file = relative_source_directory_for_chemistry_suite + mechanism_name+ ".xml";
 suite_name="MICM_"+"mechanism_name"
 
 try:
