@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #shim for python 2
 from __future__ import print_function
 
