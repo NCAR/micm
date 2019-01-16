@@ -44,15 +44,17 @@ contains
 !! | theKinetics | kinetics_data                                   | chemistry kinetics                      | DDT     |    0 | kinetics_type |           | none   | F        |
 !! | k_rateConst| gasphase_rate_constants                          | gas phase rates constants               | s-1     |    1 | real          | kind_phys | in     | F        |
 !! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real          | kind_phys | in     | F        |
+!! | c_m        | total_number_density                             | total number density              | molecules/cm3 |    0 | real          | kind_phys | in     | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character     | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer       |           | out    | F        |
 !!
-  subroutine kinetics_run( theKinetics, k_rateConst, j_rateConst, errmsg, errflg )
+  subroutine kinetics_run( theKinetics, k_rateConst, j_rateConst, c_m, errmsg, errflg )
 
     !--- arguments
     type(kinetics_type), pointer      :: theKinetics
     real(rk),           intent(in)    :: k_rateConst(:)
     real(rk),           intent(in)    :: j_rateConst(:)
+    real(rk),           intent(in)    :: c_m ! total number density
     character(len=512), intent(out)   :: errmsg
     integer,            intent(out)   :: errflg
 
@@ -64,7 +66,7 @@ contains
     errflg = 0
 
     !--- set the gas phase rate constants
-    call theKinetics%rateConst_update( k_rateConst, j_rateConst )
+    call theKinetics%rateConst_update( k_rateConst, j_rateConst, c_m)
 
   end subroutine kinetics_run
 

@@ -34,6 +34,7 @@ type kinetics_type
   private
   integer :: nReact
   real(r8), allocatable :: rateConst(:)
+  real(r8)              :: number_density   ! total number density (molecules/cm^3)
 contains
   private
   procedure, public :: rateConst_init 
@@ -68,16 +69,19 @@ contains
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine rateConst_update( this, k_rateConst, j_rateConst )
+  subroutine rateConst_update( this, k_rateConst, j_rateConst, c_m )
 
     class(kinetics_type) :: this
     real(r8), intent(in) :: k_rateConst(:) ! externally supplied rate constants
     real(r8), intent(in) :: j_rateConst(:)
+    real(r8), intent(in) :: c_m ! total number density
   
     integer :: i, size_krateConst, size_jrateConst
     
     size_krateConst=size(k_rateConst)
     size_jrateConst=size(j_rateConst)
+
+    this%number_density=c_m
 
     associate( rateConstants => this%rateConst )
       ! Rate Constants
