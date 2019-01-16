@@ -118,7 +118,7 @@ subroutine chemistry_driver_moz_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rat
   real(r8), intent(in)            :: TimeStart, TimeEnd
   real(kind=r8), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=r8), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
-  real(kind=r8)                   :: c_m                   ! total number density
+  real(kind=r8), intent(in)       :: c_m                   ! total number density
   character(len=512), intent(out) :: errmsg
   integer, intent(out)            :: errflg                ! error index from CPF
 
