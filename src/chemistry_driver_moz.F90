@@ -102,10 +102,11 @@ end subroutine chemistry_driver_moz_init
 !! | TimeEnd    | chem_step_end_time                               | Chem step end time                      | s       |    0 | real         | kind_phys | in     | F        |
 !! | j_rateConst| photo_rate_constants                             | photochemical rates constants           | s-1     |    1 | real         | kind_phys | in     | F        |
 !! | k_rateConst| gasphase_rate_constants                          | k rate constants                        | s-1     |    1 | real         | kind_phys | in     | F        |
+!! | c_m        | total_number_density                             | total number density                    | molecules/cm3 | 0 | real      | kind_phys | in     | F        |
 !! | errmsg     | ccpp_error_message                               | CCPP error message                      | none    |    0 | character    | len=512   | out    | F        |
 !! | errflg     | ccpp_error_flag                                  | CCPP error flag                         | flag    |    0 | integer      |           | out    | F        |
 !!
-subroutine chemistry_driver_moz_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateConst, errmsg, errflg)
+subroutine chemistry_driver_moz_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateConst, c_m, errmsg, errflg)
 
 
   implicit none
@@ -117,6 +118,7 @@ subroutine chemistry_driver_moz_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rat
   real(r8), intent(in)            :: TimeStart, TimeEnd
   real(kind=r8), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=r8), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
+  real(kind=r8), intent(in)       :: c_m                   ! total number density
   character(len=512), intent(out) :: errmsg
   integer, intent(out)            :: errflg                ! error index from CPF
 
@@ -129,7 +131,7 @@ subroutine chemistry_driver_moz_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rat
 !-----------------------------------------------------------
 !  update the kinetics
 !-----------------------------------------------------------
-  call kinetics_run(theKinetics, k_rateConst, j_rateConst, errmsg, errflg)
+  call kinetics_run(theKinetics, k_rateConst, j_rateConst, c_m, errmsg, errflg)
   if (errflg /= 0) return
 
   call theKinetics%rateConst_print()
