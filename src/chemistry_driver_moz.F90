@@ -64,8 +64,8 @@ subroutine chemistry_driver_moz_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   allocate(absTol(nSpecies))
   allocate(relTol(nSpecies))
 
-  absTol(:) = 1.e-9_r8
-  relTol(:) = 1.e-4_r8
+  absTol(:) = 1.e-8_r8
+  relTol(:) = 1.e-3_r8
   icntrl(:) = 0
   rcntrl(:) = 0._r8
 

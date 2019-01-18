@@ -143,12 +143,17 @@ contains
     class(kinetics_type) :: this
     real(r8), intent(in)::  vmr(:)         ! volume mixing ratios of each component in order
     real(r8) :: jac(size(vmr),size(vmr))   ! sensitivity of forcing to changes in each vmr
+    real(r8) :: number_density_air, number_density_air_squared, number_density_air_cubed
+    associate( number_density_air => this%number_density )
 
+    number_density_air_squared = number_density_air*number_density_air
+    number_density_air_cubed = number_density_air*number_density_air*number_density_air
     ! Jacobian
     jac(:,:) = 0._r8
 
     associate( rateConstants => this%rateConst )
 #include "jacobian.inc"
+    end associate
     end associate
 
   end function jac
@@ -161,9 +166,16 @@ contains
     class(kinetics_type)  :: this
     real(r8), intent(in)  :: vmr(:)     ! volume mixing ratios of each component in order
     real(r8), intent(out) :: rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
+    real(r8) :: number_density_air, number_density_air_squared, number_density_air_cubed
 
     associate( rateConstants => this%rateConst )
+    associate( number_density_air => this%number_density )
+
+    number_density_air_squared = number_density_air*number_density_air
+    number_density_air_cubed = number_density_air*number_density_air*number_density_air
 #include "rates.inc"
+
+    end associate
     end associate
 
   end subroutine compute_rates
