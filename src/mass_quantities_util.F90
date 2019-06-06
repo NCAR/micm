@@ -2,7 +2,7 @@
 ! utility to compute background air mass quantities
 !--------------------------------------------------------------------------------
 module mass_quantities_util
-  use machine, only : rk => kind_phys
+  USE ccpp_kinds, ONLY: rk => kind_phys
   use const_props_mod, only : const_props_type
   implicit none
   
@@ -12,18 +12,15 @@ module mass_quantities_util
 contains
 
 !> \section arg_table_mass_quantities_util_init Argument Table
-!! | local_name | standard_name              | long_name                  | units   | rank | type             | kind      | intent | optional |
-!! |------------|----------------------------|----------------------------|---------|------|------------------|-----------|--------|----------|
-!! | cnst_info  | chemistry_constituent_info | chemistry_constituent_info | DDT     |    1 | const_props_type |           | in     | F        |
-!! | errmsg     | ccpp_error_message         | CCPP error message         | none    |    0 | character        | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag            | CCPP error flag            | flag    |    0 | integer          |           | out    | F        |
+!! \htmlinclude mass_quantities_util_init.html
 !!
-  subroutine mass_quantities_util_init(cnst_info, errmsg, errflg)
+  subroutine mass_quantities_util_init(cnst_info, ncnst, errmsg, errflg)
     type(const_props_type), intent(in)  :: cnst_info(:)
+    integer,                intent(in)  :: ncnst
     character(len=512),     intent(out) :: errmsg
     integer,                intent(out) :: errflg
 
-    integer :: ncnst, i
+    integer :: i
 
     !--- initialize CCPP error handling variables
     errmsg = ''
@@ -32,7 +29,6 @@ contains
     o2_ndx =-1
     n2_ndx =-1
 
-    ncnst = size(cnst_info)
     allocate(molar_mass(ncnst))
 
     do i = 1,ncnst
@@ -44,15 +40,7 @@ contains
   end subroutine mass_quantities_util_init
 
 !> \section arg_table_mass_quantities_util_run Argument Table
-!! | local_name | standard_name             | long_name                 | units         | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------|---------------------------|---------------|------|-----------|-----------|--------|----------|
-!! | press      | pressure                  | ambient pressure          | Pa            | 0    | real      | kind_phys | in     | F        |
-!! | temp       | temperature               | ambient temperature       | K             | 0    | real      | kind_phys | in     | F        |
-!! | vmr        | concentration             | species concentration     | mole/mole     | 1    | real      | kind_phys | in     | F        |
-!! | density    | total_number_density      | total number density      | molecules/cm3 | 0    | real      | kind_phys | out    | F        |
-!! | mbar       | mean_molec_mass           | mean molecular mass       | g/mole        | 0    | real      | kind_phys | out    | F        |
-!! | errmsg     | ccpp_error_message        | CCPP error message        | none          | 0    | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag           | CCPP error flag           | flag          | 0    | integer   |           | out    | F        |
+!! \htmlinclude mass_quantities_util_run.html
 !!
   subroutine mass_quantities_util_run( press, temp, vmr, density, mbar, errmsg, errflg )
 
@@ -87,10 +75,7 @@ contains
   end subroutine mass_quantities_util_run
 
 !> \section arg_table_mass_quantities_util_finalize Argument Table
-!! | local_name | standard_name         | long_name                      | units   | rank | type      | kind      | intent | optional |
-!! |------------|-----------------------|--------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | errmsg     | ccpp_error_message    | CCPP error message             | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag       | CCPP error flag                | flag    |    0 | integer   |           | out    | F        |
+!! \htmlinclude mass_quantities_util_finalize.html
 !!
   subroutine mass_quantities_util_finalize( errmsg, errflg )
 

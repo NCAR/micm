@@ -27,11 +27,7 @@ module tuv_photolysis
 contains
 
 !> \section arg_table_tuv_photolysis_init Argument Table
-!! | local_name | standard_name             | long_name                 | units   | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------|---------------------------|---------|------|-----------|-----------|--------|----------|
-!! | nlevels    | num_levels_for_photolysis | number of column layers   | count   |    0 | integer   |           | in     | F        |
-!! | errmsg     | ccpp_error_message        | CCPP error message        | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag           | CCPP error flag           | flag    |    0 | integer   |           | out    | F        |
+!! \htmlinclude tuv_photolysis_init.html
 !!
   subroutine tuv_photolysis_init(nlevels, errmsg, errflg)
     use params_mod, only: input_data_root
@@ -174,22 +170,7 @@ contains
   end subroutine tuv_photolysis_init
 
 !> \section arg_table_tuv_photolysis_run Argument Table
-!! | local_name | standard_name                         | long_name                      | units     | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------------------|--------------------------------|-----------|------|-----------|-----------|--------|----------|
-!! | zenith     | solar_zenith                          | solar zenith angle             | degrees   |    0 | real      | kind_phys | in     | F        |
-!! | albedo     | surface_albedo                        | surface albedo                 | none      |    0 | real      | kind_phys | in     | F        |
-!! | press_mid  | layer_pressure                        | mid-point layer pressure       | Pa        |    1 | real      | kind_phys | in     | F        |
-!! | press_int  | layer_interface_pressure              | layer interface pressure       | Pa        |    1 | real      | kind_phys | in     | F        |
-!! | alt        | layer_altitude                        | mid-point layer altitude       | km        |    1 | real      | kind_phys | in     | F        |
-!! | temp       | layer_temperature                     | mid-point layer temperature    | K         |    1 | real      | kind_phys | in     | F        |
-!! | o2vmr      | O2_vmr_col                            | O2 volume mixing ratio column  | mole/mole |    1 | real      | kind_phys | in     | F        |
-!! | o3vmr      | O3_vmr_col                            | O3 volume mixing ratio column  | mole/mole |    1 | real      | kind_phys | in     | F        |
-!! | so2vmr     | SO2_vmr_col                           | SO2 volume mixing ratio column | mole/mole |    1 | real      | kind_phys | in     | F        |
-!! | no2vmr     | NO2_vmr_col                           | NO2 volume mixing ratio column | mole/mole |    1 | real      | kind_phys | in     | F        |
-!! | prates     | photolysis_rates_col                  | photolysis rates column        | s-1       |    2 | real      | kind_phys | out    | F        |
-!! | o3totcol   | ozone_column_density                  | total ozone column density     | DU        |    0 | real      | kind_phys | out    | F        |
-!! | errmsg     | ccpp_error_message                    | CCPP error message             | none      |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag                       | CCPP error flag                | flag      |    0 | integer   |           | out    | F        |
+!! \htmlinclude tuv_photolysis_run.html
 !!
   subroutine tuv_photolysis_run( zenith, albedo, press_mid, press_int, alt, temp, o2vmr, o3vmr, so2vmr, no2vmr, prates, o3totcol, errmsg, errflg )
 
@@ -265,10 +246,7 @@ contains
   end subroutine tuv_photolysis_run
   
 !> \section arg_table_tuv_photolysis_finalize Argument Table
-!! | local_name | standard_name                         | long_name                      | units     | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------------------|--------------------------------|-----------|------|-----------|-----------|--------|----------|
-!! | errmsg     | ccpp_error_message                    | CCPP error message             | none      |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag                       | CCPP error flag                | flag      |    0 | integer   |           | out    | F        |
+!! \htmlinclude tuv_photolysis_finalize.html
 !!
   subroutine tuv_photolysis_finalize( errmsg, errflg )
 

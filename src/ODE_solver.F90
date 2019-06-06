@@ -1,7 +1,8 @@
 
    module ODE_solver
 
-   use machine, only: r8 => kind_phys
+   use ccpp_kinds, only: r8 => kind_phys
+
 
    implicit none
 

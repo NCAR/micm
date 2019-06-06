@@ -1,0 +1,86 @@
+[ccpp-arg-table]
+  name = k_rateConst_init
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = k_rateConst_run
+  type = scheme
+[k_rateConst]
+  standard_name = gasphase_rate_constants
+  long_name = k rate constants
+  units = s-1
+  dimensions = (number_of_kinetics_reactions)
+  type = real
+  kind = r8
+  intent = out
+  optional = F
+[c_m]
+  standard_name = total_number_density
+  long_name = total number density
+  units = molecules/cm3
+  dimensions = ()
+  type = real
+  kind = r8
+  intent = in
+  optional = F
+[rh]
+  standard_name = relative_humidity
+  long_name = relative humidity
+  units = percent
+  dimensions = ()
+  type = real
+  kind = r8
+  intent = in
+  optional = F
+[c_h2o]
+  standard_name = water_vapor
+  long_name = water_vapor
+  units = mole/mole
+  dimensions = ()
+  type = real
+  kind = r8
+  intent = in
+  optional = F
+[TEMP]
+  standard_name = temperature
+  long_name = mid-point layer temperature
+  units = K
+  dimensions = ()
+  type = real
+  kind = r8
+  intent = in
+  optional = F
+[ errmsg ]
+  standard_name = ccpp_error_message
+  long_name = Error message for error handling in CCPP
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

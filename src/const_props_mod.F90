@@ -4,6 +4,9 @@ module const_props_mod
 
   private
 
+!> \section arg_table_const_props_type
+!! \htmlinclude const_props_type.html
+!!
   type, public :: const_props_type
      private
      character(len=16) :: name = 'UNSET'

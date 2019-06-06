@@ -1,0 +1,90 @@
+[ccpp-arg-table]
+  name = photolysis_interstitial_init
+  type = scheme
+[photo_lev]
+  standard_name = level_number_for_photolysis
+  long_name = level number used to set j_rateConst
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = photolysis_interstitial_run
+  type = scheme
+[prates]
+  standard_name = photolysis_rates_col
+  long_name = photolysis rates column
+  units = s-1
+  dimensions = (XX_NotFound_XX,XX_NotFound_XX)
+  type = real
+  kind = rk
+  intent = in
+  optional = F
+[j_rateConst]
+  standard_name = photo_rate_constants
+  long_name = photochemical rates constants
+  units = s-1
+  dimensions = (XX_NotFound_XX)
+  type = real
+  kind = rk
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = photolysis_interstitial_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

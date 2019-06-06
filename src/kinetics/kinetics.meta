@@ -1,0 +1,111 @@
+[ccpp-arg-table]
+  name = kinetics_init
+  type = scheme
+[nTotRxt]
+  standard_name = num_chemical_reactions
+  long_name = total number of chemical reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[theKinetics]
+  standard_name = kinetics_data
+  long_name = chemistry kinetics
+  dimensions = ()
+  ddt_type = kinetics_type
+  intent = inout
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = kinetics_run
+  type = scheme
+[theKinetics]
+  standard_name = kinetics_data
+  long_name = chemistry kinetics
+  dimensions = ()
+  ddt_type = kinetics_type
+  intent = inout
+[k_rateConst]
+  standard_name = gasphase_rate_constants
+  long_name = gas phase rates constants
+  units = s-1
+  dimensions = (number_of_kinetics_reactions)
+  type = real
+  kind = rk
+  intent = in
+  optional = F
+[j_rateConst]
+  standard_name = photo_rate_constants
+  long_name = photochemical rates constants
+  units = s-1
+  dimensions = (number_of_photolysis_reactions)
+  type = real
+  kind = rk
+  intent = in
+  optional = F
+[c_m]
+  standard_name = total_number_density
+  long_name = total number density
+  units = molecules/cm3
+  dimensions = ()
+  type = real
+  kind = rk
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = kinetics_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

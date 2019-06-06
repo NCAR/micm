@@ -1,0 +1,67 @@
+[ccpp-arg-table]
+  name = prepare_chemistry_init
+  type = scheme
+[cnst_info]
+  standard_name = chemistry_constituent_info
+  long_name = chemistry_constituent_info
+  dimensions = (number_of_chemical_constituents)
+  ddt_type = const_props_type
+  intent = out
+[model_name]
+  standard_name = name_of_chemistry_model
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=80
+  intent = out
+[nSpecies]
+  standard_name=number_of_chemical_constituents
+  units = count
+  dimensions = ()
+  type = integer
+  intent = out
+[nkRxt]
+  standard_name=number_of_kinetics_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = out
+[njRxt]
+  standard_name=number_of_photolysis_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = out
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+[ccpp-arg-table]
+  name = prepare_chemistry_run
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out

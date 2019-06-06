@@ -1,0 +1,180 @@
+[ccpp-arg-table]
+  name = tuv_photolysis_init
+  type = scheme
+[nlevels]
+  standard_name = num_levels_for_photolysis
+  long_name = number of column layers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = tuv_photolysis_run
+  type = scheme
+[zenith]
+  standard_name = solar_zenith
+  long_name = solar zenith angle
+  units = degrees
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[albedo]
+  standard_name = surface_albedo
+  long_name = surface albedo
+  units = none
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[press_mid]
+  standard_name = layer_pressure
+  long_name = mid-point layer pressure
+  units = Pa
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[press_int]
+  standard_name = layer_interface_pressure
+  long_name = layer interface pressure
+  units = Pa
+  dimensions = (vertical_level_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[alt]
+  standard_name = layer_altitude
+  long_name = mid-point layer altitude
+  units = km
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[temp]
+  standard_name = layer_temperature
+  long_name = mid-point layer temperature
+  units = K
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[o2vmr]
+  standard_name = o2_vmr_col
+  long_name = O2 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[o3vmr]
+  standard_name = o3_vmr_col
+  long_name = O3 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[so2vmr]
+  standard_name = so2_vmr_col
+  long_name = SO2 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[no2vmr]
+  standard_name = no2_vmr_col
+  long_name = NO2 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[prates]
+  standard_name = photolysis_rates_col
+  long_name = photolysis rates column
+  units = s-1
+  dimensions = (vertical_level_dimension,number_of_tuv_jrates)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[o3totcol]
+  standard_name = ozone_column_density
+  long_name = total ozone column density
+  units = DU
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = tuv_photolysis_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = none
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
