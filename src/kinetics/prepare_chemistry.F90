@@ -17,7 +17,7 @@ subroutine prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt,
 
 ! This routine reads in the chemistry json file
 
-  type(const_props_type), pointer, intent(out) :: cnst_info(:)
+  type(const_props_type), allocatable, intent(out) :: cnst_info(:)
   character(len=80), intent(out) :: model_name
   integer,           intent(out) :: nSpecies    ! number prognostic constituents
   integer,           intent(out) :: nkRxt       ! number gas phase reactions

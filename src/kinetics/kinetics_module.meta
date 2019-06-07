@@ -11,10 +11,10 @@
   units = ??
   dimensions = (number_of_chemical_reactants)
   type = real
-  kind = r8
+  kind = kind_phys
 [number_density]
   standard_name = total_number_density
   units = molecules cm-3
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys

@@ -1,7 +1,8 @@
 module kinetics
 
   use kinetics_module, only: kinetics_type
-  use ccpp_kinds, only: rk => kind_phys
+!  use ccpp_kinds, only: rk => kind_phys
+  use ccpp_kinds, only: kind_phys
 
   
   implicit none
@@ -40,9 +41,9 @@ contains
 
     !--- arguments
     type(kinetics_type), pointer, intent(inout)      :: theKinetics
-    real(rk),           intent(in)    :: k_rateConst(:)
-    real(rk),           intent(in)    :: j_rateConst(:)
-    real(rk),           intent(in)    :: c_m ! total number density
+    real(kind_phys),           intent(in)    :: k_rateConst(:)
+    real(kind_phys),           intent(in)    :: j_rateConst(:)
+    real(kind_phys),           intent(in)    :: c_m ! total number density
     character(len=512), intent(out)   :: errmsg
     integer,            intent(out)   :: errflg
 

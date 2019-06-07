@@ -2,8 +2,8 @@
    module ODE_solver
 
    use ccpp_kinds, only: r8 => kind_phys
-
-
+   use ccpp_kinds, only:  kind_phys
+   
    implicit none
 
    TYPE, abstract :: baseOdeSolver
@@ -19,14 +19,15 @@
 
       import baseOdeSolver
       import r8
+      import kind_phys
 
       class(baseOdeSolver) :: this
       integer, intent(out) :: Ierr
-      real(r8), optional, intent(in) :: Tstart
-      real(r8), optional, intent(in) :: Tend
-      REAL(r8), optional, INTENT(IN) :: AbsTol(:), RelTol(:)
+      real(kind_phys), optional, intent(in) :: Tstart
+      real(kind_phys), optional, intent(in) :: Tend
+      REAL(kind_phys), optional, INTENT(IN) :: AbsTol(:), RelTol(:)
       INTEGER,  optional, INTENT(IN) :: ICNTRL(:)
-      REAL(r8), optional, INTENT(IN) :: RCNTRL(:)
+      REAL(kind_phys), optional, INTENT(IN) :: RCNTRL(:)
 
     end subroutine OdeSolver_init
 
@@ -37,15 +38,16 @@
 
       import baseOdeSolver
       import r8
+      import kind_phys
 
       class(baseOdeSolver)  :: this
       integer, intent(out)  :: Ierr
       integer, optional, intent(inout)  :: istatus(:)
-      real(r8), optional, intent(inout) :: rstatus(:)
-      real(r8),        intent(inout)  :: Y(:)
-      real(r8), optional, intent(out) :: T
-      real(r8), optional, intent(in)  :: Tstart
-      real(r8), optional, intent(in)  :: Tend
+      real(kind_phys), optional, intent(inout) :: rstatus(:)
+      real(kind_phys),        intent(inout)  :: Y(:)
+      real(kind_phys), optional, intent(out) :: T
+      real(kind_phys), optional, intent(in)  :: Tstart
+      real(kind_phys), optional, intent(in)  :: Tend
       TYPE(kinetics_type), optional   :: theKinetics
 
     end subroutine OdeSolver_run

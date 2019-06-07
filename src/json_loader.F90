@@ -9,7 +9,7 @@ contains
   subroutine json_loader_read( jsonfile, cnst_info, ncnst, nrxtn, nphot )
     
     character(len=*), intent(in) :: jsonfile
-    type(const_props_type), pointer :: cnst_info(:)
+    type(const_props_type), allocatable :: cnst_info(:)
     integer, intent(out) :: ncnst, nrxtn, nphot
     
     ! local vars

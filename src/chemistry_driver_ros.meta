@@ -7,7 +7,7 @@
   units = s
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [TimeEnd]
@@ -16,7 +16,7 @@
   units = s
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [dt]
@@ -25,7 +25,7 @@
   units = s
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [errmsg]
@@ -56,7 +56,7 @@
   units = mole/mole
   dimensions = (number_of_chemical_constituents)
   type = real
-  kind = r8
+  kind = kind_phys
   intent = inout
   optional = F
 [TimeStart]
@@ -65,7 +65,7 @@
   units = s
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [TimeEnd]
@@ -74,7 +74,7 @@
   units = s
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [j_rateConst]
@@ -83,7 +83,7 @@
   units = s-1
   dimensions = (number_of_photolysis_reactions)
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [k_rateConst]
@@ -92,7 +92,7 @@
   units = s-1
   dimensions = (number_of_kinetics_reactions)
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [c_m]
@@ -101,7 +101,7 @@
   units = molecules/cm3
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [errmsg]

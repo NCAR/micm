@@ -5,10 +5,11 @@ module chemistry_driver_ros
 
 use kinetics_module,  only       : kinetics_type
 use kinetics,         only       : kinetics_init, kinetics_run
-use ccpp_kinds,       only       : r8 => kind_phys
+!use ccpp_kinds,       only       : r8 => kind_phys
+use ccpp_kinds,       only       : kind_phys
 
 use const_props_mod,  only       : const_props_type
-use prepare_chemistry_mod, only  : prepare_chemistry_init
+use prepare_chemistry, only  : prepare_chemistry_init
 use Rosenbrock_Solver, only: RosenbrockSolver
 
 implicit none
@@ -27,20 +28,20 @@ subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
-  real(r8), intent(in)            :: TimeStart, TimeEnd
-  real(r8), intent(in)            :: dt
+  real(kind_phys), intent(in)            :: TimeStart, TimeEnd
+  real(kind_phys), intent(in)            :: dt
   character(len=512),intent(out)  :: errmsg
   integer, intent(out)            :: errflg          ! error index from CPF
 
-  type(const_props_type), pointer :: cnst_info(:)
+  type(const_props_type), allocatable :: cnst_info(:)
   integer            :: nSpecies   ! number prognostic constituents
   integer            :: nkRxt      ! number gas phase reactions
   integer            :: njRxt      ! number of photochemical reactions
   integer            :: nTotRxt    ! total number of chemical reactions
 
   integer  :: icntrl(20)     ! integer control array for ODE solver
-  real(r8) :: rcntrl(20)     ! real control array for ODE solver
-  real(r8), allocatable :: absTol(:), relTol(:)
+  real(kind_phys) :: rcntrl(20)     ! real control array for ODE solver
+  real(kind_phys), allocatable :: absTol(:), relTol(:)
   character(len=40) :: model_name
   
   write(0,*) ' Entered chemistry_driver_ros_init'
@@ -59,10 +60,10 @@ subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   allocate(absTol(nSpecies))
   allocate(relTol(nSpecies))
 
-  absTol(:) = 1.e-9_r8
-  relTol(:) = 1.e-4_r8
+  absTol(:) = 1.e-9_kind_phys
+  relTol(:) = 1.e-4_kind_phys
   icntrl(:) = 0
-  rcntrl(:) = 0._r8
+  rcntrl(:) = 0._kind_phys
 
 !-----------------------------------------------------------
 !  set ode solver "control" variables for Rosenbrock solver
@@ -70,7 +71,7 @@ subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   icntrl(1) = 1                                 ! autonomous, F depends only on Y
   icntrl(3) = 2                                 ! ros3 solver
   rcntrl(2) = dt                                ! Hmax
-  rcntrl(3) = .01_r8*dt                         ! Hstart
+  rcntrl(3) = .01_kind_phys*dt                         ! Hstart
 
   write(*,*) ' '
   write(*,*) 'icntrl settings'
@@ -101,11 +102,11 @@ subroutine chemistry_driver_ros_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rat
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
 
-  real(kind=r8), intent(inout)    :: vmr(:)                ! "working" concentration passed thru CPF
-  real(r8), intent(in)            :: TimeStart, TimeEnd
-  real(kind=r8), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
-  real(kind=r8), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
-  real(kind=r8), intent(in)       :: c_m                   ! number density
+  real(kind=kind_phys), intent(inout)    :: vmr(:)                ! "working" concentration passed thru CPF
+  real(kind_phys), intent(in)            :: TimeStart, TimeEnd
+  real(kind=kind_phys), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
+  real(kind=kind_phys), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
+  real(kind=kind_phys), intent(in)       :: c_m                   ! number density
   character(len=512), intent(out) :: errmsg
   integer, intent(out)            :: errflg                ! error index from CPF
 

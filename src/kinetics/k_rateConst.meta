@@ -23,13 +23,19 @@
 [ccpp-arg-table]
   name = k_rateConst_run
   type = scheme
+[nkRxt]
+  standard_name=number_of_kinetics_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [k_rateConst]
   standard_name = gasphase_rate_constants
   long_name = k rate constants
   units = s-1
   dimensions = (number_of_kinetics_reactions)
   type = real
-  kind = r8
+  kind = kind_phys
   intent = out
   optional = F
 [c_m]
@@ -38,7 +44,7 @@
   units = molecules/cm3
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [rh]
@@ -47,7 +53,7 @@
   units = percent
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [c_h2o]
@@ -56,7 +62,7 @@
   units = mole/mole
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [TEMP]
@@ -65,7 +71,7 @@
   units = K
   dimensions = ()
   type = real
-  kind = r8
+  kind = kind_phys
   intent = in
   optional = F
 [ errmsg ]

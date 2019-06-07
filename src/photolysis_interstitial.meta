@@ -37,7 +37,7 @@
   units = s-1
   dimensions = (XX_NotFound_XX,XX_NotFound_XX)
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [j_rateConst]
@@ -46,7 +46,7 @@
   units = s-1
   dimensions = (XX_NotFound_XX)
   type = real
-  kind = rk
+  kind = kind_phys
   intent = out
   optional = F
 [errmsg]

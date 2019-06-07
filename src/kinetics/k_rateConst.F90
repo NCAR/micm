@@ -3,7 +3,8 @@ module k_rateConst
 ! k rate constants for 3component chemistry
 !--------------------------------------------------------
 
-  use ccpp_kinds, only: r8 => kind_phys
+!  use ccpp_kinds, only: r8 => kind_phys
+  use ccpp_kinds, only:  kind_phys
 
 implicit none
 private
@@ -44,13 +45,14 @@ contains
 !> \section arg_table_k_rateConst_run Argument Table
 !! \htmlinclude k_rateConst_run.html
 !!
-  subroutine k_rateConst_run(k_rateConst, c_m, rh, c_h2o, temp, errmsg, errflg)
+  subroutine k_rateConst_run(nkRxt, k_rateConst, c_m, rh, c_h2o, temp, errmsg, errflg)
   
-    real(r8),pointer, intent(out) :: k_rateConst(:)
-    real(r8),           intent(in)  :: c_m
-    real(r8),           intent(in)  :: rh 
-    real(r8),           intent(in)  :: c_h2o     
-    real(r8),           intent(in)  :: TEMP
+    integer,                   intent(in)  :: nkRxt
+    real(kind_phys),allocatable, intent(out) :: k_rateConst(:)
+    real(kind_phys),           intent(in)  :: c_m
+    real(kind_phys),           intent(in)  :: rh 
+    real(kind_phys),           intent(in)  :: c_h2o     
+    real(kind_phys),           intent(in)  :: TEMP
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
@@ -65,13 +67,13 @@ contains
 ! Rate Constants
 
 ! N2_O1D
-k_rateConst(1) =  2.150000e-11_r8 * exp(110.00_r8 / TEMP) 
+k_rateConst(1) =  2.150000e-11_kind_phys * exp(110.00_kind_phys / TEMP) 
 
 ! O1D_O2
-k_rateConst(2) =  3.300000e-11_r8 * exp(55.00_r8 / TEMP) 
+k_rateConst(2) =  3.300000e-11_kind_phys * exp(55.00_kind_phys / TEMP) 
 
 ! O_O3
-k_rateConst(3) =  8.000000e-12_r8 * exp(-2060.00_r8 / TEMP) 
+k_rateConst(3) =  8.000000e-12_kind_phys * exp(-2060.00_kind_phys / TEMP) 
 
 ! O_O2_M
 k_rateConst(4) = usr_O_O2( temp )
@@ -86,13 +88,13 @@ k_rateConst(4) = usr_O_O2( temp )
 
 
 
-REAL(KIND=r8) FUNCTION usr_O_O2( temp )
+REAL(KIND=kind_phys) FUNCTION usr_O_O2( temp )
 ! for cesm-consistent reaction labels
 ! O+O2+M -> O3+M
 
-    REAL(KIND=r8), INTENT(IN) :: temp
+    REAL(KIND=kind_phys), INTENT(IN) :: temp
 
-    usr_O_O2 = 6.00e-34_r8*(temp/300._r8)**(-2.4_r8)
+    usr_O_O2 = 6.00e-34_kind_phys*(temp/300._kind_phys)**(-2.4_kind_phys)
 
 END FUNCTION usr_O_O2
 
@@ -100,25 +102,25 @@ END FUNCTION usr_O_O2
 !-------------------------------------------
 ! Troe equilibrium reactions (as in Stockwell et al, 1997)
 
-    real(kind=r8) FUNCTION TROEE(A, B, k0_300K,n,kinf_300K,m,temp,cair)
+    real(kind=kind_phys) FUNCTION TROEE(A, B, k0_300K,n,kinf_300K,m,temp,cair)
 
     INTRINSIC LOG10
 
-    real(kind=r8), INTENT(IN) :: temp      ! temperature [K]
-    real(kind=r8), INTENT(IN) :: cair      ! air concentration [molecules/cm3]
-    real(kind=r8),     INTENT(IN) :: k0_300K   ! low pressure limit at 300 K
-    real(kind=r8),     INTENT(IN) :: n         ! exponent for low pressure limit
-    real(kind=r8),     INTENT(IN) :: kinf_300K ! high pressure limit at 300 K
-    real(kind=r8),     INTENT(IN) :: m         ! exponent for high pressure limit
-    real(kind=r8),     INTENT(IN) :: A, B
-    real(kind=r8)             :: zt_help, k0_T, kinf_T, k_ratio, troe
+    real(kind=kind_phys), INTENT(IN) :: temp      ! temperature [K]
+    real(kind=kind_phys), INTENT(IN) :: cair      ! air concentration [molecules/cm3]
+    real(kind=kind_phys),     INTENT(IN) :: k0_300K   ! low pressure limit at 300 K
+    real(kind=kind_phys),     INTENT(IN) :: n         ! exponent for low pressure limit
+    real(kind=kind_phys),     INTENT(IN) :: kinf_300K ! high pressure limit at 300 K
+    real(kind=kind_phys),     INTENT(IN) :: m         ! exponent for high pressure limit
+    real(kind=kind_phys),     INTENT(IN) :: A, B
+    real(kind=kind_phys)             :: zt_help, k0_T, kinf_T, k_ratio, troe
 
 
-    zt_help = 300._r8/temp
+    zt_help = 300._kind_phys/temp
     k0_T    = k0_300K   * zt_help**(n) * cair ! k_0   at current T
     kinf_T  = kinf_300K * zt_help**(m)        ! k_inf at current T
     k_ratio = k0_T/kinf_T
-    troe   = k0_T/(1._r8+k_ratio)*0.6_r8**(1._r8/(1._r8+LOG10(k_ratio)**2))
+    troe   = k0_T/(1._kind_phys+k_ratio)*0.6_kind_phys**(1._kind_phys/(1._kind_phys+LOG10(k_ratio)**2))
 
     TROEE = A * EXP( - B / temp) * troe
 

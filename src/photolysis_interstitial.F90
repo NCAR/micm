@@ -1,5 +1,6 @@
 module photolysis_interstitial
- use ccpp_kinds, only: rk => kind_phys
+! use ccpp_kinds, only: rk => kind_phys
+ use ccpp_kinds, only: kind_phys
 
   implicit none
 
@@ -25,8 +26,8 @@ contains
 !! \htmlinclude photolysis_interstitial_run.html
 !!
   subroutine photolysis_interstitial_run(prates, j_rateConst, errmsg, errflg)
-    real(rk),           intent(in)  :: prates(:,:) ! /sec
-    real(rk),           intent(out) :: j_rateConst(:) ! /sec
+    real(kind_phys),           intent(in)  :: prates(:,:) ! /sec
+    real(kind_phys),           intent(out) :: j_rateConst(:) ! /sec
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 

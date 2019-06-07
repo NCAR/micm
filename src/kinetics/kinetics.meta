@@ -49,7 +49,7 @@
   units = s-1
   dimensions = (number_of_kinetics_reactions)
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [j_rateConst]
@@ -58,7 +58,7 @@
   units = s-1
   dimensions = (number_of_photolysis_reactions)
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [c_m]
@@ -67,7 +67,7 @@
   units = molecules/cm3
   dimensions = ()
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [errmsg]

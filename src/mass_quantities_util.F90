@@ -2,12 +2,13 @@
 ! utility to compute background air mass quantities
 !--------------------------------------------------------------------------------
 module mass_quantities_util
-  USE ccpp_kinds, ONLY: rk => kind_phys
+!  USE ccpp_kinds, ONLY: rk => kind_phys
+  USE ccpp_kinds, ONLY: kind_phys
   use const_props_mod, only : const_props_type
   implicit none
   
   integer :: o2_ndx, n2_ndx
-  real(rk), allocatable :: molar_mass(:)
+  real(kind_phys), allocatable :: molar_mass(:)
   
 contains
 
@@ -44,32 +45,32 @@ contains
 !!
   subroutine mass_quantities_util_run( press, temp, vmr, density, mbar, errmsg, errflg )
 
-    real(rk), intent(in)            :: press
-    real(rk), intent(in)            :: temp
-    real(rk), intent(in)            :: vmr(:)
-    real(rk), intent(out)           :: density
-    real(rk), intent(out)           :: mbar
+    real(kind_phys), intent(in)            :: press
+    real(kind_phys), intent(in)            :: temp
+    real(kind_phys), intent(in)            :: vmr(:)
+    real(kind_phys), intent(out)           :: density
+    real(kind_phys), intent(out)           :: mbar
     character(len=512), intent(out) :: errmsg
     integer, intent(out)            :: errflg
 
-    real(rk) :: n2_vmr
-    real(rk), parameter :: molar_mass_n2 = 28.0134_rk ! g/mole
-    real(rk), parameter :: kboltz= 1.38064852e-16_rk ! boltzmann constant (erg/K)
+    real(kind_phys) :: n2_vmr
+    real(kind_phys), parameter :: molar_mass_n2 = 28.0134_kind_phys ! g/mole
+    real(kind_phys), parameter :: kboltz= 1.38064852e-16_kind_phys ! boltzmann constant (erg/K)
    
     !--- initialize CCPP error handling variables
     errmsg = ''
     errflg = 0
 
-    density = 10._rk*press/(kboltz*temp)
+    density = 10._kind_phys*press/(kboltz*temp)
 
     if (o2_ndx>0) then
        mbar = sum( vmr(:)*molar_mass(:) )
        if (n2_ndx<-1) then
-          n2_vmr = 1._rk - sum(vmr(:))
+          n2_vmr = 1._kind_phys - sum(vmr(:))
           mbar = mbar + n2_vmr*molar_mass_n2
        endif
     else
-       mbar = 28.966_rk ! set to constant if the major species VMRs are unknown
+       mbar = 28.966_kind_phys ! set to constant if the major species VMRs are unknown
     endif
     
   end subroutine mass_quantities_util_run

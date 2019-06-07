@@ -42,7 +42,7 @@
   units = Pa
   dimensions = ()
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [temp]
@@ -51,7 +51,7 @@
   units = K
   dimensions = ()
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [vmr]
@@ -60,7 +60,7 @@
   units = mole/mole
   dimensions = (number_of_chemical_constituents)
   type = real
-  kind = rk
+  kind = kind_phys
   intent = in
   optional = F
 [density]
@@ -69,7 +69,7 @@
   units = molecules/cm3
   dimensions = ()
   type = real
-  kind = rk
+  kind = kind_phys
   intent = out
   optional = F
 [mbar]
@@ -78,7 +78,7 @@
   units = g/mole
   dimensions = ()
   type = real
-  kind = rk
+  kind = kind_phys
   intent = out
   optional = F
 [errmsg]
