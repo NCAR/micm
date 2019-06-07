@@ -42,7 +42,7 @@ subroutine chemistry_driver_moz_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   integer  :: icntrl(20)     ! integer control array for ODE solver
   real(kind_phys) :: rcntrl(20)     ! real control array for ODE solver
   real(kind_phys), allocatable :: absTol(:), relTol(:)
-  character(len=40) :: model_name
+  character(len=80) :: model_name
   
   write(0,*) ' Entered chemistry_driver_moz_init'
   !--- initialize CCPP error handling variables
@@ -50,7 +50,7 @@ subroutine chemistry_driver_moz_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   errflg = 0
 
   !   This routine should be only called here when the main program no longer needs to allocate variables
-  call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt )
+  call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt, errmsg, errflg )
 
   nTotRxt =  nkRxt + njRxt
 
