@@ -35,7 +35,7 @@ subroutine prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt,
   errflg = 0
   model_name = 'Chapman_v3_1547831703456'
 
-  jsonfile = '../../MICM_chemistry/generated/'//trim(model_name)//'/molec_info.json'
+  jsonfile = '../../../MICM_chemistry/generated/'//trim(model_name)//'/molec_info.json'
   call json_loader_read( jsonfile, cnst_info, nSpecies, nkRxt, njRxt )
 
 end subroutine prepare_chemistry_init
