@@ -1,5 +1,7 @@
 module tuv_photolysis
-  use machine,           only: rk => kind_phys
+!  USE ccpp_kinds, ONLY: rk => kind_phys
+  USE ccpp_kinds, ONLY: kind_phys
+
 
   use module_prates_tuv, only: nj, nlambda_start, wc, wl, nwave, is_full_tuv
   use module_prates_tuv, only: o2_xs, so2_xs, o3_xs_tab, no2_xs_tab
@@ -174,18 +176,18 @@ contains
 !!
   subroutine tuv_photolysis_run( zenith, albedo, press_mid, press_int, alt, temp, o2vmr, o3vmr, so2vmr, no2vmr, prates, o3totcol, errmsg, errflg )
 
-    real(rk), intent(in) :: zenith
-    real(rk), intent(in) :: albedo
-    real(rk), intent(in) :: press_int(:)
-    real(rk), intent(in) :: press_mid(:)
-    real(rk), intent(in) :: alt(:)  ! meters
-    real(rk), intent(in) :: temp(:) ! K
-    real(rk), intent(in) :: o2vmr(:)
-    real(rk), intent(in) :: o3vmr(:)
-    real(rk), intent(in) :: so2vmr(:)
-    real(rk), intent(in) :: no2vmr(:)
-    real(rk), intent(out) :: prates(:,:) ! /sec
-    real(rk), intent(out) :: o3totcol ! total # molecules / cm2 
+    real(kind_phys), intent(in) :: zenith
+    real(kind_phys), intent(in) :: albedo
+    real(kind_phys), intent(in) :: press_int(:)
+    real(kind_phys), intent(in) :: press_mid(:)
+    real(kind_phys), intent(in) :: alt(:)  ! meters
+    real(kind_phys), intent(in) :: temp(:) ! K
+    real(kind_phys), intent(in) :: o2vmr(:)
+    real(kind_phys), intent(in) :: o3vmr(:)
+    real(kind_phys), intent(in) :: so2vmr(:)
+    real(kind_phys), intent(in) :: no2vmr(:)
+    real(kind_phys), intent(out) :: prates(:,:) ! /sec
+    real(kind_phys), intent(out) :: o3totcol ! total # molecules / cm2 
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 

@@ -12,7 +12,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512
@@ -32,7 +32,7 @@
   name = tuv_photolysis_run
   type = scheme
 [zenith]
-  standard_name = solar_zenith
+  standard_name = solar_zenith_for_photolysis
   long_name = solar zenith angle
   units = degrees
   dimensions = ()
@@ -41,9 +41,9 @@
   intent = in
   optional = F
 [albedo]
-  standard_name = surface_albedo
+  standard_name = surface_albedo_for_photolysis
   long_name = surface albedo
-  units = none
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
@@ -142,7 +142,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512
@@ -164,7 +164,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512

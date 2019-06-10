@@ -11,3 +11,4 @@
 ../../MICM_chemistry/src/mozart_solver.F90
 ../../MICM_chemistry/src/rosenbrock_solver.F90
 ../../MICM_chemistry/src/json_loader.F90
+../../MICM_chemistry/src/tuv/tuv_photolysis.meta

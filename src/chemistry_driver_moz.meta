@@ -31,7 +31,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512
@@ -107,7 +107,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512
@@ -129,7 +129,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=512
