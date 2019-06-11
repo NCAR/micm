@@ -35,7 +35,7 @@
   standard_name = photolysis_rates_col
   long_name = photolysis rates column
   units = s-1
-  dimensions = (XX_NotFound_XX,XX_NotFound_XX)
+  dimensions = (vertical_level_dimension,number_of_tuv_jrates)
   type = real
   kind = kind_phys
   intent = in
@@ -44,7 +44,7 @@
   standard_name = photo_rate_constants
   long_name = photochemical rates constants
   units = s-1
-  dimensions = (XX_NotFound_XX)
+  dimensions = (number_of_photolysis_reactions)
   type = real
   kind = kind_phys
   intent = out
