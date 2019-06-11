@@ -43,10 +43,10 @@ contains
 !> \section arg_table_mass_quantities_util_run Argument Table
 !! \htmlinclude mass_quantities_util_run.html
 !!
-  subroutine mass_quantities_util_run( press, temp, vmr, density, mbar, errmsg, errflg )
+  subroutine mass_quantities_util_run( press, temperature, vmr, density, mbar, errmsg, errflg )
 
     real(kind_phys), intent(in)            :: press
-    real(kind_phys), intent(in)            :: temp
+    real(kind_phys), intent(in)            :: temperature
     real(kind_phys), intent(in)            :: vmr(:)
     real(kind_phys), intent(out)           :: density
     real(kind_phys), intent(out)           :: mbar
@@ -61,7 +61,7 @@ contains
     errmsg = ''
     errflg = 0
 
-    density = 10._kind_phys*press/(kboltz*temp)
+    density = 10._kind_phys*press/(kboltz*temperature)
 
     if (o2_ndx>0) then
        mbar = sum( vmr(:)*molar_mass(:) )

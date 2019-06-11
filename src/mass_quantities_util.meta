@@ -45,7 +45,7 @@
   kind = kind_phys
   intent = in
   optional = F
-[temp]
+[temperature]
   standard_name = temperature
   long_name = ambient temperature
   units = K

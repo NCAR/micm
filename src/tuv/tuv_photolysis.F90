@@ -174,7 +174,8 @@ contains
 !> \section arg_table_tuv_photolysis_run Argument Table
 !! \htmlinclude tuv_photolysis_run.html
 !!
-  subroutine tuv_photolysis_run( zenith, albedo, press_mid, press_int, alt, temp, o2vmr, o3vmr, so2vmr, no2vmr, prates, o3totcol, errmsg, errflg )
+  subroutine tuv_photolysis_run( zenith, albedo, press_mid, press_int, alt, temp, o2vmr, o3vmr, so2vmr, no2vmr, prates, &
+                                 o3totcol, errmsg, errflg )
 
     real(kind_phys), intent(in) :: zenith
     real(kind_phys), intent(in) :: albedo
