@@ -61,7 +61,7 @@
   dimensions = (number_of_chemical_constituents)
   type = real
   kind = kind_phys
-  intent = in
+  intent = inout
   optional = F
 [density]
   standard_name = total_number_density

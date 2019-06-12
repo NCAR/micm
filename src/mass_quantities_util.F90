@@ -47,7 +47,7 @@ contains
 
     real(kind_phys), intent(in)            :: press
     real(kind_phys), intent(in)            :: temperature
-    real(kind_phys), intent(in)            :: vmr(:)
+    real(kind_phys), intent(inout)         :: vmr(:)
     real(kind_phys), intent(out)           :: density
     real(kind_phys), intent(out)           :: mbar
     character(len=512), intent(out) :: errmsg

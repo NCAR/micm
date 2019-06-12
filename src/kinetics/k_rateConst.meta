@@ -29,6 +29,12 @@
   dimensions = ()
   type = integer
   intent = in
+[njRxt]
+  standard_name=number_of_photolysis_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [k_rateConst]
   standard_name = gasphase_rate_constants
   long_name = k rate constants

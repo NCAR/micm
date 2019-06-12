@@ -1,6 +1,7 @@
 module json_loader
   use const_props_mod, only: const_props_type
   use json_module, only: json_file, json_value, json_core
+  use ccpp_kinds, only: kind_phys
 
   implicit none
   
@@ -24,7 +25,7 @@ contains
     logical :: found
     integer :: i, n, nsections
     character(len=:),allocatable :: string
-    real :: rval
+    real(kind_phys) :: rval
     
     call json%initialize()
 

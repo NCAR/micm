@@ -46,7 +46,7 @@ contains
     errmsg = ''
     errflg = 0
 
-    input_data_root='../../MICM_chemistry/src/tuv/inputs/'
+    input_data_root='../../../MICM_chemistry/src/tuv/inputs/'
     xsqy_filepath = trim(input_data_root)//'wrf_tuv_xsqy.nc'
     full_tuv=.true.
 

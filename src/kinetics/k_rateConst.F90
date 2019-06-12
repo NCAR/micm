@@ -45,9 +45,10 @@ contains
 !> \section arg_table_k_rateConst_run Argument Table
 !! \htmlinclude k_rateConst_run.html
 !!
-  subroutine k_rateConst_run(nkRxt, k_rateConst, c_m, rh, c_h2o, temp, errmsg, errflg)
+  subroutine k_rateConst_run(nkRxt, njRxt, k_rateConst, c_m, rh, c_h2o, temp, errmsg, errflg)
   
     integer,                   intent(in)  :: nkRxt
+    integer,                   intent(in)  :: njRxt  !!!! THIS IS ONLY HERE TO WORKAROUND A BUG IN CPF
     real(kind_phys),           intent(out) :: k_rateConst(:)
     real(kind_phys),           intent(in)  :: c_m
     real(kind_phys),           intent(in)  :: rh 
