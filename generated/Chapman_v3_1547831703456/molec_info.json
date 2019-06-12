@@ -1,0 +1,231 @@
+{
+  "mechanism": {
+    "molecules": [
+      {
+        "moleculename": "N2",
+        "formula": "",
+        "transport": "transported",
+        "solve": "implicit",
+        "henrys_law_type": "0",
+        "molecular_weight": "0",
+        "kh_298": "0",
+        "dh_r": "0",
+        "k1_298": "0",
+        "dh1_r": "0",
+        "k2_298": "0",
+        "dh2_r": "0",
+        "standard_name": "N2_std"
+      },
+      {
+        "moleculename": "O",
+        "formula": null,
+        "transport": "transported",
+        "solve": "implicit",
+        "henrys_law_type": "0",
+        "molecular_weight": "15.9994",
+        "kh_298": "0",
+        "dh_r": "0",
+        "k1_298": "0",
+        "dh1_r": "0",
+        "k2_298": "0",
+        "dh2_r": "0",
+        "standard_name": "O_std"
+      },
+      {
+        "moleculename": "O1D",
+        "formula": "O",
+        "transport": "not-transported",
+        "solve": "implicit",
+        "henrys_law_type": "0",
+        "molecular_weight": "15.9994",
+        "kh_298": "0",
+        "dh_r": "0",
+        "k1_298": "0",
+        "dh1_r": "0",
+        "k2_298": "0",
+        "dh2_r": "0",
+        "standard_name": "O1D_std"
+      },
+      {
+        "moleculename": "O2",
+        "formula": "",
+        "transport": "transported",
+        "solve": "implicit",
+        "henrys_law_type": "1",
+        "molecular_weight": "0",
+        "kh_298": "1.3E-03",
+        "dh_r": "0",
+        "k1_298": "0",
+        "dh1_r": "0",
+        "k2_298": "0",
+        "dh2_r": "0",
+        "standard_name": "O2_std"
+      },
+      {
+        "moleculename": "O3",
+        "formula": null,
+        "transport": "transported",
+        "solve": "implicit",
+        "henrys_law_type": "1",
+        "molecular_weight": "47.9982",
+        "kh_298": "1.03E-02",
+        "dh_r": "2830",
+        "k1_298": "0",
+        "dh1_r": "0",
+        "k2_298": "0",
+        "dh2_r": "0",
+        "standard_name": "O3_std"
+      }
+    ],
+    "photolysis": [
+      {
+        "reactants": [
+          "O2"
+        ],
+        "id": "5757",
+        "rate": "jo2_b=userdefined,",
+        "wrf_rate": null,
+        "tuv_id": "1",
+        "tuv_coeff": "1",
+        "tuv_reaction": "O2 -> O + O",
+        "reactant_count": 1,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": "2",
+            "molecule": "O"
+          }
+        ]
+      },
+      {
+        "reactants": [
+          "O3"
+        ],
+        "id": "5759",
+        "rate": "jo3_a",
+        "wrf_rate": null,
+        "tuv_id": "2",
+        "tuv_coeff": "1",
+        "tuv_reaction": "O3 -> O2 + O(1D)",
+        "reactant_count": 1,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": 1,
+            "molecule": "O1D"
+          },
+          {
+            "coefficient": 1,
+            "molecule": "O2"
+          }
+        ]
+      },
+      {
+        "reactants": [
+          "O3"
+        ],
+        "id": "5758",
+        "rate": "jo3_b",
+        "wrf_rate": null,
+        "tuv_id": "3",
+        "tuv_coeff": "1",
+        "tuv_reaction": "O3 -> O2 + O(3P)",
+        "reactant_count": 1,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": 1,
+            "molecule": "O"
+          },
+          {
+            "coefficient": 1,
+            "molecule": "O2"
+          }
+        ]
+      }
+    ],
+    "reactions": [
+      {
+        "rate": " 2.150000e-11_r8 * exp(110.00_r8 / TEMP) ",
+        "reactants": [
+          "N2",
+          "O1D"
+        ],
+        "reactant_count": 2,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": 1,
+            "molecule": "O"
+          },
+          {
+            "coefficient": 1,
+            "molecule": "N2"
+          }
+        ]
+      },
+      {
+        "rate": " 3.300000e-11_r8 * exp(55.00_r8 / TEMP) ",
+        "reactants": [
+          "O1D",
+          "O2"
+        ],
+        "reactant_count": 2,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": 1,
+            "molecule": "O"
+          },
+          {
+            "coefficient": 1,
+            "molecule": "O2"
+          }
+        ]
+      },
+      {
+        "rate": " 8.000000e-12_r8 * exp(-2060.00_r8 / TEMP) ",
+        "reactants": [
+          "O",
+          "O3"
+        ],
+        "reactant_count": 2,
+        "troe": false,
+        "products": [
+          {
+            "coefficient": "2",
+            "molecule": "O2"
+          }
+        ]
+      },
+      {
+        "rate": "usr_O_O2( temp )",
+        "reactants": [
+          "O",
+          "O2"
+        ],
+        "reactant_count": 3,
+        "troe": true,
+        "products": [
+          {
+            "coefficient": 1,
+            "molecule": "O3"
+          }
+        ]
+      }
+    ],
+    "custom_rates": [
+      {
+        "name": "usr_O_O2( temp )",
+        "code": "REAL(KIND=r8) FUNCTION usr_O_O2( temp )\n! for cesm-consistent reaction labels\n! O+O2+M -> O3+M\n\n    REAL(KIND=r8), INTENT(IN) :: temp\n\n    usr_O_O2 = 6.00e-34_r8*(temp/300._r8)**(-2.4_r8)\n\nEND FUNCTION usr_O_O2"
+      }
+    ],
+    "k_rateConstInc": "\n\n\n! Rate Constants\n\n! N2_O1D\nk_rateConst(1) =  2.150000e-11_r8 * exp(110.00_r8 / TEMP) \n\n! O1D_O2\nk_rateConst(2) =  3.300000e-11_r8 * exp(55.00_r8 / TEMP) \n\n! O_O3\nk_rateConst(3) =  8.000000e-12_r8 * exp(-2060.00_r8 / TEMP) \n\n! O_O2_M\nk_rateConst(4) = usr_O_O2( temp )",
+    "ratesInc": "\n\n\n! Rates\n\n! N2_O1D\nrates(1) = rateConstants(1) * vmr(1) * vmr(3) * number_density_air\n\n! O1D_O2\nrates(2) = rateConstants(2) * vmr(3) * vmr(4) * number_density_air\n\n! O_O3\nrates(3) = rateConstants(3) * vmr(2) * vmr(5) * number_density_air\n\n! O_O2_M\nrates(4) = rateConstants(4) * vmr(2) * vmr(4) * number_density_air_squared\n\n! O2\nrates(5) = rateConstants(5) * vmr(4)\n\n! O3\nrates(6) = rateConstants(6) * vmr(5)\n\n! O3_1\nrates(7) = rateConstants(7) * vmr(5)",
+    "forcingInc": "! Forcing\n force(1) = (0) * rates(1)\n force(3) = (-1) * rates(1) + (-1) * rates(2) + (1) * rates(6)\n force(2) = (1) * rates(1) + (1) * rates(2) + (-1) * rates(3) + (-1) * rates(4) + (2) * rates(5) + (1) * rates(7)\n force(4) = (0) * rates(2) + (2) * rates(3) + (-1) * rates(4) + (-1) * rates(5) + (1) * rates(6) + (1) * rates(7)\n force(5) = (-1) * rates(3) + (1) * rates(4) + (-1) * rates(6) + (-1) * rates(7)",
+    "jacobianInc": "\n  ! Jacobian  \n\n\njac(1,1)  = jac(1,1) + (0) * rateConstants(1) * vmr(3) * number_density_air\njac(1,3)  = jac(1,3) + (0) * rateConstants(1) * vmr(1) * number_density_air\njac(3,1)  = jac(3,1) + (-1) * rateConstants(1) * vmr(3) * number_density_air\njac(3,3)  = jac(3,3) + (-1) * rateConstants(1) * vmr(1) * number_density_air\njac(3,3)  = jac(3,3) + (-1) * rateConstants(2) * vmr(4) * number_density_air\njac(3,4)  = jac(3,4) + (-1) * rateConstants(2) * vmr(3) * number_density_air\njac(3,5)  = jac(3,5) + (1) * rateConstants(6)\njac(2,1)  = jac(2,1) + (1) * rateConstants(1) * vmr(3) * number_density_air\njac(2,3)  = jac(2,3) + (1) * rateConstants(1) * vmr(1) * number_density_air\njac(2,3)  = jac(2,3) + (1) * rateConstants(2) * vmr(4) * number_density_air\njac(2,4)  = jac(2,4) + (1) * rateConstants(2) * vmr(3) * number_density_air\njac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(5) * number_density_air\njac(2,5)  = jac(2,5) + (-1) * rateConstants(3) * vmr(2) * number_density_air\njac(2,2)  = jac(2,2) + (-1) * rateConstants(4) * vmr(4) * number_density_air_squared\njac(2,4)  = jac(2,4) + (-1) * rateConstants(4) * vmr(2) * number_density_air_squared\njac(2,4)  = jac(2,4) + (2) * rateConstants(5)\njac(2,5)  = jac(2,5) + (1) * rateConstants(7)\njac(4,3)  = jac(4,3) + (0) * rateConstants(2) * vmr(4) * number_density_air\njac(4,4)  = jac(4,4) + (0) * rateConstants(2) * vmr(3) * number_density_air\njac(4,2)  = jac(4,2) + (2) * rateConstants(3) * vmr(5) * number_density_air\njac(4,5)  = jac(4,5) + (2) * rateConstants(3) * vmr(2) * number_density_air\njac(4,2)  = jac(4,2) + (-1) * rateConstants(4) * vmr(4) * number_density_air_squared\njac(4,4)  = jac(4,4) + (-1) * rateConstants(4) * vmr(2) * number_density_air_squared\njac(4,4)  = jac(4,4) + (-1) * rateConstants(5)\njac(4,5)  = jac(4,5) + (1) * rateConstants(6)\njac(4,5)  = jac(4,5) + (1) * rateConstants(7)\njac(5,2)  = jac(5,2) + (-1) * rateConstants(3) * vmr(5) * number_density_air\njac(5,5)  = jac(5,5) + (-1) * rateConstants(3) * vmr(2) * number_density_air\njac(5,2)  = jac(5,2) + (1) * rateConstants(4) * vmr(4) * number_density_air_squared\njac(5,4)  = jac(5,4) + (1) * rateConstants(4) * vmr(2) * number_density_air_squared\njac(5,5)  = jac(5,5) + (-1) * rateConstants(6)\njac(5,5)  = jac(5,5) + (-1) * rateConstants(7)",
+    "pratesInc": "!TUV Mapping rates\n\n!    O2 ~ TUV_rate(O2 -> O + O)\n    j_rateConst(1) = 1*prates(level_number,1)\n\n!    O3 ~ TUV_rate(O3 -> O2 + O(1D))\n    j_rateConst(2) = 1*prates(level_number,2)\n\n!    O3 ~ TUV_rate(O3 -> O2 + O(3P))\n    j_rateConst(3) = 1*prates(level_number,3)",
+    "filename": "Chapman_v3_1547831703456.json",
+    "modelNameInc": "Chapman_v3_1547831703456"
+  }
+}
