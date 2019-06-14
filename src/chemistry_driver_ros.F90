@@ -9,7 +9,6 @@ use kinetics,         only       : kinetics_init, kinetics_run
 use ccpp_kinds,       only       : kind_phys
 
 use const_props_mod,  only       : const_props_type
-use prepare_chemistry, only  : prepare_chemistry_init
 use Rosenbrock_Solver, only: RosenbrockSolver
 
 implicit none
@@ -22,21 +21,21 @@ contains
 !> \section arg_table_chemistry_driver_ros_init Argument Table
 !! \htmlinclude chemistry_driver_ros_init.html
 !!
-subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
+subroutine chemistry_driver_ros_init(nSpecies, nkRxt, njRxt, TimeStart,TimeEnd, dt, errmsg, errflg)
 
   implicit none
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
+  integer,intent(in)                     :: nSpecies   ! number prognostic constituents
+  integer,intent(in)                     :: nkRxt      ! number gas phase reactions
+  integer,intent(in)                     :: njRxt      ! number of photochemical reactions
   real(kind_phys), intent(in)            :: TimeStart, TimeEnd
   real(kind_phys), intent(in)            :: dt
   character(len=512),intent(out)  :: errmsg
   integer, intent(out)            :: errflg          ! error index from CPF
 
   type(const_props_type), allocatable :: cnst_info(:)
-  integer            :: nSpecies   ! number prognostic constituents
-  integer            :: nkRxt      ! number gas phase reactions
-  integer            :: njRxt      ! number of photochemical reactions
   integer            :: nTotRxt    ! total number of chemical reactions
 
   integer  :: icntrl(20)     ! integer control array for ODE solver
@@ -48,9 +47,6 @@ subroutine chemistry_driver_ros_init(TimeStart,TimeEnd, dt, errmsg, errflg)
   !--- initialize CCPP error handling variables
   errmsg = ''
   errflg = 0
-
-  !   This routine should be only called here when the main program no longer needs to allocate variables
-  call prepare_chemistry_init(cnst_info, model_name, nSpecies, nkRxt, njRxt, errmsg, errflg )
 
   nTotRxt =  nkRxt + njRxt
 

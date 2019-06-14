@@ -1,6 +1,24 @@
 [ccpp-arg-table]
   name = chemistry_driver_ros_init
   type = scheme
+[nSpecies]
+  standard_name=number_of_chemical_constituents
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[nkRxt]
+  standard_name=number_of_kinetics_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[njRxt]
+  standard_name=number_of_photolysis_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [TimeStart]
   standard_name = chem_step_start_time
   long_name = Chem step start time

@@ -1,5 +1,4 @@
 ../../MICM_chemistry/src/const_props_mod.meta
-../../MICM_chemistry/src/kinetics/prepare_chemistry.meta
 ../../MICM_chemistry/src/mass_quantities_util.meta
 ../../MICM_chemistry/src/kinetics/kinetics_module.meta
 ../../MICM_chemistry/src/kinetics/kinetics.meta
