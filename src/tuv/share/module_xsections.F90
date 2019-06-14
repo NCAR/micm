@@ -27,9 +27,9 @@
 
       module module_xsections
 
-      use module_params
-      use tuv_error_mod
-      use params_mod, only: input_data_root
+      use phot_kind_mod, only: rk => kind_phot
+      use params_mod, only: deltax, kin, input_data_root
+      use  numer_mod, only: addpnt, inter2
       
       IMPLICIT NONE
 
@@ -37,57 +37,67 @@
       public :: rdxs_init
       private
 
-      REAL, allocatable :: rei218(:), rei228(:), rei243(:), rei295(:)
-      REAL :: v195, v345, v830
-      REAL, allocatable :: wmo203(:), wmo273(:)
-      REAL :: v176, v850
+      REAL(rk), allocatable :: rei218(:), rei228(:), rei243(:), rei295(:)
+      REAL(rk) :: v195, v345, v830
+      REAL(rk), allocatable :: wmo203(:), wmo273(:)
+      REAL(rk) :: v176, v850
 
-      REAL, allocatable :: jpl295(:), jpl218(:)
-      REAL :: v186, v825
+      REAL(rk), allocatable :: jpl295(:), jpl218(:)
+      REAL(rk) :: v186, v825
 
-      REAL, allocatable :: mol226(:), mol263(:), mol298(:)
-      REAL :: v185, v240, v350
+      REAL(rk), allocatable :: mol226(:), mol263(:), mol298(:)
+      REAL(rk) :: v185, v240, v350
 
-      REAL, allocatable :: c0(:), c1(:), c2(:)
-      REAL vb245, vb342
+      REAL(rk), allocatable :: c0(:), c1(:), c2(:)
+      REAL(rk) vb245, vb342
 
-      REAL, allocatable :: no2xs_a(:), no2xs_b(:)
+      REAL(rk), allocatable :: no2xs_a(:), no2xs_b(:)
 
       CONTAINS
 
-      SUBROUTINE rdxs_init( nw, wl )
+      SUBROUTINE rdxs_init( nw, wl, errmsg, errflg )
 
       integer, intent(in) :: nw
-      real, intent(in)    :: wl(nw)
+      real(rk), intent(in)    :: wl(nw)
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
       integer :: istat, astat
 
+      errmsg = ' '
+      errflg = 0
+
       istat = 0
       if( .not. allocated( rei218 ) ) then
-        allocate( rei218(nw-1),rei228(nw-1),rei243(nw-1),rei295(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( rei218(nw),rei228(nw),rei243(nw),rei295(nw),stat=astat )
+         istat = istat + astat
       endif
       if( .not. allocated( wmo203 ) ) then
-        allocate( wmo203(nw-1),wmo273(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( wmo203(nw),wmo273(nw),stat=astat )
+         istat = istat + astat
       endif
       if( .not. allocated( jpl218 ) ) then
-        allocate( jpl218(nw-1),jpl295(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( jpl218(nw),jpl295(nw),stat=astat )
+         istat = istat + astat
       endif
       if( .not. allocated( mol226 ) ) then
-        allocate( mol226(nw-1),mol263(nw-1),mol298(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( mol226(nw),mol263(nw),mol298(nw),stat=astat )
+         istat = istat + astat
       endif
       if( .not. allocated( c0 ) ) then
-        allocate( c0(nw-1),c1(nw-1),c2(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( c0(nw),c1(nw),c2(nw),stat=astat )
+         istat = istat + astat
       endif
       if( .not. allocated( no2xs_a ) ) then
-        allocate( no2xs_a(nw-1),no2xs_b(nw-1),stat=astat )
-        istat = istat + astat
+         allocate( no2xs_a(nw),no2xs_b(nw),stat=astat )
+         istat = istat + astat
       endif
-      
+      if( istat /= 0 ) then
+         write(errmsg,'(''rdxs_init: failed to allocate; error = '',i4)') astat
+         errflg = 1
+         return
+      endif
+     
 !_______________________________________________________________________
 ! read data from different sources
 ! rei = Reims group (Malicet et al., Brion et al.)
@@ -96,13 +106,18 @@
 ! mol = Molina and Molina
 ! bas = Bass et al.
 !_______________________________________________________________________
-      CALL o3_rei(nw,wl)
-      CALL o3_jpl(nw,wl)
-      CALL o3_wmo(nw,wl)
-      CALL o3_mol(nw,wl)
-      CALL o3_bas(nw,wl)
+      CALL o3_rei(nw,wl, errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL o3_jpl(nw,wl, errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL o3_wmo(nw,wl, errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL o3_mol(nw,wl, errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL o3_bas(nw,wl, errmsg, errflg)
+      if (errflg.ne.0) return
 
-      CALL rdno2xs(nw,wl)
+      CALL rdno2xs(nw,wl, errmsg, errflg)
 
       END SUBROUTINE rdxs_init
 
@@ -128,10 +143,10 @@
 ! input: (altitude working grid)
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
 
       INTEGER, intent(in) :: nz
-      REAL, intent(in) :: t(nz)
+      REAL(rk), intent(in) :: t(nz)
 
 ! output:
 ! ozone absorption cross sections interpolated to 
@@ -139,13 +154,12 @@
 !   working altitude grid (iz) for temperature of layer or level (specified in call)
 ! Units are cm2 molecule-1 in vacuum
 
-      REAL, intent(inout) :: xs(:,:)
+      REAL(rk), intent(inout) :: xs(:,:)
 
 ! internal
 
-      INTEGER :: iz, iw
-      REAL    :: factor, factor1
-      REAL    :: tc(nz)
+      INTEGER :: iw
+      REAL(rk)    :: factor
 
 !***** option 1:
 ! assign according to wavelength range:
@@ -157,36 +171,36 @@
 
       DO iw = 1, nw-1
         IF(wl(iw) < v185) THEN
-          factor = (wmo273(iw) - wmo203(iw))/(273. - 203.)
-          xs(1:nz,iw) = wmo203(iw) + (t(1:nz) - 203.)*factor
-          WHERE (t(1:nz) <= 203.) 
+          factor = (wmo273(iw) - wmo203(iw))/(273._rk - 203._rk)
+          xs(1:nz,iw) = wmo203(iw) + (t(1:nz) - 203._rk)*factor
+          WHERE (t(1:nz) <= 203._rk) 
             xs(1:nz,iw) = wmo203(iw)
-          ELSEWHERE (t(1:nz) >= 273.) 
+          ELSEWHERE (t(1:nz) >= 273._rk) 
             xs(1:nz,iw) = wmo273(iw)
           ENDWHERE
         ELSEIF(wl(iw) >= v185 .AND. wl(iw) < v195) THEN
-          factor = (jpl295(iw) - jpl218(iw))/(295. - 218.)
-          xs(1:nz,iw) = jpl218(iw) + (t(1:nz) - 218.)*factor
-          WHERE (t(1:nz) <= 218.) 
+          factor = (jpl295(iw) - jpl218(iw))/(295._rk - 218._rk)
+          xs(1:nz,iw) = jpl218(iw) + (t(1:nz) - 218._rk)*factor
+          WHERE (t(1:nz) <= 218._rk) 
             xs(1:nz,iw) = jpl218(iw)
-          ELSEWHERE (t(1:nz) >= 295.) 
+          ELSEWHERE (t(1:nz) >= 295._rk) 
             xs(1:nz,iw) = jpl295(iw)
           ENDWHERE
         ELSEIF(wl(iw) >= v195 .AND. wl(iw) < v345) THEN
-          factor = .1*(rei228(iw) - rei218(iw))
-          WHERE( t(1:nz) < 218. ) 
+          factor = .1_rk*(rei228(iw) - rei218(iw))
+          WHERE( t(1:nz) < 218._rk ) 
             xs(1:nz,iw) = rei218(iw)
-          ELSEWHERE( t(1:nz) >= 218. .AND. t(1:nz) < 228. )
-            xs(1:nz,iw) = rei218(iw) + (t(1:nz) - 218.)*factor
+          ELSEWHERE( t(1:nz) >= 218._rk .AND. t(1:nz) < 228._rk )
+            xs(1:nz,iw) = rei218(iw) + (t(1:nz) - 218._rk)*factor
           ENDWHERE
-          factor = (rei243(iw) - rei228(iw))/15.
-          WHERE( t(1:nz) >= 228. .AND. t(1:nz) < 243. )
-            xs(1:nz,iw) = rei228(iw) + (t(1:nz) - 228.)*factor
+          factor = (rei243(iw) - rei228(iw))/15._rk
+          WHERE( t(1:nz) >= 228._rk .AND. t(1:nz) < 243._rk )
+            xs(1:nz,iw) = rei228(iw) + (t(1:nz) - 228._rk)*factor
           ENDWHERE
-          factor = (rei295(iw) - rei243(iw))/(295. - 243.)
-          WHERE( t(1:nz) >= 243. .AND. t(1:nz) < 295.)
-            xs(1:nz,iw) = rei243(iw) + (t(1:nz) - 243.)*factor
-          ELSEWHERE( t(1:nz) >= 295. )
+          factor = (rei295(iw) - rei243(iw))/(295._rk - 243._rk)
+          WHERE( t(1:nz) >= 243._rk .AND. t(1:nz) < 295._rk)
+            xs(1:nz,iw) = rei243(iw) + (t(1:nz) - 243._rk)*factor
+          ELSEWHERE( t(1:nz) >= 295._rk )
             xs(1:nz,iw) = rei295(iw)
           ENDWHERE
         ELSEIF(wl(iw) >= v345) THEN
@@ -198,7 +212,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE o3_rei(nw,wl)
+      SUBROUTINE o3_rei(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read and interpolate the O3 cross section from Reims group               =*
@@ -221,37 +235,48 @@
 !  input
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+! output:
+
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 !* internal
 
       INTEGER, PARAMETER :: kdata = 70000
 
-      INTEGER n1, n2, n3, n4, iw
-      REAL x1(kdata), x2(kdata), x3(kdata), x4(kdata)
-      REAL y1(kdata), y2(kdata), y3(kdata), y4(kdata)
+      INTEGER n1, n2, n3, n4
+      REAL(rk) x1(kdata), x2(kdata), x3(kdata), x4(kdata)
+      REAL(rk) y1(kdata), y2(kdata), y3(kdata), y4(kdata)
 
       INTEGER i
       INTEGER ierr
 
 ! used for air-to-vacuum wavelength conversion
 
-      REAL ri(kdata)
-      CHARACTER(len=256) :: emsg
+      REAL(rk) ri(kdata)
+
+      errmsg = ' '
+      errflg = 0
 
 ! data from the Reims group:
 !=  For Hartley and Huggins bands, use temperature-dependent values from     =*
 !=  Malicet et al., J. Atmos. Chem.  v.21, pp.263-273, 1995.                 =*
 !=  over 345.01 - 830.00, use values from Brion, room temperature only
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O3/1995Malicet_O3.txt',STATUS='old',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O3/1995Malicet_O3.txt',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'o3_rei: Failed to open DATAE1/O3/1985Malicet_O3.txt' )
+         errmsg =  'o3_rei: Failed to open DATAE1/O3/1985Malicet_O3.txt'
+         errflg = ierr
+         return
       endif
       DO i = 1, 2
          READ(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_rei: Failed to read DATAE1/O3/1985Malicet_O3.txt' )
+           errmsg = 'o3_rei: Failed to read DATAE1/O3/1985Malicet_O3.txt'
+           errflg = ierr
+           return
          endif
       ENDDO
       n1 = 15001
@@ -261,7 +286,9 @@
       DO i = 1, n1
          READ(kin,*,iostat=ierr) x1(i), y1(i), y2(i), y3(i), y4(i)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_rei: Failed to read DATAE1/O3/1985Malicet_O3.txt' )
+           errmsg = 'o3_rei: Failed to read DATAE1/O3/1985Malicet_O3.txt' 
+           errflg = ierr
+           return
          endif
          x2(i) = x1(i)
          x3(i) = x1(i)
@@ -272,7 +299,7 @@
 !=  over 345.01 - 830.00, use values from Brion, room temperature only
 ! skip datum at 345.00 because already read in from 1995Malicet
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O3/1998Brion_295.txt',STATUS='old')
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O3/1998Brion_295.txt',STATUS='old')
       DO i = 1, 15
          READ(kin,*)
       ENDDO
@@ -283,24 +310,28 @@
       CLOSE (kin)
 
       DO i = 1, n1
-         ri(i) = refrac(x1(i), 2.45E19)
+         ri(i) = refrac(x1(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n1
          x1(i) = x1(i) * ri(i)
       ENDDO
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,            1.e+38,0.)
-      CALL inter2(nw,wl,rei295,n1,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_rei: interp err = '',i5,'' in O3 xsect - Reims 295K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,rei295,n1,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_rei: interp err = '',i5,'' in O3 xsect - Reims 295K'')') ierr
+         return
       ENDIF
 
       DO i = 1, n2
-         ri(i) = refrac(x2(i), 2.45E19)
+         ri(i) = refrac(x2(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n2
          x2(i) = x2(i) * ri(i)
@@ -308,47 +339,59 @@
          x4(i) = x2(i)
       ENDDO
 
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,            1.e+38,0.)
-      CALL inter2(nw,wl,rei243,n2,x2,y2,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_wmo: interp err = '',i5,'' in O3 xsect - Reims 243K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,rei243,n2,x2,y2,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_wmo: interp err = '',i5,'' in O3 xsect - Reims 243K'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1.-deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,               0.,0.)
-      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1.+deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,            1.e+38,0.)
-      CALL inter2(nw,wl,rei228,n3,x3,y3,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_wmo: interp err = '',i5,'' in O3 xswct - Reims 228K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,rei228,n3,x3,y3,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_wmo: interp err = '',i5,'' in O3 xswct - Reims 228K'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x4,y4,kdata,n4,x4(1)*(1.-deltax),0.)
-      CALL addpnt(x4,y4,kdata,n4,               0.,0.)
-      CALL addpnt(x4,y4,kdata,n4,x4(n4)*(1.+deltax),0.)
-      CALL addpnt(x4,y4,kdata,n4,            1.e+38,0.)
-      CALL inter2(nw,wl,rei218,n4,x4,y4,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_wmo: interp err = '',i5,'' in O3 xswct - Reims 218K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
-      ENDIF
+      CALL addpnt(x4,y4,kdata,n4,x4(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x4,y4,kdata,n4,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x4,y4,kdata,n4,x4(n4)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x4,y4,kdata,n4,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,rei218,n4,x4,y4,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_wmo: interp err = '',i5,'' in O3 xswct - Reims 218K'')') ierr
+         return
+     ENDIF
 
 ! wavelength breaks must be converted to vacuum:
 
-      v195 = 195.00 * refrac(195.00, 2.45E19)
-      v345 = 345.00 * refrac(345.00, 2.45E19)
-      v830 = 830.00 * refrac(830.00, 2.45E19)
+      v195 = 195.00_rk * refrac(195.00_rk, 2.45E19_rk)
+      v345 = 345.00_rk * refrac(345.00_rk, 2.45E19_rk)
+      v830 = 830.00_rk * refrac(830.00_rk, 2.45E19_rk)
 
       END SUBROUTINE o3_rei
 
 !=============================================================================*
 
-      SUBROUTINE o3_wmo(nw,wl)
+      SUBROUTINE o3_wmo(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read and interpolate the O3 cross section                                =*
@@ -369,39 +412,48 @@
 !  input
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+! output
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! internal
 
       INTEGER, parameter :: kdata = 200
 
       INTEGER n1, n2
-      REAL x1(kdata), x2(kdata)
-      REAL y1(kdata), y2(kdata)
+      REAL(rk) x1(kdata), x2(kdata)
+      REAL(rk) y1(kdata), y2(kdata)
 
-      INTEGER i, idum, iw
-      REAL a1, a2, dum
+      INTEGER i, idum
+      REAL(rk) a1, a2, dum
       INTEGER ierr
 
 ! used for air-to-vacuum wavelength conversion
 
-      REAL ri(kdata)
-      CHARACTER(len=256) :: emsg
+      REAL(rk) ri(kdata)
 
 ! output
 
+      errmsg = ' '
+      errflg = 0
 !----------------------------------------------------------
 ! cross sections from WMO 1985 Ozone Assessment
 ! from 175.439 to 847.500 nm
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/wmo85',STATUS='old',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/wmo85',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'o3_wmo: Failed to open DATAE1/wmo85' )
+         errmsg = 'o3_wmo: Failed to open DATAE1/wmo85'
+         errflg = ierr
+         return
       endif
       DO i = 1, 3
          read(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_wmo: Failed to read DATAE1/wmo85' )
+           errmsg = 'o3_wmo: Failed to open DATAE1/wmo85'
+           errflg = ierr
+           return
          endif
       ENDDO
       n1 = 158
@@ -409,56 +461,66 @@
       DO i = 1, n1
          READ(kin,*,iostat=ierr) idum, a1, a2, dum, dum, dum, y1(i), y2(i)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_wmo: Failed to read DATAE1/wmo85' )
+           errmsg = 'o3_wmo: Failed to open DATAE1/wmo85'
+           errflg = ierr
+           return
          endif
-         x1(i) = (a1+a2)/2.
-         x2(i) = (a1+a2)/2.
+         x1(i) = (a1+a2)/2._rk
+         x2(i) = (a1+a2)/2._rk
       ENDDO
       CLOSE (kin)
 
 ! convert wavelengths to vacuum
 
       DO i = 1, n1
-         ri(i) = refrac(x1(i), 2.45E19)
+         ri(i) = refrac(x1(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n1
          x1(i) = x1(i) * ri(i)
          x2(i) = x2(i) * ri(i)
       ENDDO
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,           1.e+38,0.)
-      CALL inter2(nw,wl,wmo203,n1,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_wmo: interp err = '',i5,'' in O3 cross section - WMO - 203K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,           1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,wmo203,n1,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_wmo: interp err = '',i5,'' in O3 cross section - WMO - 203K'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,           1.e+38,0.)
-      CALL inter2(nw,wl,wmo273,n2,x2,y2,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_wmo: interp err = '',i5,'' in O3 cross section - WMO - 273K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,           1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,wmo273,n2,x2,y2,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_wmo: interp err = '',i5,'' in O3 cross section - WMO - 273K'')') ierr
+         return
       ENDIF
 
 ! wavelength breaks must be converted to vacuum:
       
-      a1 = (175.438 + 176.991) / 2.
-      v176 = a1 * refrac(a1,2.45E19)
+      a1 = (175.438_rk + 176.991_rk) / 2._rk
+      v176 = a1 * refrac(a1,2.45E19_rk)
 
-      a1 = (847.5 + 852.5) / 2.
-      v850 = a1 * refrac(a1, 2.45E19)
+      a1 = (847.5_rk + 852.5_rk) / 2._rk
+      v850 = a1 * refrac(a1, 2.45E19_rk)
 
       END SUBROUTINE o3_wmo
 
 !=============================================================================*
 
-      SUBROUTINE o3_jpl(nw,wl)
+      SUBROUTINE o3_jpl(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read and interpolate the O3 cross section from JPL 2006                  =*
@@ -478,35 +540,46 @@
 !  input
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+! output:
+
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! internal
 
       INTEGER, parameter :: kdata = 200
 
-      INTEGER n1, n2, iw
-      REAL x1(kdata), x2(kdata)
-      REAL y1(kdata), y2(kdata)
+      INTEGER n1, n2
+      REAL(rk) x1(kdata), x2(kdata)
+      REAL(rk) y1(kdata), y2(kdata)
 
       INTEGER i
-      REAL dum
+      REAL(rk) dum
       INTEGER ierr
-      CHARACTER(len=256) :: emsg
 
 ! used for air-to-vacuum wavelength conversion
 
-      REAL ri(kdata)
+      REAL(rk) ri(kdata)
 
+      errmsg = ' '
+      errflg = 0
+      
 ! output
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O3/2006JPL_O3.txt',STATUS='old',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O3/2006JPL_O3.txt',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'o3_jpl: Failed to open DATAE1/O3/2006JPL_O3.txt' )
+         errmsg = 'o3_jpl: Failed to open DATAE1/O3/2006JPL_O3.txt'
+         errflg = ierr
+         return
       endif
       DO i = 1, 2
          read(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_jpl: Failed to read DATAE1/O3/2006JPL_O3.txt' )
+           errmsg = 'o3_jpl: Failed to read DATAE1/O3/2006JPL_O3.txt'
+           errflg = ierr
+           return
          endif
       ENDDO
       n1 = 167
@@ -514,54 +587,63 @@
       DO i = 1, n1
          READ(kin,*,iostat=ierr) dum, dum, x1(i), y1(i), y2(i)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_jpl: Failed to read DATAE1/O3/2006JPL_O3.txt' )
+           errmsg = 'o3_jpl: Failed to read DATAE1/O3/2006JPL_O3.txt'
+           errflg = ierr
+           return
          endif
-         y1(i) = y1(i) * 1.e-20
-         y2(i) = y2(i) * 1.e-20
+         y1(i) = y1(i) * 1.e-20_rk
+         y2(i) = y2(i) * 1.e-20_rk
       ENDDO
       CLOSE (kin)
 
 ! convert wavelengths to vacuum
 
       DO i = 1, n1
-         ri(i) = refrac(x1(i), 2.45E19)
+         ri(i) = refrac(x1(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n1
          x1(i) = x1(i) * ri(i)
          x2(i) = x1(i)
       ENDDO
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,           1.e+38,0.)
-      CALL inter2(nw,wl,jpl295,n1,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_jpl: interp err = '',i5,'' in file O3 cross section - WMO - 295K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,           1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,jpl295,n1,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_jpl: interp err = '',i5,'' in file O3 cross section - WMO - 295K'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,           1.e+38,0.)
-      CALL inter2(nw,wl,jpl218,n2,x2,y2,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_jpl: interp err = '',i5,'' in file O3 cross section - WMO - 218K'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,           1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,jpl218,n2,x2,y2,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_jpl: interp err = '',i5,'' in file O3 cross section - WMO - 218K'')') ierr
+         return
       ENDIF
 
 ! wavelength breaks must be converted to vacuum:
 
-      v186 = 186.051 * refrac(186.051, 2.45E19)
-      v825 = 825.    * refrac(825.   , 2.45E19)
-
+      v186 = 186.051_rk * refrac(186.051_rk, 2.45E19_rk)
+      v825 = 825._rk    * refrac(825._rk   , 2.45E19_rk)
 
       END SUBROUTINE o3_jpl
 
 !=============================================================================*
 
-      SUBROUTINE o3_mol(nw,wl)
+      SUBROUTINE o3_mol(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read and interpolate the O3 cross section from Molina and Molina 1986    =*
@@ -583,7 +665,12 @@
 !  input
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+! output:
+
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! internal
 
@@ -591,26 +678,32 @@
       INTEGER ierr
 
       INTEGER, parameter :: kdata = 335
-      INTEGER n1, n2, n3, iw
-      REAL x1(kdata), x2(kdata), x3(kdata)
-      REAL y1(kdata), y2(kdata), y3(kdata)
+      INTEGER n1, n2, n3
+      REAL(rk) x1(kdata), x2(kdata), x3(kdata)
+      REAL(rk) y1(kdata), y2(kdata), y3(kdata)
 
 ! used for air-to-vacuum wavelength conversion
 
-      REAL ri(kdata)
-      CHARACTER(len=256) :: emsg
+      REAL(rk) ri(kdata)
+
+      errmsg = ' '
+      errflg = 0
 
 ! output
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O3/1986Molina.txt',STATUS='old',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O3/1986Molina.txt',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'o3_mol: Failed to open DATAE1/O3/1986Molina.txt' )
+         errmsg =  'o3_mol: Failed to open DATAE1/O3/1986Molina.txt'
+         errflg = ierr
+         return
       endif
       DO i = 1, 10
         READ(kin,*,iostat=ierr)
         if( ierr /= 0 ) then
-          call tuv_error_fatal( 'o3_mol: Failed to read DATAE1/O3/1986Molina.txt' )
-        endif
+          errmsg =  'o3_mol: Failed to read DATAE1/O3/1986Molina.txt'
+          errflg = ierr
+          return
+       endif
       ENDDO
       n1 = 0
       n2 = 0
@@ -620,7 +713,9 @@
          n3 = n3 + 1
          READ(kin,*,iostat=ierr) x1(n1), y1(n1),  y3(n3)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_mol: Failed to read DATAE1/O3/1986Molina.txt' )
+            errmsg =  'o3_mol: Failed to read DATAE1/O3/1986Molina.txt'
+            errflg = ierr
+            return
          endif
          x3(n3) = x1(n1)
       ENDDO
@@ -630,7 +725,9 @@
          n3 = n3 + 1
          READ(kin,*,iostat=ierr) x1(n1), y1(n1), y2(n2), y3(n3)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'o3_mol: Failed to read DATAE1/O3/1986Molina.txt' )
+            errmsg =  'o3_mol: Failed to read DATAE1/O3/1986Molina.txt'
+            errflg = ierr
+            return
          endif
          x2(n2) = x1(n1)
          x3(n3) = x1(n1)
@@ -640,21 +737,21 @@
 ! convert all wavelengths from air to vacuum
 
       DO i = 1, n1
-         ri(i) = refrac(x1(i), 2.45E19)
+         ri(i) = refrac(x1(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n1
          x1(i) = x1(i) * ri(i)
       ENDDO
 
       DO i = 1, n2
-         ri(i) = refrac(x2(i), 2.45E19)
+         ri(i) = refrac(x2(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n2
          x2(i) = x2(i) * ri(i)
       ENDDO
 
       DO i = 1, n3
-         ri(i) = refrac(x3(i), 2.45E19)
+         ri(i) = refrac(x3(i), 2.45E19_rk)
       ENDDO
       DO i = 1, n3
          x3(i) = x3(i) * ri(i)
@@ -662,47 +759,59 @@
 
 ! convert wavelength breaks from air to vacuum
 
-      v185 = 185.  * refrac(185. , 2.45E19)
-      v240 = 240.5 * refrac(240.5, 2.45E19)
-      v350 = 350.  * refrac(350. , 2.45E19)
+      v185 = 185._rk  * refrac(185._rk , 2.45E19_rk)
+      v240 = 240.5_rk * refrac(240.5_rk, 2.45E19_rk)
+      v350 = 350._rk  * refrac(350._rk , 2.45E19_rk)
 
 ! interpolate to working grid
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,            1.e+38,0.)
-      CALL inter2(nw,wl,mol226,n1,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 226K Molina'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,mol226,n1,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 226K Molina'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,            1.e+38,0.)
-      CALL inter2(nw,wl,mol263,n2,x2,y2,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 263K Molina'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,mol263,n2,x2,y2,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 263K Molina'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1.-deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,               0.,0.)
-      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1.+deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,            1.e+38,0.)
-      CALL inter2(nw,wl,mol298,n3,x3,y3,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 298K Molina'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,mol298,n3,x3,y3,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_mol: interp err = '',i5,'' in O3 xsect - 298K Molina'')') ierr
+         return
       ENDIF
 
       END SUBROUTINE o3_mol
 
 !=============================================================================*
 
-      SUBROUTINE o3_bas(nw,wl)
+      SUBROUTINE o3_bas(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read and interpolate the O3 cross section from Bass 1985                 =*
@@ -723,27 +832,36 @@
 ! input:
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+! output:
+
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! internal:
 
       INTEGER, parameter :: kdata = 2000
 
-      INTEGER i, iw
+      INTEGER i
       INTEGER ierr
 
       INTEGER n1, n2, n3
-      REAL x1(kdata), x2(kdata), x3(kdata)
-      REAL y1(kdata), y2(kdata), y3(kdata)
+      REAL(rk) x1(kdata), x2(kdata), x3(kdata)
+      REAL(rk) y1(kdata), y2(kdata), y3(kdata)
 
 ! used for air-to-vacuum wavelength conversion
 
-      REAL ri(kdata)
-      CHARACTER(len=256) :: emsg
+      REAL(rk) ri(kdata)
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O3/1985Bass_O3.txt',STATUS='old',iostat=ierr)
+      errmsg = ' '
+      errflg = 0
+
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O3/1985Bass_O3.txt',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'o3_bas: Failed to open DATAE1/O3/1985Bass_O3.txt' )
+          errmsg = 'o3_bas: Failed to open DATAE1/O3/1985Bass_O3.txt'
+          errflg = ierr
+          return
       endif
       DO i = 1, 8
          READ(kin,*,iostat=ierr)
@@ -752,20 +870,22 @@
       n2 = 1915
       n3 = 1915
       DO i = 1, n1
-        READ(kin,*) x1(i), y1(i), y2(i), y3(i)
+        READ(kin,*,iostat=ierr) x1(i), y1(i), y2(i), y3(i)
         if( ierr /= 0 ) then
-          call tuv_error_fatal( 'o3_bas: Failed to read DATAE1/O3/1985Bass_O3.txt' )
+          errmsg = 'o3_bas: Failed to read DATAE1/O3/1985Bass_O3.txt'
+          errflg = ierr
+          return
         endif
       ENDDO
       CLOSE (kin)
-      y1(1:n1) = 1.e-20 * y1(1:n1)
-      y2(1:n1) = 1.e-20 * y2(1:n1)
-      y3(1:n1) = 1.e-20 * y3(1:n1)
+      y1(1:n1) = 1.e-20_rk * y1(1:n1)
+      y2(1:n1) = 1.e-20_rk * y2(1:n1)
+      y3(1:n1) = 1.e-20_rk * y3(1:n1)
 
 ! convert all wavelengths from air to vacuum
 
       DO i = 1, n1
-         ri(i) = refrac(x1(i), 2.45E19)
+         ri(i) = refrac(x1(i), 2.45E19_rk)
       ENDDO
       x1(1:n1) = x1(1:n1) * ri(1:n1)
       x2(1:n1) = x1(1:n1)
@@ -773,46 +893,58 @@
 
 ! convert wavelength breaks to vacuum
 
-      vb245 = 245.018 * refrac(245.018, 2.45E19)
-      vb342 = 341.981 * refrac(341.981, 2.45E19)
+      vb245 = 245.018_rk * refrac(245.018_rk, 2.45E19_rk)
+      vb342 = 341.981_rk * refrac(341.981_rk, 2.45E19_rk)
 
 ! interpolate to working grid
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,            1.e+38,0.)
-      CALL inter2(nw,wl,c0,n1,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c0 Bass'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,c0,n1,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c0 Bass'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,            1.e+38,0.)
-      CALL inter2(nw,wl,c1,n2,x2,y2,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c1 Bass'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,c1,n2,x2,y2,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c1 Bass'')') ierr
+         return
       ENDIF
 
-      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1.-deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,               0.,0.)
-      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1.+deltax),0.)
-      CALL addpnt(x3,y3,kdata,n3,            1.e+38,0.)
-      CALL inter2(nw,wl,c2,n3,x3,y3,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c2 Bass'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x3,y3,kdata,n3,x3(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,x3(n3)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x3,y3,kdata,n3,            1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,c2,n3,x3,y3,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''o3_bas: interp err = '',i5,'' in O3 xsect - c2 Bass'')') ierr
+         return
       ENDIF
 
       END SUBROUTINE o3_bas
 
 !=============================================================================*
 
-      SUBROUTINE rdo2xs(nw,wl,o2xs1)
+      SUBROUTINE rdo2xs(nw,wl,o2xs1, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Compute equivalent O2 cross section, except                              =*
@@ -831,21 +963,25 @@
 ! Input
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
 
 ! Output O2 xsect, temporary, will be over-written in Lyman-alpha and 
 !   Schumann-Runge wavelength bands.
 
-      REAL, intent(inout) :: o2xs1(:)
+      REAL(rk), intent(inout) :: o2xs1(:)
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! Internal
 
       INTEGER, parameter :: kdata = 200
       INTEGER :: i, n
       INTEGER :: ierr
-      REAL    :: x, y
-      REAL    :: x1(kdata), y1(kdata)
-      CHARACTER(len=256) :: emsg
+      REAL(rk)    :: x, y
+      REAL(rk)    :: x1(kdata), y1(kdata)
+
+      errmsg = ' '
+      errflg = 0
 
 ! Read O2 absorption cross section data:
 !  116.65 to 203.05 nm = from Brasseur and Solomon 1986
@@ -858,22 +994,28 @@
 
       n = 0
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O2/O2_brasseur.abs',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O2/O2_brasseur.abs',iostat=ierr)
       if( ierr /= 0 ) then
-        call tuv_error_fatal( 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs' )
+         errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+         errflg = ierr
+         return
       endif
       DO i = 1, 7
          READ(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'rdso2xs: Failed to read DATAE1/O2/O2_brasseur.abs' )
+           errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+           errflg = ierr
+           return
          endif
       ENDDO
       DO i = 1, 78
          READ(kin,*,iostat=ierr) x, y
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'rdso2xs: Failed to read DATAE1/O2/O2_brasseur.abs' )
+           errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+           errflg = ierr
+           return
          endif
-         IF (x .LE. 204.) THEN
+         IF (x .LE. 204._rk) THEN
             n = n + 1
             x1(n) = x
             y1(n) = y
@@ -881,24 +1023,30 @@
       ENDDO
       CLOSE(kin)
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/O2/O2_yoshino.abs',STATUS='old',iostat=ierr)
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O2/O2_yoshino.abs',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-         call tuv_error_fatal( 'rdso2xs: Failed to open DATAE1/O2/O2_yoshino.abs' )
+         errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+         errflg = ierr
+         return
       endif
 
       DO i = 1, 8
          READ(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs' )
+            errmsg = 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
+            errflg = ierr
+            return
          endif
       ENDDO
       DO i = 1, 36
          n = n + 1
          READ(kin,*,iostat=ierr) x, y
          if( ierr /= 0 ) then
-           call tuv_error_fatal( 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs' )
+            errmsg = 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
+            errflg = ierr
+            return
          endif
-         y1(n) = y*1.E-24
+         y1(n) = y*1.E-24_rk
          x1(n) = x
       END DO
       CLOSE (kin)
@@ -906,21 +1054,25 @@
 ! Add termination points and interpolate onto the 
 !  user grid (set in subroutine gridw):
 
-      CALL addpnt(x1,y1,kdata,n,x1(1)*(1.-deltax),y1(1))
-      CALL addpnt(x1,y1,kdata,n,0.               ,y1(1))
-      CALL addpnt(x1,y1,kdata,n,x1(n)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n,              1.E+38,0.)
-      CALL inter2(nw,wl,o2xs1, n,x1,y1, ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''rdo2xs: interp err = '',i5,'' in O2 -> O + O'')') ierr
-         call tuv_error_fatal( trim(emsg) )
+      CALL addpnt(x1,y1,kdata,n,x1(1)*(1._rk-deltax),y1(1),errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,0._rk               ,y1(1),errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,x1(n)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,              1.E+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,o2xs1, n,x1,y1,errmsg, errflg)
+      IF (errflg .NE. 0) THEN
+         WRITE(errmsg,'(''rdo2xs: interp err = '',i5,'' in O2 -> O + O'')') ierr
+         return
       ENDIF
 
       END SUBROUTINE rdo2xs
 
 !=============================================================================*
 
-      SUBROUTINE rdno2xs(nw,wl)
+      SUBROUTINE rdno2xs(nw,wl, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read NO2 molecular absorption cross section.  Re-grid data to match      =*
@@ -938,44 +1090,59 @@
 ! input:
 
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
+
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! locals:
       INTEGER, parameter :: kdata = 100
-      INTEGER :: iw
-      INTEGER :: i, n1, n2, ierr
-      REAL    :: dum1, dum2
-      REAL    :: x1(kdata), x2(kdata), y1(kdata), y2(kdata)
+      INTEGER :: i, n1, n2
+      REAL(rk)    :: dum1, dum2
+      REAL(rk)    :: x1(kdata), x2(kdata), y1(kdata), y2(kdata)
+
+      errmsg = ' '
+      errflg = 0
 
 ! NO2 absorption cross section from JPL2006
 ! with interpolation of bin midpoints
 
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/NO2/NO2_jpl2006.abs',STATUS='old')
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/NO2/NO2_jpl2006.abs',STATUS='old')
       DO i = 1, 3
          READ(kin,*)
       ENDDO 
       n1 = 81
       DO i = 1, n1
          READ(kin,*) dum1, dum2, y1(i), y2(i)
-         x1(i) = 0.5 * (dum1 + dum2)
+         x1(i) = 0.5_rk * (dum1 + dum2)
          x2(i) = x1(i) 
-         y1(i) = y1(i)*1.E-20
-         y2(i) = y2(i)*1.E-20
+         y1(i) = y1(i)*1.E-20_rk
+         y2(i) = y2(i)*1.E-20_rk
       ENDDO
       CLOSE(kin)
       n2 = n1
 
-      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n1,               0.,0.)
-      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1.+deltax),   0.)
-      CALL addpnt(x1,y1,kdata,n1,            1.e+38,   0.)
-      CALL inter2(nw,wl,no2xs_a,n1,x1,y1,ierr)
+      CALL addpnt(x1,y1,kdata,n1,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,x1(n1)*(1._rk+deltax),   0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n1,            1.e+38_rk,   0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,no2xs_a,n1,x1,y1,errmsg, errflg)
+      if ( errflg .ne. 0) return
       
-      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1.-deltax),0.)
-      CALL addpnt(x2,y2,kdata,n2,               0.,0.)
-      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1.+deltax),   0.)
-      CALL addpnt(x2,y2,kdata,n2,            1.e+38,   0.)
-      CALL inter2(nw,wl,no2xs_b,n2,x2,y2,ierr)
+      CALL addpnt(x2,y2,kdata,n2,x2(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,               0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,x2(n2)*(1._rk+deltax),   0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x2,y2,kdata,n2,            1.e+38_rk,   0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,no2xs_b,n2,x2,y2,errmsg, errflg)
+      if ( errflg .ne. 0) return
 
       END SUBROUTINE rdno2xs
 
@@ -989,19 +1156,19 @@
 
       INTEGER, intent(in) :: nz
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: t(nz)
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: t(nz)
+      REAL(rk), intent(in)    :: wl(nw)
 
 ! output:
 
-      REAL, intent(inout) :: no2xs(:,:)
+      REAL(rk), intent(inout) :: no2xs(:,:)
 
 ! local
 
       INTEGER :: iw
-      REAL    :: tfac(nz)
+      REAL(rk)    :: tfac(nz)
       
-      tfac(1:nz) = (t(1:nz) - 220.)/74.
+      tfac(1:nz) = (t(1:nz) - 220._rk)/74._rk
       DO iw = 1, nw-1
         no2xs(1:nz,iw) = no2xs_a(iw) + (no2xs_b(iw)-no2xs_a(iw))*tfac(1:nz)
       ENDDO 
@@ -1010,7 +1177,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE rdso2xs(nw,wl,so2xs)
+      SUBROUTINE rdso2xs(nw,wl,so2xs, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Read SO2 molecular absorption cross section.  Re-grid data to match      =*
@@ -1021,86 +1188,88 @@
 
 ! input: (altitude working grid)
       INTEGER, intent(in) :: nw
-      REAL, intent(in)    :: wl(nw)
+      REAL(rk), intent(in)    :: wl(nw)
 
 ! output:
 
-      REAL, intent(inout) :: so2xs(nw)
+      REAL(rk), intent(inout) :: so2xs(nw)
 
-! local:
-      REAL x1(kdata)
-      REAL y1(kdata)
-      REAL yg(kw)
-      REAL dum
-      INTEGER ierr
-      INTEGER i, l, n, idum
+      character(len=*), intent(out)   :: errmsg
+      integer,          intent(out)   :: errflg
+
+!! local:
+      REAL(rk) x1(kdata)
+      REAL(rk) y1(kdata)
+      INTEGER i, n
       CHARACTER(len=40)  :: fil
-      CHARACTER(len=256) :: emsg
+
+      errmsg = ' '
+      errflg = 0
 !************ absorption cross sections:
 ! SO2 absorption cross sections from J. Quant. Spectrosc. Radiat. Transfer
 ! 37, 165-182, 1987, T. J. McGee and J. Burris Jr.
 ! Angstrom vs. cm2/molecule, value at 221 K
 
       fil = 'DATA/McGee87'
-      OPEN(UNIT=kin,FILE=trim(input_data_root)//'DATAE1/SO2/SO2xs.all',STATUS='old')
+      OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/SO2/SO2xs.all',STATUS='old')
       DO i = 1,3 
         read(kin,*)
       ENDDO
       n = 704 
       DO i = 1, n
         READ(kin,*) x1(i), y1(i)
-        x1(i) = .1*x1(i)
+        x1(i) = .1_rk*x1(i)
       ENDDO
       CLOSE (kin)
 
-      CALL addpnt(x1,y1,kdata,n,x1(1)*(1.-deltax),0.)
-      CALL addpnt(x1,y1,kdata,n,          0.,0.)
-      CALL addpnt(x1,y1,kdata,n,x1(n)*(1.+deltax),0.)
-      CALL addpnt(x1,y1,kdata,n,      1.e+38,0.)
-      CALL inter2(nw,wl,so2xs,n,x1,y1,ierr)
-      IF (ierr .NE. 0) THEN
-         WRITE(emsg,'(''rdso2xs: interp err = '',i5,'' in file '',a)') ierr, fil
-         call tuv_error_fatal( trim(emsg) )
-      ENDIF
+      CALL addpnt(x1,y1,kdata,n,x1(1)*(1._rk-deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,          0._rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,x1(n)*(1._rk+deltax),0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL addpnt(x1,y1,kdata,n,      1.e+38_rk,0._rk,errmsg, errflg)
+      if (errflg.ne.0) return
+      CALL inter2(nw,wl,so2xs,n,x1,y1,errmsg, errflg)
 
       END SUBROUTINE rdso2xs
 
-      real FUNCTION refrac(w,airden)
+      real(rk) FUNCTION refrac(w,airden)
 
       IMPLICIT NONE
 
 ! input vacuum wavelength, nm and air density, molec cm-3
 
-      REAL, intent(in) :: w, airden
+      REAL(rk), intent(in) :: w, airden
 
 ! output refractive index for standard air
 ! (dry air at 15 deg. C, 101.325 kPa, 0.03% CO2)
 
 ! internal
 
-      REAL :: sig,  sigsq, dum
+      REAL(rk) :: sig,  sigsq, dum
 
 ! from CRC Handbook, originally from Edlen, B., Metrologia, 2, 71, 1966.
 ! valid from 200 nm to 2000 nm
 ! beyond this range, use constant value
 
-      IF (w < 200.) then
-        dum = 5.e-3
-      ELSEIF (w > 2000.) then
-        dum = 5.e-4
+      IF (w < 200._rk) then
+        dum = 5.e-3_rk
+      ELSEIF (w > 2000._rk) then
+        dum = 5.e-4_rk
       ELSE
-        dum = 1./w
+        dum = 1._rk/w
       ENDIF
-      sig = 1.E3*dum
+      sig = 1.E3_rk*dum
       sigsq = sig * sig
 
-      dum = 8342.13 + 2406030./(130. - sigsq) + 15997./(38.9 - sigsq)
+      dum = 8342.13_rk + 2406030._rk/(130._rk - sigsq) + 15997._rk/(38.9_rk - sigsq)
 
 ! adjust to local air density
-      dum = dum * airden/(2.69e19 * 273.15/288.15)
+      dum = dum * airden/(2.69e19_rk * 273.15_rk/288.15_rk)
 
 ! index of refraction:
-      refrac = 1. + 1.E-8 * dum
+      refrac = 1._rk + 1.E-8_rk * dum
 
       END function refrac
 

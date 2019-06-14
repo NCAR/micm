@@ -110,17 +110,20 @@ set(SCHEMES
       ./src/kinetics/kinetics_module.F90
       ./src/chemistry_driver_ros.F90
       ./src/chemistry_driver_moz.F90
-      ./src/tuv/la_srb_mod.F90
-      ./src/tuv/module_params.F90
-      ./src/tuv/module_prates_tuv.F90
-      ./src/tuv/module_rxn.F90
-      ./src/tuv/module_xsections.F90
-      ./src/tuv/numer.F90
-      ./src/tuv/params_mod.F90
-      ./src/tuv/rad_trans.F90
-      ./src/tuv/tuv_error_mod.F90
-      ./src/tuv/tuv_photolysis.F90
-      ./src/tuv/tuv_subs.F90
+      ./src/tuv/share/phot_kind_mod.F90
+      ./src/tuv/share/phot_util_mod.F90
+      ./src/tuv/share/params_mod.F90
+      ./src/tuv/share/module_xsections.F90
+      ./src/tuv/share/numer.F90
+      ./src/tuv/oxygen_xsect/la_srb_mod.F90
+      ./src/tuv/oxygen_xsect/molec_ox_xsect.F90
+      ./src/tuv/rad_xfer/rad_abs_xsect.F90
+      ./src/tuv/rad_xfer/rad_trans.F90
+      ./src/tuv/rad_xfer/tuv_radiation_transfer.F90
+      ./src/tuv/rad_xfer/tuv_subs.F90
+      ./src/tuv/photo_rates/module_prates_tuv.F90
+      ./src/tuv/photo_rates/module_rxn.F90
+      ./src/tuv/photo_rates/tuv_photolysis.F90
       ./src/photolysis_interstitial.F90
       ./src/mass_quantities_util.F90
       ./src/json_lib/json_file_module.F90
@@ -136,6 +139,8 @@ set(CAPS
       ./caps/chemistry_driver_moz_cap.F90
       ./caps/k_rateConst_cap.F90
       ./caps/photolysis_interstitial_cap.F90
+      ./caps/tuv_radiation_transfer_cap.F90
+      ./caps/molec_ox_xsect_cap.F90
       ./caps/tuv_photolysis_cap.F90
       ./caps/mass_quantities_util_cap.F90
   )
