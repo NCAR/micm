@@ -61,7 +61,7 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
 !! | zenith     | solar_zenith                          | solar zenith angle                 | degrees   |    0 | real      | kind_phys | in     | F        |
 !! | albedo     | surface_albedo                        | surface albedo                     | none      |    0 | real      | kind_phys | in     | F        |
 !! | press_mid  | layer_pressure                        | mid-point layer pressure           | Pa        |    1 | real      | kind_phys | in     | F        |
-!! | alt        | layer_altitude                        | mid-point layer altitude           | km        |    1 | real      | kind_phys | in     | F        |
+!! | alt        | layer_altitude                        | mid-point layer altitude           | m         |    1 | real      | kind_phys | in     | F        |
 !! | temp       | layer_temperature                     | mid-point layer temperature        | K         |    1 | real      | kind_phys | in     | F        |
 !! | o3vmr      | O3_vmr_col                            | O3 volume mixing ratio column      | mole/mole |    1 | real      | kind_phys | in     | F        |
 !! | so2vmr     | SO2_vmr_col                           | SO2 volume mixing ratio column     | mole/mole |    1 | real      | kind_phys | in     | F        |
@@ -81,7 +81,7 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
     real(rk),         intent(in)  :: zenith
     real(rk),         intent(in)  :: albedo
     real(rk),         intent(in)  :: press_mid(:)
-    real(rk),         intent(in)  :: alt(:)  ! km
+    real(rk),         intent(in)  :: alt(:)  ! m
     real(rk),         intent(in)  :: temp(:) ! K
     real(rk),         intent(in)  :: o3vmr(:)
     real(rk),         intent(in)  :: so2vmr(:)
@@ -155,7 +155,7 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
     ! inputs need to be bottom up vert coord
     aircol(1:nlyr) = aircol(nlyr:1:-1)
     tlev(nlev:1:-1) = temp(1:nlev)
-    zlev(nlev:1:-1) = alt(1:nlev) ! km
+    zlev(nlev:1:-1) = alt(1:nlev)*1.e-3_rk ! m -> km
 
     qll=0.0_rk
     cldfrac=0.0_rk

@@ -27,7 +27,7 @@ contains
 !! |------------|---------------------------|------------------------------------|-----------|------|-------------|-----------|--------|----------|
 !! | nlev       | num_levels_for_photolysis | number of column layers            | count     |    0 | integer     |           | in     | F        |
 !! | zen        | solar_zenith              | solar zenith angle                 | degrees   |    0 | real        | kind_phys | in     | F        |
-!! | alt        | layer_altitude            | mid-point layer altitude           | km        |    1 | real        | kind_phys | in     | F        |
+!! | alt        | layer_altitude            | mid-point layer altitude           | m         |    1 | real        | kind_phys | in     | F        |
 !! | temp       | layer_temperature         | mid-point layer temperature        | K         |    1 | real        | kind_phys | in     | F        |
 !! | press_mid  | layer_pressure            | mid-point layer pressure           | Pa        |    1 | real        | kind_phys | in     | F        |
 !! | o2vmr      | O2_vmr_col                | O2 volume mixing ratio column      | mole/mole |    1 | real        | kind_phys | in     | F        |
@@ -44,7 +44,7 @@ contains
 
     integer,          intent(in)    :: nlev
     real(rk),         intent(in)    :: zen
-    real(rk),         intent(in)    :: alt(:)  ! km
+    real(rk),         intent(in)    :: alt(:)  ! m
     real(rk),         intent(in)    :: temp(:) ! K
     real(rk),         intent(in)    :: press_mid(:)
     real(rk),         intent(in)    :: o2vmr(:)
@@ -81,7 +81,7 @@ contains
     aircol(1:nlyr) = aircol(nlyr:1:-1)
     o2col(1:nlyr)  = o2col(nlyr:1:-1)
     tlev(nlev:1:-1) = temp(1:nlev)
-    zlev(nlev:1:-1) = alt(1:nlev) ! km
+    zlev(nlev:1:-1) = alt(1:nlev)*1.e-3_rk ! m -> km
 
     do wn = 1,nwave
        dto2(:nlyr,wn) = o2col(:nlyr) * o2_xs(wn)
