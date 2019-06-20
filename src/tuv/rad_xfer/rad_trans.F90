@@ -7,8 +7,9 @@
 !=============================================================================
 
       MODULE rad_trans
-      use tuv_error_mod
-  
+
+      use phot_kind_mod, only: rk => kind_phot
+ 
       IMPLICIT NONE
 
       private
@@ -17,7 +18,7 @@
       CONTAINS
 
       SUBROUTINE rtlink( &
-           nstr, nlev, nlyr, nwave, &
+           nlev, nlyr, nwave, &
            iw, albedo, zen, &
            dsdh, nid, &
            dtrl,  &
@@ -28,75 +29,76 @@
            dtcld, omcld, gcld, &
            dtaer, omaer, gaer, &
            dtsnw, omsnw, gsnw, &
-           edir, edn, eup, fdir, fdn, fup )
+           edir, edn, eup, fdir, fdn, fup, errmsg, errflg )
 
       use params_mod, only : largest, pi
 
 !---------------------------------------------------------------------
 !     ... dummy arguments
 !---------------------------------------------------------------------
-      INTEGER, intent(in) :: nstr
       INTEGER, intent(in) :: nlev, nlyr
       INTEGER, intent(in) :: nwave, iw
-      REAL, intent(in)    :: albedo
-      REAL, intent(in)    :: zen
-      REAL, intent(in)    :: dsdh(0:nlyr,nlyr)
+      REAL(rk), intent(in)    :: albedo
+      REAL(rk), intent(in)    :: zen
+      REAL(rk), intent(in)    :: dsdh(0:nlyr,nlyr)
       INTEGER, intent(in) :: nid(0:nlyr)
 
-      REAL, intent(in)    :: dtrl(nlyr,nwave)
-      REAL, intent(in)    :: dto3(nlyr,nwave), dto2(nlyr,nwave)
-      REAL, intent(in)    :: dtso2(nlyr,nwave), dtno2(nlyr,nwave)
-      REAL, intent(in)    :: dtcld(nlyr,nwave), omcld(nlyr,nwave), gcld(nlyr,nwave)
-      REAL, intent(in)    :: dtaer(nlyr,nwave), omaer(nlyr,nwave), gaer(nlyr,nwave)
-      REAL, intent(in)    :: dtsnw(nlyr,nwave), omsnw(nlyr,nwave), gsnw(nlyr,nwave)
+      REAL(rk), intent(in)    :: dtrl(nlyr,nwave)
+      REAL(rk), intent(in)    :: dto3(nlyr,nwave), dto2(nlyr,nwave)
+      REAL(rk), intent(in)    :: dtso2(nlyr,nwave), dtno2(nlyr,nwave)
+      REAL(rk), intent(in)    :: dtcld(nlyr,nwave), omcld(nlyr,nwave), gcld(nlyr,nwave)
+      REAL(rk), intent(in)    :: dtaer(nlyr,nwave), omaer(nlyr,nwave), gaer(nlyr,nwave)
+      REAL(rk), intent(in)    :: dtsnw(nlyr,nwave), omsnw(nlyr,nwave), gsnw(nlyr,nwave)
 
-      REAL, intent(out)   :: edir(nlev), edn(nlev), eup(nlev)
-      REAL, intent(out)   :: fdir(nlev), fdn(nlev), fup(nlev)
+      REAL(rk), intent(out)   :: edir(nlev), edn(nlev), eup(nlev)
+      REAL(rk), intent(out)   :: fdir(nlev), fdn(nlev), fup(nlev)
 
+      character(len=*), intent(out)   :: errmsg
+      integer,            intent(out)   :: errflg
 
 !---------------------------------------------------------------------
 !     ... local variables
 !---------------------------------------------------------------------
-      REAL, PARAMETER :: dr = pi/180.
+      REAL(rk), PARAMETER :: dr = pi/180._rk
 
       INTEGER :: k, kk
-      REAL    :: dtabs,dtsct,dscld,dsaer,dssnw,dacld,daaer,dasnw
-      REAL    :: dt(nlyr), om(nlyr), g(nlyr)
+      REAL(rk)    :: dtabs,dtsct,dscld,dsaer,dssnw,dacld,daaer,dasnw
+      REAL(rk)    :: dt(nlyr), om(nlyr), g(nlyr)
 
 
 !---------------------------------------------------------------------
 !     ... specific to ps2str
 !---------------------------------------------------------------------
       LOGICAL, parameter :: delta = .true.
-      REAL ediri(nlev), edni(nlev), eupi(nlev)
-      REAL fdiri(nlev), fdni(nlev), fupi(nlev)
+      REAL(rk) ediri(nlev), edni(nlev), eupi(nlev)
+      REAL(rk) fdiri(nlev), fdni(nlev), fupi(nlev)
 
 !---------------------------------------------------------------------
 ! initialize:
 !---------------------------------------------------------------------
-      fdir(1:nlev) = 0.
-      fup(1:nlev)  = 0.
-      fdn(1:nlev)  = 0.
-      edir(1:nlev) = 0.
-      eup(1:nlev)  = 0.
-      edn(1:nlev)  = 0.
+      fdir(1:nlev) = 0._rk
+      fup(1:nlev)  = 0._rk
+      fdn(1:nlev)  = 0._rk
+      edir(1:nlev) = 0._rk
+      eup(1:nlev)  = 0._rk
+      edn(1:nlev)  = 0._rk
 
       DO k = 1, nlyr
         dscld = dtcld(k,iw)*omcld(k,iw)
-        dacld = dtcld(k,iw)*(1.-omcld(k,iw))
+        dacld = dtcld(k,iw)*(1._rk-omcld(k,iw))
 
         dsaer = dtaer(k,iw)*omaer(k,iw)
-        daaer = dtaer(k,iw)*(1.-omaer(k,iw))
+        daaer = dtaer(k,iw)*(1._rk-omaer(k,iw))
 
         dssnw = dtsnw(k,iw)*omsnw(k,iw)
-        dasnw = dtsnw(k,iw)*(1.-omsnw(k,iw))
+        dasnw = dtsnw(k,iw)*(1._rk-omsnw(k,iw))
 
         dtsct = dtrl(k,iw) + dscld + dsaer + dssnw
         dtabs = dtso2(k,iw) + dto2(k,iw) + dto3(k,iw) & 
               + dtno2(k,iw) + dacld + daaer + dasnw
 
-        dtabs = max( dtabs,1./largest )
-        dtsct = max( dtsct,1./largest )
+        dtabs = max( dtabs,1._rk/largest )
+        dtsct = max( dtsct,1._rk/largest )
 
 !---------------------------------------------------------------------
 ! from bottom-up to top-down
@@ -104,17 +106,17 @@
         kk = nlyr - k + 1
         dt(kk) = dtsct + dtabs
         g(kk)  = (gcld(k,iw)*dscld + gsnw(k,iw)*dssnw + gaer(k,iw)*dsaer)/dtsct
-        IF( dtsct /= 1./largest ) then
+        IF( dtsct /= 1._rk/largest ) then
           om(kk) = dtsct/(dtsct + dtabs)
         ELSE
-          om(kk) = 1./largest
+          om(kk) = 1._rk/largest
         ENDIF
       END DO   
 
       CALL ps2str( nlyr, nlev, zen, albedo, &
                    dt, om, g, &
                    dsdh, nid, delta, &
-                   fdiri, fupi, fdni, ediri, eupi, edni)
+                   fdiri, fupi, fdni, ediri, eupi, edni, errmsg, errflg)
 
 !---------------------------------------------------------------------
 ! from top-down to bottom-up
@@ -132,7 +134,7 @@
            nlyr, nlev, zen, rsfc, &
            tauu, omu, gu, &
            dsdh, nid, delta, &
-           fdr, fup, fdn, edr, eup, edn)
+           fdr, fup, fdn, edr, eup, edn, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Solve two-stream equations for multiple layers.  The subroutine is based =*
@@ -177,43 +179,46 @@
 !     ... dummy arguments
 !-----------------------------------------------------------------------------
       INTEGER, intent(in) :: nlyr, nlev
-      REAL, intent(in)    :: zen, rsfc
-      REAL, intent(in)    :: tauu(nlyr), omu(nlyr), gu(nlyr)
-      REAL, intent(in)    :: dsdh(0:nlyr,nlyr)
+      REAL(rk), intent(in)    :: zen, rsfc
+      REAL(rk), intent(in)    :: tauu(nlyr), omu(nlyr), gu(nlyr)
+      REAL(rk), intent(in)    :: dsdh(0:nlyr,nlyr)
       INTEGER, intent(in) :: nid(0:nlyr)
       LOGICAL, intent(in) :: delta
 
-      REAL, intent(out) :: fup(nlev), fdn(nlev), fdr(nlev)
-      REAL, intent(out) :: eup(nlev), edn(nlev), edr(nlev)
+      REAL(rk), intent(out) :: fup(nlev), fdn(nlev), fdr(nlev)
+      REAL(rk), intent(out) :: eup(nlev), edn(nlev), edr(nlev)
+
+      character(len=*), intent(out)   :: errmsg
+      integer,            intent(out)   :: errflg
 
 !-----------------------------------------------------------------------------
 !     ... local variables
 !-----------------------------------------------------------------------------
-      REAL, PARAMETER    :: eps = 1.E-3
+      REAL(rk), PARAMETER    :: eps = 1.E-3_rk
 !-----------------------------------------------------------------------------
 ! initial conditions:  pi*solar flux = 1;  diffuse incidence = 0
 !-----------------------------------------------------------------------------
-      REAL, PARAMETER    :: pifs = 1.
-      REAL, PARAMETER    :: fdn0 = 0.
+      REAL(rk), PARAMETER    :: pifs = 1._rk
+      REAL(rk), PARAMETER    :: fdn0 = 0._rk
 
-      REAL :: mu, sum
-      REAL :: tausla(0:nlyr)
-      REAL :: tauc(0:nlyr)
-      REAL :: mu2(0:nlyr)
+      REAL(rk) :: mu, sum
+      REAL(rk) :: tausla(0:nlyr)
+      REAL(rk) :: tauc(0:nlyr)
+      REAL(rk) :: mu2(0:nlyr)
 
 !-----------------------------------------------------------------------------
 ! internal coefficients and matrix
 !-----------------------------------------------------------------------------
-      INTEGER :: row, nlyrm1
-      REAL :: lam(nlyr), taun(nlyr), bgam(nlyr)
-      REAL :: e1(nlyr), e2(nlyr), e3(nlyr), e4(nlyr)
-      REAL :: cup(nlyr), cdn(nlyr), cuptn(nlyr), cdntn(nlyr)
-      REAL :: mu1(nlyr)
-      REAL :: a(2*nlyr), b(2*nlyr), d(2*nlyr), e(2*nlyr), y(2*nlyr)
+      INTEGER :: nlyrm1
+      REAL(rk) :: lam(nlyr), taun(nlyr), bgam(nlyr)
+      REAL(rk) :: e1(nlyr), e2(nlyr), e3(nlyr), e4(nlyr)
+      REAL(rk) :: cup(nlyr), cdn(nlyr), cuptn(nlyr), cdntn(nlyr)
+      REAL(rk) :: mu1(nlyr)
+      REAL(rk) :: a(2*nlyr), b(2*nlyr), d(2*nlyr), e(2*nlyr), y(2*nlyr)
 
-      REAL :: f, g, om, tmpg
-      REAL :: gam1, gam2, gam3, gam4
-      REAL :: gi(nlyr), omi(nlyr)
+      REAL(rk) :: f, g, om, tmpg
+      REAL(rk) :: gam1, gam2, gam3, gam4
+      REAL(rk) :: gi(nlyr), omi(nlyr)
 
 !-----------------------------------------------------------------------------
 ! For calculations of Associated Legendre Polynomials for GAMA1,2,3,4
@@ -225,9 +230,9 @@
 ! down.
 !-----------------------------------------------------------------------------
       INTEGER :: mrows, mrowsm1, mrowsm2
-      REAL    :: expon, expon0, expon1, divisr, tmp, up, dn
-      REAL    :: ssfc
-      REAL    :: wrk, wrk1
+      REAL(rk)    :: expon, expon0, expon1, divisr, tmp, up, dn
+      REAL(rk)    :: ssfc
+      REAL(rk)    :: wrk, wrk1
 
       INTEGER :: i, im1, j, k
 
@@ -242,7 +247,7 @@
 ! NLEVEL = nlyr + 1 = number of levels
 !-----------------------------------------------------------------------------
 
-      mu = COS( zen*pi/180. )
+      mu = COS( zen*pi/180._rk )
 !-----------------------------------------------------------------------------
 !************* compute coefficients for each layer:
 ! GAM1 - GAM4 = 2-stream coefficients, different for different approximations
@@ -252,9 +257,9 @@
 ! CUPTN and CDNTN = calc. when TAU is TAUN
 ! DIVISR = prevents division by zero
 !-----------------------------------------------------------------------------
-      tauc(0:nlyr)   = 0.
-      tausla(0:nlyr) = 0.
-      mu2(0:nlyr)    = 1./SQRT(largest)
+      tauc(0:nlyr)   = 0._rk
+      tausla(0:nlyr) = 0._rk
+      mu2(0:nlyr)    = 1._rk/SQRT(largest)
 
       IF( .NOT. delta ) THEN
         gi(1:nlyr)   = gu(1:nlyr)
@@ -268,8 +273,8 @@
 !-----------------------------------------------------------------------------
         DO k = 1, nlyr
           f       = gu(k)*gu(k)
-          wrk     = 1. - f
-          wrk1    = 1. - omu(k)*f
+          wrk     = 1._rk - f
+          wrk1    = 1._rk - omu(k)*f
           gi(k)   = (gu(k) - f)/wrk
           omi(k)  = wrk*omu(k)/wrk1
           taun(k) = wrk1*tauu(k)
@@ -281,13 +286,13 @@
 ! in this case, higher altitude of the top layer is recommended which can 
 ! be easily changed in gridz.f.
 !-----------------------------------------------------------------------------
-      IF( zen > 90.0 ) THEN
+      IF( zen > 90.0_rk ) THEN
         IF(nid(0) < 0) THEN
           tausla(0) = largest
         ELSE
-          sum = 0.0
+          sum = 0.0_rk
           DO j = 1, nid(0)
-            sum = sum + 2.*taun(j)*dsdh(0,j)
+            sum = sum + 2._rk*taun(j)*dsdh(0,j)
           END DO
           tausla(0) = sum 
         END IF
@@ -303,9 +308,9 @@ layer_loop : &
 !-----------------------------------------------------------------------------
 ! stay away from 1 by precision.  For g, also stay away from -1
 !-----------------------------------------------------------------------------
-        tmpg = MIN( abs(g),1. - precis )
+        tmpg = MIN( abs(g),1._rk - precis )
         g    = SIGN( tmpg,g )
-        om   = MIN( om,1. - precis )
+        om   = MIN( om,1._rk - precis )
 
 !-----------------------------------------------------------------------------
 ! calculate slant optical depth
@@ -313,19 +318,19 @@ layer_loop : &
         IF(nid(i) < 0) THEN
           tausla(i) = largest
         ELSE
-          sum = 0.0
+          sum = 0.0_rk
           DO j = 1, MIN(nid(i),i)
              sum = sum + taun(j)*dsdh(i,j)
           ENDDO
           DO j = MIN(nid(i),i)+1,nid(i)
-             sum = sum + 2.*taun(j)*dsdh(i,j)
+             sum = sum + 2._rk*taun(j)*dsdh(i,j)
           ENDDO
           tausla(i) = sum 
           IF(tausla(i) == tausla(im1)) THEN
             mu2(i) = SQRT(largest)
           ELSE
             mu2(i) = (tauc(i) - tauc(im1))/(tausla(i) - tausla(im1))
-            mu2(i) = SIGN( MAX( ABS(mu2(i)),1./SQRT(largest) ), mu2(i) )
+            mu2(i) = SIGN( MAX( ABS(mu2(i)),1._rk/SQRT(largest) ), mu2(i) )
           END IF
         END IF
 
@@ -334,11 +339,11 @@ layer_loop : &
 !** save mu1 for each approx. for use in converting irradiance to actinic flux
 ! Eddington approximation(Joseph et al., 1976, JAS, 33, 2452):
 !-----------------------------------------------------------------------------
-        gam1 =  .25*(7. - om*(4. + 3.*g))
-        gam2 = -.25*(1. - om*(4. - 3.*g))
-        gam3 = .25*(2. - 3.*g*mu)
-        gam4 = 1. - gam3
-        mu1(i) = 0.5
+        gam1 =  .25_rk*(7._rk - om*(4._rk + 3._rk*g))
+        gam2 = -.25_rk*(1._rk - om*(4._rk - 3._rk*g))
+        gam3 = .25_rk*(2._rk - 3._rk*g*mu)
+        gam4 = 1._rk - gam3
+        mu1(i) = 0.5_rk
 
 !-----------------------------------------------------------------------------
 ! lambda = pg 16,290 equation 21
@@ -348,10 +353,10 @@ layer_loop : &
 !-----------------------------------------------------------------------------
         lam(i) = sqrt(gam1*gam1 - gam2*gam2)
 
-        IF( gam2 /= 0.) THEN
+        IF( gam2 /= 0._rk) THEN
           bgam(i) = (gam1 - lam(i))/gam2
         ELSE
-          bgam(i) = 0.
+          bgam(i) = 0._rk
         ENDIF
 
         expon = EXP( -lam(i)*taun(i) )
@@ -359,8 +364,8 @@ layer_loop : &
 !-----------------------------------------------------------------------------
 ! e1 - e4 = pg 16,292 equation 44
 !-----------------------------------------------------------------------------
-        e1(i) = 1. + bgam(i)*expon
-        e2(i) = 1. - bgam(i)*expon
+        e1(i) = 1._rk + bgam(i)*expon
+        e2(i) = 1._rk - bgam(i)*expon
         e3(i) = bgam(i) + expon
         e4(i) = bgam(i) - expon
 
@@ -373,12 +378,12 @@ layer_loop : &
         expon0 = EXP( -tausla(im1) )
         expon1 = EXP( -tausla(i) )
           
-        divisr = lam(i)*lam(i) - 1./(mu2(i)*mu2(i))
+        divisr = lam(i)*lam(i) - 1._rk/(mu2(i)*mu2(i))
         tmp    = MAX( eps,abs(divisr) )
         divisr = SIGN( tmp,divisr )
 
-        up = om*pifs*((gam1 - 1./mu2(i))*gam3 + gam4*gam2)/divisr
-        dn = om*pifs*((gam1 + 1./mu2(i))*gam4 + gam2*gam3)/divisr
+        up = om*pifs*((gam1 - 1._rk/mu2(i))*gam3 + gam4*gam2)/divisr
+        dn = om*pifs*((gam1 + 1._rk/mu2(i))*gam4 + gam2*gam3)/divisr
          
 !-----------------------------------------------------------------------------
 ! cup and cdn are when tau is equal to zero
@@ -408,7 +413,7 @@ layer_loop : &
 ! the following are from pg 16,292  equations 39 - 43.
 ! set up first row of matrix:
 !-----------------------------------------------------------------------------
-      a(1) = 0.
+      a(1) = 0._rk
       b(1) = e1(1)
       d(1) = -e2(1)
       e(1) = fdn0 - cdn(1)
@@ -436,13 +441,13 @@ layer_loop : &
 !-----------------------------------------------------------------------------
       a(mrows) = e1(nlyr) - rsfc*e3(nlyr)
       b(mrows) = e2(nlyr) - rsfc*e4(nlyr)
-      d(mrows) = 0.
+      d(mrows) = 0._rk
       e(mrows) = ssfc - cuptn(nlyr) + rsfc*cdntn(nlyr)
 
 !-----------------------------------------------------------------------------
 ! solve tri-diagonal matrix:
 !-----------------------------------------------------------------------------
-      CALL tridag( a, b, d, e, y, mrows )
+      CALL tridag( a, b, d, e, y, mrows, errmsg, errflg )
 
 !-----------------------------------------------------------------------------
 !*** unfold solution of matrix, compute output fluxes:
@@ -465,7 +470,7 @@ layer_loop : &
 
       END SUBROUTINE ps2str
 
-      SUBROUTINE tridag( a, b, c, r, u, n)
+      SUBROUTINE tridag( a, b, c, r, u, n, errmsg, errflg)
 !-----------------------------------------------------------------------------
 ! solve tridiagonal system.  From Numerical Recipies, p. 40
 !-----------------------------------------------------------------------------
@@ -474,19 +479,23 @@ layer_loop : &
 !     ... dummy arguments
 !-----------------------------------------------------------------------------
       INTEGER, intent(in) :: n
-      REAL,    intent(in) :: a(n), b(n), c(n), r(n)
-      REAL, intent(out)   :: u(n)
+      REAL(rk),    intent(in) :: a(n), b(n), c(n), r(n)
+      REAL(rk), intent(out)   :: u(n)
+
+      character(len=*), intent(out)   :: errmsg
+      integer,            intent(out)   :: errflg
 
 !-----------------------------------------------------------------------------
 !     ... local variables
 !-----------------------------------------------------------------------------
       INTEGER :: j, jm1, jp1
-      REAL    :: bet
-      REAL    :: gam(n)
-      CHARACTER(len=64) :: err_msg
+      REAL(rk)    :: bet
+      REAL(rk)    :: gam(n)
 
-      IF (b(1) == 0.) then
-        call tuv_error_fatal( 'tridag: zero pivot @ n == 1' )
+      IF (b(1) == 0._rk) then
+         errflg = 99
+         errmsg = 'tridag: zero pivot @ n == 1'
+         return
       ENDIF
       bet  = b(1)
       u(1) = r(1)/bet
@@ -494,9 +503,10 @@ layer_loop : &
          jm1 = j - 1
          gam(j) = c(jm1)/bet
          bet    = b(j) - a(j)*gam(j)
-         IF (bet == 0.) then
-           write(err_msg,'(''tridag: zero pivot @ n = '',i4)') j
-           call tuv_error_fatal( trim(err_msg) )
+         IF (bet == 0._rk) then
+           errflg = 99
+           write(errmsg,'(''tridag: zero pivot @ n = '',i4)') j
+           return
          ENDIF
          u(j) = (r(j) - a(j)*u(jm1))/bet
       END DO

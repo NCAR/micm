@@ -1,3 +1,7 @@
+module numer_mod
+
+  use phot_kind_mod, only: rk => kind_phot
+
 ! This file contains the following subroutines, related to interpolations
 ! of input data, addition of points to arrays, and zeroing of arrays:
 !     inter1
@@ -9,6 +13,8 @@
 !     zero2
 !=============================================================================*
 
+contains
+  
       SUBROUTINE inter1(ng,xg,yg, n,x,y)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
@@ -38,19 +44,19 @@
 
 ! input:
       INTEGER n, ng
-      REAL xg(ng)
-      REAL x(n), y(n)
+      REAL(rk) xg(ng)
+      REAL(rk) x(n), y(n)
 
 ! output:
-      REAL yg(ng)
+      REAL(rk) yg(ng)
 
 ! local:
-      REAL slope
+      REAL(rk) slope
       INTEGER jsave, i, j
 
       jsave = 1
       DO i = 1, ng
-         yg(i) = 0.
+         yg(i) = 0._rk
          j = jsave
    10    CONTINUE
          IF ((x(j) .GT. xg(i)) .OR. (xg(i) .GE. x(j+1))) THEN
@@ -68,7 +74,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE inter2(ng,xg,yg,n,x,y,ierr)
+      SUBROUTINE inter2(ng,xg,yg,n,x,y, errmsg, errflg )
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Map input data given on single, discrete points onto a set of target     =*
@@ -98,41 +104,42 @@
 !=  X   - REAL, grid on which input data are defined                      (I)=*
 !=  Y   - REAL, input y-data                                              (I)=*
 !-----------------------------------------------------------------------------*
-        use tuv_error_mod
 
       IMPLICIT NONE
 
 ! input:
-      INTEGER ng, n
-      REAL x(n), y(n), xg(ng)
+      INTEGER, intent(in) :: ng, n
+      REAL(rk), intent(in) :: x(n), y(n), xg(ng)
 
 ! output:
-      REAL yg(ng)
+      REAL(rk), intent(out) :: yg(ng-1)
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! local:
-      REAL area, xgl, xgu
-      REAL darea, slope
-      REAL a1, a2, b1, b2
+      REAL(rk) area, xgl, xgu
+      REAL(rk) darea, slope
+      REAL(rk) a1, a2, b1, b2
       INTEGER ngintv
       INTEGER i, k, jstart
-      INTEGER ierr
 
-      ierr = 0
+      errmsg = ' '
+      errflg = 0
 
 !  test for correct ordering of data, by increasing value of x
 
       DO i = 2, n
         IF (x(i) .LE. x(i-1)) THEN
-          ierr = 1
-          call tuv_error_fatal( 'inter2: ERROR <<< x-grid not sorted' )
+          errflg = 1
+          errmsg = 'inter2: ERROR <<< x-grid not sorted'
           RETURN
         ENDIF
       ENDDO
 
       DO i = 2, ng
         IF (xg(i) .LE. xg(i-1)) THEN
-          ierr = 2
-          call tuv_error_fatal('inter2: ERROR <<< xg-grid not sorted!' )
+          errflg = 2
+          errmsg = 'inter2: ERROR <<< xg-grid not sorted!'
           RETURN
         ENDIF
       ENDDO
@@ -140,7 +147,9 @@
 ! check for xg-values outside the x-range
 
       IF ( (x(1) .GT. xg(1)) .OR. (x(n) .LT. xg(ng)) ) THEN
-        call tuv_error_fatal( 'inter2: <<<  Data do not span grid; Use ADDPNT to expand data and re-run.' )
+         errmsg = 'inter2: <<<  Data do not span grid; Use ADDPNT to expand data and re-run.'
+         errflg = 1
+         return
       ENDIF
 
 !  find the integral of each grid interval and use this to 
@@ -152,7 +161,7 @@
       DO i = 1,ngintv
 
 ! initalize:
-            area = 0.0
+            area = 0.0_rk
             xgl = xg(i)
             xgu = xg(i+1)
 
@@ -183,12 +192,12 @@
                 a2 = MIN(x(k+1),xgu)
 !  if points coincide, contribution is zero
                 IF (x(k+1).EQ.x(k)) THEN
-                  darea = 0.e0
+                  darea = 0.e0_rk
                 ELSE
                   slope = (y(k+1) - y(k))/(x(k+1) - x(k))
                   b1 = y(k) + slope*(a1 - x(k))
                   b2 = y(k) + slope*(a2 - x(k))
-                  darea = (a2 - a1)*(b2 + b1)/2.
+                  darea = (a2 - a1)*(b2 + b1)/2._rk
                 ENDIF
 
 !  find the area under the trapezoid from a1 to a2
@@ -208,7 +217,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE inter3(ng,xg,yg, n,x,y, FoldIn)
+      SUBROUTINE inter3(ng,xg,yg, n,x,y, FoldIn, errmsg, errflg)
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Map input data given on a set of bins onto a different set of target     =*
@@ -246,36 +255,41 @@
 !=           FoldIn = 1 -> Integerate "overhang" data and fold back into     =*
 !=                         last target bin                                   =*
 !-----------------------------------------------------------------------------*
-        use tuv_error_mod
 
       IMPLICIT NONE
       
 ! input:
-      INTEGER n, ng
-      REAL xg(ng)
-      REAL x(n), y(n)
-
-      INTEGER FoldIn
+      INTEGER, intent(in) :: n, ng
+      REAL(rk),    intent(in) :: xg(ng)
+      REAL(rk),    intent(in) :: x(n), y(n)
+      INTEGER, intent(in) :: FoldIn
 
 ! output:
-      REAL yg(ng)
+      REAL(rk),             intent(out) ::  yg(ng)
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! local:
-      REAL a1, a2, sum
-      REAL tail
+      REAL(rk) a1, a2, sum
+      REAL(rk) tail
       INTEGER jstart, i, j, k
+
+      errmsg = ' '
+      errflg = 0
 
 ! check whether flag given is legal
       IF ((FoldIn .NE. 0) .AND. (FoldIn .NE. 1)) THEN
-         call tuv_error_fatal( 'inter3: ERROR <<<  Value for FOLDIN invalid. Must be 0 or 1' )
+         errmsg = 'inter3: ERROR <<<  Value for FOLDIN invalid. Must be 0 or 1'
+         errflg = 1
+         return
       ENDIF
 
 ! do interpolation
 
       jstart = 1
       DO i = 1, ng - 1
-         yg(i) = 0.
-         sum = 0.
+         yg(i) = 0._rk
+         sum = 0._rk
          j = jstart
          IF (j .LE. n-1) THEN
    20      CONTINUE
@@ -320,7 +334,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE inter4(ng,xg,yg, n,x,y, FoldIn)
+      SUBROUTINE inter4(ng,xg,yg, n,x,y, FoldIn, errmsg, errflg )
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Map input data given on a set of bins onto a different set of target     =*
@@ -358,36 +372,41 @@
 !=           FoldIn = 1 -> Integerate "overhang" data and fold back into     =*
 !=                         last target bin                                   =*
 !-----------------------------------------------------------------------------*
-        use tuv_error_mod
 
       IMPLICIT NONE
       
 ! input:
-      INTEGER n, ng
-      REAL xg(ng)
-      REAL x(n), y(n)
-
-      INTEGER FoldIn
+      INTEGER, intent(in) :: n, ng
+      REAL(rk),    intent(in) :: xg(ng)
+      REAL(rk),    intent(in) :: x(n), y(n)
+      INTEGER, intent(in) :: FoldIn
 
 ! output:
-      REAL yg(ng)
+      REAL(rk),             intent(out) :: yg(ng)
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! local:
-      REAL a1, a2, sum
-      REAL tail
+      REAL(rk) a1, a2, sum
+      REAL(rk) tail
       INTEGER jstart, i, j, k
+
+      errmsg = ' '
+      errflg = 0
 
 ! check whether flag given is legal
       IF ((FoldIn .NE. 0) .AND. (FoldIn .NE. 1)) THEN
-         call tuv_error_fatal( 'inter3: ERROR <<<  Value for FOLDIN invalid. Must be 0 or 1' )
+         errmsg = 'inter3: ERROR <<<  Value for FOLDIN invalid. Must be 0 or 1'
+         errflg = 1
+         return
       ENDIF
 
 ! do interpolation
 
       jstart = 1
       DO i = 1, ng - 1
-         yg(i) = 0.
-         sum = 0.
+         yg(i) = 0._rk
+         sum = 0._rk
          j = jstart
          IF (j .LE. n-1) THEN
    20      CONTINUE
@@ -429,7 +448,7 @@
 
 !=============================================================================*
 
-      SUBROUTINE addpnt ( x, y, ld, n, xnew, ynew )
+      SUBROUTINE addpnt ( x, y, ld, n, xnew, ynew, errmsg, errflg )
 !-----------------------------------------------------------------------------*
 !=  PURPOSE:                                                                 =*
 !=  Add a point <xnew,ynew> to a set of data pairs <x,y>.  x must be in      =*
@@ -445,7 +464,6 @@
 !=  XNEW - REAL, x-coordinate at which point is to be added               (I)=*
 !=  YNEW - REAL, y-value of point to be added                             (I)=*
 !-----------------------------------------------------------------------------*
-        use tuv_error_mod
 
       IMPLICIT NONE
 
@@ -453,18 +471,24 @@
 
       INTEGER, intent(in) :: ld
       INTEGER, intent(inout) :: n
-      REAL, intent(inout)    :: x(ld), y(ld)
-      REAL, intent(in) :: xnew, ynew
+      REAL(rk), intent(inout)    :: x(ld), y(ld)
+      REAL(rk), intent(in) :: xnew, ynew
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
 
 ! local variables
 
       INTEGER insert
       INTEGER i
-      CHARACTER(len=256) :: emsg
+
+      errmsg = ' '
+      errflg = 0
 
 ! check n<ld to make sure x will hold another point
       IF (n .GE. ld) THEN
-         call tuv_error_fatal( 'addpnt: ERROR <<<  Cannot expand array All elements used.' )
+         errmsg = 'addpnt: ERROR <<<  Cannot expand array All elements used.'
+         errflg = 1
+         return
       ENDIF
 
       insert = 1
@@ -476,13 +500,15 @@
 
  10   CONTINUE
       IF (i .LT. n) THEN
-        IF (x(i) .LT. x(i-1)) THEN
-           call tuv_error_fatal( 'addpnt: ERROR <<<  x-data must be in ascending order!' )
-        ELSE
-           IF (xnew .GT. x(i-1)) insert = i 
-        ENDIF
-        i = i+1
-        GOTO 10
+         IF (x(i) .LT. x(i-1)) THEN
+            errmsg = 'addpnt: ERROR <<<  x-data must be in ascending order!'
+            errflg = 1
+            return
+         ELSE
+            IF (xnew .GT. x(i-1)) insert = i 
+         ENDIF
+         i = i+1
+         GOTO 10
       ENDIF
 
 ! if <xnew,ynew> needs to be appended at the end, just do so,
@@ -507,3 +533,6 @@
       n = n+1
 
       END SUBROUTINE addpnt
+
+end module numer_mod
+    
