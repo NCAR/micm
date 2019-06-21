@@ -52,7 +52,7 @@
         "transport": "transported",
         "solve": "implicit",
         "henrys_law_type": "1",
-        "molecular_weight": "0",
+        "molecular_weight": "31.9988",
         "kh_298": "1.3E-03",
         "dh_r": "0",
         "k1_298": "0",
