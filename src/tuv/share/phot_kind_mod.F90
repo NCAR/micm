@@ -1,6 +1,6 @@
 module phot_kind_mod
 
-use ccpp_kind, only: kind_phot => kind_phys
+use ccpp_kinds, only: kind_phot => kind_phys
 
   implicit none
 

@@ -4,7 +4,7 @@
 [realkind]
   standard_name = phys_real_kind
   long_name = physics real kind
-  units = none
+  units = 1
   dimensions = ()
   type = integer
   intent = in
@@ -20,7 +20,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
@@ -71,7 +71,7 @@
 [albedo]
   standard_name = surface_albedo
   long_name = surface albedo
-  units = none
+  units = 1
   dimensions = ()
   type = real
   kind = kind_phys
@@ -135,7 +135,7 @@
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (nlevelMinus1,tuv_n_wavelen)
+  dimensions = (nlevelMinus1,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = in
@@ -144,7 +144,7 @@
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
   units = cm-2 sec-1
-  dimensions = (tuv_n_wavelen,nlevels)
+  dimensions = (tuv_n_actinic_flux_wavelengths,num_levels_for_photolysis)
   type = real
   kind = kind_phys
   intent = out
@@ -152,7 +152,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
@@ -174,7 +174,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*

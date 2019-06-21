@@ -23,7 +23,8 @@ contains
 !> \section arg_table_molec_ox_xsect_run Argument Table
 !! \htmlinclude molec_ox_xsect_run.html
 !!
-  subroutine molec_ox_xsect_run( nlev, tuv_n_wavelen, nlevelsMinus1, zen, alt, temp, press_mid, o2vmr, dto2, srb_o2_xs, errmsg, errflg )
+  subroutine molec_ox_xsect_run( nlev, tuv_n_wavelen, nlevelsMinus1, zen, alt, temp, press_mid, o2vmr, dto2, srb_o2_xs, &
+         errmsg, errflg )
     use rad_abs_xsect, only : o2_xs
     use phot_util_mod, only : sphers, airmas
     use la_srb_mod,    only : la_srb_comp

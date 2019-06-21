@@ -127,34 +127,35 @@ module tuv_photolysis
   
 contains
 
-  subroutine tuv_photolysis_readnl(nml_file) ! this will be a CPF interface someday
-
-    use module_prates_tuv, only: get_xsqy_tab, nwave
+!  subroutine tuv_photolysis_readnl(nml_file) ! this will be a CPF interface someday
+!
+!    use module_prates_tuv, only: get_xsqy_tab, nwave
+! 
+!    character(len=*), intent(in)  :: nml_file
+!
+!    character(len=512) :: errmsg
+!    integer :: errflg
+!
+!    character(len=512) :: xsqy_filepath
+!
+!    namelist /tuv_opts/ input_data_root
+!
+!    open(unit=10,file=nml_file)
+!    read(unit=10,nml=tuv_opts)
+!    close(10)
+!
+!    xsqy_filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
+!    call get_xsqy_tab(xsqy_filepath, errmsg, errflg) ! call this here since nwave needs to be known earlier than the init phase
+!    tuv_n_wavelen = nwave
+!    
+!  end subroutine tuv_photolysis_readnl
  
-    character(len=*), intent(in)  :: nml_file
-
-    character(len=512) :: errmsg
-    integer :: errflg
-
-    character(len=512) :: xsqy_filepath
-
-    namelist /tuv_opts/ input_data_root
-
-    open(unit=10,file=nml_file)
-    read(unit=10,nml=tuv_opts)
-    close(10)
-
-    xsqy_filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
-    call get_xsqy_tab(xsqy_filepath, errmsg, errflg) ! call this here since nwave needs to be known earlier than the init phase
-    tuv_n_wavelen = nwave
-    
-  end subroutine tuv_photolysis_readnl
-
 !> \section arg_table_tuv_photolysis_init Argument Table
 !! \htmlinclude tuv_photolysis_init.html
 !!
 subroutine tuv_photolysis_init( realkind, tuv_n_wavelen, tuv_n_phot, errmsg, errflg )
 
+    use module_prates_tuv, only: get_xsqy_tab, nwave
     integer,          intent(in)  :: realkind
     integer,          intent(out) :: tuv_n_wavelen
     integer,          intent(out) :: tuv_n_phot
@@ -164,10 +165,20 @@ subroutine tuv_photolysis_init( realkind, tuv_n_wavelen, tuv_n_phot, errmsg, err
     logical, parameter :: full_tuv = .true.
     character(len=*), parameter :: phot_options = '../Photolysis_options'
 
+    character(len=512) :: xsqy_filepath
+
+    namelist /tuv_opts/ input_data_root
+
     errmsg = ' '
     errflg = 0
 
-    call tuv_photolysis_readnla(phot_options)
+    open(unit=10,file=phot_options)
+    read(unit=10,nml=tuv_opts)
+    close(10)
+
+    xsqy_filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
+    call get_xsqy_tab(xsqy_filepath, errmsg, errflg) ! call this here since nwave needs to be known earlier than the init phase
+    tuv_n_wavelen = nwave
 
     if ( realkind/=kind_phys ) then
        errmsg = 'tuv_photolysis_init: realkind does not match kind_phot'

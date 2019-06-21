@@ -4,7 +4,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
@@ -93,7 +93,7 @@
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (nlevelsMinus1,tuv_n_wavelen)
+  dimensions = (num_levels_for_photolysis_minus_1,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = out
@@ -102,7 +102,7 @@
   standard_name = o2_xsect
   long_name = O2 effective cross section
   units = cm2
-  dimensions = (tuv_n_wavelen,nlevels)
+  dimensions = (tuv_n_actinic_flux_wavelengths,num_levels_for_photolysis)
   type = real
   kind = kind_phys
   intent = out
@@ -110,7 +110,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
@@ -132,7 +132,7 @@
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
-  units = none
+  units = 1
   dimensions = ()
   type = character
   kind = len=*
