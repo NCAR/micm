@@ -65,7 +65,7 @@ contains
 
     if (o2_ndx>0) then
        mbar = sum( vmr(:)*molar_mass(:) )
-       if (n2_ndx<-1) then
+       if (n2_ndx == -1) then
           n2_vmr = 1._kind_phys - sum(vmr(:))
           mbar = mbar + n2_vmr*molar_mass_n2
        endif
