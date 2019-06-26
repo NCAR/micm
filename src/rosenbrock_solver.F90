@@ -256,8 +256,8 @@ CONTAINS
       REAL(r8) :: H, Hnew, HC, Fac, Tau, Err
       REAL(r8) :: presentTime
       REAL(r8) :: Ynew(this%N)
-      REAL(r8), pointer :: Fcn(:)
-      REAL(r8), target  :: K(this%N,this%ros_S)
+      REAL(r8) :: Fcn0(this%N), Fcn(this%N)
+      REAL(r8) :: K(this%N,this%ros_S)
       REAL(r8) :: Yerr(this%N)
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
@@ -300,8 +300,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
    H = MIN(H,ABS(Tend-presentTime))
 
 !~~~>   Compute the function at current time
-   Fcn => K(:,1)
-   Fcn(:) = theKinetics%force( Y )
+   Fcn0(:) = theKinetics%force( Y )
    istat(Nfun) = istat(Nfun) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -317,27 +316,31 @@ UntilAccepted: DO
    END IF
 
 !~~~>   Compute the stages
-Stage: DO istage = 1, this%ros_S
-         IF ( istage /= 1 ) THEN
-           S_ndx = (istage - 1)*(istage - 2)/2
-           IF ( this%ros_NewF(istage) ) THEN
-             Ynew(1:N) = Y(1:N)
-             DO j = 1, istage-1
-               Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
-             END DO
-             Tau = presentTime + this%ros_Alpha(istage)*H
-             Fcn => K(:,istage)
-             Fcn(:) = theKinetics%force( Ynew )
-             istat(Nfun) = istat(Nfun) + 1
-           ENDIF
-           DO j = 1, istage-1
-             HC = this%ros_C(S_ndx+j)/(H)
-             K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
-           END DO
-         ENDIF
-         CALL theKinetics%DGESL( K(:,istage) )
-         istat(Nsol) = istat(Nsol) + 1
-   END DO Stage
+Stage_loop: &
+   DO istage = 1, this%ros_S
+     IF ( istage /= 1 ) THEN
+       S_ndx = (istage - 1)*(istage - 2)/2
+       IF ( this%ros_NewF(istage) ) THEN
+         Ynew(1:N) = Y(1:N)
+         DO j = 1, istage-1
+           Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
+         END DO
+         Tau = presentTime + this%ros_Alpha(istage)*H
+         Fcn(:) = theKinetics%force( Ynew )
+         istat(Nfun) = istat(Nfun) + 1
+       ENDIF
+       K(:,istage) = Fcn(:)
+       DO j = 1, istage-1
+         HC = this%ros_C(S_ndx+j)/H
+         K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
+       END DO
+     ELSE
+       K(:,1) = Fcn0(:)
+       Fcn(:) = Fcn0(:)
+     ENDIF
+     CALL theKinetics%DGESL( K(:,istage) )
+     istat(Nsol) = istat(Nsol) + 1
+   END DO Stage_loop
 
 !~~~>  Compute the new solution
    Ynew(1:N) = Y(1:N)
