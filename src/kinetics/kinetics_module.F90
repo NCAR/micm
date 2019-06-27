@@ -115,6 +115,7 @@ contains
 
 ! Set the chemical entries for the Ode Jacobian
     Ghimj(:,:) = this%Jac( Y )
+    this%chemJac(:,:) = Ghimj(:,:)
 
    Nconsecutive = 0
    Singular = .TRUE.
