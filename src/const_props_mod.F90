@@ -1,14 +1,19 @@
 module const_props_mod
 
+  use ccpp_kinds, only: kind_phys
+
   implicit none
 
   private
 
+!> \section arg_table_const_props_type
+!! \htmlinclude const_props_type.html
+!!
   type, public :: const_props_type
      private
      character(len=16) :: name = 'UNSET'
      character(len=128) :: desc = 'UNSET'
-     real :: molecwght = -huge(1.0)
+     real(kind_phys) :: molecwght = -huge(1.0)
      integer :: props_set = 0
    contains
      procedure :: set_name => const_props_set_name  
@@ -64,7 +69,7 @@ contains
 
   subroutine const_props_set_wght(this, wgt)
     class(const_props_type), intent(inout) :: this
-    real, intent(in) :: wgt
+    real(kind_phys), intent(in) :: wgt
 
     if (btest(this%props_set,wght_pos)) then
        write(*,*) 'ERROR: molec weight already set'
@@ -76,7 +81,7 @@ contains
   
   function const_props_get_wght(this) result(x)
     class(const_props_type), intent(in) :: this
-    real :: x
+    real(kind_phys) :: x
     x =  this%molecwght
   end function const_props_get_wght
 

@@ -1,5 +1,6 @@
 module photolysis_interstitial
-  use machine, only: rk => kind_phys
+! use ccpp_kinds, only: rk => kind_phys
+ use ccpp_kinds, only: kind_phys
 
   implicit none
 
@@ -7,11 +8,7 @@ module photolysis_interstitial
 contains
 
 !> \section arg_table_photolysis_interstitial_init Argument Table
-!! | local_name | standard_name               | long_name                             | units   | rank | type      | kind      | intent | optional |
-!! |------------|-----------------------------|---------------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | photo_lev  | level_number_for_photolysis | level number used to set j_rateConst  | count   |    0 | integer   |           | none   | F        |
-!! | errmsg     | ccpp_error_message          | CCPP error message                    | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag             | CCPP error flag                       | flag    |    0 | integer   |           | out    | F        |
+!! \htmlinclude photolysis_interstitial_init.html
 !!
   subroutine photolysis_interstitial_init(photo_lev, errmsg, errflg)
     integer,            intent(in)  :: photo_lev
@@ -26,16 +23,11 @@ contains
   end subroutine photolysis_interstitial_init
 
 !> \section arg_table_photolysis_interstitial_run Argument Table
-!! | local_name | standard_name         | long_name                      | units   | rank | type      | kind      | intent | optional |
-!! |------------|-----------------------|--------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | prates     | photolysis_rates_col  | photolysis rates column        | s-1     |    2 | real      | kind_phys | in     | F        |
-!! | j_rateConst| photo_rate_constants  | photochemical rates constants  | s-1     |    1 | real      | kind_phys | out    | F        |
-!! | errmsg     | ccpp_error_message    | CCPP error message             | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag       | CCPP error flag                | flag    |    0 | integer   |           | out    | F        |
+!! \htmlinclude photolysis_interstitial_run.html
 !!
   subroutine photolysis_interstitial_run(prates, j_rateConst, errmsg, errflg)
-    real(rk),           intent(in)  :: prates(:,:) ! /sec
-    real(rk),           intent(out) :: j_rateConst(:) ! /sec
+    real(kind_phys),           intent(in)  :: prates(:,:) ! /sec
+    real(kind_phys),           intent(out) :: j_rateConst(:) ! /sec
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
@@ -43,15 +35,21 @@ contains
     errmsg = ''
     errflg = 0
 
-#include "prates.inc"    
+!TUV Mapping rates
+
+!    O2 ~ TUV_rate(O2 -> O + O)
+    j_rateConst(1) = 1*prates(level_number,1)
+
+!    O3 ~ TUV_rate(O3 -> O2 + O(1D))
+    j_rateConst(2) = 1*prates(level_number,2)
+
+!    O3 ~ TUV_rate(O3 -> O2 + O(3P))
+    j_rateConst(3) = 1*prates(level_number,3)
 
   end subroutine photolysis_interstitial_run
   
 !> \section arg_table_photolysis_interstitial_finalize Argument Table
-!! | local_name | standard_name         | long_name                      | units   | rank | type      | kind      | intent | optional |
-!! |------------|-----------------------|--------------------------------|---------|------|-----------|-----------|--------|----------|
-!! | errmsg     | ccpp_error_message    | CCPP error message             | none    |    0 | character | len=512   | out    | F        |
-!! | errflg     | ccpp_error_flag       | CCPP error flag                | flag    |    0 | integer   |           | out    | F        |
+!! \htmlinclude photolysis_interstitial_finalize.html
 !!
   subroutine photolysis_interstitial_finalize( errmsg, errflg )
 

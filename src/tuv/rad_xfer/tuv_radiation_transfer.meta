@@ -1,0 +1,190 @@
+[ccpp-arg-table]
+  name = tuv_radiation_transfer_init
+  type = scheme
+[realkind]
+  standard_name = phys_real_kind
+  long_name = physics real kind
+  units = 1
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[nlevels]
+  standard_name = num_levels_for_photolysis
+  long_name = number of column layers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = tuv_radiation_transfer_run
+  type = scheme
+[nlev]
+  standard_name = num_levels_for_photolysis
+  long_name = number of column layers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[tuv_n_wavelen]
+  standard_name = tuv_n_actinic_flux_wavelengths
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[nlevelsMinus1]
+  standard_name = num_levels_for_photolysis_minus_1
+  long_name = number of column layers minus 1
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[zenith]
+  standard_name = solar_zenith
+  long_name = solar zenith angle
+  units = degrees
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[albedo]
+  standard_name = surface_albedo
+  long_name = surface albedo
+  units = 1
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[press_mid]
+  standard_name = layer_pressure
+  long_name = mid-point layer pressure
+  units = Pa
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[alt]
+  standard_name = layer_altitude
+  long_name = mid-point layer altitude
+  units = m
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[temp]
+  standard_name = layer_temperature
+  long_name = mid-point layer temperature
+  units = K
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[o3vmr]
+  standard_name = o3_vmr_col
+  long_name = O3 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[so2vmr]
+  standard_name = so2_vmr_col
+  long_name = SO2 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[no2vmr]
+  standard_name = no2_vmr_col
+  long_name = NO2 volume mixing ratio column
+  units = mole/mole
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dto2]
+  standard_name = o2_optical_depth
+  long_name = optical depth due to O2 absorption
+  units = cm
+  dimensions = (nlevelMinus1,tuv_n_actinic_flux_wavelengths)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[radfld]
+  standard_name = actinic_photon_fluxes
+  long_name = actinic photon fluxes
+  units = cm-2 sec-1
+  dimensions = (tuv_n_actinic_flux_wavelengths,num_levels_for_photolysis)
+  type = real
+  kind = kind_phys
+  intent = out
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = tuv_radiation_transfer_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=*
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

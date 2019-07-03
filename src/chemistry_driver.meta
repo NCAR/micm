@@ -1,0 +1,163 @@
+[ccpp-arg-table]
+  name = chemistry_driver_init
+  type = scheme
+[nSpecies]
+  standard_name=number_of_chemical_constituents
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in 
+[nkRxt]
+  standard_name=number_of_kinetics_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[njRxt]
+  standard_name=number_of_photolysis_reactions
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
+[TimeStart]
+  standard_name = chem_step_start_time
+  long_name = Chem step start time
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[TimeEnd]
+  standard_name = chem_step_end_time
+  long_name = Chem step end time
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[dt]
+  standard_name = time_step_for_physics
+  long_name = time_step_for_physics
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = chemistry_driver_run
+  type = scheme
+[vmr]
+  standard_name = concentration
+  long_name = species concentration
+  units = mole/mole
+  dimensions = (number_of_chemical_constituents)
+  type = real
+  kind = kind_phys
+  intent = inout
+  optional = F
+[TimeStart]
+  standard_name = chem_step_start_time
+  long_name = Chem step start time
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[TimeEnd]
+  standard_name = chem_step_end_time
+  long_name = Chem step end time
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[j_rateConst]
+  standard_name = photo_rate_constants
+  long_name = photochemical rates constants
+  units = s-1
+  dimensions = (number_of_photolysis_reactions)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[k_rateConst]
+  standard_name = gasphase_rate_constants
+  long_name = k rate constants
+  units = s-1
+  dimensions = (number_of_kinetics_reactions)
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[c_m]
+  standard_name = total_number_density
+  long_name = total number density
+  units = molecules/cm3
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+  optional = F
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F
+
+########################################################################
+[ccpp-arg-table]
+  name = chemistry_driver_finalize
+  type = scheme
+[errmsg]
+  standard_name = ccpp_error_message
+  long_name = CCPP error message
+  units = 1
+  dimensions = ()
+  type = character
+  kind = len=512
+  intent = out
+  optional = F
+[errflg]
+  standard_name = ccpp_error_flag
+  long_name = CCPP error flag
+  units = flag
+  dimensions = ()
+  type = integer
+  intent = out
+  optional = F

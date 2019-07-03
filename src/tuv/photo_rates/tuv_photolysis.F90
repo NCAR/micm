@@ -1,6 +1,7 @@
 module tuv_photolysis
 
-  use phot_kind_mod, only: rk => kind_phot
+!  use phot_kind_mod, only: rk => kind_phot
+  use phot_kind_mod, only: kind_phys => kind_phot
   use module_prates_tuv, only: calc_tuv_init, calc_tuv_prates
   use params_mod, only: input_data_root
 
@@ -126,48 +127,60 @@ module tuv_photolysis
   
 contains
 
-  subroutine tuv_photolysis_readnl(nml_file) ! this will be a CPF interface someday
+!  subroutine tuv_photolysis_readnl(nml_file) ! this will be a CPF interface someday
+!
+!    use module_prates_tuv, only: get_xsqy_tab, nwave
+! 
+!    character(len=*), intent(in)  :: nml_file
+!
+!    character(len=512) :: errmsg
+!    integer :: errflg
+!
+!    character(len=512) :: xsqy_filepath
+!
+!    namelist /tuv_opts/ input_data_root
+!
+!    open(unit=10,file=nml_file)
+!    read(unit=10,nml=tuv_opts)
+!    close(10)
+!
+!    xsqy_filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
+!    call get_xsqy_tab(xsqy_filepath, errmsg, errflg) ! call this here since nwave needs to be known earlier than the init phase
+!    tuv_n_wavelen = nwave
+!    
+!  end subroutine tuv_photolysis_readnl
+ 
+!> \section arg_table_tuv_photolysis_init Argument Table
+!! \htmlinclude tuv_photolysis_init.html
+!!
+subroutine tuv_photolysis_init( realkind, tuv_n_wavelen, tuv_n_phot, errmsg, errflg )
 
     use module_prates_tuv, only: get_xsqy_tab, nwave
- 
-    character(len=*), intent(in)  :: nml_file
+    integer,          intent(in)  :: realkind
+    integer,          intent(out) :: tuv_n_wavelen
+    integer,          intent(out) :: tuv_n_phot
+    character(len=512), intent(out) :: errmsg
+    integer,          intent(out) :: errflg
 
-    character(len=512) :: errmsg
-    integer :: errflg
+    logical, parameter :: full_tuv = .true.
+    character(len=*), parameter :: phot_options = '../Photolysis_options'
 
     character(len=512) :: xsqy_filepath
 
     namelist /tuv_opts/ input_data_root
 
-    open(unit=10,file=nml_file)
+    errmsg = ' '
+    errflg = 0
+
+    open(unit=10,file=phot_options)
     read(unit=10,nml=tuv_opts)
     close(10)
 
     xsqy_filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
     call get_xsqy_tab(xsqy_filepath, errmsg, errflg) ! call this here since nwave needs to be known earlier than the init phase
     tuv_n_wavelen = nwave
-    
-  end subroutine tuv_photolysis_readnl
 
-!> \section arg_table_tuv_photolysis_init Argument Table
-!! | local_name | standard_name             | long_name                 | units   | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------|---------------------------|---------|------|-----------|-----------|--------|----------|
-!! | realkind   | phys_real_kind            | physics real kind         | none    |    0 | integer   |           | in     | F        |
-!! | errmsg     | ccpp_error_message        | CCPP error message        | none    |    0 | character | len=*     | out    | F        |
-!! | errflg     | ccpp_error_flag           | CCPP error flag           | flag    |    0 | integer   |           | out    | F        |
-!!
-subroutine tuv_photolysis_init( realkind, errmsg, errflg )
-
-    integer,          intent(in)  :: realkind
-    character(len=*), intent(out) :: errmsg
-    integer,          intent(out) :: errflg
-
-    logical, parameter :: full_tuv = .true.
-
-    errmsg = ' '
-    errflg = 0
-
-    if ( realkind/=rk ) then
+    if ( realkind/=kind_phys ) then
        errmsg = 'tuv_photolysis_init: realkind does not match kind_phot'
        errflg = 1
        return
@@ -178,38 +191,29 @@ subroutine tuv_photolysis_init( realkind, errmsg, errflg )
   end subroutine tuv_photolysis_init
 
 !> \section arg_table_tuv_photolysis_run Argument Table
-!! | local_name | standard_name                         | long_name                      | units     | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------------------|--------------------------------|-----------|------|-----------|-----------|--------|----------|
-!! | nlev       | num_levels_for_photolysis             | number of column layers        | count     |    0 | integer   |           | in     | F        |
-!! | temp       | layer_temperature                     | mid-point layer temperature    | K         |    1 | real      | kind_phys | in     | F        |
-!! | press_mid  | layer_pressure                        | mid-point layer pressure       | Pa        |    1 | real      | kind_phys | in     | F        |
-!! | radfld     | actinic_photon_fluxes                 | actinic photon fluxes          | cm-2 sec-1|    2 | real      | kind_phys | in     | F        |
-!! | srb_o2_xs  | O2_xsect                              | O2 cross sections              | cm2       |    2 | real      | kind_phys | in     | F        |
-!! | tuv_prates | photolysis_rates_col                  | photolysis rates column        | s-1       |    2 | real      | kind_phys | out    | F        |
-!! | errmsg     | ccpp_error_message                    | CCPP error message             | none      |    0 | character | len=*     | out    | F        |
-!! | errflg     | ccpp_error_flag                       | CCPP error flag                | flag      |    0 | integer   |           | out    | F        |
+!! \htmlinclude tuv_photolysis_run.html
 !!
 subroutine tuv_photolysis_run( nlev, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
 
     integer,          intent(in)  :: nlev
-    real(rk),         intent(in)  :: temp(:)
-    real(rk),         intent(in)  :: press_mid(:)
-    real(rk),         intent(in)  :: radfld(:,:) ! (nwave,nlev)
-    real(rk),         intent(in)  :: srb_o2_xs(:,:) !(nwave,kts:kte)
-    real(rk),         intent(out) :: tuv_prates(:,:) ! /sec
-    character(len=*), intent(out) :: errmsg
+    real(kind_phys),         intent(in)  :: temp(:)
+    real(kind_phys),         intent(in)  :: press_mid(:)
+    real(kind_phys),         intent(in)  :: radfld(:,:) ! (nwave,nlev)
+    real(kind_phys),         intent(in)  :: srb_o2_xs(:,:) !(nwave,kts:kte)
+    real(kind_phys),         intent(out) :: tuv_prates(:,:) ! /sec
+    character(len=512), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
     integer :: k, kk, j
-    real(rk) :: airdens(nlev) ! # molecules / cm3 in each layer
-    real(rk) :: tlev(nlev) ! # K -- bottom up
+    real(kind_phys) :: airdens(nlev) ! # molecules / cm3 in each layer
+    real(kind_phys) :: tlev(nlev) ! # K -- bottom up
 
-    real(rk), parameter :: kboltz= 1.38064852e-16_rk ! boltzmann constant (erg/K)
+    real(kind_phys), parameter :: kboltz= 1.38064852e-16_kind_phys ! boltzmann constant (erg/K)
 
     ! inputs need to be bottom vertical coord
     do k=1,nlev
        kk=nlev-k+1
-       airdens(kk) = 10._rk*press_mid(k)/(kboltz*temp(k))
+       airdens(kk) = 10._kind_phys*press_mid(k)/(kboltz*temp(k))
     end do
     tlev(nlev:1:-1) = temp(1:nlev)
 
@@ -223,10 +227,7 @@ subroutine tuv_photolysis_run( nlev, temp, press_mid, radfld, srb_o2_xs, tuv_pra
   end subroutine tuv_photolysis_run
   
 !> \section arg_table_tuv_photolysis_finalize Argument Table
-!! | local_name | standard_name                         | long_name                      | units     | rank | type      | kind      | intent | optional |
-!! |------------|---------------------------------------|--------------------------------|-----------|------|-----------|-----------|--------|----------|
-!! | errmsg     | ccpp_error_message                    | CCPP error message             | none      |    0 | character | len=*     | out    | F        |
-!! | errflg     | ccpp_error_flag                       | CCPP error flag                | flag      |    0 | integer   |           | out    | F        |
+!! \htmlinclude tuv_photolysis_finalize.html
 !!
   subroutine tuv_photolysis_finalize( errmsg, errflg )
 

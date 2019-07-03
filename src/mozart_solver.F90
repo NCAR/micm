@@ -204,9 +204,8 @@ CONTAINS
 ! ~~~~ Local variables
       INTEGER  :: N
       INTEGER  :: nIter
-      INTEGER  :: Direction, j
+      INTEGER  :: j
       INTEGER  :: rejCnt
-      INTEGER  :: Pivot(this%N)
       INTEGER  :: istat(20)
       REAL(r8) :: H, Hinv, Hnew
       REAL(r8) :: presentTime
@@ -214,8 +213,7 @@ CONTAINS
       REAL(r8), target  :: residual(this%N)
       REAL(r8), pointer :: deltaY(:)
       REAL(r8) :: Ynew(this%N), Yerr(this%N)
-      REAL(r8) :: Fcn0(this%N)
-      REAL(r8) :: Jac0(this%N,this%N), Ghimj(this%N,this%N)
+      REAL(r8) :: Fcn(this%N)
       REAL(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, Singular, nrConverged
 
@@ -233,13 +231,6 @@ CONTAINS
    H = MIN( MAX(ABS(this%Hmin),ABS(this%Hstart)) , ABS(this%Hmax) )
    IF (ABS(H) <= TEN*this%Roundoff) H = DeltaMin
 
-   IF (Tend  >=  Tstart) THEN
-     Direction = +1
-   ELSE
-     Direction = -1
-   END IF
-   H = Direction*H
-
    Ierr   = 0
    rejCnt = 0
    rejectLastH = .TRUE.
@@ -247,8 +238,7 @@ CONTAINS
    rstat(:) = ZERO
 
 !~~~> Time loop begins below
-TimeLoop: DO WHILE ( (Direction > 0).AND.((presentTime-Tend)+this%Roundoff <= ZERO) &
-       .OR. (Direction < 0).AND.((Tend-presentTime)+this%Roundoff <= ZERO) )
+TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO)
 
      IF ( ((presentTime+0.1_r8*H) == presentTime).OR.(H <= this%Roundoff) ) THEN  ! Step size too small
        Ierr = -7
@@ -263,21 +253,19 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((presentTime-Tend)+this%Roundoff <= ZE
 !~~~>  Newton-Raphson iteration loop
 NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the Jacobian
-       CALL JacTemplate( N, presentTime, Ynew, Jac0, theKinetics )
        ISTAT(Njac) = ISTAT(Njac) + 1
-       CALL moz_PrepareMatrix( N, Hinv, Direction, Jac0, Ghimj, &
-                               Pivot, Singular, istat(Nsng), istat(Ndec) )
+       CALL theKinetics%PrepareMatrix( H, ONE, Ynew, Singular, istat )
        IF (Singular) THEN ! More than 5 consecutive failed decompositions
          Ierr = -8
          CALL moz_ErrorMsg(-8,presentTime,H,IERR)
          RETURN
        END IF
 !~~~>   Compute the function at current time
-       CALL FunTemplate( N, presentTime, Ynew, Fcn0, theKinetics )
+       Fcn(:) = theKinetics%force( Ynew )
        ISTAT(Nfun) = ISTAT(Nfun) + 1
-       residual(1:N) = Fcn0(1:N) - (Ynew(1:N) - Y(1:N))*Hinv
+       residual(1:N) = Fcn(1:N) - (Ynew(1:N) - Y(1:N))*Hinv
 !~~~>   Compute the iteration delta
-       CALL moz_Solve( N, Ghimj, Pivot, deltaY, istat(Nsol) )
+       CALL theKinetics%DGESL( deltaY )
 !~~~>   Update N-R iterate
        Ynew(1:N) = Ynew(1:N) + deltaY(1:N)
 
@@ -291,7 +279,7 @@ NRloop: DO nIter = 1,this%iterMax
 
 nrHasConverged: &
      IF( nrConverged ) THEN
-       Yerr(:) = MATMUL( Jac0,Fcn0 )
+       Yerr(:) = theKinetics%dForcedyxForce( Fcn )
        truncError = moz_TruncErrorNorm ( this, Y, Ynew, Yerr )
        Hnew = SQRT( 2.0_r8/truncError )
        Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
@@ -299,7 +287,7 @@ nrHasConverged: &
 acceptStep: &
        IF( truncError <= 2.0_r8/(H*H) ) THEN
          Y(1:N) = Ynew(1:N)
-         presentTime = presentTime + Direction*H
+         presentTime = presentTime + H
          IF (RejectLastH) THEN  ! No step size increase after a rejected step
            Hnew = MIN(Hnew,H)
          END IF
@@ -354,86 +342,6 @@ acceptStep: &
 
     end subroutine MozartRun
 
-SUBROUTINE FunTemplate( N, T, Y, Ydot, theKinetics )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the ODE function call.
-!  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-!~~~> Input variables
-   INTEGER, intent(in) :: N
-   REAL(r8), intent(in) :: T
-   REAL(r8), intent(in) :: Y(N)
-!~~~> Output variables
-   REAL(r8), intent(out) :: Ydot(N)
-
-   TYPE(kinetics_type) :: theKinetics
-
-   Ydot(:) =  theKinetics%force( Y )
-
-END SUBROUTINE FunTemplate
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE JacTemplate( N, T, Y, Jcb, theKinetics )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the ODE Jacobian call.
-!  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-!~~~> Input variables
-   INTEGER, intent(in) :: N
-   REAL(r8), intent(in) :: T                     ! time
-   REAL(r8), intent(in) :: Y(N)
-!~~~> Output variables
-   REAL(r8), intent(inout) :: Jcb(N,N)
-   TYPE(kinetics_type) :: theKinetics
-
-    Jcb(:,:) = theKinetics%Jac( Y )
-
-END SUBROUTINE JacTemplate
-
-  SUBROUTINE moz_PrepareMatrix ( N, Hinv, Direction, Jac0, Ghimj, &
-                                 Pivot, Singular, Nsng, Ndec )
-! --- --- --- --- --- --- --- --- --- --- --- --- ---
-!  Prepares the LHS matrix for stage calculations
-!  1.  Construct Ghimj = 1/H - Jac0
-! --- --- --- --- --- --- --- --- --- --- --- --- ---
-
-!~~~> Input arguments
-   INTEGER, INTENT(IN)  ::  N
-   INTEGER, INTENT(IN)  ::  Direction
-   INTEGER, INTENT(OUT) ::  Pivot(N)
-   REAL(r8), INTENT(IN) ::  Hinv   ! inverse step size
-   INTEGER, INTENT(INOUT) ::  Nsng, Ndec
-   REAL(r8), INTENT(IN) ::  Jac0(N,N)
-!~~~> Output arguments
-   REAL(r8), INTENT(OUT) :: Ghimj(N,N)
-   LOGICAL, INTENT(OUT)  :: Singular
-
-   INTEGER  :: i, ISING
-   REAL(r8) :: ghinv
-
-!~~~>    Construct Ghimj = 1/H - Jac0
-   Ghimj(:,:) = -Jac0(:,:)
-   ghinv = Direction*Hinv
-   FORALL( I = 1:N ) 
-     Ghimj(i,i) = Ghimj(i,i) + ghinv
-   ENDFORALL
-!~~~>    Compute LU decomposition
-   CALL moz_Decomp( N, Ghimj, Pivot, ISING, Ndec )
-   IF (ISING == 0) THEN
-!~~~>    If successful done
-     Singular = .FALSE.
-   ELSE ! ISING .ne. 0
-!~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
-     Nsng = Nsng + 1
-     Singular = .TRUE.
-     PRINT*,'Warning: LU Decomposition returned ISING = ',ISING
-   ENDIF
-
-  END SUBROUTINE moz_PrepareMatrix
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
     SUBROUTINE moz_ErrorMsg(Code,T,H,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 !    Handles all error messages
@@ -513,310 +421,6 @@ END SUBROUTINE JacTemplate
    Error    = MAX( SQRT( sum( (Ytmp(:)/Scale(:))**2 )/real(this%N,kind=r8) ),ErrMin )
 
   END FUNCTION moz_TruncErrorNorm
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE moz_Decomp( N, A, Pivot, ISING, Ndec )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the LU decomposition
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-!~~~> Inout variables
-   INTEGER, INTENT(IN) :: N
-   INTEGER, INTENT(INOUT) :: Ndec
-   REAL(r8), INTENT(INOUT) :: A(N,N)
-!~~~> Output variables
-   INTEGER, INTENT(OUT) :: ISING
-   INTEGER, INTENT(OUT) :: Pivot(N)
-
-   CALL DGEFA( A, N, Pivot, ISING )
-   Ndec = Ndec + 1
-   IF ( ISING /= 0 ) THEN
-      PRINT*,"Error in DGEFA. ISING=",ISING
-   END IF  
-
-  END SUBROUTINE moz_Decomp
-
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE moz_Solve( N, A, Pivot, b, Nsol )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the forward/backward substitution (using pre-computed LU decomposition)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-!~~~> Input variables
-   INTEGER, INTENT(IN)  :: N
-   INTEGER, INTENT(INOUT)  :: Nsol
-   REAL(r8), INTENT(IN) :: A(N,N)
-   INTEGER, INTENT(IN)  :: Pivot(N)
-!~~~> InOut variables
-   REAL(r8), INTENT(INOUT) :: b(N)
-
-   CALL DGESL( A, N, Pivot, b, 0 )
-
-   Nsol = Nsol + 1
-
-  END SUBROUTINE moz_Solve
-
-    SUBROUTINE DGEFA (A, N, IPVT, INFO)
-!***BEGIN PROLOGUE  DGEFA
-!***PURPOSE  Factor a matrix using Gaussian elimination.
-!***CATEGORY  D2A1
-!***TYPE      DOUBLE PRECISION (SGEFA-S, DGEFA-D, CGEFA-C)
-!***KEYWORDS  GENERAL MATRIX, LINEAR ALGEBRA, LINPACK,
-!             MATRIX FACTORIZATION
-!***AUTHOR  Moler, C. B., (U. of New Mexico)
-!***DESCRIPTION
-!
-!     DGEFA factors a double precision matrix by Gaussian elimination.
-!
-!     DGEFA is usually called by DGECO, but it can be called
-!     directly with a saving in time if  RCOND  is not needed.
-!     (Time for DGECO) = (1 + 9/N)*(Time for DGEFA) .
-!
-!     On Entry
-!
-!        A       DOUBLE PRECISION(N, N)
-!                the matrix to be factored.
-!
-!        N       INTEGER
-!                the order of the matrix  A .
-!
-!     On Return
-!
-!        A       an upper triangular matrix and the multipliers
-!                which were used to obtain it.
-!                The factorization can be written  A = L*U  where
-!                L  is a product of permutation and unit lower
-!                triangular matrices and  U  is upper triangular.
-!
-!        IPVT    INTEGER(N)
-!                an integer vector of pivot indices.
-!
-!        INFO    INTEGER
-!                = 0  normal value.
-!                = K  if  U(K,K) .EQ. 0.0 .  This is not an error
-!                     condition for this subroutine, but it does
-!                     indicate that DGESL or DGEDI will divide by zero
-!                     if called.  Use  RCOND  in DGECO for a reliable
-!                     indication of singularity.
-!
-!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.
-!                 Stewart, LINPACK Users' Guide, SIAM, 1979.
-!***REVISION HISTORY  (YYMMDD)
-!   780814  DATE WRITTEN
-!   890831  Modified array declarations.  (WRB)
-!   890831  REVISION DATE from Version 3.2
-!   891214  Prologue converted to Version 4.0 format.  (BAB)
-!   900326  Removed duplicate information from DESCRIPTION section.
-!           (WRB)
-!   920501  Reformatted the REFERENCES section.  (WRB)
-!***END PROLOGUE  DGEFA
-
-!
-!     DUMMY ARGUMENTS
-!
-      INTEGER, INTENT(IN)    ::  N
-      INTEGER, INTENT(OUT)   ::  INFO
-      INTEGER, INTENT(INOUT) ::  IPVT(N)
-
-      REAL(r8), INTENT(INOUT) :: A(N,N)
-!
-!     LOCAL VARIABLES
-!
-      DOUBLE PRECISION, PARAMETER :: ZERO = 0.D0
-      DOUBLE PRECISION, PARAMETER :: ONE  = 1.D0
-
-      INTEGER :: J, K, KP1, NM1
-      INTEGER, POINTER :: L
-      INTEGER, TARGET :: MAXNDX(1)
-      DOUBLE PRECISION :: T
-!
-!     GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING
-!
-
-      INFO = 0
-      NM1 = N - 1
-      IF( N >= 2 ) THEN
-        L => MAXNDX(1)
-        DO K = 1, NM1
-          KP1 = K + 1
-!
-!        FIND L = PIVOT INDEX
-!
-          MAXNDX(:) = MAXLOC( ABS(A(K:N,K)) ) + K - 1
-          IPVT(K) = L
-!
-!        ZERO PIVOT IMPLIES THIS COLUMN ALREADY TRIANGULARIZED
-!
-          IF (A(L,K) /= ZERO) THEN
-!
-!           INTERCHANGE IF NECESSARY
-!
-             IF (L /= K) THEN
-               T = A(L,K)
-               A(L,K) = A(K,K)
-               A(K,K) = T
-             ENDIF
-!
-!           COMPUTE MULTIPLIERS
-!
-             T = -ONE/A(K,K)
-             A(K+1:N,K) = T*A(K+1:N,K)
-!
-!           ROW ELIMINATION WITH COLUMN INDEXING
-!
-             DO J = KP1, N
-               T = A(L,J)
-               IF (L /= K) THEN
-                 A(L,J) = A(K,J)
-                 A(K,J) = T
-               ENDIF   
-               A(K+1:N,J) = A(K+1:N,J) + T*A(K+1:N,K)
-             END DO
-          ELSE
-           INFO = K
-          ENDIF
-        END DO  
-      ELSE
-        IPVT(N) = N
-        IF(A(N,N) == ZERO ) INFO = N
-      ENDIF
-
-      END SUBROUTINE DGEFA
-
-      SUBROUTINE DGESL (A, N, IPVT, B, JOB)
-!***BEGIN PROLOGUE  DGESL
-!***PURPOSE  Solve the real system A*X=B or TRANS(A)*X=B using the
-!            factors computed by DGECO or DGEFA.
-!***CATEGORY  D2A1
-!***TYPE      DOUBLE PRECISION (SGESL-S, DGESL-D, CGESL-C)
-!***KEYWORDS  LINEAR ALGEBRA, LINPACK, MATRIX, SOLVE
-!***AUTHOR  Moler, C. B., (U. of New Mexico)
-!***DESCRIPTION
-!
-!     DGESL solves the double precision system
-!     A * X = B  or  TRANS(A) * X = B
-!     using the factors computed by DGECO or DGEFA.
-!
-!     On Entry
-!
-!        A       DOUBLE PRECISION(N, N)
-!                the output from DGECO or DGEFA.
-!
-!        N       INTEGER
-!                the order of the matrix  A .
-!
-!        IPVT    INTEGER(N)
-!                the pivot vector from DGECO or DGEFA.
-!
-!        B       DOUBLE PRECISION(N)
-!                the right hand side vector.
-!
-!        JOB     INTEGER
-!                = 0         to solve  A*X = B ,
-!                = nonzero   to solve  TRANS(A)*X = B  where
-!                            TRANS(A)  is the transpose.
-!
-!     On Return
-!
-!        B       the solution vector  X .
-!
-!     Error Condition
-!
-!        A division by zero will occur if the input factor contains a
-!        zero on the diagonal.  Technically this indicates singularity
-!        but it is often caused by improper arguments or improper
-!        setting of LDA .  It will not occur if the subroutines are
-!        called correctly and if DGECO has set RCOND .GT. 0.0
-!        or DGEFA has set INFO .EQ. 0 .
-!
-!     To compute  INVERSE(A) * C  where  C  is a matrix
-!     with  P  columns
-!           CALL DGECO(A,LDA,N,IPVT,RCOND,Z)
-!           IF (RCOND is too small) GO TO ...
-!           DO 10 J = 1, P
-!              CALL DGESL(A,LDA,N,IPVT,C(1,J),0)
-!        10 CONTINUE
-!
-!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.
-!                 Stewart, LINPACK Users' Guide, SIAM, 1979.
-!***REVISION HISTORY  (YYMMDD)
-!   780814  DATE WRITTEN
-!   890831  Modified array declarations.  (WRB)
-!   890831  REVISION DATE from Version 3.2
-!   891214  Prologue converted to Version 4.0 format.  (BAB)
-!   900326  Removed duplicate information from DESCRIPTION section.
-!           (WRB)
-!   920501  Reformatted the REFERENCES section.  (WRB)
-!***END PROLOGUE  DGESL
-
-      INTEGER, INTENT(IN)   ::  N
-      INTEGER, INTENT(IN)   ::  JOB
-      INTEGER, INTENT(IN)   ::  IPVT(N)
-
-      REAL(r8), INTENT(IN)    :: A(N,N)
-      REAL(r8), INTENT(INOUT) :: B(N)
-
-!
-      INTEGER :: K, KM1, KP1, KB, L, NM1
-      DOUBLE PRECISION :: T
-
-      NM1 = N - 1
-      IF (JOB == 0) THEN
-!
-!        JOB = 0 , SOLVE  A * X = B
-!        FIRST SOLVE  L*Y = B
-!
-         IF (N >= 2) THEN
-           DO K = 1, NM1
-             L = IPVT(K)
-             T = B(L)
-             IF (L /= K) THEN
-               B(L) = B(K)
-               B(K) = T
-            ENDIF
-            B(K+1:N) = B(K+1:N) + T*A(K+1:N,K)
-           END DO
-         ENDIF
-!
-!        NOW SOLVE  U*X = Y
-!
-         DO KB = 1, N
-           K = N + 1 - KB
-           KM1 = K - 1
-           B(K) = B(K)/A(K,K)
-           T = -B(K)
-           B(1:KM1) = B(1:KM1) + T*A(1:KM1,K)
-         END DO
-      ELSE
-!
-!        JOB = NONZERO, SOLVE  TRANS(A) * X = B
-!        FIRST SOLVE  TRANS(U)*Y = B
-!
-         DO K = 1, N
-           KM1 = K - 1
-           T = DOT_PRODUCT( A(1:KM1,K),B(1:KM1) )
-           B(K) = (B(K) - T)/A(K,K)
-         END DO
-!
-!        NOW SOLVE TRANS(L)*X = Y
-!
-         IF (NM1 > 0) THEN
-           DO KB = 1, NM1
-             K = N - KB
-             KP1 = K + 1
-             B(K) = B(K) + DOT_PRODUCT( A(KP1:N,K),B(KP1:N) )
-             L = IPVT(K)
-             IF (L /= K) THEN
-               T = B(L)
-               B(L) = B(K)
-               B(K) = T
-             ENDIF
-           END DO
-         ENDIF
-      ENDIF   
-
-      END SUBROUTINE DGESL
 
   subroutine Finalize( this )
 

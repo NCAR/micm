@@ -1,0 +1,25 @@
+[ccpp-arg-table]
+  name = const_props_type
+  type = ddt
+[name]
+  standard_name = contituent_name
+  dimensions = ()
+  units = none
+  type = character 
+  kind = len=16
+[desc]
+  standard_name = contituent_description
+  dimensions = ()
+  units = none
+  type = character 
+  kind = len=128
+[molecwght]
+  standard_name = contituent_molecular_weight
+  dimensions = ()
+  units = ??
+  type = real 
+[props_set]
+  standard_name = contituent_properties_set_flag
+  dimensions = ()
+  units = none
+  type = integer 
