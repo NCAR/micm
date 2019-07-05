@@ -18,6 +18,7 @@ MODULE Mozart_Solver
                         Ntexit=1, Nhexit=2, Nhnew = 3
 
   REAL(r8), PARAMETER :: ZERO = 0.0_r8, HALF = .5_r8, ONE = 1.0_r8, TEN = 10._r8
+  REAL(r8), PARAMETER :: FIVEPCNT = .05_r8
   REAL(r8), PARAMETER :: ErrMin   = 1.e-10_r8
   REAL(r8), PARAMETER :: DeltaMin = 1.0E-5_r8
 
@@ -143,9 +144,9 @@ CONTAINS
    END IF
 !~~~>   FacRej: Factor to decrease step after 2 succesive rejections
    IF (RCNTRL(6) == ZERO) THEN
-      this%FacRej = 0.5_r8
+      this%FacRej = HALF
    ELSEIF (RCNTRL(6) > ZERO) THEN
-      this%FacRej = MIN( RCNTRL(6),0.5_r8 )
+      this%FacRej = MIN( RCNTRL(6),HALF )
    ELSE
       IERR = -4
       PRINT * , 'User-selected FacRej: RCNTRL(6)=', RCNTRL(6)
@@ -183,6 +184,7 @@ CONTAINS
     write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
     write(*,*) 'Fac{Rej,Acc} = ',this%FacRej,this%FacAcc
     write(*,*) 'RelTol       = ',RelTol(:)
+    write(*,*) 'AbsTol       = ',AbsTol(:)
     write(*,*) ' '
 
     end subroutine MozartInit
@@ -233,7 +235,7 @@ CONTAINS
 
    Ierr   = 0
    rejCnt = 0
-   rejectLastH = .TRUE.
+   rejectLastH = .FALSE.
    istat(:) = 0
    rstat(:) = ZERO
 
@@ -285,7 +287,9 @@ nrHasConverged: &
        Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
 !~~~>   Check step truncation error
 acceptStep: &
-       IF( truncError <= 2.0_r8/(H*H) ) THEN
+!      IF( truncError <= 2.0_r8/(H*H) ) THEN
+       IF( .5_r8*H*H*truncError <= (ONE + 100._r8*this%Roundoff) ) THEN
+         !write(*,*) 'mozartRun: step accepted'
          Y(1:N) = Ynew(1:N)
          presentTime = presentTime + H
          IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -305,11 +309,19 @@ acceptStep: &
            Ierr = -1
            EXIT TimeLoop
          ENDIF
+         IF( RejectLastH ) then
+           IF( abs(H - Hnew) <= FIVEPCNT*H ) THEN
+             Hnew = .9_r8 * Hnew
+             !write(*,'(''mozartRun: Hnew = '',1p,1x,g0)') Hnew
+           ENDIF
+         ENDIF
          IF (ISTAT(Nacc) >= 1)  ISTAT(Nrej) = ISTAT(Nrej) + 1
          RejectLastH = .TRUE.
        ENDIF acceptStep
      ELSE nrHasConverged
 !~~~> N-R failed to converge
+       write(*,*) 'mozartRun: Newton-Raphson fails to converge for within timestep allowed'
+       write(*,'(''time, chemistry-subtimestep, iter = '',1p,2e12.4,i4)') presentTime,H,nIter
        rejCnt = rejCnt + 1
        IF( rejCnt < this%rejMax ) THEN
          Hnew = MAX( H*this%FacRej,this%Hmin )
@@ -412,11 +424,12 @@ acceptStep: &
    REAL(r8) :: Ytmp(this%N)
 
    Ymax(:)  = MAX( ABS(Y(:)),ABS(Ynew(:)) )
-   Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
+!  Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
+   Scale(:) = this%RelTol(:)*Ymax(:)
    WHERE( Ymax(:) >= this%AbsTol(:) )
      Ytmp(:) = Yerr(:)
    ELSEWHERE
-     Ytmp(:) = 0.0_r8 
+     Ytmp(:) = ZERO
    ENDWHERE
    Error    = MAX( SQRT( sum( (Ytmp(:)/Scale(:))**2 )/real(this%N,kind=r8) ),ErrMin )
 

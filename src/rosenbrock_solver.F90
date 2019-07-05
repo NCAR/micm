@@ -230,6 +230,8 @@ CONTAINS
     write(*,*) 'N,ros_S,Max_no_steps = ',this%N,this%ros_S,this%Max_no_steps
     write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
     write(*,*) 'Fac{Min,Max,Rej,Safe} = ',this%FacMin,this%FacMax,this%FacRej,this%FacSafe
+    write(*,*) 'RelTol                = ',RelTol(:)
+    write(*,*) 'AbsTol                = ',AbsTol(:)
     write(*,*) ' '
 
     end subroutine RosenbrockInit

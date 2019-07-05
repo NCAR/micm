@@ -37,22 +37,30 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
   character(len=512),intent(out)  :: errmsg
   integer, intent(out)            :: errflg          ! error index from CPF
 
+  real(kind_phys), parameter :: NOT_SET = -huge(1._kind_phys)
+
   type(const_props_type), allocatable :: cnst_info(:)
   integer            :: nTotRxt    ! total number of chemical reactions
 
   integer  :: icntrl(20)     ! integer control array for ODE solver
+  real(kind_phys) :: Hstart
   real(kind_phys) :: rcntrl(20)     ! real control array for ODE solver
-  real(kind_phys), allocatable :: absTol(:), relTol(:)
+  real(kind_phys)              :: absTol, relTol
+  real(kind_phys), allocatable :: abs_Tol(:), rel_Tol(:)  ! species-level convergence criteria
   character(len=80) :: model_name
   character(len=80) :: Solver_method = ' '
 
   namelist /options/ Solver_method
+  namelist /errCntrl/ absTol, relTol
+  namelist /timeCntrl/ Hstart
   
 !-----------------------------------------------------------
 !  get and set the Solver method
 !-----------------------------------------------------------
   open(unit=10,file='../Solver_options')
   read(unit=10,nml=options)
+  read(unit=10,nml=errCntrl)
+  read(unit=10,nml=timeCntrl)
   close(unit=10)
 
   select case( Solver_method )
@@ -74,27 +82,26 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
   nTotRxt =  nkRxt + njRxt
 
 !-----------------------------------------------------------
-!  initialize ode solver "control" variable defaults
+!  allocate error controls
 !-----------------------------------------------------------
-  allocate(absTol(nSpecies))
-  allocate(relTol(nSpecies))
+  allocate(abs_Tol(nSpecies),rel_Tol(nspecies))
+  abs_Tol(:) = absTol  ! this could be expanded to a per-species tolerance
+  rel_Tol(:) = relTol  ! this could be expanded to a per-species tolerance
+
 
   icntrl(:) = 0
   rcntrl(:) = 0._kind_phys
+
   select type(theSolver)
     class is (RosenbrockSolver)
 !-----------------------------------------------------------
 !  set ode solver "control" variables for Rosenbrock solver
 !-----------------------------------------------------------
-      absTol(:) = 1.e-9_kind_phys
-      relTol(:) = 1.e-4_kind_phys
       icntrl(1) = 1                                 ! autonomous, F depends only on Y
       icntrl(3) = 2                                 ! ros3 solver
       rcntrl(2) = dt                                ! Hmax
       rcntrl(3) = .01_kind_phys*dt                  ! Hstart
     class is (MozartSolver)
-      absTol(:) = 1.e-8_kind_phys
-      relTol(:) = 1.e-3_kind_phys
 !-----------------------------------------------------------
 !  set ode solver "control" variables for MOZART solver
 !-----------------------------------------------------------
@@ -111,7 +118,7 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
   write(*,'(1p,10(1x,g0))') rcntrl(1:10)
   write(*,*) ' '
 
-  call theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=AbsTol, RelTol=RelTol, &
+  call theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=abs_Tol, RelTol=rel_Tol, &
                              ICNTRL=icntrl, RCNTRL=rcntrl, Ierr=errflg )
 
 !-----------------------------------------------------------

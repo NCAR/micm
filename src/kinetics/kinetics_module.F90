@@ -34,6 +34,7 @@ contains
   procedure, public :: rateConst_update
   procedure, public :: rateConst_print
   procedure, public :: jacobian_init 
+  procedure, public :: Jacobian_print
   procedure, public :: PrepareMatrix
   procedure, public :: DGESL
   procedure, private :: DGEFA
@@ -130,6 +131,7 @@ contains
      ENDFORALL
 !~~~>    Compute LU decomposition
      CALL this%DGEFA( TmpJac, ising )
+     !call this%Jacobian_print()
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
@@ -193,6 +195,20 @@ contains
     write(*,'(1p,5(1x,g0))') this%rateConst(:)
 
   end subroutine rateConst_print
+
+  subroutine Jacobian_print( this )
+
+    class(kinetics_type) :: this
+
+    integer :: m
+
+    write(*,*) 'Jacobian:'
+    do m = 1,this%nSpecies
+      write(*,'(1p,5(1x,e12.4))') this%chemJac(m,:)
+    enddo
+
+  end subroutine Jacobian_print
+
 
   !---------------------------
   !  cleanup when k_rateConst type is removed
