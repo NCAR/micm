@@ -2,6 +2,7 @@
 ../../MICM_chemistry/src/mass_quantities_util.meta
 ../../MICM_chemistry/src/kinetics/factor_solve_utilities.F90
 ../../MICM_chemistry/src/kinetics/kinetics_utilities.F90
+../../MICM_chemistry/src/kinetics/rate_constants_utility.F90
 ../../MICM_chemistry/src/kinetics/kinetics_module.F90
 ../../MICM_chemistry/src/kinetics/k_rateConst.meta
 ../../MICM_chemistry/src/chemistry_driver.meta
