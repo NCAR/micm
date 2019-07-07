@@ -20,6 +20,9 @@ public :: kinetics_type
 ! rate_constant_store will be an accessor to memory
 ! For now, it is allocated here. It is not thread safe
 
+! These matrix definitions will become rank 1 rather than rank 2 elements of the
+! kinetics_type
+
 type kinetics_type
   private
   integer :: nReact
