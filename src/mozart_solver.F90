@@ -256,7 +256,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO)
 NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the Jacobian
        ISTAT(Njac) = ISTAT(Njac) + 1
-       CALL theKinetics%PrepareMatrix( H, ONE, Ynew, Singular, istat )
+       CALL theKinetics%LinFactor( H, ONE, Ynew, Singular, istat )
        IF (Singular) THEN ! More than 5 consecutive failed decompositions
          Ierr = -8
          CALL moz_ErrorMsg(-8,presentTime,H,IERR)
@@ -267,7 +267,7 @@ NRloop: DO nIter = 1,this%iterMax
        ISTAT(Nfun) = ISTAT(Nfun) + 1
        residual(1:N) = Fcn(1:N) - (Ynew(1:N) - Y(1:N))*Hinv
 !~~~>   Compute the iteration delta
-       CALL theKinetics%DGESL( deltaY )
+       CALL theKinetics%LinSolve( deltaY )
 !~~~>   Update N-R iterate
        Ynew(1:N) = Ynew(1:N) + deltaY(1:N)
 

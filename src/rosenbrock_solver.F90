@@ -309,7 +309,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
 UntilAccepted: DO
 
 !~~~>  Form and factor the rosenbrock ode jacobian
-   CALL theKinetics%PrepareMatrix( H, this%ros_Gamma(1), Y, Singular, istat )
+   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, istat )
    istat(Njac) = istat(Njac) + 1
    IF (Singular) THEN ! More than 5 consecutive failed decompositions
        Ierr = -8
@@ -340,7 +340,7 @@ Stage_loop: &
        K(:,1) = Fcn0(:)
        Fcn(:) = Fcn0(:)
      ENDIF
-     CALL theKinetics%DGESL( K(:,istage) )
+     CALL theKinetics%LinSolve( K(:,istage) )
      istat(Nsol) = istat(Nsol) + 1
    END DO Stage_loop
 
