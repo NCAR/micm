@@ -26,60 +26,92 @@ type kinetics_type
   integer :: nSpecies
   integer, allocatable         :: Pivot(:)
   real(kind_phys), allocatable :: rateConst(:)
-  real(kind_phys), allocatable :: MBOdeJac(:,:)    ! ODE solver jacobian
-  real(kind_phys), allocatable :: chemJac(:,:)     ! chemistry forcing jacobian
+  real(kind_phys), allocatable :: MBOdeJac(:)    ! ODE solver jacobian
+  real(kind_phys), allocatable :: chemJac(:)     ! chemistry forcing jacobian
+  real(kind_phys), allocatable :: rates(:)         ! rates of reactions
   real(kind_phys)              :: number_density   ! total number density (molecules/cm^3)
 contains
-  procedure, public :: rateConst_init 
+  procedure, public :: init 
   procedure, public :: rateConst_update
   procedure, public :: rateConst_print
-  procedure, public :: jacobian_init 
-  procedure, public :: Jacobian_print
-  procedure, public :: PrepareMatrix
-  procedure, public :: DGESL
-  procedure, private :: DGEFA
+  procedure, public :: LinFactor
+  procedure, public :: LinSolve
   procedure, public :: force
-  procedure, public :: jac
+  procedure, public :: dforce_dy
   procedure, public :: dForcedyxForce
+!  procedure, private :: LinFactor
   final             :: DasEnder
 end type kinetics_type
 
 contains
 
+  !---------------------------
+  ! Compute time rate of change of each molecule (vmr) given reaction rates
+  !---------------------------
+  function force( this, vmr )
+
+    use kinetics_utilities,only :  p_force
+
+    class(kinetics_type) :: this
+    real(kind_phys), intent(in)  ::  vmr(:)              ! volume mixing ratios of each component in order
+
+    real(kind_phys)              ::  force(size(vmr))    ! rate of change of each molecule
+
+    !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
+    call p_force( this%rateConst, vmr, this%number_density, force)
+
+  end function force
+
+  function dforce_dy( this, vmr)
+
+    use kinetics_utilities, only : p_dforce_dy=>dforce_dy
+    use factor_solve_utilities, only: number_sparse_factor_elements
+
+    class(kinetics_type) :: this
+    real(kind_phys), intent(in)  ::  vmr(:)              ! volume mixing ratios of each component in order
+
+    real(kind_phys) :: dforce_dy(number_sparse_factor_elements)   ! sensitivity of forcing to changes in each vmr
+
+    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%number_density)
+
+  end function dforce_dy
+
+
+
   !------------------------------------------------------
   ! allocate rateConst member array
   !------------------------------------------------------
-  subroutine rateConst_init( this, nRxt )
+  subroutine init( this, nRxt, nSpecies )
+    use factor_solve_utilities, only: number_sparse_factor_elements
       
     class(kinetics_type) :: this
     integer, intent(in)  :: nRxt    ! total number of reactions
+    integer, intent(in)  :: nSpecies! total number of reactions
 
     this%nReact = nRxt
+    this%nSpecies = nSpecies
+
+
+    if( .not. allocated(this%rates)) then
+      allocate( this%rates(nRxt) )
+    else
+      write(*,*) 'rates_init: rateConst already allocated'
+    endif
+
     if( .not. allocated(this%rateConst)) then
       allocate( this%rateConst(nRxt) )
     else
       write(*,*) 'rateConst_init: rateConst already allocated'
     endif
 
-  end subroutine rateConst_init
-
-  !------------------------------------------------------
-  ! allocate jacobian member array
-  !------------------------------------------------------
-  subroutine jacobian_init( this, nSpecies )
-      
-    class(kinetics_type) :: this
-    integer, intent(in)  :: nSpecies ! number of prognostic species
-
-    this%nSpecies = nSpecies
     if( .not. allocated(this%MBOdeJac)) then
-      allocate( this%MBOdeJac(nSpecies,nSpecies) )
+      allocate( this%MBOdeJac(number_sparse_factor_elements) )
     else
       write(*,*) 'jacobian_init: MBOdeJac already allocated'
     endif
 
     if( .not. allocated(this%chemJac)) then
-      allocate( this%chemJac(nSpecies,nSpecies) )
+      allocate( this%chemJac(number_sparse_factor_elements) )
     else
       write(*,*) 'jacobian_init: chemJac already allocated'
     endif
@@ -90,12 +122,15 @@ contains
       write(*,*) 'jacobian_init: Pivot already allocated'
     endif
 
-  end subroutine jacobian_init
+  end subroutine init
 
   !------------------------------------------------------
   ! prepare the rosenbrock ode solver matrix
   !------------------------------------------------------
-  subroutine PrepareMatrix( this, H, gam, Y, Singular, istatus )
+  subroutine LinFactor( this, H, gam, Y, Singular, istatus )
+
+   use kinetics_utilities, only : factored_alpha_minus_jac
+   use factor_solve_utilities, only: number_sparse_factor_elements
 
     class(kinetics_type) :: this
     real(kind_phys), intent(inout) :: H          ! time step (seconds)
@@ -110,32 +145,26 @@ contains
 
     INTEGER  :: i, ising, Nconsecutive
     REAL(kind_phys) :: ghinv
-    REAL(kind_phys) :: TmpJac(this%nSpecies,this%nSpecies)
+    REAL(kind_phys) :: LU_factored(number_sparse_factor_elements)
 
    associate( Ghimj => this%MBOdeJac )
 
 ! Set the chemical entries for the Ode Jacobian
-    Ghimj(:,:) = this%Jac( Y )
-    this%chemJac(:,:) = Ghimj(:,:)
+    Ghimj(:) = this%dforce_dy( Y )
+    this%chemJac(:) = Ghimj(:)
 
    Nconsecutive = 0
    Singular = .TRUE.
 
    DO WHILE (Singular)
-!~~~>    Construct Ghimj = 1/(H*gam) - Jac0
-     TmpJac(:,:) = -Ghimj(:,:)
-     
      ghinv = ONE/(H*gam)
-     FORALL( I = 1:this%nSpecies ) 
-       TmpJac(i,i) = TmpJac(i,i) + ghinv
-     ENDFORALL
-!~~~>    Compute LU decomposition
-     CALL this%DGEFA( TmpJac, ising )
-     !call this%Jacobian_print()
+!    Compute LU decomposition of [ghinv*I - Ghimj]
+     call factored_alpha_minus_jac( LU_factored, ghinv, Ghimj )
+     ising = 0;
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
-       Ghimj(:,:) = TmpJac(:,:)
+       Ghimj(:) = LU_factored(:)
        Singular = .FALSE.
      ELSE ! ISING .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
@@ -153,26 +182,26 @@ contains
 
    end associate
 
-  end subroutine PrepareMatrix
+  end subroutine LinFactor
 
   !------------------------------------------------------
   ! update rateConst
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine rateConst_update( this, k_rateConst, j_rateConst, c_m )
+  subroutine rateConst_update( this, k_rateConst, j_rateConst, number_density_air )
 
     class(kinetics_type) :: this
     real(kind_phys), intent(in) :: k_rateConst(:) ! externally supplied rate constants
     real(kind_phys), intent(in) :: j_rateConst(:)
-    real(kind_phys), intent(in) :: c_m ! total number density
+    real(kind_phys), intent(in) :: number_density_air ! total number density
   
     integer :: i, size_krateConst, size_jrateConst
     
     size_krateConst=size(k_rateConst)
     size_jrateConst=size(j_rateConst)
 
-    this%number_density=c_m
+    this%number_density=number_density_air
 
     associate( rateConstants => this%rateConst )
       ! Rate Constants
@@ -196,20 +225,6 @@ contains
 
   end subroutine rateConst_print
 
-  subroutine Jacobian_print( this )
-
-    class(kinetics_type) :: this
-
-    integer :: m
-
-    write(*,*) 'Jacobian:'
-    do m = 1,this%nSpecies
-      write(*,'(1p,5(1x,e12.4))') this%chemJac(m,:)
-    enddo
-
-  end subroutine Jacobian_print
-
-
   !---------------------------
   !  cleanup when k_rateConst type is removed
   !---------------------------
@@ -217,6 +232,9 @@ contains
 
     type(kinetics_type) :: this
 
+    if( allocated( this%rates ) ) then
+       deallocate( this%rates )
+    endif
     if( allocated( this%rateConst ) ) then
        deallocate( this%rateConst )
     endif
@@ -232,358 +250,35 @@ contains
 
   end subroutine DasEnder
 
-  !---------------------------
-  ! Compute time rate of change of each molecule (vmr) given reaction rates
-  !---------------------------
-  function force( this, vmr )
-
-    class(kinetics_type) :: this
-    real(kind_phys), intent(in)::  vmr(:)              ! volume mixing ratios of each component in order
-    real(kind_phys)            ::  force(size(vmr))    ! rate of change of each molecule
-
-    real(kind_phys) :: rates(this%nReact)          ! rates of each reaction
-
-    call compute_rates(this, vmr, rates)
-
-! Forcing
- force(1) = (0) * rates(1)
- force(3) = (-1) * rates(1) + (-1) * rates(2) + (1) * rates(6)
- force(2) = (1) * rates(1) + (1) * rates(2) + (-1) * rates(3) + (-1) * rates(4) + (2) * rates(5) + (1) * rates(7)
- force(4) = (0) * rates(2) + (2) * rates(3) + (-1) * rates(4) + (-1) * rates(5) + (1) * rates(6) + (1) * rates(7)
- force(5) = (-1) * rates(3) + (1) * rates(4) + (-1) * rates(6) + (-1) * rates(7)
-
-  end function force
-
-  !---------------------------
-  ! Compute sensitivity of molecular forcing to each vmr (derivative of force w.r.t. each vmr)
-  !---------------------------
-  function jac( this, vmr )
-
-    class(kinetics_type) :: this
-    real(kind_phys), intent(in)::  vmr(:)         ! volume mixing ratios of each component in order
-    real(kind_phys) :: jac(size(vmr),size(vmr))   ! sensitivity of forcing to changes in each vmr
-    real(kind_phys) :: number_density_air, number_density_air_squared, number_density_air_cubed
-
-    associate( number_density_air => this%number_density, &
-               rateConstants => this%rateConst )
-
-    number_density_air_squared = number_density_air*number_density_air
-    number_density_air_cubed = number_density_air*number_density_air*number_density_air
-    ! Jacobian
-    jac(:,:) = 0._kind_phys
-
-
-  ! Jacobian  
-
-
-jac(1,1)  = jac(1,1) + (0) * rateConstants(1) * vmr(3) * number_density_air
-jac(1,3)  = jac(1,3) + (0) * rateConstants(1) * vmr(1) * number_density_air
-jac(3,1)  = jac(3,1) + (-1) * rateConstants(1) * vmr(3) * number_density_air
-jac(3,3)  = jac(3,3) + (-1) * rateConstants(1) * vmr(1) * number_density_air
-jac(3,3)  = jac(3,3) + (-1) * rateConstants(2) * vmr(4) * number_density_air
-jac(3,4)  = jac(3,4) + (-1) * rateConstants(2) * vmr(3) * number_density_air
-jac(3,5)  = jac(3,5) + (1) * rateConstants(6)
-jac(2,1)  = jac(2,1) + (1) * rateConstants(1) * vmr(3) * number_density_air
-jac(2,3)  = jac(2,3) + (1) * rateConstants(1) * vmr(1) * number_density_air
-jac(2,3)  = jac(2,3) + (1) * rateConstants(2) * vmr(4) * number_density_air
-jac(2,4)  = jac(2,4) + (1) * rateConstants(2) * vmr(3) * number_density_air
-jac(2,2)  = jac(2,2) + (-1) * rateConstants(3) * vmr(5) * number_density_air
-jac(2,5)  = jac(2,5) + (-1) * rateConstants(3) * vmr(2) * number_density_air
-jac(2,2)  = jac(2,2) + (-1) * rateConstants(4) * vmr(4) * number_density_air_squared
-jac(2,4)  = jac(2,4) + (-1) * rateConstants(4) * vmr(2) * number_density_air_squared
-jac(2,4)  = jac(2,4) + (2) * rateConstants(5)
-jac(2,5)  = jac(2,5) + (1) * rateConstants(7)
-jac(4,3)  = jac(4,3) + (0) * rateConstants(2) * vmr(4) * number_density_air
-jac(4,4)  = jac(4,4) + (0) * rateConstants(2) * vmr(3) * number_density_air
-jac(4,2)  = jac(4,2) + (2) * rateConstants(3) * vmr(5) * number_density_air
-jac(4,5)  = jac(4,5) + (2) * rateConstants(3) * vmr(2) * number_density_air
-jac(4,2)  = jac(4,2) + (-1) * rateConstants(4) * vmr(4) * number_density_air_squared
-jac(4,4)  = jac(4,4) + (-1) * rateConstants(4) * vmr(2) * number_density_air_squared
-jac(4,4)  = jac(4,4) + (-1) * rateConstants(5)
-jac(4,5)  = jac(4,5) + (1) * rateConstants(6)
-jac(4,5)  = jac(4,5) + (1) * rateConstants(7)
-jac(5,2)  = jac(5,2) + (-1) * rateConstants(3) * vmr(5) * number_density_air
-jac(5,5)  = jac(5,5) + (-1) * rateConstants(3) * vmr(2) * number_density_air
-jac(5,2)  = jac(5,2) + (1) * rateConstants(4) * vmr(4) * number_density_air_squared
-jac(5,4)  = jac(5,4) + (1) * rateConstants(4) * vmr(2) * number_density_air_squared
-jac(5,5)  = jac(5,5) + (-1) * rateConstants(6)
-jac(5,5)  = jac(5,5) + (-1) * rateConstants(7)
-
-    end associate
-
-  end function jac
 
   !---------------------------
   ! Compute dforce/dy = y''
   !---------------------------
   function dForcedyxForce( this, force ) result(d2Fdy2)
 
+    use kinetics_utilities, only: dforce_dy_times_vector
     class(kinetics_type) :: this
     real(kind_phys), intent(in)::  force(:)         ! chem forcing; dy/dt
 
     real(kind_phys) ::  d2Fdy2(size(force))
    
-    d2Fdy2(:) = MATMUL( this%chemJac,force )
+    call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
 
   end function dForcedyxForce
 
-  !---------------------------
-  ! Compute reaction rates, given vmr of each species and rate constants
-  !---------------------------
-  subroutine compute_rates(this, vmr, rates )
+    SUBROUTINE LinSolve( this, B)
 
-    class(kinetics_type)  :: this
-    real(kind_phys), intent(in)  :: vmr(:)     ! volume mixing ratios of each component in order
-    real(kind_phys), intent(out) :: rates(:)   ! rates for each reaction (sometimes called velocity of reaction)
-    real(kind_phys) :: number_density_air, number_density_air_squared, number_density_air_cubed
-
-    associate( rateConstants => this%rateConst )
-    associate( number_density_air => this%number_density )
-
-    number_density_air_squared = number_density_air*number_density_air
-    number_density_air_cubed = number_density_air*number_density_air*number_density_air
-
-! Rates
-
-! N2_O1D
-rates(1) = rateConstants(1) * vmr(1) * vmr(3) * number_density_air
-
-! O1D_O2
-rates(2) = rateConstants(2) * vmr(3) * vmr(4) * number_density_air
-
-! O_O3
-rates(3) = rateConstants(3) * vmr(2) * vmr(5) * number_density_air
-
-! O_O2_M
-rates(4) = rateConstants(4) * vmr(2) * vmr(4) * number_density_air_squared
-
-! O2
-rates(5) = rateConstants(5) * vmr(4)
-
-! O3
-rates(6) = rateConstants(6) * vmr(5)
-
-! O3_1
-rates(7) = rateConstants(7) * vmr(5)
-    end associate
-    end associate
-
-  end subroutine compute_rates
-
-  SUBROUTINE DGEFA (this, A, INFO)
-!***BEGIN PROLOGUE  DGEFA
-!***PURPOSE  Factor a matrix using Gaussian elimination.
-!***CATEGORY  D2A1
-!***TYPE      DOUBLE PRECISION (SGEFA-S, DGEFA-D, CGEFA-C)
-!***KEYWORDS  GENERAL MATRIX, LINEAR ALGEBRA, LINPACK,
-!             MATRIX FACTORIZATION
-!***AUTHOR  Moler, C. B., (U. of New Mexico)
-!***DESCRIPTION
-!
-!     DGEFA factors a double precision matrix by Gaussian elimination.
-!
-!     DGEFA is usually called by DGECO, but it can be called
-!     directly with a saving in time if  RCOND  is not needed.
-!     (Time for DGECO) = (1 + 9/N)*(Time for DGEFA) .
-!
-!     On Entry
-!
-!     On Return
-!
-!        A       an upper triangular matrix and the multipliers
-!                which were used to obtain it.
-!                The factorization can be written  A = L*U  where
-!                L  is a product of permutation and unit lower
-!                triangular matrices and  U  is upper triangular.
-!
-!        INFO    INTEGER
-!                = 0  normal value.
-!                = K  if  U(K,K) .EQ. 0.0 .  This is not an error
-!                     condition for this subroutine, but it does
-!                     indicate that DGESL or DGEDI will divide by zero
-!                     if called.  Use  RCOND  in DGECO for a reliable
-!                     indication of singularity.
-!
-!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.
-!                 Stewart, LINPACK Users' Guide, SIAM, 1979.
-!***REVISION HISTORY  (YYMMDD)
-!   780814  DATE WRITTEN
-!   890831  Modified array declarations.  (WRB)
-!   890831  REVISION DATE from Version 3.2
-!   891214  Prologue converted to Version 4.0 format.  (BAB)
-!   900326  Removed duplicate information from DESCRIPTION section.
-!           (WRB)
-!   920501  Reformatted the REFERENCES section.  (WRB)
-!***END PROLOGUE  DGEFA
-
-!
-!     DUMMY ARGUMENTS
-!
-      class(kinetics_type) :: this
-      INTEGER, INTENT(OUT)   ::  INFO
-      REAL(kind_phys), INTENT(INOUT) :: A(:,:)
-!
-!     LOCAL VARIABLES
-!
-      REAL(kind_phys), PARAMETER :: ZERO = 0._kind_phys
-      REAL(kind_phys), PARAMETER :: ONE  = 1._kind_phys
-
-      INTEGER :: N
-      INTEGER :: J, K, KP1, NM1
-      INTEGER, POINTER :: L
-      INTEGER, TARGET :: MAXNDX(1)
-      REAL(kind_phys) :: T
-
-      ASSOCIATE( IPVT => this%Pivot )
-!
-!     GAUSSIAN ELIMINATION WITH PARTIAL PIVOTING
-!
-      INFO = 0
-      N = this%nSpecies
-      NM1 = N - 1
-      IF( N >= 2 ) THEN
-        L => MAXNDX(1)
-        DO K = 1, NM1
-          KP1 = K + 1
-!
-!        FIND L = PIVOT INDEX
-!
-          MAXNDX(:) = MAXLOC( ABS(A(K:N,K)) ) + K - 1
-          IPVT(K) = L
-!
-!        ZERO PIVOT IMPLIES THIS COLUMN ALREADY TRIANGULARIZED
-!
-          IF (A(L,K) /= ZERO) THEN
-!
-!           INTERCHANGE IF NECESSARY
-!
-             IF (L /= K) THEN
-               T = A(L,K)
-               A(L,K) = A(K,K)
-               A(K,K) = T
-             ENDIF
-!
-!           COMPUTE MULTIPLIERS
-!
-             T = -ONE/A(K,K)
-             A(K+1:N,K) = T*A(K+1:N,K)
-!
-!           ROW ELIMINATION WITH COLUMN INDEXING
-!
-             DO J = KP1, N
-               T = A(L,J)
-               IF (L /= K) THEN
-                 A(L,J) = A(K,J)
-                 A(K,J) = T
-               ENDIF   
-               A(K+1:N,J) = A(K+1:N,J) + T*A(K+1:N,K)
-             END DO
-          ELSE
-           INFO = K
-          ENDIF
-        END DO  
-      ELSE
-        IPVT(N) = N
-        IF(A(N,N) == ZERO ) THEN
-          INFO = N
-        ENDIF
-      ENDIF
-
-      END ASSOCIATE
-
-    END SUBROUTINE DGEFA
-
-    SUBROUTINE DGESL ( this, B )
-!***BEGIN PROLOGUE  DGESL
-!***PURPOSE  Solve the real system A*X=B using the
-!            factors computed by DGECO or DGEFA.
-!***CATEGORY  D2A1
-!***TYPE      DOUBLE PRECISION (SGESL-S, DGESL-D, CGESL-C)
-!***KEYWORDS  LINEAR ALGEBRA, LINPACK, MATRIX, SOLVE
-!***AUTHOR  Moler, C. B., (U. of New Mexico)
-!***DESCRIPTION
-!
-!     DGESL solves the double precision system
-!     A * X = B  or  TRANS(A) * X = B
-!     using the factors computed by DGECO or DGEFA.
-!
-!     On Entry
-!
-!        B       DOUBLE PRECISION(N)
-!                the right hand side vector.
-!
-!     On Return
-!
-!        B       the solution vector  X .
-!
-!     Error Condition
-!
-!        A division by zero will occur if the input factor contains a
-!        zero on the diagonal.  Technically this indicates singularity
-!        but it is often caused by improper arguments or improper
-!        setting of LDA .  It will not occur if the subroutines are
-!        called correctly and if DGECO has set RCOND .GT. 0.0
-!        or DGEFA has set INFO .EQ. 0 .
-!
-!     To compute  INVERSE(A) * C  where  C  is a matrix
-!     with  P  columns
-!           CALL DGECO(A,LDA,N,IPVT,RCOND,Z)
-!           IF (RCOND is too small) GO TO ...
-!           DO 10 J = 1, P
-!              CALL DGESL(A,LDA,N,IPVT,C(1,J),0)
-!        10 CONTINUE
-!
-!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.
-!                 Stewart, LINPACK Users' Guide, SIAM, 1979.
-!***REVISION HISTORY  (YYMMDD)
-!   780814  DATE WRITTEN
-!   890831  Modified array declarations.  (WRB)
-!   890831  REVISION DATE from Version 3.2
-!   891214  Prologue converted to Version 4.0 format.  (BAB)
-!   900326  Removed duplicate information from DESCRIPTION section.
-!           (WRB)
-!   920501  Reformatted the REFERENCES section.  (WRB)
-!***END PROLOGUE  DGESL
-
+      use factor_solve_utilities, only : solve
       class(kinetics_type) :: this
       REAL(kind_phys), INTENT(INOUT) :: B(:)
+      REAL(kind_phys)                :: x(size(B))
 
-      INTEGER :: N
-      INTEGER :: K, KM1, KP1, KB, L, NM1
-      REAL(kind_phys) :: T
+      call solve ( this%MBOdeJac, x, B )
 
-      N = this%nSpecies
-      NM1 = N - 1
+      B(:) = x(:)
 
-      ASSOCIATE( A => this%MBOdeJac, IPVT => this%Pivot )
-!
-!        SOLVE  A * X = B
-!        FIRST SOLVE  L*Y = B
-!
-      IF (N >= 2) THEN
-        DO K = 1, NM1
-          L = IPVT(K)
-          T = B(L)
-          IF (L /= K) THEN
-            B(L) = B(K)
-            B(K) = T
-         ENDIF
-         B(K+1:N) = B(K+1:N) + T*A(K+1:N,K)
-        END DO
-      ENDIF
-!
-!        NOW SOLVE  U*X = Y
-!
-      DO KB = 1, N
-        K = N + 1 - KB
-        KM1 = K - 1
-        B(K) = B(K)/A(K,K)
-        T = -B(K)
-        B(1:KM1) = B(1:KM1) + T*A(1:KM1,K)
-      END DO
 
-      END ASSOCIATE
+    END SUBROUTINE LinSolve
 
-    END SUBROUTINE DGESL
 
 end module kinetics_module

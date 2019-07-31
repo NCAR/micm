@@ -46,7 +46,7 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
   real(kind_phys) :: Hstart
   real(kind_phys) :: rcntrl(20)     ! real control array for ODE solver
   real(kind_phys)              :: absTol, relTol
-  real(kind_phys), allocatable :: abs_Tol(:), rel_Tol(:)  ! species-level convergence criteria
+  real(kind_phys), allocatable :: abs_tol(:), rel_tol(:)
   character(len=80) :: model_name
   character(len=80) :: Solver_method = ' '
 
@@ -84,10 +84,8 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
 !-----------------------------------------------------------
 !  allocate error controls
 !-----------------------------------------------------------
-  allocate(abs_Tol(nSpecies),rel_Tol(nspecies))
-  abs_Tol(:) = absTol  ! this could be expanded to a per-species tolerance
-  rel_Tol(:) = relTol  ! this could be expanded to a per-species tolerance
-
+  allocate(abs_tol(nSpecies))
+  allocate(rel_tol(nSpecies))
 
   icntrl(:) = 0
   rcntrl(:) = 0._kind_phys
@@ -110,31 +108,37 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
       rcntrl(3) = .01_kind_phys*dt                  ! Hstart, initial time step
   end select
 
+  abs_tol(:) = absTol
+  rel_tol(:) = relTol
 
   write(*,*) ' '
   write(*,*) 'icntrl settings'
   write(*,'(10i6)') icntrl(1:10)
   write(*,*) 'rcntrl settings'
   write(*,'(1p,10(1x,g0))') rcntrl(1:10)
+  write(*,*) 'Absolute error tolerances'
+  write(*,*) abs_tol
+  write(*,*) 'Relative error tolerances'
+  write(*,*) rel_tol
   write(*,*) ' '
 
-  call theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=abs_Tol, RelTol=rel_Tol, &
+  call theSolver%Initialize( Tstart=TimeStart, Tend=TimeEnd, AbsTol=Abs_tol, RelTol=Rel_tol, &
                              ICNTRL=icntrl, RCNTRL=rcntrl, Ierr=errflg )
 
 !-----------------------------------------------------------
 !  allocate & initialize the kinetics
 !-----------------------------------------------------------
   allocate( theKinetics )
-  call thekinetics%rateConst_init( nTotRxt )
-  call thekinetics%jacobian_init( nSpecies )
+  call thekinetics%init( nTotRxt, nSpecies )
 
 end subroutine chemistry_driver_init
 
 !> \section arg_table_chemistry_driver_run Argument Table
 !! \htmlinclude chemistry_driver_run.html
 !!
-subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateConst, c_m, errmsg, errflg)
+subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateConst, number_density_air, errmsg, errflg)
 
+  use kinetics_utilities, only: kinetics_init, kinetics_final
 
   implicit none
 !-----------------------------------------------------------
@@ -144,9 +148,10 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateCon
   real(kind_phys), intent(in)            :: TimeStart, TimeEnd
   real(kind=kind_phys), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=kind_phys), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
-  real(kind=kind_phys), intent(in)       :: c_m                   ! number density
+  real(kind=kind_phys), intent(in)       :: number_density_air    ! number density
   character(len=512), intent(out)        :: errmsg
   integer, intent(out)                   :: errflg                ! error index from CPF
+  real(kind=kind_phys)                   :: number_density(size(vmr))     ! "working" number density of each molecule
 
   integer :: i, k, n
 
@@ -154,17 +159,21 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateCon
   errmsg = ''
   errflg = 0
 
+  call kinetics_init(vmr, number_density, number_density_air)
+
 !-----------------------------------------------------------
 !  update the kinetics
 !-----------------------------------------------------------
-  call theKinetics%rateConst_update( k_rateConst, j_rateConst, c_m )
+  call theKinetics%rateConst_update( k_rateConst, j_rateConst, number_density_air )
 
   call theKinetics%rateConst_print()
 
 !-----------------------------------------------------------
 !  solve the current timestep's chemistry
 !-----------------------------------------------------------
-  call theSolver%Run( Tstart=TimeStart, Tend=TimeEnd, y=vmr, theKinetics=theKinetics, Ierr=errflg )
+  call theSolver%Run( Tstart=TimeStart, Tend=TimeEnd, y=number_density, theKinetics=theKinetics, Ierr=errflg )
+
+  call kinetics_final(vmr, number_density, number_density_air)
 
   if (errflg /= 0) then
     errmsg = 'chemistry_driver_run: ERROR in theSolver%Run'

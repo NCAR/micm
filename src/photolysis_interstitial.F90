@@ -26,6 +26,8 @@ contains
 !! \htmlinclude photolysis_interstitial_run.html
 !!
   subroutine photolysis_interstitial_run(prates, j_rateConst, errmsg, errflg)
+    use rate_constants_utility, only: p_rate_mapping
+
     real(kind_phys),           intent(in)  :: prates(:,:) ! /sec
     real(kind_phys),           intent(out) :: j_rateConst(:) ! /sec
     character(len=512), intent(out) :: errmsg
@@ -35,16 +37,7 @@ contains
     errmsg = ''
     errflg = 0
 
-!TUV Mapping rates
-
-!    O2 ~ TUV_rate(O2 -> O + O)
-    j_rateConst(1) = 1*prates(level_number,1)
-
-!    O3 ~ TUV_rate(O3 -> O2 + O(1D))
-    j_rateConst(2) = 1*prates(level_number,2)
-
-!    O3 ~ TUV_rate(O3 -> O2 + O(3P))
-    j_rateConst(3) = 1*prates(level_number,3)
+    call p_rate_mapping(prates(level_number,:), j_rateConst)
 
   end subroutine photolysis_interstitial_run
   

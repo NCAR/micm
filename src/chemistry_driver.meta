@@ -113,7 +113,7 @@
   kind = kind_phys
   intent = in
   optional = F
-[c_m]
+[number_density_air]
   standard_name = total_number_density
   long_name = total number density
   units = molecules/cm3
