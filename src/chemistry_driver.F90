@@ -6,7 +6,6 @@ module chemistry_driver
 use kinetics_module,  only       : kinetics_type
 use ccpp_kinds,       only       : kind_phys
 
-use const_props_mod,  only       : const_props_type
 use ODE_solver, only             : baseOdeSolver
 use Rosenbrock_Solver, only      : RosenbrockSolver
 use Mozart_Solver, only          : MozartSolver
@@ -39,7 +38,6 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
 
   real(kind_phys), parameter :: NOT_SET = -huge(1._kind_phys)
 
-  type(const_props_type), allocatable :: cnst_info(:)
   integer            :: nTotRxt    ! total number of chemical reactions
 
   integer  :: icntrl(20)     ! integer control array for ODE solver

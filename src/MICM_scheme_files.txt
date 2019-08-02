@@ -1,5 +1,3 @@
-../../MICM_chemistry/src/const_props_mod.meta
-../../MICM_chemistry/src/mass_quantities_util.meta
 ../../MICM_chemistry/src/kinetics/k_rateConst.meta
 ../../MICM_chemistry/src/chemistry_driver.meta
 ../../MICM_chemistry/src/photolysis_interstitial.meta
