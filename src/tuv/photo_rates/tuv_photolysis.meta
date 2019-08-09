@@ -44,7 +44,7 @@
   name = tuv_photolysis_run
   type = scheme
 [nlev]
-  standard_name = num_levels_for_photolysis
+  standard_name = vertical_level_dimension
   long_name = number of column layers
   units = count
   dimensions = ()

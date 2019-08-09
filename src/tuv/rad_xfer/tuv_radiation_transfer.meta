@@ -10,7 +10,7 @@
   intent = in
   optional = F
 [nlevels]
-  standard_name = num_levels_for_photolysis
+  standard_name = vertical_level_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -40,7 +40,7 @@
   name = tuv_radiation_transfer_run
   type = scheme
 [nlev]
-  standard_name = num_levels_for_photolysis
+  standard_name = vertical_level_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -53,7 +53,7 @@
   type = integer
   intent = in
 [nlevelsMinus1]
-  standard_name = num_levels_for_photolysis_minus_1
+  standard_name = vertical_layer_dimension
   long_name = number of column layers minus 1
   units = count
   dimensions = ()
@@ -144,7 +144,7 @@
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
   units = cm-2 sec-1
-  dimensions = (tuv_n_actinic_flux_wavelengths,num_levels_for_photolysis)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_level_dimension)
   type = real
   kind = kind_phys
   intent = out
