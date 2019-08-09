@@ -54,7 +54,7 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
 !> \section arg_table_tuv_radiation_transfer_run Argument Table
 !! \htmlinclude tuv_radiation_transfer_run.html
 !!
-  subroutine tuv_radiation_transfer_run( nlev, tuv_n_wavelen, nlevelsMinus1, zenith, albedo, press_mid, alt, temp, o3vmr, &
+  subroutine tuv_radiation_transfer_run( nlev, tuv_n_wavelen, zenith, albedo, press_mid, alt, temp, o3vmr, &
          so2vmr, no2vmr, dto2, radfld, errmsg, errflg )
 
     use tuv_subs,         only: tuv_radfld
@@ -64,7 +64,6 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
  
     integer,          intent(in)  :: nlev
     integer,          intent(in)  :: tuv_n_wavelen
-    integer,          intent(in)  :: nlevelsMinus1
     real(kind_phys),         intent(in)  :: zenith
     real(kind_phys),         intent(in)  :: albedo
     real(kind_phys),         intent(in)  :: press_mid(:)

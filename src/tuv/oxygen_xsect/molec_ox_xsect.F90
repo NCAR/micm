@@ -32,7 +32,10 @@ contains
 
     integer,          intent(in)    :: nlev
     integer,          intent(in)    :: tuv_n_wavelen
+
+    !! NOTE THIS VARIABLE WILL GO AWAY - FOR NOW IS REQUIRED WORKAROUND FOR CPF
     integer,          intent(in)    :: nlevelsMinus1
+
     real(kind_phys),         intent(in)    :: zen
     real(kind_phys),         intent(in)    :: alt(:)  ! m
     real(kind_phys),         intent(in)    :: temp(:) ! K

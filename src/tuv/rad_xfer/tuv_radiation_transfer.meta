@@ -52,13 +52,6 @@
   dimensions = ()
   type = integer
   intent = in
-[nlevelsMinus1]
-  standard_name = vertical_layer_dimension
-  long_name = number of column layers minus 1
-  units = count
-  dimensions = ()
-  type = integer
-  intent = in
 [zenith]
   standard_name = solar_zenith
   long_name = solar zenith angle
@@ -135,7 +128,7 @@
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (nlevelMinus1,tuv_n_actinic_flux_wavelengths)
+  dimensions = (vertical_layer_dimension,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = in
