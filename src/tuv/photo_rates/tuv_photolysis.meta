@@ -44,7 +44,7 @@
   name = tuv_photolysis_run
   type = scheme
 [nlev]
-  standard_name = num_levels_for_photolysis
+  standard_name = vertical_level_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -73,15 +73,16 @@
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
   units = cm-2 sec-1
-  dimensions = (tuv_n_wavelen,nlevels)      
-  type = real   
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_level_dimension)
+  type = real
   kind = kind_phys
   intent = in
+  optional = F
 [srb_o2_xs]
   standard_name = o2_xsect
-  long_name = O2 cross sections
+  long_name = O2 effective cross section
   units = cm2
-  dimensions = (tuv_n_wavelen,nlevels)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_level_dimension)
   type = real
   kind = kind_phys
   intent = in
