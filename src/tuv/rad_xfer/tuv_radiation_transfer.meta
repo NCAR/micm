@@ -39,13 +39,6 @@
 [ccpp-arg-table]
   name = tuv_radiation_transfer_run
   type = scheme
-[nlev]
-  standard_name = vertical_level_dimension
-  long_name = number of column layers
-  units = count
-  dimensions = ()
-  type = integer
-  intent = in
 [tuv_n_wavelen]
   standard_name = tuv_n_actinic_flux_wavelengths
   units = count
