@@ -9,9 +9,7 @@ module k_rateConst
 implicit none
 private
 
-public :: k_rateConst_init
 public :: k_rateConst_run
-public :: k_rateConst_finalize
 
 ! k_rateConst are computed at the beginning of the 
 !   chemistry_box_solver time step.
@@ -22,21 +20,6 @@ public :: k_rateConst_finalize
 ! For now, it is allocated here. It is not thread safe
 
 contains
-
-!> \section arg_table_k_rateConst_init Argument Table
-!! \htmlinclude k_rateConst_init.html
-!!
-  subroutine k_rateConst_init(errmsg, errflg)
-      
-    integer,            intent(out) :: errflg
-    character(len=512), intent(out) :: errmsg
-
-    errmsg=''
-    errflg=0
-
-    ! Nothing for the 3component chemistry to do at init time currently
-
-  end  subroutine k_rateConst_init
 
   !---------------------------
   ! Compute k_rateConst, given M, P, T
@@ -69,9 +52,6 @@ contains
 
   end subroutine k_rateConst_run
   
-  subroutine k_rateConst_finalize
-  end subroutine k_rateConst_finalize
-
 
 ! number of Functions: 1
 

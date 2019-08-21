@@ -8,7 +8,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [tuv_n_wavelen]
   standard_name = tuv_n_actinic_flux_wavelengths
   units = count
@@ -29,7 +28,6 @@
   type = character
   kind = len=512
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -37,7 +35,6 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 [ccpp-arg-table]
@@ -50,7 +47,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [temp]
   standard_name = layer_temperature
   long_name = mid-point layer temperature
@@ -59,7 +55,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [press_mid]
   standard_name = layer_pressure
   long_name = mid-point layer pressure
@@ -68,7 +63,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [radfld]
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
@@ -77,7 +71,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [srb_o2_xs]
   standard_name = o2_xsect
   long_name = O2 effective cross section
@@ -86,7 +79,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [tuv_prates]
   standard_name = photolysis_rates_col
   long_name = photolysis rates column
@@ -95,7 +87,6 @@
   type = real
   kind = kind_phys
   intent = out
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
@@ -104,7 +95,6 @@
   type = character
   kind = len=512
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -112,26 +102,3 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
-
-########################################################################
-[ccpp-arg-table]
-  name = tuv_photolysis_finalize
-  type = scheme
-[errmsg]
-  standard_name = ccpp_error_message
-  long_name = CCPP error message
-  units = 1
-  dimensions = ()
-  type = character
-  kind = len=*
-  intent = out
-  optional = F
-[errflg]
-  standard_name = ccpp_error_flag
-  long_name = CCPP error flag
-  units = flag
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F

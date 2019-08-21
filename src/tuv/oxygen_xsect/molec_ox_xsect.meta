@@ -9,7 +9,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -17,7 +16,6 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 [ccpp-arg-table]
@@ -30,7 +28,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [tuv_n_wavelen]
   standard_name = tuv_n_actinic_flux_wavelengths
   units = count
@@ -52,7 +49,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [alt]
   standard_name = layer_altitude
   long_name = mid-point layer altitude
@@ -61,7 +57,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [temp]
   standard_name = layer_temperature
   long_name = mid-point layer temperature
@@ -70,7 +65,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [press_mid]
   standard_name = layer_pressure
   long_name = mid-point layer pressure
@@ -79,7 +73,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [o2vmr]
   standard_name = o2_vmr_col
   long_name = O2 volume mixing ratio column
@@ -88,7 +81,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [dto2]
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
@@ -97,7 +89,6 @@
   type = real
   kind = kind_phys
   intent = out
-  optional = F
 [srb_o2_xs]
   standard_name = o2_xsect
   long_name = O2 effective cross section
@@ -106,7 +97,6 @@
   type = real
   kind = kind_phys
   intent = out
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
@@ -115,7 +105,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -123,26 +112,4 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
-########################################################################
-[ccpp-arg-table]
-  name = molec_ox_xsect_finalize
-  type = scheme
-[errmsg]
-  standard_name = ccpp_error_message
-  long_name = CCPP error message
-  units = 1
-  dimensions = ()
-  type = character
-  kind = len=*
-  intent = out
-  optional = F
-[errflg]
-  standard_name = ccpp_error_flag
-  long_name = CCPP error flag
-  units = flag
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F

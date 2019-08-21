@@ -226,19 +226,4 @@ subroutine tuv_photolysis_run( nlev, temp, press_mid, radfld, srb_o2_xs, tuv_pra
     
   end subroutine tuv_photolysis_run
   
-!> \section arg_table_tuv_photolysis_finalize Argument Table
-!! \htmlinclude tuv_photolysis_finalize.html
-!!
-  subroutine tuv_photolysis_finalize( errmsg, errflg )
-
-    !--- arguments
-    character(len=*), intent(out) :: errmsg
-    integer,          intent(out) :: errflg
-
-    !--- initialize CCPP error handling variables
-    errmsg = ''
-    errflg = 0
-
-  end subroutine tuv_photolysis_finalize
-
 end module tuv_photolysis

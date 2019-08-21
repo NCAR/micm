@@ -87,19 +87,4 @@ contains
 
   end subroutine molec_ox_xsect_run
 
-!> \section arg_table_molec_ox_xsect_finalize Argument Table
-!! \htmlinclude molec_ox_xsect_finalize.html
-!!
-  subroutine molec_ox_xsect_finalize( errmsg, errflg )
-
-    !--- arguments
-    character(len=*), intent(out) :: errmsg
-    integer,          intent(out) :: errflg
-
-    !--- initialize CCPP error handling variables
-    errmsg = ''
-    errflg = 0
-
-  end subroutine molec_ox_xsect_finalize
-
 end module molec_ox_xsect

@@ -8,7 +8,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [nlevels]
   standard_name = vertical_level_dimension
   long_name = number of column layers
@@ -16,7 +15,6 @@
   dimensions = ()
   type = integer
   intent = in
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
@@ -25,7 +23,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -33,7 +30,6 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
 
 ########################################################################
 [ccpp-arg-table]
@@ -53,7 +49,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [albedo]
   standard_name = surface_albedo
   long_name = surface albedo
@@ -62,7 +57,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [press_mid]
   standard_name = layer_pressure
   long_name = mid-point layer pressure
@@ -71,7 +65,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [alt]
   standard_name = layer_altitude
   long_name = mid-point layer altitude
@@ -80,7 +73,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [temp]
   standard_name = layer_temperature
   long_name = mid-point layer temperature
@@ -89,7 +81,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [o3vmr]
   standard_name = o3_vmr_col
   long_name = O3 volume mixing ratio column
@@ -98,7 +89,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [so2vmr]
   standard_name = so2_vmr_col
   long_name = SO2 volume mixing ratio column
@@ -107,7 +97,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [no2vmr]
   standard_name = no2_vmr_col
   long_name = NO2 volume mixing ratio column
@@ -116,7 +105,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [dto2]
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
@@ -125,7 +113,6 @@
   type = real
   kind = kind_phys
   intent = in
-  optional = F
 [radfld]
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
@@ -134,7 +121,6 @@
   type = real
   kind = kind_phys
   intent = out
-  optional = F
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
@@ -143,7 +129,6 @@
   type = character
   kind = len=*
   intent = out
-  optional = F
 [errflg]
   standard_name = ccpp_error_flag
   long_name = CCPP error flag
@@ -151,26 +136,3 @@
   dimensions = ()
   type = integer
   intent = out
-  optional = F
-
-########################################################################
-[ccpp-arg-table]
-  name = tuv_radiation_transfer_finalize
-  type = scheme
-[errmsg]
-  standard_name = ccpp_error_message
-  long_name = CCPP error message
-  units = 1
-  dimensions = ()
-  type = character
-  kind = len=*
-  intent = out
-  optional = F
-[errflg]
-  standard_name = ccpp_error_flag
-  long_name = CCPP error flag
-  units = flag
-  dimensions = ()
-  type = integer
-  intent = out
-  optional = F

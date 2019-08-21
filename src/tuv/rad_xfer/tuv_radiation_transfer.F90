@@ -7,7 +7,6 @@ module tuv_radiation_transfer
   private
   public :: tuv_radiation_transfer_init
   public :: tuv_radiation_transfer_run
-  public :: tuv_radiation_transfer_finalize
   
   integer :: nlev, nlyr
   
@@ -182,20 +181,5 @@ subroutine tuv_radiation_transfer_init( realkind, nlevels, errmsg, errflg )
          dir_fld, dwn_fld, up_fld, dt_cld, errmsg, errflg )
 
   end subroutine tuv_radiation_transfer_run
-  
-!> \section arg_table_tuv_radiation_transfer_finalize Argument Table
-!! \htmlinclude tuv_radiation_transfer_finalize.html
-!!
-  subroutine tuv_radiation_transfer_finalize( errmsg, errflg )
-
-    !--- arguments
-    character(len=*), intent(out) :: errmsg
-    integer,          intent(out) :: errflg
-
-    !--- initialize CCPP error handling variables
-    errmsg = ''
-    errflg = 0
-
-  end subroutine tuv_radiation_transfer_finalize
 
 end module tuv_radiation_transfer

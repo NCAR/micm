@@ -40,20 +40,4 @@ contains
     call p_rate_mapping(prates(level_number,:), j_rateConst)
 
   end subroutine photolysis_interstitial_run
-  
-!> \section arg_table_photolysis_interstitial_finalize Argument Table
-!! \htmlinclude photolysis_interstitial_finalize.html
-!!
-  subroutine photolysis_interstitial_finalize( errmsg, errflg )
-
-    !--- arguments
-    character(len=512), intent(out) :: errmsg
-    integer,            intent(out) :: errflg
-
-    !--- initialize CCPP error handling variables
-    errmsg = ''
-    errflg = 0
-
-  end subroutine photolysis_interstitial_finalize
-  
 end module photolysis_interstitial
