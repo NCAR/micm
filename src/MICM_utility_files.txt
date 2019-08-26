@@ -16,3 +16,4 @@
 ../../MICM_chemistry/src/tuv/share/params_mod.F90
 ../../MICM_chemistry/src/tuv/share/phot_util_mod.F90
 ../../MICM_chemistry/src/tuv/share/phot_kind_mod.F90
+../../MICM_chemistry/src/tuv/share/wavelength_grid.F90

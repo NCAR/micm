@@ -8,13 +8,6 @@
   dimensions = ()
   type = integer
   intent = in
-[nlevels]
-  standard_name = vertical_level_dimension
-  long_name = number of column layers
-  units = count
-  dimensions = ()
-  type = integer
-  intent = in
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
@@ -35,6 +28,13 @@
 [ccpp-arg-table]
   name = tuv_radiation_transfer_run
   type = scheme
+[nlev]
+  standard_name = vertical_level_dimension
+  long_name = number of column layers
+  units = count
+  dimensions = ()
+  type = integer
+  intent = in
 [tuv_n_wavelen]
   standard_name = tuv_n_actinic_flux_wavelengths
   units = count
@@ -62,6 +62,14 @@
   long_name = mid-point layer pressure
   units = Pa
   dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+[press_top]
+  standard_name = top_interface_pressure
+  long_name = pressure at the top of the model
+  units = Pa
+  dimensions = ()
   type = real
   kind = kind_phys
   intent = in
@@ -105,11 +113,27 @@
   type = real
   kind = kind_phys
   intent = in
+[cldfrc]
+  standard_name = cloud_fraction
+  long_name = cloud fraction
+  units = none
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
+[cldwat]
+  standard_name = cloud_water_dens
+  long_name = cloud water mass density
+  units = g/m3
+  dimensions = (vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = in
 [dto2]
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (vertical_layer_dimension,tuv_n_actinic_flux_wavelengths)
+  dimensions = (vertical_level_dimension,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = in

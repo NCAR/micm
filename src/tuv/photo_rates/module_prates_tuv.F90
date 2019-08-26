@@ -2,67 +2,143 @@ module  module_prates_tuv
   use phot_kind_mod, only: rk => kind_phot
   use module_rxn, only : xsqy_table => xsqy_tab, the_subs, npht_tab, rxn_init
   use module_rxn, only : get_initialization, set_initialization
-
+  use wavelength_grid,only: nwave, wl, wc
+  use params_mod, only : hc, qnan
+  
   implicit none
 
   private
   public :: calc_tuv_init
   public :: calc_tuv_prates
   public :: rxn_ndx
-  public :: get_xsqy_tab
-  public :: nwave
+  public :: read_etf
+  public :: update_etf
 
-  integer, protected :: nwave
   integer :: nconc, ntemp
 
-  real(rk), allocatable :: z_temp_data(:), temp_data(:)
   real(rk), allocatable :: xsqy_tab(:,:,:,:)
-  real(rk), allocatable :: z_o3_data(:), o3_data(:)
-  real(rk), allocatable :: z_air_dens_data(:), air_dens_data(:)
-  real(rk), allocatable :: wl(:)
-  real(rk), allocatable :: wc(:)
   real(rk), allocatable :: dw(:)
-  real(rk), allocatable :: w_fac(:)
-  real(rk), allocatable :: etfl(:)
+  real(rk), allocatable :: photon_flux(:) ! /cm2/sec
   real(rk), allocatable :: temp_tab(:)
   real(rk), allocatable :: conc_tab(:)
   real(rk), allocatable :: del_temp_tab(:)
   real(rk), allocatable :: del_conc_tab(:)
-  real(rk), allocatable :: o3_xs_tab(:,:)
-  real(rk), allocatable :: no2_xs_tab(:,:)
   character(len=32), allocatable :: tuv_jname(:)
-  integer :: n_temp_data, n_o3_data, n_air_dens_data
 
   integer :: nj 
-  integer :: j_o2_ndx = 1
+  integer :: j_o2_ndx = -1
+  integer :: jo2_a_ndx = -1
+  integer :: jo2_b_ndx = -1
   logical :: is_full_tuv = .true.
 
   logical, allocatable :: xsqy_is_zdep(:)
   integer, protected, allocatable :: rxn_ndx(:)
 
-  integer, parameter :: nlambda_start = 1
-  real(rk)    :: esfact = 1.0_rk
+  real(rk) :: esfact = 1.0_rk
+  real(rk) :: xnan
+
 contains
 
   !------------------------------------------------------------------------------
   ! initialize
   !------------------------------------------------------------------------------
-  subroutine calc_tuv_init( full_tuv, jnames, errmsg, errflg )
+  subroutine calc_tuv_init( full_tuv, nlevs, jnames, xsqy_filepath, errmsg, errflg )
 
     logical, intent(in) :: full_tuv
+    integer, intent(in) :: nlevs
     character(len=*), intent(in) :: jnames(:)
+    character(len=*), intent(in) :: xsqy_filepath
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
     
-    integer :: i,j,n
+    integer :: i,j,n,jndx
+    integer :: astat
+    logical :: rxn_initialized
+    real(rk) :: dummy(nlevs)
 
+    xnan = qnan()
+    
     is_full_tuv = full_tuv
     nj = size(jnames)
-    allocate( tuv_jname(nj) )
+
+    allocate( tuv_jname(nj), stat=astat )
+    if( astat /= 0 ) then
+       errmsg = 'calc_tuv_init: failed to allocate tuv_jname'
+       errflg = astat
+       return
+    endif
+
     tuv_jname(:) = jnames(:)
-    
-    if( .not. is_full_tuv ) then
-       allocate( xsqy_is_zdep(nj) )
+
+    find_jo2: do n=1,nj       
+       if (trim(tuv_jname(n)) == 'j_o2') j_o2_ndx = n
+       if (trim(tuv_jname(n)) == 'jo2_a') jo2_a_ndx = n
+       if (trim(tuv_jname(n)) == 'jo2_b') jo2_b_ndx = n
+    end do find_jo2
+
+    if( is_full_tuv ) then
+
+       call rxn_init( nwave+1, wl, errmsg, errflg )
+       allocate( rxn_ndx(nj), stat=astat )
+       if( astat /= 0 ) then
+          errmsg = 'calc_tuv_init: failed to allocate rxn_ndx'
+          errflg = astat
+          return
+       endif
+       rxn_ndx(1:nj) = -1
+       do j = 1,nj
+          if( j == j_o2_ndx ) then
+             rxn_ndx(j) = 0
+          else
+             do n = 2,npht_tab
+                if( trim(xsqy_table(n)%rxn_name) == trim(tuv_jname(j)) ) then
+                   if (.not.any(rxn_ndx==n)) then
+                      rxn_ndx(j) = n
+                      exit
+                   else
+                      errmsg = trim(errmsg)//' '//trim(tuv_jname(j))
+                      errflg = 1
+                   end if
+                endif
+             enddo
+          endif
+       enddo
+
+       if (errflg/=0) then
+          errmsg = 'calc_tuv_init: deplicate jnames: '//trim(errmsg)
+          return
+       end if
+       
+       if (any(rxn_ndx(1:nj)<0)) then
+          errflg = 1
+          errmsg = 'calc_tuv_init: not recognized jnames:'
+          do j = 1,nj
+             if (rxn_ndx(j) < 0 ) then
+                errmsg = trim(errmsg)//' '//trim(tuv_jname(j))
+             end if
+          end do
+          return
+       end if
+
+       rxn_initialized = .not. get_initialization()
+       if( .not. rxn_initialized ) then
+          do n = 1,nj
+             jndx = rxn_ndx(n)
+             if( jndx > 0 ) then
+                call the_subs(jndx)%xsqy_sub(nwave+1,wl,wc,nlevs,dummy,dummy,jndx, errmsg, errflg )
+             endif
+          enddo
+          call set_initialization( status=.false. )
+       endif
+
+    else
+       call read_xsqy_tables(xsqy_filepath, errmsg, errflg)
+       allocate( xsqy_is_zdep(nj), stat=astat )
+       if( astat /= 0 ) then
+          errmsg = 'calc_tuv_init: failed to allocate xsqy_is_zdep'
+          errflg = astat
+          return
+       endif
        xsqy_is_zdep(:) = .false.
        if( j_o2_ndx > 0 ) then
           xsqy_is_zdep(j_o2_ndx) = .true.
@@ -79,21 +155,7 @@ contains
              end do t_loop
           endif
        end do
-    else
-       call rxn_init( nwave+1,wl, errmsg, errflg )
-       allocate( rxn_ndx(nj) )
-       rxn_ndx(1:nj) = -1
-       do j = 1,nj
-          if( j /= j_o2_ndx ) then
-             do n = 2,npht_tab
-                if( trim(xsqy_table(n)%wrf_label) == trim(tuv_jname(j)) ) then
-                   rxn_ndx(j) = n
-                   exit
-                endif
-             enddo
-          endif
-       enddo
-    endif       
+    endif
 
   end subroutine calc_tuv_init
 
@@ -101,8 +163,6 @@ contains
   ! compute Js for a column given photon fluxes in each grid box of the column (nlevs)
   !------------------------------------------------------------------------------
   subroutine calc_tuv_prates(kts,kte,nlevs, tlev, dens_air, rad_fld, srb_o2_xs, tuv_prate, errmsg, errflg)
-
-    USE,INTRINSIC :: IEEE_ARITHMETIC
 
     ! Args
     integer, intent(in) :: kts,kte,nlevs
@@ -122,11 +182,9 @@ contains
 
     integer :: n,jndx
     integer :: k
-    real(rk) :: dummy(nlevs)
-    logical :: rxn_initialized
-    real(rk) :: xnan
+    real(rk) :: sq2d(nlevs,nwave)
+    real(rk) :: sq1d(nwave,1)
 
-    xnan =  IEEE_VALUE(xnan,IEEE_QUIET_NAN)
     tuv_prate = xnan
     rad_fld_tpose = xnan
 
@@ -138,22 +196,9 @@ contains
        rad_fld_tpose = transpose( rad_fld )
     endif
 
-    if( is_full_tuv ) then
-       rxn_initialized = .not. get_initialization()
-       if( .not. rxn_initialized ) then
-          do n = 1,nj
-             jndx = rxn_ndx(n)
-             if( jndx /= -1 ) then
-                call the_subs(jndx)%xsqy_sub(nwave+1,wl,wc,nlevs,dummy,dummy,jndx, errmsg, errflg )
-             endif
-          enddo
-          call set_initialization( status=.false. )
-       endif
-    endif
-
     rate_loop: do n = 1,nj
-    xsect = xnan
-    xsqy = xnan
+       xsect = xnan
+       xsqy = xnan
        !---------------------------------------------------------------------
        ! set cross-section x quantum yields
        !---------------------------------------------------------------------
@@ -166,12 +211,18 @@ contains
              jndx = rxn_ndx(n)
              if( jndx /= -1 ) then
                 if( xsqy_table(jndx)%tpflag /= 0 ) then
-                   call the_subs(jndx)%xsqy_sub(nwave+1,wl,wc,nlevs,tlev,dens_air,jndx, errmsg, errflg)
-                endif
+                   call the_subs(jndx)%xsqy_sub(nwave+1,wl,wc,nlevs,tlev,dens_air,jndx, errmsg, errflg, sq=sq2d)
+                else
+                   call the_subs(jndx)%xsqy_sub(nwave+1,wl,wc,nlevs,tlev,dens_air,jndx, errmsg, errflg, sq=sq1d)
+                end if
              endif
           endif
-       elseif( .not. is_full_tuv ) then
-          call sjo2( kte, nwave, srb_o2_xs, xsqy )
+       else
+          if( is_full_tuv ) then
+             sq1d = 1._rk
+          else
+             call sjo2( kte, nwave, srb_o2_xs, xsqy )
+          endif
        endif
        !---------------------------------------------------------------------
        ! compute tuv photorates
@@ -179,41 +230,122 @@ contains
        if( .not. is_full_tuv ) then
           if( xsqy_is_zdep(n) ) then
              do k = kts,kte
-                xsect(nlambda_start:nwave) = xsqy(nlambda_start:nwave,k)*w_fac(nlambda_start:nwave)*esfact
-                tuv_prate(k,n) = dot_product( rad_fld(nlambda_start:nwave,k),xsect(nlambda_start:nwave) )
+                xsect(1:nwave) = xsqy(1:nwave,k)*photon_flux(1:nwave)*esfact
+                tuv_prate(k,n) = dot_product( rad_fld(1:nwave,k),xsect(1:nwave) )
              end do
           else
-             xsect(nlambda_start:nwave) = xsqy_tab(nlambda_start:nwave,1,1,n)*w_fac(nlambda_start:nwave)*esfact
-             tuv_prate(:,n) = matmul( rad_fld_tpose(:,nlambda_start:nwave),xsect(nlambda_start:nwave) )
+             xsect(1:nwave) = xsqy_tab(1:nwave,1,1,n)*photon_flux(1:nwave)*esfact
+             tuv_prate(:,n) = matmul( rad_fld_tpose(:,1:nwave),xsect(1:nwave) )
           endif
        else
-          if( n /= j_o2_ndx ) then
-             if( xsqy_table(jndx)%tpflag > 0 ) then
-                do k = kts,kte
-                   xsect(nlambda_start:nwave) = xsqy_table(jndx)%sq(k,nlambda_start:nwave)*w_fac(nlambda_start:nwave)*esfact
-                   tuv_prate(k,n) = dot_product( rad_fld(nlambda_start:nwave,k),xsect(nlambda_start:nwave) )
-                end do
-             else
-                xsect(nlambda_start:nwave) = xsqy_table(jndx)%sq(nlambda_start:nwave,1)*w_fac(nlambda_start:nwave)*esfact
-                tuv_prate(:,n) = matmul( rad_fld_tpose(:,nlambda_start:nwave),xsect(nlambda_start:nwave) )
-             endif
-          else
+          if(n==jo2_a_ndx .or. n==jo2_b_ndx .or. n==j_o2_ndx) then
              do k = kts,kte
-                xsect(nlambda_start:nwave) = srb_o2_xs(nlambda_start:nwave,k)*w_fac(nlambda_start:nwave)*esfact
-                tuv_prate(k,n) = dot_product( rad_fld(nlambda_start:nwave,k),xsect(nlambda_start:nwave) )
+                xsect(1:nwave) = sq1d(1:nwave,1)*srb_o2_xs(1:nwave,k)*photon_flux(1:nwave)*esfact
+                tuv_prate(k,n) = dot_product( rad_fld(1:nwave,k),xsect(1:nwave) )
              end do
-          endif
+          else if ( xsqy_table(jndx)%tpflag > 0 ) then
+             do k = kts,kte
+                xsect(1:nwave) = sq2d(k,1:nwave)*photon_flux(1:nwave)*esfact
+                tuv_prate(k,n) = dot_product( rad_fld(1:nwave,k),xsect(1:nwave) )
+             end do
+          else
+             xsect(1:nwave) = sq1d(1:nwave,1)*photon_flux(1:nwave)*esfact
+             tuv_prate(:,n) = matmul( rad_fld_tpose(:,1:nwave),xsect(1:nwave) )
+          end if
        endif
     end do rate_loop
 
   end subroutine calc_tuv_prates
 
-  subroutine get_xsqy_tab(xsqy_filepath, errmsg, errflg )
-    !---------------------------------------------------------------------
-    !	... read in the cross section,quantum yield tables
-    !---------------------------------------------------------------------
+  ! update extraterrestrial photon flux
+  subroutine update_etf( etf_in )
+    real(rk), intent(in) :: etf_in(nwave) ! watts/m2/nm
 
-    use params_mod, only : hc
+    ! nm * (watts/m2/nm) * nw * 1.e-13/(watts m sec) --> /cm2/sec
+    photon_flux(:nwave) = dw(:nwave)*etf_in(:nwave)*wc(:nwave)*1.e-13_rk/hc
+
+  end subroutine update_etf
+  
+  subroutine read_etf(filepath, errmsg, errflg )
+    !---------------------------------------------------------------------
+    !	... read in ETF
+    !---------------------------------------------------------------------
+    use netcdf
+
+    !---------------------------------------------------------------------
+    !	... dummy args
+    !---------------------------------------------------------------------
+    character(len=*), intent(in)  :: filepath
+    character(len=*), intent(out) :: errmsg
+    integer,          intent(out) :: errflg
+
+    !---------------------------------------------------------------------
+    !	... local variables
+    !---------------------------------------------------------------------
+    integer :: astat, ret
+    integer :: m
+    integer :: ncid, dimid, varid
+    character(len=64) :: varname
+
+    real(rk) :: etfl(nwave)
+
+    !---------------------------------------------------------------------
+    !	... open file
+    !---------------------------------------------------------------------
+    ret = nf90_open( trim(filepath), nf90_noclobber, ncid )
+    if( ret /= nf90_noerr ) then
+       errflg = 1
+       errmsg = 'read_etf: failed to open file ' // trim(filepath)
+       return
+    end if
+
+    !---------------------------------------------------------------------
+    !	... allocate module arrays
+    !---------------------------------------------------------------------
+    allocate( dw(nwave), photon_flux(nwave), stat=astat )
+    if( astat /= 0 ) then
+       errmsg = 'read_etf: failed to allocate'
+       errflg = astat
+       return
+    endif
+
+    dw(:nwave) = wl(2:nwave+1) - wl(1:nwave)
+    photon_flux(:nwave) = xnan
+
+    !---------------------------------------------------------------------
+    !	... read arrays
+    !---------------------------------------------------------------------
+    ret = nf90_inq_varid( ncid, 'etf', varid )
+    if( ret /= nf90_noerr ) then
+       errflg = 1
+       errmsg = 'read_etf: failed to get etfl variable id'
+       return
+    end if
+
+    if (varid>0) then
+       ret = nf90_get_var( ncid, varid, etfl )
+       if( ret /= nf90_noerr ) then
+          errflg = 1
+          errmsg = 'read_etf: failed to read etfl variable'
+          return
+       end if
+
+       photon_flux(:nwave) = dw(:nwave)*etfl(:nwave)*1.e-13_rk*wc(:nwave)/hc !  watts/m2/nm --> /cm2/sec
+    end if
+
+    !---------------------------------------------------------------------
+    !	... close file
+    !---------------------------------------------------------------------
+    ret = nf90_close( ncid )
+    if( ret /= nf90_noerr ) then
+       errflg = 1
+       errmsg = 'read_etf: failed to close file ' // trim(filepath)
+       return
+    end if
+
+  end subroutine read_etf
+
+  subroutine read_xsqy_tables( xsqy_filepath, errmsg, errflg )
     use netcdf
 
     character(len=*), intent(in)  :: xsqy_filepath
@@ -223,348 +355,121 @@ contains
     !---------------------------------------------------------------------
     !	... local variables
     !---------------------------------------------------------------------
-    integer :: astat, ierr, ret
+    integer :: astat, ret
     integer :: m
     integer :: ncid, dimid, varid
     character(len=64) :: varname
 
+    errmsg = ' '
+    errflg = 0
+
     ret = nf90_open( trim(xsqy_filepath), nf90_noclobber, ncid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to open file ' // trim(xsqy_filepath)
+       errmsg = 'read_xsqy_tables: failed to open file ' // trim(xsqy_filepath)
        return
     end if
 
-    !---------------------------------------------------------------------
-    !	... get dimensions
-    !---------------------------------------------------------------------
-    ret = nf90_inq_dimid( ncid, 'nwave', dimid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get nwave id'
-       return
-    end if
-    ret = nf90_inquire_dimension( ncid, dimid, len=nwave )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get nwave'
-       return
-    end if
     ret = nf90_inq_dimid( ncid, 'ntemp', dimid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get ntemp id'
+       errmsg = 'read_xsqy_tables: failed to get ntemp id'
        return
     end if
     ret = nf90_inquire_dimension( ncid, dimid, len=ntemp )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get ntemp'
+       errmsg = 'read_xsqy_tables: failed to get ntemp'
        return
     end if
     ret = nf90_inq_dimid( ncid, 'nconc', dimid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get nconc id'
+       errmsg = 'read_xsqy_tables: failed to get nconc id'
        return
     end if
     ret = nf90_inquire_dimension( ncid, dimid, len=nconc )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get nconc'
-       return
-    end if
-    ret = nf90_inq_dimid( ncid, 'n_temp_data', dimid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_temp_data id'
-       return
-    end if
-    ret = nf90_inquire_dimension( ncid, dimid, len=n_temp_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_temp_data'
-       return
-    end if
-    ret = nf90_inq_dimid( ncid, 'n_o3_data', dimid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_o3_data id'
-       return
-    end if
-    ret = nf90_inquire_dimension( ncid, dimid, len=n_o3_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_o3_data'
-       return
-    end if
-    ret = nf90_inq_dimid( ncid, 'n_air_dens_data', dimid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_air_dens_data id'
-       return
-    end if
-    ret = nf90_inquire_dimension( ncid, dimid, len=n_air_dens_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get n_air_dens_data'
+       errmsg = 'read_xsqy_tables: failed to get nconc'
        return
     end if
 
-    !---------------------------------------------------------------------
-    !	... allocate module arrays
-    !---------------------------------------------------------------------
-    ierr = 0
-    allocate( z_temp_data(n_temp_data), z_o3_data(n_o3_data), &
-         z_air_dens_data(n_air_dens_data),stat=astat )
-    ierr = astat + ierr
-    allocate( temp_data(n_temp_data), o3_data(n_o3_data), &
-         air_dens_data(n_air_dens_data),stat=astat )
-    ierr = astat + ierr
-    allocate( wl(nwave+1), wc(nwave), dw(nwave), w_fac(nwave), &
-         etfl(nwave), stat=astat )
-    ierr = astat + ierr
-    if( .not. is_full_tuv ) then
-       allocate( temp_tab(ntemp), conc_tab(nconc), stat=astat )
-       ierr = astat + ierr
-       allocate( del_temp_tab(ntemp-1), del_conc_tab(nconc-1), stat=astat )
-       ierr = astat + ierr
-    endif
-    allocate( o3_xs_tab(nwave,ntemp), no2_xs_tab(nwave,ntemp), stat=astat )
-    ierr = astat + ierr
-    if( .not. is_full_tuv ) then
-       allocate( xsqy_tab(nwave,ntemp,nconc,nj), stat=astat )
-       ierr = astat + ierr
-    endif
-    if( ierr /= 0 ) then
-       errmsg = 'get_xsqy_tab: failed to allocate'
-       errflg = ierr
+    allocate( temp_tab(ntemp), conc_tab(nconc), stat=astat )
+    if( astat /= 0 ) then
+       errmsg = 'read_xsqy_tables: failed to allocate'
+       errflg = astat
        return
     endif
-    
-    !---------------------------------------------------------------------
-    !	... read arrays
-    !---------------------------------------------------------------------
-    ret = nf90_inq_varid( ncid, 'z_temp_data', varid )
+    allocate( del_temp_tab(ntemp-1), del_conc_tab(nconc-1), stat=astat )
+    if( astat /= 0 ) then
+       errmsg = 'read_xsqy_tables: failed to allocate'
+       errflg = astat
+       return
+    endif
+    allocate( xsqy_tab(nwave,ntemp,nconc,nj), stat=astat )
+    if( astat /= 0 ) then
+       errmsg = 'read_xsqy_tables: failed to allocate'
+       errflg = astat
+       return
+    endif
+
+    ret = nf90_inq_varid( ncid, 'temps', varid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get z_temp_data variable id'
+       errmsg = 'read_xsqy_tables: failed to temp_tab variable id'
        return
     end if
 
-    ret = nf90_get_var( ncid, varid, z_temp_data )
+    ret = nf90_get_var( ncid, varid, temp_tab )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read z_temp_data variable'
+       errmsg = 'read_xsqy_tables: failed to read temp_tab variable'
        return
     end if
 
-
-    ret = nf90_inq_varid( ncid, 'z_o3_data', varid )
+    ret = nf90_inq_varid( ncid, 'concs', varid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get z_o3_data variable id'
+       errmsg = 'read_xsqy_tables: failed to conc_tab variable id'
        return
     end if
 
-    ret = nf90_get_var( ncid, varid, z_o3_data )
+    ret = nf90_get_var( ncid, varid, conc_tab )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read z_o3_data variable'
+       errmsg = 'read_xsqy_tables: failed to read conc_tab variable'
        return
     end if
-
-    ret = nf90_inq_varid( ncid, 'z_air_dens_data', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get z_air_dens_data variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, z_air_dens_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read z_air_dens_data variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'temp_data', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get temp_data variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, temp_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read temp_data variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'o3_data', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get o3_data variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, o3_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read o3_data variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'air_dens_data', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get air_dens_data variable id'
-       return
-    end if
-
-
-    ret = nf90_get_var( ncid, varid, air_dens_data )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read air_dens_data variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'wl', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get wl variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, wl )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read wl variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'wc', varid )
-     if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get wc variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, wc )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read wc variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'etf', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to get etfl variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, etfl )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read etfl variable'
-       return
-    end if
-
-    if( .not. is_full_tuv ) then
-       ret = nf90_inq_varid( ncid, 'temps', varid )
+    do m = 1,nj
+       varname = trim(tuv_jname(m)) // '_xsqy'
+       ret = nf90_inq_varid( ncid, trim(varname), varid )
        if( ret /= nf90_noerr ) then
           errflg = 1
-          errmsg = 'get_xsqy_tab: failed to temp_tab variable id'
+          errmsg = 'read_xsqy_tables: failed to ' // trim(varname) //' variable id'
           return
        end if
-
-       ret = nf90_get_var( ncid, varid, temp_tab )
+       ret = nf90_get_var( ncid, varid, xsqy_tab(:,:,:,m) )
        if( ret /= nf90_noerr ) then
           errflg = 1
-          errmsg = 'get_xsqy_tab: failed to read temp_tab variable'
+          errmsg = 'read_xsqy_tables: failed to read ' // trim(varname) // ' variable'
           return
        end if
+    end do
 
-       ret = nf90_inq_varid( ncid, 'concs', varid )
-       if( ret /= nf90_noerr ) then
-          errflg = 1
-          errmsg = 'get_xsqy_tab: failed to conc_tab variable id'
-          return
-       end if
-
-       ret = nf90_get_var( ncid, varid, conc_tab )
-       if( ret /= nf90_noerr ) then
-          errflg = 1
-          errmsg = 'get_xsqy_tab: failed to read conc_tab variable'
-          return
-       end if
-
-    endif
-    
-    ret = nf90_inq_varid( ncid, 'o3_xs', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to o3_xs_tab variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, o3_xs_tab )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read o3_xs_tab variable'
-       return
-    end if
-
-    ret = nf90_inq_varid( ncid, 'no2_xs', varid )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to no2_xs_tab variable id'
-       return
-    end if
-
-    ret = nf90_get_var( ncid, varid, no2_xs_tab )
-    if( ret /= nf90_noerr ) then
-       errflg = 1
-       errmsg = 'get_xsqy_tab: failed to read no2_xs_tab variable'
-       return
-    end if
-    if( .not. is_full_tuv ) then
-       do m = 1,nj
-          varname = trim(tuv_jname(m)) // '_xsqy'
-          ret = nf90_inq_varid( ncid, trim(varname), varid )
-          if( ret /= nf90_noerr ) then
-             errflg = 1
-             errmsg = 'get_xsqy_tab: failed to ' // trim(varname) //' variable id'
-             return
-          end if
-          ret = nf90_get_var( ncid, varid, xsqy_tab(:,:,:,m) )
-          if( ret /= nf90_noerr ) then
-             errflg = 1
-             errmsg = 'get_xsqy_tab: failed to read ' // trim(varname) // ' variable'
-             return
-          end if
-       end do
-    endif
-
-    if( .not. is_full_tuv ) then
-       del_temp_tab(:ntemp-1) = 1._rk/(temp_tab(2:ntemp) - temp_tab(1:ntemp-1))
-       del_conc_tab(:nconc-1) = 1._rk/(conc_tab(2:nconc) - conc_tab(1:nconc-1))
-    endif
-    dw(:nwave)    = wl(2:nwave+1) - wl(1:nwave)
-    w_fac(:nwave) = dw(:nwave)*etfl(:nwave)*1.e-13_rk*wc(:nwave)/hc
+    del_temp_tab(:ntemp-1) = 1._rk/(temp_tab(2:ntemp) - temp_tab(1:ntemp-1))
+    del_conc_tab(:nconc-1) = 1._rk/(conc_tab(2:nconc) - conc_tab(1:nconc-1))
 
     ret = nf90_close( ncid )
     if( ret /= nf90_noerr ) then
        errflg = 1
-       errmsg = 'get_xsqy_tab: failed to close file ' // trim(xsqy_filepath)
+       errmsg = 'read_xsqy_tables: failed to close file ' // trim(xsqy_filepath)
        return
     end if
+    
+  end subroutine read_xsqy_tables
 
-  end subroutine get_xsqy_tab
-
+ 
       subroutine xsqy_int( n, xsqy, tlev, dens_air )
 !---------------------------------------------------------------------
 !	... interpolate m,t tables for xs * qy

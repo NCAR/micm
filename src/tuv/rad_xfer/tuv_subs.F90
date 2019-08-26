@@ -10,7 +10,7 @@
 
       CONTAINS
 
-      SUBROUTINE tuv_radfld( nlambda_start, cld_od_opt, cldfrac, nlyr, nwave, &
+      SUBROUTINE tuv_radfld( nlambda_start, cld_od_opt, cldfrac, nlev, nwave, &
                              zenith, z, albedo, &
                              aircol, o3col, so2col, no2col, &
                              tauaer300, tauaer400, tauaer600, tauaer999, &
@@ -34,7 +34,7 @@
 !     ... dummy arguments
 !-----------------------------------------------------------------------------
       integer, intent(in)  :: nlambda_start
-      integer, intent(in)  :: nlyr
+      integer, intent(in)  :: nlev
       integer, intent(in)  :: nwave
       integer, intent(in)  :: cld_od_opt
       real(rk), intent(in)  :: zenith
@@ -84,29 +84,29 @@
 !-----------------------------------------------------------------------------
       integer :: wn
       integer :: n_radlev, n_radlevp1
-      integer :: nid(0:nlyr)
-      real(rk) :: dtrl(nlyr,nwave)
-      real(rk) :: dto3(nlyr,nwave)
-      real(rk) :: dtso2(nlyr,nwave)
-      real(rk) :: dtno2(nlyr,nwave)
-!     real :: dtcld(nlyr,nwave)
-!     real :: dtaer(nlyr,nwave)
-      real(rk) :: dtsnw(nlyr,nwave)
+      integer :: nid(0:nlev)
+      real(rk) :: dtrl(nlev,nwave)
+      real(rk) :: dto3(nlev,nwave)
+      real(rk) :: dtso2(nlev,nwave)
+      real(rk) :: dtno2(nlev,nwave)
+!     real :: dtcld(nlev,nwave)
+!     real :: dtaer(nlev,nwave)
+      real(rk) :: dtsnw(nlev,nwave)
 
-!     real :: omcld(nlyr,nwave)
-!     real :: gcld(nlyr,nwave)
-!     real :: omaer(nlyr,nwave)
-!     real :: gaer(nlyr,nwave)
-      real(rk) :: omsnw(nlyr,nwave)
-      real(rk) :: gsnw(nlyr,nwave)
+!     real :: omcld(nlev,nwave)
+!     real :: gcld(nlev,nwave)
+!     real :: omaer(nlev,nwave)
+!     real :: gaer(nlev,nwave)
+      real(rk) :: omsnw(nlev,nwave)
+      real(rk) :: gsnw(nlev,nwave)
 
-      real(rk) :: edir(nlyr+1)
-      real(rk) :: edn(nlyr+1)
-      real(rk) :: eup(nlyr+1)
-      real(rk) :: fdir(nlyr+1)
-      real(rk) :: fdn(nlyr+1)
-      real(rk) :: fup(nlyr+1)
-      real(rk) :: dsdh(0:nlyr,nlyr)
+      real(rk) :: edir(nlev+1)
+      real(rk) :: edn(nlev+1)
+      real(rk) :: eup(nlev+1)
+      real(rk) :: fdir(nlev+1)
+      real(rk) :: fdn(nlev+1)
+      real(rk) :: fup(nlev+1)
+      real(rk) :: dsdh(0:nlev,nlev)
 
       errmsg = ' '
       errflg = 0
@@ -149,11 +149,11 @@
       
  !     dt_cld(:n_radlev) = dtcld(2:n_radlevp1,1)
 
-      call sphers( nlyr, z, zenith, dsdh, nid )
+      call sphers( nlev, z, zenith, dsdh, nid )
 
       do wn = nlambda_start,nwave
         call rtlink( &
-           nlyr+1, nlyr, nwave, &
+           nlev+1, nlev, nwave, &
            wn, albedo(wn), zenith, &
            dsdh, nid, &
            dtrl,  &
