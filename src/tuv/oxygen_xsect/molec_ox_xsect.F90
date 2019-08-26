@@ -23,17 +23,13 @@ contains
 !> \section arg_table_molec_ox_xsect_run Argument Table
 !! \htmlinclude molec_ox_xsect_run.html
 !!
-  subroutine molec_ox_xsect_run( nlev, tuv_n_wavelen, zen, alt, temp, press_mid, press_top, o2vmr, dto2, srb_o2_xs, errmsg, errflg )
+  subroutine molec_ox_xsect_run( nlev, zen, alt, temp, press_mid, press_top, o2vmr, dto2, srb_o2_xs, errmsg, errflg )
     use module_xsections, only: o2_xs
     use phot_util_mod, only : sphers, airmas
     use la_srb_mod,    only : la_srb_comp
     use params_mod,    only : R, g, kboltz
 
     integer,          intent(in)    :: nlev
-
-    !! NOTE THIS VARIABLE WILL GO AWAY - FOR NOW IS REQUIRED WORKAROUND FOR CPF
-    integer,          intent(in)    :: tuv_n_wavelen
-
     real(kind_phys),  intent(in)    :: zen
     real(kind_phys),  intent(in)    :: alt(:)  ! m
     real(kind_phys),  intent(in)    :: temp(:) ! K

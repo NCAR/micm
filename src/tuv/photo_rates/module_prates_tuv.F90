@@ -60,7 +60,6 @@ contains
     
     is_full_tuv = full_tuv
     nj = size(jnames)
-
     allocate( tuv_jname(nj), stat=astat )
     if( astat /= 0 ) then
        errmsg = 'calc_tuv_init: failed to allocate tuv_jname'
@@ -70,7 +69,7 @@ contains
 
     tuv_jname(:) = jnames(:)
 
-    find_jo2: do n=1,nj       
+    find_jo2: do n=1,nj
        if (trim(tuv_jname(n)) == 'j_o2') j_o2_ndx = n
        if (trim(tuv_jname(n)) == 'jo2_a') jo2_a_ndx = n
        if (trim(tuv_jname(n)) == 'jo2_b') jo2_b_ndx = n

@@ -68,10 +68,7 @@ subroutine tuv_photolysis_init( realkind, nlev, jnames, tuv_n_wavelen, errmsg, e
     integer,          intent(in)  :: realkind
     integer,          intent(in)  :: nlev
     character(len=*), intent(in)  :: jnames(:)
-
-    !! NOTE THIS VARIABLE WILL GO AWAY - FOR NOW IS REQUIRED WORKAROUND FOR CPF
     integer,          intent(out) :: tuv_n_wavelen
-
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
