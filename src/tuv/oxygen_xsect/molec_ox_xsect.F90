@@ -90,7 +90,7 @@ contains
     call sphers( nlev, zlev, zen, dsdh, nid )
     call airmas( nlev, dsdh, nid, aircol, vcol, scol )
 
-    call la_srb_comp( nlev, wl(1), tlev, vcol, scol, o2lev, o2_xs, dto2, srb_o2_xs )
+    call la_srb_comp( nlev, wl(1), tlev, vcol, scol, o2lev, o2_xs, dto2, srb_o2_xs, errmsg, errflg )
 
   end subroutine molec_ox_xsect_run
 

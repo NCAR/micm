@@ -23,26 +23,28 @@
       public :: la_srb_comp
       public :: la_srb_init
 
-      INTEGER, parameter :: kla = 2
-      INTEGER, PARAMETER :: ksrb = 18
+      integer, parameter :: kla = 2
+      integer, parameter :: ksrb = 18
       integer, parameter :: nla =  kla - 1
       integer, parameter :: nsrb = ksrb - 1
 
-      integer :: nchebev_term, nchebev_wave
+      integer :: nchebev_term=-1, nchebev_wave=-1
 
       integer :: ila, isrb
-      REAL(kind=DP) :: b(3), c(3), d(3), e(3)
-      REAL(kind=DP), allocatable :: chebev_ac(:,:)
-      REAL(kind=DP), allocatable :: chebev_bc(:,:)
+      real(kind=dp) :: b(3), c(3), d(3), e(3)
+      real(kind=dp), allocatable :: chebev_ac(:,:)
+      real(kind=dp), allocatable :: chebev_bc(:,:)
 
-      REAL(rk)    :: xslod(nsrb)
-      REAL(rk)    :: wlsrb(ksrb)
-      REAL(rk)    :: wlla(kla)
-      
-      CONTAINS
+      real(rk)    :: xslod(nsrb)
+      real(rk)    :: wlsrb(ksrb)
+      real(rk)    :: wlla(kla)
 
-      SUBROUTINE la_srb_init( errmsg, errflg )
-        use params_mod, only: input_data_root
+      real(rk) :: xnan
+
+      contains
+
+      subroutine la_srb_init( errmsg, errflg )
+        use params_mod, only: input_data_root, qnan
         use wavelength_grid, only: nwave, wc
         use netcdf
 
@@ -53,6 +55,15 @@
         integer :: astat, ret
         character(len=512) :: filepath
 
+        xnan = qnan()
+        xslod = xnan
+        wlsrb = xnan
+        wlla = xnan
+        b = xnan
+        c = xnan
+        d = xnan
+        e = xnan
+        
         filepath = trim(input_data_root)//'/chebev_coeffs.nc'
 
         errmsg = ' '
@@ -191,7 +202,7 @@
 
       END SUBROUTINE la_srb_init
 
-      SUBROUTINE la_srb_comp( nlyr, wmin, tlev, vcol, scol, o2vmr, o2_xs, dto2, srb_o2_xs )
+      SUBROUTINE la_srb_comp( nlyr, wmin, tlev, vcol, scol, o2vmr, o2_xs, dto2, srb_o2_xs, errmsg, errflg )
 !-----------------------------------------------------------------------------
 !=  PURPOSE:
 !=  Compute equivalent optical depths for O2 absorption, and O2 effective
@@ -234,6 +245,9 @@
       REAL(rk), intent(inout) :: dto2(:,:)
       REAL(rk), intent(inout) :: srb_o2_xs(:,:)
 
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
+
 !-----------------------------------------------------------------------------
 !     ... local variables
 !-----------------------------------------------------------------------------
@@ -255,6 +269,17 @@
 !-----------------------------------------------------------------------------
       REAL(rk)    :: dto2k(nlyr,nsrb), o2xsk(nlyr,nsrb)
 
+      errmsg = ' '
+      errflg = 0
+
+     if (nchebev_wave<1) then
+         errflg = 1
+         errmsg = 'la_srb_comp not initialized'
+         srb_o2_xs = xnan
+         dto2 = xnan
+         return
+      end if
+      
       nlev_srb = size( srb_o2_xs,dim=2 )
 !----------------------------------------------------------------------
 ! initalize O2 cross sections 
