@@ -22,7 +22,7 @@
   name = molec_ox_xsect_run
   type = scheme
 [nlev]
-  standard_name = vertical_level_dimension
+  standard_name = vertical_interface_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -80,7 +80,7 @@
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (vertical_level_dimension,tuv_n_actinic_flux_wavelengths)
+  dimensions = (vertical_interface_dimension,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = out
@@ -88,7 +88,7 @@
   standard_name = o2_xsect
   long_name = O2 effective cross section
   units = cm2
-  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_level_dimension)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_interface_dimension)
   type = real
   kind = kind_phys
   intent = out
