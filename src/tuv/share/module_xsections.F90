@@ -28,13 +28,15 @@
       module module_xsections
 
       use phot_kind_mod, only: rk => kind_phot
-      use params_mod, only: deltax, kin, input_data_root
+      use params_mod, only: deltax, kin, input_data_root, qnan
       use  numer_mod, only: addpnt, inter2
       
       IMPLICIT NONE
 
-      public :: o3xs, rdo2xs, rdso2xs, no2xs_jpl06a
+      public :: o3xs,  no2xs_jpl06a
       public :: rdxs_init
+      public :: o2_xs, so2_xs
+      
       private
 
       REAL(rk), allocatable :: rei218(:), rei228(:), rei243(:), rei295(:)
@@ -53,16 +55,21 @@
 
       REAL(rk), allocatable :: no2xs_a(:), no2xs_b(:)
 
-      CONTAINS
+      real(rk), protected, allocatable :: o2_xs(:)
+      real(rk), protected, allocatable :: so2_xs(:)
+
+    CONTAINS
 
       SUBROUTINE rdxs_init( nw, wl, errmsg, errflg )
 
       integer, intent(in) :: nw
-      real(rk), intent(in)    :: wl(nw)
+      real(rk), intent(in) :: wl(:)
       character(len=*), intent(out) :: errmsg
       integer,          intent(out) :: errflg
 
       integer :: istat, astat
+      real(rk) :: xnan
+      xnan = qnan()
 
       errmsg = ' '
       errflg = 0
@@ -71,25 +78,41 @@
       if( .not. allocated( rei218 ) ) then
          allocate( rei218(nw),rei228(nw),rei243(nw),rei295(nw),stat=astat )
          istat = istat + astat
+         rei218 = xnan; rei228=xnan; rei243=xnan; rei295=xnan
       endif
       if( .not. allocated( wmo203 ) ) then
          allocate( wmo203(nw),wmo273(nw),stat=astat )
+         wmo203 = xnan; wmo273=xnan
          istat = istat + astat
       endif
       if( .not. allocated( jpl218 ) ) then
          allocate( jpl218(nw),jpl295(nw),stat=astat )
+         jpl218=xnan; jpl295=xnan
          istat = istat + astat
       endif
       if( .not. allocated( mol226 ) ) then
          allocate( mol226(nw),mol263(nw),mol298(nw),stat=astat )
+         mol226=xnan; mol263=xnan; mol298=xnan
          istat = istat + astat
       endif
       if( .not. allocated( c0 ) ) then
          allocate( c0(nw),c1(nw),c2(nw),stat=astat )
+         c0=xnan; c1=xnan; c2=xnan
          istat = istat + astat
       endif
       if( .not. allocated( no2xs_a ) ) then
          allocate( no2xs_a(nw),no2xs_b(nw),stat=astat )
+         no2xs_a=xnan; no2xs_b=xnan
+         istat = istat + astat
+      endif
+      if (.not. allocated(o2_xs) ) then
+         allocate(o2_xs(nw),stat=astat)
+         o2_xs = xnan
+         istat = istat + astat
+      endif
+      if (.not. allocated(so2_xs) ) then
+         allocate(so2_xs(nw),stat=astat)
+         o2_xs = xnan
          istat = istat + astat
       endif
       if( istat /= 0 ) then
@@ -117,8 +140,10 @@
       CALL o3_bas(nw,wl, errmsg, errflg)
       if (errflg.ne.0) return
 
-      CALL rdno2xs(nw,wl, errmsg, errflg)
-
+      CALL rdno2xs(nw+1,wl, errmsg, errflg)
+      call rdo2xs(nw+1,wl,o2_xs, errmsg, errflg)
+      call rdso2xs(nw+1,wl,so2_xs, errmsg, errflg)
+      
       END SUBROUTINE rdxs_init
 
       SUBROUTINE o3xs(nz,t,nw,wl, xs)
@@ -160,7 +185,8 @@
 
       INTEGER :: iw
       REAL(rk)    :: factor
-
+      xs = 0._rk
+      
 !***** option 1:
 ! assign according to wavelength range:
 !  175.439 - 185.185  1985WMO (203, 273 K)
@@ -962,8 +988,8 @@
 
 ! Input
 
-      INTEGER, intent(in) :: nw
-      REAL(rk), intent(in)    :: wl(nw)
+      INTEGER, intent(in)  :: nw
+      REAL(rk), intent(in) :: wl(:)
 
 ! Output O2 xsect, temporary, will be over-written in Lyman-alpha and 
 !   Schumann-Runge wavelength bands.
@@ -996,14 +1022,14 @@
 
       OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O2/O2_brasseur.abs',iostat=ierr)
       if( ierr /= 0 ) then
-         errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+         errmsg = 'rdo2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
          errflg = ierr
          return
       endif
       DO i = 1, 7
          READ(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-           errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+           errmsg = 'rdo2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
            errflg = ierr
            return
          endif
@@ -1011,7 +1037,7 @@
       DO i = 1, 78
          READ(kin,*,iostat=ierr) x, y
          if( ierr /= 0 ) then
-           errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+           errmsg = 'rdo2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
            errflg = ierr
            return
          endif
@@ -1025,7 +1051,7 @@
 
       OPEN(UNIT=kin,FILE=trim(input_data_root)//'/DATAE1/O2/O2_yoshino.abs',STATUS='old',iostat=ierr)
       if( ierr /= 0 ) then
-         errmsg = 'rdso2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
+         errmsg = 'rdo2xs: Failed to open DATAE1/O2/O2_brasseur.abs'
          errflg = ierr
          return
       endif
@@ -1033,7 +1059,7 @@
       DO i = 1, 8
          READ(kin,*,iostat=ierr)
          if( ierr /= 0 ) then
-            errmsg = 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
+            errmsg = 'rdo2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
             errflg = ierr
             return
          endif
@@ -1042,7 +1068,7 @@
          n = n + 1
          READ(kin,*,iostat=ierr) x, y
          if( ierr /= 0 ) then
-            errmsg = 'rdso2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
+            errmsg = 'rdo2xs: Failed to read DATAE1/O2/O2_yoshino.abs'
             errflg = ierr
             return
          endif
@@ -1063,6 +1089,7 @@
       CALL addpnt(x1,y1,kdata,n,              1.E+38_rk,0._rk,errmsg, errflg)
       if (errflg.ne.0) return
       CALL inter2(nw,wl,o2xs1, n,x1,y1,errmsg, errflg)
+      
       IF (errflg .NE. 0) THEN
          WRITE(errmsg,'(''rdo2xs: interp err = '',i5,'' in O2 -> O + O'')') ierr
          return
@@ -1089,8 +1116,8 @@
 
 ! input:
 
-      INTEGER, intent(in) :: nw
-      REAL(rk), intent(in)    :: wl(nw)
+      INTEGER, intent(in)  :: nw
+      REAL(rk), intent(in) :: wl(:)
 
       character(len=*), intent(out) :: errmsg
       integer,          intent(out) :: errflg
@@ -1184,25 +1211,26 @@
 !=  specified wavelength working grid.                                       =*
 !-----------------------------------------------------------------------------*
 
-      INTEGER, parameter :: kdata = 1000
-
 ! input: (altitude working grid)
-      INTEGER, intent(in) :: nw
-      REAL(rk), intent(in)    :: wl(nw)
+      INTEGER, intent(in)  :: nw
+      REAL(rk), intent(in) :: wl(:)
 
 ! output:
 
-      REAL(rk), intent(inout) :: so2xs(nw)
+      REAL(rk), intent(inout) :: so2xs(:)
 
       character(len=*), intent(out)   :: errmsg
       integer,          intent(out)   :: errflg
 
 !! local:
+      INTEGER, parameter :: kdata = 1000
+
       REAL(rk) x1(kdata)
       REAL(rk) y1(kdata)
       INTEGER i, n
       CHARACTER(len=40)  :: fil
 
+      
       errmsg = ' '
       errflg = 0
 !************ absorption cross sections:

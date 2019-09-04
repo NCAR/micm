@@ -26,7 +26,6 @@ contains
 !! \htmlinclude photolysis_interstitial_run.html
 !!
   subroutine photolysis_interstitial_run(prates, j_rateConst, errmsg, errflg)
-    use rate_constants_utility, only: p_rate_mapping
 
     real(kind_phys),           intent(in)  :: prates(:,:) ! /sec
     real(kind_phys),           intent(out) :: j_rateConst(:) ! /sec
@@ -37,7 +36,7 @@ contains
     errmsg = ''
     errflg = 0
 
-    call p_rate_mapping(prates(level_number,:), j_rateConst)
+    j_rateConst(:) = prates(level_number,:)
 
   end subroutine photolysis_interstitial_run
 end module photolysis_interstitial

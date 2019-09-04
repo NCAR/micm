@@ -23,36 +23,46 @@
       public :: la_srb_comp
       public :: la_srb_init
 
-      INTEGER, parameter :: kla = 2
-      INTEGER, PARAMETER :: ksrb = 18
+      integer, parameter :: kla = 2
+      integer, parameter :: ksrb = 18
       integer, parameter :: nla =  kla - 1
       integer, parameter :: nsrb = ksrb - 1
 
-      integer :: nchebev_term, nchebev_wave
+      integer :: nchebev_term=-1, nchebev_wave=-1
 
       integer :: ila, isrb
-      REAL(kind=DP) :: b(3), c(3), d(3), e(3)
-      REAL(kind=DP), allocatable :: chebev_ac(:,:)
-      REAL(kind=DP), allocatable :: chebev_bc(:,:)
+      real(kind=dp), allocatable :: chebev_ac(:,:)
+      real(kind=dp), allocatable :: chebev_bc(:,:)
 
-      REAL(rk)    :: xslod(nsrb)
-      REAL(rk)    :: wlsrb(ksrb)
-      REAL(rk)    :: wlla(kla)
-      
-      CONTAINS
+      ! Lyman-Alpha wavelength band edges
+      real(rk), parameter :: wlla(kla) = (/ 121.4_rk, 121.9_rk /)
 
-      SUBROUTINE la_srb_init( errmsg, errflg )
-        use params_mod, only: input_data_root
+      ! Schumann-Runge wavelength band edges
+      real(rk), parameter :: wlsrb(ksrb) = &
+           (/ 174.4_rk, 177.0_rk, 178.6_rk, 180.2_rk, 181.8_rk, &
+              183.5_rk, 185.2_rk, 186.9_rk, 188.7_rk, 190.5_rk, &
+              192.3_rk, 194.2_rk, 196.1_rk, 198.0_rk, 200.0_rk, &
+              202.0_rk, 204.1_rk, 205.8_rk/) ! 17 SRB bands
+
+      real(rk) :: xnan
+
+      contains
+
+      subroutine la_srb_init( errmsg, errflg )
+        use params_mod, only: input_data_root, qnan
+        use wavelength_grid, only: nwave, wc
         use netcdf
 
         character(len=*), intent(out) :: errmsg
         integer,          intent(out) :: errflg
 
-        integer :: ncid, dimid, varid
+        integer :: ncid, dimid, varid, iw, i
         integer :: astat, ret
         character(len=512) :: filepath
 
-        filepath = trim(input_data_root)//'/wrf_tuv_xsqy.nc'
+        xnan = qnan()
+
+        filepath = trim(input_data_root)//'/chebev_coeffs.nc'
 
         errmsg = ' '
         errflg = 0
@@ -65,29 +75,28 @@
            return
         end if
 
-
         ret = nf90_inq_dimid( ncid, 'nchebev_term', dimid )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get nchebev_term id'
+           errmsg = 'la_srb_init: failed to get nchebev_term id'
            return
         end if
         ret = nf90_inquire_dimension( ncid, dimid, len=nchebev_term )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get nchebev'
+           errmsg = 'la_srb_init: failed to get nchebev'
            return
         end if
         ret = nf90_inq_dimid( ncid, 'nchebev_wave', dimid )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get nchebev_wave id'
+           errmsg = 'la_srb_init: failed to get nchebev_wave id'
            return
         end if
         ret = nf90_inquire_dimension( ncid, dimid, len=nchebev_wave )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get nchebev'
+           errmsg = 'la_srb_init: failed to get nchebev'
            return
         end if
 
@@ -101,49 +110,25 @@
         ret = nf90_inq_varid( ncid, 'chebev_ac', varid )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get chebev_ac variable id'
+           errmsg = 'la_srb_init: failed to get chebev_ac variable id'
            return
         end if
         ret = nf90_get_var( ncid, varid, chebev_ac )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to read chebev_ac variable'
+           errmsg = 'la_srb_init: failed to read chebev_ac variable'
            return
         end if
         ret = nf90_inq_varid( ncid, 'chebev_bc', varid )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get chebev_bc variable id'
+           errmsg = 'la_srb_init: failed to get chebev_bc variable id'
            return
         end if
         ret = nf90_get_var( ncid, varid, chebev_bc )
         if( ret /= nf90_noerr ) then
            errflg = 1
-           errmsg = 'get_xsqy_tab: failed to read chebev_bc variable'
-           return
-        end if
-        ret = nf90_inq_varid( ncid, 'ila', varid )
-        if( ret /= nf90_noerr ) then
-           errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get ila variable id'
-           return
-        end if
-        ret = nf90_get_var( ncid, varid, ila )
-        if( ret /= nf90_noerr ) then
-           errflg = 1
-           errmsg = 'get_xsqy_tab: failed to read ila variable'
-           return
-        end if
-        ret = nf90_inq_varid( ncid, 'isrb', varid )
-        if( ret /= nf90_noerr ) then
-           errflg = 1
-           errmsg = 'get_xsqy_tab: failed to get isrb variable id'
-           return
-        end if
-        ret = nf90_get_var( ncid, varid, isrb )
-        if( ret /= nf90_noerr ) then
-           errflg = 1
-           errmsg = 'get_xsqy_tab: failed to read isrb variable'
+           errmsg = 'la_srb_init: failed to read chebev_bc variable'
            return
         end if
 
@@ -155,25 +140,42 @@
            return
         end if
 
-      b(:) = (/ 6.8431e-01_DP,  2.29841e-01_DP,  8.65412e-02_DP /)
-      c(:) = (/ 8.22114e-21_DP, 1.77556e-20_DP,  8.22112e-21_DP /)
-      d(:) = (/ 6.0073e-21_DP,  4.28569e-21_DP,  1.28059e-20_DP /)
-      e(:) = (/ 8.21666e-21_DP, 1.63296e-20_DP,  4.85121e-17_DP /)
-      xslod(:) = (/6.2180730E-21_rk, 5.8473627E-22_rk, 5.6996334E-22_rk, &
-                   4.5627094E-22_rk, 1.7668250E-22_rk, 1.1178808E-22_rk, &
-                   1.2040544E-22_rk, 4.0994668E-23_rk, 1.8450616E-23_rk, &
-                   1.5639540E-23_rk, 8.7961075E-24_rk, 7.6475608E-24_rk, &
-                   7.6260556E-24_rk, 7.5565696E-24_rk, 7.6334338E-24_rk, &
-                   7.4371992E-24_rk, 7.3642966E-24_rk /)
-      wlla(:)  = (/ 121.4_rk, 121.9_rk/)
-      wlsrb(:) = (/174.4_rk, 177.0_rk, 178.6_rk, 180.2_rk, 181.8_rk, &
-                   183.5_rk, 185.2_rk, 186.9_rk, 188.7_rk, 190.5_rk, &
-                   192.3_rk, 194.2_rk, 196.1_rk, 198.0_rk, 200.0_rk, &
-                   202.0_rk, 204.1_rk, 205.8_rk/)
+        ! check that the wavelength grid includes Lyman-alpha and Schumann-Runge wavelength bands
+
+        ila = -1
+        isrb = -1
+     
+        ila_loop: do iw = 1,nwave-1
+           if (wc(iw)>wlla(1) .and. wc(iw)<wlla(2) .and. wc(iw+1)>wlla(2)) then
+              ila = iw
+              exit ila_loop
+           end if
+        end do ila_loop
+
+       isrb_loop: do iw = 1,nwave-nsrb
+           if (wc(iw)>wlsrb(1) .and. wc(iw)<wlsrb(2)) then
+              do i = 1,nsrb-1
+                 if ( .not. (wc(iw+i)>wlsrb(i+1) .and. wc(iw+i)<wlsrb(i+2)) ) then
+                    exit isrb_loop
+                 endif
+              end do
+              if ( .not. (wc(iw+nsrb)>wlsrb(nsrb+1)) ) then
+                 exit isrb_loop
+              end if                                  
+              isrb = iw
+              exit isrb_loop
+           end if
+        end do isrb_loop
+
+        if (ila<1 .or. isrb<1) then
+           errflg = 1
+           errmsg = 'la_srb_init: wavelength grid must contain Lyman-alpha and Schumann-Runge wavelength bands'
+           return
+        end if
 
       END SUBROUTINE la_srb_init
 
-      SUBROUTINE la_srb_comp( nlyr, wmin, tlev, vcol, scol, o2vmr, o2_xs, dto2, srb_o2_xs )
+      SUBROUTINE la_srb_comp( nlyr, wmin, tlev, vcol, scol, o2vmr, o2_xs, dto2, srb_o2_xs, errmsg, errflg )
 !-----------------------------------------------------------------------------
 !=  PURPOSE:
 !=  Compute equivalent optical depths for O2 absorption, and O2 effective
@@ -216,6 +218,9 @@
       REAL(rk), intent(inout) :: dto2(:,:)
       REAL(rk), intent(inout) :: srb_o2_xs(:,:)
 
+      character(len=*), intent(out) :: errmsg
+      integer,          intent(out) :: errflg
+
 !-----------------------------------------------------------------------------
 !     ... local variables
 !-----------------------------------------------------------------------------
@@ -237,6 +242,17 @@
 !-----------------------------------------------------------------------------
       REAL(rk)    :: dto2k(nlyr,nsrb), o2xsk(nlyr,nsrb)
 
+      errmsg = ' '
+      errflg = 0
+
+     if (nchebev_wave<1) then
+         errflg = 1
+         errmsg = 'la_srb_comp not initialized'
+         srb_o2_xs = xnan
+         dto2 = xnan
+         return
+      end if
+      
       nlev_srb = size( srb_o2_xs,dim=2 )
 !----------------------------------------------------------------------
 ! initalize O2 cross sections 
@@ -307,7 +323,6 @@
 !=  O2XSLA  - REAL, molecular absorption cross section in LA bands        (O)
 !-----------------------------------------------------------------------------
 
-
 !-----------------------------------------------------------------------------
 !     ... dummy arguments
 !-----------------------------------------------------------------------------
@@ -326,6 +341,11 @@
       REAL(kind=DP) :: o2_col
       REAL(kind=DP) :: rm(nlyr), ro2(nlyr)
       REAL(kind=DP) :: rm_wrk(3), ro2_wrk(3)
+
+      real(kind=dp), parameter :: b(3) = (/ 6.8431e-01_DP,  2.29841e-01_DP,  8.65412e-02_DP /)
+      real(kind=dp), parameter :: c(3) = (/ 8.22114e-21_DP, 1.77556e-20_DP,  8.22112e-21_DP /)
+      real(kind=dp), parameter :: d(3) = (/ 6.0073e-21_DP,  4.28569e-21_DP,  1.28059e-20_DP /)
+      real(kind=dp), parameter :: e(3) = (/ 8.21666e-21_DP, 1.63296e-20_DP,  4.85121e-17_DP /)
 
       do wn = 1,nla
         dto2la(:nlyr,wn) = 0._rk
@@ -419,6 +439,13 @@
       REAL(rk)    :: x
       REAL(rk)    :: o2col1(nlyr)
       REAL(rk)    :: xs(nsrb)
+      real(rk), parameter :: xslod(nsrb) = &
+           (/ 6.2180730E-21_rk, 5.8473627E-22_rk, 5.6996334E-22_rk, &
+              4.5627094E-22_rk, 1.7668250E-22_rk, 1.1178808E-22_rk, &
+              1.2040544E-22_rk, 4.0994668E-23_rk, 1.8450616E-23_rk, &
+              1.5639540E-23_rk, 8.7961075E-24_rk, 7.6475608E-24_rk, &
+              7.6260556E-24_rk, 7.5565696E-24_rk, 7.6334338E-24_rk, &
+              7.4371992E-24_rk, 7.3642966E-24_rk /)
 
       nlyrm1 = nlyr - 1
 !-----------------------------------------------------------------------------
