@@ -29,8 +29,6 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
        errflg = 1
        return
     end if
-
-    if (errflg.ne.0) return
     
     call rdxs_init( nwave, wl, errmsg, errflg )
     

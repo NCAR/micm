@@ -31,13 +31,18 @@
       integer :: nchebev_term=-1, nchebev_wave=-1
 
       integer :: ila, isrb
-      real(kind=dp) :: b(3), c(3), d(3), e(3)
       real(kind=dp), allocatable :: chebev_ac(:,:)
       real(kind=dp), allocatable :: chebev_bc(:,:)
 
-      real(rk)    :: xslod(nsrb)
-      real(rk)    :: wlsrb(ksrb)
-      real(rk)    :: wlla(kla)
+      ! Lyman-Alpha wavelength band edges
+      real(rk), parameter :: wlla(kla) = (/ 121.4_rk, 121.9_rk /)
+
+      ! Schumann-Runge wavelength band edges
+      real(rk), parameter :: wlsrb(ksrb) = &
+           (/ 174.4_rk, 177.0_rk, 178.6_rk, 180.2_rk, 181.8_rk, &
+              183.5_rk, 185.2_rk, 186.9_rk, 188.7_rk, 190.5_rk, &
+              192.3_rk, 194.2_rk, 196.1_rk, 198.0_rk, 200.0_rk, &
+              202.0_rk, 204.1_rk, 205.8_rk/) ! 17 SRB bands
 
       real(rk) :: xnan
 
@@ -51,19 +56,12 @@
         character(len=*), intent(out) :: errmsg
         integer,          intent(out) :: errflg
 
-        integer :: ncid, dimid, varid, iw
+        integer :: ncid, dimid, varid, iw, i
         integer :: astat, ret
         character(len=512) :: filepath
 
         xnan = qnan()
-        xslod = xnan
-        wlsrb = xnan
-        wlla = xnan
-        b = xnan
-        c = xnan
-        d = xnan
-        e = xnan
-        
+
         filepath = trim(input_data_root)//'/chebev_coeffs.nc'
 
         errmsg = ' '
@@ -142,23 +140,7 @@
            return
         end if
 
-        b(:) = (/ 6.8431e-01_DP,  2.29841e-01_DP,  8.65412e-02_DP /)
-        c(:) = (/ 8.22114e-21_DP, 1.77556e-20_DP,  8.22112e-21_DP /)
-        d(:) = (/ 6.0073e-21_DP,  4.28569e-21_DP,  1.28059e-20_DP /)
-        e(:) = (/ 8.21666e-21_DP, 1.63296e-20_DP,  4.85121e-17_DP /)
-        xslod(:) = (/6.2180730E-21_rk, 5.8473627E-22_rk, 5.6996334E-22_rk, &
-                     4.5627094E-22_rk, 1.7668250E-22_rk, 1.1178808E-22_rk, &
-                     1.2040544E-22_rk, 4.0994668E-23_rk, 1.8450616E-23_rk, &
-                     1.5639540E-23_rk, 8.7961075E-24_rk, 7.6475608E-24_rk, &
-                     7.6260556E-24_rk, 7.5565696E-24_rk, 7.6334338E-24_rk, &
-                     7.4371992E-24_rk, 7.3642966E-24_rk /)
-        wlla(:)  = (/ 121.4_rk, 121.9_rk/)
-        wlsrb(:) = (/174.4_rk, 177.0_rk, 178.6_rk, 180.2_rk, 181.8_rk, &
-                     183.5_rk, 185.2_rk, 186.9_rk, 188.7_rk, 190.5_rk, &
-                     192.3_rk, 194.2_rk, 196.1_rk, 198.0_rk, 200.0_rk, &
-                     202.0_rk, 204.1_rk, 205.8_rk/) ! 17 SRB bands
-
-        ! check for  Lyman-alpha and Schumann-Runge wavelength bands
+        ! check that the wavelength grid includes Lyman-alpha and Schumann-Runge wavelength bands
 
         ila = -1
         isrb = -1
@@ -170,26 +152,17 @@
            end if
         end do ila_loop
 
-        isrb_loop: do iw = 1,nwave-17
-           if (       wc(iw+ 0)>wlsrb( 1) .and. wc(iw+ 0)<wlsrb( 2) &
-                .and. wc(iw+ 1)>wlsrb( 2) .and. wc(iw+ 1)<wlsrb( 3) &
-                .and. wc(iw+ 2)>wlsrb( 3) .and. wc(iw+ 2)<wlsrb( 4) &
-                .and. wc(iw+ 3)>wlsrb( 4) .and. wc(iw+ 3)<wlsrb( 5) &
-                .and. wc(iw+ 4)>wlsrb( 5) .and. wc(iw+ 4)<wlsrb( 6) &
-                .and. wc(iw+ 5)>wlsrb( 6) .and. wc(iw+ 5)<wlsrb( 7) &
-                .and. wc(iw+ 6)>wlsrb( 7) .and. wc(iw+ 6)<wlsrb( 8) &
-                .and. wc(iw+ 7)>wlsrb( 8) .and. wc(iw+ 7)<wlsrb( 9) &
-                .and. wc(iw+ 8)>wlsrb( 9) .and. wc(iw+ 8)<wlsrb(10) &
-                .and. wc(iw+ 9)>wlsrb(10) .and. wc(iw+ 9)<wlsrb(11) &
-                .and. wc(iw+10)>wlsrb(11) .and. wc(iw+10)<wlsrb(12) &
-                .and. wc(iw+11)>wlsrb(12) .and. wc(iw+11)<wlsrb(13) &
-                .and. wc(iw+12)>wlsrb(13) .and. wc(iw+12)<wlsrb(14) &
-                .and. wc(iw+13)>wlsrb(14) .and. wc(iw+13)<wlsrb(15) &
-                .and. wc(iw+14)>wlsrb(15) .and. wc(iw+14)<wlsrb(16) &
-                .and. wc(iw+15)>wlsrb(16) .and. wc(iw+15)<wlsrb(17) &
-                .and. wc(iw+16)>wlsrb(17) .and. wc(iw+16)<wlsrb(18) &
-                .and. wc(iw+17)>wlsrb(18)    ) then             
-              isrb= iw
+       isrb_loop: do iw = 1,nwave-nsrb
+           if (wc(iw)>wlsrb(1) .and. wc(iw)<wlsrb(2)) then
+              do i = 1,nsrb-1
+                 if ( .not. (wc(iw+i)>wlsrb(i+1) .and. wc(iw+i)<wlsrb(i+2)) ) then
+                    exit isrb_loop
+                 endif
+              end do
+              if ( .not. (wc(iw+nsrb)>wlsrb(nsrb+1)) ) then
+                 exit isrb_loop
+              end if                                  
+              isrb = iw
               exit isrb_loop
            end if
         end do isrb_loop
@@ -350,7 +323,6 @@
 !=  O2XSLA  - REAL, molecular absorption cross section in LA bands        (O)
 !-----------------------------------------------------------------------------
 
-
 !-----------------------------------------------------------------------------
 !     ... dummy arguments
 !-----------------------------------------------------------------------------
@@ -369,6 +341,11 @@
       REAL(kind=DP) :: o2_col
       REAL(kind=DP) :: rm(nlyr), ro2(nlyr)
       REAL(kind=DP) :: rm_wrk(3), ro2_wrk(3)
+
+      real(kind=dp), parameter :: b(3) = (/ 6.8431e-01_DP,  2.29841e-01_DP,  8.65412e-02_DP /)
+      real(kind=dp), parameter :: c(3) = (/ 8.22114e-21_DP, 1.77556e-20_DP,  8.22112e-21_DP /)
+      real(kind=dp), parameter :: d(3) = (/ 6.0073e-21_DP,  4.28569e-21_DP,  1.28059e-20_DP /)
+      real(kind=dp), parameter :: e(3) = (/ 8.21666e-21_DP, 1.63296e-20_DP,  4.85121e-17_DP /)
 
       do wn = 1,nla
         dto2la(:nlyr,wn) = 0._rk
@@ -462,6 +439,13 @@
       REAL(rk)    :: x
       REAL(rk)    :: o2col1(nlyr)
       REAL(rk)    :: xs(nsrb)
+      real(rk), parameter :: xslod(nsrb) = &
+           (/ 6.2180730E-21_rk, 5.8473627E-22_rk, 5.6996334E-22_rk, &
+              4.5627094E-22_rk, 1.7668250E-22_rk, 1.1178808E-22_rk, &
+              1.2040544E-22_rk, 4.0994668E-23_rk, 1.8450616E-23_rk, &
+              1.5639540E-23_rk, 8.7961075E-24_rk, 7.6475608E-24_rk, &
+              7.6260556E-24_rk, 7.5565696E-24_rk, 7.6334338E-24_rk, &
+              7.4371992E-24_rk, 7.3642966E-24_rk /)
 
       nlyrm1 = nlyr - 1
 !-----------------------------------------------------------------------------
