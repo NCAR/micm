@@ -28,8 +28,8 @@
 [ccpp-arg-table]
   name = tuv_radiation_transfer_run
   type = scheme
-[nlev]
-  standard_name = vertical_interface_dimension
+[nlayer]
+  standard_name = vertical_layer_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -133,7 +133,7 @@
   standard_name = o2_optical_depth
   long_name = optical depth due to O2 absorption
   units = cm
-  dimensions = (vertical_interface_dimension,tuv_n_actinic_flux_wavelengths)
+  dimensions = (vertical_layer_dimension,tuv_n_actinic_flux_wavelengths)
   type = real
   kind = kind_phys
   intent = in
@@ -141,7 +141,7 @@
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
   units = cm-2 sec-1
-  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_interface_dimension)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_layer_dimension)
   type = real
   kind = kind_phys
   intent = out

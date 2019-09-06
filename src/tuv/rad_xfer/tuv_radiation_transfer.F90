@@ -39,7 +39,7 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
 !> \section arg_table_tuv_radiation_transfer_run Argument Table
 !! \htmlinclude tuv_radiation_transfer_run.html
 !!
-  subroutine tuv_radiation_transfer_run( nlev, tuv_n_wavelen, zenith, albedo, press_mid, press_top, alt, temp, &
+  subroutine tuv_radiation_transfer_run( nlayer, tuv_n_wavelen, zenith, albedo, press_mid, press_top, alt, temp, &
        o3vmr, so2vmr, no2vmr, cldfrc, cldwat, dto2, radfld, errmsg, errflg )
 
     use tuv_subs,         only: tuv_radfld
@@ -47,7 +47,7 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
     use module_xsections, only: o2_xs, so2_xs, o3xs, no2xs_jpl06a
     use params_mod
  
-    integer,          intent(in)  :: nlev
+    integer,          intent(in)  :: nlayer
 
     !! NOTE THIS VARIABLE WILL GO AWAY - FOR NOW IS REQUIRED WORKAROUND FOR CPF
     integer,          intent(in)    :: tuv_n_wavelen
@@ -75,57 +75,55 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
     
     real(rk) :: zen
     real(rk) :: alb(nwave)
-    real(rk) :: zlev(nlev+1) ! km 
-    real(rk) :: tlev(nlev)
-    real(rk) :: cldfrclev(nlev)
-    real(rk) :: cldwatlev(nlev)
-    real(rk) :: aircol(nlev)  ! # molecules / cm2 in each layer
-    real(rk) :: o3col(nlev) 
-    real(rk) :: so2col(nlev)
-    real(rk) :: no2col(nlev)
-    real(rk) :: dpress(nlev)
+    real(rk) :: zlev(nlayer+1) ! km 
+    real(rk) :: tlev(nlayer)
+    real(rk) :: cldfrclev(nlayer)
+    real(rk) :: cldwatlev(nlayer)
+    real(rk) :: aircol(nlayer)  ! # molecules / cm2 in each layer
+    real(rk) :: o3col(nlayer) 
+    real(rk) :: so2col(nlayer)
+    real(rk) :: no2col(nlayer)
+    real(rk) :: dpress(nlayer)
 
-    real(rk) :: tauaer300(nlev) ! aerosol properties
-    real(rk) :: tauaer400(nlev)
-    real(rk) :: tauaer600(nlev)
-    real(rk) :: tauaer999(nlev)
-    real(rk) :: waer300(nlev)
-    real(rk) :: waer400(nlev)
-    real(rk) :: waer600(nlev)
-    real(rk) :: waer999(nlev)
-    real(rk) :: gaer300(nlev)
-    real(rk) :: gaer400(nlev)
-    real(rk) :: gaer600(nlev)
-    real(rk) :: gaer999(nlev)
+    real(rk) :: tauaer300(nlayer) ! aerosol properties
+    real(rk) :: tauaer400(nlayer)
+    real(rk) :: tauaer600(nlayer)
+    real(rk) :: tauaer999(nlayer)
+    real(rk) :: waer300(nlayer)
+    real(rk) :: waer400(nlayer)
+    real(rk) :: waer600(nlayer)
+    real(rk) :: waer999(nlayer)
+    real(rk) :: gaer300(nlayer)
+    real(rk) :: gaer400(nlayer)
+    real(rk) :: gaer600(nlayer)
+    real(rk) :: gaer999(nlayer)
     
-    real(rk) :: dtaer(nlev,nwave), omaer(nlev,nwave), gaer(nlev,nwave)
-    real(rk) :: dtcld(nlev,nwave), omcld(nlev,nwave), gcld(nlev,nwave)
-    real(rk) :: dt_cld(nlev)
+    real(rk) :: dtaer(nlayer,nwave), omaer(nlayer,nwave), gaer(nlayer,nwave)
+    real(rk) :: dtcld(nlayer,nwave), omcld(nlayer,nwave), gcld(nlayer,nwave)
+    real(rk) :: dt_cld(nlayer)
     
-    real(rk) :: efld(nlev,nwave)
-    real(rk) :: e_dir(nlev,nwave)
-    real(rk) :: e_dn(nlev,nwave)
-    real(rk) :: e_up(nlev,nwave)
-    real(rk) :: dir_fld(nlev,nwave)
-    real(rk) :: dwn_fld(nlev,nwave)
-    real(rk) :: up_fld(nlev,nwave)
+    real(rk) :: efld(nlayer,nwave)
+    real(rk) :: e_dir(nlayer,nwave)
+    real(rk) :: e_dn(nlayer,nwave)
+    real(rk) :: e_up(nlayer,nwave)
+    real(rk) :: dir_fld(nlayer,nwave)
+    real(rk) :: dwn_fld(nlayer,nwave)
+    real(rk) :: up_fld(nlayer,nwave)
 
-    integer :: k, kk, nlyr
+    integer :: k, kk
 
-    real(rk) :: o3_xs(nwave,nlev)
-    real(rk) :: no2_xs(nwave,nlev)
-    real(rk) :: o3_xs_tpose(nlev,nwave)
-    real(rk) :: no2_xs_tpose(nlev,nwave)
+    real(rk) :: o3_xs(nwave,nlayer)
+    real(rk) :: no2_xs(nwave,nlayer)
+    real(rk) :: o3_xs_tpose(nlayer,nwave)
+    real(rk) :: no2_xs_tpose(nlayer,nwave)
     real(rk) :: delz_km, delz_cm
     
     errmsg = ''
     errflg = 0
 
-    nlyr = nlev -1
-    
-    dpress(nlyr:1:-1) = press_mid(2:nlyr+1) - press_mid(1:nlyr)
-    do k=1,nlyr
-       kk=nlyr-k+1
+    dpress(nlayer-1:1:-1) = press_mid(2:nlayer) - press_mid(1:nlayer-1)
+    do k=1,nlayer-1
+       kk=nlayer-1-k+1
        aircol(k) = 10._rk*dpress(k)*R/(kboltz*g)
        o3col(k)  = 0.5_rk*(o3vmr(kk)+o3vmr(kk+1))*aircol(k)
        so2col(k) = 0.5_rk*(so2vmr(kk)+so2vmr(kk+1))*aircol(k)
@@ -133,19 +131,19 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
     end do
 
     ! inputs need to be bottom up vert coord
-    tlev(nlev:1:-1) = temp(1:nlev)
-    cldfrclev(nlev:1:-1) = cldfrc(1:nlev)
-    cldwatlev(nlev:1:-1) = cldwat(1:nlev)
-    zlev(nlev:1:-1) = alt(1:nlev)*1.e-3_rk ! m -> km
+    tlev(nlayer:1:-1) = temp(1:nlayer)
+    cldfrclev(nlayer:1:-1) = cldfrc(1:nlayer)
+    cldwatlev(nlayer:1:-1) = cldwat(1:nlayer)
+    zlev(nlayer:1:-1) = alt(1:nlayer)*1.e-3_rk ! m -> km
 
-    delz_km = zlev(nlev) - zlev(nlev-1)
+    delz_km = zlev(nlayer) - zlev(nlayer-1)
     delz_cm = delz_km*1.e5_rk ! cm
 
-    zlev(nlev+1) = zlev(nlev) + delz_km ! km
-    aircol(nlev) = delz_cm * 10._rk * press_top / ( kboltz * tlev(nlev) ) ! molecules / cm2
-    o3col(nlev)  = o3vmr(1)  * aircol(nlev)
-    so2col(nlev) = so2vmr(1) * aircol(nlev)
-    no2col(nlev) = no2vmr(1) * aircol(nlev)
+    zlev(nlayer+1) = zlev(nlayer) + delz_km ! km
+    aircol(nlayer) = delz_cm * 10._rk * press_top / ( kboltz * tlev(nlayer) ) ! molecules / cm2
+    o3col(nlayer)  = o3vmr(1)  * aircol(nlayer)
+    so2col(nlayer) = so2vmr(1) * aircol(nlayer)
+    no2col(nlayer) = no2vmr(1) * aircol(nlayer)
 
     tauaer300=0.0_rk
     tauaer400=0.0_rk
@@ -166,12 +164,12 @@ subroutine tuv_radiation_transfer_init( realkind, errmsg, errflg )
     o3_xs_tpose = 0.0_rk
     no2_xs_tpose= 0.0_rk
 
-    call o3xs( nlev,tlev,nwave,wl,o3_xs_tpose )
-    call no2xs_jpl06a( nlev,tlev,nwave,wl,no2_xs_tpose )
+    call o3xs( nlayer,tlev,nwave,wl,o3_xs_tpose )
+    call no2xs_jpl06a( nlayer,tlev,nwave,wl,no2_xs_tpose )
     o3_xs  = transpose( o3_xs_tpose )
     no2_xs = transpose( no2_xs_tpose )
 
-    call tuv_radfld( nlambda_start, cld_od_opt, cldfrclev, nlev, nwave, &
+    call tuv_radfld( nlambda_start, cld_od_opt, cldfrclev, nlayer, nwave, &
          zen, zlev, alb, &
          aircol, o3col, so2col, no2col, &
          tauaer300, tauaer400, tauaer600, tauaer999, &

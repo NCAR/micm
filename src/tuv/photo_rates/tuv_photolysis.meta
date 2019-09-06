@@ -8,8 +8,8 @@
   dimensions = ()
   type = integer
   intent = in
-[nlev]
-  standard_name = vertical_interface_dimension
+[nlyr]
+  standard_name = vertical_layer_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -49,8 +49,8 @@
 [ccpp-arg-table]
   name = tuv_photolysis_run
   type = scheme
-[nlev]
-  standard_name = vertical_interface_dimension
+[nlyr]
+  standard_name = vertical_layer_dimension
   long_name = number of column layers
   units = count
   dimensions = ()
@@ -76,7 +76,7 @@
   standard_name = actinic_photon_fluxes
   long_name = actinic photon fluxes
   units = cm-2 sec-1
-  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_interface_dimension)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_layer_dimension)
   type = real
   kind = kind_phys
   intent = in
@@ -84,7 +84,7 @@
   standard_name = o2_xsect
   long_name = O2 effective cross section
   units = cm2
-  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_interface_dimension)
+  dimensions = (tuv_n_actinic_flux_wavelengths,vertical_layer_dimension)
   type = real
   kind = kind_phys
   intent = in
@@ -92,7 +92,7 @@
   standard_name = photolysis_rates_col
   long_name = photolysis rates column
   units = s-1
-  dimensions = (vertical_interface_dimension,number_of_photolysis_reactions)
+  dimensions = (vertical_layer_dimension,number_of_photolysis_reactions)
   type = real
   kind = kind_phys
   intent = out
