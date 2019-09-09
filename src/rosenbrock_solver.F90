@@ -223,17 +223,19 @@ CONTAINS
       END IF
     END DO
 
-    write(*,*) ' '
-    write(*,*) 'Rosenbrock ODE solver package initialized'
-    write(*,*) 'Autonomous = ',this%Autonomous
-    write(*,*) 'Vectol     = ',this%VectorTol
-    write(*,*) 'N,ros_S,Max_no_steps = ',this%N,this%ros_S,this%Max_no_steps
-    write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
-    write(*,*) 'Fac{Min,Max,Rej,Safe} = ',this%FacMin,this%FacMax,this%FacRej,this%FacSafe
-    write(*,*) 'RelTol                = ',RelTol(:)
-    write(*,*) 'AbsTol                = ',AbsTol(:)
-    write(*,*) ' '
-
+    if (this%print_log_message) then
+       write(*,*) ' '
+       write(*,*) 'Rosenbrock ODE solver package initialized'
+       write(*,*) 'Autonomous = ',this%Autonomous
+       write(*,*) 'Vectol     = ',this%VectorTol
+       write(*,*) 'N,ros_S,Max_no_steps = ',this%N,this%ros_S,this%Max_no_steps
+       write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
+       write(*,*) 'Fac{Min,Max,Rej,Safe} = ',this%FacMin,this%FacMax,this%FacRej,this%FacSafe
+       write(*,*) 'RelTol                = ',RelTol(:)
+       write(*,*) 'AbsTol                = ',AbsTol(:)
+       write(*,*) ' '
+    endif
+ 
     end subroutine RosenbrockInit
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

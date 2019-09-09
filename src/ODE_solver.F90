@@ -10,6 +10,7 @@
      CONTAINS
        procedure(OdeSolver_init), deferred :: Initialize
        procedure(OdeSolver_run), deferred  :: Run
+       logical :: print_log_message = .false.
    END TYPE baseOdeSolver
 
   abstract interface
