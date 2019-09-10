@@ -13,7 +13,6 @@ use Mozart_Solver, only          : MozartSolver
 implicit none
 
 private
-public :: chemistry_driver_readnl
 public :: chemistry_driver_init
 public :: chemistry_driver_run
 
@@ -50,7 +49,6 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
   real(kind_phys) :: rcntrl(20)     ! real control array for ODE solver
   real(kind_phys)              :: absTol=-huge(1._kind_phys), relTol=-huge(1._kind_phys)
   real(kind_phys), allocatable :: abs_tol(:), rel_tol(:)
-  character(len=80) :: model_name
   character(len=80) :: Solver_method = 'NONE'
 
   namelist /micm_solv_opts/ Solver_method
@@ -157,8 +155,6 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateCon
   character(len=512), intent(out)        :: errmsg
   integer, intent(out)                   :: errflg                ! error index from CPF
   real(kind=kind_phys)                   :: number_density(size(vmr))     ! "working" number density of each molecule
-
-  integer :: i, k, n
 
   !--- initialize CCPP error handling variables
   errmsg = ''

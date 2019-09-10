@@ -11,6 +11,7 @@ MODULE Rosenbrock_Solver
 
   USE ODE_solver
   use kinetics_module, only : kinetics_type
+  use ccpp_kinds, only: r8=>kind_phys
 
   IMPLICIT NONE
 
