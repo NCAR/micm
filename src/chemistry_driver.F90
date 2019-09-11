@@ -72,7 +72,6 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, TimeStart, TimeEnd, dt,
       return
   end select
   
-  write(0,*) ' Entered chemistry_driver_init'
   !--- initialize CCPP error handling variables
   errmsg = ''
   errflg = 0

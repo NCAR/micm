@@ -62,11 +62,11 @@ contains
 !> \section arg_table_tuv_photolysis_init Argument Table
 !! \htmlinclude tuv_photolysis_init.html
 !!
-subroutine tuv_photolysis_init( realkind, nlev, jnames, tuv_n_wavelen, errmsg, errflg )
+subroutine tuv_photolysis_init( realkind, nlyr, jnames, tuv_n_wavelen, errmsg, errflg )
     use wavelength_grid, only: nwave
 
     integer,          intent(in)  :: realkind
-    integer,          intent(in)  :: nlev
+    integer,          intent(in)  :: nlyr
     character(len=*), intent(in)  :: jnames(:)
     integer,          intent(out) :: tuv_n_wavelen
     character(len=*), intent(out) :: errmsg
@@ -84,42 +84,42 @@ subroutine tuv_photolysis_init( realkind, nlev, jnames, tuv_n_wavelen, errmsg, e
     tuv_n_wavelen = nwave
     tuv_n_phot = size(jnames)
  
-    call  calc_tuv_init( is_full_tuv, nlev, jnames, xsqy_filepath, errmsg, errflg )
+    call  calc_tuv_init( is_full_tuv, nlyr, jnames, xsqy_filepath, errmsg, errflg )
 
   end subroutine tuv_photolysis_init
 
 !> \section arg_table_tuv_photolysis_run Argument Table
 !! \htmlinclude tuv_photolysis_run.html
 !!
-subroutine tuv_photolysis_run( nlev, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
+subroutine tuv_photolysis_run( nlyr, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
 
-    integer,          intent(in)  :: nlev
+    integer,          intent(in)  :: nlyr
     real(kind_phys),  intent(in)  :: temp(:)
     real(kind_phys),  intent(in)  :: press_mid(:)
-    real(kind_phys),  intent(in)  :: radfld(:,:) ! (nwave,nlev)
+    real(kind_phys),  intent(in)  :: radfld(:,:) ! (nwave,nlyr)
     real(kind_phys),  intent(in)  :: srb_o2_xs(:,:) !(nwave,kts:kte)
     real(kind_phys),  intent(out) :: tuv_prates(:,:) ! /sec
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
     integer :: k, kk, j
-    real(kind_phys) :: airdens(nlev) ! # molecules / cm3 in each layer
-    real(kind_phys) :: tlev(nlev) ! # K -- bottom up
+    real(kind_phys) :: airdens(nlyr) ! # molecules / cm3 in each layer
+    real(kind_phys) :: tlev(nlyr) ! # K -- bottom up
 
     real(kind_phys), parameter :: kboltz= 1.38064852e-16_kind_phys ! boltzmann constant (erg/K)
 
     ! inputs need to be bottom vertical coord
-    do k=1,nlev
-       kk=nlev-k+1
+    do k=1,nlyr
+       kk=nlyr-k+1
        airdens(kk) = 10._kind_phys*press_mid(k)/(kboltz*temp(k))
     end do
-    tlev(nlev:1:-1) = temp(1:nlev)
+    tlev(nlyr:1:-1) = temp(1:nlyr)
 
-    call calc_tuv_prates(1 ,nlev,nlev, tlev, airdens, radfld, srb_o2_xs, tuv_prates, errmsg, errflg)
+    call calc_tuv_prates(1 ,nlyr,nlyr, tlev, airdens, radfld, srb_o2_xs, tuv_prates, errmsg, errflg)
 
     ! return top down rates
     do j=1,tuv_n_phot
-       tuv_prates(:nlev,j) = tuv_prates(nlev:1:-1,j)
+       tuv_prates(:nlyr,j) = tuv_prates(nlyr:1:-1,j)
     end do
     
   end subroutine tuv_photolysis_run
