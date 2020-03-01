@@ -5,6 +5,7 @@ module k_rateConst
 
 !  use ccpp_kinds, only: r8 => kind_phys
   use ccpp_kinds, only:  kind_phys
+  use rate_constants_utility, only: k_rate_constant
 
 implicit none
 private
@@ -28,17 +29,21 @@ contains
 !> \section arg_table_k_rateConst_run Argument Table
 !! \htmlinclude k_rateConst_run.html
 !!
-  subroutine k_rateConst_run(nkRxt, njRxt, k_rateConst, number_density_air, rh, c_h2o, temp, errmsg, errflg)
-
-  use rate_constants_utility, only: k_rate_constant
+  subroutine k_rateConst_run(nkRxt, njRxt, k_rateConst, nd_air, rh, c_h2o, c_o2, temp, p, sad, ad, errmsg, errflg)
   
     integer,                   intent(in)  :: nkRxt
     integer,                   intent(in)  :: njRxt  !!!! THIS IS ONLY HERE TO WORKAROUND A BUG IN CPF
     real(kind_phys),           intent(out) :: k_rateConst(:)
-    real(kind_phys),           intent(in)  :: number_density_air
+    real(kind_phys),           intent(in)  :: nd_air
     real(kind_phys),           intent(in)  :: rh 
     real(kind_phys),           intent(in)  :: c_h2o     
-    real(kind_phys),           intent(in)  :: TEMP
+    real(kind_phys),           intent(in)  :: c_o2
+    real(kind_phys),           intent(in)  :: temp
+
+    real(kind_phys),           intent(in)  :: p
+    real(kind_phys),           intent(in)  :: sad(:)
+    real(kind_phys),           intent(in)  :: ad(:)
+
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
@@ -47,8 +52,8 @@ contains
 
     errmsg=''
     errflg=0
-  
-    call k_rate_constant(k_rateConst, TEMP)
+
+    call k_rate_constant(k_rateConst, nd_air, temp, p, sad, ad, c_h2o, c_o2 )
 
   end subroutine k_rateConst_run
   

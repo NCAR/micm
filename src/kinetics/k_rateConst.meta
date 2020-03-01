@@ -21,7 +21,7 @@
   type = real
   kind = kind_phys
   intent = out
-[number_density_air]
+[nd_air]
   standard_name = total_number_density
   long_name = total number density
   units = molecules/cm3
@@ -45,11 +45,43 @@
   type = real
   kind = kind_phys
   intent = in
-[TEMP]
+[c_o2]
+  standard_name = oxygen
+  long_name = molecular_oxygen
+  units = mole/mole
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+[temp]
   standard_name = temperature
   long_name = mid-point layer temperature
   units = K
   dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+[p]
+  standard_name =pressure
+  long_name = ambient pressure
+  units = Pa
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
+[sad]
+  standard_name = aer_surf_area_dens
+  long_name = Aerosol Surface Area Density
+  units = cm2/cm3
+  dimensions = (number_of_aerosol_modes)
+  type = real
+  kind = kind_phys
+  intent = in
+[ad]
+  standard_name = aer_diam
+  long_name = Aerosol Diameter
+  units = cm
+  dimensions = (number_of_aerosol_modes)
   type = real
   kind = kind_phys
   intent = in

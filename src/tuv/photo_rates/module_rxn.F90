@@ -259,6 +259,7 @@
 
       integer, intent(inout) :: m
       type(xsqy_subs), intent(inout) :: subr(:)
+      integer :: i
 
       xsqy_tab(m)%equation   = 'O2 + hv -> O(1D) + O(3P)'
       xsqy_tab(m)%rxn_name   = 'jo2_a'
@@ -1551,6 +1552,11 @@
       xsqy_tab(m)%filespec%nskip(1) = 2
       xsqy_tab(m)%filespec%nread(1) = 101
       subr(m)%xsqy_sub   => no_z_dep
+
+      do i = 1, m
+          print *, xsqy_tab(i)%equation
+          print *, xsqy_tab(i)%rxn_name
+      end do
 
     end subroutine setup_sub_calls
 

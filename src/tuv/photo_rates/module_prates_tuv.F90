@@ -31,6 +31,8 @@ module  module_prates_tuv
   integer :: jo2_b_ndx = -1
   logical :: is_full_tuv = .true.
 
+  integer :: j_n2o5_b_ndx = -1
+
   logical, allocatable :: xsqy_is_zdep(:)
   integer, protected, allocatable :: rxn_ndx(:)
 
@@ -94,9 +96,9 @@ contains
                    if (.not.any(rxn_ndx==n)) then
                       rxn_ndx(j) = n
                       exit
-                   else
-                      errmsg = trim(errmsg)//' '//trim(tuv_jname(j))
-                      errflg = 1
+                   !else
+                   !   errmsg = trim(errmsg)//' '//trim(tuv_jname(j))
+                   !   errflg = 1
                    end if
                 endif
              enddo
@@ -104,7 +106,7 @@ contains
        enddo
 
        if (errflg/=0) then
-          errmsg = 'calc_tuv_init: deplicate jnames: '//trim(errmsg)
+          errmsg = 'calc_tuv_init: duplicate jnames: '//trim(errmsg)
           return
        end if
        
@@ -251,6 +253,10 @@ contains
              xsect(1:nwave) = sq1d(1:nwave,1)*photon_flux(1:nwave)*esfact
              tuv_prate(:,n) = matmul( rad_fld_tpose(:,1:nwave),xsect(1:nwave) )
           end if
+       endif
+       if (n==j_n2o5_b_ndx) then
+           print *, 'j_n2o5_b'
+           print *, tuv_prate(:,n)
        endif
     end do rate_loop
 

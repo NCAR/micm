@@ -2,6 +2,8 @@
 ../../MICM_chemistry/src/kinetics/kinetics_utilities.F90
 ../../MICM_chemistry/src/kinetics/rate_constants_utility.F90
 ../../MICM_chemistry/src/kinetics/kinetics_module.F90
+../../MICM_chemistry/src/kinetics/environmental_state_mod.F90
+../../MICM_chemistry/src/kinetics/rate_constant_functions.F90
 ../../MICM_chemistry/src/ODE_solver.F90
 ../../MICM_chemistry/src/mozart_solver.F90
 ../../MICM_chemistry/src/rosenbrock_solver.F90

@@ -32,11 +32,18 @@ contains
     character(len=512), intent(out) :: errmsg
     integer,            intent(out) :: errflg
 
+    integer :: i
+
     !--- initialize CCPP error handling variables
     errmsg = ''
     errflg = 0
 
     j_rateConst(:) = prates(level_number,:)
+
+    print *, 'j_rateConst'
+    do i = 1, size(j_rateConst(:))
+    print *, i, j_rateConst(i)
+    end do
 
   end subroutine photolysis_interstitial_run
 end module photolysis_interstitial
