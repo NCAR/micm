@@ -227,9 +227,8 @@ function combined_CO_OH(params, state) result (rate_constant)
   type(environmental_state_type), intent(in) :: state
   real :: rate_constant
 
-
   rate_constant = params%A * &
-      ( c_1 + params%B * boltzman_cgs * avogadro * state%number_density_air * state%temperature)
+      ( c_1 + params%B * boltzman_cgs * state%number_density_air * state%temperature)
 
 end function combined_CO_OH
 

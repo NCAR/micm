@@ -93,13 +93,8 @@ contains
           else
              do n = 2,npht_tab
                 if( trim(xsqy_table(n)%rxn_name) == trim(tuv_jname(j)) ) then
-                   if (.not.any(rxn_ndx==n)) then
+                      print *,'prate ',tuv_jname(j), j, xsqy_table(n)%rxn_name, n
                       rxn_ndx(j) = n
-                      exit
-                   !else
-                   !   errmsg = trim(errmsg)//' '//trim(tuv_jname(j))
-                   !   errflg = 1
-                   end if
                 endif
              enddo
           endif
@@ -253,10 +248,6 @@ contains
              xsect(1:nwave) = sq1d(1:nwave,1)*photon_flux(1:nwave)*esfact
              tuv_prate(:,n) = matmul( rad_fld_tpose(:,1:nwave),xsect(1:nwave) )
           end if
-       endif
-       if (n==j_n2o5_b_ndx) then
-           print *, 'j_n2o5_b'
-           print *, tuv_prate(:,n)
        endif
     end do rate_loop
 
