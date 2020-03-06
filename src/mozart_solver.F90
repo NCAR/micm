@@ -6,6 +6,7 @@ MODULE Mozart_Solver
 
   USE ODE_solver
   USE kinetics_module, only : kinetics_type
+  use ccpp_kinds, only: r8=>kind_phys
 
   IMPLICIT NONE
 
@@ -176,17 +177,19 @@ CONTAINS
       END IF
     END DO
 
-    write(*,*) ' '
-    write(*,*) 'Mozart ODE solver package initialized'
-    write(*,*) 'Autonomous = ',this%Autonomous
-    write(*,*) 'Vectol     = ',this%VectorTol
-    write(*,*) 'N,Max_NR{iter,rej} = ',this%N,this%iterMax,this%rejMax
-    write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
-    write(*,*) 'Fac{Rej,Acc} = ',this%FacRej,this%FacAcc
-    write(*,*) 'RelTol       = ',RelTol(:)
-    write(*,*) 'AbsTol       = ',AbsTol(:)
-    write(*,*) ' '
-
+    if (this%print_log_message) then
+       write(*,*) ' '
+       write(*,*) 'Mozart ODE solver package initialized'
+       write(*,*) 'Autonomous = ',this%Autonomous
+       write(*,*) 'Vectol     = ',this%VectorTol
+       write(*,*) 'N,Max_NR{iter,rej} = ',this%N,this%iterMax,this%rejMax
+       write(*,*) 'Hmin,Hmax,Hstart     = ',this%Hmin,this%Hmax,this%Hstart
+       write(*,*) 'Fac{Rej,Acc} = ',this%FacRej,this%FacAcc
+       write(*,*) 'RelTol       = ',RelTol(:)
+       write(*,*) 'AbsTol       = ',AbsTol(:)
+       write(*,*) ' '
+    endif
+ 
     end subroutine MozartInit
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
