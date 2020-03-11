@@ -31,8 +31,6 @@ module  module_prates_tuv
   integer :: jo2_b_ndx = -1
   logical :: is_full_tuv = .true.
 
-  integer :: j_n2o5_b_ndx = -1
-
   logical, allocatable :: xsqy_is_zdep(:)
   integer, protected, allocatable :: rxn_ndx(:)
 
@@ -95,6 +93,9 @@ contains
                 if( trim(xsqy_table(n)%rxn_name) == trim(tuv_jname(j)) ) then
                       print *,'prate ',tuv_jname(j), j, xsqy_table(n)%rxn_name, n
                       rxn_ndx(j) = n
+                else 
+                      !print *,'prate missing ',tuv_jname(j), j
+                      !rxn_ndx(j) = n
                 endif
              enddo
           endif
