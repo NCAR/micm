@@ -1,12 +1,11 @@
-
    module ODE_solver
 
-   use ccpp_kinds, only: r8 => kind_phys
-   use ccpp_kinds, only:  kind_phys
+   use ccpp_kinds, only: kind_phys
    
    implicit none
 
    TYPE, abstract :: baseOdeSolver
+     logical :: print_log_message = .false.
      CONTAINS
        procedure(OdeSolver_init), deferred :: Initialize
        procedure(OdeSolver_run), deferred  :: Run
@@ -18,7 +17,6 @@
       use kinetics_module, only : kinetics_type
 
       import baseOdeSolver
-      import r8
       import kind_phys
 
       class(baseOdeSolver) :: this
@@ -37,7 +35,6 @@
       use kinetics_module, only : kinetics_type
 
       import baseOdeSolver
-      import r8
       import kind_phys
 
       class(baseOdeSolver)  :: this
