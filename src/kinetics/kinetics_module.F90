@@ -37,6 +37,7 @@ contains
   procedure, public :: LinFactor
   procedure, public :: LinSolve
   procedure, public :: force
+  procedure, public :: reaction_rates
   procedure, public :: dforce_dy
   procedure, public :: dForcedyxForce
 !  procedure, private :: LinFactor
@@ -61,6 +62,21 @@ contains
     call p_force( this%rateConst, vmr, this%number_density, force)
 
   end function force
+
+  !---------------------------
+  ! Calculate the rates for each chemical reaction
+  !---------------------------
+  function reaction_rates( this, vmr )
+
+     use kinetics_utilities, only : reaction_rates => rxn_rates
+
+     class(kinetics_type) :: this
+     real(kind_phys), intent(in)  ::  vmr(:)              ! volume mixing ratios of each component in order
+     real(kind_phys),             ::  reaction_rates(:)   ! reaction rates
+
+     reaction_rates = rxn_rates( this%rateConst, vmr, this%number_density )
+
+  end function reaction_rates
 
   function dforce_dy( this, vmr)
 

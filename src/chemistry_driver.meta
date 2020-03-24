@@ -19,6 +19,13 @@
   dimensions = ()
   type = integer
   intent = in
+[reaction_names]
+  standard_name = reaction_names
+  units = none
+  dimensions = (number_of_reactions)
+  type = character
+  kind = len=128
+  intent = out
 [TimeStart]
   standard_name = chem_step_start_time
   long_name = Chem step start time
@@ -111,6 +118,22 @@
   type = real
   kind = kind_phys
   intent = in
+[reaction_rates]
+  standard_name = reaction_rates
+  long_name = rates for each chemical reaction
+  units = 1/s
+  dimensions = (number_of_reaction)
+  type = real
+  kind = kind_phys
+  intent = out
+[reaction_rate_constants]
+  standard_name = reaction_rate_constants
+  long_name = rate constants for each chemical reaction
+  units = various
+  dimensions = (number_of_reaction)
+  type = real
+  kind = kind_phys
+  intent = out
 [errmsg]
   standard_name = ccpp_error_message
   long_name = CCPP error message
