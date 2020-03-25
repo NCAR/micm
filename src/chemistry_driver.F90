@@ -4,6 +4,7 @@
 module chemistry_driver
 
 use kinetics_module,  only       : kinetics_type
+use kinetics_utilities, only     : rxn_names => reaction_names
 use ccpp_kinds,       only       : kind_phys
 
 use ODE_solver, only             : baseOdeSolver
@@ -15,6 +16,7 @@ implicit none
 private
 public :: chemistry_driver_init
 public :: chemistry_driver_run
+public :: chemistry_driver_finalize
 
 type(RosenbrockSolver), target :: aRosenbrockSolver
 type(MozartSolver), target     :: aMozartSolver
@@ -33,16 +35,16 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, reaction_names, TimeSta
 !-----------------------------------------------------------
 !  these dimension parameters will be set by the cafe/configurator
 !-----------------------------------------------------------
-  real(kind_phys), intent(in)     :: TimeStart, TimeEnd
-  real(kind_phys), intent(in)     :: dt
-  integer, intent(in)             :: nSpecies   ! number prognostic constituents
-  integer, intent(in)             :: nkRxt      ! number gas phase reactions
-  integer, intent(in)             :: njRxt      ! number of photochemical reactions
-  character(len=128), intent(out) :: reaction_names(:)
-  character(len=*),  intent(in)   :: options_filepath
-  logical, intent(in)             :: print_log_message
-  character(len=512),intent(out)  :: errmsg
-  integer, intent(out)            :: errflg          ! error index from CPF
+  real(kind_phys), intent(in)       :: TimeStart, TimeEnd
+  real(kind_phys), intent(in)       :: dt
+  integer, intent(in)               :: nSpecies   ! number prognostic constituents
+  integer, intent(in)               :: nkRxt      ! number gas phase reactions
+  integer, intent(in)               :: njRxt      ! number of photochemical reactions
+  character(len=128), intent(inout) :: reaction_names(:)
+  character(len=*),  intent(in)     :: options_filepath
+  logical, intent(in)               :: print_log_message
+  character(len=512),intent(out)    :: errmsg
+  integer, intent(out)              :: errflg          ! error index from CPF
 
   integer            :: nTotRxt    ! total number of chemical reactions
 
@@ -135,7 +137,7 @@ subroutine chemistry_driver_init(nSpecies, nkRxt, njRxt, reaction_names, TimeSta
 !-----------------------------------------------------------
   allocate( theKinetics )
   call thekinetics%init( nTotRxt, nSpecies )
-  reaction_names( : ) = theKinetics%reaction_names( )
+  reaction_names( : ) = rxn_names( )
 
 end subroutine chemistry_driver_init
 
@@ -156,8 +158,8 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateCon
   real(kind=kind_phys), intent(in)       :: j_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=kind_phys), intent(in)       :: k_rateConst(:)        ! host model provides photolysis rates for now
   real(kind=kind_phys), intent(in)       :: number_density_air    ! number density
-  real(kind=kind_phys), intent(out)      :: reaction_rates(:)     ! reaction rates at the end of the chemistry time step (1/s)
-  real(kind=kind_phys), intent(out)      :: reaction_rate_constants(:)    ! rate constants for each reaction
+  real(kind=kind_phys), intent(inout)    :: reaction_rates(:)     ! reaction rates at the end of the chemistry time step (1/s)
+  real(kind=kind_phys), intent(inout)    :: reaction_rate_constants(:)    ! rate constants for each reaction
   character(len=512), intent(out)        :: errmsg
   integer, intent(out)                   :: errflg                ! error index from CPF
   real(kind=kind_phys)                   :: number_density(size(vmr))     ! "working" number density of each molecule
@@ -178,8 +180,8 @@ subroutine chemistry_driver_run(vmr, TimeStart, TimeEnd, j_rateConst,  k_rateCon
 !-----------------------------------------------------------
   call theSolver%Run( Tstart=TimeStart, Tend=TimeEnd, y=number_density, theKinetics=theKinetics, Ierr=errflg )
 
-  call theKinetics%reaction_rates(number_density, number_density_air, reaction_rates)
-  reaction_rate_constants(:) = theKinetics%rateConst(:)
+  reaction_rates          = theKinetics%reaction_rates(number_density)
+  reaction_rate_constants = theKinetics%reaction_rate_constants( )
   call kinetics_final(vmr, number_density, number_density_air)
 
   if (errflg /= 0) then
