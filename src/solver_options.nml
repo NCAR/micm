@@ -1,0 +1,9 @@
+&micm_solv_opts
+Solver_method="rosenbrock"
+/
+&micm_solv_err_cntrl
+absTol=1.0e-4,
+relTol=1.0e-3
+/
+&timeCntrl
+/
