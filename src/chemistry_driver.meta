@@ -136,7 +136,7 @@
 [reaction_rates]
   standard_name = reaction_rates
   long_name = rates for each chemical reaction
-  units = 1/s
+  units = molecules cm-3 s-1
   dimensions = (number_of_reactions)
   type = real
   kind = kind_phys
