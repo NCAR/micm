@@ -61,6 +61,15 @@
   type = integer
   units = count
   dimensions = ()
+  intent = in
+[jnames]
+  standard_name = photodissociation_labels
+  long_name = TUV reaction rate names
+  units = none
+  dimensions = (number_of_photolysis_reactions)
+  type = character
+  kind = len=*
+  intent = in
 [temp]
   standard_name = layer_temperature
   long_name = mid-point layer temperature

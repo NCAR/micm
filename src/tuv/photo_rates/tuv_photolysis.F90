@@ -21,7 +21,7 @@ module tuv_photolysis
 
 contains
 
-  subroutine tuv_photolysis_readnl(nml_file, nbox, jnames, errmsg, errflg) ! this will be a CPF interface someday
+  subroutine tuv_photolysis_readnl(nml_file, nbox, jnames, env_lat, env_lon, errmsg, errflg) ! this will be a CPF interface someday
 
     use module_prates_tuv, only: read_etf
     use wavelength_grid, only: nwave
@@ -30,6 +30,8 @@ contains
     character(len=*), intent(in)  :: nml_file
     integer         , intent(in)  :: nbox
     character(len=*), intent(in)  :: jnames(:)
+    real            , intent(in)  :: env_lat(:)
+    real            , intent(in)  :: env_lon(:)
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
@@ -43,8 +45,12 @@ contains
 
     integer :: ibox
 
-    namelist /tuv_opts/ rate_constants_file
-    namelist /tuv_opts/ input_data_root, wavelength_grid_file, etf_file, is_full_tuv, xsqy_file
+    namelist /tuv_opts/ rate_constants_file, input_data_root, wavelength_grid_file, etf_file, is_full_tuv, xsqy_file
+
+    ! TUV setup
+    open(unit=10,file=nml_file)
+    read(unit=10,nml=tuv_opts)
+    close(10)
 
     ! Load photolysis rate constants from a file, if indicated
     if (len(trim(rate_constants_file)).gt.0) then
@@ -55,15 +61,9 @@ contains
                                                                 lat = env_lat( ibox ), &
                                                                 lon = env_lon( ibox ) )
       end do
-
       ! Skip the TUV setup
       return
     end if
-
-    ! TUV setup
-    open(unit=10,file=nml_file)
-    read(unit=10,nml=tuv_opts)
-    close(10)
 
     if (etf_file=='NONE') then
        etf_file = trim(wavelength_grid_file)
@@ -122,10 +122,11 @@ subroutine tuv_photolysis_init( realkind, nlyr, jnames, tuv_n_wavelen, errmsg, e
 !> \section arg_table_tuv_photolysis_run Argument Table
 !! \htmlinclude tuv_photolysis_run.html
 !!
-subroutine tuv_photolysis_run( nlyr, nbox, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
+subroutine tuv_photolysis_run( nlyr, nbox, jnames, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
 
     integer,          intent(in)  :: nlyr
     integer,          intent(in)  :: nbox
+    character(len=*), intent(in)  :: jnames(:)
     real(kind_phys),  intent(in)  :: temp(:)
     real(kind_phys),  intent(in)  :: press_mid(:)
     real(kind_phys),  intent(in)  :: radfld(:,:) ! (nwave,nlyr)
@@ -134,7 +135,7 @@ subroutine tuv_photolysis_run( nlyr, nbox, temp, press_mid, radfld, srb_o2_xs, t
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
-    integer :: k, kk, j
+    integer :: k, kk, j, i_photo_rxn
     real(kind_phys) :: airdens(nlyr) ! # molecules / cm3 in each layer
     real(kind_phys) :: tlev(nlyr) ! # K -- bottom up
 
@@ -146,6 +147,7 @@ subroutine tuv_photolysis_run( nlyr, nbox, temp, press_mid, radfld, srb_o2_xs, t
       do i_photo_rxn = 1, size(jnames)
         tuv_prates(:nlyr, i_photo_rxn) = &
           photo_rate_constants(1)%getcol("photo_rate_constant_"//trim(jnames(i_photo_rxn)), nlyr)
+      end do
       return
     end if
 
