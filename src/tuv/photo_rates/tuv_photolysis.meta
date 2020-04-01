@@ -56,6 +56,11 @@
   dimensions = ()
   type = integer
   intent = in
+[nbox]
+  standard_name = vertical_interface_dimension
+  type = integer
+  units = count
+  dimensions = ()
 [temp]
   standard_name = layer_temperature
   long_name = mid-point layer temperature
