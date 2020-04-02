@@ -49,6 +49,14 @@
 [ccpp-arg-table]
   name = tuv_photolysis_run
   type = scheme
+[TimeStart]
+  standard_name = chem_step_start_time
+  long_name = Chem step start time
+  units = s
+  dimensions = ()
+  type = real
+  kind = kind_phys
+  intent = in
 [nlyr]
   standard_name = vertical_layer_dimension
   long_name = number of column layers

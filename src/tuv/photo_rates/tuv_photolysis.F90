@@ -21,7 +21,7 @@ module tuv_photolysis
 
 contains
 
-  subroutine tuv_photolysis_readnl(nml_file, nbox, jnames, env_lat, env_lon, errmsg, errflg) ! this will be a CPF interface someday
+  subroutine tuv_photolysis_readnl(nml_file, nbox, jnames, env_lat, env_lon, env_lev, errmsg, errflg) ! this will be a CPF interface someday
 
     use module_prates_tuv, only: read_etf
     use wavelength_grid, only: nwave
@@ -32,6 +32,7 @@ contains
     character(len=*), intent(in)  :: jnames(:)
     real            , intent(in)  :: env_lat(:)
     real            , intent(in)  :: env_lon(:)
+    real            , intent(in)  :: env_lev(:)
     character(len=*), intent(out) :: errmsg
     integer,          intent(out) :: errflg
 
@@ -59,10 +60,10 @@ contains
       do ibox = 1, nbox
         photo_rate_constants(ibox) = environ_conditions_create( rate_constants_file,   &
                                                                 lat = env_lat( ibox ), &
-                                                                lon = env_lon( ibox ) )
+                                                                lon = env_lon( ibox ), &
+                                                                lev = env_lev( ibox ) )
       end do
-      ! Skip the TUV setup
-      return
+      write(*,*) "Reading photolysis rates from file '"//trim(rate_constants_file)//"'"
     end if
 
     if (etf_file=='NONE') then
@@ -103,9 +104,6 @@ subroutine tuv_photolysis_init( realkind, nlyr, jnames, tuv_n_wavelen, errmsg, e
     errmsg = ' '
     errflg = 0
 
-    ! no init necessary for reading rate constants from a file
-    if (read_rate_constants_from_file) return
-
     if ( realkind/=kind_phys ) then
        errmsg = 'tuv_photolysis_init: realkind does not match kind_phot'
        errflg = 1
@@ -122,8 +120,9 @@ subroutine tuv_photolysis_init( realkind, nlyr, jnames, tuv_n_wavelen, errmsg, e
 !> \section arg_table_tuv_photolysis_run Argument Table
 !! \htmlinclude tuv_photolysis_run.html
 !!
-subroutine tuv_photolysis_run( nlyr, nbox, jnames, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
+subroutine tuv_photolysis_run( TimeStart, nlyr, nbox, jnames, temp, press_mid, radfld, srb_o2_xs, tuv_prates, errmsg, errflg )
 
+    real(kind_phys),  intent(in)  :: TimeStart
     integer,          intent(in)  :: nlyr
     integer,          intent(in)  :: nbox
     character(len=*), intent(in)  :: jnames(:)
@@ -144,9 +143,10 @@ subroutine tuv_photolysis_run( nlyr, nbox, jnames, temp, press_mid, radfld, srb_
     ! use the photo rate constants from the input file, if indicated
     ! \todo the tuv_prates seems to be set up for only a single box
     if (read_rate_constants_from_file) then
+      call photo_rate_constants(1)%update(TimeStart)
       do i_photo_rxn = 1, size(jnames)
         tuv_prates(:nlyr, i_photo_rxn) = &
-          photo_rate_constants(1)%getcol("photo_rate_constant_"//trim(jnames(i_photo_rxn)), nlyr)
+          photo_rate_constants(1)%getvar("photo_rate_constant_"//trim(jnames(i_photo_rxn)))
       end do
       return
     end if
