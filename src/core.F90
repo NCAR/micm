@@ -49,11 +49,12 @@ contains
   !> MICM Core constructor
   !!
   !! Sets up chemistry objects for solving
-  function constructor( config, domain ) result( new_obj )
+  function constructor( config, domain, output ) result( new_obj )
 
     use musica_assert,                 only : assert
     use musica_config,                 only : config_t
     use musica_domain,                 only : domain_t
+    use musica_output,                 only : output_t
     use musica_string,                 only : string_t
 
     !> New MICM Core
@@ -62,6 +63,8 @@ contains
     class(domain_t), intent(inout) :: domain
     !> Chemistry configuration data
     class(config_t), intent(inout) :: config
+    !> Output stream
+    class(output_t), intent(inout) :: output
 
     character(len=*), parameter :: my_name = 'MICM chemistry constructor'
     integer :: i_spec
@@ -78,14 +81,15 @@ contains
     new_obj%species_names_(5) = "NO"
 
     new_obj%species_mutators_ =>                                              &
-      domain%register_cell_state_variable_set( "chemical_species",            &
-                                               "mol m-3",                     &
-                                               new_obj%species_names_,        &
+      domain%register_cell_state_variable_set( "chemical_species",            & !<- variable set name
+                                               "mol m-3",                     & !<- units
+                                               0.0d0,                         & !<- default value
+                                               new_obj%species_names_,        & !<- variable element names
                                                my_name )
     new_obj%species_accessors_ =>                                             &
-      domain%cell_state_set_accessor( "chemical_species",                     &
-                                      "mol m-3",                              &
-                                      accessor_names,                         &
+      domain%cell_state_set_accessor( "chemical_species",                     & !<- variable set name
+                                      "mol m-3",                              & !<- units
+                                      accessor_names,                         & !<- variable element names
                                       my_name )
 
     call assert( 415788666, size( new_obj%species_names_ ) .eq.               &
@@ -93,6 +97,12 @@ contains
     do i_spec = 1, size( new_obj%species_names_ )
       call assert( 359403346, new_obj%species_names_( i_spec ) .eq.           &
                               accessor_names( i_spec ) )
+      call output%register( domain,                                           &
+                            "chemical_species%"//                             & !<- varible full name
+                                new_obj%species_names_( i_spec )%to_char( ),  &
+                            "mol m-3",                                        & !<- units
+                            "CONC."//                                         & !<- output name
+                                new_obj%species_names_( i_spec )%to_char( ) )
     end do
 
   end function constructor
