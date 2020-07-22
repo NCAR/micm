@@ -1,4 +1,2 @@
-micm
-bld/
-bld/*
+src/preprocessor_output/*.F90
 .DS_Store
