@@ -1,3 +1,6 @@
+! Copyright (C) 2020 National Center for Atmospheric Research
+! SPDX-License-Identifier: Apache-2.0
+!
 !> \todo consider rewriting rate_constant_functions module to follow musica style conventions
 module rate_constant_functions
 
