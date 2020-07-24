@@ -84,10 +84,10 @@ contains
 
     !> New MICM Core
     type(core_t), pointer :: new_obj
-    !> Domain
-    class(domain_t), intent(inout) :: domain
     !> Chemistry configuration data
     class(config_t), intent(inout) :: config
+    !> Model domain
+    class(domain_t), intent(inout) :: domain
     !> Output stream
     class(output_t), intent(inout) :: output
 
@@ -119,23 +119,23 @@ contains
 
     ! Register state variables for the chemical species concentrations
     new_obj%species_mutators_ =>                                              &
-      domain%register_cell_state_variable_set( "chemical_species",            & !<- variable set name
-                                               "mol m-3",                     & !<- units
-                                               0.0d0,                         & !<- default value
-                                               species_names,                 & !<- variable element names
+      domain%register_cell_state_variable_set( "chemical_species",            & !- variable set name
+                                               "mol m-3",                     & !- units
+                                               0.0d0,                         & !- default value
+                                               species_names,                 & !- variable element names
                                                my_name )
     new_obj%species_accessors_ =>                                             &
-      domain%cell_state_set_accessor( "chemical_species",                     & !<- variable set name
-                                      "mol m-3",                              & !<- units
-                                      accessor_names,                         & !<- variable element names
+      domain%cell_state_set_accessor( "chemical_species",                     & !- variable set name
+                                      "mol m-3",                              & !- units
+                                      accessor_names,                         & !- variable element names
                                       my_name )
 
     ! Register state variables for reaction rates
     new_obj%rate_mutators_ =>                                                 &
-      domain%register_cell_state_variable_set( "reaction_rates",              & !<- variable set name
-                                               "mol m-3 s-1",                 & !<- units
-                                               0.0d0,                         & !<- default value
-                                               reaction_names,                & !<- variable element names
+      domain%register_cell_state_variable_set( "reaction_rates",              & !- variable set name
+                                               "mol m-3 s-1",                 & !- units
+                                               0.0d0,                         & !- default value
+                                               reaction_names,                & !- variable element names
                                                my_name )
 
     ! Register accessors for environmental properties
@@ -154,19 +154,19 @@ contains
       call assert( 359403346, species_names( i_spec ) .eq.                    &
                               accessor_names( i_spec ) )
       call output%register( domain,                                           &
-                            "chemical_species%"//                             & !<- variable full name
+                            "chemical_species%"//                             & !- variable full name
                                 species_names( i_spec )%to_char( ),           &
-                            "mol m-3",                                        & !<- units
-                            "CONC."//species_names( i_spec )%to_char( ) )       !<- output name
+                            "mol m-3",                                        & !- units
+                            "CONC."//species_names( i_spec )%to_char( ) )       !- output name
     end do
 
     ! Register the reaction rates for output
     do i_rxn = 1, size( reaction_names )
       call output%register( domain,                                           &
-                            "reaction_rates%"//                               & !<- variable full name
+                            "reaction_rates%"//                               & !- variable full name
                                 reaction_names( i_rxn )%to_char( ),           &
-                            "mol m-3 s-1",                                    & !<- units
-                            "RATE."//reaction_names( i_rxn )%to_char( ) )       !<- output name
+                            "mol m-3 s-1",                                    & !- units
+                            "RATE."//reaction_names( i_rxn )%to_char( ) )       !- output name
     end do
 
     ! Set up arrays for use during solving
