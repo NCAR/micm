@@ -82,7 +82,7 @@ contains
     use musica_assert,                 only : assert
     use musica_config,                 only : config_t
     use musica_domain,                 only : domain_t
-    use musica_output,                 only : output_t
+    use musica_io,                     only : io_t
     use musica_string,                 only : string_t
 
     !> New MICM Core
@@ -91,8 +91,8 @@ contains
     class(config_t), intent(inout) :: config
     !> Model domain
     class(domain_t), intent(inout) :: domain
-    !> Output stream
-    class(output_t), intent(inout) :: output
+    !> Output file
+    class(io_t), intent(inout) :: output
 
     character(len=*), parameter :: my_name = 'MICM chemistry constructor'
     integer :: i_spec, i_rxn
