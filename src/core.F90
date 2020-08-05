@@ -295,16 +295,36 @@ contains
     !> MICM chemistry
     type(core_t), intent(inout) :: this
 
+    integer :: i
+
     if( associated( this%ODE_solver_ ) )                                      &
       deallocate( this%ODE_solver_ )
     if( associated( this%kinetics_ ) )                                        &
       deallocate( this%kinetics_ )
-    if( associated( this%species_mutators_ ) )                                &
+    if( associated( this%species_mutators_ ) ) then
+      do i = 1, size( this%species_mutators_ )
+        if( associated( this%species_mutators_( i )%val_ ) ) then
+          deallocate( this%species_mutators_( i )%val_ )
+        end if
+      end do
       deallocate( this%species_mutators_ )
-    if( associated( this%species_accessors_ ) )                               &
+    end if
+    if( associated( this%species_accessors_ ) ) then
+      do i = 1, size( this%species_accessors_ )
+        if( associated( this%species_accessors_( i )%val_ ) ) then
+          deallocate( this%species_accessors_( i )%val_ )
+        end if
+      end do
       deallocate( this%species_accessors_ )
-    if( associated( this%rate_mutators_ ) )                                   &
+    end if
+    if( associated( this%rate_mutators_ ) ) then
+      do i = 1, size( this%rate_mutators_ )
+        if( associated( this%rate_mutators_( i )%val_ ) ) then
+          deallocate( this%rate_mutators_( i )%val_ )
+        end if
+      end do
       deallocate( this%rate_mutators_ )
+    end if
     if( associated( this%temperature__K_ ) )                                  &
       deallocate( this%temperature__K_ )
     if( associated( this%pressure__Pa_ ) )                                    &
