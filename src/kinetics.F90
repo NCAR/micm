@@ -38,6 +38,7 @@ type kinetics_t
 contains
   procedure, public :: species_names
   procedure, public :: reaction_names
+  procedure, public :: photolysis_reaction_names
   procedure, public :: update
   procedure, public :: rateConst_print
   procedure, public :: LinFactor
@@ -105,6 +106,30 @@ contains
     end do
 
   end subroutine reaction_names
+
+  !---------------------------
+  ! Photolysis reaction names
+  !---------------------------
+  subroutine photolysis_reaction_names( this, names )
+
+    use kinetics_utilities, only : number_of_photolysis_reactions, &
+                                   get_names => photolysis_names
+    use musica_string,      only : string_t
+
+    class(kinetics_t), intent(in) :: this
+    type(string_t), allocatable, intent(inout) :: names(:)
+
+    integer :: i_rxn
+    character(len=128) :: raw_names(number_of_photolysis_reactions)
+
+    raw_names = get_names()
+    if( allocated( names ) ) deallocate( names )
+    allocate( names( number_of_photolysis_reactions ) )
+    do i_rxn = 1, number_of_photolysis_reactions
+      names(i_rxn) = raw_names(i_rxn)
+    end do
+
+  end subroutine photolysis_reaction_names
 
   !---------------------------
   ! Compute time rate of change of each molecule (vmr) given reaction rates
@@ -285,24 +310,25 @@ contains
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine update( this, environment )
+  subroutine update( this, environment, photolysis_rate_constants__s )
 
-    use rate_constants_utility,        only : k_rate_constant
+    use rate_constants_utility,        only : k_rate_constant, &
+                                              set_photolysis_rate_constants
 
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
-
-    integer :: i, size_krateConst, size_jrateConst
+    !> Photolysis rate constants [s-1]
+    real(kind=musica_dk), intent(in) :: photolysis_rate_constants__s(:)
 
     ! save the environmental conditions
     this%environment = environment
 
-    !> \todo accept external photolysis rates into kinetics_t
-
-    ! recalculate the reaction rates
+    ! update the reaction rate constants
     this%rateConst(:) = 0.0
+    call set_photolysis_rate_constants( this%rateConst, &
+                                        photolysis_rate_constants__s )
     call k_rate_constant( this%rateConst, environment )
 
   end subroutine update

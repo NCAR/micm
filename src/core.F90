@@ -43,6 +43,12 @@ module micm_core
     !> Mutators for reaction rates
     class(domain_state_mutator_ptr), pointer ::                               &
         rate_mutators_(:) => null( )
+    !> Mutators for photolysis rate constants
+    class(domain_state_mutator_ptr), pointer ::                               &
+        photolysis_rate_constant_mutators_(:) => null( )
+    !> Accessors for photolysis rate constants
+    class(domain_state_accessor_ptr), pointer ::                              &
+        photolysis_rate_constant_accessors_(:) => null( )
     !> Environmental property accessors
     !! \todo move MICM environmental accessors to micm_environment module
     !! @{
@@ -55,6 +61,8 @@ module micm_core
     real(kind=musica_dk), allocatable :: number_densities__molec_cm3_(:)
     !> Working reaction rate array [molec cm-3 s-1]
     real(kind=musica_dk), allocatable :: reaction_rates__molec_cm3_s_(:)
+    !> Working photolysis rate constant array [s-1]
+    real(kind=musica_dk), allocatable :: photolysis_rate_constants__s_(:)
   contains
     !> Solve chemistry for one or more grid cells
     procedure :: solve
@@ -97,7 +105,8 @@ contains
     character(len=*), parameter :: my_name = 'MICM chemistry constructor'
     integer :: i_spec, i_rxn
     type(string_t), allocatable :: accessor_names(:), species_names(:),       &
-                                   reaction_names(:)
+                                   reaction_names(:), photo_names(:),         &
+                                   photo_accessor_names(:)
     type(config_t) :: solver_opts
     real(kind=musica_dk) :: chemistry_time_step__s
 
@@ -111,6 +120,7 @@ contains
     new_obj%kinetics_ => kinetics_t( )
     call new_obj%kinetics_%species_names( species_names )
     call new_obj%kinetics_%reaction_names( reaction_names )
+    call new_obj%kinetics_%photolysis_reaction_names( photo_names )
 
     ! Set up the solver
     call config%get( "solver", solver_opts, my_name )
@@ -140,6 +150,20 @@ contains
                                                0.0d0,                         & !- default value
                                                reaction_names,                & !- variable element names
                                                my_name )
+
+    ! Register an array of photolysis rate constants so that other model
+    ! components can set photolysis rates
+    new_obj%photolysis_rate_constant_mutators_ =>                             &
+      domain%register_cell_state_variable_set( "photolysis_rate_constants",   & !- variable set name
+                                               "s-1",                         & !- units
+                                               0.0d0,                         & !- default value
+                                               photo_names,                   & !- variable element names
+                                               my_name )
+    new_obj%photolysis_rate_constant_accessors_ =>                            &
+      domain%cell_state_set_accessor( "photolysis_rate_constants",            & !- variable set name
+                                      "s-1",                                  & !- units
+                                      photo_accessor_names,                   & !- variable element names
+                                      my_name )
 
     ! Register accessors for environmental properties
     new_obj%temperature__K_ =>                                                &
@@ -175,6 +199,7 @@ contains
     ! Set up arrays for use during solving
     allocate( new_obj%number_densities__molec_cm3_( size( species_names ) ) )
     allocate( new_obj%reaction_rates__molec_cm3_s_( size( reaction_names ) ) )
+    allocate( new_obj%photolysis_rate_constants__s_( size( photo_names ) ) )
 
     ! clean up
     call solver_opts%finalize( )
@@ -258,7 +283,7 @@ contains
     !> Grid cell to solve
     class(domain_iterator_t), intent(in) :: cell
 
-    integer :: i_spec
+    integer :: i_spec, i_photo
     type(environment_t) :: env
 
     ! get the current environmental conditions
@@ -282,8 +307,15 @@ contains
           this%number_densities__molec_cm3_( i_spec ) * kAvagadro * 1.0d-6
     end do
 
+    ! update the photolysis rates
+    do i_photo = 1, size( this%photolysis_rate_constant_accessors_ )
+      call domain_state%get( cell,                                            &
+                    this%photolysis_rate_constant_accessors_( i_photo )%val_, &
+                    this%photolysis_rate_constants__s_( i_photo ) )
+    end do
+
     ! update the kinetics for the current conditions
-    call this%kinetics_%update( env )
+    call this%kinetics_%update( env, this%photolysis_rate_constants__s_ )
 
   end subroutine time_step_initialize
 
@@ -324,6 +356,24 @@ contains
         end if
       end do
       deallocate( this%rate_mutators_ )
+    end if
+    if( associated( this%photolysis_rate_constant_mutators_ ) ) then
+      do i = 1, size( this%photolysis_rate_constant_mutators_ )
+        if( associated( this%photolysis_rate_constant_mutators_( i )%val_ ) ) &
+            then
+          deallocate( this%photolysis_rate_constant_mutators_( i )%val_ )
+        end if
+      end do
+      deallocate( this%photolysis_rate_constant_mutators_ )
+    end if
+    if( associated( this%photolysis_rate_constant_accessors_ ) ) then
+      do i = 1, size( this%photolysis_rate_constant_accessors_ )
+        if( associated( this%photolysis_rate_constant_accessors_( i )%val_ ) )&
+            then
+          deallocate( this%photolysis_rate_constant_accessors_( i )%val_ )
+        end if
+      end do
+      deallocate( this%photolysis_rate_constant_accessors_ )
     end if
     if( associated( this%temperature__K_ ) )                                  &
       deallocate( this%temperature__K_ )
