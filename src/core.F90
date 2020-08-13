@@ -43,9 +43,6 @@ module micm_core
     !> Mutators for reaction rates
     class(domain_state_mutator_ptr), pointer ::                               &
         rate_mutators_(:) => null( )
-    !> Mutators for photolysis rate constants
-    class(domain_state_mutator_ptr), pointer ::                               &
-        photolysis_rate_constant_mutators_(:) => null( )
     !> Accessors for photolysis rate constants
     class(domain_state_accessor_ptr), pointer ::                              &
         photolysis_rate_constant_accessors_(:) => null( )
@@ -131,12 +128,16 @@ contains
     new_obj%ODE_solver_ => ODE_solver_builder( solver_opts )
 
     ! Register state variables for the chemical species concentrations
+    call domain%register_cell_state_variable_set( "chemical_species",         & !- variable set name
+                                                  "mol m-3",                  & !- units
+                                                  0.0d0,                      & !- default value
+                                                  species_names,              & !- variable element names
+                                                  my_name )
     new_obj%species_mutators_ =>                                              &
-      domain%register_cell_state_variable_set( "chemical_species",            & !- variable set name
-                                               "mol m-3",                     & !- units
-                                               0.0d0,                         & !- default value
-                                               species_names,                 & !- variable element names
-                                               my_name )
+      domain%cell_state_set_mutator(  "chemical_species",                     & !- variable set name
+                                      "mol m-3",                              & !- units
+                                      accessor_names,                         & !- variable element names
+                                      my_name )
     new_obj%species_accessors_ =>                                             &
       domain%cell_state_set_accessor( "chemical_species",                     & !- variable set name
                                       "mol m-3",                              & !- units
@@ -144,17 +145,20 @@ contains
                                       my_name )
 
     ! Register state variables for reaction rates
+    call domain%register_cell_state_variable_set( "reaction_rates",           & !- variable set name
+                                                  "mol m-3 s-1",              & !- units
+                                                  0.0d0,                      & !- default value
+                                                  reaction_names,             & !- variable element names
+                                                  my_name )
     new_obj%rate_mutators_ =>                                                 &
-      domain%register_cell_state_variable_set( "reaction_rates",              & !- variable set name
-                                               "mol m-3 s-1",                 & !- units
-                                               0.0d0,                         & !- default value
-                                               reaction_names,                & !- variable element names
-                                               my_name )
+      domain%cell_state_set_mutator(  "reaction_rates",                       & !- variable set name
+                                      "mol m-3 s-1",                          & !- units
+                                      reaction_names,                         & !- variable element names
+                                      my_name )
 
     ! Register an array of photolysis rate constants so that other model
     ! components can set photolysis rates
-    new_obj%photolysis_rate_constant_mutators_ =>                             &
-      domain%register_cell_state_variable_set( "photolysis_rate_constants",   & !- variable set name
+    call domain%register_cell_state_variable_set( "photolysis_rate_constants",& !- variable set name
                                                "s-1",                         & !- units
                                                0.0d0,                         & !- default value
                                                photo_names,                   & !- variable element names
@@ -356,15 +360,6 @@ contains
         end if
       end do
       deallocate( this%rate_mutators_ )
-    end if
-    if( associated( this%photolysis_rate_constant_mutators_ ) ) then
-      do i = 1, size( this%photolysis_rate_constant_mutators_ )
-        if( associated( this%photolysis_rate_constant_mutators_( i )%val_ ) ) &
-            then
-          deallocate( this%photolysis_rate_constant_mutators_( i )%val_ )
-        end if
-      end do
-      deallocate( this%photolysis_rate_constant_mutators_ )
     end if
     if( associated( this%photolysis_rate_constant_accessors_ ) ) then
       do i = 1, size( this%photolysis_rate_constant_accessors_ )
