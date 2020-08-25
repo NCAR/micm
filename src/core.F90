@@ -104,8 +104,9 @@ contains
     type(string_t), allocatable :: accessor_names(:), species_names(:),       &
                                    reaction_names(:), photo_names(:),         &
                                    photo_accessor_names(:)
-    type(config_t) :: solver_opts
+    type(config_t) :: solver_opts, outputs, output_opts
     real(kind=musica_dk) :: chemistry_time_step__s
+    logical :: found
 
     allocate( new_obj )
 
@@ -200,6 +201,24 @@ contains
                             "RATE."//reaction_names( i_rxn )%to_char( ) )       !- output name
     end do
 
+    ! set up optional output
+    call config%get( "output", outputs, my_name, found = found )
+    if( found ) then
+      call outputs%get( "photolysis rate constants", output_opts, my_name,    &
+                        found = found )
+      if( found ) then
+        do i_rxn = 1, size( photo_names )
+          call output%register( domain,                                       &
+                                "photolysis_rate_constants%"//                & !- variable full name
+                                    photo_names( i_rxn )%to_char( ),          &
+                                "s-1",                                        & !- units
+                                "PHOTO."//photo_names( i_rxn )%to_char( ) )
+        end do
+        call output_opts%finalize( )
+      end if
+      call outputs%finalize( )
+    end if
+
     ! Set up arrays for use during solving
     allocate( new_obj%number_densities__molec_cm3_( size( species_names ) ) )
     allocate( new_obj%reaction_rates__molec_cm3_s_( size( reaction_names ) ) )
@@ -238,8 +257,8 @@ contains
     call this%time_step_initialize( domain_state, cell )
 
     ! solve the chemistry for this time step
-    call this%ODE_solver_%solve( TStart = current_time__s,                    &
-                                 TEnd   = current_time__s + time_step__s,     &
+    call this%ODE_solver_%solve( TStart = 0.0_musica_dk,                      &
+                                 TEnd   = time_step__s,                       &
                                  y      = this%number_densities__molec_cm3_,  &
                                  theKinetics = this%kinetics_,                &
                                  IErr   = error_flag )
