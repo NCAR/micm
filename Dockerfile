@@ -12,6 +12,9 @@ RUN dnf -y update \
 # copy the MICM code
 COPY . /micm/
 
+# use the test preprocessor output
+RUN cp /micm/test/preprocessor_output/* /micm/src/preprocessor_output/
+
 # install json-fortran
 RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.1.0.tar.gz \
     && tar -zxvf 8.1.0.tar.gz \
