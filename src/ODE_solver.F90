@@ -1,53 +1,60 @@
-   module ODE_solver
+! Copyright (C) 2020 National Center for Atmospheric Research
+! SPDX-License-Identifier: Apache-2.0
+!
+!> \file
+!> The micm_ODE_solver module
 
-   use ccpp_kinds, only: kind_phys
-   
-   implicit none
+!> The abstract ODE_solver_t type and related functions
+module micm_ODE_solver
 
-   TYPE, abstract :: baseOdeSolver
-     logical :: print_log_message = .false.
-     CONTAINS
-       procedure(OdeSolver_init), deferred :: Initialize
-       procedure(OdeSolver_run), deferred  :: Run
-   END TYPE baseOdeSolver
+  use musica_constants,                only : musica_ik, musica_dk
 
-  abstract interface
-    subroutine OdeSolver_init( this, Tstart, Tend, AbsTol, RelTol, RCNTRL, ICNTRL, IERR)
+  implicit none
+  private
 
-      use kinetics_module, only : kinetics_type
+  public :: ODE_solver_t
 
-      import baseOdeSolver
-      import kind_phys
+  !> A general ODE solver
+  !!
+  !! Extending classes of ODE_solver_t can be used to solve chemical kinetics
+  !! systems during the model run based on kinetics information provided by a
+  !! kinetics_t object
+  type, abstract :: ODE_solver_t
+  private
+    !> Integer parameters
+    integer(musica_ik), public :: icntrl(20)
+    !> Real parameters
+    real(musica_dk), public :: rcntrl(20)
+  contains
+    !> Solve the chemical system
+    procedure(solve), deferred  :: solve
+  end type ODE_solver_t
 
-      class(baseOdeSolver) :: this
-      integer, intent(out) :: Ierr
-      real(kind_phys), optional, intent(in) :: Tstart
-      real(kind_phys), optional, intent(in) :: Tend
-      REAL(kind_phys), optional, INTENT(IN) :: AbsTol(:), RelTol(:)
-      INTEGER,  optional, INTENT(IN) :: ICNTRL(:)
-      REAL(kind_phys), optional, INTENT(IN) :: RCNTRL(:)
+interface
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    end subroutine OdeSolver_init
+  !> Run the solver with a provided set of kinetics data
+  subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
+    use micm_kinetics,               only : kinetics_t
+    use musica_constants,            only : musica_dk
+    import ODE_solver_t
+    !> ODE solver
+    class(ODE_solver_t), intent(inout) :: this
+    !> The solver variables
+    real(musica_dk), intent(inout) :: Y(:)
+    !> Chemistry simulation start time [s]
+    real(musica_dk), optional, intent(in) :: Tstart
+    !> Chemistry simulation end time [s]
+    real(musica_dk), optional, intent(in) :: Tend
+    !> Current chemistry simulation time [s]
+    real(musica_dk), optional, intent(out) :: T
+    !> Kinetics information
+    type(kinetics_t), optional, intent(inout) :: theKinetics
+    !> Error code
+    integer, intent(out) :: Ierr
+  end subroutine solve
 
-    subroutine OdeSolver_run( this, Y, Tstart, Tend, T, &
-                              theKinetics, istatus, rstatus, Ierr )
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+end interface
 
-      use kinetics_module, only : kinetics_type
-
-      import baseOdeSolver
-      import kind_phys
-
-      class(baseOdeSolver)  :: this
-      integer, intent(out)  :: Ierr
-      integer, optional, intent(inout)  :: istatus(:)
-      real(kind_phys), optional, intent(inout) :: rstatus(:)
-      real(kind_phys),        intent(inout)  :: Y(:)
-      real(kind_phys), optional, intent(out) :: T
-      real(kind_phys), optional, intent(in)  :: Tstart
-      real(kind_phys), optional, intent(in)  :: Tend
-      TYPE(kinetics_type), optional   :: theKinetics
-
-    end subroutine OdeSolver_run
-  end interface
-
-   end module ODE_solver
+end module micm_ODE_solver
