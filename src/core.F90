@@ -87,7 +87,7 @@ contains
     use musica_assert,                 only : assert
     use musica_config,                 only : config_t
     use musica_domain,                 only : domain_t
-    use musica_io,                     only : io_t
+    use musica_input_output_processor, only : input_output_processor_t
     use musica_string,                 only : string_t
 
     !> New MICM Core
@@ -97,7 +97,7 @@ contains
     !> Model domain
     class(domain_t), intent(inout) :: domain
     !> Output file
-    class(io_t), intent(inout) :: output
+    class(input_output_processor_t), intent(inout) :: output
 
     character(len=*), parameter :: my_name = 'MICM chemistry constructor'
     integer :: i_spec, i_rxn
@@ -185,7 +185,8 @@ contains
     do i_spec = 1, size( species_names )
       call assert( 359403346, species_names( i_spec ) .eq.                    &
                               accessor_names( i_spec ) )
-      call output%register( domain,                                           &
+      call output%register_output_variable(                                   &
+                            domain,                                           &
                             "chemical_species%"//                             & !- variable full name
                                 species_names( i_spec )%to_char( ),           &
                             "mol m-3",                                        & !- units
@@ -194,7 +195,8 @@ contains
 
     ! Register the reaction rates for output
     do i_rxn = 1, size( reaction_names )
-      call output%register( domain,                                           &
+      call output%register_output_variable(                                   &
+                            domain,                                           &
                             "reaction_rates%"//                               & !- variable full name
                                 reaction_names( i_rxn )%to_char( ),           &
                             "mol m-3 s-1",                                    & !- units
@@ -208,7 +210,8 @@ contains
                         found = found )
       if( found ) then
         do i_rxn = 1, size( photo_names )
-          call output%register( domain,                                       &
+          call output%register_output_variable(                               &
+                                domain,                                       &
                                 "photolysis_rate_constants%"//                & !- variable full name
                                     photo_names( i_rxn )%to_char( ),          &
                                 "s-1",                                        & !- units
