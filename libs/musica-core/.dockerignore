@@ -1,8 +1,0 @@
-# blacklist all
-*
-
-# whitelist things to copy
-!CMakeLists.txt
-!SetDefaults.cmake
-!src/
-!test/
