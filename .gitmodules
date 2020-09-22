@@ -1,3 +1,3 @@
-[submodule "build/libs/musica-core"]
-	path = build/libs/musica-core
+[submodule "libs/musica-core"]
+	path = libs/musica-core
 	url = https://github.com/NCAR/musica-core.git
