@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "SetDefaults.cmake")
-project(MUSICA)
+project(RATE_CONSTANT_DEMO)
 enable_language(Fortran)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-################################################################################
-# options
 
 ################################################################################
 # NetCDF library
@@ -58,11 +52,22 @@ include_directories(${JSON_INCLUDE_DIR})
 ################################################################################
 # MUSICA library
 
-add_subdirectory(src)
-include_directories(${CMAKE_BINARY_DIR}/src)
+add_subdirectory(../../libs/musica-core/src
+                 ${CMAKE_BINARY_DIR}/libs/musica-core/src)
+include_directories(${CMAKE_BINARY_DIR}/libs/musica-core/src)
 
-################################################################################
-# MUSICA tests
+######################################################################
+# source code
 
-enable_testing()
-add_subdirectory(test)
+set(RC_SRC src/driver.F90
+           src/environment.F90
+           src/kinetics.F90
+           src/rate_constant.F90
+           src/rate_constant_factory.F90
+           src/rate_constants/foo.F90
+           src/rate_constants/bar.F90)
+
+add_executable(rate_constant_demo ${RC_SRC})
+target_link_libraries(rate_constant_demo musicalib)
+
+######################################################################

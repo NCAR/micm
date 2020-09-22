@@ -1,0 +1,30 @@
+{
+  "reactions" : {
+    "R1" : {
+      "rate constant" : {
+        "type" : "foo",
+        "A" : 1.0e-3
+      }
+    },
+    "R2" : {
+      "rate constant" : {
+        "type" : "foo",
+        "A" : 1.5e-2,
+        "B" : 25.3
+      }
+    },
+    "R3" : {
+      "rate constant" : {
+        "type" : "bar",
+        "A" : 5.2e-12,
+        "C" : 23.5
+      }
+    },
+    "R4" : {
+      "rate constant" : {
+        "type" : "foo",
+        "A" : 1.0e-5
+      }
+    }
+  }
+}
