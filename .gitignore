@@ -1,3 +1,7 @@
 src/preprocessor_output/*.F90
-.DS_Store
-build/
+**/.DS_Store
+**/build/
+**/CMakeCache.txt
+**/CMakeFiles/
+doc/html/
+doc/latex/
