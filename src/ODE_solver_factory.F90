@@ -29,7 +29,7 @@ contains
     !> New domain
     class(ODE_solver_t), pointer :: new_solver
     !> Solver configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
 
     type(string_t) :: solver_type
     character(len=*), parameter :: my_name = 'ODE solver builder'

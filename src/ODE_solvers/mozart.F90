@@ -45,6 +45,7 @@ MODULE micm_ODE_solver_mozart
     logical  :: VectorTol
     CONTAINS
       procedure :: solve
+      procedure :: preprocess_input
       final     :: Finalize
   END TYPE ODE_solver_mozart_t
 
@@ -63,7 +64,7 @@ CONTAINS
     !> New solver
     class(ODE_solver_mozart_t), pointer  :: this
     !> Solver configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
 
     character(len=*), parameter :: my_name = 'Mozart ODE solver constructor'
     real(r8) :: Tstart, Tend, time_step__s, abs_tol
@@ -373,6 +374,34 @@ acceptStep: &
 
     end subroutine solve
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    subroutine preprocess_input(this,config,output_path)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!   Preprocesses solver input data
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      use musica_assert,               only : assert
+      use musica_config,               only : config_t
+
+      class(ODE_solver_mozart_t), intent(in) :: this
+      type(config_t), intent(out) :: config
+      character(len=*), intent(in) :: output_path
+
+      character(len=*), parameter :: my_name = "Mozart solver preprocessor"
+
+      !! \todo Update Mozart preprocessor once vector tolerances are supported
+      call assert( 905188514, allocated( this%AbsTol ) )
+      call assert( 959668300, allocated( this%RelTol ) )
+      call assert( 619354492, size( this%AbsTol ) .ge. 1 )
+      call assert( 561515933, size( this%RelTol ) .ge. 1 )
+
+      call config%add( "type",               "Mozart",       my_name )
+      call config%add( "absolute tolerance", this%AbsTol(1), my_name )
+      call config%add( "relative tolerance", this%RelTol(1), my_name )
+
+    end subroutine preprocess_input
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     SUBROUTINE moz_ErrorMsg(Code,T,H,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages

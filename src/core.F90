@@ -60,9 +60,13 @@ module micm_core
     real(kind=musica_dk), allocatable :: reaction_rates__molec_cm3_s_(:)
     !> Working photolysis rate constant array [s-1]
     real(kind=musica_dk), allocatable :: photolysis_rate_constants__s_(:)
+    !> Flag indicating whether to output photolysis rate constants
+    logical :: output_photolysis_rate_constants_ = .false.
   contains
     !> Solve chemistry for one or more grid cells
     procedure :: solve
+    !> Preprocess chemistry input data
+    procedure :: preprocess_input
     !> Set the initial conditions for the current time step
     procedure, private :: time_step_initialize
     !> Finalize the chemistry core
@@ -93,7 +97,7 @@ contains
     !> New MICM Core
     type(core_t), pointer :: new_obj
     !> Chemistry configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
     !> Model domain
     class(domain_t), intent(inout) :: domain
     !> Output file
@@ -209,6 +213,7 @@ contains
       call outputs%get( "photolysis rate constants", output_opts, my_name,    &
                         found = found )
       if( found ) then
+        new_obj%output_photolysis_rate_constants_ = .true.
         do i_rxn = 1, size( photo_names )
           call output%register_output_variable(                               &
                                 domain,                                       &
@@ -217,18 +222,13 @@ contains
                                 "s-1",                                        & !- units
                                 "PHOTO."//photo_names( i_rxn )%to_char( ) )
         end do
-        call output_opts%finalize( )
       end if
-      call outputs%finalize( )
     end if
 
     ! Set up arrays for use during solving
     allocate( new_obj%number_densities__molec_cm3_( size( species_names ) ) )
     allocate( new_obj%reaction_rates__molec_cm3_s_( size( reaction_names ) ) )
     allocate( new_obj%photolysis_rate_constants__s_( size( photo_names ) ) )
-
-    ! clean up
-    call solver_opts%finalize( )
 
   end function constructor
 
@@ -289,6 +289,39 @@ contains
     end do
 
   end subroutine solve
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Preprocess chemistry input data
+  subroutine preprocess_input( this, config, output_path )
+
+    use musica_assert,                 only : assert
+    use musica_config,                 only : config_t
+
+    !> MICM chemistry
+    class(core_t), intent(in) :: this
+    !> Chemistry configuration
+    type(config_t), intent(out) :: config
+    !> Folder to save input data to
+    character(len=*), intent(in) :: output_path
+
+    character(len=*), parameter :: my_name = "MICM input preprocessor"
+    type(config_t) :: solver, output, empty_config
+
+    write(*,*) "Saving chemistry configuration..."
+
+    call empty_config%empty( )
+    call config%add( "type", "MICM", my_name )
+    call assert( 418280390, associated( this%ODE_solver_ ) )
+    call this%ODE_solver_%preprocess_input( solver, output_path )
+    call config%add( "solver", solver, my_name )
+    if( this%output_photolysis_rate_constants_ ) then
+      call output%empty( )
+      call output%add( "photolysis rate constants", empty_config, my_name )
+      call config%add( "output", output, my_name )
+    end if
+
+  end subroutine preprocess_input
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

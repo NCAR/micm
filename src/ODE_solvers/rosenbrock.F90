@@ -54,6 +54,7 @@ MODULE micm_ODE_solver_rosenbrock
     CHARACTER(LEN=12) :: ros_Name
     CONTAINS
       procedure :: solve
+      procedure :: preprocess_input
       final     :: Finalize
   END TYPE ODE_solver_rosenbrock_t
 
@@ -72,7 +73,7 @@ CONTAINS
     !> New solver
     class(ODE_solver_rosenbrock_t), pointer :: this
     !> Solver configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
 
 !   local variables
     character(len=*), parameter :: my_name = 'Rosenbrock ODE solver constructor'
@@ -424,7 +425,33 @@ Accepted: &
    ENDIF
 
     end subroutine solve
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    subroutine preprocess_input(this,config,output_path)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!   Preprocesses solver input data
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+      use musica_assert,               only : assert
+      use musica_config,               only : config_t
+
+      class(ODE_solver_rosenbrock_t), intent(in) :: this
+      type(config_t), intent(out) :: config
+      character(len=*), intent(in) :: output_path
+
+      character(len=*), parameter :: my_name = "Rosenbrock solver preprocessor"
+
+      !! \todo Update Rosenbrock preprocessor once vector tolerances are supported
+      call assert( 194331941, allocated( this%AbsTol ) )
+      call assert( 924175036, allocated( this%RelTol ) )
+      call assert( 418968631, size( this%AbsTol ) .ge. 1 )
+      call assert( 248811727, size( this%RelTol ) .ge. 1 )
+
+      call config%add( "type",               "Rosenbrock",   my_name )
+      call config%add( "absolute tolerance", this%AbsTol(1), my_name )
+      call config%add( "relative tolerance", this%RelTol(1), my_name )
+
+    end subroutine preprocess_input
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
