@@ -46,7 +46,7 @@ contains
     !> New bar rate constant calculator
     class(rate_constant_t), pointer :: new_obj
     !> Rate constant configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
 
     character(len=*), parameter :: my_name = 'bar rate constant constructor'
 

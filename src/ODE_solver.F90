@@ -28,6 +28,8 @@ module micm_ODE_solver
   contains
     !> Solve the chemical system
     procedure(solve), deferred  :: solve
+    !> Preprocess solver input data
+    procedure(preprocess_input), deferred :: preprocess_input
   end type ODE_solver_t
 
 interface
@@ -53,6 +55,20 @@ interface
     !> Error code
     integer, intent(out) :: Ierr
   end subroutine solve
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Preprocess solver input data
+  subroutine preprocess_input( this, config, output_path )
+    use musica_config,                 only : config_t
+    import ODE_solver_t
+    !> ODE solver
+    class(ODE_solver_t), intent(in) :: this
+    !> ODE sover configuration
+    type(config_t), intent(out) :: config
+    !> Folder to save input data to
+    character(len=*), intent(in) :: output_path
+  end subroutine preprocess_input
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end interface

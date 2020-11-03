@@ -37,7 +37,7 @@ contains
     !> New rate constant calculator
     class(rate_constant_t), pointer :: new_rate_constant
     !> Rate constant configuration data
-    class(config_t), intent(inout) :: config
+    type(config_t), intent(inout) :: config
 
     type(string_t) :: rate_constant_type
     character(len=*), parameter :: my_name = 'rate constant builder'
