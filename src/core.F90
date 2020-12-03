@@ -10,8 +10,8 @@ module micm_core
   use micm_kinetics,                   only : kinetics_t
   use micm_ODE_solver,                 only : ODE_solver_t
   use musica_constants,                only : musica_dk, musica_ik
-  use musica_domain,                   only : domain_state_mutator_ptr,       &
-                                              domain_state_accessor_ptr,      &
+  use musica_domain_state_mutator,     only : domain_state_mutator_ptr
+  use musica_domain_state_accessor,    only : domain_state_accessor_ptr,      &
                                               domain_state_accessor_t
   use musica_string,                   only : string_t
 
@@ -90,8 +90,12 @@ contains
     use micm_ODE_solver_factory,       only : ODE_solver_builder
     use musica_assert,                 only : assert
     use musica_config,                 only : config_t
+    use musica_data_type,              only : kDouble
     use musica_domain,                 only : domain_t
+    use musica_domain_target_cells,    only : domain_target_cells_t
     use musica_input_output_processor, only : input_output_processor_t
+    use musica_property,               only : property_t
+    use musica_property_set,           only : property_set_t
     use musica_string,                 only : string_t
 
     !> New MICM Core
@@ -105,12 +109,14 @@ contains
 
     character(len=*), parameter :: my_name = 'MICM chemistry constructor'
     integer :: i_spec, i_rxn
-    type(string_t), allocatable :: accessor_names(:), species_names(:),       &
-                                   reaction_names(:), photo_names(:),         &
-                                   photo_accessor_names(:)
+    type(string_t), allocatable :: species_names(:), reaction_names(:),       &
+                                   photo_names(:)
     type(config_t) :: solver_opts, outputs, output_opts
     real(kind=musica_dk) :: chemistry_time_step__s
+    type(property_set_t), pointer :: prop_set
+    type(property_t), pointer :: prop
     logical :: found
+    type(domain_target_cells_t) :: all_cells
 
     allocate( new_obj )
 
@@ -133,62 +139,98 @@ contains
     new_obj%ODE_solver_ => ODE_solver_builder( solver_opts )
 
     ! Register state variables for the chemical species concentrations
-    call domain%register_cell_state_variable_set( "chemical_species",         & !- variable set name
-                                                  "mol m-3",                  & !- units
-                                                  0.0d0,                      & !- default value
-                                                  species_names,              & !- variable element names
-                                                  my_name )
-    new_obj%species_mutators_ =>                                              &
-      domain%cell_state_set_mutator(  "chemical_species",                     & !- variable set name
-                                      "mol m-3",                              & !- units
-                                      accessor_names,                         & !- variable element names
-                                      my_name )
-    new_obj%species_accessors_ =>                                             &
-      domain%cell_state_set_accessor( "chemical_species",                     & !- variable set name
-                                      "mol m-3",                              & !- units
-                                      accessor_names,                         & !- variable element names
-                                      my_name )
+    prop_set => property_set_t( )
+    do i_spec = 1, size( species_names )
+      prop => property_t( my_name,                                            &
+                          name = species_names( i_spec )%to_char( ),          &
+                          units = "mol m-3",                                  &
+                          applies_to = all_cells,                             &
+                          data_type = kDouble,                                &
+                          default_value = 0.0_musica_dk )
+      call prop_set%add( prop )
+      deallocate( prop )
+    end do
+    call domain%register( "chemical_species", prop_set )
+    deallocate( prop_set )
+    new_obj%species_mutators_ => domain%mutator_set(   "chemical_species",    & !- property set name
+                                                       "mol m-3",             & !- units
+                                                       kDouble,               & !- data type
+                                                       all_cells,             & !- variable domain
+                                                       my_name )
+    new_obj%species_accessors_ => domain%accessor_set( "chemical_species",    & !- property set name
+                                                       "mol m-3",             & !- units
+                                                       kDouble,               & !- data type
+                                                       all_cells,             & !- variable domain
+                                                       my_name )
+    call assert( 862216278, size( new_obj%species_mutators_  ) .eq.           &
+                            size( species_names ) )
+    call assert( 865575051, size( new_obj%species_accessors_ ) .eq.           &
+                            size( species_names ) )
 
     ! Register state variables for reaction rates
-    call domain%register_cell_state_variable_set( "reaction_rates",           & !- variable set name
+    prop_set => property_set_t( )
+    do i_rxn = 1, size( reaction_names )
+      prop => property_t( my_name,                                            &
+                          name = reaction_names( i_rxn )%to_char( ),          &
+                          units = "mol m-3 s-1",                              &
+                          applies_to = all_cells,                             &
+                          data_type = kDouble,                                &
+                          default_value = 0.0_musica_dk )
+      call prop_set%add( prop )
+      deallocate( prop )
+    end do
+    call domain%register( "reaction_rates", prop_set )
+    deallocate( prop_set )
+    new_obj%rate_mutators_ => domain%mutator_set( "reaction_rates",           & !- property set name
                                                   "mol m-3 s-1",              & !- units
-                                                  0.0d0,                      & !- default value
-                                                  reaction_names,             & !- variable element names
+                                                  kDouble,                    & !- data type
+                                                  all_cells,                  & !- variable domain
                                                   my_name )
-    new_obj%rate_mutators_ =>                                                 &
-      domain%cell_state_set_mutator(  "reaction_rates",                       & !- variable set name
-                                      "mol m-3 s-1",                          & !- units
-                                      reaction_names,                         & !- variable element names
-                                      my_name )
+    call assert( 746539160, size( new_obj%rate_mutators_  ) .eq.              &
+                            size( reaction_names ) )
 
     ! Register an array of photolysis rate constants so that other model
     ! components can set photolysis rates
-    call domain%register_cell_state_variable_set( "photolysis_rate_constants",& !- variable set name
-                                               "s-1",                         & !- units
-                                               0.0d0,                         & !- default value
-                                               photo_names,                   & !- variable element names
-                                               my_name )
+    prop_set => property_set_t( )
+    do i_rxn = 1, size( photo_names )
+      prop => property_t( my_name,                                            &
+                          name = photo_names( i_rxn )%to_char( ),             &
+                          units = "s-1",                                      &
+                          applies_to = all_cells,                             &
+                          data_type = kDouble,                                &
+                          default_value = 0.0_musica_dk )
+      call prop_set%add( prop )
+      deallocate( prop )
+    end do
+    call domain%register( "photolysis_rate_constants", prop_set )
+    deallocate( prop_set )
     new_obj%photolysis_rate_constant_accessors_ =>                            &
-      domain%cell_state_set_accessor( "photolysis_rate_constants",            & !- variable set name
-                                      "s-1",                                  & !- units
-                                      photo_accessor_names,                   & !- variable element names
-                                      my_name )
+        domain%accessor_set( "photolysis_rate_constants",                     & !- property set name
+                             "s-1",                                           & !- units
+                             kDouble,                                         & !- data type
+                             all_cells,                                       & !- variable domain
+                             my_name )
+    call assert( 295812541,                                                   &
+                 size( new_obj%photolysis_rate_constant_accessors_ ) .eq.     &
+                 size( photo_names ) )
 
     ! Register accessors for environmental properties
-    new_obj%temperature__K_ =>                                                &
-      domain%cell_state_accessor( "temperature", "K", my_name )
-    new_obj%pressure__Pa_ =>                                                  &
-      domain%cell_state_accessor( "pressure", "Pa", my_name )
-    new_obj%number_density_air__mol_m3_ =>                                    &
-      domain%cell_state_accessor( "number density air", "mol m-3",   &
-                                           my_name )
+    prop => property_t( my_name, name = "temperature", units = "K",           &
+                        applies_to = all_cells, data_type = kDouble )
+    new_obj%temperature__K_ => domain%accessor( prop )
+    deallocate( prop )
+    prop => property_t( my_name, name = "pressure", units = "Pa",             &
+                        applies_to = all_cells, data_type = kDouble )
+    new_obj%pressure__Pa_ => domain%accessor( prop )
+    deallocate( prop )
+    prop => property_t( my_name, name = "number density air",                 &
+                        units = "mol m-3", applies_to = all_cells,            &
+                        data_type = kDouble )
+    new_obj%number_density_air__mol_m3_ => domain%accessor( prop )
+    deallocate( prop )
 
     ! Register the chemical species concentrations for output
-    call assert( 415788666, size( species_names ) .eq.                        &
-                            size( accessor_names ) )
     do i_spec = 1, size( species_names )
-      call assert( 359403346, species_names( i_spec ) .eq.                    &
-                              accessor_names( i_spec ) )
       call output%register_output_variable(                                   &
                             domain,                                           &
                             "chemical_species%"//                             & !- variable full name
@@ -239,8 +281,8 @@ contains
 
     use musica_assert,                 only : assert_msg
     use musica_constants,              only : kAvagadro
-    use musica_domain,                 only : domain_state_t,                 &
-                                              domain_iterator_t
+    use musica_domain_iterator,        only : domain_iterator_t
+    use musica_domain_state,           only : domain_state_t
     use musica_string,                 only : to_char
 
     !> MICM chemistry
@@ -332,8 +374,8 @@ contains
 
     use micm_environment,              only : environment_t
     use musica_constants,              only : kAvagadro
-    use musica_domain,                 only : domain_state_t,                 &
-                                              domain_iterator_t
+    use musica_domain_iterator,        only : domain_iterator_t
+    use musica_domain_state,           only : domain_state_t
 
     !> MICM chemistry
     class(core_t), intent(inout) :: this
