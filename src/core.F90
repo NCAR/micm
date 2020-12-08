@@ -62,6 +62,8 @@ module micm_core
     real(kind=musica_dk), allocatable :: reaction_rates__molec_cm3_s_(:)
     !> Working photolysis rate constant array [s-1]
     real(kind=musica_dk), allocatable :: photolysis_rate_constants__s_(:)
+    !> Flag indicating whether to output reaction rates
+    logical :: output_reaction_rates_ = .false.
     !> Flag indicating whether to output photolysis rate constants
     logical :: output_photolysis_rate_constants_ = .false.
   contains
@@ -241,19 +243,25 @@ contains
                             "CONC."//species_names( i_spec )%to_char( ) )       !- output name
     end do
 
-    ! Register the reaction rates for output
-    do i_rxn = 1, size( reaction_names )
-      call output%register_output_variable(                                   &
+    ! set up optional output
+    call config%get( "output", outputs, my_name, found = found )
+    if( found ) then
+
+      ! reaction rate output
+      call outputs%get( "reaction rates", output_opts, my_name, found = found )
+      if( found ) then
+        new_obj%output_reaction_rates_ = .true.
+        do i_rxn = 1, size( reaction_names )
+          call output%register_output_variable(                               &
                             domain,                                           &
                             "reaction_rates%"//                               & !- variable full name
                                 reaction_names( i_rxn )%to_char( ),           &
                             "mol m-3 s-1",                                    & !- units
                             "RATE."//reaction_names( i_rxn )%to_char( ) )       !- output name
-    end do
+        end do
+      end if
 
-    ! set up optional output
-    call config%get( "output", outputs, my_name, found = found )
-    if( found ) then
+      ! photolysis rate constant output
       call outputs%get( "photolysis rate constants", output_opts, my_name,    &
                         found = found )
       if( found ) then
@@ -360,9 +368,14 @@ contains
     call assert( 418280390, associated( this%ODE_solver_ ) )
     call this%ODE_solver_%preprocess_input( solver, output_path )
     call config%add( "solver", solver, my_name )
+    call output%empty( )
+    if( this%output_reaction_rates_ ) then
+      call output%add( "reaction rates", empty_config, my_name )
+    end if
     if( this%output_photolysis_rate_constants_ ) then
-      call output%empty( )
       call output%add( "photolysis rate constants", empty_config, my_name )
+    end if
+    if( output%number_of_children( ) .gt. 0 ) then
       call config%add( "output", output, my_name )
     end if
 
