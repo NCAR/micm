@@ -73,10 +73,7 @@ contains
                                 my_name )
       new_obj%rate_constants_( i_reaction )%val_ =>                           &
           rate_constant_builder( rate_constant_config )
-      call reaction_config%finalize( )
-      call rate_constant_config%finalize( )
     end do
-    call reaction_set%finalize( )
     deallocate( iter )
     call assert( 618706864, i_reaction .eq. kNumberOfReactions )
 
