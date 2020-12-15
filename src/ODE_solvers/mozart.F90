@@ -395,6 +395,8 @@ acceptStep: &
       call assert( 619354492, size( this%AbsTol ) .ge. 1 )
       call assert( 561515933, size( this%RelTol ) .ge. 1 )
 
+      call config%add( "chemistry time step", "s", this%rcntrl(2), my_name )
+
       call config%add( "type",               "Mozart",       my_name )
       call config%add( "absolute tolerance", this%AbsTol(1), my_name )
       call config%add( "relative tolerance", this%RelTol(1), my_name )

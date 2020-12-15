@@ -66,7 +66,13 @@ module micm_core
     logical :: output_reaction_rates_ = .false.
     !> Flag indicating whether to output photolysis rate constants
     logical :: output_photolysis_rate_constants_ = .false.
+    !> Flag indicating whether to solve chemistry during the simulation
+    logical :: solve_ = .true.
   contains
+    !> Returns the name of the component
+    procedure :: name => component_name
+    !> Returns a description of the component purpose
+    procedure :: description
     !> Solve chemistry for one or more grid cells
     procedure :: advance_state
     !> Preprocess chemistry input data
@@ -124,9 +130,8 @@ contains
 
     allocate( new_obj )
 
-    ! Get the chemistry time step
-    call config%get( "chemistry time step", "s", chemistry_time_step__s,      &
-                     my_name )
+    ! Check whether to solve chemistry
+    call config%get( "solve", new_obj%solve_, my_name, default = .true. )
 
     ! Set up the kinetics calculator
     new_obj%kinetics_ => kinetics_t( )
@@ -136,8 +141,6 @@ contains
 
     ! Set up the solver
     call config%get( "solver", solver_opts, my_name )
-    call solver_opts%add( "chemistry time step", "s", chemistry_time_step__s, &
-                          my_name )
     call solver_opts%add( "number of variables", size( species_names ),       &
                           my_name )
     new_obj%ODE_solver_ => ODE_solver_builder( solver_opts )
@@ -286,6 +289,30 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Model component name
+  type(string_t) function component_name( this )
+
+    !> CAMP interface
+    class(core_t), intent(in) :: this
+
+    component_name = "MICM: Model-Independent Chemical Mechanisms"
+
+  end function component_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Model component description
+  type(string_t) function description( this )
+
+    !> CAMP interface
+    class(core_t), intent(in) :: this
+
+    description = "Gas-phase chemistry solver"
+
+  end function description
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Solve chemistry for a given number of grid cells and time step
   subroutine advance_state( this, domain_state, domain_element,               &
       current_time__s, time_step__s )
@@ -308,6 +335,8 @@ contains
     real(kind=musica_dk), intent(in) :: time_step__s
 
     integer(kind=musica_ik) :: i_spec, i_rxn, error_flag
+
+    if( .not. this%solve_ ) return
 
     ! Set the initial conditions for the time step
     call this%time_step_initialize( domain_state, domain_element )
@@ -365,6 +394,7 @@ contains
 
     call empty_config%empty( )
     call config%add( "type", "MICM", my_name )
+    call config%add( "solve", this%solve_, my_name )
     call assert( 418280390, associated( this%ODE_solver_ ) )
     call this%ODE_solver_%preprocess_input( solver, output_path )
     call config%add( "solver", solver, my_name )
