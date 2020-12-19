@@ -9,6 +9,7 @@ module micm_core
 
   use micm_kinetics,                   only : kinetics_t
   use micm_ODE_solver,                 only : ODE_solver_t
+  use musica_component,                only : component_t
   use musica_constants,                only : musica_dk, musica_ik
   use musica_domain_state_mutator,     only : domain_state_mutator_ptr
   use musica_domain_state_accessor,    only : domain_state_accessor_ptr,      &
@@ -28,7 +29,7 @@ module micm_core
   !! objects.
   !!
   !! \todo ensure that MICM core is thread-safe
-  type :: core_t
+  type, extends(component_t) :: core_t
     private
     !> ODE solver
     class(ODE_solver_t), pointer :: ODE_solver_ => null( )
@@ -49,9 +50,10 @@ module micm_core
     !> Environmental property accessors
     !! \todo move MICM environmental accessors to micm_environment module
     !! @{
-    class(domain_state_accessor_t), pointer :: temperature__K_
-    class(domain_state_accessor_t), pointer :: pressure__Pa_
-    class(domain_state_accessor_t), pointer :: number_density_air__mol_m3_
+    class(domain_state_accessor_t), pointer :: temperature__K_ => null ()
+    class(domain_state_accessor_t), pointer :: pressure__Pa_ => null( )
+    class(domain_state_accessor_t), pointer ::                                &
+        number_density_air__mol_m3_ => null( )
     !> @}
 
     !> Working number density arrray [molec cm-3]
@@ -60,11 +62,19 @@ module micm_core
     real(kind=musica_dk), allocatable :: reaction_rates__molec_cm3_s_(:)
     !> Working photolysis rate constant array [s-1]
     real(kind=musica_dk), allocatable :: photolysis_rate_constants__s_(:)
+    !> Flag indicating whether to output reaction rates
+    logical :: output_reaction_rates_ = .false.
     !> Flag indicating whether to output photolysis rate constants
     logical :: output_photolysis_rate_constants_ = .false.
+    !> Flag indicating whether to solve chemistry during the simulation
+    logical :: solve_ = .true.
   contains
+    !> Returns the name of the component
+    procedure :: name => component_name
+    !> Returns a description of the component purpose
+    procedure :: description
     !> Solve chemistry for one or more grid cells
-    procedure :: solve
+    procedure :: advance_state
     !> Preprocess chemistry input data
     procedure :: preprocess_input
     !> Set the initial conditions for the current time step
@@ -120,9 +130,8 @@ contains
 
     allocate( new_obj )
 
-    ! Get the chemistry time step
-    call config%get( "chemistry time step", "s", chemistry_time_step__s,      &
-                     my_name )
+    ! Check whether to solve chemistry
+    call config%get( "solve", new_obj%solve_, my_name, default = .true. )
 
     ! Set up the kinetics calculator
     new_obj%kinetics_ => kinetics_t( )
@@ -132,8 +141,6 @@ contains
 
     ! Set up the solver
     call config%get( "solver", solver_opts, my_name )
-    call solver_opts%add( "chemistry time step", "s", chemistry_time_step__s, &
-                          my_name )
     call solver_opts%add( "number of variables", size( species_names ),       &
                           my_name )
     new_obj%ODE_solver_ => ODE_solver_builder( solver_opts )
@@ -239,19 +246,25 @@ contains
                             "CONC."//species_names( i_spec )%to_char( ) )       !- output name
     end do
 
-    ! Register the reaction rates for output
-    do i_rxn = 1, size( reaction_names )
-      call output%register_output_variable(                                   &
+    ! set up optional output
+    call config%get( "output", outputs, my_name, found = found )
+    if( found ) then
+
+      ! reaction rate output
+      call outputs%get( "reaction rates", output_opts, my_name, found = found )
+      if( found ) then
+        new_obj%output_reaction_rates_ = .true.
+        do i_rxn = 1, size( reaction_names )
+          call output%register_output_variable(                               &
                             domain,                                           &
                             "reaction_rates%"//                               & !- variable full name
                                 reaction_names( i_rxn )%to_char( ),           &
                             "mol m-3 s-1",                                    & !- units
                             "RATE."//reaction_names( i_rxn )%to_char( ) )       !- output name
-    end do
+        end do
+      end if
 
-    ! set up optional output
-    call config%get( "output", outputs, my_name, found = found )
-    if( found ) then
+      ! photolysis rate constant output
       call outputs%get( "photolysis rate constants", output_opts, my_name,    &
                         found = found )
       if( found ) then
@@ -276,8 +289,33 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Model component name
+  type(string_t) function component_name( this )
+
+    !> CAMP interface
+    class(core_t), intent(in) :: this
+
+    component_name = "MICM: Model-Independent Chemical Mechanisms"
+
+  end function component_name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Model component description
+  type(string_t) function description( this )
+
+    !> CAMP interface
+    class(core_t), intent(in) :: this
+
+    description = "Gas-phase chemistry solver"
+
+  end function description
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Solve chemistry for a given number of grid cells and time step
-  subroutine solve( this, domain_state, cell, current_time__s, time_step__s )
+  subroutine advance_state( this, domain_state, domain_element,               &
+      current_time__s, time_step__s )
 
     use musica_assert,                 only : assert_msg
     use musica_constants,              only : kAvagadro
@@ -290,7 +328,7 @@ contains
     !> Domain state
     class(domain_state_t), intent(inout) :: domain_state
     !> Grid cell to solve
-    class(domain_iterator_t), intent(in) :: cell
+    class(domain_iterator_t), intent(in) :: domain_element
     !> Current simulation time [s]
     real(kind=musica_dk), intent(in) :: current_time__s
     !> Chemistry time step [s]
@@ -298,8 +336,10 @@ contains
 
     integer(kind=musica_ik) :: i_spec, i_rxn, error_flag
 
+    if( .not. this%solve_ ) return
+
     ! Set the initial conditions for the time step
-    call this%time_step_initialize( domain_state, cell )
+    call this%time_step_initialize( domain_state, domain_element )
 
     ! solve the chemistry for this time step
     call this%ODE_solver_%solve( TStart = 0.0_musica_dk,                      &
@@ -314,7 +354,7 @@ contains
 
     ! update the species concentrations [mol m-3]
     do i_spec = 1, size( this%species_mutators_ )
-      call domain_state%update( cell,                                         &
+      call domain_state%update( domain_element,                               &
                                 this%species_mutators_( i_spec )%val_,        &
                                 this%number_densities__molec_cm3_( i_spec ) / &
                                     kAvagadro * 1.0d6 )
@@ -324,13 +364,13 @@ contains
     this%reaction_rates__molec_cm3_s_ =                                       &
         this%kinetics_%reaction_rates( this%number_densities__molec_cm3_ )
     do i_rxn = 1, size( this%reaction_rates__molec_cm3_s_ )
-      call domain_state%update( cell,                                         &
+      call domain_state%update( domain_element,                               &
                                 this%rate_mutators_( i_rxn )%val_,            &
                                 this%reaction_rates__molec_cm3_s_( i_rxn ) /  &
                                     kAvagadro * 1.0d6 )
     end do
 
-  end subroutine solve
+  end subroutine advance_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -341,7 +381,7 @@ contains
     use musica_config,                 only : config_t
 
     !> MICM chemistry
-    class(core_t), intent(in) :: this
+    class(core_t), intent(inout) :: this
     !> Chemistry configuration
     type(config_t), intent(out) :: config
     !> Folder to save input data to
@@ -354,12 +394,18 @@ contains
 
     call empty_config%empty( )
     call config%add( "type", "MICM", my_name )
+    call config%add( "solve", this%solve_, my_name )
     call assert( 418280390, associated( this%ODE_solver_ ) )
     call this%ODE_solver_%preprocess_input( solver, output_path )
     call config%add( "solver", solver, my_name )
+    call output%empty( )
+    if( this%output_reaction_rates_ ) then
+      call output%add( "reaction rates", empty_config, my_name )
+    end if
     if( this%output_photolysis_rate_constants_ ) then
-      call output%empty( )
       call output%add( "photolysis rate constants", empty_config, my_name )
+    end if
+    if( output%number_of_children( ) .gt. 0 ) then
       call config%add( "output", output, my_name )
     end if
 

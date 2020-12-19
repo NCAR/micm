@@ -446,6 +446,8 @@ Accepted: &
       call assert( 418968631, size( this%AbsTol ) .ge. 1 )
       call assert( 248811727, size( this%RelTol ) .ge. 1 )
 
+      call config%add( "chemistry time step", "s", this%rcntrl(2), my_name )
+
       call config%add( "type",               "Rosenbrock",   my_name )
       call config%add( "absolute tolerance", this%AbsTol(1), my_name )
       call config%add( "relative tolerance", this%RelTol(1), my_name )
