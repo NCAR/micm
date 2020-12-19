@@ -38,7 +38,6 @@ program rate_constant_demo
   ! end time loop
 
   ! finalize MICM
-  call config%finalize( )
   deallocate( kinetics )
 
 end program rate_constant_demo
