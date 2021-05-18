@@ -18,8 +18,8 @@ module rate_constant_arrhenius
     real :: D_ = 300.0
     real :: E_ = 0.0
   contains
-    !> Returns the rate of rate constant for a given set of conditions
-    procedure :: get_rate
+    !> Returns the rate constant for a given set of conditions
+    procedure :: calculate
   end type :: rate_constant_arrhenius_t
 
   interface rate_constant_arrhenius_t
@@ -31,7 +31,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of Arrhenius rate constants
-  function constructor( A, B, C, D, E, Ea ) result( new_obj )
+  elemental function constructor( A, B, C, D, E, Ea ) result( new_obj )
 
     use constants,                     only : kBoltzmann
 
@@ -51,8 +51,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the rate of rate constant for a given set of conditions
-  real elemental function get_rate( this, environment )
+  !> Returns the rate constant for a given set of conditions
+  real elemental function calculate( this, environment )
 
     use environment,                   only : environment_t
 
@@ -61,12 +61,12 @@ contains
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
 
-    get_rate = this%A_ &
+    calculate = this%A_ &
       * exp( this%C_ / environment%temperature ) &
       * ( environment%temperature / this%D_ ) ** this%B_ &
       * ( 1.0 + this%E_ *  state%pressure )
 
-  end function get_rate
+  end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

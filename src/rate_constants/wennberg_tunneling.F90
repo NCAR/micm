@@ -17,8 +17,8 @@ module rate_constant_wennberg_tunneling
     real :: B_ = 0.0
     real :: C_ = 0.0
   contains
-    !> Returns the rate of rate constant for a given set of conditions
-    procedure :: get_rate
+    !> Returns the rate constant for a given set of conditions
+    procedure :: calculate
   end type :: rate_constant_wennberg_tunneling_t
 
   interface rate_constant_wennberg_tunneling_t
@@ -30,7 +30,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of Wennberg tunneling rate constants
-  function constructor( A, B, C ) result( new_obj )
+  elemental function constructor( A, B, C ) result( new_obj )
 
     !> New rate constant
     type(rate_constant_wennberg_tunneling_t) :: new_obj
@@ -45,8 +45,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the rate of rate constant for a given set of conditions
-  real elemental function get_rate( this, environment )
+  !> Returns the rate constant for a given set of conditions
+  real elemental function calculate( this, environment )
 
     use environment,                   only : environment_t
 
@@ -56,10 +56,10 @@ contains
     type(environment_t), intent(in) :: environment
 
     associate( T => environment%temperature )
-      get_rate = this%A_ * exp( -this%B_ / T + this%C_ / T**3 )
+      calculate = this%A_ * exp( -this%B_ / T + this%C_ / T**3 )
     end associate
 
-  end function get_rate
+  end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

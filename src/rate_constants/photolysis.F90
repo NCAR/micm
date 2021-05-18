@@ -14,8 +14,8 @@ module rate_constant_photolysis
     private
     integer :: index_ = -1
   contains
-    !> Returns the rate of rate constant for a given set of conditions
-    procedure :: get_rate
+    !> Returns the rate constant for a given set of conditions
+    procedure :: calculate
   end type :: rate_constant_photolysis_t
 
   interface rate_constant_photolysis_t
@@ -27,7 +27,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of photolysis rate constants
-  function constructor( photolysis_rate_constant_index ) result( new_obj )
+  elemental function constructor( photolysis_rate_constant_index )            &
+      result( new_obj )
 
     !> New rate constant
     type(rate_constant_photolysis_t) :: new_obj
@@ -40,8 +41,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the rate of rate constant for a given set of conditions
-  real elemental function get_rate( this, environment )
+  !> Returns the rate constant for a given set of conditions
+  real elemental function calculate( this, environment )
 
     use environment,                   only : environment_t
 
@@ -50,9 +51,9 @@ contains
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
 
-    get_rate = environment%photolysis_rate_constants( this%index_ )
+    calculate = environment%photolysis_rate_constants( this%index_ )
 
-  end function get_rate
+  end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

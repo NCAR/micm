@@ -12,7 +12,7 @@ module rate_constant
   !> A rate constant for a chemical reaction
   type, abstract :: rate_constant_t
   contains
-    !> Returns the value of the rate constant for a given set of conditions
+    !> Returns the rate constant for a given set of conditions
     procedure :: calculate
   end type :: rate_constant_t
 
@@ -20,7 +20,7 @@ interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the value of the rate constant for a given set of conditions
+  !> Returns the rate constant for a given set of conditions
   function calculate( this, environment )
     use environment,                   only : environment_t
     import rate_constant_t

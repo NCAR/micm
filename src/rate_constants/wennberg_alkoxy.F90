@@ -18,8 +18,8 @@ module rate_constant_wennberg_alkoxy
     real :: a0_   = 1.0
     integer :: n_ = 0.0
   contains
-    !> Returns the rate of rate constant for a given set of conditions
-    procedure :: get_rate
+    !> Returns the rate constant for a given set of conditions
+    procedure :: calculate
   end type :: rate_constant_wennberg_alkoxy_t
 
   interface rate_constant_wennberg_alkoxy_t
@@ -31,7 +31,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of Wennberg NO + RO2 (alkoxy branch) rate constants
-  function constructor( X, Y, a0, n) result( new_obj )
+  elemental function constructor( X, Y, a0, n) result( new_obj )
 
     !> New rate constant
     type(rate_constant_wennberg_alkoxy_t) :: new_obj
@@ -48,8 +48,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the rate of rate constant for a given set of conditions
-  real elemental function get_rate( this, environment )
+  !> Returns the rate constant for a given set of conditions
+  real elemental function calculate( this, environment )
 
     use environment,                   only : environment_t
 
@@ -65,10 +65,10 @@ contains
       A = calculate_A( T, M, this%n_ )
       Z = calculate_A( 293.0, 2.45e19, this%n_ )                              &
             * ( 1.0 - this%a0_ ) / this%a0_
-      get_rate = this%X_ * exp( -this%Y_ / T ) * ( Z / ( Z + A ) )
+      calculate = this%X_ * exp( -this%Y_ / T ) * ( Z / ( Z + A ) )
     end associate
 
-  end function get_rate
+  end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

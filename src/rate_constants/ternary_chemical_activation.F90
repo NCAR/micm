@@ -21,8 +21,8 @@ module rate_constant_ternary_chemical_activation
     real :: Fc_     = 0.6
     real :: N_      = 1.0
   contains
-    !> Returns the rate of rate constant for a given set of conditions
-    procedure :: get_rate
+    !> Returns the rate constant for a given set of conditions
+    procedure :: calculate
   end type :: rate_constant_ternary_chemical_activation_t
 
   interface rate_constant_ternary_chemical_activation_t
@@ -34,8 +34,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of ternary chemical activation rate constants
-  function constructor( k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C, Fc, N )     &
-      result( new_obj )
+  elemental function constructor( k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C,   &
+      Fc, N ) result( new_obj )
 
     !> New rate constant
     type(rate_constant_ternary_chemical_activation_t) :: new_obj
@@ -56,8 +56,8 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  !> Returns the rate of rate constant for a given set of conditions
-  real elemental function get_rate( this, environment )
+  !> Returns the rate constant for a given set of conditions
+  real elemental function calculate( this, environment )
 
     use environment,                   only : environment_t
 
@@ -73,11 +73,11 @@ contains
            * ( environment%temperature / 300.0 ) ** this%k0_B_
     kinf = this%kinf_A_ * exp( this%kinf_C_ / environment%temperature )       &
            * ( environment%temperature / 300.0 ) ** this%kinf_B_
-    get_rate = k0 / ( 1.0 + k0 * M / kinf ) *                                 &
+    calculate = k0 / ( 1.0 + k0 * M / kinf ) *                                &
                * this%Fc_**( 1.0 /                                            &
                    ( 1.0 + 1.0 / this%N_ * ( log10( k0 * M / kinf ) )**2 ) )
 
-  end function get_rate
+  end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
