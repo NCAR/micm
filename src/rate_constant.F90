@@ -2,7 +2,7 @@
 ! SPDX-License-Identifier: Apache-2.0
 !
 !> The abstract rate_constant_t type definition
-module rate_constant
+module micm_rate_constant
 
   implicit none
   private
@@ -13,16 +13,17 @@ module rate_constant
   type, abstract :: rate_constant_t
   contains
     !> Returns the rate constant for a given set of conditions
-    procedure :: calculate
-  end type :: rate_constant_t
+    procedure(calculate), deferred :: calculate
+  end type rate_constant_t
 
 interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  function calculate( this, environment )
-    use environment,                   only : environment_t
+  real(kind=musica_dk) elemental function calculate( this, environment )
+    use micm_environment,              only : environment_t
+    use musica_constants,              only : musica_dk
     import rate_constant_t
     !> Rate constant
     class(rate_constant_t), intent(in) :: this
@@ -34,4 +35,4 @@ interface
 
 end interface
 
-end module rate_constant
+end module micm_rate_constant

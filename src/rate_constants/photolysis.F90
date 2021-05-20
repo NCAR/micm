@@ -2,7 +2,9 @@
 ! SPDX-License-Identifier: Apache-2.0
 !
 !> The rate_constant_photolysis_t type
-module rate_constant_photolysis
+module micm_rate_constant_photolysis
+
+  use micm_rate_constant,              only : rate_constant_t
 
   implicit none
   private
@@ -16,11 +18,11 @@ module rate_constant_photolysis
   contains
     !> Returns the rate constant for a given set of conditions
     procedure :: calculate
-  end type :: rate_constant_photolysis_t
+  end type rate_constant_photolysis_t
 
   interface rate_constant_photolysis_t
     module procedure :: constructor
-  end interface rate_constant_photolysis_t
+  end interface
 
 contains
 
@@ -42,9 +44,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real elemental function calculate( this, environment )
+  real(kind=musica_dk) elemental function calculate( this, environment )
 
-    use environment,                   only : environment_t
+    use micm_environment,              only : environment_t
+    use musica_constants,              only : musica_dk
 
     !> Reaction
     class(rate_constant_photolysis_t), intent(in) :: this
@@ -57,4 +60,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module rate_constant_photolysis
+end module micm_rate_constant_photolysis

@@ -2,7 +2,10 @@
 ! SPDX-License-Identifier: Apache-2.0
 !
 !> The rate_constant_ternary_chemical_activation_t type
-module rate_constant_ternary_chemical_activation
+module micm_rate_constant_ternary_chemical_activation
+
+  use micm_rate_constant,              only : rate_constant_t
+  use musica_constants,                only : musica_dk
 
   implicit none
   private
@@ -12,22 +15,22 @@ module rate_constant_ternary_chemical_activation
   !> A ternary chemical activation rate constant
   type, extends(rate_constant_t) :: rate_constant_ternary_chemical_activation_t
     private
-    real :: k0_A_   = 1.0
-    real :: k0_B_   = 0.0
-    real :: k0_C_   = 0.0
-    real :: kinf_A_ = 1.0
-    real :: kinf_B_ = 0.0
-    real :: kinf_C_ = 0.0
-    real :: Fc_     = 0.6
-    real :: N_      = 1.0
+    real(kind=musica_dk) :: k0_A_   = 1.0
+    real(kind=musica_dk) :: k0_B_   = 0.0
+    real(kind=musica_dk) :: k0_C_   = 0.0
+    real(kind=musica_dk) :: kinf_A_ = 1.0
+    real(kind=musica_dk) :: kinf_B_ = 0.0
+    real(kind=musica_dk) :: kinf_C_ = 0.0
+    real(kind=musica_dk) :: Fc_     = 0.6
+    real(kind=musica_dk) :: N_      = 1.0
   contains
     !> Returns the rate constant for a given set of conditions
     procedure :: calculate
-  end type :: rate_constant_ternary_chemical_activation_t
+  end type rate_constant_ternary_chemical_activation_t
 
   interface rate_constant_ternary_chemical_activation_t
     module procedure :: constructor
-  end interface rate_constant_ternary_chemical_activation_t
+  end interface
 
 contains
 
@@ -40,8 +43,8 @@ contains
     !> New rate constant
     type(rate_constant_ternary_chemical_activation_t) :: new_obj
     !> Rate constant parameters
-    real, intent(in), optional :: k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C,   &
-                                  Fc, N
+    real(kind=musica_dk), intent(in), optional :: k0_A, k0_B, k0_C, kinf_A,   &
+                                                  kinf_B, kinf_C, Fc, N
 
     if( present( k0_A   ) ) new_obj%k0_A_   = k0_A
     if( present( k0_B   ) ) new_obj%k0_B_   = k0_B
@@ -50,30 +53,30 @@ contains
     if( present( kinf_B ) ) new_obj%kinf_B_ = kinf_B
     if( present( kinf_C ) ) new_obj%kinf_C_ = kinf_C
     if( present( Fc     ) ) new_obj%Fc_     = Fc
-    if( present( N      ) ) new_obj%N       = N
+    if( present( N      ) ) new_obj%N_      = N
 
   end function constructor
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real elemental function calculate( this, environment )
+  real(kind=musica_dk) elemental function calculate( this, environment )
 
-    use environment,                   only : environment_t
+    use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_ternary_chemical_activation_t), intent(in) :: this
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
 
-    real :: k0, kinf, M
+    real(kind=musica_dk) :: k0, kinf, M
 
     M    = environment%number_density_air
     k0   = this%k0_A_   * exp( this%k0_C_   / environment%temperature )       &
            * ( environment%temperature / 300.0 ) ** this%k0_B_
     kinf = this%kinf_A_ * exp( this%kinf_C_ / environment%temperature )       &
            * ( environment%temperature / 300.0 ) ** this%kinf_B_
-    calculate = k0 / ( 1.0 + k0 * M / kinf ) *                                &
+    calculate = k0 / ( 1.0 + k0 * M / kinf )                                  &
                * this%Fc_**( 1.0 /                                            &
                    ( 1.0 + 1.0 / this%N_ * ( log10( k0 * M / kinf ) )**2 ) )
 
@@ -81,4 +84,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module rate_constant_ternary_chemical_activation
+end module micm_rate_constant_ternary_chemical_activation

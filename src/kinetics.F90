@@ -310,26 +310,21 @@ contains
   ! Execute once for the chemistry-time-step advance
   ! Not called from the solver
   !------------------------------------------------------
-  subroutine update( this, environment, photolysis_rate_constants__s )
+  subroutine update( this, environment )
 
-    use rate_constants_utility,        only : k_rate_constant, &
-                                              set_photolysis_rate_constants
+    use rate_constants_utility,        only : calculate_rate_constants
 
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
-    !> Photolysis rate constants [s-1]
-    real(kind=musica_dk), intent(in) :: photolysis_rate_constants__s(:)
 
     ! save the environmental conditions
     this%environment = environment
 
     ! update the reaction rate constants
     this%rateConst(:) = 0.0
-    call set_photolysis_rate_constants( this%rateConst, &
-                                        photolysis_rate_constants__s )
-    call k_rate_constant( this%rateConst, environment )
+    call calculate_rate_constants( this%rateConst, environment )
 
   end subroutine update
 

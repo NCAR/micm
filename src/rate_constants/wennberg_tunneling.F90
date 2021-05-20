@@ -2,7 +2,10 @@
 ! SPDX-License-Identifier: Apache-2.0
 !
 !> The rate_constant_wennberg_tunneling_t type
-module rate_constant_wennberg_tunneling
+module micm_rate_constant_wennberg_tunneling
+
+  use micm_rate_constant,              only : rate_constant_t
+  use musica_constants,                only : musica_dk
 
   implicit none
   private
@@ -13,17 +16,17 @@ module rate_constant_wennberg_tunneling
   !! (Wennberg et al., Chemical Reviews 118(7):3337-3390, 2018)
   type, extends(rate_constant_t) :: rate_constant_wennberg_tunneling_t
     private
-    real :: A_ = 1.0
-    real :: B_ = 0.0
-    real :: C_ = 0.0
+    real(kind=musica_dk) :: A_ = 1.0
+    real(kind=musica_dk) :: B_ = 0.0
+    real(kind=musica_dk) :: C_ = 0.0
   contains
     !> Returns the rate constant for a given set of conditions
     procedure :: calculate
-  end type :: rate_constant_wennberg_tunneling_t
+  end type rate_constant_wennberg_tunneling_t
 
   interface rate_constant_wennberg_tunneling_t
     module procedure :: constructor
-  end interface rate_constant_wennberg_tunneling_t
+  end interface
 
 contains
 
@@ -35,7 +38,7 @@ contains
     !> New rate constant
     type(rate_constant_wennberg_tunneling_t) :: new_obj
     !> Rate constant parameters
-    real, intent(in), optional :: A, B, C
+    real(kind=musica_dk), intent(in), optional :: A, B, C
 
     if( present( A ) ) new_obj%A_ = A
     if( present( B ) ) new_obj%B_ = B
@@ -46,9 +49,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real elemental function calculate( this, environment )
+  real(kind=musica_dk) elemental function calculate( this, environment )
 
-    use environment,                   only : environment_t
+    use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_wennberg_tunneling_t), intent(in) :: this
@@ -63,4 +66,4 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-end module rate_constant_wennberg_tunneling
+end module micm_rate_constant_wennberg_tunneling
