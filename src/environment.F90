@@ -4,6 +4,7 @@
 !> \todo rewrite micm_environment module to follow musica style conventions
 module micm_environment
 
+  use kinetics_utilities,              only : number_of_photolysis_reactions
   use musica_constants,                only : musica_dk
 
   type environment_t
@@ -21,6 +22,8 @@ module micm_environment
     real(musica_dk) :: h2ovmr
     !> Molecular oxygen number density [# cm-3]
     real(musica_dk) :: o2_number_density
+    !> Photolysis rate constants [s-1]
+    real(musica_dk) :: photolysis_rate_constants(number_of_photolysis_reactions)
   end type environment_t
 
 end module micm_environment
