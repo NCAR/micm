@@ -17,7 +17,6 @@ use musica_constants, only: r8 => musica_dk
   ! Total number of reactions
   integer, parameter, public  :: number_of_reactions                = 0
   integer, parameter, public  :: number_of_photolysis_reactions     = 0
-  integer, parameter, private :: photolysis_starting_reaction_index = 0
   integer, parameter, public  :: number_of_species                  = 0
 
   contains
