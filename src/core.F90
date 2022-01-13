@@ -141,7 +141,7 @@ contains
     type(config_t) :: solver_opts, outputs, output_opts, spec_set, spec_data
     class(iterator_t), pointer :: iter
     real(kind=musica_dk) :: chemistry_time_step__s
-    type(property_set_t), pointer :: prop_set
+    type(property_set_t) :: prop_set
     type(property_t), pointer :: prop
     logical :: found, found_spec
     type(domain_target_cells_t) :: all_cells
@@ -168,7 +168,7 @@ contains
     new_obj%ODE_solver_ => ODE_solver_builder( solver_opts )
 
     ! Register state variables for the chemical species concentrations
-    prop_set => property_set_t( )
+    prop_set = property_set_t( )
     do i_spec = 1, size( species_names )
       prop => property_t( my_name,                                            &
                           name = species_names( i_spec )%to_char( ),          &
@@ -180,7 +180,6 @@ contains
       deallocate( prop )
     end do
     call domain%register( "chemical_species", prop_set )
-    deallocate( prop_set )
     new_obj%species_mutators_ => domain%mutator_set(   "chemical_species",    & !- property set name
                                                        "mol m-3",             & !- units
                                                        kDouble,               & !- data type
@@ -197,7 +196,7 @@ contains
                             size( species_names ) )
 
     ! Register state variables for reaction rates
-    prop_set => property_set_t( )
+    prop_set = property_set_t( )
     do i_rxn = 1, size( reaction_names )
       prop => property_t( my_name,                                            &
                           name = reaction_names( i_rxn )%to_char( ),          &
@@ -209,7 +208,6 @@ contains
       deallocate( prop )
     end do
     call domain%register( "reaction_rates", prop_set )
-    deallocate( prop_set )
     new_obj%rate_mutators_ => domain%mutator_set( "reaction_rates",           & !- property set name
                                                   "mol m-3 s-1",              & !- units
                                                   kDouble,                    & !- data type
@@ -220,7 +218,7 @@ contains
 
     ! Register an array of photolysis rate constants so that other model
     ! components can set photolysis rates
-    prop_set => property_set_t( )
+    prop_set = property_set_t( )
     do i_rxn = 1, size( photo_names )
       prop => property_t( my_name,                                            &
                           name = photo_names( i_rxn )%to_char( ),             &
@@ -232,7 +230,6 @@ contains
       deallocate( prop )
     end do
     call domain%register( "photolysis_rate_constants", prop_set )
-    deallocate( prop_set )
     new_obj%photolysis_rate_constant_accessors_ =>                            &
         domain%accessor_set( "photolysis_rate_constants",                     & !- property set name
                              "s-1",                                           & !- units
@@ -530,11 +527,13 @@ contains
     end do
 
     ! update the photolysis rates
-    do i_photo = 1, size( this%photolysis_rate_constant_accessors_ )
-      call domain_state%get( cell,                                            &
+    if( size( this%photolysis_rate_constant_accessors_ ) .gt. 0 ) then
+      do i_photo = 1, size( this%photolysis_rate_constant_accessors_ )
+        call domain_state%get( cell,                                          &
                     this%photolysis_rate_constant_accessors_( i_photo )%val_, &
                     env%photolysis_rate_constants( i_photo ) )
-    end do
+      end do
+    end if
 
     ! update the kinetics for the current conditions
     call this%kinetics_%update( env )
