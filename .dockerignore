@@ -1,12 +1,9 @@
-# blacklist all
+# block all
 *
 
-# whitelist things to copy
+# unblock things to copy
 !CMakeLists.txt
 !src/
-!libs/
+!include/
 !test/
 !etc/
-
-# blacklist generated code
-src/processor_output/*.F90
