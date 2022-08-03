@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <micm/micm.h>
+#include <micm/system.h>
 #include <iostream>
 
 #if __cplusplus
@@ -13,6 +14,7 @@ extern "C" {
 
 void create_solver(char* file_path) {
   std::cout << "Hi" << std::endl;
+  System sytem;
 }
 
 #if __cplusplus
