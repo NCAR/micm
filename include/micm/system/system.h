@@ -7,10 +7,10 @@
 #ifndef MICM_SYSTEM_H
 #define MICM_SYSTEM_H
 
-#include <micm/aerosol_representation.h>
-#include <micm/condition.h>
-#include <micm/phase.h>
-#include <micm/species.h>
+#include <micm/system/aerosol_representation.h>
+#include <micm/system/condition.h>
+#include <micm/system/phase.h>
+#include <micm/system/species.h>
 
 #include <vector>
 #include <string>

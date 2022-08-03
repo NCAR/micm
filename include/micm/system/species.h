@@ -4,15 +4,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef MICM_MODAL_AEROSOL_REPRESENTATION_H
-#define MICM_MODAL_AEROSOL_REPRESENTATION_H
+#ifndef MICM_SPECIES_H
+#define MICM_SPECIES_H
 
-#include <micm/aerosol/aerosol_representation.h>
-#include <micm/aerosol/mode.h>
+#include <micm/system/property.h>
 
-class ModalAerosolRepresentation: public AerosolRepresentation {
+#include <string>
+#include <vector>
+
+class Species {
   private:
-    const std::vector<Mode> modes_;
+    const std::string name_;
+    const std::vector<Property<double>> properties_;
 
   public:
 };

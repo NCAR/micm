@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 #include <micm/micm.h>
-#include <micm/system.h>
+#include <micm/system/system.h>
 #include <iostream>
 
 #if __cplusplus

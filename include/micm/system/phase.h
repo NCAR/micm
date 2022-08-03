@@ -4,14 +4,16 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef MICM_MODE_H
-#define MICM_MODE_H
+#ifndef MICM_PHASE_H
+#define MICM_PHASE_H
 
-#include <micm/phase.h>
+#include <micm/system/species.h>
 
-class Mode {
+#include <vector>
+
+class Phase {
   private:
-    const std::vector<const Phase&> phases_;
+    const std::vector<Species> species_;
 
   public:
     std::size_t Size();

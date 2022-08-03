@@ -7,8 +7,8 @@
 #ifndef MICM_SECTIONAL_AEROSOL_REPRESENTATION_H
 #define MICM_SECTIONAL_AEROSOL_REPRESENTATION_H
 
-#include <micm/aerosol/aerosol_representation.h>
-#include <micm/aerosol/section.h>
+#include <micm/system/aerosol_representation.h>
+#include <micm/system/section.h>
 
 class SectionalAersolRepresentation: public AerosolRepresentation {
   private:
