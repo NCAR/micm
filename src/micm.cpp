@@ -14,7 +14,7 @@ extern "C" {
 
 void create_solver(char* file_path) {
   std::cout << "Hi" << std::endl;
-  System sytem;
+  System system;
 }
 
 #if __cplusplus

@@ -7,10 +7,13 @@
 #ifndef MICM_AEROSOL_REPRESENTATION_H
 #define MICM_AEROSOL_REPRESENTATION_H
 
-class AersolRepresentation {
-  public:
+#include <cstddef>
 
+class AerosolRepresentation {
   private:
+
+  public:
+    std::size_t Size();
 };
 
 #endif

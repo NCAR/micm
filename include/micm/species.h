@@ -7,10 +7,17 @@
 #ifndef MICM_SPECIES_H
 #define MICM_SPECIES_H
 
-class Species {
-  public:
+#include <micm/property.h>
 
+#include <string>
+#include <vector>
+
+class Species {
   private:
+    const std::string name_;
+    const std::vector<Property<double>> properties_;
+
+  public:
 };
 
 #endif

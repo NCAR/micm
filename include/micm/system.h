@@ -7,25 +7,25 @@
 #ifndef MICM_SYSTEM_H
 #define MICM_SYSTEM_H
 
-#include <micm/aersol_representation.h>
+#include <micm/aerosol_representation.h>
 #include <micm/condition.h>
 #include <micm/phase.h>
-#include <micm/spcies.h>
+#include <micm/species.h>
 
 #include <vector>
 #include <string>
 
 class System {
   private:
-    Phase gas_phase_;
-    std::vector<AersolRepresentation> aerosols_;
-    std::vector<Phase> phases_;
-    std::vector<Condition> conditions_;
+    const Phase gas_phase_;
+    const std::vector<AerosolRepresentation> aerosols_;
+    const std::vector<Phase> phases_;
+    const std::vector<Condition> conditions_;
 
   public:
     std::size_t Size();
-    const Phase& FindPhase(const std::string name);
-    const Species& FindSpecies(const Phase& phase, const std::string name);
+    const Phase& FindPhase(const std::string& name);
+    const Species& FindSpecies(const Phase& phase, const std::string& name);
 };
 
 #endif

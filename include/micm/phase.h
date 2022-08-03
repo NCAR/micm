@@ -7,10 +7,16 @@
 #ifndef MICM_PHASE_H
 #define MICM_PHASE_H
 
-class Phase {
-  public:
+#include <micm/species.h>
 
+#include <vector>
+
+class Phase {
   private:
+    const std::vector<Species> species_;
+
+  public:
+    std::size_t Size();
 };
 
 #endif

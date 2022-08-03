@@ -4,18 +4,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef MICM_CONDITION_H
-#define MICM_CONDITION_H
+#ifndef MICM_MODE_H
+#define MICM_MODE_H
 
-#include <string>
+#include <micm/phase.h>
 
-class Condition {
+class Mode {
   private:
-    const std::string name_;
-    const std::string units_;
+    const std::vector<const Phase&> phases_;
 
   public:
-    Condition(const std::string& name, const std::string& units);
+    std::size_t Size();
 };
 
 #endif

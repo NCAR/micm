@@ -4,18 +4,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#ifndef MICM_CONDITION_H
-#define MICM_CONDITION_H
+#ifndef MICM_MODAL_AEROSOL_REPRESENTATION_H
+#define MICM_MODAL_AEROSOL_REPRESENTATION_H
 
-#include <string>
+#include <micm/aerosol/aerosol_representation.h>
+#include <micm/aerosol/mode.h>
 
-class Condition {
+class ModalAerosolRepresentation: public AerosolRepresentation {
   private:
-    const std::string name_;
-    const std::string units_;
+    const std::vector<Mode> modes_;
 
   public:
-    Condition(const std::string& name, const std::string& units);
 };
 
 #endif
