@@ -13,6 +13,7 @@ class ModalAerosolRepresentation: public AerosolRepresentation {
     const std::vector<Mode> modes_;
 
   public:
+    virtual void GenerateJITForSpecies(JIT jit, const std::function<void(JIT, std::map<std::string, Species>)>& f) = 0;
 };
 
 #endif

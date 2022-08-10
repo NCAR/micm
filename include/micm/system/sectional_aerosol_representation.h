@@ -13,6 +13,7 @@ class SectionalAersolRepresentation: public AerosolRepresentation {
     const std::vector<Section> sections_;
 
   public:
+    virtual void GenerateJITForSpecies(JIT jit, const std::function<void(JIT, std::map<std::string, Species>)>& f) = 0;
 };
 
 #endif
