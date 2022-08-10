@@ -2,10 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#include <micm/micm.h>
+#ifndef MICM_PROCESS_H
+#define MICM_PROCESS_H
 
-int main(const int argc, const char *argv[]) {
+class Process {
+  private:
 
-  create_solver("");
+  public:
+};
 
-}
+#endif
