@@ -12,7 +12,7 @@ use musica_constants, only: r8 => musica_dk
 
   integer, parameter :: number_sparse_factor_elements = 23
 
-  public :: factor, solve 
+  public :: factor, solve
 
   contains
 
@@ -24,27 +24,27 @@ subroutine backsolve_L_y_eq_b(ncell,LU,b,y)
   real(r8), intent(in) :: b(:,:)
   real(r8), intent(out) :: y(:,:)
 
-  integer : i
+  integer :: i
 
-  do i = 1, ncell 
-     y(i,1) = b(i,1)
-     y(i,2) = b(i,2)
-     y(i,3) = b(i,3)
-     y(i,4) = b(i,4)
-     y(i,5) = b(i,5)
-     y(i,6) = b(i,6)
-     y(i,6) = y(i,6) - LU(i,9) * y(i,5)
-     y(i,7) = b(i,7)
-     y(i,7) = y(i,7) - LU(i,2) * y(i,1)
-     y(i,7) = y(i,7) - LU(i,10) * y(i,5)
-     y(i,7) = y(i,7) - LU(i,12) * y(i,6)
-     y(i,8) = b(i,8)
-     y(i,8) = y(i,8) - LU(i,3) * y(i,1)
-     y(i,8) = y(i,8) - LU(i,14) * y(i,7)
-     y(i,9) = b(i,9)
-     y(i,9) = y(i,9) - LU(i,4) * y(i,1)
-     y(i,9) = y(i,9) - LU(i,15) * y(i,7)
-     y(i,9) = y(i,9) - LU(i,19) * y(i,8)
+  do i = 1, ncell
+    y(i,1) = b(i,1)
+    y(i,2) = b(i,2)
+    y(i,3) = b(i,3)
+    y(i,4) = b(i,4)
+    y(i,5) = b(i,5)
+    y(i,6) = b(i,6)
+    y(i,6) = y(i,6) - LU(i,9) * y(i,5)
+    y(i,7) = b(i,7)
+    y(i,7) = y(i,7) - LU(i,2) * y(i,1)
+    y(i,7) = y(i,7) - LU(i,10) * y(i,5)
+    y(i,7) = y(i,7) - LU(i,12) * y(i,6)
+    y(i,8) = b(i,8)
+    y(i,8) = y(i,8) - LU(i,3) * y(i,1)
+    y(i,8) = y(i,8) - LU(i,14) * y(i,7)
+    y(i,9) = b(i,9)
+    y(i,9) = y(i,9) - LU(i,4) * y(i,1)
+    y(i,9) = y(i,9) - LU(i,15) * y(i,7)
+    y(i,9) = y(i,9) - LU(i,19) * y(i,8)
   end do
 
 end subroutine backsolve_L_y_eq_b
@@ -62,80 +62,86 @@ subroutine backsolve_U_x_eq_y(ncell,LU,y,x)
   integer :: i
 
   do i = 1, ncell
-     temporary = y(i,9)
-     x(i,9) = LU(i,23) * temporary
-     temporary = y(i,8)
-     temporary = temporary - LU(i,22) * x(i,9)
-     x(i,8) = LU(i,18) * temporary
-     temporary = y(i,7)
-     temporary = temporary - LU(i,17) * x(i,8)
-     temporary = temporary - LU(i,21) * x(i,9)
-     x(i,7) = LU(i,13) * temporary
-     temporary = y(i,6)
-     temporary = temporary - LU(i,16) * x(i,8)
-     temporary = temporary - LU(i,20) * x(i,9)
-     x(i,6) = LU(i,11) * temporary
-     temporary = y(i,5)
-     x(i,5) = LU(i,8) * temporary
-     temporary = y(i,4)
-     x(i,4) = LU(i,7) * temporary
-     temporary = y(i,3)
-     x(i,3) = LU(i,6) * temporary
-     temporary = y(i,2)
-     x(i,2) = LU(i,5) * temporary
-     temporary = y(i,1)
-     x(i,1) = LU(i,1) * temporary
+    temporary = y(i,9)
+    x(i,9) = LU(i,23) * temporary
+    temporary = y(i,8)
+    temporary = temporary - LU(i,22) * x(i,9)
+    x(i,8) = LU(i,18) * temporary
+    temporary = y(i,7)
+    temporary = temporary - LU(i,17) * x(i,8)
+    temporary = temporary - LU(i,21) * x(i,9)
+    x(i,7) = LU(i,13) * temporary
+    temporary = y(i,6)
+    temporary = temporary - LU(i,16) * x(i,8)
+    temporary = temporary - LU(i,20) * x(i,9)
+    x(i,6) = LU(i,11) * temporary
+    temporary = y(i,5)
+    x(i,5) = LU(i,8) * temporary
+    temporary = y(i,4)
+    x(i,4) = LU(i,7) * temporary
+    temporary = y(i,3)
+    x(i,3) = LU(i,6) * temporary
+    temporary = y(i,2)
+    x(i,2) = LU(i,5) * temporary
+    temporary = y(i,1)
+    x(i,1) = LU(i,1) * temporary
   end do
 
 end subroutine backsolve_U_x_eq_y
 
+
+
 subroutine factor(ncell,LU)
 
   integer,  intent(in)    :: ncell
-  real(r8), intent(inout) :: LU(:)
+  real(r8), intent(inout) :: LU(:,:)
 
-  integer :: i
+integer :: i
 
-  do i = 1, ncell
-     LU(i,1) = 1./LU(i,1)
-     LU(i,2) = LU(i,2) * LU(i,1)
-     LU(i,3) = LU(i,3) * LU(i,1)
-     LU(i,4) = LU(i,4) * LU(i,1)
-     LU(i,5) = 1./LU(i,5)
-     LU(i,6) = 1./LU(i,6)
-     LU(i,7) = 1./LU(i,7)
-     LU(i,8) = 1./LU(i,8)
-     LU(i,9) = LU(i,9) * LU(i,8)
-     LU(i,10) = LU(i,10) * LU(i,8)
-     LU(i,11) = 1./LU(i,11)
-     LU(i,12) = LU(i,12) * LU(i,11)
-     LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
-     LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
-     LU(i,13) = 1./LU(i,13)
-     LU(i,14) = LU(i,14) * LU(i,13)
-     LU(i,15) = LU(i,15) * LU(i,13)
-     LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
-     LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
-     LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
-     LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
-     LU(i,18) = 1./LU(i,18)
-     LU(i,19) = LU(i,19) * LU(i,18)
-     LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
-     LU(i,23) = 1./LU(i,23)
+do i = 1, ncell
+    LU(i,1) = 1./LU(i,1)
+    LU(i,2) = LU(i,2) * LU(i,1)
+    LU(i,3) = LU(i,3) * LU(i,1)
+    LU(i,4) = LU(i,4) * LU(i,1)
+    LU(i,5) = 1./LU(i,5)
+    LU(i,6) = 1./LU(i,6)
+    LU(i,7) = 1./LU(i,7)
+    LU(i,8) = 1./LU(i,8)
+    LU(i,9) = LU(i,9) * LU(i,8)
+    LU(i,10) = LU(i,10) * LU(i,8)
+    LU(i,11) = 1./LU(i,11)
+    LU(i,12) = LU(i,12) * LU(i,11)
+    LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
+    LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
+    LU(i,13) = 1./LU(i,13)
+    LU(i,14) = LU(i,14) * LU(i,13)
+    LU(i,15) = LU(i,15) * LU(i,13)
+    LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
+    LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
+    LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
+    LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
+    LU(i,18) = 1./LU(i,18)
+    LU(i,19) = LU(i,19) * LU(i,18)
+    LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
+    LU(i,23) = 1./LU(i,23)
   end do
 
 end subroutine factor
 
-subroutine solve(ncell,LU, x, b) 
 
-  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b 
-  real(r8), intent(out) :: x(:,:) 
-  real(r8) :: y(:,size(b,2)) 
+
+subroutine solve(ncelll,LU,x,b)
+
+  integer,  intent(in) :: ncell
+  real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b
+  real(r8), intent(out) :: x(:,:)
+
+  real(r8) :: y(ncell,size(b,2))
 
   call backsolve_L_y_eq_b(ncell, LU, b, y)
   call backsolve_U_x_eq_y(ncell, LU, y, x)
 
-end subroutine solve 
+end subroutine solve
 
 
 end module factor_solve_utilities

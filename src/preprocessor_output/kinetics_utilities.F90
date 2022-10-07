@@ -24,93 +24,79 @@ use musica_constants, only: r8 => musica_dk
 
 
 subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_air)
-
-  ! Number of grid cells with chemical reactions
-  integer,  intent(in)  :: ncell
-
   ! Compute the derivative of the Forcing w.r.t. each chemical
   ! Also known as the Jacobian
+  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions
   real(r8), intent(out) :: LU(:,:)
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air
+  real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
 
   LU(:,:) = 0
 
   do i = 1, ncell
-  ! df_O/d(M)
+    ! df_O/d(M)
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,2) = LU(i,2) - rate_constant(i,7) * number_density(i,7) * number_density(i,8)
 
-
-  ! df_O2/d(M)
+    ! df_O2/d(M)
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,3) = LU(i,3) - rate_constant(i,7) * number_density(i,7) * number_density(i,8)
 
-
-  ! df_O3/d(M)
+    ! df_O3/d(M)
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,4) = LU(i,4) + rate_constant(i,7) * number_density(i,7) * number_density(i,8)
 
-
-  ! df_O1D/d(N2)
+    ! df_O1D/d(N2)
     !  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     LU(i,9) = LU(i,9) - rate_constant(i,4) * number_density(i,6)
 
-
-  ! df_O/d(N2)
+    ! df_O/d(N2)
     !  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     LU(i,10) = LU(i,10) + rate_constant(i,4) * number_density(i,6)
 
-
-  ! df_O1D/d(O1D)
+    ! df_O1D/d(O1D)
     !  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     LU(i,11) = LU(i,11) - rate_constant(i,4) * number_density(i,5)
 
     !  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     LU(i,11) = LU(i,11) - rate_constant(i,5) * number_density(i,8)
 
-
-  ! df_O/d(O1D)
+    ! df_O/d(O1D)
     !  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     LU(i,12) = LU(i,12) + rate_constant(i,4) * number_density(i,5)
 
     !  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     LU(i,12) = LU(i,12) + rate_constant(i,5) * number_density(i,8)
 
-
-  ! df_O/d(O)
+    ! df_O/d(O)
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,13) = LU(i,13) - rate_constant(i,6) * number_density(i,9)
 
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,13) = LU(i,13) - rate_constant(i,7) * number_density(i,1) * number_density(i,8)
 
-
-  ! df_O2/d(O)
+    ! df_O2/d(O)
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,14) = LU(i,14) + 2*rate_constant(i,6) * number_density(i,9)
 
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,14) = LU(i,14) - rate_constant(i,7) * number_density(i,1) * number_density(i,8)
 
-
-  ! df_O3/d(O)
+    ! df_O3/d(O)
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,15) = LU(i,15) - rate_constant(i,6) * number_density(i,9)
 
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,15) = LU(i,15) + rate_constant(i,7) * number_density(i,1) * number_density(i,8)
 
-
-  ! df_O1D/d(O2)
+    ! df_O1D/d(O2)
     !  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     LU(i,16) = LU(i,16) - rate_constant(i,5) * number_density(i,6)
 
-
-  ! df_O/d(O2)
+    ! df_O/d(O2)
     !  k_O2_1: O2 -> 2*O
     LU(i,17) = LU(i,17) + 2*rate_constant(i,1)
 
@@ -120,34 +106,29 @@ subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_ai
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,17) = LU(i,17) - rate_constant(i,7) * number_density(i,1) * number_density(i,7)
 
-
-  ! df_O2/d(O2)
+    ! df_O2/d(O2)
     !  k_O2_1: O2 -> 2*O
     LU(i,18) = LU(i,18) - rate_constant(i,1)
 
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,18) = LU(i,18) - rate_constant(i,7) * number_density(i,1) * number_density(i,7)
 
-
-  ! df_O3/d(O2)
+    ! df_O3/d(O2)
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,19) = LU(i,19) + rate_constant(i,7) * number_density(i,1) * number_density(i,7)
 
-
-  ! df_O1D/d(O3)
+    ! df_O1D/d(O3)
     !  k_O3_1: O3 -> 1*O1D + 1*O2
     LU(i,20) = LU(i,20) + rate_constant(i,2)
 
-
-  ! df_O/d(O3)
+    ! df_O/d(O3)
     !  k_O3_2: O3 -> 1*O + 1*O2
     LU(i,21) = LU(i,21) + rate_constant(i,3)
 
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,21) = LU(i,21) - rate_constant(i,6) * number_density(i,7)
 
-
-  ! df_O2/d(O3)
+    ! df_O2/d(O3)
     !  k_O3_1: O3 -> 1*O1D + 1*O2
     LU(i,22) = LU(i,22) + rate_constant(i,2)
 
@@ -157,8 +138,7 @@ subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_ai
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,22) = LU(i,22) + 2*rate_constant(i,6) * number_density(i,7)
 
-
-  ! df_O3/d(O3)
+    ! df_O3/d(O3)
     !  k_O3_1: O3 -> 1*O1D + 1*O2
     LU(i,23) = LU(i,23) - rate_constant(i,2)
 
@@ -173,11 +153,9 @@ subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_ai
 end subroutine dforce_dy
 
 subroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)
-  !compute LU decomposition of [alpha * I - dforce_dy]
+  ! Compute LU decomposition of [alpha * I - dforce_dy]
 
-  ! Number of grid cells with chemical reactions
-  integer,  intent(in) :: ncell
-
+  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions
   real(r8), intent(in) :: dforce_dy(:,:)
   real(r8), intent(in) :: alpha
   real(r8), intent(out) :: LU(:,:)
@@ -186,127 +164,116 @@ subroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)
 
   LU(:,:) = -dforce_dy(:,:)
 
-! add alpha to diagonal elements
-
+  ! add alpha to diagonal elements
   do i = 1, ncell
-     LU(i,1) = -dforce_dy(i,1) + alpha 
-     LU(i,5) = -dforce_dy(i,5) + alpha 
-     LU(i,6) = -dforce_dy(i,6) + alpha 
-     LU(i,7) = -dforce_dy(i,7) + alpha 
-     LU(i,8) = -dforce_dy(i,8) + alpha 
-     LU(i,11) = -dforce_dy(i,11) + alpha 
-     LU(i,13) = -dforce_dy(i,13) + alpha 
-     LU(i,18) = -dforce_dy(i,18) + alpha 
-     LU(i,23) = -dforce_dy(i,23) + alpha 
+    LU(i,1) = -dforce_dy(i,1) + alpha
+    LU(i,5) = -dforce_dy(i,5) + alpha
+    LU(i,6) = -dforce_dy(i,6) + alpha
+    LU(i,7) = -dforce_dy(i,7) + alpha
+    LU(i,8) = -dforce_dy(i,8) + alpha
+    LU(i,11) = -dforce_dy(i,11) + alpha
+    LU(i,13) = -dforce_dy(i,13) + alpha
+    LU(i,18) = -dforce_dy(i,18) + alpha
+    LU(i,23) = -dforce_dy(i,23) + alpha
   end do
 
-  call factor(LU) 
+  call factor(LU)
 
 end subroutine factored_alpha_minus_jac
 
 subroutine p_force(ncell, rate_constant, number_density, number_density_air, force)
   ! Compute force function for all molecules
 
-  ! Number of grid cells with chemical reactions
-  integer,  intent(in) :: ncell
-
+  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air
+  real(r8), intent(in) :: number_density_air(:)
   real(r8), intent(out) :: force(:,:)
 
   integer :: i
 
   do i = 1, ncell
-! M
-     force(i,1) = 0
 
+    ! M
+    force(i,1) = 0
 
-! Ar
-     force(i,2) = 0
+    ! Ar
+    force(i,2) = 0
 
+    ! CO2
+    force(i,3) = 0
 
-! CO2
-     force(i,3) = 0
+    ! H2O
+    force(i,4) = 0
 
+    ! N2
+    force(i,5) = 0
 
-! H2O
-     force(i,4) = 0
+    ! O1D
+    force(i,6) = 0
 
+    ! k_O3_1: O3 -> 1*O1D + 1*O2
+    force(i,6) = force(i,6) + rate_constant(i,2) * number_density(i,9)
 
-! N2
-     force(i,5) = 0
+    ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    force(i,6) = force(i,6) - rate_constant(i,4) * number_density(i,5) * number_density(i,6)
 
+    ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    force(i,6) = force(i,6) - rate_constant(i,5) * number_density(i,6) * number_density(i,8)
 
-! O1D
-     force(i,6) = 0
+    ! O
+    force(i,7) = 0
 
-     ! k_O3_1: O3 -> 1*O1D + 1*O2
-     force(i,6) = force(i,6) + rate_constant(i,2) * number_density(i,9)
-   
-     ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-     force(i,6) = force(i,6) - rate_constant(i,4) * number_density(i,5) * number_density(i,6)
-   
-     ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-     force(i,6) = force(i,6) - rate_constant(i,5) * number_density(i,6) * number_density(i,8)
+    ! k_O2_1: O2 -> 2*O
+    force(i,7) = force(i,7) + 2*rate_constant(i,1) * number_density(i,8)
 
+    ! k_O3_2: O3 -> 1*O + 1*O2
+    force(i,7) = force(i,7) + rate_constant(i,3) * number_density(i,9)
 
-! O
-     force(i,7) = 0
+    ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    force(i,7) = force(i,7) + rate_constant(i,4) * number_density(i,5) * number_density(i,6)
 
-     ! k_O2_1: O2 -> 2*O
-     force(i,7) = force(i,7) + 2*rate_constant(i,1) * number_density(i,8)
-   
-     ! k_O3_2: O3 -> 1*O + 1*O2
-     force(i,7) = force(i,7) + rate_constant(i,3) * number_density(i,9)
-   
-     ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-     force(i,7) = force(i,7) + rate_constant(i,4) * number_density(i,5) * number_density(i,6)
-   
-     ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-     force(i,7) = force(i,7) + rate_constant(i,5) * number_density(i,6) * number_density(i,8)
-   
-     ! k_O_O3_1: O + O3 -> 2*O2
-     force(i,7) = force(i,7) - rate_constant(i,6) * number_density(i,7) * number_density(i,9)
-   
-     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-     force(i,7) = force(i,7) - rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
+    ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    force(i,7) = force(i,7) + rate_constant(i,5) * number_density(i,6) * number_density(i,8)
 
+    ! k_O_O3_1: O + O3 -> 2*O2
+    force(i,7) = force(i,7) - rate_constant(i,6) * number_density(i,7) * number_density(i,9)
 
-! O2
-     force(i,8) = 0
-   
-     ! k_O2_1: O2 -> 2*O
-     force(i,8) = force(i,8) - rate_constant(i,1) * number_density(i,8)
-   
-     ! k_O3_1: O3 -> 1*O1D + 1*O2
-     force(i,8) = force(i,8) + rate_constant(i,2) * number_density(i,9)
-   
-     ! k_O3_2: O3 -> 1*O + 1*O2
-     force(i,8) = force(i,8) + rate_constant(i,3) * number_density(i,9)
-   
-     ! k_O_O3_1: O + O3 -> 2*O2
-     force(i,8) = force(i,8) + 2*rate_constant(i,6) * number_density(i,7) * number_density(i,9)
-   
-     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-     force(i,8) = force(i,8) - rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
+    ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    force(i,7) = force(i,7) - rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
 
+    ! O2
+    force(i,8) = 0
 
-! O3
-     force(i,9) = 0
+    ! k_O2_1: O2 -> 2*O
+    force(i,8) = force(i,8) - rate_constant(i,1) * number_density(i,8)
 
-     ! k_O3_1: O3 -> 1*O1D + 1*O2
-     force(i,9) = force(i,9) - rate_constant(i,2) * number_density(i,9)
-   
-     ! k_O3_2: O3 -> 1*O + 1*O2
-     force(i,9) = force(i,9) - rate_constant(i,3) * number_density(i,9)
-   
-     ! k_O_O3_1: O + O3 -> 2*O2
-     force(i,9) = force(i,9) - rate_constant(i,6) * number_density(i,7) * number_density(i,9)
-   
-     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-     force(i,9) = force(i,9) + rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
+    ! k_O3_1: O3 -> 1*O1D + 1*O2
+    force(i,8) = force(i,8) + rate_constant(i,2) * number_density(i,9)
 
+    ! k_O3_2: O3 -> 1*O + 1*O2
+    force(i,8) = force(i,8) + rate_constant(i,3) * number_density(i,9)
+
+    ! k_O_O3_1: O + O3 -> 2*O2
+    force(i,8) = force(i,8) + 2*rate_constant(i,6) * number_density(i,7) * number_density(i,9)
+
+    ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    force(i,8) = force(i,8) - rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
+
+    ! O3
+    force(i,9) = 0
+
+    ! k_O3_1: O3 -> 1*O1D + 1*O2
+    force(i,9) = force(i,9) - rate_constant(i,2) * number_density(i,9)
+
+    ! k_O3_2: O3 -> 1*O + 1*O2
+    force(i,9) = force(i,9) - rate_constant(i,3) * number_density(i,9)
+
+    ! k_O_O3_1: O + O3 -> 2*O2
+    force(i,9) = force(i,9) - rate_constant(i,6) * number_density(i,7) * number_density(i,9)
+
+    ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    force(i,9) = force(i,9) + rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
   end do
 
 end subroutine p_force
@@ -314,38 +281,36 @@ end subroutine p_force
 function reaction_rates(ncell, rate_constant, number_density, number_density_air)
   ! Compute reaction rates
 
-  ! Number of grid cells with chemical reactions
-  integer,  intent(in) :: ncell
-
-  real(r8) :: reaction_rates(:,number_of_reactions)
+  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
+  real(r8) :: reaction_rates(ncell,number_of_reactions)
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air
+  real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
 
   do i = 1, ncell
 
-     ! k_O2_1: O2 -> 2*O
-     reaction_rates(i,1) = rate_constant(i,1) * number_density(i,8)
-   
-     ! k_O3_1: O3 -> 1*O1D + 1*O2
-     reaction_rates(i,2) = rate_constant(i,2) * number_density(i,9)
-   
-     ! k_O3_2: O3 -> 1*O + 1*O2
-     reaction_rates(i,3) = rate_constant(i,3) * number_density(i,9)
-   
-     ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-     reaction_rates(i,4) = rate_constant(i,4) * number_density(i,5) * number_density(i,6)
-   
-     ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-     reaction_rates(i,5) = rate_constant(i,5) * number_density(i,6) * number_density(i,8)
-   
-     ! k_O_O3_1: O + O3 -> 2*O2
-     reaction_rates(i,6) = rate_constant(i,6) * number_density(i,7) * number_density(i,9)
-   
-     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-     reaction_rates(i,7) = rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
+    ! k_O2_1: O2 -> 2*O
+    reaction_rates(i,1) = rate_constant(i,1) * number_density(i,8)
+
+    ! k_O3_1: O3 -> 1*O1D + 1*O2
+    reaction_rates(i,2) = rate_constant(i,2) * number_density(i,9)
+
+    ! k_O3_2: O3 -> 1*O + 1*O2
+    reaction_rates(i,3) = rate_constant(i,3) * number_density(i,9)
+
+    ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    reaction_rates(i,4) = rate_constant(i,4) * number_density(i,5) * number_density(i,6)
+
+    ! k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    reaction_rates(i,5) = rate_constant(i,5) * number_density(i,6) * number_density(i,8)
+
+    ! k_O_O3_1: O + O3 -> 2*O2
+    reaction_rates(i,6) = rate_constant(i,6) * number_density(i,7) * number_density(i,9)
+
+    ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    reaction_rates(i,7) = rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
 
   end do
 
@@ -383,7 +348,7 @@ end function photolysis_names
 function species_names()
   ! Chemical species names
 
-  character(i,len=128) :: species_names(number_of_species)
+  character(len=128) :: species_names(number_of_species)
 
   species_names(1) = 'M'
   species_names(2) = 'Ar'
@@ -399,13 +364,10 @@ end function species_names
 
 
 pure subroutine dforce_dy_times_vector(ncell, dforce_dy, vector, cummulative_product)
-
   !  Compute product of [ dforce_dy * vector ]
   !  Commonly used to compute time-truncation errors [dforce_dy * force ]
 
-  ! Number of grid cells with chemical reactions
-  integer,  intent(in) :: ncell
-
+  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
   real(r8), intent(in) :: dforce_dy(:,:) ! Jacobian of forcing
   real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy
   real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector
@@ -416,76 +378,59 @@ pure subroutine dforce_dy_times_vector(ncell, dforce_dy, vector, cummulative_pro
 
   do i = 1, ncell
 
-     ! df_O/d(M) * M_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,2) * vector(i,1)
-   
-   
-     ! df_O2/d(M) * M_temporary
-     cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,3) * vector(i,1)
-   
-   
-     ! df_O3/d(M) * M_temporary
-     cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,4) * vector(i,1)
-   
-   
-     ! df_O1D/d(N2) * N2_temporary
-     cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,9) * vector(i,5)
-   
-   
-     ! df_O/d(N2) * N2_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,10) * vector(i,5)
-   
-   
-     ! df_O1D/d(O1D) * O1D_temporary
-     cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,11) * vector(i,6)
-   
-   
-     ! df_O/d(O1D) * O1D_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,12) * vector(i,6)
-   
-   
-     ! df_O/d(O) * O_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,13) * vector(i,7)
-   
-   
-     ! df_O2/d(O) * O_temporary
-     cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,14) * vector(i,7)
-   
-   
-     ! df_O3/d(O) * O_temporary
-     cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,15) * vector(i,7)
-   
-   
-     ! df_O1D/d(O2) * O2_temporary
-     cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,16) * vector(i,8)
-   
-   
-     ! df_O/d(O2) * O2_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,17) * vector(i,8)
-   
-   
-     ! df_O2/d(O2) * O2_temporary
-     cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,18) * vector(i,8)
-   
-   
-     ! df_O3/d(O2) * O2_temporary
-     cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,19) * vector(i,8)
-   
-   
-     ! df_O1D/d(O3) * O3_temporary
-     cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,20) * vector(i,9)
-   
-   
-     ! df_O/d(O3) * O3_temporary
-     cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,21) * vector(i,9)
-   
-   
-     ! df_O2/d(O3) * O3_temporary
-     cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,22) * vector(i,9)
-   
-   
-     ! df_O3/d(O3) * O3_temporary
-     cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,23) * vector(i,9)
+    ! df_O/d(M) * M_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,2) * vector(i,1)
+
+    ! df_O2/d(M) * M_temporary
+    cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,3) * vector(i,1)
+
+    ! df_O3/d(M) * M_temporary
+    cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,4) * vector(i,1)
+
+    ! df_O1D/d(N2) * N2_temporary
+    cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,9) * vector(i,5)
+
+    ! df_O/d(N2) * N2_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,10) * vector(i,5)
+
+    ! df_O1D/d(O1D) * O1D_temporary
+    cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,11) * vector(i,6)
+
+    ! df_O/d(O1D) * O1D_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,12) * vector(i,6)
+
+    ! df_O/d(O) * O_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,13) * vector(i,7)
+
+    ! df_O2/d(O) * O_temporary
+    cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,14) * vector(i,7)
+
+    ! df_O3/d(O) * O_temporary
+    cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,15) * vector(i,7)
+
+    ! df_O1D/d(O2) * O2_temporary
+    cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,16) * vector(i,8)
+
+    ! df_O/d(O2) * O2_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,17) * vector(i,8)
+
+    ! df_O2/d(O2) * O2_temporary
+    cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,18) * vector(i,8)
+
+    ! df_O3/d(O2) * O2_temporary
+    cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,19) * vector(i,8)
+
+    ! df_O1D/d(O3) * O3_temporary
+    cummulative_product(i,6) = cummulative_product(i,6) + dforce_dy(i,20) * vector(i,9)
+
+    ! df_O/d(O3) * O3_temporary
+    cummulative_product(i,7) = cummulative_product(i,7) + dforce_dy(i,21) * vector(i,9)
+
+    ! df_O2/d(O3) * O3_temporary
+    cummulative_product(i,8) = cummulative_product(i,8) + dforce_dy(i,22) * vector(i,9)
+
+    ! df_O3/d(O3) * O3_temporary
+    cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,23) * vector(i,9)
 
   end do
 
