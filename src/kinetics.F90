@@ -34,7 +34,7 @@ type kinetics_t
   real(musica_dk), allocatable :: MBOdeJac(:)      ! ODE solver jacobian
   real(musica_dk), allocatable :: chemJac(:)       ! chemistry forcing jacobian
   real(musica_dk), allocatable :: rates(:)         ! rates of reactions
-  type(environment_t) :: environment
+  type(environment_t), allocatable :: environment(:)
 contains
   procedure, public :: species_names
   procedure, public :: reaction_names
@@ -144,7 +144,7 @@ contains
     real(musica_dk)              ::  force(size(vmr))    ! rate of change of each molecule
 
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
-    call p_force( this%rateConst, vmr, this%environment%number_density_air, force)
+    call p_force( this%rateConst, vmr, this%environment(1)%number_density_air, force)
 
   end function force
 
@@ -160,7 +160,7 @@ contains
      real(musica_dk), intent(in)      ::  number_density(:)    ! number densities of each component (#/cm^3)
      real(musica_dk)                  ::  reaction_rates(nRxn) ! reaction rates
 
-     reaction_rates = rxn_rates( this%rateConst, number_density, this%environment%number_density_air )
+     reaction_rates = rxn_rates( this%rateConst, number_density, this%environment(1)%number_density_air )
 
   end function reaction_rates
 
@@ -188,7 +188,7 @@ contains
 
     real(musica_dk) :: dforce_dy(number_sparse_factor_elements)   ! sensitivity of forcing to changes in each vmr
 
-    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%environment%number_density_air)
+    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%environment(1)%number_density_air)
 
   end function dforce_dy
 
@@ -317,14 +317,18 @@ contains
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(:)
 
     ! save the environmental conditions
-    this%environment = environment
+    if( .not. allocated( this%environment ) ) then
+      allocate( this%environment, source = environment )
+    else
+      this%environment(:) = environment(:)
+    end if
 
     ! update the reaction rate constants
     this%rateConst(:) = 0.0
-    call calculate_rate_constants( this%rateConst, environment )
+    call calculate_rate_constants( this%rateConst, environment(1) )
 
   end subroutine update
 

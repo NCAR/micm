@@ -8,11 +8,10 @@ macro(add_std_test test_name)
 endmacro(add_std_test)
 
 ################################################################################
-# MICM tests
+# MICM performance tests
 
-add_executable(test_stub test_stub.F90)
-add_std_test(test_stub)
-
-add_subdirectory(performance)
+add_executable(test_performance driver.F90)
+add_std_test(test_performance)
 
 ################################################################################
+
