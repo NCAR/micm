@@ -177,7 +177,7 @@ subroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)
     LU(i,23) = -dforce_dy(i,23) + alpha
   end do
 
-  call factor(LU)
+  call factor(ncell,LU)
 
 end subroutine factored_alpha_minus_jac
 
