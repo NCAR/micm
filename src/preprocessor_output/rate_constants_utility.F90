@@ -54,56 +54,53 @@ contains
     type( rate_constant_wennberg_tunneling_t          ) :: wennberg_tunneling
 
     integer :: i
-    integer :: ncell = size(rate_constants,1)
 
-    do i = 1, ncell
-      !O2_1
-      !k_O2_1: O2 -> 2*O
-      photolysis = rate_constant_photolysis_t( &
-        photolysis_rate_constant_index = 1 )
-      rate_constants( i, 1 ) = photolysis%calculate( environment )
+    !O2_1
+    !k_O2_1: O2 -> 2*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 1 )
+    rate_constants( :, 1 ) = photolysis%calculate( environment )
 
-      !O3_1
-      !k_O3_1: O3 -> 1*O1D + 1*O2
-      photolysis = rate_constant_photolysis_t( &
-        photolysis_rate_constant_index = 2 )
-      rate_constants( i, 2 ) = photolysis%calculate( environment )
+    !O3_1
+    !k_O3_1: O3 -> 1*O1D + 1*O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 2 )
+    rate_constants( :, 2 ) = photolysis%calculate( environment )
 
-      !O3_2
-      !k_O3_2: O3 -> 1*O + 1*O2
-      photolysis = rate_constant_photolysis_t( &
-        photolysis_rate_constant_index = 3 )
-      rate_constants( i, 3 ) = photolysis%calculate( environment )
+    !O3_2
+    !k_O3_2: O3 -> 1*O + 1*O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 3 )
+    rate_constants( :, 3 ) = photolysis%calculate( environment )
 
-      !N2_O1D_1
-      !k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-      arrhenius = rate_constant_arrhenius_t( &
-        A = real( 2.15e-11, kind=musica_dk ), &
-        C = real( 110, kind=musica_dk ) )
-      rate_constants( i, 4 ) = arrhenius%calculate( environment )
+    !N2_O1D_1
+    !k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.15e-11, kind=musica_dk ), &
+      C = real( 110, kind=musica_dk ) )
+    rate_constants( :, 4 ) = arrhenius%calculate( environment )
 
-      !O1D_O2_1
-      !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-      arrhenius = rate_constant_arrhenius_t( &
-        A = real( 3.3e-11, kind=musica_dk ), &
-        C = real( 55, kind=musica_dk ) )
-      rate_constants( i, 5 ) = arrhenius%calculate( environment )
+    !O1D_O2_1
+    !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-11, kind=musica_dk ), &
+      C = real( 55, kind=musica_dk ) )
+    rate_constants( :, 5 ) = arrhenius%calculate( environment )
 
-      !O_O3_1
-      !k_O_O3_1: O + O3 -> 2*O2
-      arrhenius = rate_constant_arrhenius_t( &
-        A = real( 8e-12, kind=musica_dk ), &
-        C = real( -2060, kind=musica_dk ) )
-      rate_constants( i, 6 ) = arrhenius%calculate( environment )
+    !O_O3_1
+    !k_O_O3_1: O + O3 -> 2*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-12, kind=musica_dk ), &
+      C = real( -2060, kind=musica_dk ) )
+    rate_constants( :, 6 ) = arrhenius%calculate( environment )
 
-      !M_O_O2_1
-      !k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-      arrhenius = rate_constant_arrhenius_t( &
-        A = real( 6e-34, kind=musica_dk ), &
-        B = real( 2.4, kind=musica_dk ) )
-      rate_constants( i, 7 ) = arrhenius%calculate( environment )
+    !M_O_O2_1
+    !k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6e-34, kind=musica_dk ), &
+      B = real( 2.4, kind=musica_dk ) )
+    rate_constants( :, 7 ) = arrhenius%calculate( environment )
 
-    end do
 
   end subroutine calculate_rate_constants
 

@@ -54,7 +54,7 @@ contains
     !> Environmental conditions
     type(environment_t), intent(in) :: environment
 
-    calculate = environment%photolysis_rate_constants( this%index_ )
+    calculate = environment%photolysis_rate_constants( :, this%index_ )
 
   end function calculate
 
