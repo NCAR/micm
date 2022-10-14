@@ -16,7 +16,8 @@ MODULE micm_ODE_solver_rosenbrock
 
   use micm_ODE_solver,                 only : ODE_solver_t
   use micm_kinetics,                   only : kinetics_t
-  use musica_constants,                only: r8=>musica_dk, musica_ik
+  use musica_constants,                only : r8=>musica_dk, musica_ik
+  use constants,                       only : ncell=>kNumberOfGridCells
 
   IMPLICIT NONE
 
@@ -281,10 +282,10 @@ CONTAINS
       integer  :: istat(20)
       REAL(r8) :: H, Hnew, HC, Fac, Tau, Err
       REAL(r8) :: presentTime
-      REAL(r8) :: Ynew(this%N)
-      REAL(r8) :: Fcn0(this%N), Fcn(this%N)
-      REAL(r8) :: K(this%N,this%ros_S)
-      REAL(r8) :: Yerr(this%N)
+      REAL(r8) :: Ynew(ncell,this%N)
+      REAL(r8) :: Fcn0(ncell,this%N), Fcn(ncell,this%N)
+      REAL(r8) :: K(ncell,this%N,this%ros_S)
+      REAL(r8) :: Yerr(ncell,this%N)
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
@@ -326,14 +327,14 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
    H = MIN(H,ABS(Tend-presentTime))
 
 !~~~>   Compute the function at current time
-   Fcn0(:) = theKinetics%force( Y(1,:) )
+   Fcn0 = theKinetics%force( Y )
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
 !~~~>  Repeat step calculation until current step accepted
 UntilAccepted: DO
 
 !~~~>  Form and factor the rosenbrock ode jacobian
-   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y(1,:), Singular, this%icntrl )
+   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
    this%icntrl(Njac) = this%icntrl(Njac) + 1
    IF (Singular) THEN ! More than 5 consecutive failed decompositions
        Ierr = -8
@@ -347,39 +348,39 @@ Stage_loop: &
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
        IF ( this%ros_NewF(istage) ) THEN
-         Ynew(1:N) = Y(1,1:N)
+         Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
          DO j = 1, istage-1
-           Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
+           Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + this%ros_A(S_ndx+j)*K(1:ncell,1:N,j)
          END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
-         Fcn(:) = theKinetics%force( Ynew )
+         Fcn = theKinetics%force( Ynew )
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
-       K(:,istage) = Fcn(:)
+       K(1:ncell,1:N,istage) = Fcn(1:ncell,1:N)
        DO j = 1, istage-1
          HC = this%ros_C(S_ndx+j)/H
          K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
        END DO
      ELSE
-       K(:,1) = Fcn0(:)
-       Fcn(:) = Fcn0(:)
+       K(1:ncell,1:N,1) = Fcn0(1:ncell,1:N)
+       Fcn(1:ncell,1:N) = Fcn0(1:ncell,1:N)
      ENDIF
-     CALL theKinetics%LinSolve( K(:,istage) )
+     CALL theKinetics%LinSolve( K(1:ncell,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
 !~~~>  Compute the new solution
-   Ynew(1:N) = Y(1,1:N)
+   Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
    DO j=1,this%ros_S
-     Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
+     Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + this%ros_M(j)*K(1:ncell,1:N,j)
    END DO
 
 !~~~>  Compute the error estimation
    Yerr(1:N) = ZERO
    DO j=1,this%ros_S
-     Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
+     Yerr(1:ncell,1:N) = Yerr(1:ncell,1:N) + this%ros_E(j)*K(1:ncell,1:N,j)
    END DO
-   Err = ros_ErrorNorm( this, Y(1,:), Ynew, Yerr )
+   Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
@@ -391,7 +392,7 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      Y(1,1:N) = Ynew(1:N)
+      Y(1:ncell,1:N) = Ynew(1:ncell,1:N)
       presentTime = presentTime + H
       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -505,16 +506,19 @@ Accepted: &
 
 ! Input arguments
    class(ODE_solver_rosenbrock_t) :: this
-   REAL(r8), INTENT(IN) :: Y(:), Ynew(:), Yerr(:)
+   REAL(r8), INTENT(IN) :: Y(:,:), Ynew(:,:), Yerr(:,:)
 
    REAL(r8) :: Error
 
 ! Local variables
    REAL(r8) :: Scale(this%N), Ymax(this%N)
 
-   Ymax(:)  = MAX( ABS(Y(:)),ABS(Ynew(:)) )
-   Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
-   Error    = MAX( SQRT( sum( (Yerr(:)/Scale(:))**2 )/real(this%N,kind=r8) ),ErrMin )
+   Error = 0._r8
+   do i = 1, ncell
+      Ymax(:) = MAX( ABS(Y(i,:)),ABS(Ynew(i,:)) )
+      Scale(:)  = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
+      Error     = MAX( SQRT( sum( (Yerr(i,:)/Scale(:))**2 )/real(this%N,kind=r8) ), ErrMin, Error )
+   end do
 
   END FUNCTION ros_ErrorNorm
 

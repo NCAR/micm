@@ -4,7 +4,8 @@
 !> Physical constants
 module constants
 
-  real, parameter :: kBoltzmann = 1.38065e-23    !J/K/molecule
+  real, parameter :: kBoltzmann = 1.38065e-23    ! J/K/molecule
   real, parameter :: kAvagadro  =  6.02214076e23 ! molecules / mole
+  integer, parameter :: kNumberOfGridCells = 100 ! Number of grid cells with independent chemical reactions
 
 end module constants

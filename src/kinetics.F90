@@ -11,6 +11,7 @@ module micm_kinetics
 
   use micm_environment,                only : environment_t
   use musica_constants,                only : musica_dk, musica_ik
+  use constants,                       only : ncell=>kNumberOfGridCells
 
   implicit none
 
@@ -29,12 +30,12 @@ type kinetics_t
   private
   integer :: nReact
   integer :: nSpecies
-  integer, allocatable         :: Pivot(:)
-  real(musica_dk), allocatable :: rateConst(:)
-  real(musica_dk), allocatable :: MBOdeJac(:)      ! ODE solver jacobian
-  real(musica_dk), allocatable :: chemJac(:)       ! chemistry forcing jacobian
-  real(musica_dk), allocatable :: rates(:)         ! rates of reactions
-  type(environment_t), allocatable :: environment(:)
+  integer, allocatable         :: Pivot(:,:)
+  real(musica_dk), allocatable :: rateConst(:,:)
+  real(musica_dk), allocatable :: MBOdeJac(:,:)      ! ODE solver jacobian
+  real(musica_dk), allocatable :: chemJac(:,:)       ! chemistry forcing jacobian
+  real(musica_dk), allocatable :: rates(:,:)         ! rates of reactions
+  type(environment_t)          :: environment
 contains
   procedure, public :: species_names
   procedure, public :: reaction_names
@@ -139,12 +140,12 @@ contains
     use kinetics_utilities,only :  p_force
 
     class(kinetics_t) :: this
-    real(musica_dk), intent(in)  ::  vmr(:)              ! volume mixing ratios of each component in order
+    real(musica_dk), intent(in)  ::  vmr(:,:)      ! volume mixing ratios of each component in order
 
-    real(musica_dk)              ::  force(size(vmr))    ! rate of change of each molecule
+    real(musica_dk)              ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
 
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
-    call p_force( this%rateConst, vmr, this%environment(1)%number_density_air, force)
+    call p_force( this%rateConst, vmr, this%environment%number_density_air, force)
 
   end function force
 
@@ -157,8 +158,8 @@ contains
                                     nRxn => number_of_reactions
 
      class(kinetics_t), intent(in) :: this
-     real(musica_dk), intent(in)      ::  number_density(:)    ! number densities of each component (#/cm^3)
-     real(musica_dk)                  ::  reaction_rates(nRxn) ! reaction rates
+     real(musica_dk), intent(in)   ::  number_density(:,:)           ! number densities of each component (#/cm^3)
+     real(musica_dk)               ::  reaction_rates(ncell,nRxn)    ! reaction rates
 
      reaction_rates = rxn_rates( this%rateConst, number_density, this%environment(1)%number_density_air )
 
@@ -172,9 +173,9 @@ contains
     use kinetics_utilities, only : nRxn => number_of_reactions
 
     class(kinetics_t), intent(in) :: this
-    real(musica_dk)                  :: reaction_rate_constants(nRxn) ! reaction rate constants
+    real(musica_dk)               :: reaction_rate_constants(ncell,nRxn) ! reaction rate constants
 
-    reaction_rate_constants(:) = this%rateConst(:)
+    reaction_rate_constants(:,:) = this%rateConst(:,:)
 
   end function reaction_rate_constants
 
@@ -184,11 +185,11 @@ contains
     use factor_solve_utilities, only: number_sparse_factor_elements
 
     class(kinetics_t) :: this
-    real(musica_dk), intent(in)  ::  vmr(:)              ! volume mixing ratios of each component in order
+    real(musica_dk), intent(in)  ::  vmr(:,:)              ! volume mixing ratios of each component in order
 
-    real(musica_dk) :: dforce_dy(number_sparse_factor_elements)   ! sensitivity of forcing to changes in each vmr
+    real(musica_dk) :: dforce_dy(size(vmr,1),number_sparse_factor_elements)   ! sensitivity of forcing to changes in each vmr
 
-    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%environment(1)%number_density_air)
+    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%environment%number_density_air)
 
   end function dforce_dy
 
@@ -214,31 +215,31 @@ contains
     this%nSpecies = nSpecies
 
     if( .not. allocated(this%rates)) then
-      allocate( this%rates(nRxt) )
+      allocate( this%rates(ncell,nRxt) )
     else
       write(*,*) 'rates_init: rateConst already allocated'
     endif
 
     if( .not. allocated(this%rateConst)) then
-      allocate( this%rateConst(nRxt) )
+      allocate( this%rateConst(ncell,nRxt) )
     else
       write(*,*) 'rateConst_init: rateConst already allocated'
     endif
 
     if( .not. allocated(this%MBOdeJac)) then
-      allocate( this%MBOdeJac(number_sparse_factor_elements) )
+      allocate( this%MBOdeJac(ncell,number_sparse_factor_elements) )
     else
       write(*,*) 'jacobian_init: MBOdeJac already allocated'
     endif
 
     if( .not. allocated(this%chemJac)) then
-      allocate( this%chemJac(number_sparse_factor_elements) )
+      allocate( this%chemJac(ncell,number_sparse_factor_elements) )
     else
       write(*,*) 'jacobian_init: chemJac already allocated'
     endif
 
     if( .not. allocated(this%Pivot)) then
-      allocate( this%Pivot(nSpecies) )
+      allocate( this%Pivot(ncell,nSpecies) )
     else
       write(*,*) 'jacobian_init: Pivot already allocated'
     endif
@@ -256,7 +257,7 @@ contains
     class(kinetics_t) :: this
     real(musica_dk), intent(inout) :: H          ! time step (seconds)
     real(musica_dk), intent(in)    :: gam        ! time step factor for specific rosenbrock method
-    real(musica_dk), intent(in)    :: Y(:)       ! constituent concentration (molec/cm^3)
+    real(musica_dk), intent(in)    :: Y(:,:)     ! constituent concentration (molec/cm^3)
     logical, intent(inout)         :: Singular   ! singularity flag (T or F)
     integer, intent(inout)         :: istatus(:) ! rosenbrock status vector
 
@@ -266,13 +267,13 @@ contains
 
     INTEGER  :: i, ising, Nconsecutive
     REAL(musica_dk) :: ghinv
-    REAL(musica_dk) :: LU_factored(number_sparse_factor_elements)
+    REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
    associate( Ghimj => this%MBOdeJac )
 
 ! Set the chemical entries for the Ode Jacobian
-    Ghimj(:) = this%dforce_dy( Y )
-    this%chemJac(:) = Ghimj(:)
+    Ghimj(:,:) = this%dforce_dy( Y )
+    this%chemJac(:,:) = Ghimj(:,:)
 
    Nconsecutive = 0
    Singular = .TRUE.
@@ -285,7 +286,7 @@ contains
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
-       Ghimj(:) = LU_factored(:)
+       Ghimj(:,:) = LU_factored(:,:)
        Singular = .FALSE.
      ELSE ! ISING .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
@@ -317,18 +318,18 @@ contains
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(:)
+    type(environment_t), intent(in) :: environment
 
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
       allocate( this%environment, source = environment )
     else
-      this%environment(:) = environment(:)
+      this%environment = environment
     end if
 
     ! update the reaction rate constants
-    this%rateConst(:) = 0.0
-    call calculate_rate_constants( this%rateConst, environment(1) )
+    this%rateConst(:,:) = 0.0
+    call calculate_rate_constants( this%rateConst, environment )
 
   end subroutine update
 
@@ -337,7 +338,7 @@ contains
     class(kinetics_t) :: this
 
     write(*,*) 'rate constants:'
-    write(*,'(1p,5(1x,g0))') this%rateConst(:)
+    write(*,'(1p,5(1x,g0))') this%rateConst(1,:)
 
   end subroutine rateConst_print
 
@@ -373,10 +374,10 @@ contains
   function dForcedyxForce( this, force ) result(d2Fdy2)
 
     use kinetics_utilities, only: dforce_dy_times_vector
-    class(kinetics_t) :: this
-    real(musica_dk), intent(in)::  force(:)         ! chem forcing; dy/dt
+    class(kinetics_t)           :: this
+    real(musica_dk), intent(in) :: force(:,:)         ! chem forcing; dy/dt
 
-    real(musica_dk) ::  d2Fdy2(size(force))
+    real(musica_dk) ::  d2Fdy2(size(force,1),size(force,2))
 
     call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
 
@@ -385,13 +386,13 @@ contains
     SUBROUTINE LinSolve( this, B)
 
       use factor_solve_utilities, only : solve
-      class(kinetics_t) :: this
-      REAL(musica_dk), INTENT(INOUT) :: B(:)
-      REAL(musica_dk)                :: x(size(B))
+      class(kinetics_t)              :: this
+      REAL(musica_dk), INTENT(INOUT) :: B(:,:)
+      REAL(musica_dk)                :: x(size(B,1),size(B,2))
 
       call solve ( this%MBOdeJac, x, B )
 
-      B(:) = x(:)
+      B(:,:) = x(:,:)
 
 
     END SUBROUTINE LinSolve

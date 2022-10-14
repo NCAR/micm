@@ -12,6 +12,7 @@ MODULE micm_ODE_solver_mozart
   USE micm_kinetics,                   only : kinetics_t
   USE micm_ODE_solver,                 only : ODE_solver_t
   USE musica_constants,                only : r8 => musica_dk, musica_ik
+  use constants,                       only : ncell=>kNumberOfGridCells
 
   IMPLICIT NONE
 
@@ -239,10 +240,10 @@ CONTAINS
       REAL(r8) :: H, Hinv, Hnew
       REAL(r8) :: presentTime
       REAL(r8) :: truncError
-      REAL(r8), target  :: residual(this%N)
-      REAL(r8), pointer :: deltaY(:)
-      REAL(r8) :: Ynew(this%N), Yerr(this%N)
-      REAL(r8) :: Fcn(this%N)
+      REAL(r8), target  :: residual(ncell,this%N)
+      REAL(r8), pointer :: deltaY(:,:)
+      REAL(r8) :: Ynew(ncell,this%N), Yerr(ncell,this%N)
+      REAL(r8) :: Fcn(ncell,this%N)
       LOGICAL  :: RejectLastH, Singular, nrConverged
 
 !~~~>  Initial preparations
@@ -277,7 +278,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO)
 !~~~>  Limit H if necessary to avoid going beyond Tend
      H = MIN( H,ABS(Tend-presentTime) )
      Hinv = ONE/H
-     Ynew(1:N) = Y(1,1:N)
+     Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
 !~~~>  Newton-Raphson iteration loop
 NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the Jacobian
@@ -289,13 +290,13 @@ NRloop: DO nIter = 1,this%iterMax
          RETURN
        END IF
 !~~~>   Compute the function at current time
-       Fcn(:) = theKinetics%force( Ynew )
+       Fcn = theKinetics%force( Ynew )
        this%icntrl(Nfun) = this%icntrl(Nfun) + 1
-       residual(1:N) = Fcn(1:N) - (Ynew(1:N) - Y(1,1:N))*Hinv
+       residual(1:ncell,1:N) = Fcn(1:ncell,1:N) - (Ynew(1:ncell,1:N) - Y(1:ncell,1:N))*Hinv
 !~~~>   Compute the iteration delta
        CALL theKinetics%LinSolve( deltaY )
 !~~~>   Update N-R iterate
-       Ynew(1:N) = Ynew(1:N) + deltaY(1:N)
+       Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + deltaY(1:ncell,1:N)
 
        if( nIter > 1 ) then
          nrConverged = moz_NRErrorNorm( this, deltaY, Ynew, Yerr )
@@ -307,8 +308,8 @@ NRloop: DO nIter = 1,this%iterMax
 
 nrHasConverged: &
      IF( nrConverged ) THEN
-       Yerr(:) = theKinetics%dForcedyxForce( Fcn )
-       truncError = moz_TruncErrorNorm ( this, Y(1,:), Ynew, Yerr )
+       Yerr = theKinetics%dForcedyxForce( Fcn )
+       truncError = moz_TruncErrorNorm ( this, Y, Ynew, Yerr )
        Hnew = SQRT( 2.0_r8/truncError )
        Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
 !~~~>   Check step truncation error
@@ -316,7 +317,7 @@ acceptStep: &
 !      IF( truncError <= 2.0_r8/(H*H) ) THEN
        IF( .5_r8*H*H*truncError <= (ONE + 100._r8*this%Roundoff) ) THEN
          !write(*,*) 'mozartRun: step accepted'
-         Y(1,1:N) = Ynew(1:N)
+         Y(1:ncell,1:N) = Ynew(1:ncell,1:N)
          presentTime = presentTime + H
          IF (RejectLastH) THEN  ! No step size increase after a rejected step
            Hnew = MIN(Hnew,H)
@@ -450,14 +451,18 @@ acceptStep: &
 
 ! Input arguments
    class(ODE_solver_mozart_t)  :: this
-   REAL(r8), INTENT(IN) :: deltaY(:), Ynew(:), Yerr(:)
+   REAL(r8), INTENT(IN) :: deltaY(:,:), Ynew(:,:), Yerr(:,:)
 
-   LOGICAL :: Msk(size(deltaY))
+   LOGICAL :: Msk(size(deltaY,1),size(deltaY,2))
    LOGICAL :: Converged
+   integer :: i
 
-   Msk(:) = Ynew(:) > this%AbsTol(:)
+   do i = 1, ncell
+      Msk(i,:) = Ynew(i,:) > this%AbsTol(:)
+      Converged = .not. ANY( ABS(deltaY(i,:)) > this%RelTol(:)*ABS(Ynew(i,:)) .and. Msk(i,:) )
+      if ( .not. Converged ) exit
+   end do
 !  Converged = .not. ANY( ABS(deltaY(:)) > this%RelTol(:)*ABS(Ynew(:)) )
-   Converged = .not. ANY( ABS(deltaY(:)) > this%RelTol(:)*ABS(Ynew(:)) .and. Msk(:) )
 
   END FUNCTION moz_NRErrorNorm
 
@@ -469,22 +474,26 @@ acceptStep: &
 
 ! Input arguments
    class(ODE_solver_mozart_t)  :: this
-   REAL(r8), INTENT(IN) :: Y(:), Ynew(:), Yerr(:)
+   REAL(r8), INTENT(IN) :: Y(:,:), Ynew(:,:), Yerr(:,:)
    REAL(r8)             :: Error
 
 ! Local variables
    REAL(r8) :: Scale(this%N), Ymax(this%N)
    REAL(r8) :: Ytmp(this%N)
+   integer  :: i
 
-   Ymax(:)  = MAX( ABS(Y(:)),ABS(Ynew(:)) )
-!  Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
-   Scale(:) = this%RelTol(:)*Ymax(:)
-   WHERE( Ymax(:) >= this%AbsTol(:) )
-     Ytmp(:) = Yerr(:)
-   ELSEWHERE
-     Ytmp(:) = ZERO
-   ENDWHERE
-   Error    = MAX( SQRT( sum( (Ytmp(:)/Scale(:))**2 )/real(this%N,kind=r8) ),ErrMin )
+   Error = 0._r8
+   do i = 1, ncell
+      Ymax(:)  = MAX( ABS(Y(i,:)),ABS(Ynew(i,:)) )
+!      Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
+      Scale(:) = this%RelTol(:)*Ymax(:)
+      WHERE( Ymax(:) >= this%AbsTol(:) )
+          Ytmp(:) = Yerr(i,:)
+      ELSEWHERE
+          Ytmp(:) = ZERO
+      ENDWHERE
+      Error = MAX( SQRT( sum( (Ytmp(:)/Scale(:))**2 )/real(this%N,kind=r8) ), ErrMin, Error )
+   end do
 
   END FUNCTION moz_TruncErrorNorm
 
