@@ -12,19 +12,19 @@ module micm_environment
     !> Number density of air [# cm-3]
     real(musica_dk) :: number_density_air(ncell)
     !> Temperature [K]
-    real(musica_dk) :: temperature(ncell)
+    real(musica_dk) :: temperature
     !> Pressure [Pa]
-    real(musica_dk) :: pressure(ncell)
+    real(musica_dk) :: pressure
     !> Aerosol surface area density \bug what are the units for surface area density?
-    real(musica_dk) :: aerosol_surface_area_density(ncell,4)
+    real(musica_dk) :: aerosol_surface_area_density(4)
     !> Aerosol diameter \bug what are the units for aerosol diameter?
-    real(musica_dk) ::  aerosol_diameter(ncell,4)
+    real(musica_dk) ::  aerosol_diameter(4)
     !> Water vapor volume mixing ratio [mol mol-1]
-    real(musica_dk) :: h2ovmr(ncell)
+    real(musica_dk) :: h2ovmr
     !> Molecular oxygen number density [# cm-3]
-    real(musica_dk) :: o2_number_density(ncell)
+    real(musica_dk) :: o2_number_density
     !> Photolysis rate constants [s-1]
-    real(musica_dk) :: photolysis_rate_constants(ncell,number_of_photolysis_reactions)
+    real(musica_dk) :: photolysis_rate_constants(number_of_photolysis_reactions)
   end type environment_t
 
 end module micm_environment
