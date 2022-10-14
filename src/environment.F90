@@ -6,11 +6,10 @@ module micm_environment
 
   use kinetics_utilities,              only : number_of_photolysis_reactions
   use musica_constants,                only : musica_dk
-  use constants,                       only : ncell=>kNumberOfGridCells
 
   type environment_t
     !> Number density of air [# cm-3]
-    real(musica_dk) :: number_density_air(ncell)
+    real(musica_dk) :: number_density_air
     !> Temperature [K]
     real(musica_dk) :: temperature
     !> Pressure [Pa]

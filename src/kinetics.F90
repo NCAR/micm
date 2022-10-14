@@ -35,7 +35,7 @@ type kinetics_t
   real(musica_dk), allocatable :: MBOdeJac(:,:)      ! ODE solver jacobian
   real(musica_dk), allocatable :: chemJac(:,:)       ! chemistry forcing jacobian
   real(musica_dk), allocatable :: rates(:,:)         ! rates of reactions
-  type(environment_t)          :: environment
+  type(environment_t), allocatable :: environment(:)
 contains
   procedure, public :: species_names
   procedure, public :: reaction_names
@@ -137,15 +137,21 @@ contains
   !---------------------------
   function force( this, vmr )
 
-    use kinetics_utilities,only :  p_force
+    use kinetics_utilities,  only :  p_force
 
     class(kinetics_t) :: this
     real(musica_dk), intent(in)  ::  vmr(:,:)      ! volume mixing ratios of each component in order
 
     real(musica_dk)              ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
-
+    real(musica_dk)              ::  number_density_air(size(vmr,1))
+    integer                      ::  i
+   
+    do i = 1, size(vmr,1)
+       number_density_air(i) = this%environment(i)%number_density_air
+    end do
+ 
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
-    call p_force( this%rateConst, vmr, this%environment%number_density_air, force)
+    call p_force( this%rateConst, vmr, number_density_air, force)
 
   end function force
 
@@ -159,9 +165,14 @@ contains
 
      class(kinetics_t), intent(in) :: this
      real(musica_dk), intent(in)   ::  number_density(:,:)           ! number densities of each component (#/cm^3)
-     real(musica_dk)               ::  reaction_rates(ncell,nRxn)    ! reaction rates
+     real(musica_dk)               ::  reaction_rates(ncell,nRxn), & ! reaction rates
+                                       number_density_air(ncell)
+     integer                       ::  i
 
-     reaction_rates = rxn_rates( this%rateConst, number_density, this%environment(1)%number_density_air )
+     do i = 1, ncell 
+        number_density_air(i) = this%environment(i)%number_density_air
+     end do
+     reaction_rates = rxn_rates( this%rateConst, number_density, number_density_air )
 
   end function reaction_rates
 
@@ -187,9 +198,15 @@ contains
     class(kinetics_t) :: this
     real(musica_dk), intent(in)  ::  vmr(:,:)              ! volume mixing ratios of each component in order
 
-    real(musica_dk) :: dforce_dy(size(vmr,1),number_sparse_factor_elements)   ! sensitivity of forcing to changes in each vmr
+    real(musica_dk) :: dforce_dy(size(vmr,1),number_sparse_factor_elements), &   ! sensitivity of forcing to changes in each vmr
+                       number_density_air(size(vmr,1))
+    integer         :: i
 
-    call p_dforce_dy(dforce_dy, this%rateConst, vmr, this%environment%number_density_air)
+    do i = 1, size(vmr,1)
+       number_density_air(i) = this%environment(i)%number_density_air
+    end do
+
+    call p_dforce_dy(dforce_dy, this%rateConst, vmr, number_density_air)
 
   end function dforce_dy
 
@@ -318,7 +335,7 @@ contains
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(:)
 
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
