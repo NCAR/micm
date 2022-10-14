@@ -128,8 +128,6 @@ do i = 1, ncell
 
 end subroutine factor
 
-
-
 subroutine solve(ncell,LU,x,b)
 
   integer,  intent(in) :: ncell
