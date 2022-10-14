@@ -2,7 +2,7 @@
 # MICM library
 
 set(MICM_SRC constants.F90
-             core.F90
+  #             core.F90
              ODE_solver.F90
              ODE_solver_factory.F90
              ODE_solvers/mozart.F90

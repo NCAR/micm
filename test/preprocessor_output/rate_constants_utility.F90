@@ -38,12 +38,14 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate the rate constant for each reaction
-  subroutine calculate_rate_constants( rate_constants, environment )
+  subroutine calculate_rate_constants( ncell, rate_constants, environment )
 
+    !> Number of grid cells with chemical reactions
+    integer,              intent(in)  :: ncell
     !> Rate constant for each reaction [(molec cm-3)^(n-1) s-1]
-    real(kind=musica_dk), intent(out) :: rate_constants(:)
-    !> Environmental state
-    type(environment_t),  intent(in)  :: environment
+    real(kind=musica_dk), intent(out) :: rate_constants(:,:)
+    !> Environmental states for each grid cell
+    type(environment_t),  intent(in)  :: environment(:)
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
     type( rate_constant_photolysis_t                  ) :: photolysis
@@ -53,51 +55,56 @@ contains
     type( rate_constant_wennberg_nitrate_t            ) :: wennberg_nitrate
     type( rate_constant_wennberg_tunneling_t          ) :: wennberg_tunneling
 
-    !O2_1
-    !k_O2_1: O2 -> 2*O
-    photolysis = rate_constant_photolysis_t( &
+    integer :: i
+
+    do i = 1, ncell
+      !O2_1
+      !k_O2_1: O2 -> 2*O
+      photolysis = rate_constant_photolysis_t( &
         photolysis_rate_constant_index = 1 )
-    rate_constants(1) = photolysis%calculate( environment )
+      rate_constants( i, 1 ) = photolysis%calculate( environment( i ) )
 
-    !O3_1
-    !k_O3_1: O3 -> 1*O1D + 1*O2
-    photolysis = rate_constant_photolysis_t( &
+      !O3_1
+      !k_O3_1: O3 -> 1*O1D + 1*O2
+      photolysis = rate_constant_photolysis_t( &
         photolysis_rate_constant_index = 2 )
-    rate_constants(2) = photolysis%calculate( environment )
+      rate_constants( i, 2 ) = photolysis%calculate( environment( i ) )
 
-    !O3_2
-    !k_O3_2: O3 -> 1*O + 1*O2
-    photolysis = rate_constant_photolysis_t( &
+      !O3_2
+      !k_O3_2: O3 -> 1*O + 1*O2
+      photolysis = rate_constant_photolysis_t( &
         photolysis_rate_constant_index = 3 )
-    rate_constants(3) = photolysis%calculate( environment )
+      rate_constants( i, 3 ) = photolysis%calculate( environment( i ) )
 
-    !N2_O1D_1
-    !k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    arrhenius = rate_constant_arrhenius_t( &
+      !N2_O1D_1
+      !k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+      arrhenius = rate_constant_arrhenius_t( &
         A = real( 2.15e-11, kind=musica_dk ), &
         C = real( 110, kind=musica_dk ) )
-    rate_constants(4) = arrhenius%calculate( environment )
+      rate_constants( i, 4 ) = arrhenius%calculate( environment( i ) )
 
-    !O1D_O2_1
-    !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    arrhenius = rate_constant_arrhenius_t( &
+      !O1D_O2_1
+      !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+      arrhenius = rate_constant_arrhenius_t( &
         A = real( 3.3e-11, kind=musica_dk ), &
         C = real( 55, kind=musica_dk ) )
-    rate_constants(5) = arrhenius%calculate( environment )
+      rate_constants( i, 5 ) = arrhenius%calculate( environment( i ) )
 
-    !O_O3_1
-    !k_O_O3_1: O + O3 -> 2*O2
-    arrhenius = rate_constant_arrhenius_t( &
+      !O_O3_1
+      !k_O_O3_1: O + O3 -> 2*O2
+      arrhenius = rate_constant_arrhenius_t( &
         A = real( 8e-12, kind=musica_dk ), &
         C = real( -2060, kind=musica_dk ) )
-    rate_constants(6) = arrhenius%calculate( environment )
+      rate_constants( i, 6 ) = arrhenius%calculate( environment( i ) )
 
-    !M_O_O2_1
-    !k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    arrhenius = rate_constant_arrhenius_t( &
+      !M_O_O2_1
+      !k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+      arrhenius = rate_constant_arrhenius_t( &
         A = real( 6e-34, kind=musica_dk ), &
         B = real( 2.4, kind=musica_dk ) )
-    rate_constants(7) = arrhenius%calculate( environment )
+      rate_constants( i, 7 ) = arrhenius%calculate( environment( i ) )
+
+    end do
 
   end subroutine calculate_rate_constants
 

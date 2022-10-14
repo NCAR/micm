@@ -42,8 +42,8 @@ interface
     import ODE_solver_t
     !> ODE solver
     class(ODE_solver_t), intent(inout) :: this
-    !> The solver variables
-    real(musica_dk), intent(inout) :: Y(:)
+    !> The solver variables (grid cell, species)
+    real(musica_dk), intent(inout) :: Y(:,:)
     !> Chemistry simulation start time [s]
     real(musica_dk), optional, intent(in) :: Tstart
     !> Chemistry simulation end time [s]

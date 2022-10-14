@@ -225,7 +225,7 @@ CONTAINS
 
       class(ODE_solver_mozart_t), intent(inout) :: this
       integer,                    intent(out)   :: Ierr
-      real(r8),                   intent(inout) :: Y(:)
+      real(r8),                   intent(inout) :: Y(:,:)
       real(r8), optional,         intent(out)   :: T
       real(r8), optional,         intent(in)    :: Tstart
       real(r8), optional,         intent(in)    :: Tend
@@ -277,7 +277,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO)
 !~~~>  Limit H if necessary to avoid going beyond Tend
      H = MIN( H,ABS(Tend-presentTime) )
      Hinv = ONE/H
-     Ynew(1:N) = Y(1:N)
+     Ynew(1:N) = Y(1,1:N)
 !~~~>  Newton-Raphson iteration loop
 NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the Jacobian
@@ -291,7 +291,7 @@ NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the function at current time
        Fcn(:) = theKinetics%force( Ynew )
        this%icntrl(Nfun) = this%icntrl(Nfun) + 1
-       residual(1:N) = Fcn(1:N) - (Ynew(1:N) - Y(1:N))*Hinv
+       residual(1:N) = Fcn(1:N) - (Ynew(1:N) - Y(1,1:N))*Hinv
 !~~~>   Compute the iteration delta
        CALL theKinetics%LinSolve( deltaY )
 !~~~>   Update N-R iterate
@@ -308,7 +308,7 @@ NRloop: DO nIter = 1,this%iterMax
 nrHasConverged: &
      IF( nrConverged ) THEN
        Yerr(:) = theKinetics%dForcedyxForce( Fcn )
-       truncError = moz_TruncErrorNorm ( this, Y, Ynew, Yerr )
+       truncError = moz_TruncErrorNorm ( this, Y(1,:), Ynew, Yerr )
        Hnew = SQRT( 2.0_r8/truncError )
        Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
 !~~~>   Check step truncation error
@@ -316,7 +316,7 @@ acceptStep: &
 !      IF( truncError <= 2.0_r8/(H*H) ) THEN
        IF( .5_r8*H*H*truncError <= (ONE + 100._r8*this%Roundoff) ) THEN
          !write(*,*) 'mozartRun: step accepted'
-         Y(1:N) = Ynew(1:N)
+         Y(1,1:N) = Ynew(1:N)
          presentTime = presentTime + H
          IF (RejectLastH) THEN  ! No step size increase after a rejected step
            Hnew = MIN(Hnew,H)

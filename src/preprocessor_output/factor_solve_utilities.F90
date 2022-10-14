@@ -128,9 +128,7 @@ do i = 1, ncell
 
 end subroutine factor
 
-
-
-subroutine solve(ncelll,LU,x,b)
+subroutine solve(ncell,LU,x,b)
 
   integer,  intent(in) :: ncell
   real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b

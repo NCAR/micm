@@ -268,7 +268,7 @@ CONTAINS
 
       class(ODE_solver_rosenbrock_t), intent(inout) :: this
       integer,                        intent(out)   :: Ierr
-      real(r8),                       intent(inout) :: Y(:)
+      real(r8),                       intent(inout) :: Y(:,:) ! (grid cell, species)
       real(r8), optional,             intent(out)   :: T
       real(r8), optional,             intent(in)    :: Tstart
       real(r8), optional,             intent(in)    :: Tend
@@ -326,14 +326,14 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
    H = MIN(H,ABS(Tend-presentTime))
 
 !~~~>   Compute the function at current time
-   Fcn0(:) = theKinetics%force( Y )
+   Fcn0(:) = theKinetics%force( Y(1,:) )
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
 !~~~>  Repeat step calculation until current step accepted
 UntilAccepted: DO
 
 !~~~>  Form and factor the rosenbrock ode jacobian
-   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
+   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y(1,:), Singular, this%icntrl )
    this%icntrl(Njac) = this%icntrl(Njac) + 1
    IF (Singular) THEN ! More than 5 consecutive failed decompositions
        Ierr = -8
@@ -347,7 +347,7 @@ Stage_loop: &
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
        IF ( this%ros_NewF(istage) ) THEN
-         Ynew(1:N) = Y(1:N)
+         Ynew(1:N) = Y(1,1:N)
          DO j = 1, istage-1
            Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
          END DO
@@ -369,7 +369,7 @@ Stage_loop: &
    END DO Stage_loop
 
 !~~~>  Compute the new solution
-   Ynew(1:N) = Y(1:N)
+   Ynew(1:N) = Y(1,1:N)
    DO j=1,this%ros_S
      Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
    END DO
@@ -379,7 +379,7 @@ Stage_loop: &
    DO j=1,this%ros_S
      Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
    END DO
-   Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
+   Err = ros_ErrorNorm( this, Y(1,:), Ynew, Yerr )
 
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
@@ -391,7 +391,7 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      Y(1:N) = Ynew(1:N)
+      Y(1,1:N) = Ynew(1:N)
       presentTime = presentTime + H
       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
