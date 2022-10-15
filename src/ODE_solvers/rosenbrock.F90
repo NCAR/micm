@@ -359,7 +359,7 @@ Stage_loop: &
        K(1:ncell,1:N,istage) = Fcn(1:ncell,1:N)
        DO j = 1, istage-1
          HC = this%ros_C(S_ndx+j)/H
-         K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
+         K(1:ncell,1:N,istage) = K(1:ncell,1:N,istage) + HC*K(1:ncell,1:N,j)
        END DO
      ELSE
        K(1:ncell,1:N,1) = Fcn0(1:ncell,1:N)
@@ -376,7 +376,7 @@ Stage_loop: &
    END DO
 
 !~~~>  Compute the error estimation
-   Yerr(1:N) = ZERO
+   Yerr(1:ncell,1:N) = ZERO
    DO j=1,this%ros_S
      Yerr(1:ncell,1:N) = Yerr(1:ncell,1:N) + this%ros_E(j)*K(1:ncell,1:N,j)
    END DO
@@ -512,6 +512,7 @@ Accepted: &
 
 ! Local variables
    REAL(r8) :: Scale(this%N), Ymax(this%N)
+   integer  :: i
 
    Error = 0._r8
    do i = 1, ncell
