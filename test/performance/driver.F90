@@ -9,7 +9,6 @@ program performance_test
 
   implicit none
 
-  integer, parameter :: kNumberOfGridCells = 100
   integer, parameter :: kNUmberOfTimeSteps = 100
   real(kind=dk), parameter :: kTimeStep__min = 5.0_dk
 
