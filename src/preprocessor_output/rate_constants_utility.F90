@@ -27,6 +27,7 @@ module rate_constants_utility
   use micm_rate_constant_wennberg_tunneling,                                  &
       only : rate_constant_wennberg_tunneling_t
   use musica_constants,                only : musica_dk
+  use constants,                       only : ncell=>kNumberOfGridCells
 
   implicit none
   private
@@ -54,7 +55,6 @@ contains
     type( rate_constant_wennberg_tunneling_t          ) :: wennberg_tunneling
 
     integer :: i
-    integer :: ncell = size(environment)
 
     do i = 1, ncell
        !O2_1

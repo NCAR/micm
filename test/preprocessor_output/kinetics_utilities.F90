@@ -7,7 +7,8 @@ use musica_constants, only: r8 => musica_dk
 ! This code is generated from tag undefined of the mechanism, undefined.  It is named undefined
 ! This tag was created on undefined by undefined and is marked as not buggy
 
-  use factor_solve_utilities, only:  factor
+  use factor_solve_utilities, only : factor
+  use constants,              only : ncell=>kNumberOfGridCells
 
   implicit none
 
@@ -32,7 +33,6 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
-  integer :: ncell = size(LU,1)
 
   LU(:,:) = 0
 
@@ -160,7 +160,6 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
   real(r8), intent(out) :: LU(:,:)
 
   integer :: i
-  integer :: ncell = size(LU,1)
 
   LU(:,:) = -dforce_dy(:,:)
 
@@ -190,7 +189,6 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
   real(r8), intent(out) :: force(:,:)
 
   integer :: i
-  integer :: ncell = size(force,1)
 
   do i = 1, ncell
 
@@ -286,7 +284,6 @@ function reaction_rates(rate_constant, number_density, number_density_air)
   real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
-  integer :: ncell = size(number_density_air)
   real(r8) :: reaction_rates(ncell,number_of_reactions)
 
   do i = 1, ncell
@@ -372,7 +369,6 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector
 
   integer :: i
-  integer :: ncell = size(dforce_dy,1)
 
   cummulative_product(:,:) = 0
 
