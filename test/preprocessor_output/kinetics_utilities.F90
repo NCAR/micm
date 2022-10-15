@@ -23,16 +23,16 @@ use musica_constants, only: r8 => musica_dk
   contains
 
 
-subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_air)
+subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   ! Compute the derivative of the Forcing w.r.t. each chemical
   ! Also known as the Jacobian
-  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions
   real(r8), intent(out) :: LU(:,:)
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
   real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
+  integer :: ncell = size(LU,1)
 
   LU(:,:) = 0
 
@@ -152,15 +152,15 @@ subroutine dforce_dy(ncell, LU, rate_constant, number_density, number_density_ai
 
 end subroutine dforce_dy
 
-subroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)
+subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
   ! Compute LU decomposition of [alpha * I - dforce_dy]
 
-  integer,  intent(in) :: ncell ! number of grid cells with chemical reactions
   real(r8), intent(in) :: dforce_dy(:,:)
   real(r8), intent(in) :: alpha
   real(r8), intent(out) :: LU(:,:)
 
   integer :: i
+  integer :: ncell = size(LU,1)
 
   LU(:,:) = -dforce_dy(:,:)
 
@@ -177,20 +177,20 @@ subroutine factored_alpha_minus_jac(ncell, LU, alpha, dforce_dy)
     LU(i,23) = -dforce_dy(i,23) + alpha
   end do
 
-  call factor(ncell,LU)
+  call factor(LU)
 
 end subroutine factored_alpha_minus_jac
 
-subroutine p_force(ncell, rate_constant, number_density, number_density_air, force)
+subroutine p_force(rate_constant, number_density, number_density_air, force)
   ! Compute force function for all molecules
 
-  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
   real(r8), intent(in) :: number_density_air(:)
   real(r8), intent(out) :: force(:,:)
 
   integer :: i
+  integer :: ncell = size(force,1)
 
   do i = 1, ncell
 
@@ -278,16 +278,16 @@ subroutine p_force(ncell, rate_constant, number_density, number_density_air, for
 
 end subroutine p_force
 
-function reaction_rates(ncell, rate_constant, number_density, number_density_air)
+function reaction_rates(rate_constant, number_density, number_density_air)
   ! Compute reaction rates
 
-  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
-  real(r8) :: reaction_rates(ncell,number_of_reactions)
   real(r8), intent(in) :: rate_constant(:,:)
   real(r8), intent(in) :: number_density(:,:)
   real(r8), intent(in) :: number_density_air(:)
 
   integer :: i
+  integer :: ncell = size(number_density_air)
+  real(r8) :: reaction_rates(ncell,number_of_reactions)
 
   do i = 1, ncell
 
@@ -363,16 +363,16 @@ function species_names()
 end function species_names
 
 
-pure subroutine dforce_dy_times_vector(ncell, dforce_dy, vector, cummulative_product)
+pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   !  Compute product of [ dforce_dy * vector ]
   !  Commonly used to compute time-truncation errors [dforce_dy * force ]
 
-  integer,  intent(in) :: ncell ! Number of grid cells with chemical reactions
   real(r8), intent(in) :: dforce_dy(:,:) ! Jacobian of forcing
   real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy
   real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector
 
   integer :: i
+  integer :: ncell = size(dforce_dy,1)
 
   cummulative_product(:,:) = 0
 

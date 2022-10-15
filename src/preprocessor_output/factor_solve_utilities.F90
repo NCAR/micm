@@ -133,7 +133,7 @@ subroutine solve(LU,x,b)
   real(r8), intent(in) :: LU(:,:), b(:,:) ! solve LU * x = b
   real(r8), intent(out) :: x(:,:)
 
-  integer  :: ncell = size(LU,1)
+  integer  :: ncell = size(x,1)
   real(r8) :: y(ncell,size(b,2))
 
   call backsolve_L_y_eq_b(LU, b, y)
