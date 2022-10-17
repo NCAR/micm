@@ -94,37 +94,39 @@ subroutine factor(LU)
 
   real(r8), intent(inout) :: LU(:,:)
 
-  integer :: i
+integer :: i
 
-  do i = 1, ncell
-      LU(i,1) = 1./LU(i,1)
-      LU(i,2) = LU(i,2) * LU(i,1)
-      LU(i,3) = LU(i,3) * LU(i,1)
-      LU(i,4) = LU(i,4) * LU(i,1)
-      LU(i,5) = 1./LU(i,5)
-      LU(i,6) = 1./LU(i,6)
-      LU(i,7) = 1./LU(i,7)
-      LU(i,8) = 1./LU(i,8)
-      LU(i,9) = LU(i,9) * LU(i,8)
-      LU(i,10) = LU(i,10) * LU(i,8)
-      LU(i,11) = 1./LU(i,11)
-      LU(i,12) = LU(i,12) * LU(i,11)
-      LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
-      LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
-      LU(i,13) = 1./LU(i,13)
-      LU(i,14) = LU(i,14) * LU(i,13)
-      LU(i,15) = LU(i,15) * LU(i,13)
-      LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
-      LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
-      LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
-      LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
-      LU(i,18) = 1./LU(i,18)
-      LU(i,19) = LU(i,19) * LU(i,18)
-      LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
-      LU(i,23) = 1./LU(i,23)
+do i = 1, ncell
+    LU(i,1) = 1./LU(i,1)
+    LU(i,2) = LU(i,2) * LU(i,1)
+    LU(i,3) = LU(i,3) * LU(i,1)
+    LU(i,4) = LU(i,4) * LU(i,1)
+    LU(i,5) = 1./LU(i,5)
+    LU(i,6) = 1./LU(i,6)
+    LU(i,7) = 1./LU(i,7)
+    LU(i,8) = 1./LU(i,8)
+    LU(i,9) = LU(i,9) * LU(i,8)
+    LU(i,10) = LU(i,10) * LU(i,8)
+    LU(i,11) = 1./LU(i,11)
+    LU(i,12) = LU(i,12) * LU(i,11)
+    LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
+    LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
+    LU(i,13) = 1./LU(i,13)
+    LU(i,14) = LU(i,14) * LU(i,13)
+    LU(i,15) = LU(i,15) * LU(i,13)
+    LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
+    LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
+    LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
+    LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
+    LU(i,18) = 1./LU(i,18)
+    LU(i,19) = LU(i,19) * LU(i,18)
+    LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
+    LU(i,23) = 1./LU(i,23)
   end do
 
 end subroutine factor
+
+
 
 subroutine solve(LU,x,b)
 
