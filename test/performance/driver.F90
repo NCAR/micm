@@ -21,6 +21,7 @@ contains
   !> Runs MICM under prescribed conditions and collect performance metrics
   subroutine run_test( )
 
+    use constants,                     only : kNumberOfGridCells
     use micm_environment,              only : environment_t
     use micm_kinetics,                 only : kinetics_t
     use micm_ODE_solver,               only : ODE_solver_t
