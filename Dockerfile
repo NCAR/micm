@@ -29,5 +29,6 @@ RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.2.0.tar.gz 
 RUN mkdir /build \
       && cd /build \
       && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-8.2.0" \
-      && cmake ../micm \
+      && cmake -D ENABLE_UTIL_ONLY=ON \
+               ../micm \
       && make
