@@ -41,7 +41,7 @@ include_directories(${NETCDF_INCLUDE_DIR})
 find_path(JSON_INCLUDE_DIR json_module.mod
   DOC "json-fortran include directory (must include json_*.mod files)"
   PATHS
-    $ENV{JSON_FORTRAN_HOME}/lib
+    $ENV{JSON_FORTRAN_HOME}/include
     /opt/local/lib
     /usr/local/lib
     /usr/local/lib64)
