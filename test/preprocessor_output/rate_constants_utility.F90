@@ -56,6 +56,8 @@ contains
 
     integer :: i
 
+    !$acc parallel vector_length(VLEN)
+    !$acc loop gang vector 
     do i = 1, ncell
       !O2_1
       !k_O2_1: O2 -> 2*O

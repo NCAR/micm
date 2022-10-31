@@ -26,6 +26,8 @@ subroutine backsolve_L_y_eq_b(LU,b,y)
 
   integer :: i
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
     y(i,1) = b(i,1)
     y(i,2) = b(i,2)
@@ -46,6 +48,7 @@ subroutine backsolve_L_y_eq_b(LU,b,y)
     y(i,9) = y(i,9) - LU(i,15) * y(i,7)
     y(i,9) = y(i,9) - LU(i,19) * y(i,8)
   end do
+  !$acc end parallel
 
 end subroutine backsolve_L_y_eq_b
 
@@ -60,6 +63,8 @@ subroutine backsolve_U_x_eq_y(LU,y,x)
 
   integer :: i
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
     temporary = y(i,9)
     x(i,9) = LU(i,23) * temporary
@@ -85,6 +90,7 @@ subroutine backsolve_U_x_eq_y(LU,y,x)
     temporary = y(i,1)
     x(i,1) = LU(i,1) * temporary
   end do
+  !$acc end parallel
 
 end subroutine backsolve_U_x_eq_y
 
@@ -94,35 +100,38 @@ subroutine factor(LU)
 
   real(r8), intent(inout) :: LU(:,:)
 
-integer :: i
+  integer :: i
 
-do i = 1, ncell
-    LU(i,1) = 1./LU(i,1)
-    LU(i,2) = LU(i,2) * LU(i,1)
-    LU(i,3) = LU(i,3) * LU(i,1)
-    LU(i,4) = LU(i,4) * LU(i,1)
-    LU(i,5) = 1./LU(i,5)
-    LU(i,6) = 1./LU(i,6)
-    LU(i,7) = 1./LU(i,7)
-    LU(i,8) = 1./LU(i,8)
-    LU(i,9) = LU(i,9) * LU(i,8)
-    LU(i,10) = LU(i,10) * LU(i,8)
-    LU(i,11) = 1./LU(i,11)
-    LU(i,12) = LU(i,12) * LU(i,11)
-    LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
-    LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
-    LU(i,13) = 1./LU(i,13)
-    LU(i,14) = LU(i,14) * LU(i,13)
-    LU(i,15) = LU(i,15) * LU(i,13)
-    LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
-    LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
-    LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
-    LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
-    LU(i,18) = 1./LU(i,18)
-    LU(i,19) = LU(i,19) * LU(i,18)
-    LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
-    LU(i,23) = 1./LU(i,23)
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
+     LU(i,1) = 1./LU(i,1)
+     LU(i,2) = LU(i,2) * LU(i,1)
+     LU(i,3) = LU(i,3) * LU(i,1)
+     LU(i,4) = LU(i,4) * LU(i,1)
+     LU(i,5) = 1./LU(i,5)
+     LU(i,6) = 1./LU(i,6)
+     LU(i,7) = 1./LU(i,7)
+     LU(i,8) = 1./LU(i,8)
+     LU(i,9) = LU(i,9) * LU(i,8)
+     LU(i,10) = LU(i,10) * LU(i,8)
+     LU(i,11) = 1./LU(i,11)
+     LU(i,12) = LU(i,12) * LU(i,11)
+     LU(i,17) = LU(i,17) - LU(i,12)*LU(i,16)
+     LU(i,21) = LU(i,21) - LU(i,12)*LU(i,20)
+     LU(i,13) = 1./LU(i,13)
+     LU(i,14) = LU(i,14) * LU(i,13)
+     LU(i,15) = LU(i,15) * LU(i,13)
+     LU(i,18) = LU(i,18) - LU(i,14)*LU(i,17)
+     LU(i,19) = LU(i,19) - LU(i,15)*LU(i,17)
+     LU(i,22) = LU(i,22) - LU(i,14)*LU(i,21)
+     LU(i,23) = LU(i,23) - LU(i,15)*LU(i,21)
+     LU(i,18) = 1./LU(i,18)
+     LU(i,19) = LU(i,19) * LU(i,18)
+     LU(i,23) = LU(i,23) - LU(i,19)*LU(i,22)
+     LU(i,23) = 1./LU(i,23)
   end do
+  !$acc end parallel
 
 end subroutine factor
 

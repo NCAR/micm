@@ -8,7 +8,7 @@ use musica_constants, only: r8 => musica_dk
 ! This tag was created on undefined by undefined and is marked as not buggy
 
   use factor_solve_utilities, only : factor
-  use constants,              only : ncell=>kNumberOfGridCells
+  use constants,              only : ncell=>kNumberOfGridCells, VLEN
 
   implicit none
 
@@ -32,10 +32,20 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   real(r8), intent(in) :: number_density(:,:)
   real(r8), intent(in) :: number_density_air(:)
 
-  integer :: i
+  integer :: i, j, N 
 
-  LU(:,:) = 0
+  N = size(LU,2)
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector collapse(2)
+  do j = 1, N
+     do i = 1, ncell
+        LU(i,j) = 0
+     end do
+  end do
+  !$acc end parallel
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
     ! df_O/d(M)
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
@@ -149,6 +159,7 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     LU(i,23) = LU(i,23) - rate_constant(i,6) * number_density(i,7)
 
   end do
+  !$acc end parallel
 
 end subroutine dforce_dy
 
@@ -159,11 +170,23 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
   real(r8), intent(in) :: alpha
   real(r8), intent(out) :: LU(:,:)
 
-  integer :: i
+  integer :: i, j, N
 
-  LU(:,:) = -dforce_dy(:,:)
+  N = size(LU,2)
+
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector collapse(2)
+  do j = 1, N
+     do i = 1, ncell
+        LU(i,j) = -dforce_dy(i,j)
+     end do
+  end do
+  !$acc end parallel
 
   ! add alpha to diagonal elements
+
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
     LU(i,1) = -dforce_dy(i,1) + alpha
     LU(i,5) = -dforce_dy(i,5) + alpha
@@ -175,6 +198,7 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
     LU(i,18) = -dforce_dy(i,18) + alpha
     LU(i,23) = -dforce_dy(i,23) + alpha
   end do
+  !$acc end parallel
 
   call factor(LU)
 
@@ -190,6 +214,8 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
   integer :: i
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
 
     ! M
@@ -273,6 +299,7 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     force(i,9) = force(i,9) + rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
   end do
+  !$acc end parallel
 
 end subroutine p_force
 
@@ -286,6 +313,8 @@ function reaction_rates(rate_constant, number_density, number_density_air)
   integer :: i
   real(r8) :: reaction_rates(ncell,number_of_reactions)
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
 
     ! k_O2_1: O2 -> 2*O
@@ -310,6 +339,7 @@ function reaction_rates(rate_constant, number_density, number_density_air)
     reaction_rates(i,7) = rate_constant(i,7) * number_density(i,1) * number_density(i,7) * number_density(i,8)
 
   end do
+  !$acc end parallel
 
 end function reaction_rates
 
@@ -368,10 +398,19 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy
   real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector
 
-  integer :: i
+  integer :: i, j, N
 
-  cummulative_product(:,:) = 0
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector collapse(2)
+  do j = 1, N
+     do i = 1, ncell
+        cummulative_product(i,j) = 0
+     end do
+  end do
+  !$acc end parallel
 
+  !$acc parallel vector_length(VLEN)
+  !$acc loop gang vector
   do i = 1, ncell
 
     ! df_O/d(M) * M_temporary
@@ -429,6 +468,7 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,9) = cummulative_product(i,9) + dforce_dy(i,23) * vector(i,9)
 
   end do
+  !$acc end parallel
 
 end subroutine dforce_dy_times_vector
 
