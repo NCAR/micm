@@ -7,6 +7,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 ################################################################################
 # options
+option(ENABLE_OPENACC "Enable GPU chemistry solver with OpenACC" ON)
+option(ENABLE_NSYS "Enable Nsys profiling of GPU codes" OFF)
 
 ################################################################################
 # NetCDF library
