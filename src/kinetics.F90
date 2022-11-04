@@ -11,7 +11,7 @@ module micm_kinetics
 
   use micm_environment,                only : environment_t
   use musica_constants,                only : musica_dk, musica_ik
-  use constants,                       only : ncell=>kNumberOfGridCells
+  use constants,                       only : ncell=>kNumberOfGridCells, VLEN
 
   implicit none
 
@@ -145,13 +145,22 @@ contains
     real(musica_dk)              ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
     real(musica_dk)              ::  number_density_air(size(vmr,1))
     integer                      ::  i
-   
+
+    !$acc data create  (number_density_air) &
+    !$acc      copyin  (this,this%rateConst,this%environment,vmr) &
+    !$acc      copyout (force)
+
+    !$acc parallel default(present) vector_length(VLEN)
+    !$acc loop gang vector       
     do i = 1, size(vmr,1)
        number_density_air(i) = this%environment(i)%number_density_air
     end do
- 
+    !$acc end parallel
+
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
     call p_force( this%rateConst, vmr, number_density_air, force)
+
+    !$acc end data
 
   end function force
 
@@ -169,10 +178,21 @@ contains
                                        number_density_air(ncell)
      integer                       ::  i
 
+     !$acc data create  (number_density_air) &
+     !$acc      copyin  (this,this%rateConst,this%environment, &
+     !$acc               number_density) &
+     !$acc      copyout (reaction_rates)
+
+     !$acc parallel default(present) vector_length(VLEN)
+     !$acc loop gang vector
      do i = 1, ncell 
         number_density_air(i) = this%environment(i)%number_density_air
      end do
+     !$acc end parallel
+
      reaction_rates = rxn_rates( this%rateConst, number_density, number_density_air )
+
+     !$acc end data 
 
   end function reaction_rates
 
@@ -186,7 +206,21 @@ contains
     class(kinetics_t), intent(in) :: this
     real(musica_dk)               :: reaction_rate_constants(ncell,nRxn) ! reaction rate constants
 
-    reaction_rate_constants(:,:) = this%rateConst(:,:)
+    integer                       :: i, j
+
+    !$acc data copyin  (this,this%rateConst) &
+    !$acc      copyout (reaction_rate_constants)
+
+    !$acc parallel default(present) vector_length(VLEN)
+    !$acc loop gang vector collapse(2)
+    do j = 1, nRxn
+       do i = 1, ncell
+          reaction_rate_constants(i,j) = this%rateConst(i,j)
+       end do
+    end do
+    !$acc end parallel
+
+    !$acc end data 
 
   end function reaction_rate_constants
 
@@ -202,11 +236,20 @@ contains
                        number_density_air(size(vmr,1))
     integer         :: i
 
+    !$acc data copyin  (this,this%rateConst,this%environment,vmr) &
+    !$acc      copyout (dforce_dy) &
+    !$acc      create  (number_density_air)
+
+    !$acc parallel default(present) vector_length(VLEN)
+    !$acc loop gang vector
     do i = 1, size(vmr,1)
        number_density_air(i) = this%environment(i)%number_density_air
     end do
+    !$acc end parallel
 
     call p_dforce_dy(dforce_dy, this%rateConst, vmr, number_density_air)
+
+   !$acc end data
 
   end function dforce_dy
 
@@ -396,7 +439,12 @@ contains
 
     real(musica_dk) ::  d2Fdy2(size(force,1),size(force,2))
 
+!!   !$acc data copyout (d2Fdy2) &
+!!   !$acc      copyin  (this,this%chemJac,force)
+
     call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
+
+!!   !$acc end data
 
   end function dForcedyxForce
 
@@ -406,11 +454,24 @@ contains
       class(kinetics_t)              :: this
       REAL(musica_dk), INTENT(INOUT) :: B(:,:)
       REAL(musica_dk)                :: x(size(B,1),size(B,2))
+      integer                        :: i, j
+
+      !$acc data copyin (this,this%MBOdeJac) &
+      !$acc      create (x) &
+      !$acc      copy   (B)
 
       call solve ( this%MBOdeJac, x, B )
 
-      B(:,:) = x(:,:)
+      !$acc parallel default(present) vector_length(VLEN)
+      !$acc loop gang vector collapse(2)
+      do j = 1, size(B,2)
+         do i = 1, size(B,1)
+            B(i,j) = x(i,j)
+         end do
+      end do
+      !$acc end parallel
 
+      !$acc end data
 
     END SUBROUTINE LinSolve
 

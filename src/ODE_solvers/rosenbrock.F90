@@ -17,7 +17,7 @@ MODULE micm_ODE_solver_rosenbrock
   use micm_ODE_solver,                 only : ODE_solver_t
   use micm_kinetics,                   only : kinetics_t
   use musica_constants,                only : r8=>musica_dk, musica_ik
-  use constants,                       only : ncell=>kNumberOfGridCells
+  use constants,                       only : ncell=>kNumberOfGridCells, VLEN
 
   IMPLICIT NONE
 
@@ -278,7 +278,7 @@ CONTAINS
 ! ~~~~ Local variables
       INTEGER  :: N
       INTEGER  :: S_ndx
-      INTEGER  :: j, istage
+      INTEGER  :: i, j, m, istage
       integer  :: istat(20)
       REAL(r8) :: H, Hnew, HC, Fac, Tau, Err
       REAL(r8) :: presentTime
@@ -348,37 +348,121 @@ Stage_loop: &
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
        IF ( this%ros_NewF(istage) ) THEN
-         Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
+         ! JS - 11/02 : merge the following two loops as an optimization test
+
+         !$acc parallel vector_length(VLEN)
+         !$acc loop gang vector collapse(2)
+         do m = 1, N
+            do i = 1, ncell
+               Ynew(i,m) = Y(i,m)
+            end do
+         end do
+         !$acc end parallel
          DO j = 1, istage-1
-           Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + this%ros_A(S_ndx+j)*K(1:ncell,1:N,j)
+            !$acc data copyin (this,this%ros_A)
+
+            !$acc parallel vector_length(VLEN)
+            !$acc loop gang vector collapse(2)
+            do m = 1, N
+               do i = 1, ncell
+                  Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
+               end do
+            end do
+            !$acc end parallel
+
+            !$acc end data
          END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
          Fcn = theKinetics%force( Ynew )
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
-       K(1:ncell,1:N,istage) = Fcn(1:ncell,1:N)
+       !$acc parallel vector_length(VLEN)
+       !$acc loop gang vector collapse(2)
+       do m = 1, N
+          do i = 1, ncell
+             K(i,m,istage) = Fcn(i,m)
+          end do
+       end do
+       !$acc end parallel
        DO j = 1, istage-1
          HC = this%ros_C(S_ndx+j)/H
-         K(1:ncell,1:N,istage) = K(1:ncell,1:N,istage) + HC*K(1:ncell,1:N,j)
+         !$acc parallel vector_length(VLEN)
+         !$acc loop gang vector collapse(2)
+         do m = 1, N
+            do i = 1, ncell
+               K(i,m,istage) = K(i,m,istage) + HC*K(i,m,j)
+            end do
+         end do
+         !$acc end parallel
        END DO
      ELSE
-       K(1:ncell,1:N,1) = Fcn0(1:ncell,1:N)
-       Fcn(1:ncell,1:N) = Fcn0(1:ncell,1:N)
+       !$acc parallel vector_length(VLEN)
+       !$acc loop gang vector collapse(2)
+       do m = 1, N
+          do i = 1, ncell
+             K(i,m,1) = Fcn0(i,m)
+             Fcn(i,m) = Fcn0(i,m)
+          end do
+       end do
+       !$acc end parallel
      ENDIF
      CALL theKinetics%LinSolve( K(1:ncell,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
 !~~~>  Compute the new solution
-   Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
+
+   ! JS - 11/02 : merge the two loops later
+
+   !$acc parallel vector_length(VLEN)
+   !$acc loop gang vector collapse(2)
+   do m = 1, N
+      do i = 1, ncell
+         Ynew(i,m) = Y(i,m)
+      end do
+   end do
+   !$acc end parallel
    DO j=1,this%ros_S
-     Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + this%ros_M(j)*K(1:ncell,1:N,j)
+     !$acc data copyin (this,this%ros_M)
+
+     !$acc parallel vector_length(VLEN)
+     !$acc loop gang vector collapse(2)
+     do m = 1, N 
+        do i = 1, ncell
+           Ynew(i,m) = Ynew(i,m) + this%ros_M(j)*K(i,m,j)
+        end do
+     end do
+     !$acc end parallel
+
+     !$acc end data
    END DO
 
 !~~~>  Compute the error estimation
-   Yerr(1:ncell,1:N) = ZERO
+
+   ! JS - 11/02 : merge the two loops later
+
+   !$acc parallel vector_length(VLEN)
+   !$acc loop gang vector collapse(2)
+   do m = 1, N
+      do i = 1, ncell
+         Yerr(i,m) = ZERO
+      end do
+   end do
+   !$acc end parallel
+
    DO j=1,this%ros_S
-     Yerr(1:ncell,1:N) = Yerr(1:ncell,1:N) + this%ros_E(j)*K(1:ncell,1:N,j)
+     !$acc data copyin (this,this%ros_E)
+
+     !$acc parallel vector_length(VLEN)
+     !$acc loop gang vector collapse(2)
+     do m = 1, N 
+        do i = 1, ncell
+           Yerr(i,m) = Yerr(i,m) + this%ros_E(j)*K(i,m,j)
+        end do
+     end do
+     !$acc end parallel
+
+     !$acc end data
    END DO
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
@@ -392,7 +476,14 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      Y(1:ncell,1:N) = Ynew(1:ncell,1:N)
+      !$acc parallel vector_length(VLEN)
+      !$acc loop gang vector collapse(2)
+      do m = 1, N 
+         do i = 1, ncell
+            Y(i,m) = Ynew(i,m)
+         end do
+      end do
+      !$acc end parallel
       presentTime = presentTime + H
       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -511,14 +602,26 @@ Accepted: &
    REAL(r8) :: Error
 
 ! Local variables
-   REAL(r8) :: Scale(this%N), Ymax(this%N)
-   integer  :: i
+   REAL(r8) :: Scale, Ymax, sum_tmp
+   integer  :: i, m
 
    Error = 0._r8
+   sum_tmp = 0._r8
+
    do i = 1, ncell
-      Ymax(:) = MAX( ABS(Y(i,:)),ABS(Ynew(i,:)) )
-      Scale(:)  = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
-      Error     = MAX( SQRT( sum( (Yerr(i,:)/Scale(:))**2 )/real(this%N,kind=r8) ), ErrMin, Error )
+      !$acc data copyin (this,this%AbsTol,this%RelTol)
+
+      !$acc parallel vector_length(VLEN)
+      !$acc loop gang vector reduction(+:sum_tmp)
+      do m = 1, this%N
+         Ymax = MAX( ABS(Y(i,m)),ABS(Ynew(i,m)) )
+         Scale  = this%AbsTol(m) + this%RelTol(m)*Ymax
+         sum_tmp = sum_tmp + (Yerr(i,m)/Scale)**2
+      end do
+      !$acc end parallel
+
+      !$acc end data
+      Error     = MAX( SQRT( sum_tmp / real(this%N,kind=r8) ), ErrMin, Error )
    end do
 
   END FUNCTION ros_ErrorNorm
