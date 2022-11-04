@@ -29,6 +29,7 @@ contains
     use musica_assert,                 only : assert_msg
     use musica_config,                 only : config_t
     use musica_string,                 only : string_t, to_char
+    use omp_lib
 
     character(len=*), parameter :: my_name = "MICM performance test"
     type(config_t) :: solver_config
@@ -41,6 +42,7 @@ contains
     real(kind=dk), allocatable :: number_densities__molec_cm3(:,:)
     type(environment_t) :: env(kNumberOfGridCells)
     integer :: i_time, error_flag
+    real(kind=dk) :: t_start, t_end
 
     ! Set up the kinetics calculator
     kinetics => kinetics_t( )
@@ -70,15 +72,18 @@ contains
       call update_species( number_densities__molec_cm3, species_names, i_time )
       call update_environment( env, photo_reaction_names, i_time )
       call kinetics%update( env )
+      t_start = omp_get_wtime()
       call solver%solve( TStart      = 0.0_dk,                                &
                          TEnd        = kTimeStep__min,                        &
                          y           = number_densities__molec_cm3,           &
                          theKinetics = kinetics,                              &
                          IErr        = error_flag )
+      t_end = omp_get_wtime()
       call assert_msg( 366068772, error_flag == 0,                            &
                        "Chemistry solver failed with code "//                 &
                        to_char( error_flag ) )
       call output_state( number_densities__molec_cm3, species_names, i_time )
+      write(*,*), "solve time", t_end - t_start
     end do
 
   end subroutine run_test
