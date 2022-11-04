@@ -27,3 +27,13 @@ add_library(micmlib ${MICM_SRC})
 target_link_libraries(micmlib musicalib)
 
 set_target_properties(micmlib PROPERTIES OUTPUT_NAME micm)
+
+######################################################################
+# Set compiler options
+
+set(FLAGGED_FILES preprocessor_output/kinetics_utilities.F90
+                  preprocessor_output/factor_solve_utilities.F90
+                  kinetics.F90
+                  ODE_solvers/rosenbrock.F90)
+
+set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-O2 -acc -gpu=cc70,lineinfo,nofma -Minfo=all")
