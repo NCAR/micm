@@ -339,7 +339,7 @@ contains
    Singular = .TRUE.
 
    !$acc data create (LU_factored) &
-   !$acc      copyin (Ghimj)
+   !$acc      copy   (Ghimj)
 
    DO WHILE (Singular)
      ghinv = ONE/(H*gam)
