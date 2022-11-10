@@ -147,8 +147,13 @@ contains
     ! TODO determine if/how we want to output state data
     write(*,*) "time step", time_step*kTimeStep__min
     do i_species = 1, size( species_names )
-      write(*,*) species_names( i_species ),                                  &
-                 number_densities__molec_cm3(:,i_species)
+      if (size(number_densities__molec_cm3,1) < 100) then
+          write(*,*) species_names( i_species ),                              &
+                     number_densities__molec_cm3(:,i_species)
+      else
+          write(*,*) species_names( i_species ),                              &
+                     number_densities__molec_cm3(1:100,i_species)
+      end if
     end do
 
   end subroutine output_state
