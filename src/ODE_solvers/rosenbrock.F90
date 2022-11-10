@@ -262,6 +262,10 @@ CONTAINS
        write(*,*) ' '
     endif
 
+    !$acc enter data copyin (this,this%ros_A,this%ros_M,this%ros_E, &
+    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma, &
+    !$acc                    this%ros_S,this%N)
+
     end function constructor
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -309,6 +313,9 @@ CONTAINS
    this%icntrl(:) = 0
    this%rcntrl(:) = ZERO
 
+!   !$acc enter data create (Ynew,Fcn0,Fcn,K,Yerr) &
+!   !$acc            copyin (Y)
+
 !~~~> Time loop
 TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
 
@@ -328,6 +335,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
 
 !~~~>   Compute the function at current time
    Fcn0 = theKinetics%force( Y )
+!   !$acc update device (Fcn0)
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -350,61 +358,58 @@ Stage_loop: &
        IF ( this%ros_NewF(istage) ) THEN
          ! JS - 11/02 : merge the following two loops as an optimization test
 
-         !$acc parallel vector_length(VLEN)
-         !$acc loop gang vector collapse(2)
+!         !$acc parallel default(present) vector_length(VLEN)
+!         !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
                Ynew(i,m) = Y(i,m)
             end do
          end do
-         !$acc end parallel
+!         !$acc end parallel
          DO j = 1, istage-1
-            !$acc data copyin (this,this%ros_A)
-
-            !$acc parallel vector_length(VLEN)
-            !$acc loop gang vector collapse(2)
+!            !$acc parallel default(present) vector_length(VLEN)
+!            !$acc loop gang vector collapse(2)
             do m = 1, N
                do i = 1, ncell
                   Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
                end do
             end do
-            !$acc end parallel
-
-            !$acc end data
+!            !$acc end parallel
          END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
          Fcn = theKinetics%force( Ynew )
+!         !$acc update device (Fcn)
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
-       !$acc parallel vector_length(VLEN)
-       !$acc loop gang vector collapse(2)
+!       !$acc parallel default(present) vector_length(VLEN)
+!       !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
              K(i,m,istage) = Fcn(i,m)
           end do
        end do
-       !$acc end parallel
+!       !$acc end parallel
        DO j = 1, istage-1
          HC = this%ros_C(S_ndx+j)/H
-         !$acc parallel vector_length(VLEN)
-         !$acc loop gang vector collapse(2)
+!         !$acc parallel default(present) vector_length(VLEN)
+!         !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
                K(i,m,istage) = K(i,m,istage) + HC*K(i,m,j)
             end do
          end do
-         !$acc end parallel
+!         !$acc end parallel
        END DO
      ELSE
-       !$acc parallel vector_length(VLEN)
-       !$acc loop gang vector collapse(2)
+!       !$acc parallel default(present) vector_length(VLEN)
+!       !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
              K(i,m,1) = Fcn0(i,m)
              Fcn(i,m) = Fcn0(i,m)
           end do
        end do
-       !$acc end parallel
+!       !$acc end parallel
      ENDIF
      CALL theKinetics%LinSolve( K(1:ncell,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
@@ -414,55 +419,47 @@ Stage_loop: &
 
    ! JS - 11/02 : merge the two loops later
 
-   !$acc parallel vector_length(VLEN)
-   !$acc loop gang vector collapse(2)
+!   !$acc parallel default(present) vector_length(VLEN)
+!   !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
          Ynew(i,m) = Y(i,m)
       end do
    end do
-   !$acc end parallel
+!   !$acc end parallel
    DO j=1,this%ros_S
-     !$acc data copyin (this,this%ros_M)
-
-     !$acc parallel vector_length(VLEN)
-     !$acc loop gang vector collapse(2)
+!     !$acc parallel default(present) vector_length(VLEN)
+!     !$acc loop gang vector collapse(2)
      do m = 1, N 
         do i = 1, ncell
            Ynew(i,m) = Ynew(i,m) + this%ros_M(j)*K(i,m,j)
         end do
      end do
-     !$acc end parallel
-
-     !$acc end data
+!     !$acc end parallel
    END DO
 
 !~~~>  Compute the error estimation
 
    ! JS - 11/02 : merge the two loops later
 
-   !$acc parallel vector_length(VLEN)
-   !$acc loop gang vector collapse(2)
+!   !$acc parallel default(present) vector_length(VLEN)
+!   !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
          Yerr(i,m) = ZERO
       end do
    end do
-   !$acc end parallel
+!   !$acc end parallel
 
    DO j=1,this%ros_S
-     !$acc data copyin (this,this%ros_E)
-
-     !$acc parallel vector_length(VLEN)
-     !$acc loop gang vector collapse(2)
+!     !$acc parallel default(present) vector_length(VLEN)
+!     !$acc loop gang vector collapse(2)
      do m = 1, N 
         do i = 1, ncell
            Yerr(i,m) = Yerr(i,m) + this%ros_E(j)*K(i,m,j)
         end do
      end do
-     !$acc end parallel
-
-     !$acc end data
+!     !$acc end parallel
    END DO
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
@@ -476,14 +473,14 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      !$acc parallel vector_length(VLEN)
-      !$acc loop gang vector collapse(2)
+!      !$acc parallel default(present) vector_length(VLEN)
+!      !$acc loop gang vector collapse(2)
       do m = 1, N 
          do i = 1, ncell
             Y(i,m) = Ynew(i,m)
          end do
       end do
-      !$acc end parallel
+!      !$acc end parallel
       presentTime = presentTime + H
       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -509,6 +506,8 @@ Accepted: &
    END DO UntilAccepted
 
    END DO TimeLoop
+
+!   !$acc exit data copyout (Y)
 
 !~~~> Succesful exit
    IERR = 0  !~~~> The integration was successful
@@ -609,18 +608,14 @@ Accepted: &
    sum_tmp = 0._r8
 
    do i = 1, ncell
-      !$acc data copyin (this,this%AbsTol,this%RelTol)
-
-      !$acc parallel vector_length(VLEN)
-      !$acc loop gang vector reduction(+:sum_tmp)
+!      !$acc parallel default(present) vector_length(VLEN)
+!      !$acc loop gang vector reduction(+:sum_tmp)
       do m = 1, this%N
          Ymax = MAX( ABS(Y(i,m)),ABS(Ynew(i,m)) )
          Scale  = this%AbsTol(m) + this%RelTol(m)*Ymax
          sum_tmp = sum_tmp + (Yerr(i,m)/Scale)**2
       end do
-      !$acc end parallel
-
-      !$acc end data
+!      !$acc end parallel
       Error     = MAX( SQRT( sum_tmp / real(this%N,kind=r8) ), ErrMin, Error )
    end do
 

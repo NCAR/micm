@@ -26,7 +26,7 @@ subroutine backsolve_L_y_eq_b(LU,b,y)
 
   integer :: i
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
     y(i,1) = b(i,1)
@@ -63,7 +63,7 @@ subroutine backsolve_U_x_eq_y(LU,y,x)
 
   integer :: i
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
     temporary = y(i,9)
@@ -102,7 +102,7 @@ subroutine factor(LU)
 
   integer :: i
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
      LU(i,1) = 1./LU(i,1)
@@ -144,8 +144,12 @@ subroutine solve(LU,x,b)
 
   real(r8) :: y(ncell,size(b,2))
 
+  !$acc data create (y)
+
   call backsolve_L_y_eq_b(LU, b, y)
   call backsolve_U_x_eq_y(LU, y, x)
+
+  !$acc end data
 
 end subroutine solve
 

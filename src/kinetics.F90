@@ -325,7 +325,7 @@ contains
     real(musica_dk), parameter :: ONE  = 1._musica_dk
     real(musica_dk), parameter :: HALF = .5_musica_dk
 
-    INTEGER  :: i, ising, Nconsecutive
+    INTEGER  :: i, j, k, ising, Nconsecutive
     REAL(musica_dk) :: ghinv
     REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
@@ -338,6 +338,9 @@ contains
    Nconsecutive = 0
    Singular = .TRUE.
 
+   !$acc data create (LU_factored) &
+   !$acc      copyin (Ghimj)
+
    DO WHILE (Singular)
      ghinv = ONE/(H*gam)
 !    Compute LU decomposition of [ghinv*I - Ghimj]
@@ -346,7 +349,14 @@ contains
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
-       Ghimj(:,:) = LU_factored(:,:)
+       !$acc parallel default(present) vector_length(VLEN)
+       !$acc loop gang vector collapse(2)
+       do k = 1, number_sparse_factor_elements
+          do j = 1, ncell
+             Ghimj(j,k) = LU_factored(j,k)
+          end do
+       end do
+       !$acc end parallel
        Singular = .FALSE.
      ELSE ! ISING .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
@@ -361,6 +371,8 @@ contains
        END IF  ! Nconsecutive
      END IF
    END DO
+
+   !$acc end data
 
    end associate
 
@@ -439,12 +451,12 @@ contains
 
     real(musica_dk) ::  d2Fdy2(size(force,1),size(force,2))
 
-!!   !$acc data copyout (d2Fdy2) &
-!!   !$acc      copyin  (this,this%chemJac,force)
+   !$acc data copyout (d2Fdy2) &
+   !$acc      copyin  (this,this%chemJac,force)
 
     call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
 
-!!   !$acc end data
+   !$acc end data
 
   end function dForcedyxForce
 

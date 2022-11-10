@@ -36,7 +36,7 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   integer :: i, j, N 
 
   N = size(LU,2)
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
   do j = 1, N
      do i = 1, ncell
@@ -45,7 +45,7 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   end do
   !$acc end parallel
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
     ! df_O/d(M)
@@ -175,7 +175,7 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
 
   N = size(LU,2)
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
   do j = 1, N
      do i = 1, ncell
@@ -186,7 +186,7 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
 
   ! add alpha to diagonal elements
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
     LU(i,1) = -dforce_dy(i,1) + alpha
@@ -215,7 +215,7 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
   integer :: i
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
 
@@ -314,7 +314,7 @@ function reaction_rates(rate_constant, number_density, number_density_air)
   integer :: i
   real(r8) :: reaction_rates(ncell,number_of_reactions)
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
 
@@ -401,7 +401,7 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
   integer :: i, j, N
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
   do j = 1, N
      do i = 1, ncell
@@ -410,7 +410,7 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   end do
   !$acc end parallel
 
-  !$acc parallel vector_length(VLEN)
+  !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
   do i = 1, ncell
 
