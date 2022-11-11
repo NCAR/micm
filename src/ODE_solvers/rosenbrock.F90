@@ -292,6 +292,11 @@ CONTAINS
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
+   !$acc enter data create (Ynew,Fcn0,Fcn,K,Yerr) &
+   !$acc            copyin (Y, theKinetics, theKinetics%rateConst, &
+   !$acc                    theKinetics%environment, &
+   !$acc                    theKinetics%chemJac,theKinetics%MBOdeJac)
+
 !~~~>  Initial preparations
    IF( .not. present(theKinetics) .or. .not. present(Tstart) .or. &
        .not. present(Tend) ) THEN
@@ -311,9 +316,6 @@ CONTAINS
 
    this%icntrl(:) = 0
    this%rcntrl(:) = ZERO
-
-!   !$acc enter data create (Ynew,Fcn0,Fcn,K,Yerr) &
-!   !$acc            copyin (Y)
 
 !~~~> Time loop
 TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
@@ -357,58 +359,58 @@ Stage_loop: &
        IF ( this%ros_NewF(istage) ) THEN
          ! JS - 11/02 : merge the following two loops as an optimization test
 
-!         !$acc parallel default(present) vector_length(VLEN)
-!         !$acc loop gang vector collapse(2)
+         !$acc parallel default(present) vector_length(VLEN)
+         !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
                Ynew(i,m) = Y(i,m)
             end do
          end do
-!         !$acc end parallel
+         !$acc end parallel
          DO j = 1, istage-1
-!            !$acc parallel default(present) vector_length(VLEN)
-!            !$acc loop gang vector collapse(2)
+            !$acc parallel default(present) vector_length(VLEN)
+            !$acc loop gang vector collapse(2)
             do m = 1, N
                do i = 1, ncell
                   Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
                end do
             end do
-!            !$acc end parallel
+            !$acc end parallel
          END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
          call theKinetics%calc_force( Ynew, Fcn )
 !         !$acc update device (Fcn)
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
-!       !$acc parallel default(present) vector_length(VLEN)
-!       !$acc loop gang vector collapse(2)
+       !$acc parallel default(present) vector_length(VLEN)
+       !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
              K(i,m,istage) = Fcn(i,m)
           end do
        end do
-!       !$acc end parallel
+       !$acc end parallel
        DO j = 1, istage-1
          HC = this%ros_C(S_ndx+j)/H
-!         !$acc parallel default(present) vector_length(VLEN)
-!         !$acc loop gang vector collapse(2)
+         !$acc parallel default(present) vector_length(VLEN)
+         !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
                K(i,m,istage) = K(i,m,istage) + HC*K(i,m,j)
             end do
          end do
-!         !$acc end parallel
+         !$acc end parallel
        END DO
      ELSE
-!       !$acc parallel default(present) vector_length(VLEN)
-!       !$acc loop gang vector collapse(2)
+       !$acc parallel default(present) vector_length(VLEN)
+       !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
              K(i,m,1) = Fcn0(i,m)
              Fcn(i,m) = Fcn0(i,m)
           end do
        end do
-!       !$acc end parallel
+       !$acc end parallel
      ENDIF
      CALL theKinetics%LinSolve( K(1:ncell,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
@@ -418,47 +420,47 @@ Stage_loop: &
 
    ! JS - 11/02 : merge the two loops later
 
-!   !$acc parallel default(present) vector_length(VLEN)
-!   !$acc loop gang vector collapse(2)
+   !$acc parallel default(present) vector_length(VLEN)
+   !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
          Ynew(i,m) = Y(i,m)
       end do
    end do
-!   !$acc end parallel
+   !$acc end parallel
    DO j=1,this%ros_S
-!     !$acc parallel default(present) vector_length(VLEN)
-!     !$acc loop gang vector collapse(2)
+     !$acc parallel default(present) vector_length(VLEN)
+     !$acc loop gang vector collapse(2)
      do m = 1, N 
         do i = 1, ncell
            Ynew(i,m) = Ynew(i,m) + this%ros_M(j)*K(i,m,j)
         end do
      end do
-!     !$acc end parallel
+     !$acc end parallel
    END DO
 
 !~~~>  Compute the error estimation
 
    ! JS - 11/02 : merge the two loops later
 
-!   !$acc parallel default(present) vector_length(VLEN)
-!   !$acc loop gang vector collapse(2)
+   !$acc parallel default(present) vector_length(VLEN)
+   !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
          Yerr(i,m) = ZERO
       end do
    end do
-!   !$acc end parallel
+   !$acc end parallel
 
    DO j=1,this%ros_S
-!     !$acc parallel default(present) vector_length(VLEN)
-!     !$acc loop gang vector collapse(2)
+     !$acc parallel default(present) vector_length(VLEN)
+     !$acc loop gang vector collapse(2)
      do m = 1, N 
         do i = 1, ncell
            Yerr(i,m) = Yerr(i,m) + this%ros_E(j)*K(i,m,j)
         end do
      end do
-!     !$acc end parallel
+     !$acc end parallel
    END DO
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
@@ -472,14 +474,14 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-!      !$acc parallel default(present) vector_length(VLEN)
-!      !$acc loop gang vector collapse(2)
+      !$acc parallel default(present) vector_length(VLEN)
+      !$acc loop gang vector collapse(2)
       do m = 1, N 
          do i = 1, ncell
             Y(i,m) = Ynew(i,m)
          end do
       end do
-!      !$acc end parallel
+      !$acc end parallel
       presentTime = presentTime + H
       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -506,7 +508,8 @@ Accepted: &
 
    END DO TimeLoop
 
-!   !$acc exit data copyout (Y)
+   !$acc exit data copyout (Y) &
+   !$acc           delete (Ynew,Fcn0,Fcn,K,Yerr)
 
 !~~~> Succesful exit
    IERR = 0  !~~~> The integration was successful
@@ -605,6 +608,8 @@ Accepted: &
 
    Error = 0._r8
    sum_tmp = 0._r8
+
+   !$acc update self (Y,Ynew,Yerr)
 
    do i = 1, ncell
 !      !$acc parallel default(present) vector_length(VLEN)

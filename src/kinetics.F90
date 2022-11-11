@@ -31,11 +31,11 @@ type kinetics_t
   integer :: nReact
   integer :: nSpecies
   integer, allocatable         :: Pivot(:,:)
-  real(musica_dk), allocatable :: rateConst(:,:)
-  real(musica_dk), allocatable :: MBOdeJac(:,:)      ! ODE solver jacobian
-  real(musica_dk), allocatable :: chemJac(:,:)       ! chemistry forcing jacobian
-  real(musica_dk), allocatable :: rates(:,:)         ! rates of reactions
-  type(environment_t), allocatable :: environment(:)
+  real(musica_dk), allocatable, public :: rateConst(:,:)
+  real(musica_dk), allocatable, public :: MBOdeJac(:,:)      ! ODE solver jacobian
+  real(musica_dk), allocatable, public :: chemJac(:,:)       ! chemistry forcing jacobian
+  real(musica_dk), allocatable, public :: rates(:,:)         ! rates of reactions
+  type(environment_t), allocatable, public :: environment(:)
 contains
   procedure, public :: species_names
   procedure, public :: reaction_names
@@ -146,9 +146,7 @@ contains
     real(musica_dk)              ::  number_density_air(size(vmr,1))
     integer                      ::  i
 
-    !$acc data copyin  (this,this%rateConst,this%environment,vmr) &
-    !$acc      copyout (force) &
-    !$acc      create  (number_density_air)
+    !$acc data create  (number_density_air)
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector       
@@ -236,9 +234,7 @@ contains
     real(musica_dk) :: number_density_air(size(vmr,1))
     integer         :: i
 
-    !$acc data copyin (this,this%rateConst,this%environment,vmr) &
-    !$acc      copyout (dforce_dy) &
-    !$acc      create  (number_density_air) 
+    !$acc data create  (number_density_air) 
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector
@@ -329,14 +325,21 @@ contains
     REAL(musica_dk) :: ghinv
     REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
-   associate( Ghimj => this%MBOdeJac )
+!   associate( Ghimj => this%MBOdeJac )
 
-   !$acc data copy   (Ghimj) &
-   !$acc      create (LU_factored)
+   !$acc data create (LU_factored)
 
 ! Set the chemical entries for the Ode Jacobian
-    call this%calc_dforce_dy( Y, Ghimj )
-    this%chemJac(:,:) = Ghimj(:,:)
+   call this%calc_dforce_dy( Y, this%MBOdeJac )
+
+   !$acc parallel default(present) vector_length(VLEN)
+   !$acc loop gang vector collapse(2)
+   do k = 1, number_sparse_factor_elements
+      do j = 1, ncell
+         this%chemJac(j,k) = this%MBOdeJac(j,k)
+      end do
+   end do
+   !$acc end parallel
 
    Nconsecutive = 0
    Singular = .TRUE.
@@ -344,7 +347,7 @@ contains
    DO WHILE (Singular)
      ghinv = ONE/(H*gam)
 !    Compute LU decomposition of [ghinv*I - Ghimj]
-     call factored_alpha_minus_jac( LU_factored, ghinv, Ghimj )
+     call factored_alpha_minus_jac( LU_factored, ghinv, this%MBOdeJac )
      ising = 0;
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
@@ -353,7 +356,7 @@ contains
        !$acc loop gang vector collapse(2)
        do k = 1, number_sparse_factor_elements
           do j = 1, ncell
-             Ghimj(j,k) = LU_factored(j,k)
+             this%MBOdeJac(j,k) = LU_factored(j,k)
           end do
        end do
        !$acc end parallel
@@ -374,7 +377,7 @@ contains
 
    !$acc end data
 
-   end associate
+!   end associate
 
   end subroutine LinFactor
 
@@ -468,9 +471,7 @@ contains
       REAL(musica_dk)                :: x(size(B,1),size(B,2))
       integer                        :: i, j
 
-      !$acc data copyin (this,this%MBOdeJac) &
-      !$acc      copy   (B) &
-      !$acc      create (x)
+      !$acc data create (x)
 
       call solve ( this%MBOdeJac, x, B )
 
