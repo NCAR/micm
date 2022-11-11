@@ -290,7 +290,7 @@ NRloop: DO nIter = 1,this%iterMax
          RETURN
        END IF
 !~~~>   Compute the function at current time
-       Fcn = theKinetics%force( Ynew )
+       call theKinetics%calc_force( Ynew, Fcn )
        this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        residual(1:ncell,1:N) = Fcn(1:ncell,1:N) - (Ynew(1:ncell,1:N) - Y(1:ncell,1:N))*Hinv
 !~~~>   Compute the iteration delta

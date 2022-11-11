@@ -263,8 +263,7 @@ CONTAINS
     endif
 
     !$acc enter data copyin (this,this%ros_A,this%ros_M,this%ros_E, &
-    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma, &
-    !$acc                    this%ros_S,this%N)
+    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma)
 
     end function constructor
 
@@ -334,7 +333,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
    H = MIN(H,ABS(Tend-presentTime))
 
 !~~~>   Compute the function at current time
-   Fcn0 = theKinetics%force( Y )
+   call theKinetics%calc_force( Y, Fcn0 )
 !   !$acc update device (Fcn0)
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
@@ -377,7 +376,7 @@ Stage_loop: &
 !            !$acc end parallel
          END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
-         Fcn = theKinetics%force( Ynew )
+         call theKinetics%calc_force( Ynew, Fcn )
 !         !$acc update device (Fcn)
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF

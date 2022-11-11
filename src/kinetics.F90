@@ -44,10 +44,10 @@ contains
   procedure, public :: rateConst_print
   procedure, public :: LinFactor
   procedure, public :: LinSolve
-  procedure, public :: force
-  procedure, public :: reaction_rates
-  procedure, public :: reaction_rate_constants
-  procedure, public :: dforce_dy
+  procedure, public :: calc_force
+  procedure, public :: calc_reaction_rates
+  procedure, public :: calc_reaction_rate_constants
+  procedure, public :: calc_dforce_dy
   procedure, public :: dForcedyxForce
 !  procedure, private :: LinFactor
   final             :: DasEnder
@@ -135,20 +135,20 @@ contains
   !---------------------------
   ! Compute time rate of change of each molecule (vmr) given reaction rates
   !---------------------------
-  function force( this, vmr )
+  subroutine calc_force( this, vmr, force )
 
     use kinetics_utilities,  only :  p_force
 
     class(kinetics_t) :: this
     real(musica_dk), intent(in)  ::  vmr(:,:)      ! volume mixing ratios of each component in order
 
-    real(musica_dk)              ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
+    real(musica_dk), intent(out) ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
     real(musica_dk)              ::  number_density_air(size(vmr,1))
     integer                      ::  i
 
-    !$acc data create  (number_density_air) &
-    !$acc      copyin  (this,this%rateConst,this%environment,vmr) &
-    !$acc      copyout (force)
+    !$acc data copyin  (this,this%rateConst,this%environment,vmr) &
+    !$acc      copyout (force) &
+    !$acc      create  (number_density_air)
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector       
@@ -162,26 +162,26 @@ contains
 
     !$acc end data
 
-  end function force
+  end subroutine calc_force
 
   !---------------------------
   ! Calculate the rates for each chemical reaction
   !---------------------------
-  function reaction_rates( this, number_density )
+  subroutine calc_reaction_rates( this, number_density, reaction_rates )
 
      use kinetics_utilities, only : rxn_rates => reaction_rates, &
                                     nRxn => number_of_reactions
 
      class(kinetics_t), intent(in) :: this
-     real(musica_dk), intent(in)   ::  number_density(:,:)           ! number densities of each component (#/cm^3)
-     real(musica_dk)               ::  reaction_rates(ncell,nRxn), & ! reaction rates
-                                       number_density_air(ncell)
-     integer                       ::  i
+     real(musica_dk), intent(in)   :: number_density(:,:)           ! number densities of each component (#/cm^3)
+     real(musica_dk), intent(out)  :: reaction_rates(ncell,nRxn)    ! reaction rates
+     real(musica_dk)               :: number_density_air(ncell)
+     integer                       :: i
 
-     !$acc data create  (number_density_air) &
-     !$acc      copyin  (this,this%rateConst,this%environment, &
+     !$acc data copyin  (this,this%rateConst,this%environment, &
      !$acc               number_density) &
-     !$acc      copyout (reaction_rates)
+     !$acc      copyout (reaction_rates) &
+     !$acc      create  (number_density_air)
 
      !$acc parallel default(present) vector_length(VLEN)
      !$acc loop gang vector
@@ -194,17 +194,17 @@ contains
 
      !$acc end data 
 
-  end function reaction_rates
+  end subroutine calc_reaction_rates
 
   !---------------------------
   ! Get the rate constants for each chemical reaction
   !---------------------------
-  function reaction_rate_constants( this )
+  subroutine calc_reaction_rate_constants( this, reaction_rate_constants )
 
     use kinetics_utilities, only : nRxn => number_of_reactions
 
     class(kinetics_t), intent(in) :: this
-    real(musica_dk)               :: reaction_rate_constants(ncell,nRxn) ! reaction rate constants
+    real(musica_dk),  intent(out) :: reaction_rate_constants(ncell,nRxn) ! reaction rate constants
 
     integer                       :: i, j
 
@@ -222,23 +222,23 @@ contains
 
     !$acc end data 
 
-  end function reaction_rate_constants
+  end subroutine calc_reaction_rate_constants
 
-  function dforce_dy( this, vmr)
+  subroutine calc_dforce_dy ( this, vmr, dforce_dy )
 
     use kinetics_utilities, only : p_dforce_dy=>dforce_dy
     use factor_solve_utilities, only: number_sparse_factor_elements
 
     class(kinetics_t) :: this
     real(musica_dk), intent(in)  ::  vmr(:,:)              ! volume mixing ratios of each component in order
+    real(musica_dk), intent(out) ::  dforce_dy(size(vmr,1),number_sparse_factor_elements)  ! sensitivity of forcing to changes in each vmr
 
-    real(musica_dk) :: dforce_dy(size(vmr,1),number_sparse_factor_elements), &   ! sensitivity of forcing to changes in each vmr
-                       number_density_air(size(vmr,1))
+    real(musica_dk) :: number_density_air(size(vmr,1))
     integer         :: i
 
-    !$acc data copyin  (this,this%rateConst,this%environment,vmr) &
+    !$acc data copyin (this,this%rateConst,this%environment,vmr) &
     !$acc      copyout (dforce_dy) &
-    !$acc      create  (number_density_air)
+    !$acc      create  (number_density_air) 
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector
@@ -249,9 +249,9 @@ contains
 
     call p_dforce_dy(dforce_dy, this%rateConst, vmr, number_density_air)
 
-   !$acc end data
+    !$acc end data
 
-  end function dforce_dy
+  end subroutine calc_dforce_dy
 
 
 
@@ -331,15 +331,15 @@ contains
 
    associate( Ghimj => this%MBOdeJac )
 
+   !$acc data copy   (Ghimj) &
+   !$acc      create (LU_factored)
+
 ! Set the chemical entries for the Ode Jacobian
-    Ghimj(:,:) = this%dforce_dy( Y )
+    call this%calc_dforce_dy( Y, Ghimj )
     this%chemJac(:,:) = Ghimj(:,:)
 
    Nconsecutive = 0
    Singular = .TRUE.
-
-   !$acc data create (LU_factored) &
-   !$acc      copy   (Ghimj)
 
    DO WHILE (Singular)
      ghinv = ONE/(H*gam)
@@ -469,8 +469,8 @@ contains
       integer                        :: i, j
 
       !$acc data copyin (this,this%MBOdeJac) &
-      !$acc      create (x) &
-      !$acc      copy   (B)
+      !$acc      copy   (B) &
+      !$acc      create (x)
 
       call solve ( this%MBOdeJac, x, B )
 
