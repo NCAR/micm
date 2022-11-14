@@ -562,12 +562,13 @@ Accepted: &
    Error = 0._r8
    sum_tmp = 0._r8
 
-   !$acc update self (Y,Ynew,Yerr)
+!!   !$acc update self (Y,Ynew,Yerr)
 
-!!   !$acc parallel default(present) vector_length(VLEN)
-!!   !$acc loop gang reduction(max:Error)
+   !$acc parallel default(present) vector_length(VLEN)
+   !$acc loop gang reduction(max:Error)
    do i = 1, ncell
-!!      !$acc loop vector reduction(+:sum_tmp)
+      sum_tmp = 0._r8
+      !$acc loop vector reduction(+:sum_tmp)
       do m = 1, this%N
          Ymax = MAX( ABS(Y(i,m)),ABS(Ynew(i,m)) )
          Scale  = this%AbsTol(m) + this%RelTol(m)*Ymax
@@ -575,7 +576,7 @@ Accepted: &
       end do
       Error     = MAX( SQRT( sum_tmp / real(this%N,kind=r8) ), ErrMin, Error )
    end do
-!!   !$acc end parallel
+   !$acc end parallel
 
   END FUNCTION ros_ErrorNorm
 
