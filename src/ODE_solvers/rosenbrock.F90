@@ -357,29 +357,19 @@ Stage_loop: &
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
        IF ( this%ros_NewF(istage) ) THEN
-         ! JS - 11/02 : merge the following two loops as an optimization test
-
          !$acc parallel default(present) vector_length(VLEN)
          !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
                Ynew(i,m) = Y(i,m)
+               DO j = 1, istage-1
+                  Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
+               END DO
             end do
          end do
          !$acc end parallel
-         DO j = 1, istage-1
-            !$acc parallel default(present) vector_length(VLEN)
-            !$acc loop gang vector collapse(2)
-            do m = 1, N
-               do i = 1, ncell
-                  Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
-               end do
-            end do
-            !$acc end parallel
-         END DO
          Tau = presentTime + this%ros_Alpha(istage)*H
          call theKinetics%calc_force( Ynew, Fcn )
-!         !$acc update device (Fcn)
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
        !$acc parallel default(present) vector_length(VLEN)
@@ -387,20 +377,13 @@ Stage_loop: &
        do m = 1, N
           do i = 1, ncell
              K(i,m,istage) = Fcn(i,m)
+             DO j = 1, istage-1
+                HC = this%ros_C(S_ndx+j)/H
+                K(i,m,istage) = K(i,m,istage) + HC*K(i,m,j)
+             END DO
           end do
        end do
        !$acc end parallel
-       DO j = 1, istage-1
-         HC = this%ros_C(S_ndx+j)/H
-         !$acc parallel default(present) vector_length(VLEN)
-         !$acc loop gang vector collapse(2)
-         do m = 1, N
-            do i = 1, ncell
-               K(i,m,istage) = K(i,m,istage) + HC*K(i,m,j)
-            end do
-         end do
-         !$acc end parallel
-       END DO
      ELSE
        !$acc parallel default(present) vector_length(VLEN)
        !$acc loop gang vector collapse(2)
@@ -416,52 +399,22 @@ Stage_loop: &
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
-!~~~>  Compute the new solution
-
-   ! JS - 11/02 : merge the two loops later
+!~~~>  Compute the new solution & the error estimation
 
    !$acc parallel default(present) vector_length(VLEN)
    !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
          Ynew(i,m) = Y(i,m)
-      end do
-   end do
-   !$acc end parallel
-   DO j=1,this%ros_S
-     !$acc parallel default(present) vector_length(VLEN)
-     !$acc loop gang vector collapse(2)
-     do m = 1, N 
-        do i = 1, ncell
-           Ynew(i,m) = Ynew(i,m) + this%ros_M(j)*K(i,m,j)
-        end do
-     end do
-     !$acc end parallel
-   END DO
-
-!~~~>  Compute the error estimation
-
-   ! JS - 11/02 : merge the two loops later
-
-   !$acc parallel default(present) vector_length(VLEN)
-   !$acc loop gang vector collapse(2)
-   do m = 1, N
-      do i = 1, ncell
          Yerr(i,m) = ZERO
+         DO j=1,this%ros_S
+            Ynew(i,m) = Ynew(i,m) + this%ros_M(j)*K(i,m,j)
+            Yerr(i,m) = Yerr(i,m) + this%ros_E(j)*K(i,m,j)
+         END DO
       end do
    end do
    !$acc end parallel
 
-   DO j=1,this%ros_S
-     !$acc parallel default(present) vector_length(VLEN)
-     !$acc loop gang vector collapse(2)
-     do m = 1, N 
-        do i = 1, ncell
-           Yerr(i,m) = Yerr(i,m) + this%ros_E(j)*K(i,m,j)
-        end do
-     end do
-     !$acc end parallel
-   END DO
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -611,17 +564,18 @@ Accepted: &
 
    !$acc update self (Y,Ynew,Yerr)
 
+!!   !$acc parallel default(present) vector_length(VLEN)
+!!   !$acc loop gang reduction(max:Error)
    do i = 1, ncell
-!      !$acc parallel default(present) vector_length(VLEN)
-!      !$acc loop gang vector reduction(+:sum_tmp)
+!!      !$acc loop vector reduction(+:sum_tmp)
       do m = 1, this%N
          Ymax = MAX( ABS(Y(i,m)),ABS(Ynew(i,m)) )
          Scale  = this%AbsTol(m) + this%RelTol(m)*Ymax
          sum_tmp = sum_tmp + (Yerr(i,m)/Scale)**2
       end do
-!      !$acc end parallel
       Error     = MAX( SQRT( sum_tmp / real(this%N,kind=r8) ), ErrMin, Error )
    end do
+!!   !$acc end parallel
 
   END FUNCTION ros_ErrorNorm
 
