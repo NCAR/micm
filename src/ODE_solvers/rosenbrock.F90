@@ -560,9 +560,6 @@ Accepted: &
    integer  :: i, m
 
    Error = 0._r8
-   sum_tmp = 0._r8
-
-!!   !$acc update self (Y,Ynew,Yerr)
 
    !$acc parallel default(present) vector_length(VLEN)
    !$acc loop gang reduction(max:Error)
