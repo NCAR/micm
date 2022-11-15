@@ -272,7 +272,7 @@ CONTAINS
 
       class(ODE_solver_rosenbrock_t), intent(inout) :: this
       integer,                        intent(out)   :: Ierr
-      real(r8),                       intent(inout) :: Y(:,:) ! (grid cell, species)
+      real(r8),                       intent(inout) :: Y(ncell,this%N) ! (grid cell, species)
       real(r8), optional,             intent(out)   :: T
       real(r8), optional,             intent(in)    :: Tstart
       real(r8), optional,             intent(in)    :: Tend
@@ -551,7 +551,8 @@ Accepted: &
 
 ! Input arguments
    class(ODE_solver_rosenbrock_t) :: this
-   REAL(r8), INTENT(IN) :: Y(:,:), Ynew(:,:), Yerr(:,:)
+   REAL(r8), INTENT(IN) :: Y(ncell,this%N), Ynew(ncell,this%N), &
+                           Yerr(ncell,this%N)
 
    REAL(r8) :: Error
 

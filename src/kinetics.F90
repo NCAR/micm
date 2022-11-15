@@ -65,9 +65,9 @@ contains
   !---------------------------
   subroutine species_names( this, names )
 
-    use kinetics_utilities, only : number_of_species, &
-                                   get_names => species_names
-    use musica_string,      only : string_t
+    use factor_solve_utilities, only : number_of_species
+    use kinetics_utilities,     only : get_names => species_names
+    use musica_string,          only : string_t
 
     class(kinetics_t), intent(in) :: this
     type(string_t), allocatable, intent(inout) :: names(:)
@@ -138,19 +138,21 @@ contains
   subroutine calc_force( this, vmr, force )
 
     use kinetics_utilities,  only :  p_force
+    use factor_solve_utilities, only: number_of_species
 
     class(kinetics_t) :: this
-    real(musica_dk), intent(in)  ::  vmr(:,:)      ! volume mixing ratios of each component in order
+    real(musica_dk), intent(in)  ::  vmr(ncell,number_of_species)      ! volume mixing ratios of each component in order
+    real(musica_dk), intent(out) ::  force(ncell,number_of_species)    ! rate of change of each molecule
 
-    real(musica_dk), intent(out) ::  force(size(vmr,1),size(vmr,2))    ! rate of change of each molecule
-    real(musica_dk)              ::  number_density_air(size(vmr,1))
+    ! Local variables
+    real(musica_dk)              ::  number_density_air(ncell)
     integer                      ::  i
 
     !$acc data create  (number_density_air)
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector       
-    do i = 1, size(vmr,1)
+    do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
     end do
     !$acc end parallel
@@ -167,12 +169,15 @@ contains
   !---------------------------
   subroutine calc_reaction_rates( this, number_density, reaction_rates )
 
-     use kinetics_utilities, only : rxn_rates => reaction_rates, &
+     use kinetics_utilities, only : rxn_rates => calc_reaction_rates, &
                                     nRxn => number_of_reactions
+     use factor_solve_utilities, only : number_of_species
 
      class(kinetics_t), intent(in) :: this
-     real(musica_dk), intent(in)   :: number_density(:,:)           ! number densities of each component (#/cm^3)
-     real(musica_dk), intent(out)  :: reaction_rates(ncell,nRxn)    ! reaction rates
+     real(musica_dk), intent(in)   :: number_density(ncell,number_of_species)  ! number densities of each component (#/cm^3)
+     real(musica_dk), intent(out)  :: reaction_rates(ncell,nRxn)               ! reaction rates
+
+     ! Local variables
      real(musica_dk)               :: number_density_air(ncell)
      integer                       :: i
 
@@ -188,7 +193,7 @@ contains
      end do
      !$acc end parallel
 
-     reaction_rates = rxn_rates( this%rateConst, number_density, number_density_air )
+     call rxn_rates( this%rateConst, number_density, number_density_air, reaction_rates )
 
      !$acc end data 
 
@@ -225,20 +230,22 @@ contains
   subroutine calc_dforce_dy ( this, vmr, dforce_dy )
 
     use kinetics_utilities, only : p_dforce_dy=>dforce_dy
-    use factor_solve_utilities, only: number_sparse_factor_elements
+    use factor_solve_utilities, only: number_sparse_factor_elements, &
+                                      number_of_species
 
     class(kinetics_t) :: this
-    real(musica_dk), intent(in)  ::  vmr(:,:)              ! volume mixing ratios of each component in order
-    real(musica_dk), intent(out) ::  dforce_dy(size(vmr,1),number_sparse_factor_elements)  ! sensitivity of forcing to changes in each vmr
+    real(musica_dk), intent(in)  ::  vmr(ncell,number_of_species)                    ! volume mixing ratios of each component in order
+    real(musica_dk), intent(out) ::  dforce_dy(ncell,number_sparse_factor_elements)  ! sensitivity of forcing to changes in each vmr
 
-    real(musica_dk) :: number_density_air(size(vmr,1))
+    ! Local variables
+    real(musica_dk) :: number_density_air(ncell)
     integer         :: i
 
     !$acc data create  (number_density_air) 
 
     !$acc parallel default(present) vector_length(VLEN)
     !$acc loop gang vector
-    do i = 1, size(vmr,1)
+    do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
     end do
     !$acc end parallel
@@ -255,8 +262,9 @@ contains
   ! allocate rateConst member array
   !------------------------------------------------------
   function constructor( ) result( this )
-    use factor_solve_utilities, only: number_sparse_factor_elements
-    use kinetics_utilities,     only: number_of_species, number_of_reactions
+    use factor_solve_utilities, only: number_sparse_factor_elements, &
+                                      number_of_species
+    use kinetics_utilities,     only: number_of_reactions
     class(kinetics_t), pointer :: this
 
     integer :: nRxt    ! total number of reactions
@@ -308,24 +316,25 @@ contains
   subroutine LinFactor( this, H, gam, Y, Singular, istatus )
 
    use kinetics_utilities, only : factored_alpha_minus_jac
-   use factor_solve_utilities, only: number_sparse_factor_elements
+   use factor_solve_utilities, only: number_sparse_factor_elements, &
+                                     number_of_species
 
-    class(kinetics_t) :: this
-    real(musica_dk), intent(inout) :: H          ! time step (seconds)
-    real(musica_dk), intent(in)    :: gam        ! time step factor for specific rosenbrock method
-    real(musica_dk), intent(in)    :: Y(:,:)     ! constituent concentration (molec/cm^3)
-    logical, intent(inout)         :: Singular   ! singularity flag (T or F)
-    integer, intent(inout)         :: istatus(:) ! rosenbrock status vector
+   class(kinetics_t) :: this
+   real(musica_dk), intent(inout) :: H          ! time step (seconds)
+   real(musica_dk), intent(in)    :: gam        ! time step factor for specific rosenbrock method
+   real(musica_dk), intent(in)    :: Y(ncell,number_of_species)     ! constituent concentration (molec/cm^3)
+   logical, intent(inout)         :: Singular   ! singularity flag (T or F)
+   integer, intent(inout)         :: istatus(:) ! rosenbrock status vector
 
-    integer, parameter :: Ndec = 6, Nsng = 8
-    real(musica_dk), parameter :: ONE  = 1._musica_dk
-    real(musica_dk), parameter :: HALF = .5_musica_dk
+   ! Local variables
 
-    INTEGER  :: i, j, k, ising, Nconsecutive
-    REAL(musica_dk) :: ghinv
-    REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
+   integer, parameter :: Ndec = 6, Nsng = 8
+   real(musica_dk), parameter :: ONE  = 1._musica_dk
+   real(musica_dk), parameter :: HALF = .5_musica_dk
 
-!   associate( Ghimj => this%MBOdeJac )
+   INTEGER  :: i, j, k, ising, Nconsecutive
+   REAL(musica_dk) :: ghinv
+   REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
    !$acc data create (LU_factored)
 
@@ -389,11 +398,12 @@ contains
   subroutine update( this, environment )
 
     use rate_constants_utility,        only : calculate_rate_constants
+    use kinetics_utilities,            only : number_of_reactions
 
     !> Kinetics calculator
     class(kinetics_t), intent(inout) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(:)
+    type(environment_t), intent(in) :: environment(ncell)
 
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
@@ -403,7 +413,7 @@ contains
     end if
 
     ! update the reaction rate constants
-    this%rateConst(:,:) = 0.0
+    this%rateConst(1:ncell,1:number_of_reactions) = 0.0
     call calculate_rate_constants( this%rateConst, environment )
 
   end subroutine update
@@ -448,11 +458,14 @@ contains
   !---------------------------
   function dForcedyxForce( this, force ) result(d2Fdy2)
 
-    use kinetics_utilities, only: dforce_dy_times_vector
-    class(kinetics_t)           :: this
-    real(musica_dk), intent(in) :: force(:,:)         ! chem forcing; dy/dt
+   use kinetics_utilities, only: dforce_dy_times_vector
+   use factor_solve_utilities, only: number_of_species
 
-    real(musica_dk) ::  d2Fdy2(size(force,1),size(force,2))
+   class(kinetics_t)           :: this
+   real(musica_dk), intent(in) :: force(ncell,number_of_species)         ! chem forcing; dy/dt
+
+   ! Local variables
+   real(musica_dk) ::  d2Fdy2(ncell,number_of_species)
 
    !$acc data copyout (d2Fdy2) &
    !$acc      copyin  (this,this%chemJac,force)
@@ -463,30 +476,33 @@ contains
 
   end function dForcedyxForce
 
-    SUBROUTINE LinSolve( this, B)
+  SUBROUTINE LinSolve( this, B)
 
-      use factor_solve_utilities, only : solve
-      class(kinetics_t)              :: this
-      REAL(musica_dk), INTENT(INOUT) :: B(:,:)
-      REAL(musica_dk)                :: x(size(B,1),size(B,2))
-      integer                        :: i, j
+    use factor_solve_utilities, only : solve, number_of_species
 
-      !$acc data create (x)
+    class(kinetics_t)              :: this
+    REAL(musica_dk), INTENT(INOUT) :: B(ncell,number_of_species)
 
-      call solve ( this%MBOdeJac, x, B )
+    ! Local variables
+    REAL(musica_dk)                :: x(ncell,number_of_species)
+    integer                        :: i, j
 
-      !$acc parallel default(present) vector_length(VLEN)
-      !$acc loop gang vector collapse(2)
-      do j = 1, size(B,2)
-         do i = 1, size(B,1)
-            B(i,j) = x(i,j)
-         end do
-      end do
-      !$acc end parallel
+    !$acc data create (x)
 
-      !$acc end data
+    call solve ( this%MBOdeJac, x, B )
 
-    END SUBROUTINE LinSolve
+    !$acc parallel default(present) vector_length(VLEN)
+    !$acc loop gang vector collapse(2)
+    do j = 1, number_of_species
+       do i = 1, ncell
+          B(i,j) = x(i,j)
+       end do
+    end do
+    !$acc end parallel
+
+    !$acc end data
+
+  END SUBROUTINE LinSolve
 
 
 end module micm_kinetics

@@ -8,19 +8,19 @@ use constants, only : VLEN
 ! This code is generated from tag undefined of the mechanism, undefined.  It is named undefined
 ! This tag was created on undefined by undefined and is marked as not buggy
 
-  use factor_solve_utilities, only : factor
+  use factor_solve_utilities, only : factor, number_of_species, &
+                                     number_sparse_factor_elements
   use constants,              only : ncell=>kNumberOfGridCells
 
   implicit none
 
   private
-  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, reaction_rates, reaction_names, &
+  public :: dforce_dy_times_vector, factored_alpha_minus_jac, p_force, calc_reaction_rates, reaction_names, &
             photolysis_names, dforce_dy, species_names
 
   ! Total number of reactions
   integer, parameter, public  :: number_of_reactions                = 7
   integer, parameter, public  :: number_of_photolysis_reactions     = 3
-  integer, parameter, public  :: number_of_species                  = 9
 
   contains
 
@@ -28,17 +28,17 @@ use constants, only : VLEN
 subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   ! Compute the derivative of the Forcing w.r.t. each chemical
   ! Also known as the Jacobian
-  real(r8), intent(out) :: LU(:,:)
-  real(r8), intent(in) :: rate_constant(:,:)
-  real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air(:)
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell,number_of_species)
 
-  integer :: i, j, N 
+  ! Local variables
+  integer :: i, j 
 
-  N = size(LU,2)
   !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
-  do j = 1, N
+  do j = 1, number_sparse_factor_elements
      do i = 1, ncell
         LU(i,j) = 0
      end do
@@ -167,17 +167,16 @@ end subroutine dforce_dy
 subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
   ! Compute LU decomposition of [alpha * I - dforce_dy]
 
-  real(r8), intent(in) :: dforce_dy(:,:)
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements)
   real(r8), intent(in) :: alpha
-  real(r8), intent(out) :: LU(:,:)
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
 
-  integer :: i, j, N
-
-  N = size(LU,2)
+  ! Local variables
+  integer :: i, j
 
   !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
-  do j = 1, N
+  do j = 1, number_sparse_factor_elements 
      do i = 1, ncell
         LU(i,j) = -dforce_dy(i,j)
      end do
@@ -208,11 +207,12 @@ end subroutine factored_alpha_minus_jac
 subroutine p_force(rate_constant, number_density, number_density_air, force)
   ! Compute force function for all molecules
 
-  real(r8), intent(in) :: rate_constant(:,:)
-  real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air(:)
-  real(r8), intent(out) :: force(:,:)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
 
+  ! Local variables
   integer :: i
 
   !$acc parallel default(present) vector_length(VLEN)
@@ -304,15 +304,16 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
 end subroutine p_force
 
-function reaction_rates(rate_constant, number_density, number_density_air)
+subroutine calc_reaction_rates(rate_constant, number_density, number_density_air, reaction_rates)
   ! Compute reaction rates
 
-  real(r8), intent(in) :: rate_constant(:,:)
-  real(r8), intent(in) :: number_density(:,:)
-  real(r8), intent(in) :: number_density_air(:)
+  real(r8), intent(in)  :: rate_constant(ncell,ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
 
+  ! Local variables
   integer :: i
-  real(r8) :: reaction_rates(ncell,number_of_reactions)
 
   !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
@@ -342,7 +343,7 @@ function reaction_rates(rate_constant, number_density, number_density_air)
   end do
   !$acc end parallel
 
-end function reaction_rates
+end subroutine calc_reaction_rates
 
 
 function reaction_names()
@@ -395,15 +396,16 @@ pure subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   !  Compute product of [ dforce_dy * vector ]
   !  Commonly used to compute time-truncation errors [dforce_dy * force ]
 
-  real(r8), intent(in) :: dforce_dy(:,:) ! Jacobian of forcing
-  real(r8), intent(in) :: vector(:,:)    ! Vector ordered as the order of number density in dy
-  real(r8), intent(out) :: cummulative_product(:,:)  ! Product of jacobian with vector
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
 
-  integer :: i, j, N
+  ! Local variables
+  integer :: i, j
 
   !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector collapse(2)
-  do j = 1, N
+  do j = 1, number_of_species
      do i = 1, ncell
         cummulative_product(i,j) = 0
      end do
