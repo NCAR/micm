@@ -11,7 +11,9 @@ module micm_kinetics
 
   use micm_environment,                only : environment_t
   use musica_constants,                only : musica_dk, musica_ik
-  use constants,                       only : ncell=>kNumberOfGridCells, VLEN
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0, STREAM1, &
+                                              STREAM2, STREAM3
 
   implicit none
 
@@ -148,10 +150,11 @@ contains
     real(musica_dk)              ::  number_density_air(ncell)
     integer                      ::  i
 
-    !$acc data create  (number_density_air)
+    !$acc enter data create(number_density_air) async(STREAM2)
 
-    !$acc parallel default(present) vector_length(VLEN)
-    !$acc loop gang vector       
+    !$acc parallel default(present) vector_length(VLEN) &
+    !$acc          async(STREAM2) wait(STREAM0)
+    !$acc loop gang vector
     do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
     end do
@@ -160,7 +163,7 @@ contains
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
     call p_force( this%rateConst, vmr, number_density_air, force)
 
-    !$acc end data
+    !$acc exit data delete(number_density_air) async(STREAM2)
 
   end subroutine calc_force
 
@@ -241,9 +244,10 @@ contains
     real(musica_dk) :: number_density_air(ncell)
     integer         :: i
 
-    !$acc data create  (number_density_air) 
+    !$acc enter data create(number_density_air) async(STREAM3)
 
-    !$acc parallel default(present) vector_length(VLEN)
+    !$acc parallel default(present) vector_length(VLEN) &
+    !$acc          async(STREAM3) wait(STREAM0,STREAM1)
     !$acc loop gang vector
     do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
@@ -252,7 +256,7 @@ contains
 
     call p_dforce_dy(dforce_dy, this%rateConst, vmr, number_density_air)
 
-    !$acc end data
+    !$acc exit data delete(number_density_air) async(STREAM3)
 
   end subroutine calc_dforce_dy
 
@@ -336,12 +340,12 @@ contains
    REAL(musica_dk) :: ghinv
    REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
-   !$acc data create (LU_factored)
+   !$acc enter data create(LU_factored) async(STREAM3)
 
 ! Set the chemical entries for the Ode Jacobian
    call this%calc_dforce_dy( Y, this%MBOdeJac )
 
-   !$acc parallel default(present) vector_length(VLEN)
+   !$acc parallel default(present) vector_length(VLEN) async(STREAM3)
    !$acc loop gang vector collapse(2)
    do k = 1, number_sparse_factor_elements
       do j = 1, ncell
@@ -361,7 +365,7 @@ contains
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
-       !$acc parallel default(present) vector_length(VLEN)
+       !$acc parallel default(present) vector_length(VLEN) async(STREAM3)
        !$acc loop gang vector collapse(2)
        do k = 1, number_sparse_factor_elements
           do j = 1, ncell
@@ -384,9 +388,7 @@ contains
      END IF
    END DO
 
-   !$acc end data
-
-!   end associate
+   !$acc exit data delete(LU_factored) async(STREAM3)
 
   end subroutine LinFactor
 
@@ -407,9 +409,9 @@ contains
 
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
-      allocate( this%environment, source = environment )
+      allocate( this%environment(ncell), source = environment )
     else
-      this%environment = environment
+      this%environment(1:ncell) = environment(1:ncell)
     end if
 
     ! update the reaction rate constants
@@ -487,11 +489,11 @@ contains
     REAL(musica_dk)                :: x(ncell,number_of_species)
     integer                        :: i, j
 
-    !$acc data create (x)
+    !$acc enter data create(x) async(STREAM2)
 
     call solve ( this%MBOdeJac, x, B )
 
-    !$acc parallel default(present) vector_length(VLEN)
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
     !$acc loop gang vector collapse(2)
     do j = 1, number_of_species
        do i = 1, ncell
@@ -500,7 +502,7 @@ contains
     end do
     !$acc end parallel
 
-    !$acc end data
+    !$acc exit data delete(x) async(STREAM2)
 
   END SUBROUTINE LinSolve
 

@@ -8,5 +8,8 @@ module constants
   real, parameter :: kAvagadro  =  6.02214076e23 ! molecules / mole
   integer, parameter :: kNumberOfGridCells = 100 ! Number of grid cells with independent chemical reactions
   integer, parameter :: VLEN = 128               ! vector length for GPU kernels
-
+  integer, parameter :: STREAM0 = 0, &           ! stream ID for async GPU kernels
+                        STREAM1 = 1, &
+                        STREAM2 = 2, &
+                        STREAM3 = 3
 end module constants

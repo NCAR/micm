@@ -17,7 +17,9 @@ MODULE micm_ODE_solver_rosenbrock
   use micm_ODE_solver,                 only : ODE_solver_t
   use micm_kinetics,                   only : kinetics_t
   use musica_constants,                only : r8=>musica_dk, musica_ik
-  use constants,                       only : ncell=>kNumberOfGridCells, VLEN
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0, STREAM1, &
+                                              STREAM2
 
   IMPLICIT NONE
 
@@ -263,7 +265,8 @@ CONTAINS
     endif
 
     !$acc enter data copyin (this,this%ros_A,this%ros_M,this%ros_E, &
-    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma)
+    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma) &
+    !$acc            async (STREAM0)
 
     end function constructor
 
@@ -292,10 +295,11 @@ CONTAINS
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
-   !$acc enter data create (Ynew,Fcn0,Fcn,K,Yerr) &
-   !$acc            copyin (Y, theKinetics, theKinetics%rateConst, &
-   !$acc                    theKinetics%environment, &
-   !$acc                    theKinetics%chemJac,theKinetics%MBOdeJac)
+   !$acc enter data create (Ynew,Fcn0,Fcn,K,Yerr) async(STREAM2)
+   !$acc enter data copyin (theKinetics,theKinetics%chemJac,theKinetics%MBOdeJac) &
+   !$acc                   async(STREAM1)
+   !$acc enter data copyin (Y,theKinetics,theKinetics%rateConst, &
+   !$acc                    theKinetics%environment) async(STREAM0)
 
 !~~~>  Initial preparations
    IF( .not. present(theKinetics) .or. .not. present(Tstart) .or. &
@@ -336,7 +340,6 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
 
 !~~~>   Compute the function at current time
    call theKinetics%calc_force( Y, Fcn0 )
-!   !$acc update device (Fcn0)
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -357,7 +360,7 @@ Stage_loop: &
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
        IF ( this%ros_NewF(istage) ) THEN
-         !$acc parallel default(present) vector_length(VLEN)
+         !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
          !$acc loop gang vector collapse(2)
          do m = 1, N
             do i = 1, ncell
@@ -372,7 +375,7 @@ Stage_loop: &
          call theKinetics%calc_force( Ynew, Fcn )
          this%icntrl(Nfun) = this%icntrl(Nfun) + 1
        ENDIF
-       !$acc parallel default(present) vector_length(VLEN)
+       !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
        !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
@@ -385,7 +388,7 @@ Stage_loop: &
        end do
        !$acc end parallel
      ELSE
-       !$acc parallel default(present) vector_length(VLEN)
+       !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
        !$acc loop gang vector collapse(2)
        do m = 1, N
           do i = 1, ncell
@@ -401,7 +404,7 @@ Stage_loop: &
 
 !~~~>  Compute the new solution & the error estimation
 
-   !$acc parallel default(present) vector_length(VLEN)
+   !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
    !$acc loop gang vector collapse(2)
    do m = 1, N
       do i = 1, ncell
@@ -415,6 +418,8 @@ Stage_loop: &
    end do
    !$acc end parallel
 
+   !$acc wait (STREAM2)
+
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -427,7 +432,7 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      !$acc parallel default(present) vector_length(VLEN)
+      !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
       !$acc loop gang vector collapse(2)
       do m = 1, N 
          do i = 1, ncell
@@ -461,8 +466,8 @@ Accepted: &
 
    END DO TimeLoop
 
-   !$acc exit data copyout (Y) &
-   !$acc           delete (Ynew,Fcn0,Fcn,K,Yerr)
+   !$acc exit data copyout(Y) wait(STREAM0)
+   !$acc exit data delete(Ynew,Fcn0,Fcn,K,Yerr)
 
 !~~~> Succesful exit
    IERR = 0  !~~~> The integration was successful
