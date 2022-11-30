@@ -12,8 +12,7 @@ module micm_kinetics
   use micm_environment,                only : environment_t
   use musica_constants,                only : musica_dk, musica_ik
   use constants,                       only : ncell=>kNumberOfGridCells, &
-                                              VLEN, STREAM0, STREAM1, &
-                                              STREAM2, STREAM3
+                                              VLEN, STREAM0
 
   implicit none
 
@@ -150,10 +149,9 @@ contains
     real(musica_dk)              ::  number_density_air(ncell)
     integer                      ::  i
 
-    !$acc enter data create(number_density_air) async(STREAM2)
+    !$acc enter data create(number_density_air) async(STREAM0)
 
-    !$acc parallel default(present) vector_length(VLEN) &
-    !$acc          async(STREAM2) wait(STREAM0)
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
     do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
@@ -163,7 +161,7 @@ contains
     !force = p_force( vmr, this%rates, this%number_density, this%rateConst )
     call p_force( this%rateConst, vmr, number_density_air, force)
 
-    !$acc exit data delete(number_density_air) async(STREAM2)
+    !$acc exit data delete(number_density_air) async(STREAM0)
 
   end subroutine calc_force
 
@@ -244,10 +242,9 @@ contains
     real(musica_dk) :: number_density_air(ncell)
     integer         :: i
 
-    !$acc enter data create(number_density_air) async(STREAM3)
+    !$acc enter data create(number_density_air) async(STREAM0)
 
-    !$acc parallel default(present) vector_length(VLEN) &
-    !$acc          async(STREAM3) wait(STREAM0,STREAM1)
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
     do i = 1, ncell 
        number_density_air(i) = this%environment(i)%number_density_air
@@ -256,7 +253,7 @@ contains
 
     call p_dforce_dy(dforce_dy, this%rateConst, vmr, number_density_air)
 
-    !$acc exit data delete(number_density_air) async(STREAM3)
+    !$acc exit data delete(number_density_air) async(STREAM0)
 
   end subroutine calc_dforce_dy
 
@@ -340,12 +337,12 @@ contains
    REAL(musica_dk) :: ghinv
    REAL(musica_dk) :: LU_factored(ncell,number_sparse_factor_elements)
 
-   !$acc enter data create(LU_factored) async(STREAM3)
+   !$acc enter data create(LU_factored) async(STREAM0)
 
 ! Set the chemical entries for the Ode Jacobian
    call this%calc_dforce_dy( Y, this%MBOdeJac )
 
-   !$acc parallel default(present) vector_length(VLEN) async(STREAM3)
+   !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
    !$acc loop gang vector collapse(2)
    do k = 1, number_sparse_factor_elements
       do j = 1, ncell
@@ -365,7 +362,7 @@ contains
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
 !~~~>    If successful done
-       !$acc parallel default(present) vector_length(VLEN) async(STREAM3)
+       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
        !$acc loop gang vector collapse(2)
        do k = 1, number_sparse_factor_elements
           do j = 1, ncell
@@ -388,7 +385,7 @@ contains
      END IF
    END DO
 
-   !$acc exit data delete(LU_factored) async(STREAM3)
+   !$acc exit data delete(LU_factored) async(STREAM0)
 
   end subroutine LinFactor
 
@@ -489,11 +486,11 @@ contains
     REAL(musica_dk)                :: x(ncell,number_of_species)
     integer                        :: i, j
 
-    !$acc enter data create(x) async(STREAM2)
+    !$acc enter data create(x) async(STREAM0)
 
     call solve ( this%MBOdeJac, x, B )
 
-    !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector collapse(2)
     do j = 1, number_of_species
        do i = 1, ncell
@@ -502,7 +499,7 @@ contains
     end do
     !$acc end parallel
 
-    !$acc exit data delete(x) async(STREAM2)
+    !$acc exit data delete(x) async(STREAM0)
 
   END SUBROUTINE LinSolve
 
