@@ -418,9 +418,9 @@ Stage_loop: &
    end do
    !$acc end parallel
 
-   !$acc wait (STREAM2)
-
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
+
+   !$acc wait (STREAM2)
 
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
@@ -432,7 +432,7 @@ Stage_loop: &
 Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+      !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
       !$acc loop gang vector collapse(2)
       do m = 1, N 
          do i = 1, ncell
@@ -466,7 +466,7 @@ Accepted: &
 
    END DO TimeLoop
 
-   !$acc exit data copyout(Y) wait(STREAM0)
+   !$acc exit data copyout(Y) wait(STREAM2)
    !$acc exit data delete(Ynew,Fcn0,Fcn,K,Yerr)
 
 !~~~> Succesful exit
@@ -567,7 +567,7 @@ Accepted: &
 
    Error = 0._r8
 
-   !$acc parallel default(present) vector_length(VLEN)
+   !$acc parallel default(present) vector_length(VLEN) async(STREAM2)
    !$acc loop gang reduction(max:Error)
    do i = 1, ncell
       sum_tmp = 0._r8
