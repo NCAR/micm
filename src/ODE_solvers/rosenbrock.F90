@@ -294,11 +294,8 @@ CONTAINS
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
-   !$acc enter data create(Ynew,Fcn0,Fcn,K,Yerr) & 
-   !$acc            copyin(Y,theKinetics,theKinetics%chemJac, &
-   !$acc                   theKinetics%MBOdeJac,theKinetics%rateConst, &
-   !$acc                   theKinetics%environment) &
-   !$acc            async(STREAM0)
+   !$acc enter data create(Ynew,Fcn0,Fcn,K,Yerr) async(STREAM0)
+   !$acc update device(Y,theKinetics%rateConst,theKinetics%environment) async(STREAM0)
 
 !~~~>  Initial preparations
    IF( .not. present(theKinetics) .or. .not. present(Tstart) .or. &
@@ -465,9 +462,9 @@ Accepted: &
 
    END DO TimeLoop
 
-   !$acc exit data copyout(Y) wait(STREAM0)
+   !$acc update self(Y) wait(STREAM0)
    !$acc exit data delete(Ynew,Fcn0,Fcn,K,Yerr) async(STREAM0)
-
+ 
 !~~~> Succesful exit
    IERR = 0  !~~~> The integration was successful
    IF( present(T) ) THEN

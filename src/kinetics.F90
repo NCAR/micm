@@ -309,6 +309,10 @@ contains
       write(*,*) 'jacobian_init: Pivot already allocated'
     endif
 
+    !$acc enter data copyin(this) &
+    !$acc            create(this%chemJac,this%MBOdeJac,this%rateConst) &
+    !$acc            async(STREAM0)
+
   end function constructor
 
   !------------------------------------------------------
@@ -407,6 +411,9 @@ contains
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
       allocate( this%environment(ncell), source = environment )
+      !$acc enter data copyin(this) &
+      !$acc            create(this%environment) &
+      !$acc            async(STREAM0)
     else
       this%environment(1:ncell) = environment(1:ncell)
     end if

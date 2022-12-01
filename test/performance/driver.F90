@@ -21,7 +21,7 @@ contains
   !> Runs MICM under prescribed conditions and collect performance metrics
   subroutine run_test( )
 
-    use constants,                     only : kNumberOfGridCells
+    use constants,                     only : kNumberOfGridCells, STREAM0
     use micm_environment,              only : environment_t
     use micm_kinetics,                 only : kinetics_t
     use micm_ODE_solver,               only : ODE_solver_t
@@ -66,6 +66,7 @@ contains
     ! Set up the state data strutures
     allocate( number_densities__molec_cm3( kNumberOfGridCells,                &
                                            size( species_names ) ) )
+    !$acc enter data create(number_densities__molec_cm3) async(STREAM0)
 
     ! Solve chemistry for each grid cell and time step
     do i_time = 1, kNumberOfTimeSteps
@@ -123,9 +124,9 @@ contains
 
     ! TODO determine how we want to set photolysis reaction rate constants
     do i_env = 1, size( environment )
-      environment( i_env )%temperature                  = 298.15_dk   ! [K]
+      environment( i_env )%temperature                  = 298.15_dk ! [K]
       environment( i_env )%pressure                     = 101325.0_dk ! [Pa]
-      environment( i_env )%photolysis_rate_constants(:) = 1.0e-3_dk   ! [s-1]
+      environment( i_env )%photolysis_rate_constants(:) = 1.0e-3_dk ! [s-1]
     end do
   end subroutine update_environment
 

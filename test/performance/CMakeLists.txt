@@ -16,9 +16,9 @@ endmacro(add_std_test)
 
 add_executable(test_performance driver.F90)
 if (ENABLE_OPENACC)
+set_source_files_properties(driver.F90 PROPERTIES COMPILE_FLAGS "-O2 -acc -gpu=cc70,lineinfo,nofma -Minfo=all")
 set_target_properties(test_performance PROPERTIES LINK_FLAGS "-O2 -acc -gpu=cc70,lineinfo,nofma -Minfo=all")
 endif()
 add_std_test(test_performance)
 
 ################################################################################
-
