@@ -307,7 +307,7 @@ end subroutine p_force
 subroutine calc_reaction_rates(rate_constant, number_density, number_density_air, reaction_rates)
   ! Compute reaction rates
 
-  real(r8), intent(in)  :: rate_constant(ncell,ncell,number_of_reactions)
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
   real(r8), intent(in)  :: number_density(ncell,number_of_species)
   real(r8), intent(in)  :: number_density_air(ncell)
   real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)

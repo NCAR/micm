@@ -16,18 +16,20 @@ module rate_constants_utility
   use micm_environment,                only : environment_t
   use micm_rate_constant_arrhenius,    only : rate_constant_arrhenius_t
   use micm_rate_constant_photolysis,   only : rate_constant_photolysis_t
-  use micm_rate_constant_ternary_chemical_activation,                         &
+  use micm_rate_constant_ternary_chemical_activation,                    &
       only : rate_constant_ternary_chemical_activation_t
-  use micm_rate_constant_troe,                                                &
+  use micm_rate_constant_troe,                                           &
       only : rate_constant_troe_t
-  use micm_rate_constant_wennberg_alkoxy,                                     &
+  use micm_rate_constant_wennberg_alkoxy,                                &
       only : rate_constant_wennberg_alkoxy_t
-  use micm_rate_constant_wennberg_nitrate,                                    &
+  use micm_rate_constant_wennberg_nitrate,                               &
       only : rate_constant_wennberg_nitrate_t
-  use micm_rate_constant_wennberg_tunneling,                                  &
+  use micm_rate_constant_wennberg_tunneling,                             &
       only : rate_constant_wennberg_tunneling_t
   use musica_constants,                only : musica_dk
-  use constants,                       only : ncell=>kNumberOfGridCells
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
+  use kinetics_utilities,              only : number_of_reactions 
 
   implicit none
   private
@@ -42,9 +44,9 @@ contains
   subroutine calculate_rate_constants( rate_constants, environment )
 
     !> Rate constant for each reaction [(molec cm-3)^(n-1) s-1]
-    real(kind=musica_dk), intent(out) :: rate_constants(:,:)
+    real(kind=musica_dk), intent(out) :: rate_constants(ncell,number_of_reactions)
     !> Environmental states for each grid cell
-    type(environment_t),  intent(in)  :: environment(:)
+    type(environment_t),  intent(in)  :: environment(ncell)
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
     type( rate_constant_photolysis_t                  ) :: photolysis
@@ -56,6 +58,8 @@ contains
 
     integer :: i
 
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
     do i = 1, ncell
       !O2_1
       !k_O2_1: O2 -> 2*O
@@ -104,6 +108,7 @@ contains
       rate_constants( i, 7 ) = arrhenius%calculate( environment( i ) )
 
     end do
+    !$acc end parallel
 
   end subroutine calculate_rate_constants
 

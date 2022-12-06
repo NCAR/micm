@@ -21,7 +21,7 @@ interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) elemental function calculate( this, environment )
+  real(kind=musica_dk) function calculate( this, environment )
     use micm_environment,              only : environment_t
     use musica_constants,              only : musica_dk
     import rate_constant_t

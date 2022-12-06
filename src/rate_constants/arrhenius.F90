@@ -34,7 +34,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of Arrhenius rate constants
-  elemental function constructor( A, B, C, D, E, Ea ) result( new_obj )
+  function constructor( A, B, C, D, E, Ea ) result( new_obj )
+    !$acc routine seq
 
     use constants,                     only : kBoltzmann
 
@@ -42,6 +43,8 @@ contains
     type(rate_constant_arrhenius_t) :: new_obj
     !> Rate constant parameters
     real(kind=musica_dk), intent(in), optional :: A, B, C, D, E, Ea
+
+    !$acc enter data create(new_obj)
 
     if( present( A  ) ) new_obj%A_ = A
     if( present( B  ) ) new_obj%B_ = B
@@ -55,7 +58,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) elemental function calculate( this, environment )
+  real(kind=musica_dk) function calculate( this, environment )
+    !$acc routine seq
 
     use micm_environment,              only : environment_t
 

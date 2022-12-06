@@ -212,19 +212,11 @@ contains
 
     integer                       :: i, j
 
-    !$acc data copyin  (this,this%rateConst) &
-    !$acc      copyout (reaction_rate_constants)
-
-    !$acc parallel default(present) vector_length(VLEN)
-    !$acc loop gang vector collapse(2)
     do j = 1, nRxn
        do i = 1, ncell
           reaction_rate_constants(i,j) = this%rateConst(i,j)
        end do
     end do
-    !$acc end parallel
-
-    !$acc end data 
 
   end subroutine calc_reaction_rate_constants
 
@@ -408,6 +400,9 @@ contains
     !> Environmental conditions
     type(environment_t), intent(in) :: environment(ncell)
 
+    ! Local variables
+    integer :: i, k
+
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
       allocate( this%environment(ncell), source = environment )
@@ -415,11 +410,15 @@ contains
       !$acc            create(this%environment) &
       !$acc            async(STREAM0)
     else
-      this%environment(1:ncell) = environment(1:ncell)
+      !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+      !$acc loop gang vector
+      do i = 1, ncell
+         this%environment(i) = environment(i)
+      end do
+      !$acc end parallel
     end if
 
     ! update the reaction rate constants
-    this%rateConst(1:ncell,1:number_of_reactions) = 0.0
     call calculate_rate_constants( this%rateConst, environment )
 
   end subroutine update

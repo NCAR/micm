@@ -295,7 +295,6 @@ CONTAINS
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
    !$acc enter data create(Ynew,Fcn0,Fcn,K,Yerr) async(STREAM0)
-   !$acc update device(Y,theKinetics%rateConst,theKinetics%environment) async(STREAM0)
 
 !~~~>  Initial preparations
    IF( .not. present(theKinetics) .or. .not. present(Tstart) .or. &

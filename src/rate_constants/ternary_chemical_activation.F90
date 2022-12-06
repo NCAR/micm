@@ -37,8 +37,9 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of ternary chemical activation rate constants
-  elemental function constructor( k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C,   &
+  function constructor( k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C,   &
       Fc, N ) result( new_obj )
+    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_ternary_chemical_activation_t) :: new_obj
@@ -60,7 +61,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) elemental function calculate( this, environment )
+  real(kind=musica_dk) function calculate( this, environment )
+    !$acc routine seq
 
     use micm_environment,              only : environment_t
 

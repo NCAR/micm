@@ -29,13 +29,16 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of photolysis rate constants
-  elemental function constructor( photolysis_rate_constant_index )            &
+  function constructor( photolysis_rate_constant_index )            &
       result( new_obj )
+    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_photolysis_t) :: new_obj
     !> Index of the rate constant in the photolysis rate constant array
     integer, intent(in) :: photolysis_rate_constant_index
+
+    !$acc enter data create(new_obj)
 
     new_obj%index_ = photolysis_rate_constant_index
 
@@ -44,7 +47,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) elemental function calculate( this, environment )
+  real(kind=musica_dk) function calculate( this, environment )
+    !$acc routine seq
 
     use micm_environment,              only : environment_t
     use musica_constants,              only : musica_dk

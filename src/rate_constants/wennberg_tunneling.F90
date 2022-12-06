@@ -33,7 +33,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Constructor of Wennberg tunneling rate constants
-  elemental function constructor( A, B, C ) result( new_obj )
+  function constructor( A, B, C ) result( new_obj )
+    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_wennberg_tunneling_t) :: new_obj
@@ -49,7 +50,8 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) elemental function calculate( this, environment )
+  real(kind=musica_dk) function calculate( this, environment )
+    !$acc routine seq
 
     use micm_environment,              only : environment_t
 
