@@ -35,6 +35,7 @@ if (ENABLE_OPENACC)
 
 set(FLAGGED_FILES preprocessor_output/kinetics_utilities.F90
                   preprocessor_output/factor_solve_utilities.F90
+                  preprocessor_output/rate_constants_utility.F90
                   rate_constants/arrhenius.F90
                   rate_constants/photolysis.F90
                   kinetics.F90

@@ -5,7 +5,8 @@
 module micm_rate_constant_photolysis
 
   use micm_rate_constant,              only : rate_constant_t
-
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
   implicit none
   private
 
@@ -31,14 +32,11 @@ contains
   !> Constructor of photolysis rate constants
   function constructor( photolysis_rate_constant_index )            &
       result( new_obj )
-    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_photolysis_t) :: new_obj
     !> Index of the rate constant in the photolysis rate constant array
     integer, intent(in) :: photolysis_rate_constant_index
-
-    !$acc enter data create(new_obj)
 
     new_obj%index_ = photolysis_rate_constant_index
 
@@ -47,8 +45,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
-    !$acc routine seq
+  subroutine calculate( this, environment, rate_constant )
 
     use micm_environment,              only : environment_t
     use musica_constants,              only : musica_dk
@@ -56,11 +53,21 @@ contains
     !> Reaction
     class(rate_constant_photolysis_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(ncell)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
-    calculate = environment%photolysis_rate_constants( this%index_ )
+    ! Local variable
+    integer :: i
 
-  end function calculate
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i = 1, ncell
+       rate_constant(i) = environment(i)%photolysis_rate_constants( this%index_ )
+    end do
+    !$acc end parallel
+
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

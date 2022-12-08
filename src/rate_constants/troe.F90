@@ -6,6 +6,8 @@ module micm_rate_constant_troe
 
   use micm_rate_constant,              only : rate_constant_t
   use musica_constants,                only : musica_dk
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -39,7 +41,6 @@ contains
   !> Constructor of Troe rate constants
   function constructor( k0_A, k0_B, k0_C, kinf_A, kinf_B, kinf_C,   &
       Fc, N ) result( new_obj )
-    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_troe_t) :: new_obj
@@ -61,28 +62,36 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
-    !$acc routine seq
+  subroutine calculate( this, environment, rate_constant )
 
     use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_troe_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(ncell)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
+    ! Local variable
+    integer :: i
     real(kind=musica_dk) :: k0, kinf, M
 
-    M    = environment%number_density_air
-    k0   = this%k0_A_   * exp( this%k0_C_   / environment%temperature )       &
-           * ( environment%temperature / 300.0 ) ** this%k0_B_
-    kinf = this%kinf_A_ * exp( this%kinf_C_ / environment%temperature )       &
-           * ( environment%temperature / 300.0 ) ** this%kinf_B_
-    calculate = k0 * M / ( 1.0 + k0 * M / kinf )                              &
-               * this%Fc_**( 1.0 /                                            &
-                   ( 1.0 + 1.0 / this%N_ * ( log10( k0 * M / kinf ) )**2 ) )
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i = 1, ncell
+       M    = environment(i)%number_density_air
+       k0   = this%k0_A_   * exp( this%k0_C_   / environment(i)%temperature )       &
+              * ( environment(i)%temperature / 300.0 ) ** this%k0_B_
+       kinf = this%kinf_A_ * exp( this%kinf_C_ / environment(i)%temperature )       &
+              * ( environment(i)%temperature / 300.0 ) ** this%kinf_B_
+       rate_constant(i) = k0 * M / ( 1.0 + k0 * M / kinf )                          &
+                  * this%Fc_**( 1.0 /                                            &
+                      ( 1.0 + 1.0 / this%N_ * ( log10( k0 * M / kinf ) )**2 ) )
+    end do
+    !$acc end parallel
 
-  end function calculate
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

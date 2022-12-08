@@ -6,6 +6,8 @@ module micm_rate_constant_wennberg_tunneling
 
   use micm_rate_constant,              only : rate_constant_t
   use musica_constants,                only : musica_dk
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -34,7 +36,6 @@ contains
 
   !> Constructor of Wennberg tunneling rate constants
   function constructor( A, B, C ) result( new_obj )
-    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_wennberg_tunneling_t) :: new_obj
@@ -50,21 +51,29 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
-    !$acc routine seq
+  subroutine calculate( this, environment, rate_constant )
 
     use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_wennberg_tunneling_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(ncell)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
-    associate( T => environment%temperature )
-      calculate = this%A_ * exp( -this%B_ / T + this%C_ / T**3 )
-    end associate
+    ! Local variable
+    integer :: i
 
-  end function calculate
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i = 1, ncell
+       rate_constant(i) = this%A_ * exp( -this%B_ / environment(i)%temperature + &
+                          this%C_ / environment(i)%temperature**3 )
+    end do
+    !$acc end parallel
+
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

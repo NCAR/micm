@@ -6,6 +6,8 @@ module micm_rate_constant_wennberg_alkoxy
 
   use micm_rate_constant,              only : rate_constant_t
   use musica_constants,                only : musica_dk
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -35,7 +37,6 @@ contains
 
   !> Constructor of Wennberg NO + RO2 (alkoxy branch) rate constants
   function constructor( X, Y, a0, n) result( new_obj )
-    !$acc routine seq
 
     !> New rate constant
     type(rate_constant_wennberg_alkoxy_t) :: new_obj
@@ -53,32 +54,38 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
-    !$acc routine seq
+  subroutine calculate( this, environment, rate_constant )
 
     use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_wennberg_alkoxy_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(ncell)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
+    ! Local variable
+    integer :: i
     real(kind=musica_dk) :: A, Z
 
-    associate( T => environment%temperature,                                  &
-               M => environment%number_density_air )
-      A = calculate_A( T, M, this%n_ )
-      Z = calculate_A( 293.0_musica_dk, 2.45e19_musica_dk, this%n_ )          &
-            * ( 1.0 - this%a0_ ) / this%a0_
-      calculate = this%X_ * exp( -this%Y_ / T ) * ( Z / ( Z + A ) )
-    end associate
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i = 1, ncell
+       A = calculate_A( environment(i)%temperature, environment(i)%number_density_air, this%n_ )
+       Z = calculate_A( 293.0_musica_dk, 2.45e19_musica_dk, this%n_ )          &
+             * ( 1.0 - this%a0_ ) / this%a0_
+       rate_constant(i) = this%X_ * exp( -this%Y_ / environment(i)%temperature ) * ( Z / ( Z + A ) )
+    end do
+    !$acc end parallel
 
-  end function calculate
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Calculate A( T, [M], n )
-  real(kind=musica_dk) elemental function calculate_A( T, M, n ) result( A )
+  real(kind=musica_dk) function calculate_A( T, M, n ) result( A )
+    !$acc routine seq
 
     !> Temperature [K]
     real(kind=musica_dk), intent(in) :: T

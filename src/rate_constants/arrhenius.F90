@@ -6,6 +6,8 @@ module micm_rate_constant_arrhenius
 
   use musica_constants,                only : musica_dk
   use micm_rate_constant,              only : rate_constant_t
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -35,7 +37,6 @@ contains
 
   !> Constructor of Arrhenius rate constants
   function constructor( A, B, C, D, E, Ea ) result( new_obj )
-    !$acc routine seq
 
     use constants,                     only : kBoltzmann
 
@@ -43,8 +44,6 @@ contains
     type(rate_constant_arrhenius_t) :: new_obj
     !> Rate constant parameters
     real(kind=musica_dk), intent(in), optional :: A, B, C, D, E, Ea
-
-    !$acc enter data create(new_obj)
 
     if( present( A  ) ) new_obj%A_ = A
     if( present( B  ) ) new_obj%B_ = B
@@ -58,22 +57,31 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
-    !$acc routine seq
+  subroutine calculate( this, environment, rate_constant )
 
     use micm_environment,              only : environment_t
 
     !> Reaction
     class(rate_constant_arrhenius_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
+    type(environment_t), intent(in) :: environment(ncell)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
-    calculate = this%A_ &
-      * exp( this%C_ / environment%temperature ) &
-      * ( environment%temperature / this%D_ ) ** this%B_ &
-      * ( 1.0 + this%E_ *  environment%pressure )
+    ! Local variable
+    integer :: i
 
-  end function calculate
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i = 1, ncell
+       rate_constant(i) = this%A_ &
+           * exp( this%C_ / environment(i)%temperature ) &
+           * ( environment(i)%temperature / this%D_ ) ** this%B_ &
+           * ( 1.0 + this%E_ *  environment(i)%pressure )
+    end do
+    !$acc end parallel
+
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

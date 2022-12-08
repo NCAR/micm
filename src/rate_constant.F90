@@ -21,15 +21,17 @@ interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Returns the rate constant for a given set of conditions
-  real(kind=musica_dk) function calculate( this, environment )
+  subroutine calculate( this, environment, rate_constant )
     use micm_environment,              only : environment_t
     use musica_constants,              only : musica_dk
     import rate_constant_t
     !> Rate constant
     class(rate_constant_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment
-  end function calculate
+    type(environment_t), intent(in) :: environment(:)
+    !> Rate constant
+    real(kind=musica_dk), intent(out) :: rate_constant(:)
+  end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

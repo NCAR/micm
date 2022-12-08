@@ -406,8 +406,7 @@ contains
     ! save the environmental conditions
     if( .not. allocated( this%environment ) ) then
       allocate( this%environment(ncell), source = environment )
-      !$acc enter data copyin(this) &
-      !$acc            create(this%environment) &
+      !$acc enter data copyin(this%environment) &
       !$acc            async(STREAM0)
     else
       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
