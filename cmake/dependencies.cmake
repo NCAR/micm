@@ -22,9 +22,13 @@ endif()
 
 if(ENABLE_OPENMP)
   find_package(OpenMP REQUIRED)
-  if(OpenMP_CXX_FOUND)
-    message(STATUS "Compiling with OpenMP support")
-  else()
-    message(FATAL_ERROR "OpenMP package not found")
-  endif()
+  message(STATUS "Compiling with OpenMP support")
+endif()
+
+################################################################################
+# MPI
+
+if(ENABLE_MPI)
+  find_package(MPI REQUIRED)
+  message(STATUS "Compiling with MPI support")
 endif()
