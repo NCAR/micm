@@ -1,5 +1,6 @@
 #include <micm/version.hpp>
 #include <string>
+#include <assert.h>
 
 int main(){
   bool failed{false};
