@@ -33,7 +33,7 @@ jobs:
       with:
         submodules: recursive
     - name: build Docker image
-      run: docker build -t micm -f Dockerfile.memcheck .
+      run: docker build -t micm -f Dockerfile.mpi .
     - name: run tests in container
       run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
   build_tests_with_memcheck:
