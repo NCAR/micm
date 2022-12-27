@@ -27,6 +27,10 @@ set_target_properties(
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
+if(ENABLE_OPENMP)
+  target_link_libraries(micm PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 target_include_directories(
   micm
   PUBLIC

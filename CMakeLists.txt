@@ -26,6 +26,11 @@ set(
   "${CMAKE_INSTALL_PREFIX}/ncar/${PROJECT_NAME}-${PROJECT_VERSION}"
 )
 
+option(ENABLE_MPI "Enable MPI parallel support" OFF)
+option(ENABLE_OPENMP "Enable OpenMP support" OFF)
+option(ENABLE_COVERAGE "Enable code coverage output" OFF)
+option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+
 ################################################################################
 # Dependencies
 
