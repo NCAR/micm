@@ -3,7 +3,7 @@
 #PBS -A NTDD0004
 #PBS -l select=1:ncpus=1:mpiprocs=1:mem=300GB:ngpus=1
 #PBS -l gpu_type=v100
-#PBS -l walltime=00:30:00
+#PBS -l walltime=00:10:00
 #PBS -q casper 
 #PBS -j oe
 #PBS -k eod
@@ -42,9 +42,11 @@ export JSON_FORTRAN_HOME=/glade/scratch/sunjian/temp/json-fortran-8.3.0/build
 export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2
 
 # build a MICM test
-#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NSYS=ON ..
 cmake -D ENABLE_UTIL_ONLY=ON ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NSYS=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF -D CMAKE_BUILD_TYPE=DEBUG ..
 make VERBOSE=1       # VERBOSE shows whether the desired flags are applied or not
 
 # run a MICM test
