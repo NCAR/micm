@@ -1,0 +1,22 @@
+#include <micm/version.hpp>
+
+std::string getmicmVersion()
+{
+  return "@micm_VERSION@";
+}
+unsigned getmicmVersionMajor()
+{
+  return @micm_VERSION_MAJOR@;
+}
+unsigned getmicmVersionMinor()
+{
+  return @micm_VERSION_MINOR@ + 0;
+}
+unsigned getmicmVersionPatch()
+{
+  return @micm_VERSION_PATCH@ + 0;
+}
+unsigned getmicmVersionTweak()
+{
+  return @micm_VERSION_TWEAK@ + 0;
+}
