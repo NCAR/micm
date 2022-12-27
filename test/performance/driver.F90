@@ -9,17 +9,23 @@ program performance_test
                                               rk => musica_rk
   use factor_solve_utilities,          only : number_of_species
   use kinetics_utilities,              only : number_of_photolysis_reactions
+#ifdef USE_NETCDF
   use constants,                       only : kBoltzmann, kNumberOfGridCells, &
                                               nlon, nlat, nlev, ntime, &
                                               STREAM0, VLEN, cam_photo_reaction_names
-#ifdef USE_NETCDF
   use netcdf
+#else
+  use constants,                       only : kBoltzmann, kNumberOfGridCells, &
+                                              STREAM0, VLEN
 #endif
 
   implicit none
 
   integer, parameter :: kNUmberOfTimeSteps = 100
   real(kind=dk), parameter :: kTimeStep__min = 5.0_dk
+#ifndef USE_NETCDF
+  integer, parameter :: nlon = 1, nlat = 1, nlev = 1, ntime = 1
+#endif
 
   call run_test( )
 
@@ -116,7 +122,12 @@ contains
       write(*,*), "solve time", t_end - t_start
     end do
 
-    !$acc exit data delete(number_densities__molec_cm3,var,photolysis_rates) async(STREAM0)
+#ifdef USE_NETCDF
+    !$acc exit data delete(number_densities__molec_cm3,cam_vars, &
+    !$acc                  cam_photolysis_rates,cam_temp,cam_pmid) async(STREAM0)
+#else
+    !$acc exit data delete(number_densities__molec_cm3) async(STREAM0)
+#endif
 
   end subroutine run_test
 
