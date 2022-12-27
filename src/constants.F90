@@ -12,9 +12,6 @@ module constants
   integer, parameter :: ntime = 1, nlev = 32, &
                         nlat = 192, nlon = 288                    ! For CAM FV 1-deg output
   integer, parameter :: kNumberOfGridCells = nlev*nlat*nlon       ! Number of grid cells with independent chemical reactions
-  !> For Chapman mechanism
-  character(len=128), parameter :: cam_photo_reaction_names = &   ! Corresponding MICM photolysis reaction names in CAM output
-                                   (/'jo2_a','jo3_a','jo3_b'/)    
 #else
   integer, parameter :: kNumberOfGridCells = 100                  ! Number of grid cells with independent chemical reactions
 #endif

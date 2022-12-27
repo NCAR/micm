@@ -12,7 +12,7 @@ program performance_test
 #ifdef USE_NETCDF
   use constants,                       only : kBoltzmann, kNumberOfGridCells, &
                                               nlon, nlat, nlev, ntime, &
-                                              STREAM0, VLEN, cam_photo_reaction_names
+                                              STREAM0, VLEN
   use netcdf
 #else
   use constants,                       only : kBoltzmann, kNumberOfGridCells, &
@@ -253,21 +253,21 @@ contains
     use musica_string,                 only : string_t
 
     !> Species number densities [molecule cm-3] (grid cell, species)
-    real(kind=dk),  intent(inout) :: number_densities__molec_cm3(:,:)
-    type(string_t), intent(in)    :: species_names(:)
+    real(kind=dk),  intent(inout) :: number_densities__molec_cm3(kNumberOfGridCells,number_of_species)
+    type(string_t), intent(in)    :: species_names(number_of_species)
     integer,        intent(in)    :: time_step
 
     integer :: i_species
 
     ! TODO determine if/how we want to output state data
     write(*,*) "time step", time_step*kTimeStep__min
-    do i_species = 1, size( species_names )
-      if (size(number_densities__molec_cm3,1) < 100) then
+    do i_species = 1, number_of_species
+      if (size(number_densities__molec_cm3,1) < 10) then
           write(*,*) species_names( i_species ),                              &
                      number_densities__molec_cm3(:,i_species)
       else
           write(*,*) species_names( i_species ),                              &
-                     number_densities__molec_cm3(1:100,i_species)
+                     number_densities__molec_cm3(1:10,i_species)
       end if
     end do
 
@@ -300,7 +300,11 @@ contains
   character(len=256) :: file_name
   character(len=128) :: str
   logical            :: missing_var_flag
+  !> Corresponding MICM photolysis reaction names in CAM output for Chapman mechanism
+  character(len=128), parameter :: cam_photo_reaction_names(number_of_photolysis_reactions) = &
+                                   (/'jo2_a','jo3_a','jo3_b'/)
 
+  !> Path to CAM output file  
   file_name = '/glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc'
 
   !> Open an existing netcdf file
