@@ -374,12 +374,12 @@ contains
   !> Get the ID of a variable, based on its name.
   call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
   if ( missing_var_flag ) then
-     !> Miss temperature output from CAM; set to 298 by default
+     !> Miss temperature output from CAM; set to 298.15 by default
      do n = 1, ntime
         do k = 1, nlev
            do j = 1, nlat
               do i = 1, nlon
-                 cam_temp(i,j,k,n) = 298._rk
+                 cam_temp(i,j,k,n) = 298.15_rk
               end do
            end do
         end do
@@ -394,12 +394,12 @@ contains
   !> Get the ID of a variable, based on its name.
   call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
   if ( missing_var_flag ) then
-     !> Miss temperature output from CAM; set to 298 by default
+     !> Miss pressure output from CAM; set to 101325 by default
      do n = 1, ntime
         do k = 1, nlev
            do j = 1, nlat
               do i = 1, nlon
-                 cam_pmid(i,j,k,n) = 298._rk
+                 cam_pmid(i,j,k,n) = 101325._rk
               end do
            end do
         end do

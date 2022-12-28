@@ -4,8 +4,10 @@
 !> Physical constants
 module constants
 
-  real, parameter :: kBoltzmann = 1.38065e-23                     ! J/K/molecule
-  real, parameter :: kAvagadro  =  6.02214076e23                  ! molecules / mole
+  use musica_constants, only : dk => musica_dk
+
+  real(kind=dk), parameter :: kBoltzmann = 1.38065e-23_dk         ! J/K/molecule
+  real(kind=dk), parameter :: kAvagadro  = 6.02214076e23_dk       ! molecules / mole
   integer, parameter :: VLEN = 128                                ! vector length for GPU kernels
   integer, parameter :: STREAM0 = 0                               ! stream ID for async GPU kernels
 #ifdef USE_NETCDF
