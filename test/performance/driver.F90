@@ -15,7 +15,7 @@ program performance_test
                                               STREAM0, VLEN
   use netcdf
 #else
-  use constants,                       only : kBoltzmann, kNumberOfGridCells, &
+  use constants,                       only : kNumberOfGridCells, &
                                               STREAM0, VLEN
 #endif
 
@@ -23,9 +23,6 @@ program performance_test
 
   integer, parameter :: kNUmberOfTimeSteps = 100
   real(kind=dk), parameter :: kTimeStep__min = 5.0_dk
-#ifndef USE_NETCDF
-  integer, parameter :: nlon = 1, nlat = 1, nlev = 1, ntime = 1
-#endif
 
   call run_test( )
 
@@ -59,7 +56,7 @@ contains
     real(kind=dk) :: t_start, t_end
 #ifdef USE_NETCDF
     real(kind=rk), dimension(:,:,:,:,:), allocatable :: cam_vars, &
-                                            cam_photolysis_rates
+                                               cam_photolysis_rates
     real(kind=rk), dimension(:,:,:,:), allocatable :: cam_pmid, cam_temp
 #endif
 
@@ -89,8 +86,8 @@ contains
     allocate(cam_temp(nlon,nlat,nlev,ntime))
     allocate(cam_pmid(nlon,nlat,nlev,ntime))
     ! Read in the input data from CAM netCDF output
-    call read_CAM_output( cam_vars, cam_photolysis_rates, cam_temp, &
-                          cam_pmid, species_names )
+    call read_CAM_output( cam_vars, cam_photolysis_rates, &
+                          cam_temp, cam_pmid, species_names )
 #endif
 
     ! Set up the state data strutures
@@ -134,55 +131,64 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Update the species concentrations for a given time step
+#ifdef USE_NETCDF
   subroutine update_species( number_densities__molec_cm3, time_step, cam_vars, environment )
+#else
+  subroutine update_species( number_densities__molec_cm3, time_step )
+#endif
 
-    use musica_string,                 only : string_t
     use micm_environment,              only : environment_t
 
     !> Species number densities [molecule cm-3] (grid cell, species)
-    real(kind=dk), intent(inout) :: number_densities__molec_cm3(kNumberOfGridCells,number_of_species)
-    integer,       intent(in)    :: time_step
+    real(kind=dk),    intent(inout) :: number_densities__molec_cm3(kNumberOfGridCells,number_of_species)
+    integer,          intent(in)    :: time_step
+#ifdef USE_NETCDF
     !> Spevies volume mixing ratios from CAM [mol mol-1]
-    real(kind=rk), intent(in), optional :: cam_vars(nlon,nlat,nlev,ntime,number_of_species)
-    type(environment_t), intent(in), optional :: environment(kNumberOfGridCells)
+    real(kind=rk),       intent(in) :: cam_vars(nlon,nlat,nlev,ntime,number_of_species)
+    type(environment_t), intent(in) :: environment(kNumberOfGridCells)
+#endif
 
     !> Local variables
+#ifdef USE_NETCDF
     integer :: i, j, k, m, n, p
+#else
+    integer :: i, k
     real(kind=dk) :: perturb
+#endif
 
     ! TODO determine how we want to set species concentrations
 
-    if (present(cam_vars)) then
-       p = mod(time_step, ntime)
-       if (p == 0) p = p + ntime
-       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-       !$acc loop gang vector collapse(4)
-       do m = 1, number_of_species
-          do k = 1, nlev
-             do j = 1, nlat
-                do i = 1, nlon
-                   n = i + (j-1) * nlon + (k-1) * nlat * nlon
-                   !> Convert unit from mol/mol to molecule/cm3
-                   number_densities__molec_cm3(n,m) &
-                         = real(cam_vars(i,j,k,p,m), kind=dk) * 10._dk * &
-                           environment(n)%pressure / &
-                           (kBoltzmann*1.e7_dk*environment(n)%temperature)
-                end do
+#ifdef USE_NETCDF
+    p = mod(time_step, ntime)
+    if (p == 0) p = p + ntime
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector collapse(4)
+    do m = 1, number_of_species
+       do k = 1, nlev
+          do j = 1, nlat
+             do i = 1, nlon
+                n = i + (j-1) * nlon + (k-1) * nlat * nlon
+                !> Convert unit from mol/mol to molecule/cm3
+                number_densities__molec_cm3(n,m) &
+                      = real(cam_vars(i,j,k,p,m), kind=dk) * 10._dk * &
+                        environment(n)%pressure / &
+                        (kBoltzmann*1.e7_dk*environment(n)%temperature)
              end do
           end do
        end do
-       !$acc end parallel
-    else
-       perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
-       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-       !$acc loop gang vector collapse(2)
-       do k = 1, number_of_species 
-          do i = 1, kNumberOfGridCells
-             number_densities__molec_cm3(i,k) = 1.0e-6_dk * perturb
-          end do
+    end do
+    !$acc end parallel
+#else
+    perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector collapse(2)
+    do k = 1, number_of_species 
+       do i = 1, kNumberOfGridCells
+          number_densities__molec_cm3(i,k) = 1.0e-6_dk * perturb
        end do
-       !$acc end parallel
-    end if
+    end do
+    !$acc end parallel
+#endif
 
   end subroutine update_species
 
@@ -190,57 +196,64 @@ contains
 
   !> Update the temperature, pressure, and photolysis reaction rate constants
   !! for a given time step
+#ifdef USE_NETCDF
   subroutine update_environment( environment, time_step, &
                                  cam_photolysis_rates, cam_temp, cam_pmid )
+#else
+  subroutine update_environment( environment, time_step )
+#endif
 
     use micm_environment,              only : environment_t
-    use musica_string,                 only : string_t
 
-    type(environment_t), intent(inout)  :: environment(kNumberOfGridCells)
-    integer,             intent(in)     :: time_step
-    real(kind=rk), intent(in), optional :: cam_photolysis_rates(nlon,nlat,nlev,ntime,number_of_photolysis_reactions)
-    real(kind=rk), intent(in), optional :: cam_temp(nlon,nlat,nlev,ntime)
-    real(kind=rk), intent(in), optional :: cam_pmid(nlon,nlat,nlev,ntime)
+    type(environment_t), intent(inout) :: environment(kNumberOfGridCells)
+    integer,             intent(in)    :: time_step
+#ifdef USE_NETCDF
+    real(kind=rk),       intent(in)    :: cam_photolysis_rates(nlon,nlat,nlev,ntime,number_of_photolysis_reactions)
+    real(kind=rk),       intent(in)    :: cam_temp(nlon,nlat,nlev,ntime)
+    real(kind=rk),       intent(in)    :: cam_pmid(nlon,nlat,nlev,ntime)
+#endif
 
     !> Local variables
+#ifdef USE_NETCDF
     integer :: i_env, i, j, k, m, p
+#else
+    integer :: i_env, i
     real(kind=dk) :: perturb
-
+#endif
     ! TODO determine how we want to set photolysis reaction rate constants
 
-    if (present(cam_photolysis_rates) .and. &
-        present(cam_temp) .and. present(cam_pmid)) then
-       p = mod(time_step, ntime)
-       if (p == 0) p = p + ntime
-       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-       !$acc loop gang vector collapse(3)
-       do k = 1, nlev
-          do j = 1, nlat
-             do i = 1, nlon
-                i_env = i + (j-1) * nlon + (k-1) * nlat * nlon
-                environment( i_env )%temperature = real(cam_temp(i,j,k,p), kind=dk) ! [K]
-                environment( i_env )%pressure    = real(cam_pmid(i,j,k,p), kind=dk) ! [Pa]
-                do m = 1, number_of_photolysis_reactions
-                   environment( i_env )%photolysis_rate_constants(m) &
-                                   = real(cam_photolysis_rates(i,j,k,p,m), kind=dk) ! [s-1]
-                end do
+#ifdef USE_NETCDF
+    p = mod(time_step, ntime)
+    if (p == 0) p = p + ntime
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector collapse(3)
+    do k = 1, nlev
+       do j = 1, nlat
+          do i = 1, nlon
+             i_env = i + (j-1) * nlon + (k-1) * nlat * nlon
+             environment( i_env )%temperature = real(cam_temp(i,j,k,p), kind=dk) ! [K]
+             environment( i_env )%pressure    = real(cam_pmid(i,j,k,p), kind=dk) ! [Pa]
+             do m = 1, number_of_photolysis_reactions
+                environment( i_env )%photolysis_rate_constants(m) &
+                                = real(cam_photolysis_rates(i,j,k,p,m), kind=dk) ! [s-1]
              end do
           end do
        end do
-       !$acc end parallel
-    else
-       perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
-       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-       !$acc loop gang vector
-       do i_env = 1, kNumberOfGridCells
-          environment( i_env )%temperature = 298.15_dk * perturb ! [K]
-          environment( i_env )%pressure    = 101325.0_dk * perturb ! [Pa]
-          do i = 1, number_of_photolysis_reactions
-             environment( i_env )%photolysis_rate_constants(i) = 1.0e-3_dk * perturb ! [s-1]
-          end do
+    end do
+    !$acc end parallel
+#else
+    perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
+    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+    !$acc loop gang vector
+    do i_env = 1, kNumberOfGridCells
+       environment( i_env )%temperature = 298.15_dk * perturb ! [K]
+       environment( i_env )%pressure    = 101325.0_dk * perturb ! [Pa]
+       do i = 1, number_of_photolysis_reactions
+          environment( i_env )%photolysis_rate_constants(i) = 1.0e-3_dk * perturb ! [s-1]
        end do
-       !$acc end parallel
-    end if
+    end do
+    !$acc end parallel
+#endif
 
   end subroutine update_environment
 
