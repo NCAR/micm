@@ -48,13 +48,11 @@ if(PROJECT_IS_TOP_LEVEL)
   # Test code coverage
   if(ENABLE_COVERAGE)
     include(CodeCoverage)
-    if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
-      setup_target_for_coverage_lcov(
-          NAME coverage
-          EXECUTABLE "ctest"
-          EXCLUDE "${PROJECT_SOURCE_DIR}/test/*"
-          BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
-    endif()
+    setup_target_for_coverage_lcov(
+        NAME coverage
+        EXECUTABLE "ctest"
+        EXCLUDE "${PROJECT_SOURCE_DIR}/test/*"
+        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
   endif()
 
   enable_testing()
