@@ -5,7 +5,8 @@ int main(){
   bool failed{false};
 
   try{
-    dummy();
+    double d = dummy(1.1, 2.2);
+    decl();
   }
   catch(...)
   {

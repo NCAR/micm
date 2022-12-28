@@ -1,3 +1,4 @@
+################################################################################
 # micm version
 configure_file(version.cpp.in version.cpp @ONLY)
 add_library(micm_version ${CMAKE_CURRENT_BINARY_DIR}/version.cpp)
@@ -15,6 +16,7 @@ set_target_properties(
     ARCHIVE_OUTPUT_DIRECTORY ${MICM_LIB_DIR}
 )
 
+################################################################################
 # micm
 add_library(micm)
 add_library(musica::micm ALIAS micm)

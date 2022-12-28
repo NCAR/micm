@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
   try{
-    dummy();
+    double d = dummy(1.1, my_rank);
+    decl();
   }
   catch(...)
   {

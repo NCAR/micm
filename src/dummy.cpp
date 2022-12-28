@@ -1,7 +1,6 @@
 #include <micm/dummy.hpp>
+#include <iostream>
 
-void dummy(){
-  int x = 1;
-  int y = 2;
-  x + y;
+void decl(){
+  std::cout << "here\n";
 }

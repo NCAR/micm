@@ -11,7 +11,8 @@ int main(){
   #pragma omp parallel
   {
     try{
-        dummy();
+      double d = dummy(1.1, omp_get_thread_num());
+      decl();
     }
     catch(...)
     {
