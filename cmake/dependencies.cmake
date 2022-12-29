@@ -32,3 +32,28 @@ if(ENABLE_MPI)
   find_package(MPI REQUIRED)
   message(STATUS "Compiling with MPI support")
 endif()
+
+################################################################################
+# google test
+
+# if google test isn't installed, fetch content will download and build what is needed
+# but, we don't want to run clang tidy on google test, save those variables and reset them later
+foreach (lang IN ITEMS C CXX)
+  set("CMAKE_${lang}_CLANG_TIDY_save" "${CMAKE_${lang}_CLANG_TIDY}")
+  set("CMAKE_${lang}_CLANG_TIDY" "")
+endforeach ()
+
+include(FetchContent)
+FetchContent_Declare(googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.12.1
+  FIND_PACKAGE_ARGS NAMES GTest
+)
+
+FetchContent_MakeAvailable(googletest)
+add_library(GTest::GTest INTERFACE IMPORTED)
+target_link_libraries(GTest::GTest INTERFACE gtest_main)
+
+foreach (lang IN ITEMS C CXX)
+  set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
+endforeach ()
