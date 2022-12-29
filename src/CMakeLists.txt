@@ -38,7 +38,6 @@ target_sources(
   micm
   PRIVATE 
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
-    dummy.cpp
 )
 
 add_subdirectory(system)
