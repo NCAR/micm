@@ -1,0 +1,29 @@
+FROM fedora:35
+
+RUN dnf -y update \
+    && dnf -y install \
+        gcc-c++ \
+        cmake \
+        lcov \
+        make \
+        openmpi-devel \
+    && dnf clean all
+
+# copy the MICM code
+COPY . /micm/
+
+ENV PATH="${PATH}:/lib64/openmpi/bin"
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+# build the library and run the tests
+RUN mkdir /build \
+      && cd /build \
+      && cmake \
+        -D ENABLE_COVERAGE:BOOL=TRUE \
+        -D ENABLE_MPI:BOOL=TRUE \
+        -D ENABLE_OPENMP:BOOL=TRUE \
+        ../micm \
+      && make -j 8
+
+WORKDIR /build

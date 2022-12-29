@@ -7,6 +7,6 @@
 !libs/
 !test/
 !etc/
-
-# blacklist generated code
-src/processor_output/*.F90
+!cmake/
+!packaging
+!include/
