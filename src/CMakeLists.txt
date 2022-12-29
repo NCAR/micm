@@ -41,3 +41,4 @@ target_sources(
 )
 
 add_subdirectory(system)
+add_subdirectory(process)

@@ -1,6 +1,4 @@
 #include <micm/version.hpp>
-#include <string>
-#include <assert.h>
 
 #include <gtest/gtest.h>
 

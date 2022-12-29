@@ -1,5 +1,4 @@
 #include <micm/system/condition.hpp>
-#include <assert.h>
 
 #include <gtest/gtest.h>
 
