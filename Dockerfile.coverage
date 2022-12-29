@@ -5,6 +5,7 @@ RUN dnf -y update \
         gcc-c++ \
         cmake \
         lcov \
+        git \
         make \
         openmpi-devel \
     && dnf clean all
