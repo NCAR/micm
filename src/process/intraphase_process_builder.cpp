@@ -5,16 +5,16 @@ namespace micm
 
   IntraPhaseProcessBuilder& micm::IntraPhaseProcessBuilder::For(const Phase& phase)
   {
-    // TODO: insert return statement here
+    return *this;
   }
   IntraPhaseProcessBuilder& micm::IntraPhaseProcessBuilder::With(const Species& phase)
   {
-    // TODO: insert return statement here
+    return *this;
   }
 
   IntraPhaseProcessBuilder& IntraPhaseProcessBuilder::Build()
   {
-    // TODO: insert return statement here
+    return *this;
   }
 
 }  // namespace micm

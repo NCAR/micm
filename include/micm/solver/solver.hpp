@@ -4,21 +4,19 @@
  */
 #pragma once
 
-#include <string>
+#include <stddef.h>
 
 namespace micm
 {
 
-  class Condition
+  template<typename T>
+  class Solver
   {
    private:
-   public:
-    const std::string name_;
-    const std::string units_;
+    const size_t size_;
 
    public:
-    Condition();
-    Condition(std::string name, std::string units);
+    virtual void Solve(T) = 0;
   };
 
 }  // namespace micm
