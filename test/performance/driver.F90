@@ -21,7 +21,7 @@ program performance_test
 
   implicit none
 
-  integer, parameter :: kNUmberOfTimeSteps = 100
+  integer, parameter :: kNUmberOfTimeSteps = 5 
   real(kind=dk), parameter :: kTimeStep__min = 5.0_dk
 
   call run_test( )
@@ -55,6 +55,10 @@ contains
     integer :: i_time, error_flag, nspecies
     real(kind=dk) :: t_start, t_end
 #ifdef USE_NETCDF
+    integer :: ncid
+    integer :: varid(number_of_species)
+    ! netCDF file name to store MICM output
+    character(len=128) :: file_name = "./test_output.nc"
     real(kind=rk), dimension(:,:,:,:,:), allocatable :: cam_vars, &
                                                cam_photolysis_rates
     real(kind=rk), dimension(:,:,:,:), allocatable :: cam_pmid, cam_temp
@@ -88,6 +92,8 @@ contains
     ! Read in the input data from CAM netCDF output
     call read_CAM_output( cam_vars, cam_photolysis_rates, &
                           cam_temp, cam_pmid, species_names )
+    ! Generate an empty netCDF file for output
+    call create_netcdf_file ( file_name, species_names, ncid, varid )
 #endif
 
     ! Set up the state data strutures
@@ -115,13 +121,22 @@ contains
       call assert_msg( 366068772, error_flag == 0,                            &
                        "Chemistry solver failed with code "//                 &
                        to_char( error_flag ) )
+#ifdef USE_NETCDF
+      call output_state( number_densities__molec_cm3, species_names, i_time, ncid, varid )
+#else
       call output_state( number_densities__molec_cm3, species_names, i_time )
+#endif
       write(*,*), "solve time", t_end - t_start
     end do
 
 #ifdef USE_NETCDF
     !$acc exit data delete(number_densities__molec_cm3,cam_vars, &
     !$acc                  cam_photolysis_rates,cam_temp,cam_pmid) async(STREAM0)
+
+    ! Close the netCDF file. This frees up any internal netCDF resources
+    ! associated with the file, and flushes any buffers.
+    call check( nf90_close(ncid) )
+    write(*,*) "Successfully write MICM output to ", file_name
 #else
     !$acc exit data delete(number_densities__molec_cm3) async(STREAM0)
 #endif
@@ -260,22 +275,36 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Output the state at a given time step
-  subroutine output_state( number_densities__molec_cm3, species_names,        &
-      time_step )
+#ifdef USE_NETCDF
+  subroutine output_state( number_densities__molec_cm3, species_names, &
+                           time_step, ncid, varid )
+#else
+  subroutine output_state( number_densities__molec_cm3, species_names, &
+                           time_step )
+#endif
 
     use musica_string,                 only : string_t
 
     !> Species number densities [molecule cm-3] (grid cell, species)
-    real(kind=dk),  intent(inout) :: number_densities__molec_cm3(kNumberOfGridCells,number_of_species)
-    type(string_t), intent(in)    :: species_names(number_of_species)
-    integer,        intent(in)    :: time_step
+    real(kind=dk),  intent(in) :: number_densities__molec_cm3(kNumberOfGridCells,number_of_species)
+    type(string_t), intent(in) :: species_names(number_of_species)
+    integer,        intent(in) :: time_step
+#ifdef USE_NETCDF
+    integer,        intent(in) :: ncid
+    integer,        intent(in) :: varid(number_of_species)
+#endif
 
+    !> Local variables
+#ifdef USE_NETCDF
+    integer, parameter :: ndims = 2
+    integer :: counts(ndims), start(ndims)
+#endif
     integer :: i_species
 
     ! TODO determine if/how we want to output state data
     write(*,*) "time step", time_step*kTimeStep__min
     do i_species = 1, number_of_species
-      if (size(number_densities__molec_cm3,1) < 10) then
+      if (kNumberOfGridCells < 10) then
           write(*,*) species_names( i_species ),                              &
                      number_densities__molec_cm3(:,i_species)
       else
@@ -284,13 +313,26 @@ contains
       end if
     end do
 
+#ifdef USE_NETCDF
+    !> These settings tell netcdf to write which timestep, as determined by start(2)
+    counts = (/kNumberOfGridCells, 1/)
+    start = (/1, time_step/)
+
+    ! Write the data to the file.
+    do i_species = 1, number_of_species
+       call check( nf90_put_var(ncid, varid(i_species), &
+                                number_densities__molec_cm3(:,i_species), &
+                                start=start, count=counts) )
+    end do
+#endif
+
   end subroutine output_state
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #ifdef USE_NETCDF
-
   !> Read the CAM netCDF output as MICM input
+  !> Example could be found at https://www.unidata.ucar.edu/software/netcdf/examples/programs/
   subroutine read_CAM_output ( cam_vars, cam_photolysis_rates, &
                                cam_temp, cam_pmid, species_names )
 
@@ -330,12 +372,12 @@ contains
                               ! to "character" type for netCDF subroutine call
      call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
      if ( missing_var_flag ) then
-        !> Miss this variable from CAM output; set to 0 by default
+        !> Miss this variable from CAM output; set to 1.e-6 by default
         do n = 1, ntime
            do k = 1, nlev
               do j = 1, nlat
                  do i = 1, nlon
-                    cam_vars(i,j,k,n,m) = 0._rk
+                    cam_vars(i,j,k,n,m) = 1.e-6_rk
                  end do
               end do
            end do
@@ -353,12 +395,12 @@ contains
                                          ! to "character" type for netCDF subroutine call
      call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
      if ( missing_var_flag ) then
-        !> Miss this photolysis reaction from CAM output; set to 0 by default
+        !> Miss this photolysis reaction from CAM output; set to 1.e-6 by default
         do n = 1, ntime
            do k = 1, nlev
               do j = 1, nlat
                  do i = 1, nlon
-                    cam_photolysis_rates(i,j,k,n,m) = 0._rk
+                    cam_photolysis_rates(i,j,k,n,m) = 1.e-6_rk
                  end do
               end do
            end do
@@ -419,6 +461,51 @@ contains
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+  !> Generate a netCDF file to store MICM output
+  subroutine create_netcdf_file ( file_name, species_names, ncid, varid )
+
+  use musica_string,                 only : string_t
+  
+  character(len=128), intent(in) :: file_name
+  type(string_t),     intent(in) :: species_names(number_of_species)
+  integer,           intent(out) :: ncid
+  integer,           intent(out) :: varid(number_of_species)
+
+  !> Local variables
+  character(len=128) :: str
+  character(len=128), parameter :: units = "molecule cm-3"
+  integer, parameter :: ndims = 2
+  integer :: ncell_dimid, time_dimid, i_species
+  integer :: dimids(ndims)
+
+  !> Create the netCDF file. The nf90_clobber parameter tells netCDF to
+  !> overwrite this file, if it already exists.
+  call check( nf90_create(file_name, nf90_clobber, ncid) )
+
+  !> Define the dimensions. NetCDF will hand back an ID for each. 
+  call check( nf90_def_dim(ncid, "time", nf90_unlimited, time_dimid) )
+  call check( nf90_def_dim(ncid, "number_of_gridcells", kNumberOfGridCells, ncell_dimid) )
+
+  !> The dimids array is used to pass the IDs of the dimensions of
+  !> the variables. Note that in fortran arrays are stored in
+  !> column-major format.
+  dimids = (/ ncell_dimid, time_dimid /)
+
+  !> Define the variables.
+  do i_species = 1, number_of_species
+     str = species_names(i_species)
+     call check( nf90_def_var(ncid, str, nf90_double, dimids, varid(i_species)) )
+     !> Assign units attributes to the netCDF variables.
+     call check( nf90_put_att(ncid, varid(i_species), "units", units) )
+  end do
+
+  !> End define mode. This tells netCDF we are done defining metadata.
+  call check( nf90_enddef(ncid) )
+
+  end subroutine create_netcdf_file
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   !> Check whether a netCDF subroutine call succeeds or not
   subroutine check( istatus, var, missing_var_flag )
  
@@ -443,7 +530,6 @@ contains
   end if
  
   end subroutine check
-
 #endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
