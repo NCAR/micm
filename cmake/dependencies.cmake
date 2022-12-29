@@ -50,7 +50,15 @@ FetchContent_Declare(googletest
   FIND_PACKAGE_ARGS NAMES GTest
 )
 
-FetchContent_MakeAvailable(googletest)
+# don't use this. When running install, the below would also install google test
+# FetchContent_MakeAvailable(googletest)
+
+FetchContent_GetProperties(googletest)
+if(NOT cmark_POPULATED)
+  FetchContent_Populate(googletest)
+  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
