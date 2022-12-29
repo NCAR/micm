@@ -4,7 +4,7 @@ add_library(micm)
 add_library(musica::micm ALIAS micm)
 
 # micm version
-configure_file(version.cpp.in version.cpp @ONLY)
+configure_file(version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/version.cpp @ONLY)
 
 set_target_properties(
   micm 

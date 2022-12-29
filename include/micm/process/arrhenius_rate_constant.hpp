@@ -25,7 +25,11 @@ namespace micm
 
   template<typename T>
   inline ArrheniusRateConstant<T>::ArrheniusRateConstant()
-    : A_(), B_(), C_(), D_(), E_()
+      : A_(),
+        B_(),
+        C_(),
+        D_(),
+        E_()
   {
   }
 
