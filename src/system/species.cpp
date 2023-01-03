@@ -12,7 +12,7 @@ namespace micm
 
   Species::Species(std::string name, std::vector<Property<double>> properties)
       : name_(std::move(name)),
-        properties_(properties)
+        properties_(std::move(properties))
   {
   }
 

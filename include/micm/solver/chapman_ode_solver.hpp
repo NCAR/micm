@@ -9,12 +9,12 @@
 namespace micm
 {
 
-  template<typename T>
-  class ChapmanODESolver : protected Solver
+  template<typename DataType>
+  class ChapmanODESolver : public Solver<DataType>
   {
    private:
    public:
-    void Solve(T);
+    void Solve(DataType);
   };
 
 }  // namespace micm

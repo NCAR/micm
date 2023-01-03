@@ -23,7 +23,7 @@ namespace micm
    public:
     System();
 
-    std::size_t Size();
+    size_t Size();
     const Phase& FindPhase(const std::string& name);
     const Species& FindSpecies(const Phase& phase, const std::string& name);
   };

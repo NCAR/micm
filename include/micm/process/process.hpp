@@ -4,19 +4,12 @@
  */
 #pragma once
 
-#include <cstddef>
-
 namespace micm
 {
-
-  template<typename T>
-  class Solver
+  class Process
   {
-   protected:
-    std::size_t size_;
-
+   private:
    public:
-    virtual void Solve(T) = 0;
   };
 
 }  // namespace micm

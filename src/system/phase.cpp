@@ -10,6 +10,7 @@ namespace micm
   }
 
   Phase::Phase(std::vector<Species> species)
+    : species_(std::move(species))
   {
   }
 
