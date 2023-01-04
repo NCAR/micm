@@ -10,13 +10,32 @@
 namespace micm
 {
 
+  template <typename T>
   class IntraPhaseProcessBuilder
   {
    private:
    public:
-    IntraPhaseProcessBuilder& For(const Phase& phase);
-    IntraPhaseProcessBuilder& With(const Species& phase);
+    IntraPhaseProcessBuilder& For(const Phase<T>& phase);
+    IntraPhaseProcessBuilder& With(const Species<T>& phase);
     IntraPhaseProcessBuilder& Build();
   };
+
+  template<typename T>
+  inline IntraPhaseProcessBuilder<T>& IntraPhaseProcessBuilder<T>::For(const Phase<T>& phase)
+  {
+    return *this;
+  }
+
+  template<typename T>
+  inline IntraPhaseProcessBuilder<T>& IntraPhaseProcessBuilder<T>::With(const Species<T>& phase)
+  {
+    return *this;
+  }
+
+  template<typename T>
+  inline IntraPhaseProcessBuilder<T>& IntraPhaseProcessBuilder<T>::Build()
+  {
+    return *this;
+  }
 
 }  // namespace micm
