@@ -6,6 +6,9 @@
 Welcome to micm's documentation!
 ================================
 
+.. doxygennamespace:: micm
+   :members:
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
