@@ -53,18 +53,7 @@ FetchContent_Declare(googletest
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
-#don't use this. When running install, the below would also install google test
 FetchContent_MakeAvailable(googletest)
-
-
-# FetchContent_GetProperties(googletest)
-# if(NOT cmark_POPULATED)
-#   FetchContent_Populate(googletest)
-#   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-# endif()
-
-# add_library(GTest::GTest INTERFACE IMPORTED)
-# target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
 foreach (lang IN ITEMS C CXX)
   set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
