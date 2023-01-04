@@ -65,3 +65,11 @@ target_link_libraries(GTest::GTest INTERFACE gtest_main)
 foreach (lang IN ITEMS C CXX)
   set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
 endforeach ()
+
+################################################################################
+# Docs
+
+if(BUILD_DOCS)
+  find_package(Doxygen REQUIRED)
+  find_package(Sphinx REQUIRED)
+endif()

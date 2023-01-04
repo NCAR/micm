@@ -33,6 +33,7 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+option(BUILD_DOCS "Build the documentation" OFF)
 
 ################################################################################
 # Dependencies
@@ -40,9 +41,13 @@ option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 include(cmake/dependencies.cmake)
 
 ################################################################################
-# micm targets
+# micm targets and documentation
 
 add_subdirectory(src)
+
+if(BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
 
 ################################################################################
 # Tests
