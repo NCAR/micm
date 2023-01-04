@@ -1,6 +1,8 @@
 // clang-format off
 #include <micm/version.hpp>
 
+namespace micm {
+
 std::string getmicmVersion()
 {
   return "@micm_VERSION@";
@@ -20,4 +22,6 @@ unsigned getmicmVersionPatch()
 unsigned getmicmVersionTweak()
 {
   return @micm_VERSION_TWEAK@+0;
+}
+
 }

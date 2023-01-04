@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace micm{
+
 /**
  * @brief Retrive all componenets of this version of MICM
  *
@@ -36,3 +38,5 @@ unsigned getmicmVersionPatch();
  * @return unsigned
  */
 unsigned getmicmVersionTweak();
+
+}
