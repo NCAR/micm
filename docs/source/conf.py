@@ -31,7 +31,8 @@ release = '3.0.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-  'breathe'
+  'breathe',
+  'sphinx_design',
 ]
 
 breathe_default_project = "micm"
@@ -50,7 +51,21 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_book_theme'
+html_theme = 'pydata_sphinx_theme'
+
+html_theme_options = {
+    "external_links": [],
+    "github_url": "https://github.com/NCAR/micm",
+    "navbar_end": ["version-switcher", "navbar-icon-links"],
+    "switcher": {
+        "json_url": "https://ncar.github.io/micm/switcher.json",
+        "version_match": release,
+    },
+}
+
+html_css_files = [
+    'custom.css'
+]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
