@@ -16,15 +16,22 @@ namespace micm
   class SolverBuilder
   {
    protected:
-    const System system_;
+    const System<DataType> system_;
     const std::vector<Process> processes_;
 
    public:
-    SolverBuilder(System system);
+    SolverBuilder();
+    SolverBuilder(System<DataType> system);
 
     SolverBuilder& For(Process process);
     SolverBuilder& For(std::vector<Process> processes);
 
     virtual Solver<DataType> Build() = 0;
   };
+
+  template<typename DataType>
+  inline SolverBuilder<DataType>::SolverBuilder()
+    : system_()
+  {
+  }
 }  // namespace micm
