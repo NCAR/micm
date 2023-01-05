@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief A base class to represent any time of solver
-   * 
+   *
    * @tparam T The underlying data format of the system
    */
   template<typename T>

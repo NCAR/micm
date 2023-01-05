@@ -13,7 +13,7 @@ namespace micm
 
   /**
    * @brief A representation of a chemcial species
-   * 
+   *
    */
   template<typename T>
   class Species
@@ -30,7 +30,7 @@ namespace micm
     /// @brief Construct a species by name only
     /// @param name The name of the species
     Species(std::string name);
-    /// @brief 
+    /// @brief
     /// @param name The name of the species
     /// @param properties The properties of teh species
     Species(std::string name, std::vector<Property<T>> properties);

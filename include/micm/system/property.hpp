@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief A value representing some aspect of a species
-   * 
+   *
    * @tparam T the underlying datatype of the value
    */
   template<typename T>

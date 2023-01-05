@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief An implementation of the Chapman mechnanism solver
-   * 
+   *
    * @tparam T The underlying data type of the system
    */
   template<typename T>

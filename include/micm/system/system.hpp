@@ -48,9 +48,9 @@ namespace micm
 
   template<typename T>
   inline System<T>::System()
-    : gas_phase_(),
-      phases_(),
-      conditions_()
+      : gas_phase_(),
+        phases_(),
+        conditions_()
   {
   }
 

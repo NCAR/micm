@@ -14,7 +14,7 @@ namespace micm
 
   /**
    * @brief A base class which implemenets the builder patterns to make different types of solvers
-   * 
+   *
    * @tparam T The underlying datatype of the system
    */
   template<typename T>
@@ -49,7 +49,7 @@ namespace micm
 
   template<typename T>
   inline SolverBuilder<T>::SolverBuilder()
-    : system_()
+      : system_()
   {
   }
 }  // namespace micm

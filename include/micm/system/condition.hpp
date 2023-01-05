@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief An environemental condition
-   * 
+   *
    */
   class Condition
   {

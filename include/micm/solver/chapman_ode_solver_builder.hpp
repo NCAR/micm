@@ -12,8 +12,8 @@ namespace micm
 
   /**
    * @brief A builder that generates a solver for the Chapman mechanism
-   * 
-   * @tparam T 
+   *
+   * @tparam T
    */
   template<typename T>
   class ChapmanODESolverBuilder : public SolverBuilder<T>
@@ -32,7 +32,7 @@ namespace micm
     /// @return A reference to this solver builder
     SolverBuilder<T>& For(std::vector<Process> processes);
     /// @brief Returns the final
-    /// @return 
+    /// @return
     Solver<T> Build();
   };
 

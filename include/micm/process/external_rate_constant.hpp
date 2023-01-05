@@ -12,7 +12,7 @@ namespace micm
 
   /**
    * @brief A rate constant from an external model
-   * 
+   *
    * @tparam T The type of the rate constant
    */
   template<typename T>
