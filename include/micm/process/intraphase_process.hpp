@@ -11,11 +11,17 @@
 namespace micm
 {
 
+  /**
+   * @brief An intraphase process
+   * 
+   * @tparam T The underlying datatype of the species
+   */
+  template<typename T>
   class IntraPhaseProcess
   {
    private:
-    std::vector<Species> reactants_;
-    std::vector<Species> products_;
+    std::vector<Species<T>> reactants_;
+    std::vector<Species<T>> products_;
     RateConstant rate_constant_;
 
    public:
