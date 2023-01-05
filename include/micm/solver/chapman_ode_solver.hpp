@@ -9,12 +9,19 @@
 namespace micm
 {
 
-  template<typename DataType>
-  class ChapmanODESolver : public Solver<DataType>
+  /**
+   * @brief An implementation of the Chapman mechnanism solver
+   * 
+   * @tparam T The underlying data type of the system
+   */
+  template<typename T>
+  class ChapmanODESolver : public Solver<T>
   {
    private:
    public:
-    void Solve(DataType);
+    /// @brief Move the system to the next state
+    /// @param The collection of species concentrations
+    void Solve(T);
   };
 
 }  // namespace micm

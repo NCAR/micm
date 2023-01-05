@@ -12,25 +12,43 @@
 namespace micm
 {
 
-  template<typename DataType>
+  /**
+   * @brief A base class which implemenets the builder patterns to make different types of solvers
+   * 
+   * @tparam T The underlying datatype of the system
+   */
+  template<typename T>
   class SolverBuilder
   {
    protected:
-    const System<DataType> system_;
+    /// @brief The system that the builder will use to generate the solver
+    const System<T> system_;
+    /// @brief //TODO
     const std::vector<Process> processes_;
 
    public:
+    /// @brief Default constuctor
     SolverBuilder();
-    SolverBuilder(System<DataType> system);
+    /// @brief Create a solver builder with a given system
+    /// @param system Some system
+    SolverBuilder(System<T> system);
 
-    SolverBuilder& For(Process process);
-    SolverBuilder& For(std::vector<Process> processes);
+    /// @brief A virtual function that adds a micm::Process to a solver
+    /// @param process Some process
+    /// @return A reference to this solver builder
+    virtual SolverBuilder& For(Process process) = 0;
+    /// @brief A virtual function that adds zero or more processes to a solver
+    /// @param process Some processes a vector of processes
+    /// @return A reference to this solver builder
+    virtual SolverBuilder& For(std::vector<Process> processes) = 0;
 
-    virtual Solver<DataType> Build() = 0;
+    /// @brief A virtual function that returns the final solver based off of the processes added to this builder
+    /// @return A concrete implementation of some solver
+    virtual Solver<T> Build() = 0;
   };
 
-  template<typename DataType>
-  inline SolverBuilder<DataType>::SolverBuilder()
+  template<typename T>
+  inline SolverBuilder<T>::SolverBuilder()
     : system_()
   {
   }
