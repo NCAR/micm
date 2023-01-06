@@ -29,9 +29,6 @@ namespace micm
    public:
     /// @brief Default constuctor
     SolverBuilder();
-    /// @brief Create a solver builder with a given system
-    /// @param system Some system
-    SolverBuilder(System<T> system);
 
     /// @brief A virtual function that adds a micm::Process to a solver
     /// @param process Some process

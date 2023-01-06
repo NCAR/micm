@@ -19,9 +19,21 @@ namespace micm
   {
    private:
    public:
+    /// @brief Default constructor
+    ChapmanODESolver();
     /// @brief Move the system to the next state
     /// @param The collection of species concentrations
     void Solve(T);
   };
+
+  template<typename T>
+  inline ChapmanODESolver<T>::ChapmanODESolver()
+  {
+  }
+
+  template<typename T>
+  inline void ChapmanODESolver<T>::Solve(T)
+  {
+  }
 
 }  // namespace micm

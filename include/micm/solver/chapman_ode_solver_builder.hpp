@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <micm/solver/chapman_ode_solver.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/solver_builder.hpp>
 
@@ -40,6 +41,24 @@ namespace micm
   inline ChapmanODESolverBuilder<T>::ChapmanODESolverBuilder()
       : SolverBuilder<T>()
   {
+  }
+
+  template<typename T>
+  inline SolverBuilder<T>& ChapmanODESolverBuilder<T>::For(Process process)
+  {
+    // TODO: insert return statement here
+  }
+
+  template<typename T>
+  inline SolverBuilder<T>& ChapmanODESolverBuilder<T>::For(std::vector<Process> processes)
+  {
+    // TODO: insert return statement here
+  }
+
+  template<typename T>
+  inline Solver<T> ChapmanODESolverBuilder<T>::Build()
+  {
+    return ChapmanODESolver<T>();
   }
 
 }  // namespace micm
