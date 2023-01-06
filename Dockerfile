@@ -13,7 +13,7 @@ COPY . /micm/
 
 # build the library and run the tests
 RUN mkdir /build \
-      && cd /build 
+      && cd /build \
       && cmake ../micm \
       && make -j 8
 
