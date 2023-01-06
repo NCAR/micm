@@ -28,6 +28,7 @@ namespace micm
 
   template<typename T>
   inline ChapmanODESolver<T>::ChapmanODESolver()
+    : Solver<T>()
   {
   }
 

@@ -58,7 +58,6 @@ namespace micm
   template<typename T>
   inline Solver<T> ChapmanODESolverBuilder<T>::Build()
   {
-    return ChapmanODESolver<T>();
   }
 
 }  // namespace micm
