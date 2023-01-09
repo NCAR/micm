@@ -1,3 +1,4 @@
+// clang-format off
 #include <micm/version.hpp>
 
 std::string getmicmVersion()
@@ -10,13 +11,13 @@ unsigned getmicmVersionMajor()
 }
 unsigned getmicmVersionMinor()
 {
-  return @micm_VERSION_MINOR@ + 0;
+  return @micm_VERSION_MINOR@+0;
 }
 unsigned getmicmVersionPatch()
 {
-  return @micm_VERSION_PATCH@ + 0;
+  return @micm_VERSION_PATCH@+0;
 }
 unsigned getmicmVersionTweak()
 {
-  return @micm_VERSION_TWEAK@ + 0;
+  return @micm_VERSION_TWEAK@+0;
 }

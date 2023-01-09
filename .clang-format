@@ -13,7 +13,9 @@ BinPackArguments: 'false'
 BinPackParameters: 'false'
 Cpp11BracedListStyle: 'false'
 ColumnLimit: 125 
+IndentWidth: 2
 NamespaceIndentation: All
+PackConstructorInitializers: 'Never'
 SpaceAfterTemplateKeyword: 'false'
 SpaceBeforeCtorInitializerColon: 'true'
 SpaceBeforeInheritanceColon: 'true'

@@ -17,13 +17,14 @@ namespace micm
     const T rate_;
     const Condition condition_;
 
-  public:
+   public:
     ExternalRateConstant();
   };
 
   template<typename T>
   inline ExternalRateConstant<T>::ExternalRateConstant()
-    : rate_(), condition_()
+      : rate_(),
+        condition_()
   {
   }
 
