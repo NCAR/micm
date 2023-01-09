@@ -15,7 +15,10 @@ namespace micm
    private:
    public:
     IntraPhaseProcessBuilder& For(const Phase& phase);
-    IntraPhaseProcessBuilder& With(const Species& phase);
+    IntraPhaseProcessBuilder& Reacting(const Species& reactant);
+    IntraPhaseProcessBuilder& Producing(const Species& product);
+    IntraPhaseProcessBuilder& WithYield(const double yield);
+    IntraPhaseProcessBuilder& WithRateConstant(const RateConstant& rate_constant);
     IntraPhaseProcessBuilder& Build();
   };
 
