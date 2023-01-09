@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <micm/process/rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 
