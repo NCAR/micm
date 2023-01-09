@@ -34,7 +34,7 @@ namespace micm
     SolverBuilder<T>& For(std::vector<Process> processes);
     /// @brief Returns the final
     /// @return
-    Solver<T> Build();
+    std::unique_ptr<Solver<T>> Build();
   };
 
   template<typename T>
@@ -56,8 +56,9 @@ namespace micm
   }
 
   template<typename T>
-  inline Solver<T> ChapmanODESolverBuilder<T>::Build()
+  inline std::unique_ptr<Solver<T>> ChapmanODESolverBuilder<T>::Build()
   {
+    return std::make_unique<ChapmanODESolver<T>>();
   }
 
 }  // namespace micm
