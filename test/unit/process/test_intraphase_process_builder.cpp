@@ -5,16 +5,16 @@
 #include <gtest/gtest.h>
 
 TEST(IntraPhaseProcessBuilder, DefaultConstructor){
-  micm::IntraPhaseProcessBuilder builder{};
+  micm::IntraPhaseProcessBuilder<double> builder{};
 }
 
 TEST(IntraPhaseProcessBuilder, CanChainBuilder){
-  micm::IntraPhaseProcessBuilder builder{};
+  micm::IntraPhaseProcessBuilder<double> builder{};
 
   builder
-    .For(micm::Phase())
-    .Reacting(micm::Species())
-    .Producing(micm::Species())
+    .For(micm::Phase<double>())
+    .With(micm::Species<double>())
+    .Producing(micm::Species<double>())
     .WithYield(2l)
     .WithRateConstant(micm::RateConstant())
     .Build();

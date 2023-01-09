@@ -3,5 +3,5 @@
 #include <gtest/gtest.h>
 
 TEST(System, DefaultConstructor){
-  micm::System system{};
+  micm::System<double> system{};
 }

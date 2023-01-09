@@ -8,6 +8,13 @@ project(
   LANGUAGES CXX
 )
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+
 message(STATUS "CMake build configuration for micm(${CMAKE_BUILD_TYPE}) ${PROJECT_VERSION}")
 
 ################################################################################
@@ -33,6 +40,7 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+option(BUILD_DOCS "Build the documentation" OFF)
 
 ################################################################################
 # Dependencies
@@ -40,9 +48,13 @@ option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 include(cmake/dependencies.cmake)
 
 ################################################################################
-# micm targets
+# micm targets and documentation
 
 add_subdirectory(src)
+
+if(BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
 
 ################################################################################
 # Tests

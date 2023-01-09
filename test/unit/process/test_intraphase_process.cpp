@@ -3,5 +3,5 @@
 #include <gtest/gtest.h>
 
 TEST(IntraPhaseProcess, DefaultConstructor){
-  micm::IntraPhaseProcess process{};
+  micm::IntraPhaseProcess<double> process{};
 }

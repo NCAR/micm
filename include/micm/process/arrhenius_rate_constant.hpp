@@ -9,17 +9,28 @@
 namespace micm
 {
 
+  /**
+   * @brief An arrhenius rate constant
+   * 
+   * @tparam T The type of each factor of the arrhenius rate constant
+   */
   template<typename T>
   class ArrheniusRateConstant : public RateConstant
   {
    private:
+    /// @brief //TODO
     const T A_;
+    /// @brief //TODO
     const T B_;
+    /// @brief //TODO
     const T C_;
+    /// @brief //TODO
     const T D_;
+    /// @brief //TODO
     const T E_;
 
    public:
+    /// @brief Default constructor
     ArrheniusRateConstant();
   };
 
