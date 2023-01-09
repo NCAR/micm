@@ -4,6 +4,7 @@ RUN dnf -y update \
     && dnf -y install \
         gcc-c++ \
         cmake \
+        git \
         make \
         valgrind \
     && dnf clean all

@@ -2,8 +2,9 @@ FROM fedora:35
 
 RUN dnf -y update \
     && dnf -y install \
-        gcc-c++ \
         cmake \
+        gcc-c++ \
+        git \
         make \
     && dnf clean all
 

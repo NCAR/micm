@@ -5,6 +5,7 @@ RUN dnf -y update \
         gcc-c++ \
         cmake \
         lcov \
+        git \
         make \
         openmpi-devel \
     && dnf clean all
@@ -20,6 +21,7 @@ ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 RUN mkdir /build \
       && cd /build \
       && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_COVERAGE:BOOL=TRUE \
         -D ENABLE_MPI:BOOL=TRUE \
         -D ENABLE_OPENMP:BOOL=TRUE \

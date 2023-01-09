@@ -2,16 +2,24 @@
 #include <string>
 #include <assert.h>
 
-int main(){
-  bool failed{false};
+#include <gtest/gtest.h>
 
-  try{
-    std::string version = getmicmVersion();
-  }
-  catch(...)
-  {
-    failed = true;
-  }
+TEST(Version, FullVersion){
+  auto version = getmicmVersion();
+}
 
-  assert(!failed);
+TEST(Version, VersionMajor){
+  auto major = getmicmVersionMajor();
+}
+
+TEST(Version, VersionMinor){
+  auto minor = getmicmVersionMinor();
+}
+
+TEST(Version, VersionPatch){
+  auto patch = getmicmVersionPatch();
+}
+
+TEST(Version, VersionTweak){
+ auto tweak = getmicmVersionTweak();
 }
