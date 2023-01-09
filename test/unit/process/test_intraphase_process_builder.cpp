@@ -13,5 +13,9 @@ TEST(IntraPhaseProcessBuilder, CanChainBuilder){
 
   builder
     .For(micm::Phase<double>())
-    .With(micm::Species<double>());
+    .With(micm::Species<double>())
+    .Producing(micm::Species<double>())
+    .WithYield(2l)
+    .WithRateConstant(micm::RateConstant())
+    .Build();
 }
