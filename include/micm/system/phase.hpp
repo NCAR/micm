@@ -12,7 +12,7 @@ namespace micm
 
   /**
    * @brief A class which represnts a certain chemical phase (gaseous, aquous)
-   * 
+   *
    * Each phase represents a set of species that participate in chemical reactions in that phase.
    */
   template<typename T>

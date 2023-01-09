@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief An arrhenius rate constant
-   * 
+   *
    * @tparam T The type of each factor of the arrhenius rate constant
    */
   template<typename T>

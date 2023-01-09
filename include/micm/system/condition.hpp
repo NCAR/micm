@@ -11,7 +11,7 @@ namespace micm
 
   /**
    * @brief An environemental condition
-   * 
+   *
    */
   class Condition
   {
@@ -28,7 +28,7 @@ namespace micm
     /// @brief Define an environmental condition
     /// @param name The name
     /// @param units The units
-    Condition(const std::string& name, const std::string& units);
+    Condition(std::string name, std::string units);
   };
 
 }  // namespace micm

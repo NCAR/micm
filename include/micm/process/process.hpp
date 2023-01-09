@@ -6,15 +6,10 @@
 
 namespace micm
 {
-
-  /**
-   * @brief A base class for any type of rate constant
-   *
-   */
-  class RateConstant
+  class Process
   {
-   public:
    private:
+   public:
   };
 
 }  // namespace micm

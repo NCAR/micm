@@ -4,9 +4,8 @@ namespace micm
 {
 
   Condition::Condition() = default;
-
-  Condition::Condition(const std::string& name, const std::string& units)
-      : name_(name),
-        units_(units){};
+  Condition::Condition(std::string name, std::string units)
+      : name_(std::move(name)),
+        units_(std::move(units)){};
 
 }  // namespace micm

@@ -13,7 +13,7 @@ namespace micm
 
   /**
    * @brief An intraphase process
-   * 
+   *
    * @tparam T The underlying datatype of the species
    */
   template<typename T>

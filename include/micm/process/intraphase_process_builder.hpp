@@ -13,10 +13,10 @@ namespace micm
 
   /**
    * @brief Creates any type of intraphase process builder
-   * 
+   *
    * @tparam T The underlying datatype of the species and phases
    */
-  template <typename T>
+  template<typename T>
   class IntraPhaseProcessBuilder
   {
    private:
@@ -26,7 +26,7 @@ namespace micm
     /// @return A reference to this object
     IntraPhaseProcessBuilder& For(const Phase<T>& phase);
     /// @brief Adds an additional species to the process
-    /// @param species A species 
+    /// @param species A species
     /// @return A reference to this object
     IntraPhaseProcessBuilder& With(const Species<T>& species);
     /// @brief Adds a reacting species
