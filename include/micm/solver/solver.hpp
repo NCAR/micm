@@ -22,9 +22,17 @@ namespace micm
     std::size_t size_;
 
    public:
+    /// @brief Default constructor
+    Solver();
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param T The current species concentrations of the system
     virtual void Solve(T) = 0;
   };
+
+  template<typename T>
+  inline Solver<T>::Solver()
+    : size_()
+  {
+  }
 
 }  // namespace micm

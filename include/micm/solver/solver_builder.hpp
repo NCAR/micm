@@ -8,6 +8,7 @@
 #include <micm/solver/solver.hpp>
 #include <micm/system/system.hpp>
 #include <vector>
+#include <memory>
 
 namespace micm
 {
@@ -29,9 +30,6 @@ namespace micm
    public:
     /// @brief Default constuctor
     SolverBuilder();
-    /// @brief Create a solver builder with a given system
-    /// @param system Some system
-    SolverBuilder(System<T> system);
 
     /// @brief A virtual function that adds a micm::Process to a solver
     /// @param process Some process
@@ -44,7 +42,7 @@ namespace micm
 
     /// @brief A virtual function that returns the final solver based off of the processes added to this builder
     /// @return A concrete implementation of some solver
-    virtual Solver<T> Build() = 0;
+    virtual std::unique_ptr<Solver<T>> Build() = 0;
   };
 
   template<typename T>

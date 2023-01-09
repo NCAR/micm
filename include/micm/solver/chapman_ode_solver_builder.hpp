@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <micm/solver/chapman_ode_solver.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/solver_builder.hpp>
 
@@ -33,13 +34,31 @@ namespace micm
     SolverBuilder<T>& For(std::vector<Process> processes);
     /// @brief Returns the final
     /// @return
-    Solver<T> Build();
+    std::unique_ptr<Solver<T>> Build();
   };
 
   template<typename T>
   inline ChapmanODESolverBuilder<T>::ChapmanODESolverBuilder()
       : SolverBuilder<T>()
   {
+  }
+
+  template<typename T>
+  inline SolverBuilder<T>& ChapmanODESolverBuilder<T>::For(Process process)
+  {
+    // TODO: insert return statement here
+  }
+
+  template<typename T>
+  inline SolverBuilder<T>& ChapmanODESolverBuilder<T>::For(std::vector<Process> processes)
+  {
+    // TODO: insert return statement here
+  }
+
+  template<typename T>
+  inline std::unique_ptr<Solver<T>> ChapmanODESolverBuilder<T>::Build()
+  {
+    return std::make_unique<ChapmanODESolver<T>>();
   }
 
 }  // namespace micm
