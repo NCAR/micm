@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -N MICM 
 #PBS -A NTDD0004
-#PBS -l select=1:ncpus=1:mpiprocs=1:mem=300GB:ngpus=1
+#PBS -l select=1:ncpus=36:mpiprocs=36:mem=300GB:ngpus=1
 #PBS -l gpu_type=v100
-#PBS -l walltime=01:59:00
+#PBS -l walltime=00:59:00
 #PBS -q casper 
 #PBS -j oe
 #PBS -k eod
@@ -59,4 +59,5 @@ if [ ! -d $outdir ]
 then
    mkdir $outdir
 fi
-#mv ./Testing/Temporary/LastTest.log $outdir/gpu1000000.log 
+mv ./Testing/Temporary/LastTest.log $outdir/cpu.log 
+mv ./test/performance/test_output.nc $outdir/cpu_output.nc

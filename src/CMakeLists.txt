@@ -41,6 +41,6 @@ set(FLAGGED_FILES preprocessor_output/kinetics_utilities.F90
                   kinetics.F90
                   ODE_solvers/rosenbrock.F90)
 
-set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-O2 -acc -gpu=cc70,lineinfo,nofma,pinned -Minfo=all")
+set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-O2 -i4 -gopt -Mextend -byteswapio -Mflushz -Kieee -Mnofma -acc -gpu=cc70,lineinfo,nofma,pinned -Minfo=all")
 
 endif()
