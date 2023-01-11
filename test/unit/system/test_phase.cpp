@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 TEST(Phase, DefaultConstructor){
-  micm::Phase<double> phase{};
+  micm::Phase phase{};
 }
 
 TEST(Phase, CopyConstructor){

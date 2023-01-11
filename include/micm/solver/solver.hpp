@@ -12,9 +12,7 @@ namespace micm
   /**
    * @brief A base class to represent any time of solver
    *
-   * @tparam T The underlying data format of the system
    */
-  template<typename T>
   class Solver
   {
    protected:
@@ -24,14 +22,15 @@ namespace micm
    public:
     /// @brief Default constructor
     Solver();
+    /// @brief Virtual destructor
+    virtual ~Solver() = default;
     /// @brief A virtual function to be defined by any solver baseclass
-    /// @param T The current species concentrations of the system
-    virtual void Solve(T) = 0;
+    /// @param state The current species concentrations of the system
+    virtual void Solve(double state[]) = 0;
   };
 
-  template<typename T>
-  inline Solver<T>::Solver()
-    : size_()
+  inline Solver::Solver()
+      : size_()
   {
   }
 

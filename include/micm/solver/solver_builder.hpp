@@ -4,11 +4,11 @@
  */
 #pragma once
 
+#include <memory>
 #include <micm/process/process.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/system/system.hpp>
 #include <vector>
-#include <memory>
 
 namespace micm
 {
@@ -16,20 +16,18 @@ namespace micm
   /**
    * @brief A base class which implemenets the builder patterns to make different types of solvers
    *
-   * @tparam T The underlying datatype of the system
    */
-  template<typename T>
   class SolverBuilder
   {
    protected:
     /// @brief The system that the builder will use to generate the solver
-    const System<T> system_;
+    const System system_;
     /// @brief //TODO
     const std::vector<Process> processes_;
 
    public:
     /// @brief Default constuctor
-    SolverBuilder();
+    SolverBuilder() = default;
 
     /// @brief A virtual function that adds a micm::Process to a solver
     /// @param process Some process
@@ -42,12 +40,7 @@ namespace micm
 
     /// @brief A virtual function that returns the final solver based off of the processes added to this builder
     /// @return A concrete implementation of some solver
-    virtual std::unique_ptr<Solver<T>> Build() = 0;
+    virtual std::unique_ptr<Solver> Build() = 0;
   };
 
-  template<typename T>
-  inline SolverBuilder<T>::SolverBuilder()
-      : system_()
-  {
-  }
 }  // namespace micm
