@@ -3,5 +3,5 @@
 #include <gtest/gtest.h>
 
 TEST(SolverBuilder, DefaultConstructor){
-  micm::ChapmanODESolver<double> solver{};
+  micm::ChapmanODESolver solver{};
 }
