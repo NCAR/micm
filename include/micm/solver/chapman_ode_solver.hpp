@@ -18,10 +18,19 @@ namespace micm
    private:
    public:
     /// @brief Default constructor
-    ChapmanODESolver() = default;
+    ChapmanODESolver();
+    ~ChapmanODESolver();
     /// @brief Move the system to the next state
     /// @param state The collection of species concentrations
     void Solve(double state[]);
   };
+
+  inline ChapmanODESolver::ChapmanODESolver() {}
+
+  inline ChapmanODESolver::~ChapmanODESolver() {}
+
+  inline void ChapmanODESolver::Solve(double state[])
+  {
+  }
 
 }  // namespace micm

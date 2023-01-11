@@ -45,4 +45,11 @@ namespace micm
     const Species* FindSpecies(const Phase& phase, const std::string& name);
   };
 
+  inline micm::System::System()
+      : gas_phase_(),
+        phases_(),
+        conditions_()
+  {
+  }
+
 }  // namespace micm
