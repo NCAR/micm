@@ -42,12 +42,12 @@ namespace micm
 
   inline SolverBuilder& ChapmanODESolverBuilder::For(Process process)
   {
-    // TODO: insert return statement here
+    return *this;
   }
 
   inline SolverBuilder& ChapmanODESolverBuilder::For(std::vector<Process> processes)
   {
-    // TODO: insert return statement here
+    return *this;
   }
 
   inline std::unique_ptr<Solver> ChapmanODESolverBuilder::Build()
