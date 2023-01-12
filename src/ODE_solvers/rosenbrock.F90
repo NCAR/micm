@@ -415,12 +415,11 @@ Stage_loop: &
 
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
-   !$acc wait (STREAM0)
-
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
    Hnew = H*Fac
 
+   print *, "Err = ", Err, ", Hnew = ", Hnew
 !~~~>  Check the error magnitude and adjust step size
    this%icntrl(Nstp) = this%icntrl(Nstp) + 1
    this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
@@ -458,7 +457,7 @@ Accepted: &
    ENDIF Accepted ! Err <= 1
 
    END DO UntilAccepted
-
+      
    END DO TimeLoop
 
    !$acc update self(Y) wait(STREAM0)
@@ -575,6 +574,8 @@ Accepted: &
       Error     = MAX( SQRT( sum_tmp / real(this%N,kind=r8) ), ErrMin, Error )
    end do
    !$acc end parallel
+
+   !$acc wait(STREAM0)
 
   END FUNCTION ros_ErrorNorm
 
