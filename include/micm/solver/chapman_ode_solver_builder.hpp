@@ -25,14 +25,14 @@ namespace micm
     /// @brief Adds a micm::Process to this solver
     /// @param process Some process
     /// @return A reference to this solver builder
-    SolverBuilder& For(Process process);
+    SolverBuilder& For(Process process) override;
     /// @brief Adds zero or more processes to this solver
     /// @param process Some processes a vector of processes
     /// @return A reference to this solver builder
-    SolverBuilder& For(std::vector<Process> processes);
+    SolverBuilder& For(std::vector<Process> processes) override;
     /// @brief Returns the final
     /// @return
-    std::unique_ptr<Solver> Build();
+    std::unique_ptr<Solver> Build() override;
   };
 
   inline ChapmanODESolverBuilder::ChapmanODESolverBuilder()

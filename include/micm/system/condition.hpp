@@ -24,11 +24,15 @@ namespace micm
 
    public:
     /// @brief Default constructor
-    Condition();
+    Condition() = default;
     /// @brief Define an environmental condition
     /// @param name The name
     /// @param units The units
     Condition(std::string name, std::string units);
   };
+
+  Condition::Condition(std::string name, std::string units)
+      : name_(std::move(name)),
+        units_(std::move(units)){};
 
 }  // namespace micm
