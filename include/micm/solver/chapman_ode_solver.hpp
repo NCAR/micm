@@ -22,7 +22,7 @@ namespace micm
     ~ChapmanODESolver();
     /// @brief Move the system to the next state
     /// @param state The collection of species concentrations
-    void Solve(double state[]);
+    void Solve(double state[]) override;
   };
 
   inline ChapmanODESolver::ChapmanODESolver() {}
