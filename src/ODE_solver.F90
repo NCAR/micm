@@ -39,11 +39,14 @@ interface
   subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
     use micm_kinetics,               only : kinetics_t
     use musica_constants,            only : musica_dk
+    use constants,                   only : ncell=>kNumberOfGridCells
+    use factor_solve_utilities,      only : number_of_species
+
     import ODE_solver_t
     !> ODE solver
     class(ODE_solver_t), intent(inout) :: this
     !> The solver variables (grid cell, species)
-    real(musica_dk), intent(inout) :: Y(:,:)
+    real(musica_dk), intent(inout) :: Y(ncell,number_of_species)
     !> Chemistry simulation start time [s]
     real(musica_dk), optional, intent(in) :: Tstart
     !> Chemistry simulation end time [s]

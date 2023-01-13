@@ -31,7 +31,7 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
   real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
   real(r8), intent(in) :: number_density(ncell,number_of_species)
-  real(r8), intent(in) :: number_density_air(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
 
   ! Local variables
   integer :: i, j 

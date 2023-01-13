@@ -13,6 +13,7 @@ MODULE micm_ODE_solver_mozart
   USE micm_ODE_solver,                 only : ODE_solver_t
   USE musica_constants,                only : r8 => musica_dk, musica_ik
   use constants,                       only : ncell=>kNumberOfGridCells
+  use factor_solve_utilities,          only : number_of_species
 
   IMPLICIT NONE
 
@@ -226,7 +227,7 @@ CONTAINS
 
       class(ODE_solver_mozart_t), intent(inout) :: this
       integer,                    intent(out)   :: Ierr
-      real(r8),                   intent(inout) :: Y(:,:)
+      real(r8),                   intent(inout) :: Y(ncell,number_of_species)
       real(r8), optional,         intent(out)   :: T
       real(r8), optional,         intent(in)    :: Tstart
       real(r8), optional,         intent(in)    :: Tend

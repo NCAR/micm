@@ -103,7 +103,7 @@ contains
 
     ! Solve chemistry for each grid cell and time step
     do i_time = 1, kNumberOfTimeSteps
-      t_start = omp_get_wtime()
+!      t_start = omp_get_wtime()
 #ifdef USE_NETCDF
       call update_environment( env, i_time, cam_photolysis_rates, cam_temp, cam_pmid )
       call update_species( number_densities__molec_cm3, i_time, cam_vars, env )
@@ -117,7 +117,7 @@ contains
                          y           = number_densities__molec_cm3,           &
                          theKinetics = kinetics,                              &
                          IErr        = error_flag )
-      t_end = omp_get_wtime()
+!      t_end = omp_get_wtime()
       call assert_msg( 366068772, error_flag == 0,                            &
                        "Chemistry solver failed with code "//                 &
                        to_char( error_flag ) )
@@ -126,7 +126,7 @@ contains
 #else
       call output_state( number_densities__molec_cm3, species_names, i_time )
 #endif
-      write(*,*), "solve time", t_end - t_start
+      write(*,*) "solve time", t_end - t_start
     end do
 
 #ifdef USE_NETCDF
