@@ -17,7 +17,7 @@ module constants
 #else
   integer, parameter :: kNumberOfGridCells = 100                  ! Number of grid cells with independent chemical reactions
 #endif
-!  integer, parameter :: masterproc = 0
-!  integer :: beg_grid, end_grid
+  integer, parameter :: masterproc = 0
+  integer :: beg_grid, end_grid
 
 end module constants

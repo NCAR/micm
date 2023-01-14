@@ -27,19 +27,29 @@ rm -rf *
 # Set some options on Casper following Matt's suggestions: https://github.com/NCAR/micm/issues/16 #
 # Note that using CMAKE options may drop some linkages and lead to a compilation failure          #
 ###################################################################################################
-# unload any modules currently loaded
-module purge
 
-# load modules
-module load ncarenv/1.3
-# module load intel/19.1.1
-module load nvhpc/22.2
-module load openmpi/4.1.1
-module load ncarcompilers/0.5.0
-module load cmake/3.22.0
+mycompiler="gnu"
 
-export JSON_FORTRAN_HOME=/glade/scratch/sunjian/temp/json-fortran-8.3.0/build
-export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2
+if [ $mycompiler = "gnu" ]; then
+  module purge
+  module load ncarenv/1.3
+  module load gnu/12.1.0
+  module load openmpi/4.1.4
+  module load netcdf/4.8.1
+  module load ncarcompilers/0.5.0
+  module load cmake/3.22.0
+export JSON_FORTRAN_HOME=/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build
+export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0
+else
+  module purge
+  module load ncarenv/1.3
+  module load nvhpc/22.2
+  module load openmpi/4.1.1
+  module load ncarcompilers/0.5.0
+  module load cmake/3.22.0
+  export JSON_FORTRAN_HOME=/glade/scratch/sunjian/temp/json-fortran-8.3.0/build
+  export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2
+fi
 
 # build a MICM test
 #cmake -D ENABLE_UTIL_ONLY=ON ..
@@ -48,7 +58,7 @@ export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF ..
 cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF -D CMAKE_BUILD_TYPE=DEBUG ..
-make VERBOSE=1       # VERBOSE shows whether the desired flags are applied or not
+time make VERBOSE=1       # VERBOSE shows whether the desired flags are applied or not
 
 # run a MICM test
 make test
@@ -59,5 +69,5 @@ if [ ! -d $outdir ]
 then
    mkdir $outdir
 fi
-mv ./Testing/Temporary/LastTest.log $outdir/cpu.log 
-mv ./test/performance/test_output.nc $outdir/cpu_output.nc
+#mv ./Testing/Temporary/LastTest.log $outdir/gpu.log 
+#mv ./test/performance/test_output.nc $outdir/gpu_output.nc
