@@ -15,12 +15,11 @@ namespace micm
    *
    * Each phase represents a set of species that participate in chemical reactions in that phase.
    */
-  template<typename T>
   class Phase
   {
    private:
     /// @brief The list of species
-    const std::vector<Species<T>> species_;
+    const std::vector<Species> species_;
 
    public:
     /// @brief Default constructor
@@ -30,7 +29,7 @@ namespace micm
     Phase(const Phase& other);
     /// @brief Create a phase with a set of species
     /// @param species A unique list of species
-    Phase(std::vector<Species<T>> species);
+    Phase(std::vector<Species> species);
 
     /// @brief Assignment operator. This assumes ownership of the other's list of species
     /// @param other Another micm::Phase

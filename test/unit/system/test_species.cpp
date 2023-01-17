@@ -3,5 +3,5 @@
 #include <gtest/gtest.h>
 
 TEST(Species, DefaultConstructor){
-  micm::Species<double> species{};
+  micm::Species species{};
 }

@@ -7,23 +7,23 @@ namespace micm {
 
   std::string getmicmVersion()
   {
-    return "3.0.0";
+    return "@micm_VERSION@";
   }
   unsigned getmicmVersionMajor()
   {
-    return 3;
+    return @micm_VERSION_MAJOR@;
   }
   unsigned getmicmVersionMinor()
   {
-    return 0+0;
+    return @micm_VERSION_MINOR@+0;
   }
   unsigned getmicmVersionPatch()
   {
-    return 0+0;
+    return @micm_VERSION_PATCH@+0;
   }
   unsigned getmicmVersionTweak()
   {
-    return +0;
+    return @micm_VERSION_TWEAK@+0;
   }
 
 }

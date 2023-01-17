@@ -12,28 +12,24 @@ namespace micm
   /**
    * @brief An implementation of the Chapman mechnanism solver
    *
-   * @tparam T The underlying data type of the system
    */
-  template<typename T>
-  class ChapmanODESolver : public Solver<T>
+  class ChapmanODESolver : public Solver
   {
    private:
    public:
     /// @brief Default constructor
     ChapmanODESolver();
+    ~ChapmanODESolver();
     /// @brief Move the system to the next state
-    /// @param The collection of species concentrations
-    void Solve(T);
+    /// @param state The collection of species concentrations
+    void Solve(double state[]) override;
   };
 
-  template<typename T>
-  inline ChapmanODESolver<T>::ChapmanODESolver()
-    : Solver<T>()
-  {
-  }
+  inline ChapmanODESolver::ChapmanODESolver() {}
 
-  template<typename T>
-  inline void ChapmanODESolver<T>::Solve(T)
+  inline ChapmanODESolver::~ChapmanODESolver() {}
+
+  inline void ChapmanODESolver::Solve(double state[])
   {
   }
 
