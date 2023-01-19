@@ -1,11 +1,15 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <iostream>
+#include "interface.hpp"
 
-/// @brief A function that allows Fortran to get access to any micm solver
-/// @param filepath A configuration file that defines the chemical system being solved
-extern void get_solver(char filepath[]);
+namespace micm {
 
-#ifdef __cplusplus
+  void solver(double* arg1, double* arg2, double* result){
+    std::cout << "here\n";
+  }
+
+  FuncPtr get_solver(char filepath[]){ // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+    std::cout << "file path: " << filepath << "\n";
+    return &solver;
+  }
+
 }
-#endif
