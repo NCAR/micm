@@ -2,7 +2,7 @@ include(CMakePackageConfigHelpers)
 
 install(
   TARGETS 
-    micm
+    micm micm_header_only
   EXPORT 
     micm_Exports
   LIBRARY DESTINATION ${INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}

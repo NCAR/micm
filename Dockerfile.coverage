@@ -23,8 +23,8 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_COVERAGE:BOOL=TRUE \
-        # -D ENABLE_MPI:BOOL=TRUE \
-        # -D ENABLE_OPENMP:BOOL=TRUE \
+        -D ENABLE_MPI:BOOL=TRUE \
+        -D ENABLE_OPENMP:BOOL=TRUE \
         ../micm \
       && make -j 8
 

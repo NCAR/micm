@@ -36,11 +36,12 @@ set(
 )
 
 option(ENABLE_CLANG_TIDY "Enable clang-tiday to format source code" ON)
-# option(ENABLE_MPI "Enable MPI parallel support" OFF)
-# option(ENABLE_OPENMP "Enable OpenMP support" OFF)
+option(ENABLE_MPI "Enable MPI parallel support" OFF)
+option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(BUILD_DOCS "Build the documentation" OFF)
+option(ENABLE_FORTRAN_LINK "Add functions to allow Fortran to access micm solvers" ON)
 
 ################################################################################
 # Dependencies

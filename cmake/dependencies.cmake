@@ -20,18 +20,18 @@ endif()
 ################################################################################
 # OpenMP
 
-# if(ENABLE_OPENMP)
-#   find_package(OpenMP REQUIRED)
-#   message(STATUS "Compiling with OpenMP support")
-# endif()
+if(ENABLE_OPENMP)
+  find_package(OpenMP REQUIRED)
+  message(STATUS "Compiling with OpenMP support")
+endif()
 
 ################################################################################
 # MPI
 
-# if(ENABLE_MPI)
-#   find_package(MPI REQUIRED)
-#   message(STATUS "Compiling with MPI support")
-# endif()
+if(ENABLE_MPI)
+  find_package(MPI REQUIRED)
+  message(STATUS "Compiling with MPI support")
+endif()
 
 ################################################################################
 # google test
