@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <interface.hpp>
+#include "interface.hpp"
 
 TEST(FortranInterface, CanCallCPPFunction){
   get_solver("filepath.txt");
