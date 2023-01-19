@@ -1,9 +1,9 @@
 #include <iostream>
 #include "interface.hpp"
 
-namespace micm {
+// namespace micm {
 
-  void solver(double* arg1, double* arg2, double* result){
+  void solver(double* arg1, double* arg2, double* result){ // NOLINT(misc-unused-parameters)
     std::cout << "here\n";
   }
 
@@ -12,4 +12,4 @@ namespace micm {
     return &solver;
   }
 
-}
+// }
