@@ -3,7 +3,7 @@
 
 // namespace micm {
 
-  void solver(double* arg1, double* arg2, double* result){ // NOLINT(misc-unused-parameters)
+  void solver(double arg1[], double arg2[], double result[]){ // NOLINT(misc-unused-parameters)
     std::cout << "here\n";
   }
 

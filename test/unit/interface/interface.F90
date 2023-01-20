@@ -10,13 +10,13 @@ program call_cpp_test
     end function get_solver
   end interface
 
-  interface
-    function solver(arg1, arg2, arg3)
+  abstract interface
+    subroutine solver(arg1, arg2, arg3) bind(c)
       import :: c_ptr, c_double
       real(c_double), dimension(*) :: arg1
       real(c_double), dimension(*) :: arg2
       real(c_double), dimension(*) :: arg3
-    end function
+    end subroutine
   end interface
 
   call run()
