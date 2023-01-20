@@ -10,7 +10,7 @@ program call_cpp_test
     end function get_solver
   end interface
 
-  abstract interface
+  interface
     subroutine solver(arg1, arg2, arg3) bind(c)
       import :: c_ptr, c_double
       real(c_double), dimension(*) :: arg1
