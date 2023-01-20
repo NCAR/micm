@@ -25,9 +25,13 @@ namespace micm
     void Solve(double state[]) override;
   };
 
-  inline ChapmanODESolver::ChapmanODESolver() {}
+  inline ChapmanODESolver::ChapmanODESolver()
+  {
+  }
 
-  inline ChapmanODESolver::~ChapmanODESolver() {}
+  inline ChapmanODESolver::~ChapmanODESolver()
+  {
+  }
 
   inline void ChapmanODESolver::Solve(double state[])
   {

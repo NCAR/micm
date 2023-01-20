@@ -1,17 +1,19 @@
 #include <stdlib.h>
 
-namespace micm {
+namespace micm
+{
 
 #ifdef __cplusplus
-extern "C" {
+  extern "C"
+  {
 #endif
 
-  typedef void (*FuncPtr)(double [], double [], double []);
+    typedef void (*FuncPtr)(double[], double[], double[]);
 
-  FuncPtr get_solver(char filepath[]);
+    FuncPtr get_solver(char filepath[]);
 
 #ifdef __cplusplus
-} // extern "C"
+  }  // extern "C"
 #endif
 
-}
+}  // namespace micm

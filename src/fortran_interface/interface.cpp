@@ -1,15 +1,19 @@
-#include <iostream>
 #include "interface.hpp"
 
-namespace micm {
+#include <iostream>
 
-  void solver(double arg1[], double arg2[], double result[]){ // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+namespace micm
+{
+
+  void solver(double arg1[], double arg2[], double result[])
+  {  // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     std::cout << "here\n";
   }
 
-  FuncPtr get_solver(char filepath[]){ // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  FuncPtr get_solver(char filepath[])
+  {  // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     std::cout << "file path: " << filepath << "\n";
     return &solver;
   }
 
-}
+}  // namespace micm
