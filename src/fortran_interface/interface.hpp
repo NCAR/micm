@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-// namespace micm {
+namespace micm {
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,4 +14,4 @@ extern "C" {
 } // extern "C"
 #endif
 
-// }
+}
