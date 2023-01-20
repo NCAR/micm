@@ -2,10 +2,11 @@ FROM fedora:35
 
 RUN dnf -y update \
     && dnf -y install \
-        gcc-c++ \
         cmake \
-        lcov \
+        gcc-c++ \
+        gcc-fortran \
         git \
+        lcov \
         make \
         openmpi-devel \
     && dnf clean all
