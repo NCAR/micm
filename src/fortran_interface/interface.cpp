@@ -5,7 +5,7 @@
 namespace micm
 {
 
-  void solver(double arg1[], double arg2[], double result[])
+  void solver(double state[], uint64_t state_size, uint64_t timestep)
   {  // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     std::cout << "here\n";
   }
