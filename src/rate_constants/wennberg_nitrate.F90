@@ -6,8 +6,7 @@ module micm_rate_constant_wennberg_nitrate
 
   use micm_rate_constant,              only : rate_constant_t
   use musica_constants,                only : musica_dk
-  use constants,                       only : ncell=>kNumberOfGridCells, &
-                                              VLEN, STREAM0
+  use constants,                       only : length, VLEN, STREAM0
 
   implicit none
   private
@@ -61,9 +60,9 @@ contains
     !> Reaction
     class(rate_constant_wennberg_nitrate_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(ncell)
+    type(environment_t), intent(in) :: environment(length)
     !> Rate constant
-    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
+    real(kind=musica_dk), intent(out) :: rate_constant(length)
 
     ! Local variable
     integer :: i
@@ -71,7 +70,7 @@ contains
 
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i = 1, ncell
+    do i = 1, length
        A = calculate_A( environment(i)%temperature, environment(i)%number_density_air, this%n_ )
        Z = calculate_A( 293.0_musica_dk, 2.45e19_musica_dk, this%n_ )          &
              * ( 1.0 - this%a0_ ) / this%a0_

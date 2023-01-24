@@ -6,8 +6,7 @@ module micm_rate_constant_arrhenius
 
   use musica_constants,                only : musica_dk
   use micm_rate_constant,              only : rate_constant_t
-  use constants,                       only : ncell=>kNumberOfGridCells, &
-                                              VLEN, STREAM0
+  use constants,                       only : length, VLEN, STREAM0
 
   implicit none
   private
@@ -64,16 +63,16 @@ contains
     !> Reaction
     class(rate_constant_arrhenius_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(ncell)
+    type(environment_t), intent(in) :: environment(length)
     !> Rate constant
-    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
+    real(kind=musica_dk), intent(out) :: rate_constant(length)
 
     ! Local variable
     integer :: i
 
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i = 1, ncell
+    do i = 1, length
        rate_constant(i) = this%A_ &
            * exp( this%C_ / environment(i)%temperature ) &
            * ( environment(i)%temperature / this%D_ ) ** this%B_ &

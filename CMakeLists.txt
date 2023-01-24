@@ -10,9 +10,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 option(ENABLE_OPENACC "Enable GPU chemistry solver with OpenACC" ON)
 option(ENABLE_NSYS "Enable Nsys profiling of GPU codes" OFF)
 option(ENABLE_NETCDF "Enable the usage of NETCDF input from CAM" OFF)
+option(ENABLE_MPI "Enable the usage of MPI" OFF)
 
 if(ENABLE_NETCDF)
   add_definitions(-DUSE_NETCDF)
+endif()
+
+if(ENABLE_MPI)
+  add_definitions(-DUSE_MPI)
 endif()
 
 ################################################################################
@@ -61,6 +66,27 @@ find_library(JSON_LIB jsonfortran
     /usr/local/lib
     /usr/local/lib64)
 include_directories(${JSON_INCLUDE_DIR})
+
+################################################################################
+# MPI library
+
+find_path(MPI_INCLUDE_DIR mpi.mod mpif.h
+  DOC "MPI include directory (must include mpi.mod or mpif.h files)"
+  PATHS
+    $ENV{CRAY_MPICH_DIR}/include
+    $ENV{NCAR_ROOT_OPENMPI}/include
+    /opt/local/lib
+    /usr/local/lib
+    /usr/local/lib64)
+find_library(MPI_LIB mpi
+  DOC "MPI library"
+  PATHS
+    $ENV{CRAY_MPICH_DIR}/lib
+    $ENV{NCAR_ROOT_OPENMPI}/lib
+    /opt/local/lib
+    /usr/local/lib
+    /usr/local/lib64)
+include_directories(${MPI_INCLUDE_DIR})
 
 ################################################################################
 # MUSICA library

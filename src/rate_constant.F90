@@ -24,15 +24,15 @@ interface
   subroutine calculate( this, environment, rate_constant )
     use micm_environment,              only : environment_t
     use musica_constants,              only : musica_dk
-    use constants,                     only : ncell=>kNumberOfGridCells
+    use constants,                     only : length 
 
     import rate_constant_t
     !> Rate constant
     class(rate_constant_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(ncell)
+    type(environment_t), intent(in) :: environment(length)
     !> Rate constant
-    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
+    real(kind=musica_dk), intent(out) :: rate_constant(length)
   end subroutine calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
