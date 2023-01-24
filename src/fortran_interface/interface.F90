@@ -14,8 +14,8 @@ module micm_solver_interface
     subroutine solver(state, state_size, time_step) bind(c)
       import :: c_ptr, c_double, c_int64_t
       real(c_double), dimension(*) :: state
-      integer(c_int64_t) :: state_size
-      integer(c_int64_t) :: time_step
+      integer(c_int64_t), value :: state_size
+      integer(c_int64_t), value :: time_step
     end subroutine
   end interface
 
