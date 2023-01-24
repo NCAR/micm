@@ -8,7 +8,7 @@ namespace micm
   {
 #endif
 
-    typedef void (*FuncPtr)(double[], uint64_t, uint64_t);
+    typedef void (*FuncPtr)(double[], int64_t, int64_t);
 
     FuncPtr get_solver(char filepath[]);
 

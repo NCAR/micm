@@ -5,13 +5,25 @@
 namespace micm
 {
 
-  void solver(double state[], uint64_t state_size, uint64_t timestep)
-  {  // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  void solver(
+      double state[],
+      int64_t state_size,
+      int64_t
+          timestep)  // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  {
     std::cout << "here\n";
+
+    std::cout << "state size: " << state_size << std::endl;
+    
+    for(int64_t i{}; i < state_size; ++i){
+      std::cout << "state[" << i << "]: " << state[i] << std::endl;
+      if (i > 10) break;
+    }
   }
 
-  FuncPtr get_solver(char filepath[])
-  {  // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  FuncPtr get_solver(
+      char filepath[])  // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  {
     std::cout << "file path: " << filepath << "\n";
     return &solver;
   }

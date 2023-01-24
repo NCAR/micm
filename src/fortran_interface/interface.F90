@@ -11,11 +11,11 @@ module micm_solver_interface
   end interface
 
   interface
-    subroutine solver(arg1, arg2, arg3) bind(c)
-      import :: c_ptr, c_double
-      real(c_double), dimension(*) :: arg1
-      real(c_double), dimension(*) :: arg2
-      real(c_double), dimension(*) :: arg3
+    subroutine solver(state, state_size, time_step) bind(c)
+      import :: c_ptr, c_double, c_int64_t
+      real(c_double), dimension(*) :: state
+      integer(c_int64_t) :: state_size
+      integer(c_int64_t) :: time_step
     end subroutine
   end interface
 

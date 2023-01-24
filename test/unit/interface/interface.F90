@@ -15,18 +15,18 @@ contains
     procedure(solver), pointer :: fsolver
     character(len=*, kind=c_char), parameter :: filepath = "hello.txt"
 
-    real(c_double), dimension(:), allocatable :: arg1
-    real(c_double), dimension(:), allocatable :: arg2
-    real(c_double), dimension(:), allocatable :: arg3
+    real(c_double), dimension(:), allocatable :: state
+    integer(c_int64_t) :: state_size = 5
+    integer(c_int64_t) :: time_step = 1
 
-    allocate(arg1(5))
-    allocate(arg2(5))
-    allocate(arg3(5))
+    allocate(state(state_size))
+
+    state = 1
 
     csolver_func_pointer = get_solver(filepath)
     call c_f_procpointer(csolver_func_pointer, fsolver)
 
-    call fsolver(arg1, arg2, arg3)
+    call fsolver(state, state_size, time_step)
   end subroutine run
 
 end program call_cpp_test
