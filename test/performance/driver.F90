@@ -16,9 +16,7 @@ program performance_test
                                               end_grid, length, masterproc
   use netcdf
 #ifdef USE_MPI
-! Use the following line if there is no mpi.mod available
-  include 'mpif.h'
-!  use mpi
+  use mpi
 #endif
 #else
   use constants,                       only : kNumberOfGridCells, &
@@ -64,7 +62,7 @@ contains
     integer :: myrank, mpisize, stride
     integer :: i, j, k, m, n
 #ifdef USE_NETCDF
-    integer :: ncid
+    integer :: ind, ncid
     integer :: varid(number_of_species)
     ! netCDF file name to store MICM output
     character(len=128) :: file_name = "./test_output.nc"
@@ -76,7 +74,7 @@ contains
     real(kind=rk), dimension(:,:), allocatable :: cam_pmid_local, cam_temp_local
 #endif
 #if (defined USE_NETCDF && defined USE_MPI)
-    integer :: tag, ind, upp_bound, low_bound, ierror
+    integer :: tag, upp_bound, low_bound, ierror
 
     call mpi_init(ierror)
     call mpi_comm_rank(mpi_comm_world, myrank, ierror)
@@ -434,36 +432,34 @@ contains
 #endif
     integer :: i_species
 #ifdef USE_MPI
-    real(kind=dk) :: number_densities_global
-    real(kind=dk), dimension(:), allocatable :: local_buffer
-    integer :: cnts(mpisize)             ! receive counts for each MPI rank
-    integer :: displacements(mpisize)    ! displacement for each MPI rank
+    real(kind=dk), dimension(:,:), allocatable :: number_densities_global
+    real(kind=dk) :: local_buffer(0:length-1)
+    integer :: cnts(0:mpisize-1)             ! receive counts for each MPI rank
+    integer :: displacements(0:mpisize-1)    ! displacement for each MPI rank
     integer :: i, m
     integer :: upp_bound, low_bound, stride
+    integer :: sendtype, ierror
 
     ! Reference: https://rookiehpc.github.io/mpi/docs/mpi_gatherv/index.html
     ! The local_buffer, displacements, number_densities_global arrays should be 0-based indexed
     if (myrank == masterproc) then
-       allocate( number_densities_global(kNumberOfGridCells,number_of_species) )
+       allocate( number_densities_global(0:kNumberOfGridCells-1,0:number_of_species-1) )
        stride = ceiling((kNumberOfGridCells*1._dk) / (mpisize*1._dk))
-       do i = 1, mpisize
-          displacements(i) = (i-1) * stride + 1
-       end do
-       do i = 1, mpisize
-          low_bound = (i-1) * stride + 1
-          upp_bound = min(i*stride, kNumberOfGridCells)
+       do i = 0, mpisize-1
+          displacements(i) = i * stride
+          low_bound = i * stride + 1
+          upp_bound = min((i+1)*stride, kNumberOfGridCells)
           cnts(i) = upp_bound - low_bound + 1
        end do
     end if
-    do m = 1, number_of_species
-       if (myrank == masterproc) then
-          call mpi_gatherv(number_densities__molec_cm3(:,m), length, MPI_DOUBLE, &
-                           number_densities_global(:,m), cnts, displacements, &
-                           MPI_DOUBLE, masterproc, mpi_comm_world)
-       else
-          call mpi_gatherv(number_densities__molec_cm3(:,m), length, MPI_DOUBLE, &
-                           null, null, null, MPI_DOUBLE, masterproc, mpi_comm_world)
-       end if 
+    do m = 0, number_of_species-1
+       do i = 0, length-1
+          local_buffer(i) = number_densities__molec_cm3(i+1,m+1)
+       end do
+       call mpi_gatherv(local_buffer, length, MPI_DOUBLE_PRECISION, &
+                        number_densities_global(:,m), cnts, &
+                        displacements, MPI_DOUBLE_PRECISION, &
+                        masterproc, mpi_comm_world, ierror)
     end do
     write(*,*) "time step", time_step*kTimeStep__min
     do i_species = 1, number_of_species

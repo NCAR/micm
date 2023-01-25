@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -N MICM 
 #PBS -A NTDD0004
-#PBS -l select=1:ncpus=36:mpiprocs=36:mem=300GB:ngpus=1
+#PBS -l select=1:ncpus=1:mpiprocs=1:mem=300GB:ngpus=1
 #PBS -l gpu_type=v100
-#PBS -l walltime=00:59:00
+#PBS -l walltime=00:10:00
 #PBS -q casper 
 #PBS -j oe
 #PBS -k eod
@@ -28,7 +28,8 @@ rm -rf *
 # Note that using CMAKE options may drop some linkages and lead to a compilation failure          #
 ###################################################################################################
 
-mycompiler="gnu"
+mycompiler="nvhpc"
+usempi="on"
 
 if [ $mycompiler = "gnu" ]; then
   module purge
@@ -49,6 +50,10 @@ else
   module load cmake/3.22.0
   export JSON_FORTRAN_HOME=/glade/scratch/sunjian/temp/json-fortran-8.3.0/build
   export NETCDF_HOME=/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2
+  if [ $usempi = "on" ]; then
+     export NCAR_INC_OPENMPI=$NCAR_LDFLAGS_OPENMPI
+     export FC=mpif90
+  fi
 fi
 
 # build a MICM test
@@ -56,12 +61,13 @@ fi
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NSYS=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF ..
-cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF ..
+cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF -D ENABLE_MPI=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF -D CMAKE_BUILD_TYPE=DEBUG ..
 time make VERBOSE=1       # VERBOSE shows whether the desired flags are applied or not
 
 # run a MICM test
-make test
+#make test
 
 # save the output to a desired directory
 outdir="../output"

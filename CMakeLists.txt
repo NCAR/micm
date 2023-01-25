@@ -78,7 +78,7 @@ find_path(MPI_INCLUDE_DIR mpi.mod mpif.h
     /opt/local/lib
     /usr/local/lib
     /usr/local/lib64)
-find_library(MPI_LIB mpi
+find_library(MPI_LIB mpi mpi_mpifh
   DOC "MPI library"
   PATHS
     $ENV{CRAY_MPICH_DIR}/lib
