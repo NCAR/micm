@@ -20,44 +20,46 @@ endif()
 ################################################################################
 # OpenMP
 
-# if(ENABLE_OPENMP)
-#   find_package(OpenMP REQUIRED)
-#   message(STATUS "Compiling with OpenMP support")
-# endif()
+if(ENABLE_OPENMP)
+  find_package(OpenMP REQUIRED)
+  message(STATUS "Compiling with OpenMP support")
+endif()
 
 ################################################################################
 # MPI
 
-# if(ENABLE_MPI)
-#   find_package(MPI REQUIRED)
-#   message(STATUS "Compiling with MPI support")
-# endif()
+if(ENABLE_MPI)
+  find_package(MPI REQUIRED)
+  message(STATUS "Compiling with MPI support")
+endif()
 
 ################################################################################
 # google test
 
-# if google test isn't installed, fetch content will download and build what is needed
-# but, we don't want to run clang tidy on google test, save those variables and reset them later
-foreach (lang IN ITEMS C CXX)
-  set("CMAKE_${lang}_CLANG_TIDY_save" "${CMAKE_${lang}_CLANG_TIDY}")
-  set("CMAKE_${lang}_CLANG_TIDY" "")
-endforeach ()
+if(PROJECT_IS_TOP_LEVEL)
+  # if google test isn't installed, fetch content will download and build what is needed
+  # but, we don't want to run clang tidy on google test, save those variables and reset them later
+  foreach (lang IN ITEMS C CXX)
+    set("CMAKE_${lang}_CLANG_TIDY_save" "${CMAKE_${lang}_CLANG_TIDY}")
+    set("CMAKE_${lang}_CLANG_TIDY" "")
+  endforeach ()
 
-include(FetchContent)
-FetchContent_Declare(googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG release-1.12.1
-  FIND_PACKAGE_ARGS NAMES GTest
-)
+  include(FetchContent)
+  FetchContent_Declare(googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG release-1.12.1
+    FIND_PACKAGE_ARGS NAMES GTest
+  )
 
-set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest)
+  FetchContent_MakeAvailable(googletest)
 
-foreach (lang IN ITEMS C CXX)
-  set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
-endforeach ()
+  foreach (lang IN ITEMS C CXX)
+    set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
+  endforeach ()
+endif()
 
 ################################################################################
 # Docs

@@ -1,3 +1,6 @@
+if(ENABLE_FORTRAN_LINK)
+  add_subdirectory(interface)
+endif()
 add_subdirectory(process)
 add_subdirectory(solver)
 add_subdirectory(system)
