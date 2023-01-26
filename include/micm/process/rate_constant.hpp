@@ -1,8 +1,9 @@
-/* Copyright (C) 2022 National Center for Atmospheric Research,
+/* Copyright (C) 2023 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+#include <micm/system/system.hpp>
 
 namespace micm
 {
@@ -14,6 +15,11 @@ namespace micm
   class RateConstant
   {
    public:
+    /// @brief Virtual destructor
+    virtual ~RateConstant(){};
+    /// @brief Calculate the rate constant for a set of conditions
+    virtual double calculate(const System& system) = 0;
+
    private:
   };
 
