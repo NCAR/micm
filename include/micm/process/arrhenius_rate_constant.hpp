@@ -22,7 +22,7 @@ namespace micm
     const double A_;
     /// @brief Unitless exponential factor
     const double B_;
-    /// @brief Activation threshold, expected to be the activation energy divided by the boltzman constant, J/mol
+    /// @brief Activation threshold, expected to be the activation energy divided by the boltzman constant, J/K
     const double C_;
     /// @brief A factor that determines temperature dependence, (K)
     const double D_;
@@ -37,7 +37,7 @@ namespace micm
     /// Arrhenius equation
     /// @param A Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
     /// @param B Unitless exponential factor
-    /// @param C Activation threshold, expected to be the activation energy divided by the boltzman constant, J/mol
+    /// @param C Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a / k_b), K
     /// @param D A factor that determines temperature dependence, (K)
     /// @param E A factor that determines pressure dependence (Pa-1)
     ArrheniusRateConstant(double A, double B, double C, double D, double E);
