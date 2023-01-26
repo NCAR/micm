@@ -1,1 +1,4 @@
 add_subdirectory(old_micm)
+
+add_executable(rate_constants rate_constants.F90)
+target_link_libraries(rate_constants micmlib)
