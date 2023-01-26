@@ -419,7 +419,6 @@ Stage_loop: &
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
    Hnew = H*Fac
 
-   print *, "Err = ", Err, ", Hnew = ", Hnew
 !~~~>  Check the error magnitude and adjust step size
    this%icntrl(Nstp) = this%icntrl(Nstp) + 1
    this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1

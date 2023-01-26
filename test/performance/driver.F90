@@ -56,7 +56,7 @@ contains
     type(string_t), allocatable :: photo_reaction_names(:)
     ! Species number densities [molecule cm-3] (grid cell, species)
     real(kind=dk), allocatable :: number_densities__molec_cm3(:,:)
-    type(environment_t) :: env(kNumberOfGridCells)
+    type(environment_t), allocatable :: env(:)
     integer :: i_time, error_flag, nspecies
     real(kind=dk) :: t_start, t_end
     integer :: myrank, mpisize, stride
@@ -87,6 +87,8 @@ contains
     stride = ceiling((kNumberOfGridCells*1._dk) / (mpisize*1._dk))
     beg_grid = myrank * stride + 1
     end_grid = min((myrank+1)*stride, kNumberOfGridCells)
+    ! Just initialize "length" to "kNumberOfGridCells" first
+    length = kNumberOfGridCells
 
     ! Set up the kinetics calculator
     kinetics => kinetics_t( )
@@ -224,19 +226,23 @@ contains
 
     ! Set up the state data strutures
     allocate( number_densities__molec_cm3(length, number_of_species) )
-    !$acc enter data create(number_densities__molec_cm3,env) & 
-    !$acc            copyin(cam_vars_local,cam_photolysis_rates_local, &
+    allocate( env(length) )
+    !$acc enter data create(number_densities__molec_cm3,env) async(STREAM0) 
+    !$acc update device(length) async(STREAM0)
+#ifdef USE_NETCDF
+    !$acc enter data copyin(cam_vars_local,cam_photolysis_rates_local, &
     !$acc                   cam_temp_local,cam_pmid_local) async(STREAM0)
+#endif
 
     ! Solve chemistry for each grid cell and time step
     do i_time = 1, kNumberOfTimeSteps
       t_start = omp_get_wtime()
 #ifdef USE_NETCDF
-      call update_environment( env, i_time, cam_photolysis_rates_local, cam_temp_local, cam_pmid_local, length )
-      call update_species( number_densities__molec_cm3, i_time, cam_vars_local, env, length )
+      call update_environment( env, i_time, cam_photolysis_rates_local, cam_temp_local, cam_pmid_local )
+      call update_species( number_densities__molec_cm3, i_time, cam_vars_local, env )
 #else
-      call update_environment( env, i_time, length )
-      call update_species( number_densities__molec_cm3, i_time, length )
+      call update_environment( env, i_time )
+      call update_species( number_densities__molec_cm3, i_time )
 #endif
       call kinetics%update( env )
       call solver%solve( TStart      = 0.0_dk,                                &
@@ -249,10 +255,10 @@ contains
                        "Chemistry solver failed with code "//                 &
                        to_char( error_flag ) )
 #ifdef USE_NETCDF
-      call output_state( number_densities__molec_cm3, species_names, i_time, ncid, &
-                         varid, length, myrank, mpisize )
+      call output_state( number_densities__molec_cm3, species_names, i_time,  &
+                         ncid, varid, myrank, mpisize )
 #else
-      call output_state( number_densities__molec_cm3, species_names, i_time, length )
+      call output_state( number_densities__molec_cm3, species_names, i_time )
 #endif
       write(*,*) "solve time", t_end - t_start
     end do
@@ -284,15 +290,14 @@ contains
 
   !> Update the species concentrations for a given time step
 #ifdef USE_NETCDF
-  subroutine update_species( number_densities__molec_cm3, time_step, cam_vars_local, environment, length )
+  subroutine update_species( number_densities__molec_cm3, time_step, cam_vars_local, environment )
 #else
-  subroutine update_species( number_densities__molec_cm3, time_step, length )
+  subroutine update_species( number_densities__molec_cm3, time_step )
 #endif
 
     use micm_environment,              only : environment_t
 
     integer,          intent(in)    :: time_step
-    integer,          intent(in)    :: length
     !> Species number densities [molecule cm-3] (grid cell, species)
     real(kind=dk),    intent(inout) :: number_densities__molec_cm3(length,number_of_species)
 #ifdef USE_NETCDF
@@ -315,7 +320,7 @@ contains
     p = mod(time_step, ntime)
     if (p == 0) p = p + ntime
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-    !$acc loop gang vector collapse(4)
+    !$acc loop gang vector collapse(2)
     do m = 1, number_of_species
        do n = 1, length
           !> Convert unit from mol/mol to molecule/cm3
@@ -331,7 +336,7 @@ contains
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector collapse(2)
     do k = 1, number_of_species 
-       do i = 1, kNumberOfGridCells
+       do i = 1, length 
           number_densities__molec_cm3(i,k) = 1.0e-6_dk * perturb
        end do
     end do
@@ -346,15 +351,14 @@ contains
   !! for a given time step
 #ifdef USE_NETCDF
   subroutine update_environment( environment, time_step, cam_photolysis_rates_local, &
-                                 cam_temp_local, cam_pmid_local, length )
+                                 cam_temp_local, cam_pmid_local )
 #else
-  subroutine update_environment( environment, time_step, length )
+  subroutine update_environment( environment, time_step )
 #endif
 
     use micm_environment,              only : environment_t
 
     integer,             intent(in)    :: time_step
-    integer,             intent(in)    :: length
     type(environment_t), intent(inout) :: environment(length)
 #ifdef USE_NETCDF
     real(kind=rk),       intent(in)    :: cam_photolysis_rates_local(length,ntime,number_of_photolysis_reactions)
@@ -375,7 +379,7 @@ contains
     p = mod(time_step, ntime)
     if (p == 0) p = p + ntime
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-    !$acc loop gang vector collapse(3)
+    !$acc loop gang vector
     do i_env = 1, length
        environment( i_env )%temperature = real(cam_temp_local(i_env,p), kind=dk) ! [K]
        environment( i_env )%pressure    = real(cam_pmid_local(i_env,p), kind=dk) ! [Pa]
@@ -389,7 +393,7 @@ contains
     perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i_env = 1, kNumberOfGridCells
+    do i_env = 1, length
        environment( i_env )%temperature = 298.15_dk * perturb ! [K]
        environment( i_env )%pressure    = 101325.0_dk * perturb ! [Pa]
        do i = 1, number_of_photolysis_reactions
@@ -406,15 +410,14 @@ contains
   !> Output the state at a given time step
 #ifdef USE_NETCDF
   subroutine output_state( number_densities__molec_cm3, species_names, &
-                           time_step, ncid, varid, length, myrank, mpisize )
+                           time_step, ncid, varid, myrank, mpisize )
 #else
   subroutine output_state( number_densities__molec_cm3, species_names, &
-                           time_step, length )
+                           time_step )
 #endif
 
     use musica_string,                 only : string_t
 
-    integer,        intent(in) :: length
     !> Species number densities [molecule cm-3] (grid cell, species)
     real(kind=dk),  intent(in) :: number_densities__molec_cm3(length,number_of_species)
     type(string_t), intent(in) :: species_names(number_of_species)

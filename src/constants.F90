@@ -20,4 +20,6 @@ module constants
   integer, parameter :: masterproc = 0
   integer :: beg_grid, end_grid, length 
 
+  !$acc declare create(length)
+
 end module constants

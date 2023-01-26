@@ -39,6 +39,7 @@ set(FLAGGED_FILES preprocessor_output/kinetics_utilities.F90
                   rate_constants/arrhenius.F90
                   rate_constants/photolysis.F90
                   kinetics.F90
+                  constants.F90   
                   ODE_solvers/rosenbrock.F90)
 
 set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-acc -gpu=cc70,lineinfo,nofma,pinned -Minfo=all")
