@@ -45,7 +45,5 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
   // O + HO2 -> OH + O2
   micm::ArrheniusRateConstant hox(3e-11, 0, 200, 0, 0);
   k = hox.calculate(298, 1.0);
-  // the truth is 5.9e-11
-  // at present the system cannot be used to determine the temperature so they should be different
   EXPECT_NEAR(k, 5.9e-11, 0.01);
 }
