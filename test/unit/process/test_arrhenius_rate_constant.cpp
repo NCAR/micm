@@ -23,9 +23,14 @@ TEST(ArrheniusRateConstant, CalculateWithSystem){
   // O + HO2 -> OH + O2
   micm::ArrheniusRateConstant hox(3e-11, 0, -200, 0, 0);
   k = hox.calculate(micm::System());
-  // the truth is 5.9e-11
   // at present the system cannot be used to determine the temperature so they should be different
   EXPECT_NE(k, 5.9e-11);
+
+  // OH + HCl → H2O + Cl
+  micm::ArrheniusRateConstant clox(2.6e-12, 0, -350, 0, 0);
+  k = clox.calculate(micm::System());
+  // at present the system cannot be used to determine the temperature so they should be different
+  EXPECT_NE(k, 8e-13);
 }
 
 TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
@@ -47,4 +52,9 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
   micm::ArrheniusRateConstant hox(3e-11, 0, 200, 0, 0);
   k = hox.calculate(298, 1.0);
   EXPECT_NEAR(k, 5.9e-11, 0.01);
+
+  // OH + HCl → H2O + Cl
+  micm::ArrheniusRateConstant clox(2.6e-12, 0, -350, 0, 0);
+  k = clox.calculate(298, 100'000);
+  EXPECT_NEAR(k, 8e-13, 0.01);
 }
