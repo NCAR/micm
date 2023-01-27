@@ -1,4 +1,7 @@
 #include <micm/process/intraphase_process_builder.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/troe_rate_constant.hpp>
+#include <micm/process/external_rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/phase.hpp>
 
@@ -16,6 +19,8 @@ TEST(IntraPhaseProcessBuilder, CanChainBuilder){
     .With(micm::Species())
     .Producing(micm::Species())
     .WithYield(2l)
-    .WithRateConstant(micm::RateConstant())
+    .WithRateConstant(micm::ArrheniusRateConstant())
+    .WithRateConstant(micm::TroeRateConstant())
+    .WithRateConstant(micm::ExternalRateConstant())
     .Build();
 }

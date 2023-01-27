@@ -1,4 +1,4 @@
-/* Copyright (C) 2022 National Center for Atmospheric Research,
+/* Copyright (C) 2023 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,27 +13,34 @@ namespace micm
   /**
    * @brief A rate constant from an external model
    *
-   * @tparam T The type of the rate constant
    */
-  template<typename T>
   class ExternalRateConstant : public RateConstant
   {
    private:
     /// @brief The rate
-    const T rate_;
+    const double rate_;
     /// @brief The condition this rate applies to
     const Condition condition_;
 
    public:
     /// @brief Default constructor
     ExternalRateConstant();
+
+    /// @brief Calculate a reaction rate
+    /// @param system A defined system
+    /// @return A reaction rate
+    double calculate(const System& system) override;
   };
 
-  template<typename T>
-  inline ExternalRateConstant<T>::ExternalRateConstant()
+  inline ExternalRateConstant::ExternalRateConstant()
       : rate_(),
         condition_()
   {
+  }
+
+  inline double ExternalRateConstant::calculate(const System& system)
+  {
+    return 0.0;
   }
 
 }  // namespace micm

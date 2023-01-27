@@ -3,5 +3,11 @@
 #include <gtest/gtest.h>
 
 TEST(ExternalRateConstant, DefaultConstructor){
-  micm::ExternalRateConstant<double> external{};
+  micm::ExternalRateConstant external{};
+}
+
+TEST(ExternalRateConstant, CalculateWithSystem){
+  micm::ExternalRateConstant external{};
+  auto k = external.calculate(micm::System());
+  std::cout << k << std::endl;
 }
