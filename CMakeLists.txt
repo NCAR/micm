@@ -18,6 +18,7 @@ endif()
 
 if(ENABLE_MPI)
   add_definitions(-DUSE_MPI)
+  set(NUM_TASKS "36" CACHE STRING "Number of MPI tasks to use")
 endif()
 
 ################################################################################
