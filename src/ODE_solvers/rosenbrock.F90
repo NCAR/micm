@@ -393,7 +393,9 @@ Stage_loop: &
        end do
        !$acc end parallel
      ENDIF
-     CALL theKinetics%LinSolve( K(1:length,1:N,istage) )
+     !> JS: do not specify the range of the first dimension of K like "1:length";
+     !>     it will cause a runtime error on GPU though it seems weird to me;
+     CALL theKinetics%LinSolve( K(:,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
