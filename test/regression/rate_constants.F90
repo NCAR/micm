@@ -1,19 +1,26 @@
-program rate_constants
+module rate_constants
+  use iso_c_binding
 
-  use micm_environment,             only : environment_t
-  use musica_constants,             only : musica_dk
-  use micm_rate_constant_arrhenius, only : rate_constant_arrhenius_t
   implicit none
 
-  type(rate_constant_arrhenius_t) :: rate
-  type(environment_t)             :: env
+contains
 
-  env%temperature = 1
-  env%pressure = 1
+  real(kind=c_double) function arrhenius_rate(temperature, pressure, a, b, c, d, e) bind(c)
+    use iso_c_binding,                only : c_double
+    use micm_environment,             only : environment_t
+    use musica_constants,             only : musica_dk
+    use micm_rate_constant_arrhenius, only : rate_constant_arrhenius_t
 
-  rate = rate_constant_arrhenius_t( A=1.0_musica_dk, B=1.0_musica_dk,         &
-    C=1.0_musica_dk, D=1.0_musica_dk, E=1.0_musica_dk)
+    type(rate_constant_arrhenius_t) :: rate
+    type(environment_t)             :: env
+    real(kind=c_double), value      :: temperature, pressure, a, b, c, d, e
 
-  print *, rate%calculate(env)
+    env%temperature = temperature
+    env%pressure = pressure
 
-end program rate_constants
+    rate = rate_constant_arrhenius_t( A=a, B=b, C=c, D=d, E=e )
+
+    arrhenius_rate = rate%calculate(env)
+
+  end function arrhenius_rate
+end module rate_constants

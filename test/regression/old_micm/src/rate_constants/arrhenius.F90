@@ -23,6 +23,7 @@ module micm_rate_constant_arrhenius
   contains
     !> Returns the rate constant for a given set of conditions
     procedure :: calculate
+    procedure :: output
   end type rate_constant_arrhenius_t
 
   interface rate_constant_arrhenius_t
@@ -72,5 +73,15 @@ contains
   end function calculate
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  subroutine output(this)
+    class(rate_constant_arrhenius_t), intent(in) :: this
+
+    print *, this%A_
+    print *, this%B_
+    print *, this%C_
+    print *, this%D_
+    print *, this%E_
+  end subroutine output
 
 end module micm_rate_constant_arrhenius

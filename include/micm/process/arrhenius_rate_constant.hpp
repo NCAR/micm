@@ -22,7 +22,7 @@ namespace micm
     const double A_;
     /// @brief Unitless exponential factor
     const double B_;
-    /// @brief Activation threshold, expected to be the activation energy divided by the boltzman constant, J/K
+    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a / k_b), K
     const double C_;
     /// @brief A factor that determines temperature dependence, (K)
     const double D_;

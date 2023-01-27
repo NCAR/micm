@@ -38,6 +38,7 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
   EXPECT_NEAR(k, 1, 0.01);
 
   // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
+  // O(1D) + H2O → OH + OH
   micm::ArrheniusRateConstant o1d(2.2e-10, 0, 0, 0, 0);
   k = o1d.calculate(1.0, 1.0);
   EXPECT_NEAR(k, 2.2e-10, 0.01);
