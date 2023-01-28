@@ -11,15 +11,24 @@ module constants
   integer, parameter :: VLEN = 128                                ! vector length for GPU kernels
   integer, parameter :: STREAM0 = 0                               ! stream ID for async GPU kernels
 #ifdef USE_NETCDF
-  integer, parameter :: ntime = 1, nlev = 32, &
-                        nlat = 192, nlon = 288                    ! For CAM FV 1-deg output
-  integer, parameter :: kNumberOfGridCells = nlev*nlat*nlon       ! Number of grid cells with independent chemical reactions
+  integer, parameter :: dfactor = 1                               ! duplication factor to replicate the input data
+  integer, parameter :: btime = 1, etime = 1, &                   ! begin & end index of each dimension of CAM FV output
+                        dtime = etime-btime+1, &
+                        blev = 1, elev = 32, &
+                        dlev = elev-blev+1, &
+                        blat = 1, elat = 192, &
+                        dlat = elat-blat+1, &
+                        blon = 1, elon = 288, &
+                        dlon = elon-blon+1
+  integer, parameter :: ntime = 1, nlev = 32, &                   ! For CAM FV 1-deg output
+                        nlat = 192, nlon = 288
+  integer, parameter :: kNumberOfGridCells = (elev-blev+1) * &    ! Number of grid cells with independent chemical reactions
+                                             (elat-blat+1) * &
+                                             (elon-blon+1) * &
+                                             dfactor 
 #else
   integer, parameter :: kNumberOfGridCells = 100                  ! Number of grid cells with independent chemical reactions
 #endif
   integer, parameter :: masterproc = 0
-  integer :: beg_grid, end_grid, length 
-
-  !$acc declare create(length)
 
 end module constants

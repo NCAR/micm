@@ -27,7 +27,8 @@ module rate_constants_utility
   use micm_rate_constant_wennberg_tunneling,                             &
       only : rate_constant_wennberg_tunneling_t
   use musica_constants,                only : musica_dk
-  use constants,                       only : length, VLEN, STREAM0
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
   use kinetics_utilities,              only : number_of_reactions 
 
   implicit none
@@ -43,9 +44,9 @@ contains
   subroutine calculate_rate_constants( rate_constants, environment )
 
     !> Rate constant for each reaction [(molec cm-3)^(n-1) s-1]
-    real(kind=musica_dk), intent(out) :: rate_constants(length,number_of_reactions)
+    real(kind=musica_dk), intent(out) :: rate_constants(ncell,number_of_reactions)
     !> Environmental states for each grid cell
-    type(environment_t),  intent(in)  :: environment(length)
+    type(environment_t),  intent(in)  :: environment(ncell)
 
     type( rate_constant_arrhenius_t                   ) :: arrhenius
     type( rate_constant_photolysis_t                  ) :: photolysis
@@ -62,7 +63,7 @@ contains
     photolysis = rate_constant_photolysis_t( &
       photolysis_rate_constant_index = 1 )
     !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:length,1) )
+    call photolysis%calculate( environment, rate_constants(1:ncell,1) )
     !$acc exit data delete(photolysis) async(STREAM0)
 
     !O3_1
@@ -70,7 +71,7 @@ contains
     photolysis = rate_constant_photolysis_t( &
       photolysis_rate_constant_index = 2 )
     !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:length,2) )
+    call photolysis%calculate( environment, rate_constants(1:ncell,2) )
     !$acc exit data delete(photolysis) async(STREAM0)
 
     !O3_2
@@ -78,7 +79,7 @@ contains
     photolysis = rate_constant_photolysis_t( &
       photolysis_rate_constant_index = 3 )
     !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:length,3) )
+    call photolysis%calculate( environment, rate_constants(1:ncell,3) )
     !$acc exit data delete(photolysis) async(STREAM0)
 
     !N2_O1D_1
@@ -87,7 +88,7 @@ contains
       A = real( 2.15e-11, kind=musica_dk ), &
       C = real( 110, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:length,4) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,4) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
     !O1D_O2_1
@@ -96,7 +97,7 @@ contains
       A = real( 3.3e-11, kind=musica_dk ), &
       C = real( 55, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:length,5) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,5) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
     !O_O3_1
@@ -105,7 +106,7 @@ contains
       A = real( 8e-12, kind=musica_dk ), &
       C = real( -2060, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:length,6) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,6) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
     !M_O_O2_1
@@ -114,7 +115,7 @@ contains
       A = real( 6e-34, kind=musica_dk ), &
       B = real( 2.4, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:length,7) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,7) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
   end subroutine calculate_rate_constants

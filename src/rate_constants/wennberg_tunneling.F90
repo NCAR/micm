@@ -6,7 +6,8 @@ module micm_rate_constant_wennberg_tunneling
 
   use micm_rate_constant,              only : rate_constant_t
   use musica_constants,                only : musica_dk
-  use constants,                       only : length, VLEN, STREAM0
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -57,16 +58,16 @@ contains
     !> Reaction
     class(rate_constant_wennberg_tunneling_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(length)
+    type(environment_t), intent(in) :: environment(ncell)
     !> Rate constant
-    real(kind=musica_dk), intent(out) :: rate_constant(length)
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
     ! Local variable
     integer :: i
 
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i = 1, length
+    do i = 1, ncell
        rate_constant(i) = this%A_ * exp( -this%B_ / environment(i)%temperature + &
                           this%C_ / environment(i)%temperature**3 )
     end do

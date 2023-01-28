@@ -5,7 +5,8 @@
 module micm_rate_constant_photolysis
 
   use micm_rate_constant,              only : rate_constant_t
-  use constants,                       only : length, VLEN, STREAM0
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              VLEN, STREAM0
 
   implicit none
   private
@@ -53,16 +54,16 @@ contains
     !> Reaction
     class(rate_constant_photolysis_t), intent(in) :: this
     !> Environmental conditions
-    type(environment_t), intent(in) :: environment(length)
+    type(environment_t), intent(in) :: environment(ncell)
     !> Rate constant
-    real(kind=musica_dk), intent(out) :: rate_constant(length)
+    real(kind=musica_dk), intent(out) :: rate_constant(ncell)
 
     ! Local variable
     integer :: i
 
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i = 1, length
+    do i = 1, ncell
        rate_constant(i) = environment(i)%photolysis_rate_constants( this%index_ )
     end do
     !$acc end parallel

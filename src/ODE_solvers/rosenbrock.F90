@@ -17,7 +17,7 @@ MODULE micm_ODE_solver_rosenbrock
   use micm_ODE_solver,                 only : ODE_solver_t
   use micm_kinetics,                   only : kinetics_t
   use musica_constants,                only : r8=>musica_dk, musica_ik
-  use constants,                       only : length, VLEN, STREAM0
+  use constants,                       only : ncell=>kNumberOfGridCells, VLEN, STREAM0
   use factor_solve_utilities,          only : number_of_species
 
   IMPLICIT NONE
@@ -274,7 +274,7 @@ CONTAINS
 
       class(ODE_solver_rosenbrock_t), intent(inout) :: this
       integer,                        intent(out)   :: Ierr
-      real(r8),                       intent(inout) :: Y(length,number_of_species) ! (grid cell, species)
+      real(r8),                       intent(inout) :: Y(ncell,number_of_species) ! (grid cell, species)
       real(r8), optional,             intent(out)   :: T
       real(r8), optional,             intent(in)    :: Tstart
       real(r8), optional,             intent(in)    :: Tend
@@ -287,10 +287,10 @@ CONTAINS
       integer  :: istat(20)
       REAL(r8) :: H, Hnew, HC, Fac, Tau, Err
       REAL(r8) :: presentTime
-      REAL(r8) :: Ynew(length,this%N)
-      REAL(r8) :: Fcn0(length,this%N), Fcn(length,this%N)
-      REAL(r8) :: K(length,this%N,this%ros_S)
-      REAL(r8) :: Yerr(length,this%N)
+      REAL(r8) :: Ynew(ncell,this%N)
+      REAL(r8) :: Fcn0(ncell,this%N), Fcn(ncell,this%N)
+      REAL(r8) :: K(ncell,this%N,this%ros_S)
+      REAL(r8) :: Yerr(ncell,this%N)
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
@@ -358,7 +358,7 @@ Stage_loop: &
          !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
          !$acc loop gang vector collapse(2)
          do m = 1, N
-            do i = 1, length
+            do i = 1, ncell
                Ynew(i,m) = Y(i,m)
                DO j = 1, istage-1
                   Ynew(i,m) = Ynew(i,m) + this%ros_A(S_ndx+j)*K(i,m,j)
@@ -373,7 +373,7 @@ Stage_loop: &
        !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
        !$acc loop gang vector collapse(2)
        do m = 1, N
-          do i = 1, length
+          do i = 1, ncell
              K(i,m,istage) = Fcn(i,m)
              DO j = 1, istage-1
                 HC = this%ros_C(S_ndx+j)/H
@@ -386,16 +386,14 @@ Stage_loop: &
        !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
        !$acc loop gang vector collapse(2)
        do m = 1, N
-          do i = 1, length
+          do i = 1, ncell
              K(i,m,1) = Fcn0(i,m)
              Fcn(i,m) = Fcn0(i,m)
           end do
        end do
        !$acc end parallel
      ENDIF
-     !> JS: do not specify the range of the first dimension of K like "1:length";
-     !>     it will cause a runtime error on GPU though it seems weird to me;
-     CALL theKinetics%LinSolve( K(:,1:N,istage) )
+     CALL theKinetics%LinSolve( K(1:ncell,1:N,istage) )
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
@@ -404,7 +402,7 @@ Stage_loop: &
    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
    !$acc loop gang vector collapse(2)
    do m = 1, N
-      do i = 1, length
+      do i = 1, ncell
          Ynew(i,m) = Y(i,m)
          Yerr(i,m) = ZERO
          DO j=1,this%ros_S
@@ -430,7 +428,7 @@ Accepted: &
       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
       !$acc loop gang vector collapse(2)
       do m = 1, N 
-         do i = 1, length
+         do i = 1, ncell
             Y(i,m) = Ynew(i,m)
          end do
       end do
@@ -551,8 +549,8 @@ Accepted: &
 
 ! Input arguments
    class(ODE_solver_rosenbrock_t) :: this
-   REAL(r8), INTENT(IN) :: Y(length,this%N), Ynew(length,this%N), &
-                           Yerr(length,this%N)
+   REAL(r8), INTENT(IN) :: Y(ncell,this%N), Ynew(ncell,this%N), &
+                           Yerr(ncell,this%N)
 
    REAL(r8) :: Error
 
@@ -564,7 +562,7 @@ Accepted: &
 
    !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
    !$acc loop gang reduction(max:Error)
-   do i = 1, length
+   do i = 1, ncell
       sum_tmp = 0._r8
       !$acc loop vector reduction(+:sum_tmp)
       do m = 1, this%N

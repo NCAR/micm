@@ -10,23 +10,26 @@ program performance_test
   use factor_solve_utilities,          only : number_of_species
   use kinetics_utilities,              only : number_of_photolysis_reactions
 #ifdef USE_NETCDF
-  use constants,                       only : kBoltzmann, kNumberOfGridCells, &
+  use constants,                       only : kBoltzmann, dfactor, &
+                                              ncell=>kNumberOfGridCells, &
+                                              btime, etime, dtime, &
+                                              blat, elat, dlat, &
+                                              blon, elon, dlon, &
+                                              blev, elev, dlev, &
                                               nlon, nlat, nlev, ntime, &
-                                              STREAM0, VLEN, beg_grid, &
-                                              end_grid, length, masterproc
+                                              STREAM0, VLEN, masterproc
   use netcdf
 #ifdef USE_MPI
   use mpi
 #endif
 #else
-  use constants,                       only : kNumberOfGridCells, &
-                                              STREAM0, VLEN, beg_grid, &
-                                              end_grid, length, masterproc
+  use constants,                       only : ncell=>kNumberOfGridCells, &
+                                              STREAM0, VLEN, masterproc
 #endif
 
   implicit none
 
-  integer, parameter :: kNUmberOfTimeSteps = 5 
+  integer, parameter :: kNUmberOfTimeSteps = 30 
   real(kind=dk), parameter :: kTimeStep__min = 5.0_dk
 
   call run_test( )
@@ -56,9 +59,9 @@ contains
     type(string_t), allocatable :: photo_reaction_names(:)
     ! Species number densities [molecule cm-3] (grid cell, species)
     real(kind=dk), allocatable :: number_densities__molec_cm3(:,:)
-    type(environment_t), allocatable :: env(:)
+    type(environment_t) :: env(ncell)
     integer :: i_time, error_flag, nspecies
-    real(kind=dk) :: t_start, t_end
+    real(kind=dk) :: t_start, t_end, t_measure, t_max
     integer :: myrank, mpisize, stride
     integer :: i, j, k, m, n
 #ifdef USE_NETCDF
@@ -66,15 +69,12 @@ contains
     integer :: varid(number_of_species)
     ! netCDF file name to store MICM output
     character(len=128) :: file_name = "./test_output.nc"
-    real(kind=rk), dimension(:,:,:,:,:), allocatable :: cam_vars, &
-                                               cam_photolysis_rates
-    real(kind=rk), dimension(:,:,:,:), allocatable :: cam_pmid, cam_temp
-    real(kind=rk), dimension(:,:,:), allocatable :: cam_vars_local, &
-                                                    cam_photolysis_rates_local
-    real(kind=rk), dimension(:,:), allocatable :: cam_pmid_local, cam_temp_local
+    real(kind=rk) :: cam_vars(ncell,dtime,number_of_species)
+    real(kind=rk) :: cam_photolysis_rates(ncell,dtime,number_of_photolysis_reactions)    
+    real(kind=rk), dimension(ncell,dtime) :: cam_pmid, cam_temp
 #endif
 #if (defined USE_NETCDF && defined USE_MPI)
-    integer :: tag, upp_bound, low_bound, ierror
+    integer :: ierror
 
     call mpi_init(ierror)
     call mpi_comm_rank(mpi_comm_world, myrank, ierror)
@@ -83,12 +83,6 @@ contains
     myrank = masterproc
     mpisize = 1
 #endif
-
-    stride = ceiling((kNumberOfGridCells*1._dk) / (mpisize*1._dk))
-    beg_grid = myrank * stride + 1
-    end_grid = min((myrank+1)*stride, kNumberOfGridCells)
-    ! Just initialize "length" to "kNumberOfGridCells" first
-    length = kNumberOfGridCells
 
     ! Set up the kinetics calculator
     kinetics => kinetics_t( )
@@ -111,135 +105,28 @@ contains
     solver => ODE_solver_builder( solver_config )
 
 #ifdef USE_NETCDF
+    ! 1. Read in the input data from CAM netCDF output
+    ! 2. Replicate the data if necessary
+    call read_CAM_output( cam_vars, cam_photolysis_rates, &
+                          cam_temp, cam_pmid, species_names )
     if ( myrank == masterproc ) then
-       allocate(cam_vars(nlon,nlat,nlev,ntime,number_of_species))
-       allocate(cam_photolysis_rates(nlon,nlat,nlev,ntime,number_of_photolysis_reactions))
-       allocate(cam_temp(nlon,nlat,nlev,ntime))
-       allocate(cam_pmid(nlon,nlat,nlev,ntime))
-       ! Read in the input data from CAM netCDF output
-       call read_CAM_output( cam_vars, cam_photolysis_rates, &
-                             cam_temp, cam_pmid, species_names )
        ! Generate an empty netCDF file for output
        call create_netcdf_file ( file_name, species_names, ncid, varid )
-#ifdef USE_MPI
-       ! Copy the slices of CAM output to the buffers on the root rank for other MPI ranks
-       do m = 1, mpisize-1
-          upp_bound = min((m+1)*stride, kNumberOfGridCells)
-          low_bound = m * stride + 1
-          length = upp_bound - low_bound + 1
-          ! Allocate local buffers
-          allocate(cam_vars_local(length,ntime,number_of_species))
-          allocate(cam_photolysis_rates_local(length,ntime,number_of_photolysis_reactions))
-          allocate(cam_temp_local(length,ntime))
-          allocate(cam_pmid_local(length,ntime))
-          n = 0
-          do k = 1, nlev
-             do j = 1, nlat
-                do i = 1, nlon
-                   ind = i + (j-1) * nlon + (k-1) * nlat * nlon
-                   if (ind >= low_bound .and. ind <= upp_bound) then                            
-                      n = n + 1
-                      cam_vars_local(n,1:ntime,1:number_of_species) = cam_vars(i,j,k,1:ntime,1:number_of_species) 
-                      cam_photolysis_rates_local(n,1:ntime,1:number_of_photolysis_reactions) = &
-                                             cam_photolysis_rates(i,j,k,1:ntime,1:number_of_photolysis_reactions) 
-                      cam_temp_local(n,1:ntime) = cam_temp(i,j,k,1:ntime)
-                      cam_pmid_local(n,1:ntime) = cam_pmid(i,j,k,1:ntime)
-                   end if
-                end do
-             end do
-          end do
-          ! Sanity check
-          if (n /= length) then
-             write(*,*) "Unmatched buffer size! Expect: ", length, ", Actual: ", n 
-             stop
-          end if
-          ! Blocking send of local buffers to the corresponding MPI ranks
-          tag = 1000 + m
-          call mpi_send(cam_vars_local,length*ntime*number_of_species,MPI_FLOAT,m,tag,mpi_comm_world,ierror)
-          if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-          tag = 2000 + m
-          call mpi_send(cam_photolysis_rates_local,length*ntime*number_of_photolysis_reactions,MPI_FLOAT,m,tag,mpi_comm_world,ierror) 
-          if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-          tag = 3000 + m
-          call mpi_send(cam_temp_local,length*ntime,MPI_FLOAT,m,tag,mpi_comm_world,ierror)
-          if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-          tag = 4000 + m
-          call mpi_send(cam_pmid_local,length*ntime,MPI_FLOAT,m,tag,mpi_comm_world,ierror) 
-          if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-          deallocate(cam_vars_local,cam_photolysis_rates_local,cam_temp_local,cam_pmid_local)
-       end do
-#endif
-       ! Allocate local buffers for root rank itself
-       length = end_grid - beg_grid + 1
-       allocate(cam_vars_local(length,ntime,number_of_species))
-       allocate(cam_photolysis_rates_local(length,ntime,number_of_photolysis_reactions))
-       allocate(cam_temp_local(length,ntime))
-       allocate(cam_pmid_local(length,ntime))
-       n = 0
-       do k = 1, nlev
-          do j = 1, nlat
-             do i = 1, nlon
-                ind = i + (j-1) * nlon + (k-1) * nlat * nlon
-                if (ind >= beg_grid .and. ind <= end_grid) then
-                   n = n + 1
-                   cam_vars_local(n,1:ntime,1:number_of_species) = cam_vars(i,j,k,1:ntime,1:number_of_species)
-                   cam_photolysis_rates_local(n,1:ntime,1:number_of_photolysis_reactions) = &
-                                          cam_photolysis_rates(i,j,k,1:ntime,1:number_of_photolysis_reactions)
-                   cam_temp_local(n,1:ntime) = cam_temp(i,j,k,1:ntime)
-                   cam_pmid_local(n,1:ntime) = cam_pmid(i,j,k,1:ntime)
-                end if
-             end do
-          end do
-       end do
-       ! Sanity check
-       if (n /= length) then
-          write(*,*) "Unmatched buffer size! Expect: ", length, ", Actual: ", n
-          stop
-       end if
-       deallocate(cam_vars,cam_photolysis_rates,cam_temp,cam_pmid)
-#ifdef USE_MPI
-    else
-       ! Allocate local buffers
-       length = end_grid - beg_grid + 1
-       allocate(cam_vars_local(length,ntime,number_of_species))
-       allocate(cam_photolysis_rates_local(length,ntime,number_of_photolysis_reactions))
-       allocate(cam_temp_local(length,ntime))
-       allocate(cam_pmid_local(length,ntime))
-       ! Blocking receive of local buffers from root MPI rank
-       tag = 1000 + myrank
-       call mpi_recv(cam_vars_local,length*ntime*number_of_species,MPI_FLOAT, &
-                     masterproc,tag,mpi_comm_world,MPI_STATUS_IGNORE,ierror)
-       if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-       tag = 2000 + myrank
-       call mpi_recv(cam_photolysis_rates_local,length*ntime*number_of_photolysis_reactions, &
-                     MPI_FLOAT,masterproc,tag,mpi_comm_world,MPI_STATUS_IGNORE,ierror)
-       if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-       tag = 3000 + myrank
-       call mpi_recv(cam_temp_local,length*ntime,MPI_FLOAT,masterproc,tag,mpi_comm_world,MPI_STATUS_IGNORE,ierror)
-       if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-       tag = 4000 + myrank
-       call mpi_recv(cam_pmid_local,length*ntime,MPI_FLOAT,masterproc,tag,mpi_comm_world,MPI_STATUS_IGNORE,ierror)
-       if (ierror /= MPI_SUCCESS) write(*,*) "Failed mpi_send with error code: ", ierror, ", tag = ", tag
-#endif
     end if
 #endif
 
     ! Set up the state data strutures
-    allocate( number_densities__molec_cm3(length, number_of_species) )
-    allocate( env(length) )
-    !$acc enter data create(number_densities__molec_cm3,env) async(STREAM0) 
-    !$acc update device(length) async(STREAM0)
-#ifdef USE_NETCDF
-    !$acc enter data copyin(cam_vars_local,cam_photolysis_rates_local, &
-    !$acc                   cam_temp_local,cam_pmid_local) async(STREAM0)
-#endif
+    allocate( number_densities__molec_cm3(ncell, number_of_species) )
+    !$acc enter data create(number_densities__molec_cm3,env) &
+    !$acc            copyin(cam_vars,cam_photolysis_rates, &
+    !$acc                   cam_temp,cam_pmid) async(STREAM0) 
 
     ! Solve chemistry for each grid cell and time step
     do i_time = 1, kNumberOfTimeSteps
       t_start = omp_get_wtime()
 #ifdef USE_NETCDF
-      call update_environment( env, i_time, cam_photolysis_rates_local, cam_temp_local, cam_pmid_local )
-      call update_species( number_densities__molec_cm3, i_time, cam_vars_local, env )
+      call update_environment( env, i_time, cam_photolysis_rates, cam_temp, cam_pmid )
+      call update_species( number_densities__molec_cm3, i_time, cam_vars, env )
 #else
       call update_environment( env, i_time )
       call update_species( number_densities__molec_cm3, i_time )
@@ -256,20 +143,23 @@ contains
                        to_char( error_flag ) )
 #ifdef USE_NETCDF
       call output_state( number_densities__molec_cm3, species_names, i_time,  &
-                         ncid, varid, myrank, mpisize )
+                         ncid, varid )
 #else
       call output_state( number_densities__molec_cm3, species_names, i_time )
 #endif
-      write(*,*) "solve time", t_end - t_start
+      t_measure = t_end - t_start
+#ifdef USE_MPI
+      call mpi_reduce(t_measure, t_max, 1, MPI_DOUBLE_PRECISION, &
+                      MPI_MAX, masterproc, mpi_comm_world, ierror)
+#else
+      t_max = t_measure
+#endif
+      write(*,*) "solve time", t_max
     end do
 
+    !$acc exit data delete(number_densities__molec_cm3,env) async(STREAM0)
+    deallocate(number_densities__molec_cm3)
 #ifdef USE_NETCDF
-    !$acc exit data delete(number_densities__molec_cm3,cam_vars_local, &
-    !$acc                  cam_photolysis_rates_local,cam_temp_local, &
-    !$acc                  cam_pmid_local) async(STREAM0)
-    deallocate(number_densities__molec_cm3,cam_vars_local, &
-               cam_photolysis_rates_local,cam_temp_local, &
-               cam_pmid_local)
 
     ! Close the netCDF file. This frees up any internal netCDF resources
     ! associated with the file, and flushes any buffers.
@@ -279,9 +169,6 @@ contains
     call mpi_finalize(ierror)
     if (ierror /= MPI_SUCCESS) write(*,*) "Failed to finalize MPI..."
 #endif
-#else
-    !$acc exit data delete(number_densities__molec_cm3) async(STREAM0)
-    deallocate(number_densities__molec_cm3)
 #endif
 
   end subroutine run_test
@@ -290,7 +177,7 @@ contains
 
   !> Update the species concentrations for a given time step
 #ifdef USE_NETCDF
-  subroutine update_species( number_densities__molec_cm3, time_step, cam_vars_local, environment )
+  subroutine update_species( number_densities__molec_cm3, time_step, cam_vars, environment )
 #else
   subroutine update_species( number_densities__molec_cm3, time_step )
 #endif
@@ -299,11 +186,11 @@ contains
 
     integer,          intent(in)    :: time_step
     !> Species number densities [molecule cm-3] (grid cell, species)
-    real(kind=dk),    intent(inout) :: number_densities__molec_cm3(length,number_of_species)
+    real(kind=dk),    intent(inout) :: number_densities__molec_cm3(ncell,number_of_species)
 #ifdef USE_NETCDF
     !> Spevies volume mixing ratios from CAM [mol mol-1]
-    real(kind=rk),       intent(in) :: cam_vars_local(length,ntime,number_of_species)
-    type(environment_t), intent(in) :: environment(length)
+    real(kind=rk),       intent(in) :: cam_vars(ncell,dtime,number_of_species)
+    type(environment_t), intent(in) :: environment(ncell)
 #endif
 
     !> Local variables
@@ -317,15 +204,15 @@ contains
     ! TODO determine how we want to set species concentrations
 
 #ifdef USE_NETCDF
-    p = mod(time_step, ntime)
-    if (p == 0) p = p + ntime
+    p = mod(time_step, dtime)
+    if (p == 0) p = p + dtime
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector collapse(2)
     do m = 1, number_of_species
-       do n = 1, length
+       do n = 1, ncell
           !> Convert unit from mol/mol to molecule/cm3
           number_densities__molec_cm3(n,m) &
-                = real(cam_vars_local(n,p,m), kind=dk) * 10._dk * &
+                = real(cam_vars(n,p,m), kind=dk) * 10._dk * &
                   environment(n)%pressure / &
                   (kBoltzmann*1.e7_dk*environment(n)%temperature)
        end do
@@ -336,7 +223,7 @@ contains
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector collapse(2)
     do k = 1, number_of_species 
-       do i = 1, length 
+       do i = 1, ncell 
           number_densities__molec_cm3(i,k) = 1.0e-6_dk * perturb
        end do
     end do
@@ -350,8 +237,8 @@ contains
   !> Update the temperature, pressure, and photolysis reaction rate constants
   !! for a given time step
 #ifdef USE_NETCDF
-  subroutine update_environment( environment, time_step, cam_photolysis_rates_local, &
-                                 cam_temp_local, cam_pmid_local )
+  subroutine update_environment( environment, time_step, cam_photolysis_rates, &
+                                 cam_temp, cam_pmid )
 #else
   subroutine update_environment( environment, time_step )
 #endif
@@ -359,11 +246,11 @@ contains
     use micm_environment,              only : environment_t
 
     integer,             intent(in)    :: time_step
-    type(environment_t), intent(inout) :: environment(length)
+    type(environment_t), intent(inout) :: environment(ncell)
 #ifdef USE_NETCDF
-    real(kind=rk),       intent(in)    :: cam_photolysis_rates_local(length,ntime,number_of_photolysis_reactions)
-    real(kind=rk),       intent(in)    :: cam_temp_local(length,ntime)
-    real(kind=rk),       intent(in)    :: cam_pmid_local(length,ntime)
+    real(kind=rk),       intent(in)    :: cam_photolysis_rates(ncell,dtime,number_of_photolysis_reactions)
+    real(kind=rk),       intent(in)    :: cam_temp(ncell,dtime)
+    real(kind=rk),       intent(in)    :: cam_pmid(ncell,dtime)
 #endif
 
     !> Local variables
@@ -376,16 +263,16 @@ contains
     ! TODO determine how we want to set photolysis reaction rate constants
 
 #ifdef USE_NETCDF
-    p = mod(time_step, ntime)
-    if (p == 0) p = p + ntime
+    p = mod(time_step, dtime)
+    if (p == 0) p = p + dtime
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i_env = 1, length
-       environment( i_env )%temperature = real(cam_temp_local(i_env,p), kind=dk) ! [K]
-       environment( i_env )%pressure    = real(cam_pmid_local(i_env,p), kind=dk) ! [Pa]
+    do i_env = 1, ncell
+       environment( i_env )%temperature = real(cam_temp(i_env,p), kind=dk) ! [K]
+       environment( i_env )%pressure    = real(cam_pmid(i_env,p), kind=dk) ! [Pa]
        do m = 1, number_of_photolysis_reactions
           environment( i_env )%photolysis_rate_constants(m) &
-                          = real(cam_photolysis_rates_local(i_env,p,m), kind=dk) ! [s-1]
+                          = real(cam_photolysis_rates(i_env,p,m), kind=dk) ! [s-1]
        end do
     end do
     !$acc end parallel
@@ -393,7 +280,7 @@ contains
     perturb = 1._dk * time_step / ( 1._dk * kNUmberOfTimeSteps )
     !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
     !$acc loop gang vector
-    do i_env = 1, length
+    do i_env = 1, ncell
        environment( i_env )%temperature = 298.15_dk * perturb ! [K]
        environment( i_env )%pressure    = 101325.0_dk * perturb ! [Pa]
        do i = 1, number_of_photolysis_reactions
@@ -410,7 +297,7 @@ contains
   !> Output the state at a given time step
 #ifdef USE_NETCDF
   subroutine output_state( number_densities__molec_cm3, species_names, &
-                           time_step, ncid, varid, myrank, mpisize )
+                           time_step, ncid, varid )
 #else
   subroutine output_state( number_densities__molec_cm3, species_names, &
                            time_step )
@@ -419,13 +306,12 @@ contains
     use musica_string,                 only : string_t
 
     !> Species number densities [molecule cm-3] (grid cell, species)
-    real(kind=dk),  intent(in) :: number_densities__molec_cm3(length,number_of_species)
+    real(kind=dk),  intent(in) :: number_densities__molec_cm3(ncell,number_of_species)
     type(string_t), intent(in) :: species_names(number_of_species)
     integer,        intent(in) :: time_step
 #ifdef USE_NETCDF
     integer,        intent(in) :: ncid
     integer,        intent(in) :: varid(number_of_species)
-    integer,        intent(in) :: myrank, mpisize
 #endif
 
     !> Local variables
@@ -434,51 +320,11 @@ contains
     integer :: counts(ndims), start(ndims)
 #endif
     integer :: i_species
-#ifdef USE_MPI
-    real(kind=dk), dimension(:,:), allocatable :: number_densities_global
-    real(kind=dk) :: local_buffer(0:length-1)
-    integer :: cnts(0:mpisize-1)             ! receive counts for each MPI rank
-    integer :: displacements(0:mpisize-1)    ! displacement for each MPI rank
-    integer :: i, m
-    integer :: upp_bound, low_bound, stride
-    integer :: sendtype, ierror
 
-    ! Reference: https://rookiehpc.github.io/mpi/docs/mpi_gatherv/index.html
-    ! The local_buffer, displacements, number_densities_global arrays should be 0-based indexed
-    if (myrank == masterproc) then
-       allocate( number_densities_global(0:kNumberOfGridCells-1,0:number_of_species-1) )
-       stride = ceiling((kNumberOfGridCells*1._dk) / (mpisize*1._dk))
-       do i = 0, mpisize-1
-          displacements(i) = i * stride
-          low_bound = i * stride + 1
-          upp_bound = min((i+1)*stride, kNumberOfGridCells)
-          cnts(i) = upp_bound - low_bound + 1
-       end do
-    end if
-    do m = 0, number_of_species-1
-       do i = 0, length-1
-          local_buffer(i) = number_densities__molec_cm3(i+1,m+1)
-       end do
-       call mpi_gatherv(local_buffer, length, MPI_DOUBLE_PRECISION, &
-                        number_densities_global(:,m), cnts, &
-                        displacements, MPI_DOUBLE_PRECISION, &
-                        masterproc, mpi_comm_world, ierror)
-    end do
-    write(*,*) "time step", time_step*kTimeStep__min
-    do i_species = 1, number_of_species
-      if (kNumberOfGridCells < 10) then
-          write(*,*) species_names( i_species ),                              &
-                     number_densities_global(:,i_species)
-      else
-          write(*,*) species_names( i_species ),                              &
-                     number_densities_global(1:10,i_species)
-      end if
-    end do
-#else
     ! TODO determine if/how we want to output state data
     write(*,*) "time step", time_step*kTimeStep__min
     do i_species = 1, number_of_species
-      if (kNumberOfGridCells < 10) then
+      if (ncell < 10) then
           write(*,*) species_names( i_species ),                              &
                      number_densities__molec_cm3(:,i_species)
       else
@@ -486,24 +332,17 @@ contains
                      number_densities__molec_cm3(1:10,i_species)
       end if
     end do
-#endif
 
 #ifdef USE_NETCDF
     !> These settings tell netcdf to write which timestep, as determined by start(2)
-    counts = (/kNumberOfGridCells, 1/)
+    counts = (/int(ncell/dfactor), 1/)
     start = (/1, time_step/)
 
     ! Write the data to the file.
     do i_species = 1, number_of_species
-#ifdef USE_MPI
-       call check( nf90_put_var(ncid, varid(i_species), &
-                                number_densities_global(:,i_species), &
-                                start=start, count=counts) )
-#else
        call check( nf90_put_var(ncid, varid(i_species), &
                                 number_densities__molec_cm3(:,i_species), &
                                 start=start, count=counts) )
-#endif
     end do
 #endif
 
@@ -522,17 +361,17 @@ contains
   !> Input variables
   type(string_t), intent(in) :: species_names(number_of_species)
   !> Species volume mixing ratio from CAM (unit: mol/mol)
-  real(kind=rk), intent(out) :: cam_vars(nlon,nlat,nlev,ntime,number_of_species)
+  real(kind=rk), intent(out) :: cam_vars(ncell,dtime,number_of_species)
   !> Photolysis reaction rates from CAM (unit: 1/s)
-  real(kind=rk), intent(out) :: cam_photolysis_rates(nlon,nlat,nlev,ntime,number_of_photolysis_reactions)
+  real(kind=rk), intent(out) :: cam_photolysis_rates(ncell,dtime,number_of_photolysis_reactions)
   !> Temperature from CAM (unit: K)
-  real(kind=rk), intent(out) :: cam_temp(nlon,nlat,nlev,ntime)
+  real(kind=rk), intent(out) :: cam_temp(ncell,dtime)
   !> Pressure at mid-point of layers from CAM (unit: Pa)
-  real(kind=rk), intent(out) :: cam_pmid(nlon,nlat,nlev,ntime)
+  real(kind=rk), intent(out) :: cam_pmid(ncell,dtime)
 
   !> Local variables
   integer            :: ncid, varid, nvar
-  integer            :: i, j, k, n, m
+  integer            :: i, m
   character(len=256) :: file_name
   character(len=128) :: str
   logical            :: missing_var_flag
@@ -573,6 +412,9 @@ contains
   !> Path to CAM output file  
   file_name = '/glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc'
 
+  !> Sanity check before reading in the CAM output
+  call sanity_check_constants()
+
   !> Open an existing netcdf file
   call check( nf90_open(file_name, nf90_nowrite, ncid) )
 
@@ -584,18 +426,9 @@ contains
      call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
      if ( missing_var_flag ) then
         !> Miss this variable from CAM output; set to 1.e-6 by default
-        do n = 1, ntime
-           do k = 1, nlev
-              do j = 1, nlat
-                 do i = 1, nlon
-                    cam_vars(i,j,k,n,m) = 1.e-6_rk
-                 end do
-              end do
-           end do
-        end do
+        call init_array ( cam_vars(1:ncell,1:dtime,m), 1.e-6_rk )
      else
-        !> Read in the values of data
-        call check( nf90_get_var(ncid, varid, cam_vars(:,:,:,:,m)), str )
+        call get_cam_var ( ncid, varid, str, cam_vars(1:ncell,1:dtime,m) )
      end if
   end do
 
@@ -607,18 +440,9 @@ contains
      call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
      if ( missing_var_flag ) then
         !> Miss this photolysis reaction from CAM output; set to 1.e-6 by default
-        do n = 1, ntime
-           do k = 1, nlev
-              do j = 1, nlat
-                 do i = 1, nlon
-                    cam_photolysis_rates(i,j,k,n,m) = 1.e-6_rk
-                 end do
-              end do
-           end do
-        end do
+        call init_array ( cam_photolysis_rates(1:ncell,1:dtime,m), 1.e-6_rk )
      else
-        !> Read in the values of data
-        call check( nf90_get_var(ncid, varid, cam_photolysis_rates(:,:,:,:,m)), str )
+        call get_cam_var ( ncid, varid, str, cam_photolysis_rates(1:ncell,1:dtime,m) )
      end if
   end do
 
@@ -628,18 +452,9 @@ contains
   call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
   if ( missing_var_flag ) then
      !> Miss temperature output from CAM; set to 298.15 by default
-     do n = 1, ntime
-        do k = 1, nlev
-           do j = 1, nlat
-              do i = 1, nlon
-                 cam_temp(i,j,k,n) = 298.15_rk
-              end do
-           end do
-        end do
-     end do
+     call init_array ( cam_temp, 298.15_rk )
   else
-     !> Read in the values of data
-     call check( nf90_get_var(ncid, varid, cam_temp), str )
+     call get_cam_var ( ncid, varid, str, cam_temp )
   end if
 
   !> Read in pressure
@@ -648,18 +463,9 @@ contains
   call check( nf90_inq_varid(ncid, str, varid), str, missing_var_flag )
   if ( missing_var_flag ) then
      !> Miss pressure output from CAM; set to 101325 by default
-     do n = 1, ntime
-        do k = 1, nlev
-           do j = 1, nlat
-              do i = 1, nlon
-                 cam_pmid(i,j,k,n) = 101325._rk
-              end do
-           end do
-        end do
-     end do
+     call init_array ( cam_pmid, 101325._rk )
   else
-     !> Read in the values of data
-     call check( nf90_get_var(ncid, varid, cam_pmid), str )
+     call get_cam_var ( ncid, varid, str, cam_pmid )
   end if
 
   ! Close the file, freeing all resources.
@@ -667,6 +473,93 @@ contains
   write(*,*) "Successfully read in the CAM output from ", file_name
 
   end subroutine read_CAM_output
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Initialize a multi-dimension array with a given value
+  subroutine init_array ( array, val )
+
+  real(kind=rk), dimension(ncell,dtime), intent(out) :: array
+  real(kind=rk), intent(in) :: val
+
+  ! Local variables
+  integer :: i, n
+
+  do n = 1, dtime
+     do i = 1, ncell
+        array(i,n) = val
+     end do
+  end do
+
+  end subroutine init_array
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Check if the constants to read in the slices of CAM output are valid
+  subroutine sanity_check_constants ()
+
+  if ( btime < 1 .or. btime > etime ) then
+     write(*,*) "Invalid value for btime: ", btime
+     stop 
+  end if
+  if ( etime > ntime ) then
+     write(*,*) "Invalid value for etime: ", etime
+     stop 
+  end if
+  if ( blev < 1 .or. blev > elev ) then
+     write(*,*) "Invalid value for blev: ", blev
+     stop               
+  end if                
+  if ( elev > nlev ) then
+     write(*,*) "Invalid value for elev: ", elev
+     stop
+  end if
+  if ( blat < 1 .or. blat > elat ) then
+     write(*,*) "Invalid value for blat: ", blat
+     stop
+  end if
+  if ( elat > nlat ) then
+     write(*,*) "Invalid value for elat: ", elat
+     stop
+  end if
+  if ( blon < 1 .or. blon > elon ) then
+     write(*,*) "Invalid value for blon: ", blon
+     stop
+  end if
+  if ( elon > nlon ) then
+     write(*,*) "Invalid value for elon: ", elon
+     stop
+  end if
+
+  end subroutine sanity_check_constants
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  !> Read in the variable from CAM output and reshape to the shape for MICM
+  subroutine get_cam_var ( ncid, varid, str, array )
+
+  integer, intent(in) :: ncid, varid
+  character(len=128), intent(in) :: str
+  real(kind=rk), intent(out) :: array(ncell,dtime)
+  
+  ! Local variables
+  integer, parameter :: start(4) = (/blon,blat,blev,btime/), &
+                        counts(4) = (/dlon,dlat,dlev,dtime/), &
+                        stride(4) = (/1,1,1,1/)
+  real(kind=rk) :: var_io(dlon,dlat,dlev,dtime)
+  integer :: i, n
+
+  !> Read in the values of data
+  call check( nf90_get_var(ncid, varid, var_io, start, counts, stride), str )
+  !> Reshape the array
+  n = ncell/dfactor
+  array(1:n,1:dtime) = reshape( var_io, (/n, dtime/) )
+  !> Replicate the data by "dfactor" times
+  do i = 2, dfactor
+     array((i-1)*n+1:i*n,1:dtime) = array(1:n,1:dtime)
+  end do
+
+  end subroutine get_cam_var
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -693,7 +586,7 @@ contains
 
   !> Define the dimensions. NetCDF will hand back an ID for each. 
   call check( nf90_def_dim(ncid, "time", nf90_unlimited, time_dimid) )
-  call check( nf90_def_dim(ncid, "number_of_gridcells", kNumberOfGridCells, ncell_dimid) )
+  call check( nf90_def_dim(ncid, "number_of_gridcells", ncell/dfactor, ncell_dimid) )
 
   !> The dimids array is used to pass the IDs of the dimensions of
   !> the variables. Note that in fortran arrays are stored in

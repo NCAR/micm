@@ -12,7 +12,7 @@ MODULE micm_ODE_solver_mozart
   USE micm_kinetics,                   only : kinetics_t
   USE micm_ODE_solver,                 only : ODE_solver_t
   USE musica_constants,                only : r8 => musica_dk, musica_ik
-  use constants,                       only : length 
+  use constants,                       only : ncell=>kNumberOfGridCells 
   use factor_solve_utilities,          only : number_of_species
 
   IMPLICIT NONE
@@ -227,7 +227,7 @@ CONTAINS
 
       class(ODE_solver_mozart_t), intent(inout) :: this
       integer,                    intent(out)   :: Ierr
-      real(r8),                   intent(inout) :: Y(length,number_of_species)
+      real(r8),                   intent(inout) :: Y(ncell,number_of_species)
       real(r8), optional,         intent(out)   :: T
       real(r8), optional,         intent(in)    :: Tstart
       real(r8), optional,         intent(in)    :: Tend
@@ -241,10 +241,10 @@ CONTAINS
       REAL(r8) :: H, Hinv, Hnew
       REAL(r8) :: presentTime
       REAL(r8) :: truncError
-      REAL(r8), target  :: residual(length,this%N)
+      REAL(r8), target  :: residual(ncell,this%N)
       REAL(r8), pointer :: deltaY(:,:)
-      REAL(r8) :: Ynew(length,this%N), Yerr(length,this%N)
-      REAL(r8) :: Fcn(length,this%N)
+      REAL(r8) :: Ynew(ncell,this%N), Yerr(ncell,this%N)
+      REAL(r8) :: Fcn(ncell,this%N)
       LOGICAL  :: RejectLastH, Singular, nrConverged
 
 !~~~>  Initial preparations
@@ -279,7 +279,7 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO)
 !~~~>  Limit H if necessary to avoid going beyond Tend
      H = MIN( H,ABS(Tend-presentTime) )
      Hinv = ONE/H
-     Ynew(1:length,1:N) = Y(1:length,1:N)
+     Ynew(1:ncell,1:N) = Y(1:ncell,1:N)
 !~~~>  Newton-Raphson iteration loop
 NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the Jacobian
@@ -293,11 +293,11 @@ NRloop: DO nIter = 1,this%iterMax
 !~~~>   Compute the function at current time
        call theKinetics%calc_force( Ynew, Fcn )
        this%icntrl(Nfun) = this%icntrl(Nfun) + 1
-       residual(1:length,1:N) = Fcn(1:length,1:N) - (Ynew(1:length,1:N) - Y(1:length,1:N))*Hinv
+       residual(1:ncell,1:N) = Fcn(1:ncell,1:N) - (Ynew(1:ncell,1:N) - Y(1:ncell,1:N))*Hinv
 !~~~>   Compute the iteration delta
        CALL theKinetics%LinSolve( deltaY )
 !~~~>   Update N-R iterate
-       Ynew(1:length,1:N) = Ynew(1:length,1:N) + deltaY(1:length,1:N)
+       Ynew(1:ncell,1:N) = Ynew(1:ncell,1:N) + deltaY(1:ncell,1:N)
 
        if( nIter > 1 ) then
          nrConverged = moz_NRErrorNorm( this, deltaY, Ynew, Yerr )
@@ -318,7 +318,7 @@ acceptStep: &
 !      IF( truncError <= 2.0_r8/(H*H) ) THEN
        IF( .5_r8*H*H*truncError <= (ONE + 100._r8*this%Roundoff) ) THEN
          !write(*,*) 'mozartRun: step accepted'
-         Y(1:length,1:N) = Ynew(1:length,1:N)
+         Y(1:ncell,1:N) = Ynew(1:ncell,1:N)
          presentTime = presentTime + H
          IF (RejectLastH) THEN  ! No step size increase after a rejected step
            Hnew = MIN(Hnew,H)
@@ -458,7 +458,7 @@ acceptStep: &
    LOGICAL :: Converged
    integer :: i
 
-   do i = 1, length
+   do i = 1, ncell
       Msk(i,:) = Ynew(i,:) > this%AbsTol(:)
       Converged = .not. ANY( ABS(deltaY(i,:)) > this%RelTol(:)*ABS(Ynew(i,:)) .and. Msk(i,:) )
       if ( .not. Converged ) exit
@@ -484,7 +484,7 @@ acceptStep: &
    integer  :: i
 
    Error = 0._r8
-   do i = 1, length
+   do i = 1, ncell
       Ymax(:)  = MAX( ABS(Y(i,:)),ABS(Ynew(i,:)) )
 !      Scale(:) = this%AbsTol(:) + this%RelTol(:)*Ymax(:)
       Scale(:) = this%RelTol(:)*Ymax(:)
