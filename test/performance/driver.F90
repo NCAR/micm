@@ -158,7 +158,7 @@ contains
 #else
       t_max = t_measure
 #endif
-      if ( myrank == masterproc ) write(*,*) "Calculated grids per second: ", ncell/t_max
+      if ( myrank == masterproc ) write(*,*) "Calculated grids per second: ", mpisize*ncell/t_max
     end do
 
 #ifdef USE_NETCDF
