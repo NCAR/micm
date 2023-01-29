@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N MICM 
 #PBS -A NTDD0004
-#PBS -l select=1:ncpus=1:mpiprocs=1:mem=300GB:ngpus=1
+#PBS -l select=1:ncpus=2:mpiprocs=2:mem=300GB:ngpus=1
 #PBS -l gpu_type=v100
 #PBS -l walltime=00:59:00
 #PBS -q casper 
@@ -29,7 +29,7 @@ rm -rf *
 ###################################################################################################
 
 mycompiler="nvhpc"
-usempi="off"
+usempi="on"
 
 if [ $mycompiler = "gnu" ]; then
   module purge
@@ -58,14 +58,14 @@ fi
 
 # build a MICM test
 #cmake -D ENABLE_UTIL_ONLY=ON ..
-cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NSYS=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_NSYS=ON ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_MPI=ON ..
-#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_MPI=ON -D NUM_TASKS:STRING=18 ..
-#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF -D ENABLE_MPI=ON ..
+#cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_MPI=ON -D NUM_TASKS:STRING=1 ..
+cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_NETCDF=ON -D ENABLE_OPENACC=OFF -D ENABLE_MPI=ON -D NUM_TASKS:STRING=2 ..
 #cmake -D ENABLE_UTIL_ONLY=ON -D ENABLE_OPENACC=OFF -D CMAKE_BUILD_TYPE=DEBUG ..
 time make VERBOSE=1       # VERBOSE shows whether the desired flags are applied or not
 
@@ -79,5 +79,5 @@ if [ ! -d $outdir ]
 then
    mkdir $outdir
 fi
-mv ./Testing/Temporary/LastTest.log $outdir/gpu.log 
-mv ./test/performance/test_output.nc $outdir/gpu_output.nc
+mv ./Testing/Temporary/LastTest.log $outdir/cpu.log 
+mv ./test/performance/test_output.nc $outdir/cpu_output.nc

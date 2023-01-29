@@ -117,9 +117,11 @@ contains
 
     ! Set up the state data strutures
     allocate( number_densities__molec_cm3(ncell, number_of_species) )
-    !$acc enter data create(number_densities__molec_cm3,env) &
-    !$acc            copyin(cam_vars,cam_photolysis_rates, &
+    !$acc enter data create(number_densities__molec_cm3,env) async(STREAM0)
+#ifdef USE_NETCDF
+    !$acc enter data copyin(cam_vars,cam_photolysis_rates, &
     !$acc                   cam_temp,cam_pmid) async(STREAM0) 
+#endif
 
     ! Solve chemistry for each grid cell and time step
     do i_time = 1, kNumberOfTimeSteps
@@ -141,12 +143,14 @@ contains
       call assert_msg( 366068772, error_flag == 0,                            &
                        "Chemistry solver failed with code "//                 &
                        to_char( error_flag ) )
+      if ( myrank == masterproc ) then
 #ifdef USE_NETCDF
-      call output_state( number_densities__molec_cm3, species_names, i_time,  &
+         call output_state( number_densities__molec_cm3, species_names, i_time,  &
                          ncid, varid )
 #else
-      call output_state( number_densities__molec_cm3, species_names, i_time )
+         call output_state( number_densities__molec_cm3, species_names, i_time )
 #endif
+      end if
       t_measure = t_end - t_start
 #ifdef USE_MPI
       call mpi_reduce(t_measure, t_max, 1, MPI_DOUBLE_PRECISION, &
@@ -154,13 +158,17 @@ contains
 #else
       t_max = t_measure
 #endif
-      write(*,*) "solve time", t_max
+      if ( myrank == masterproc ) write(*,*) "Calculated grids per second: ", ncell/t_max
     end do
 
+#ifdef USE_NETCDF
+    !$acc exit data delete (cam_vars,cam_photolysis_rates, &
+    !$acc                   cam_temp,cam_pmid) async(STREAM0) 
+#endif
     !$acc exit data delete(number_densities__molec_cm3,env) async(STREAM0)
     deallocate(number_densities__molec_cm3)
-#ifdef USE_NETCDF
 
+#ifdef USE_NETCDF
     ! Close the netCDF file. This frees up any internal netCDF resources
     ! associated with the file, and flushes any buffers.
     call check( nf90_close(ncid) )

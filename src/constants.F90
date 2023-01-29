@@ -11,12 +11,12 @@ module constants
   integer, parameter :: VLEN = 128                                ! vector length for GPU kernels
   integer, parameter :: STREAM0 = 0                               ! stream ID for async GPU kernels
 #ifdef USE_NETCDF
-  integer, parameter :: dfactor = 1                               ! duplication factor to replicate the input data
+  integer, parameter :: dfactor = 2                               ! duplication factor to replicate the input data
   integer, parameter :: btime = 1, etime = 1, &                   ! begin & end index of each dimension of CAM FV output
                         dtime = etime-btime+1, &
                         blev = 1, elev = 32, &
                         dlev = elev-blev+1, &
-                        blat = 1, elat = 192, &
+                        blat = 96, elat = 97, &
                         dlat = elat-blat+1, &
                         blon = 1, elon = 288, &
                         dlon = elon-blon+1
