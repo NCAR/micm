@@ -58,18 +58,12 @@ namespace micm
 
   inline std::vector<std::string> ChapmanODESolver::photolysis_names()
   {
-    return std::vector<std::string>{
-      "O2_1",
-      "O3_1",
-      "O3_2",
-    };
+    return std::vector<std::string>{ "O2_1", "O3_1", "O3_2", };
   }
 
   inline std::vector<std::string> ChapmanODESolver::species_names()
   {
-    return std::vector<std::string>{
-      "M", "Ar", "CO2", "H2O", "N2", "O1D", "O", "O2", "O3",
-    };
+    return std::vector<std::string>{ "M", "Ar", "CO2", "H2O", "N2", "O1D", "O", "O2", "O3", };
   }
 
 }  // namespace micm
