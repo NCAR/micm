@@ -48,36 +48,36 @@ TEST(RegressionChapmanODESolver, ReactionNames){
   }
 }
 
-// TEST(RegressionChapmanODESolver, PhotolysisNames){
-//   Finit();
-//   micm::ChapmanODESolver solver{};
+TEST(RegressionChapmanODESolver, PhotolysisNames){
+  Finit();
+  micm::ChapmanODESolver solver{};
 
-//   CFI_CDESC_T(1) names;
+  CFI_CDESC_T(1) names;
 
-//   get_photolysis_names((CFI_cdesc_t *)&names);
+  get_photolysis_names((CFI_cdesc_t *)&names);
 
-//   std::vector<std::string_view> vs = extract_names((CFI_cdesc_t *)&names);
+  std::vector<std::string_view> vs = extract_names((CFI_cdesc_t *)&names);
 
-//   for(const auto& elem : solver.photolysis_names())
-//   {
-//     auto it = std::find(vs.begin(), vs.end(), elem);
-//     EXPECT_TRUE(it != vs.end());
-//   }
-// }
+  for(const auto& elem : solver.photolysis_names())
+  {
+    auto it = std::find(vs.begin(), vs.end(), elem);
+    EXPECT_TRUE(it != vs.end());
+  }
+}
 
-// TEST(RegressionChapmanODESolver, SpeciesNames){
-//   Finit();
-//   micm::ChapmanODESolver solver{};
+TEST(RegressionChapmanODESolver, SpeciesNames){
+  Finit();
+  micm::ChapmanODESolver solver{};
 
-//   CFI_CDESC_T(1) names;
+  CFI_CDESC_T(1) names;
 
-//   get_species_names((CFI_cdesc_t *)&names);
+  get_species_names((CFI_cdesc_t *)&names);
 
-//   std::vector<std::string_view> vs = extract_names((CFI_cdesc_t *)&names);
+  std::vector<std::string_view> vs = extract_names((CFI_cdesc_t *)&names);
 
-//   for(const auto& elem : solver.species_names())
-//   {
-//     auto it = std::find(vs.begin(), vs.end(), elem);
-//     EXPECT_TRUE(it != vs.end());
-//   }
-// }
+  for(const auto& elem : solver.species_names())
+  {
+    auto it = std::find(vs.begin(), vs.end(), elem);
+    EXPECT_TRUE(it != vs.end());
+  }
+}
