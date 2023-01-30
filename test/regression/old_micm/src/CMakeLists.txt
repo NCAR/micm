@@ -26,7 +26,6 @@ add_library(micmlib ${MICM_SRC})
 
 target_link_libraries(micmlib musicalib)
 
-# not sure why this is necessary
 target_include_directories(micmlib PUBLIC ${CMAKE_BINARY_DIR}/test/regression/old_micm/libs/musica-core/src)
 target_include_directories(micmlib PUBLIC ${CMAKE_BINARY_DIR}/test/regression/old_micm/src)
 

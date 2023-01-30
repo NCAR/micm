@@ -21,7 +21,9 @@ message(STATUS "CMake build configuration for micm(${CMAKE_BUILD_TYPE}) ${PROJEC
 
 include(cmake/StaticAnalyzers.cmake)
 
+# C++ options
 set(CMAKE_CXX_STANDARD 17)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 

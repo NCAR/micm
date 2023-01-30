@@ -58,10 +58,8 @@ include_directories(${JSON_INCLUDE_DIR})
 # MUSICA library
 
 add_subdirectory(libs/musica-core/src)
-include_directories(${CMAKE_BINARY_DIR}/libs/musica-core/src)
 
 ################################################################################
 # MICM library
 
 add_subdirectory(src)
-include_directories(${CMAKE_BINARY_DIR}/src)

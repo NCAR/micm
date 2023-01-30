@@ -9,9 +9,14 @@ include(test_util)
 # compile the old micm library
 add_subdirectory(old_micm)
 
-add_executable(regression_test_arrhenius test_arrhenius_regression.cpp rate_constants.F90)
+add_executable(regression_test_arrhenius regression_test_arrhenius.cpp rate_constants.F90)
 target_link_libraries(regression_test_arrhenius musica::micm micmlib GTest::gtest_main)
-
 add_test(NAME arrhenius_regression
           COMMAND regression_test_arrhenius ""
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(regression_test_name_retrieval regression_test_name_retrieval.cpp name_retrieval.F90)
+target_link_libraries(regression_test_name_retrieval musica::micm micmlib GTest::gtest_main)
+add_test(NAME name_regression
+          COMMAND regression_test_name_retrieval ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
