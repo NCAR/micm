@@ -14,6 +14,19 @@ extern "C" {
   void get_species_names( CFI_cdesc_t * );
 }
 
+class RegressionChapmanODESolver : public ::testing::Test
+{
+protected:
+     virtual void SetUp()
+     {      
+        Finit();
+     }
+
+     virtual void TearDown()
+     {
+     }
+};
+
 std::vector<std::string_view> extract_names(CFI_cdesc_t* names){
   std::vector<std::string_view> vs;
 
@@ -31,8 +44,7 @@ std::vector<std::string_view> extract_names(CFI_cdesc_t* names){
   return vs;
 }
 
-TEST(RegressionChapmanODESolver, ReactionNames){
-  Finit();
+TEST_F(RegressionChapmanODESolver, ReactionNames){
   micm::ChapmanODESolver solver{};
 
   CFI_CDESC_T(1) names;
@@ -48,8 +60,7 @@ TEST(RegressionChapmanODESolver, ReactionNames){
   }
 }
 
-TEST(RegressionChapmanODESolver, PhotolysisNames){
-  Finit();
+TEST_F(RegressionChapmanODESolver, PhotolysisNames){
   micm::ChapmanODESolver solver{};
 
   CFI_CDESC_T(1) names;
@@ -65,8 +76,7 @@ TEST(RegressionChapmanODESolver, PhotolysisNames){
   }
 }
 
-TEST(RegressionChapmanODESolver, SpeciesNames){
-  Finit();
+TEST_F(RegressionChapmanODESolver, SpeciesNames){
   micm::ChapmanODESolver solver{};
 
   CFI_CDESC_T(1) names;
