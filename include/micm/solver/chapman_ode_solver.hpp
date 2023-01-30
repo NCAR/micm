@@ -5,8 +5,8 @@
 #pragma once
 
 #include <micm/solver/solver.hpp>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace micm
 {
@@ -53,20 +53,12 @@ namespace micm
 
   inline std::vector<std::string> ChapmanODESolver::reaction_names()
   {
-    return std::vector<std::string> {
-      "O2_1",
-      "O3_1",
-      "O3_2",
-      "N2_O1D_1",
-      "O1D_O2_1",
-      "O_O3_1",
-      "M_O_O2_1"
-    };
+    return std::vector<std::string>{ "O2_1", "O3_1", "O3_2", "N2_O1D_1", "O1D_O2_1", "O_O3_1", "M_O_O2_1" };
   }
 
   inline std::vector<std::string> ChapmanODESolver::photolysis_names()
   {
-    return std::vector<std::string> {
+    return std::vector<std::string>{
       "O2_1",
       "O3_1",
       "O3_2",
@@ -76,15 +68,7 @@ namespace micm
   inline std::vector<std::string> ChapmanODESolver::species_names()
   {
     return std::vector<std::string>{
-      "M",
-      "Ar",
-      "CO2",
-      "H2O",
-      "N2",
-      "O1D",
-      "O",
-      "O2",
-      "O3",
+      "M", "Ar", "CO2", "H2O", "N2", "O1D", "O", "O2", "O3",
     };
   }
 
