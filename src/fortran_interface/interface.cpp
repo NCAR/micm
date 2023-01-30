@@ -13,8 +13,9 @@ namespace micm
   {
     std::cout << "state size: " << state_size << std::endl;
     std::cout << "timestep: " << timestep << std::endl;
-    
-    for(int64_t i{}; i < state_size; ++i){
+
+    for (int64_t i{}; i < state_size; ++i)
+    {
       std::cout << "state[" << i << "]: " << state[i] << std::endl;
     }
   }
