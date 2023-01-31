@@ -171,8 +171,10 @@ contains
 #ifdef USE_NETCDF
     ! Close the netCDF file. This frees up any internal netCDF resources
     ! associated with the file, and flushes any buffers.
-    call check( nf90_close(ncid) )
-    write(*,*) "Successfully write MICM output to ", file_name
+    if ( myrank == masterproc ) then
+       call check( nf90_close(ncid) )
+       write(*,*) "Successfully write MICM output to ", file_name
+    end if
 #ifdef USE_MPI
     call mpi_finalize(ierror)
     if (ierror /= MPI_SUCCESS) write(*,*) "Failed to finalize MPI..."
