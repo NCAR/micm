@@ -19,12 +19,20 @@ class RegressionChapmanODESolver : public ::testing::Test
 protected:
      virtual void SetUp()
      {      
-        Finit();
+      // runs once for each test
      }
 
      virtual void TearDown()
      {
      }
+public:
+    static void SetUpTestSuite() {
+      // runs once for the entire file
+      Finit();
+    }
+
+    static void TearDownTestSuite() {
+    }
 };
 
 std::vector<std::string_view> extract_names(CFI_cdesc_t* names){
