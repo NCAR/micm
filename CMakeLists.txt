@@ -75,14 +75,15 @@ if(PROJECT_IS_TOP_LEVEL)
         EXECUTABLE "ctest"
         EXCLUDE "${PROJECT_SOURCE_DIR}/test/*"
         BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src")
+
+    # override the fortran flags to remove -fcheck=bounds as this causes the tests to fail
+    set(CMAKE_Fortran_FLAGS
+      "-g -O0 -fprofile-arcs -ftest-coverage -fcheck=do,pointer -ffpe-trap=zero,overflow,invalid -fprofile-abs-path"
+      CACHE STRING "Flags used by the C++ compiler during coverage builds."
+      FORCE 
+    )
   endif()
 
-  # override the fortran flags to remove -fcheck=bounds as this causes the tests to fail
-  set(CMAKE_Fortran_FLAGS
-    "-g -O0 -fprofile-arcs -ftest-coverage -fcheck=do,pointer -ffpe-trap=zero,overflow,invalid -fprofile-abs-path"
-    CACHE STRING "Flags used by the C++ compiler during coverage builds."
-    FORCE 
-  )
   enable_testing()
   add_subdirectory(test)
 endif()

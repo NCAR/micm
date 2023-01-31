@@ -43,7 +43,7 @@ std::vector<std::string_view> extract_names(CFI_cdesc_t* names){
     // find the first whitespace character at each address to determine the actual
     // length of the string
     // only works since whitespace characters aren't important for reaction names
-    char* addr = (char *)(names->base_addr + i * names->elem_len);
+    char* addr = (char *)(names->base_addr) + i * names->elem_len;
     char* first_space = strchr(addr, ' ');
     size_t strlen = first_space - addr;
     vs.push_back(std::string_view(addr).substr(0, strlen));
