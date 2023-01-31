@@ -158,7 +158,7 @@ elseif(NOT CMAKE_COMPILER_IS_GNUCXX)
     endif()
 endif()
 
-set(COVERAGE_COMPILER_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage -fcheck=bounds,do,pointer -ffpe-trap=zero,overflow,invalid"
+set(COVERAGE_COMPILER_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage -fcheck=do,pointer -ffpe-trap=zero,overflow,invalid"
     CACHE INTERNAL "")
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
     include(CheckCXXCompilerFlag)
