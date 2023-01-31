@@ -101,5 +101,5 @@ do
 done
 
 # clear up the temporary files
-rm -f ../src/constants.F90_bk
-git checkout ../src/constants.F90
+rm -f src/constants.F90_bk
+git checkout src/constants.F90
