@@ -1,26 +1,23 @@
-module rate_constants
+module p_force_mod
   use iso_c_binding
 
   implicit none
 
 contains
 
-  real(kind=c_double) function arrhenius_rate(temperature, pressure, a, b, c, d, e) bind(c)
-    use iso_c_binding,                only : c_double
-    use micm_environment,             only : environment_t
-    use musica_constants,             only : musica_dk
-    use micm_rate_constant_arrhenius, only : rate_constant_arrhenius_t
+  subroutine p_force(rate_constants, number_densities, number_density_air, force) bind(c)
+    use iso_c_binding,      only : c_double
+    ! use musica_constants,             only : musica_dk
+    use kinetics_utilities, only : old_p_force => p_force
 
-    type(rate_constant_arrhenius_t) :: rate
-    type(environment_t)             :: env
-    real(kind=c_double), value      :: temperature, pressure, a, b, c, d, e
+    real(kind=c_double), intent(inout) :: rate_constants(:), number_densities(:)
+    real(kind=c_double), intent(in), value :: number_density_air
+    real(kind=c_double), pointer, intent(out) :: force(:)
 
-    env%temperature = temperature
-    env%pressure = pressure
+    allocate(force(size(rate_constants)))
 
-    rate = rate_constant_arrhenius_t( A=a, B=b, C=c, D=d, E=e )
+    call old_p_force(rate_constants, number_densities, number_density_air, force)
 
-    arrhenius_rate = rate%calculate(env)
+  end subroutine p_force
 
-  end function arrhenius_rate
-end module rate_constants
+end module p_force_mod
