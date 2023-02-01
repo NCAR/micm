@@ -4,12 +4,12 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <micm/solver/solver.hpp>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 namespace micm
 {
@@ -50,14 +50,14 @@ namespace micm
     p_force(std::vector<double> rate_constants, std::vector<double> number_densities, double number_density_air);
 
     /// @brief compute LU decomposition of [alpha * I - dforce_dy]
-    /// @param dforce_dy 
-    /// @param alpha 
+    /// @param dforce_dy
+    /// @param alpha
     /// @return An LU decomposition
     std::vector<double> factored_alpha_minus_jac(std::vector<double> dforce_dy, double alpha);
 
-  private:
-    /// @brief Factor 
-    /// @param LU 
+   private:
+    /// @brief Factor
+    /// @param LU
     void factor(std::vector<double>& LU);
   };
 
@@ -162,10 +162,11 @@ namespace micm
     return force;
   }
 
-  inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(std::vector<double> dforce_dy, double alpha){
+  inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(std::vector<double> dforce_dy, double alpha)
+  {
     std::vector<double> LU(dforce_dy);
     // multiply LU by -1
-    std::transform(LU.begin(), LU.end(), LU.begin(), [](auto& c){return -c;});
+    std::transform(LU.begin(), LU.end(), LU.begin(), [](auto& c) { return -c; });
 
     assert(LU.size() >= 23);
 
@@ -183,32 +184,33 @@ namespace micm
     return LU;
   }
 
-  inline void ChapmanODESolver::factor(std::vector<double>& LU){
-    LU[0] = 1./LU[0];
+  inline void ChapmanODESolver::factor(std::vector<double>& LU)
+  {
+    LU[0] = 1. / LU[0];
     LU[1] = LU[1] * LU[0];
     LU[2] = LU[2] * LU[0];
     LU[3] = LU[3] * LU[0];
-    LU[4] = 1./LU[4];
-    LU[5] = 1./LU[5];
-    LU[6] = 1./LU[6];
-    LU[7] = 1./LU[7];
+    LU[4] = 1. / LU[4];
+    LU[5] = 1. / LU[5];
+    LU[6] = 1. / LU[6];
+    LU[7] = 1. / LU[7];
     LU[8] = LU[8] * LU[7];
     LU[9] = LU[9] * LU[7];
-    LU[10] = 1./LU[10];
+    LU[10] = 1. / LU[10];
     LU[11] = LU[11] * LU[10];
-    LU[16] = LU[16] - LU[11]*LU[15];
-    LU[20] = LU[20] - LU[11]*LU[19];
-    LU[12] = 1./LU[12];
+    LU[16] = LU[16] - LU[11] * LU[15];
+    LU[20] = LU[20] - LU[11] * LU[19];
+    LU[12] = 1. / LU[12];
     LU[13] = LU[13] * LU[12];
     LU[14] = LU[14] * LU[12];
-    LU[17] = LU[17] - LU[13]*LU[16];
-    LU[18] = LU[18] - LU[14]*LU[16];
-    LU[21] = LU[21] - LU[13]*LU[20];
-    LU[22] = LU[22] - LU[14]*LU[20];
-    LU[17] = 1./LU[17];
+    LU[17] = LU[17] - LU[13] * LU[16];
+    LU[18] = LU[18] - LU[14] * LU[16];
+    LU[21] = LU[21] - LU[13] * LU[20];
+    LU[22] = LU[22] - LU[14] * LU[20];
+    LU[17] = 1. / LU[17];
     LU[18] = LU[18] * LU[17];
-    LU[22] = LU[22] - LU[18]*LU[21];
-    LU[22] = 1./LU[22];
+    LU[22] = LU[22] - LU[18] * LU[21];
+    LU[22] = 1. / LU[22];
   }
 
 }  // namespace micm
