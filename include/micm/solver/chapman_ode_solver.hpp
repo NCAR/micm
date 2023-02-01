@@ -91,7 +91,7 @@ namespace micm
     // M, Ar, CO2, H2O, N2, O1D, O, O2, O3,
     std::vector<double> force(number_densities.size(), 0);
 
-    assert(force.size() > 9);
+    assert(force.size() == 9);
 
     // M, Ar, CO2, H2O, N2 are all zero
 
