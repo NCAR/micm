@@ -57,6 +57,10 @@ TEST_F(RegressionChapmanODESolver, ReactionNames){
 
   CFI_CDESC_T(1) names;
 
+  CFI_establish((CFI_cdesc_t *)&names, NULL,
+                      CFI_attribute_pointer,
+                      CFI_type_char, 0, (CFI_rank_t)1, NULL);
+
   get_reaction_names((CFI_cdesc_t *)&names);
 
   std::vector<std::string_view> vs = extract_names((CFI_cdesc_t *)&names);
@@ -72,6 +76,9 @@ TEST_F(RegressionChapmanODESolver, PhotolysisNames){
   micm::ChapmanODESolver solver{};
 
   CFI_CDESC_T(1) names;
+  CFI_establish((CFI_cdesc_t *)&names, NULL,
+                      CFI_attribute_pointer,
+                      CFI_type_char, 0, (CFI_rank_t)1, NULL);
 
   get_photolysis_names((CFI_cdesc_t *)&names);
 
@@ -88,6 +95,9 @@ TEST_F(RegressionChapmanODESolver, SpeciesNames){
   micm::ChapmanODESolver solver{};
 
   CFI_CDESC_T(1) names;
+  CFI_establish((CFI_cdesc_t *)&names, NULL,
+                      CFI_attribute_pointer,
+                      CFI_type_char, 0, (CFI_rank_t)1, NULL);
 
   get_species_names((CFI_cdesc_t *)&names);
 

@@ -29,3 +29,12 @@ TEST(ChapmanODESolver, SpeciesNames){
   auto names = solver.species_names();
   ASSERT_EQ(names.size(), 9);
 }
+
+TEST(ChapmanODESolver, p_force){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> rate_constants{};
+  std::vector<double> number_densities{};
+  double number_density_air{};
+
+  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+}
