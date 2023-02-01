@@ -7,6 +7,7 @@
 #include <micm/solver/solver.hpp>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace micm
 {
@@ -75,7 +76,65 @@ namespace micm
 
   inline std::vector<double> ChapmanODESolver::p_force(std::vector<double> rate_constants, std::vector<double> number_densities, double number_density_air)
   {
-    return std::vector<double>();
+    // Forcings:
+    // M, Ar, CO2, H2O, N2, O1D, O, O2, O3, 
+    std::vector<double> force(number_densities.size(), 0);
+
+    // M, Ar, CO2, H2O, N2 are all zero
+  
+    // O1D
+    {
+      // k_O3_1: O3 -> 1*O1D + 1*O2
+      force[5] = force[5] + rate_constants[1] * number_densities[8];
+      // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+      force[5] = force[5] - rate_constants[3] * number_densities[4] * number_densities[5];
+      // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+      force[5] = force[5] - rate_constants[4] * number_densities[5] * number_densities[7];
+    }
+  
+    // O
+    {
+      // k_O2_1: O2 -> 2*O
+      force[6] = force[6] + 2*rate_constants[0] * number_densities[7];
+      // k_O3_2: O3 -> 1*O + 1*O2
+      force[6] = force[6] + rate_constants[2] * number_densities[8];
+      // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+      force[6] = force[6] + rate_constants[3] * number_densities[4] * number_densities[5];
+      // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+      force[6] = force[6] + rate_constants[4] * number_densities[5] * number_densities[7];
+      // k_O_O3_1: O + O3 -> 2*O2
+      force[6] = force[6] - rate_constants[5] * number_densities[6] * number_densities[8];
+      // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+      force[6] = force[6] - rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+    }
+  
+    // O2
+    {
+      // k_O2_1: O2 -> 2*O
+      force[7] = force[7] - rate_constants[0] * number_densities[7];
+      // k_O3_1: O3 -> 1*O1D + 1*O2
+      force[7] = force[7] + rate_constants[1] * number_densities[8];
+      // k_O3_2: O3 -> 1*O + 1*O2
+      force[7] = force[7] + rate_constants[2] * number_densities[8];
+      // k_O_O3_1: O + O3 -> 2*O2
+      force[7] = force[7] + 2*rate_constants[5] * number_densities[6] * number_densities[8];
+      // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+      force[7] = force[7] - rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+    }
+  
+    // O3
+    {
+      // k_O3_1: O3 -> 1*O1D + 1*O2
+      force[8] = force[8] - rate_constants[1] * number_densities[8];
+      // k_O3_2: O3 -> 1*O + 1*O2
+      force[8] = force[8] - rate_constants[2] * number_densities[8];
+      // k_O_O3_1: O + O3 -> 2*O2
+      force[8] = force[8] - rate_constants[5] * number_densities[6] * number_densities[8];
+      // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+      force[8] = force[8] + rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
+    }
+
+    return force;
   }
 
 }  // namespace micm

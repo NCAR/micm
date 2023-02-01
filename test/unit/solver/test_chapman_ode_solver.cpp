@@ -32,8 +32,8 @@ TEST(ChapmanODESolver, SpeciesNames){
 
 TEST(ChapmanODESolver, p_force){
   micm::ChapmanODESolver solver{};
-  std::vector<double> rate_constants{};
-  std::vector<double> number_densities{};
+  std::vector<double> rate_constants(9, 0);
+  std::vector<double> number_densities(9, 0);
   double number_density_air{};
 
   auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);

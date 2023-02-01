@@ -20,3 +20,9 @@ target_link_libraries(regression_test_name_retrieval musica::micm micmlib GTest:
 add_test(NAME name_regression
           COMMAND regression_test_name_retrieval ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(regression_test_p_force regression_test_p_force.cpp p_force.F90)
+target_link_libraries(regression_test_p_force musica::micm micmlib GTest::gtest_main)
+add_test(NAME p_force
+          COMMAND regression_test_p_force ""
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
