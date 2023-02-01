@@ -38,10 +38,6 @@ TEST(ChapmanODESolver, simple_p_force){
 
   auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
 
-  for(auto& elem : forcing){
-    std::cout << elem << std::endl;
-  }
-
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
   EXPECT_EQ(forcing[1], 0);
@@ -72,4 +68,37 @@ TEST(ChapmanODESolver, smaller_p_force){
   EXPECT_NEAR(forcing[6], 4.55e-13, 0.01);
   EXPECT_NEAR(forcing[7], 1.5e-13, 0.01);
   EXPECT_NEAR(forcing[8], -3e-13, 0.01);
+}
+
+TEST(ChapmanODESolver, factored_alpha_minus_jac){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> dforce_dy(23, 1);
+  double alpha{2};
+
+  auto LU = solver.factored_alpha_minus_jac(dforce_dy, alpha);
+
+  // the truth values were calculated in fortran with old micm
+  EXPECT_NEAR(LU[0], 1.000, 0.01);
+  EXPECT_NEAR(LU[1], -1.000, 0.01);
+  EXPECT_NEAR(LU[2], -1.000, 0.01);
+  EXPECT_NEAR(LU[3], -1.000, 0.01);
+  EXPECT_NEAR(LU[4], 1.000, 0.01);
+  EXPECT_NEAR(LU[5], 1.000, 0.01);
+  EXPECT_NEAR(LU[6], 1.000, 0.01);
+  EXPECT_NEAR(LU[7], 1.000, 0.01);
+  EXPECT_NEAR(LU[8], -1.000, 0.01);
+  EXPECT_NEAR(LU[9], -1.000, 0.01);
+  EXPECT_NEAR(LU[10], 1.000, 0.01);
+  EXPECT_NEAR(LU[11], -1.000, 0.01);
+  EXPECT_NEAR(LU[12], 1.000, 0.01);
+  EXPECT_NEAR(LU[13], -1.000, 0.01);
+  EXPECT_NEAR(LU[14], -1.000, 0.01);
+  EXPECT_NEAR(LU[15], -1.000, 0.01);
+  EXPECT_NEAR(LU[16], -2.000, 0.01);
+  EXPECT_NEAR(LU[17], -1.000, 0.01);
+  EXPECT_NEAR(LU[18], 3.000, 0.01);
+  EXPECT_NEAR(LU[19], -1.000, 0.01);
+  EXPECT_NEAR(LU[20], -2.000, 0.01);
+  EXPECT_NEAR(LU[21], -3.000, 0.01);
+  EXPECT_NEAR(LU[22], 0.125, 0.01);
 }

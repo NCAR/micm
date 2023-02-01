@@ -9,7 +9,7 @@ contains
     use iso_c_binding,      only : c_double
     use kinetics_utilities, only : old_p_force => p_force
 
-    real(kind=c_double), intent(inout) :: rate_constants(:), number_densities(:)
+    real(kind=c_double), intent(in) :: rate_constants(:), number_densities(:)
     real(kind=c_double), intent(in), value :: number_density_air
     real(kind=c_double), pointer, intent(out) :: force(:)
 
