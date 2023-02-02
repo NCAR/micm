@@ -102,3 +102,36 @@ TEST(ChapmanODESolver, factored_alpha_minus_jac){
   EXPECT_NEAR(LU[21], -3.000, 0.01);
   EXPECT_NEAR(LU[22], 0.125, 0.01);
 }
+
+TEST(ChapmanODESolver, dforce_dy_time_vector){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> dforce_dy(23, 1);
+  std::vector<double> vector(23, 0.5);
+
+  auto product = solver.dforce_dy_times_vector(dforce_dy, vector);
+
+  // the truth values were calculated in fortran with old micm
+  EXPECT_NEAR(product[0], 0, 0.01);
+  EXPECT_NEAR(product[1], 0, 0.01);
+  EXPECT_NEAR(product[2], 0, 0.01);
+  EXPECT_NEAR(product[3], 0, 0.01);
+  EXPECT_NEAR(product[4], 0, 0.01);
+  EXPECT_NEAR(product[5], 2, 0.01);
+  EXPECT_NEAR(product[6], 3, 0.01);
+  EXPECT_NEAR(product[7], 2, 0.01);
+  EXPECT_NEAR(product[8], 2, 0.01);
+  EXPECT_NEAR(product[9], 0, 0.01);
+  EXPECT_NEAR(product[10], 0, 0.01);
+  EXPECT_NEAR(product[11], 0, 0.01);
+  EXPECT_NEAR(product[12], 0, 0.01);
+  EXPECT_NEAR(product[13], 0, 0.01);
+  EXPECT_NEAR(product[14], 0, 0.01);
+  EXPECT_NEAR(product[15], 0, 0.01);
+  EXPECT_NEAR(product[16], 0, 0.01);
+  EXPECT_NEAR(product[17], 0, 0.01);
+  EXPECT_NEAR(product[18], 0, 0.01);
+  EXPECT_NEAR(product[19], 0, 0.01);
+  EXPECT_NEAR(product[20], 0, 0.01);
+  EXPECT_NEAR(product[21], 0, 0.01);
+  EXPECT_NEAR(product[22], 0, 0.01);
+}

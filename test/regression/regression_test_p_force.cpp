@@ -4,7 +4,6 @@
 #include <micm/solver/chapman_ode_solver.hpp>
 
 extern "C" {
-  void Finit(void);
   void p_force(CFI_cdesc_t * rate_constants, CFI_cdesc_t * number_densities, double number_density_air, CFI_cdesc_t * force);
 }
 
