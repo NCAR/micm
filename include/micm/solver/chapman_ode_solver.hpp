@@ -219,20 +219,22 @@ namespace micm
     LU[22] = 1. / LU[22];
   }
 
-  inline std::vector<double> ChapmanODESolver::dforce_dy_times_vector(std::vector<double> dforce_dy, std::vector<double> vector){
-
+  inline std::vector<double> ChapmanODESolver::dforce_dy_times_vector(
+      std::vector<double> dforce_dy,
+      std::vector<double> vector)
+  {
     std::vector<double> result(dforce_dy.size(), 0);
 
     assert(result.size() >= 23);
-  
+
     // df_O/d[M] * M_temporary
-    result[6] = result[6] + dforce_dy[1]  * vector[0];
+    result[6] = result[6] + dforce_dy[1] * vector[0];
     // df_O2/d[M] * M_temporary
-    result[7] = result[7] + dforce_dy[2]  * vector[0];
+    result[7] = result[7] + dforce_dy[2] * vector[0];
     // df_O3/d[M] * M_temporary
-    result[8] = result[8] + dforce_dy[3]  * vector[0];
+    result[8] = result[8] + dforce_dy[3] * vector[0];
     // df_O1D/d[N2] * N2_temporary
-    result[5] = result[5] + dforce_dy[8]  * vector[4];
+    result[5] = result[5] + dforce_dy[8] * vector[4];
     // df_O/d[N2] * N2_temporary
     result[6] = result[6] + dforce_dy[9] * vector[4];
     // df_O1D/d[O1D] * O1D_temporary
