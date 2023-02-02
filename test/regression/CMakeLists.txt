@@ -26,3 +26,9 @@ target_link_libraries(regression_test_p_force musica::micm micmlib GTest::gtest_
 add_test(NAME p_force
           COMMAND regression_test_p_force ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(regression_test_factored_alpha_minus_jac regression_test_factored_alpha_minus_jac.cpp factored_alpha_minus_jac.F90)
+target_link_libraries(regression_test_factored_alpha_minus_jac musica::micm micmlib GTest::gtest_main)
+add_test(NAME factored_alpha_minus_jac
+          COMMAND regression_test_factored_alpha_minus_jac ""
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
