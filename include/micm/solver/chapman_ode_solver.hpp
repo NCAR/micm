@@ -55,6 +55,12 @@ namespace micm
     /// @return An LU decomposition
     std::vector<double> factored_alpha_minus_jac(std::vector<double> dforce_dy, double alpha);
 
+    /// @brief Computes product of [dforce_dy * vector]
+    /// @param dforce_dy  Jacobian of forcing
+    /// @param vector vector ordered as the order of number density in dy
+    /// @return Product of jacobian with vector
+    std::vector<double> dforce_dy_times_vector(std::vector<double> dforce_dy, std::vector<double> vector);
+
    private:
     /// @brief Factor
     /// @param LU
@@ -211,6 +217,52 @@ namespace micm
     LU[18] = LU[18] * LU[17];
     LU[22] = LU[22] - LU[18] * LU[21];
     LU[22] = 1. / LU[22];
+  }
+
+  inline std::vector<double> ChapmanODESolver::dforce_dy_times_vector(std::vector<double> dforce_dy, std::vector<double> vector){
+
+    std::vector<double> result(dforce_dy.size(), 0);
+
+    assert(result.size() >= 23);
+  
+    // df_O/d[M] * M_temporary
+    result[6] = result[6] + dforce_dy[1]  * vector[0];
+    // df_O2/d[M] * M_temporary
+    result[7] = result[7] + dforce_dy[2]  * vector[0];
+    // df_O3/d[M] * M_temporary
+    result[8] = result[8] + dforce_dy[3]  * vector[0];
+    // df_O1D/d[N2] * N2_temporary
+    result[5] = result[5] + dforce_dy[8]  * vector[4];
+    // df_O/d[N2] * N2_temporary
+    result[6] = result[6] + dforce_dy[9] * vector[4];
+    // df_O1D/d[O1D] * O1D_temporary
+    result[5] = result[5] + dforce_dy[10] * vector[5];
+    // df_O/d[O1D] * O1D_temporary
+    result[6] = result[6] + dforce_dy[11] * vector[5];
+    // df_O/d[O] * O_temporary
+    result[6] = result[6] + dforce_dy[12] * vector[6];
+    // df_O2/d[O] * O_temporary
+    result[7] = result[7] + dforce_dy[13] * vector[6];
+    // df_O3/d[O] * O_temporary
+    result[8] = result[8] + dforce_dy[14] * vector[6];
+    // df_O1D/d[O2] * O2_temporary
+    result[5] = result[5] + dforce_dy[15] * vector[7];
+    // df_O/d[O2] * O2_temporary
+    result[6] = result[6] + dforce_dy[16] * vector[7];
+    // df_O2/d[O2] * O2_temporary
+    result[7] = result[7] + dforce_dy[17] * vector[7];
+    // df_O3/d[O2] * O2_temporary
+    result[8] = result[8] + dforce_dy[18] * vector[7];
+    // df_O1D/d[O3] * O3_temporary
+    result[5] = result[5] + dforce_dy[19] * vector[8];
+    // df_O/d[O3] * O3_temporary
+    result[6] = result[6] + dforce_dy[20] * vector[8];
+    // df_O2/d[O3] * O3_temporary
+    result[7] = result[7] + dforce_dy[21] * vector[8];
+    // df_O3/d[O3] * O3_temporary
+    result[8] = result[8] + dforce_dy[22] * vector[8];
+
+    return result;
   }
 
 }  // namespace micm
