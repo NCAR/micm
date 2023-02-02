@@ -5,6 +5,7 @@ RUN dnf -y update \
         cmake \
         gcc-c++ \
         gcc-fortran \
+        gdb \
         git \
         make \
         netcdf-fortran-devel \
@@ -33,7 +34,9 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-8.2.0" \
-      && cmake ../micm \
-      && make -j 8
+      && cmake \
+        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
+        ../micm \
+      && make 
 
 WORKDIR /build

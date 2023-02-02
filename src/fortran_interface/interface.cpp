@@ -6,10 +6,10 @@ namespace micm
 {
 
   void solver(
-      double state[],
+      double state[], // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
       int64_t state_size,
       int64_t
-          timestep)  // NOLINT(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+          timestep)  
   {
     std::cout << "state size: " << state_size << std::endl;
     std::cout << "timestep: " << timestep << std::endl;
