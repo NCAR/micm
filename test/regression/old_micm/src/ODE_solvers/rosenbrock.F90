@@ -66,7 +66,7 @@ MODULE micm_ODE_solver_rosenbrock
 CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  function constructor( config ) result( this )
+function constructor( config ) result( this )
 
     use musica_config,                 only : config_t
 
@@ -75,7 +75,7 @@ CONTAINS
     !> Solver configuration data
     type(config_t), intent(inout) :: config
 
-!   local variables
+   !   local variables
     character(len=*), parameter :: my_name = 'Rosenbrock ODE solver constructor'
     integer(musica_ik), pointer :: icntrl(:)
     real(r8), pointer :: rcntrl(:)
@@ -107,11 +107,11 @@ CONTAINS
 
     allocate( this%AbsTol(N),this%RelTol(N) )
 
-!~~~>  Autonomous or time dependent ODE. Default is time dependent.
+   !~~~>  Autonomous or time dependent ODE. Default is time dependent.
     this%Autonomous = .NOT.(ICNTRL(1) == 0)
 
-!~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
-!   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
+   !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
+   !   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
     IF (ICNTRL(2) == 0) THEN
       this%VectorTol = .TRUE.
       this%UplimTol  = N
@@ -123,7 +123,7 @@ CONTAINS
       this%AbsTol(:N) = abs_tol !> \todo support vector tolerances in input data
       this%RelTol(:N) = rel_tol
     END IF
-!~~~>   Initialize the particular Rosenbrock method selected
+   !~~~>   Initialize the particular Rosenbrock method selected
     SELECT CASE (ICNTRL(3))
       CASE (1)
        CALL Ros2( this )
@@ -144,7 +144,7 @@ CONTAINS
        RETURN
     END SELECT
 
-!~~~>   The maximum number of steps admitted
+   !~~~>   The maximum number of steps admitted
    IF (ICNTRL(4) == 0) THEN
       this%Max_no_steps = 200000
    ELSEIF (ICNTRL(4) > 0) THEN
@@ -156,10 +156,10 @@ CONTAINS
       RETURN
    END IF
 
-!~~~>  Unit roundoff (1+Roundoff>1)
+   !~~~>  Unit roundoff (1+Roundoff>1)
    this%Roundoff = EPSILON( this%Roundoff )
 
-!~~~>  Lower bound on the step size: (positive value)
+   !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
       this%Hmin = ZERO
    ELSEIF (RCNTRL(1) > ZERO) THEN
@@ -170,7 +170,7 @@ CONTAINS
       CALL ros_ErrorMsg(-3,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>  Upper bound on the step size: (positive value)
+   !~~~>  Upper bound on the step size: (positive value)
    IF (RCNTRL(2) == ZERO) THEN
       this%Hmax = ABS(Tend-Tstart)
    ELSEIF (RCNTRL(2) > ZERO) THEN
@@ -181,7 +181,7 @@ CONTAINS
       CALL ros_ErrorMsg(-3,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>  Starting step size: (positive value)
+   !~~~>  Starting step size: (positive value)
    IF (RCNTRL(3) == ZERO) THEN
       this%Hstart = MAX(this%Hmin,DeltaMin)
    ELSEIF (RCNTRL(3) > ZERO) THEN
@@ -192,7 +192,7 @@ CONTAINS
       CALL ros_ErrorMsg(-3,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>  Step size can be changed s.t.  FacMin < Hnew/Hold < FacMax
+   !~~~>  Step size can be changed s.t.  FacMin < Hnew/Hold < FacMax
    IF (RCNTRL(4) == ZERO) THEN
       this%FacMin = 0.2_r8
    ELSEIF (RCNTRL(4) > ZERO) THEN
@@ -213,7 +213,7 @@ CONTAINS
       CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>   FacRej: Factor to decrease step after 2 succesive rejections
+   !~~~>   FacRej: Factor to decrease step after 2 succesive rejections
    IF (RCNTRL(6) == ZERO) THEN
       this%FacRej = 0.1_r8
    ELSEIF (RCNTRL(6) > ZERO) THEN
@@ -224,7 +224,7 @@ CONTAINS
       CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>   FacSafe: Safety Factor in the computation of new step size
+   !~~~>   FacSafe: Safety Factor in the computation of new step size
    IF (RCNTRL(7) == ZERO) THEN
       this%FacSafe = 0.9_r8
    ELSEIF (RCNTRL(7) > ZERO) THEN
@@ -235,7 +235,7 @@ CONTAINS
       CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
       RETURN
    END IF
-!~~~>  Check if tolerances are reasonable
+   !~~~>  Check if tolerances are reasonable
     DO i = 1,N
       IF( (this%AbsTol(i) <= ZERO) .OR. (this%RelTol(i) <= TEN*this%Roundoff) &
                                    .OR. (this%RelTol(i) >= ONE) ) THEN
@@ -261,10 +261,10 @@ CONTAINS
        write(*,*) ' '
     endif
 
-    end function constructor
+end function constructor
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
+subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
 
       class(ODE_solver_rosenbrock_t), intent(inout) :: this
       integer,                        intent(out)   :: Ierr
@@ -274,7 +274,7 @@ CONTAINS
       real(r8), optional,             intent(in)    :: Tend
       TYPE(kinetics_t), optional,     intent(inout) :: theKinetics
 
-! ~~~~ Local variables
+   ! ~~~~ Local variables
       INTEGER  :: N
       INTEGER  :: S_ndx
       INTEGER  :: j, istage
@@ -288,14 +288,14 @@ CONTAINS
       real(r8) :: rstat(20)
       LOGICAL  :: RejectLastH, RejectMoreH, Singular
 
-!~~~>  Initial preparations
+   !~~~>  Initial preparations
    IF( .not. present(theKinetics) .or. .not. present(Tstart) .or. &
        .not. present(Tend) ) THEN
      Ierr = -10
      RETURN
    ENDIF
 
-!~~~>  Initializations, check incoming time step
+   !~~~>  Initializations, check incoming time step
    N = this%n
    presentTime = Tstart
    this%rcntrl(Nhexit) = ZERO
@@ -308,8 +308,8 @@ CONTAINS
    this%icntrl(:) = 0
    this%rcntrl(:) = ZERO
 
-!~~~> Time loop
-TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
+   !~~~> Time loop
+   TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
 
    IF ( this%icntrl(Nstp) > this%Max_no_steps ) THEN  ! Too many steps
       Ierr = -6
@@ -322,17 +322,17 @@ TimeLoop: DO WHILE ( (presentTime-Tend)+this%Roundoff <= ZERO )
       RETURN
    END IF
 
-!~~~>  Limit H if necessary to avoid going beyond Tend
+   !~~~>  Limit H if necessary to avoid going beyond Tend
    H = MIN(H,ABS(Tend-presentTime))
 
-!~~~>   Compute the function at current time
+   !~~~>   Compute the function at current time
    Fcn0(:) = theKinetics%force( Y )
    this%icntrl(Nfun) = this%icntrl(Nfun) + 1
 
-!~~~>  Repeat step calculation until current step accepted
-UntilAccepted: DO
+   !~~~>  Repeat step calculation until current step accepted
+   UntilAccepted: DO
 
-!~~~>  Form and factor the rosenbrock ode jacobian
+   !~~~>  Form and factor the rosenbrock ode jacobian
    CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
    this%icntrl(Njac) = this%icntrl(Njac) + 1
    IF (Singular) THEN ! More than 5 consecutive failed decompositions
@@ -341,8 +341,8 @@ UntilAccepted: DO
        RETURN
    END IF
 
-!~~~>   Compute the stages
-Stage_loop: &
+   !~~~>   Compute the stages
+   Stage_loop: &
    DO istage = 1, this%ros_S
      IF ( istage /= 1 ) THEN
        S_ndx = (istage - 1)*(istage - 2)/2
@@ -368,27 +368,27 @@ Stage_loop: &
      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
    END DO Stage_loop
 
-!~~~>  Compute the new solution
+   !~~~>  Compute the new solution
    Ynew(1:N) = Y(1:N)
    DO j=1,this%ros_S
      Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
    END DO
 
-!~~~>  Compute the error estimation
+   !~~~>  Compute the error estimation
    Yerr(1:N) = ZERO
    DO j=1,this%ros_S
      Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
    END DO
    Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
-!~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
+   !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
    Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
    Hnew = H*Fac
 
-!~~~>  Check the error magnitude and adjust step size
+   !~~~>  Check the error magnitude and adjust step size
    this%icntrl(Nstp) = this%icntrl(Nstp) + 1
    this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
-Accepted: &
+   Accepted: &
    IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
       Y(1:N) = Ynew(1:N)
@@ -418,18 +418,19 @@ Accepted: &
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+   !~~~> Succesful exit
    IERR = 0  !~~~> The integration was successful
    IF( present(T) ) THEN
      T = presentTime
    ENDIF
 
-    end subroutine solve
+end subroutine solve
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    subroutine preprocess_input(this,config,output_path)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!   Preprocesses solver input data
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+subroutine preprocess_input(this,config,output_path)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !   Preprocesses solver input data
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       use musica_assert,               only : assert
       use musica_config,               only : config_t
@@ -452,12 +453,13 @@ Accepted: &
       call config%add( "absolute tolerance", this%AbsTol(1), my_name )
       call config%add( "relative tolerance", this%RelTol(1), my_name )
 
-    end subroutine preprocess_input
+end subroutine preprocess_input
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!    Handles all error messages
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !    Handles all error messages
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       use musica_assert,               only : die_msg
 
@@ -495,21 +497,21 @@ Accepted: &
 
    call die_msg( 752607384, "Rosenbrock solver failure" )
 
- END SUBROUTINE ros_ErrorMsg
+END SUBROUTINE ros_ErrorMsg
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  FUNCTION ros_ErrorNorm ( this, Y, Ynew, Yerr ) result( Error )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!~~~> Computes the "scaled norm" of the error vector Yerr
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FUNCTION ros_ErrorNorm ( this, Y, Ynew, Yerr ) result( Error )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Computes the "scaled norm" of the error vector Yerr
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-! Input arguments
+   ! Input arguments
    class(ODE_solver_rosenbrock_t) :: this
    REAL(r8), INTENT(IN) :: Y(:), Ynew(:), Yerr(:)
 
    REAL(r8) :: Error
 
-! Local variables
+   ! Local variables
    REAL(r8) :: Scale(this%N), Ymax(this%N)
 
    Ymax(:)  = MAX( ABS(Y(:)),ABS(Ynew(:)) )
@@ -519,121 +521,123 @@ Accepted: &
   END FUNCTION ros_ErrorNorm
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Ros2( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! --- AN L-STABLE METHOD, 2 stages, order 2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE Ros2( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ! --- AN L-STABLE METHOD, 2 stages, order 2
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     class(ODE_solver_rosenbrock_t) :: this
 
     real(r8),parameter :: g = 1.0_r8 + 1.0_r8/SQRT(2.0_r8)
 
     this%rosMethod = RS2
-!~~~> Name of the method
+   !~~~> Name of the method
     this%ros_Name = 'ROS-2'
-!~~~> Number of stages
+   !~~~> Number of stages
     this%ros_S = 2
 
-!~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:
-!       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-!       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   !~~~> The coefficient matrices A and C are strictly lower triangular.
+   !   The lower triangular (subdiagonal) elements are stored in row-wise order:
+   !   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   !   The general mapping formula is:
+   !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
     this%ros_A(1) = (1.0_r8)/g
     this%ros_C(1) = (-2.0_r8)/g
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
     this%ros_NewF(1:2) = .TRUE.
-!~~~> M_i = Coefficients for new step solution
+   !~~~> M_i = Coefficients for new step solution
     this%ros_M(1)= (3.0_r8)/(2.0_r8*g)
     this%ros_M(2)= (1.0_r8)/(2.0_r8*g)
-! E_i = Coefficients for error estimator
+   ! E_i = Coefficients for error estimator
     this%ros_E(1) = 1.0_r8/(2.0_r8*g)
     this%ros_E(2) = 1.0_r8/(2.0_r8*g)
-!~~~> ros_ELO = estimator of local order - the minimum between the
-!    main and the embedded scheme orders plus one
+   !~~~> ros_ELO = estimator of local order - the minimum between the
+   !    main and the embedded scheme orders plus one
     this%ros_ELO = 2.0_r8
-!~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+   !~~~> Y_stage_i ~ Y( T + H*Alpha_i )
     this%ros_Alpha(1:2) = (/ 0.0_r8,1.0_r8 /)
-!~~~> Gamma_i = \sum_j  gamma_{i,j}
-    this%ros_Gamma(1:2) = (/ g,-g /)
+   !~~~> Gamma_i = \sum_j  gamma_{i,j}
+   this%ros_Gamma(1:2) = (/ g,-g /)
 
- END SUBROUTINE Ros2
+END SUBROUTINE Ros2
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Ros3( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! --- AN L-STABLE METHOD, 3 stages, order 3, 2 function evaluations
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE Ros3( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ! --- AN L-STABLE METHOD, 3 stages, order 3, 2 function evaluations
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    class(ODE_solver_rosenbrock_t) :: this
 
    this%rosMethod = RS3
-!~~~> Name of the method
+   !~~~> Name of the method
    this%ros_Name = 'ROS-3'
-!~~~> Number of stages
+   !~~~> Number of stages
    this%ros_S = 3
 
-!~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:
-!       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-!       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   !~~~> The coefficient matrices A and C are strictly lower triangular.
+   !   The lower triangular (subdiagonal) elements are stored in row-wise order:
+   !   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   !   The general mapping formula is:
+   !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
    this%ros_A(1:3)= (/ 1.0_r8, 1.0_r8, 0.0_r8 /)
 
    this%ros_C(1) = -0.10156171083877702091975600115545E+01_r8
    this%ros_C(2) =  0.40759956452537699824805835358067E+01_r8
    this%ros_C(3) =  0.92076794298330791242156818474003E+01_r8
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    this%ros_NewF(1:3) = (/ .TRUE.,.TRUE.,.FALSE. /)
-!~~~> M_i = Coefficients for new step solution
+   !~~~> M_i = Coefficients for new step solution
    this%ros_M(1) =  0.1E+01_r8
    this%ros_M(2) =  0.61697947043828245592553615689730E+01_r8
    this%ros_M(3) = -0.42772256543218573326238373806514_r8
-! E_i = Coefficients for error estimator
+   ! E_i = Coefficients for error estimator
    this%ros_E(1) =  0.5_r8
    this%ros_E(2) = -0.29079558716805469821718236208017E+01_r8
    this%ros_E(3) =  0.22354069897811569627360909276199_r8
-!~~~> ros_ELO = estimator of local order - the minimum between the
-!    main and the embedded scheme orders plus 1
+   !~~~> ros_ELO = estimator of local order - the minimum between the
+   !    main and the embedded scheme orders plus 1
    this%ros_ELO = 3.0_r8
-!~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+   !~~~> Y_stage_i ~ Y( T + H*Alpha_i )
    this%ros_Alpha(1)= 0.0_r8
    this%ros_Alpha(2)= 0.43586652150845899941601945119356_r8
    this%ros_Alpha(3)= 0.43586652150845899941601945119356_r8
-!~~~> Gamma_i = \sum_j  gamma_{i,j}
+   !~~~> Gamma_i = \sum_j  gamma_{i,j}
    this%ros_Gamma(1)= 0.43586652150845899941601945119356_r8
    this%ros_Gamma(2)= 0.24291996454816804366592249683314_r8
    this%ros_Gamma(3)= 0.21851380027664058511513169485832E+01_r8
 
-  END SUBROUTINE Ros3
+END SUBROUTINE Ros3
 
-  SUBROUTINE Ros4( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!     L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
-!     L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
-!
-!      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
-!      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
-!      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
-!      SPRINGER-VERLAG (1990)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE Ros4( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !     L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
+   !     L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
+   !
+   !      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
+   !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
+   !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
+   !      SPRINGER-VERLAG (1990)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    class(ODE_solver_rosenbrock_t) :: this
 
    this%rosMethod = RS4
-!~~~> Name of the method
+   !~~~> Name of the method
    this%ros_Name = 'ROS-4'
-!~~~> Number of stages
+   !~~~> Number of stages
    this%ros_S = 4
 
-!~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:
-!       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-!       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   !~~~> The coefficient matrices A and C are strictly lower triangular.
+   !   The lower triangular (subdiagonal) elements are stored in row-wise order:
+   !   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   !   The general mapping formula is:
+   !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
    this%ros_A(1) = 0.2000000000000000E+01_r8
    this%ros_A(2) = 0.1867943637803922E+01_r8
@@ -648,119 +652,121 @@ Accepted: &
    this%ros_C(4) =-0.2137148994382534E+01_r8
    this%ros_C(5) =-0.3214669691237626_r8
    this%ros_C(6) =-0.6949742501781779_r8
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    this%ros_NewF(1:3)  = .TRUE.
    this%ros_NewF(4)  = .FALSE.
-!~~~> M_i = Coefficients for new step solution
+   !~~~> M_i = Coefficients for new step solution
    this%ros_M(1) = 0.2255570073418735E+01_r8
    this%ros_M(2) = 0.2870493262186792_r8
    this%ros_M(3) = 0.4353179431840180_r8
    this%ros_M(4) = 0.1093502252409163E+01_r8
-!~~~> E_i  = Coefficients for error estimator
+   !~~~> E_i  = Coefficients for error estimator
    this%ros_E(1) =-0.2815431932141155_r8
    this%ros_E(2) =-0.7276199124938920E-01_r8
    this%ros_E(3) =-0.1082196201495311_r8
    this%ros_E(4) =-0.1093502252409163E+01_r8
-!~~~> ros_ELO  = estimator of local order - the minimum between the
-!    main and the embedded scheme orders plus 1
+   !~~~> ros_ELO  = estimator of local order - the minimum between the
+   !    main and the embedded scheme orders plus 1
    this%ros_ELO  = 4.0_r8
-!~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+   !~~~> Y_stage_i ~ Y( T + H*Alpha_i )
    this%ros_Alpha(1) = 0.0_r8
    this%ros_Alpha(2) = 0.1145640000000000E+01_r8
    this%ros_Alpha(3) = 0.6552168638155900_r8
    this%ros_Alpha(4) = this%ros_Alpha(3)
-!~~~> Gamma_i = \sum_j  gamma_{i,j}
+   !~~~> Gamma_i = \sum_j  gamma_{i,j}
    this%ros_Gamma(1) = 0.5728200000000000_r8
    this%ros_Gamma(2) =-0.1769193891319233E+01_r8
    this%ros_Gamma(3) = 0.7592633437920482_r8
    this%ros_Gamma(4) =-0.1049021087100450_r8
 
-  END SUBROUTINE Ros4
+END SUBROUTINE Ros4
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Rodas3( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE Rodas3( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    class(ODE_solver_rosenbrock_t) :: this
 
    this%rosMethod = RD3
-!~~~> Name of the method
+   !~~~> Name of the method
    this%ros_Name = 'RODAS-3'
-!~~~> Number of stages
+   !~~~> Number of stages
    this%ros_S = 4
 
-!~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:
-!       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-!       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   !~~~> The coefficient matrices A and C are strictly lower triangular.
+   !   The lower triangular (subdiagonal) elements are stored in row-wise order:
+   !   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   !   The general mapping formula is:
+   !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
    this%ros_A(1:6) = (/ 0.0_r8,2.0_r8,0.0_r8,2.0_r8,0.0_r8,1.0_r8 /)
 
    this%ros_C(1:5) = (/ 4.0_r8,1.0_r8,-1.0_r8,1.0_r8,-1.0_r8 /)
    this%ros_C(6)   = -(8.0_r8/3.0_r8)
 
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    this%ros_NewF(1:4) = .TRUE.
    this%ros_NewF(2)   = .FALSE.
-!~~~> M_i = Coefficients for new step solution
+   !~~~> M_i = Coefficients for new step solution
    this%ros_M(1:4) = (/ 2.0_r8,0.0_r8,1.0_r8,1.0_r8 /)
-!~~~> E_i  = Coefficients for error estimator
+   !~~~> E_i  = Coefficients for error estimator
    this%ros_E(1:3) = 0.0_r8
    this%ros_E(4)   = 1.0_r8
-!~~~> ros_ELO  = estimator of local order - the minimum between the
-!    main and the embedded scheme orders plus 1
+   !~~~> ros_ELO  = estimator of local order - the minimum between the
+   !    main and the embedded scheme orders plus 1
    this%ros_ELO  = 3.0_r8
-!~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+   !~~~> Y_stage_i ~ Y( T + H*Alpha_i )
    this%ros_Alpha(1:2) = 0.0_r8
    this%ros_Alpha(3:4) = 1.0_r8
-!~~~> Gamma_i = \sum_j  gamma_{i,j}
+   !~~~> Gamma_i = \sum_j  gamma_{i,j}
    this%ros_Gamma(1:2) = (/ 0.5_r8,1.5_r8 /)
    this%ros_Gamma(3:4) = 0.0_r8
 
-  END SUBROUTINE Rodas3
+END SUBROUTINE Rodas3
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Rodas4( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
-!
-!      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
-!      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
-!      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
-!      SPRINGER-VERLAG (1996)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE Rodas4( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
+   !
+   !      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
+   !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
+   !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
+   !      SPRINGER-VERLAG (1996)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    class(ODE_solver_rosenbrock_t) :: this
 
     this%rosMethod = RD4
-!~~~> Name of the method
+   !~~~> Name of the method
     this%ros_Name = 'RODAS-4'
-!~~~> Number of stages
+   !~~~> Number of stages
     this%ros_S = 6
 
-!~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+   !~~~> Y_stage_i ~ Y( T + H*Alpha_i )
     this%ros_Alpha(1) = 0.000_r8
     this%ros_Alpha(2) = 0.386_r8
     this%ros_Alpha(3) = 0.210_r8
     this%ros_Alpha(4) = 0.630_r8
     this%ros_Alpha(5:6) = 1.000_r8
 
-!~~~> Gamma_i = \sum_j  gamma_{i,j}
+   !~~~> Gamma_i = \sum_j  gamma_{i,j}
     this%ros_Gamma(1) = 0.2500000000000000_r8
     this%ros_Gamma(2) =-0.1043000000000000_r8
     this%ros_Gamma(3) = 0.1035000000000000_r8
     this%ros_Gamma(4) =-0.3620000000000023E-01_r8
     this%ros_Gamma(5:6) = 0.0_r8
 
-!~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:  A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-!                  C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   !~~~> The coefficient matrices A and C are strictly lower triangular.
+   !   The lower triangular (subdiagonal) elements are stored in row-wise order:
+   !   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   !   The general mapping formula is:  A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   !                  C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
     this%ros_A(1) = 0.1544000000000000E+01_r8
     this%ros_A(2) = 0.9466785280815826_r8
@@ -794,45 +800,46 @@ Accepted: &
     this%ros_C(14) = 0.1631930543123136E+02_r8
     this%ros_C(15) =-0.6058818238834054E+01_r8
 
-!~~~> M_i = Coefficients for new step solution
+   !~~~> M_i = Coefficients for new step solution
     this%ros_M(1) = this%ros_A(7)
     this%ros_M(2) = this%ros_A(8)
     this%ros_M(3) = this%ros_A(9)
     this%ros_M(4) = this%ros_A(10)
     this%ros_M(5:6) = 1.0_r8
 
-!~~~> E_i  = Coefficients for error estimator
+   !~~~> E_i  = Coefficients for error estimator
     this%ros_E(1:5) = 0.0_r8
     this%ros_E(6) = 1.0_r8
 
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
     this%ros_NewF(1:6) = .TRUE.
 
-!~~~> ros_ELO  = estimator of local order - the minimum between the
-!        main and the embedded scheme orders plus 1
+   !~~~> ros_ELO  = estimator of local order - the minimum between the
+   !        main and the embedded scheme orders plus 1
     this%ros_ELO = 4.0_r8
 
-  END SUBROUTINE Rodas4
+END SUBROUTINE Rodas4
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Rang3( this )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
-!
-! J. RANG and L. ANGERMANN
-! NEW ROSENBROCK W-METHODS OF ORDER 3
-! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
-!        EQUATIONS OF INDEX 1
-! BIT Numerical Mathematics (2005) 45: 761-787
-!  DOI: 10.1007/s10543-005-0035-y
-! Table 4.1-4.2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SUBROUTINE Rang3( this )
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
+   !
+   ! J. RANG and L. ANGERMANN
+   ! NEW ROSENBROCK W-METHODS OF ORDER 3
+   ! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
+   !        EQUATIONS OF INDEX 1
+   ! BIT Numerical Mathematics (2005) 45: 761-787
+   !  DOI: 10.1007/s10543-005-0035-y
+   ! Table 4.1-4.2
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    class(ODE_solver_rosenbrock_t) :: this
 
     this%rosMethod = RG3
-!~~~> Name of the method
+   !~~~> Name of the method
     this%ros_Name = 'RANG-3'
-!~~~> Number of stages
+   !~~~> Number of stages
     this%ros_S = 4
 
     this%ros_A(1) = 5.09052051067020e+00_r8
@@ -870,17 +877,17 @@ Accepted: &
     this%ros_Gamma(4) = -8.05529997906370e-01_r8
 
 
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
     this%ros_NewF(1:4) = .TRUE.
 
-!~~~> ros_ELO  = estimator of local order - the minimum between the
-!        main and the embedded scheme orders plus 1
+   !~~~> ros_ELO  = estimator of local order - the minimum between the
+   !        main and the embedded scheme orders plus 1
     this%ros_ELO = 3.0_r8
 
-  END SUBROUTINE Rang3
+END SUBROUTINE Rang3
 
-  subroutine Finalize( this )
+subroutine Finalize( this )
 
   type(ODE_solver_rosenbrock_t) :: this
 
@@ -891,6 +898,6 @@ Accepted: &
     deallocate( this%relTol )
   endif
 
-  end subroutine Finalize
+end subroutine Finalize
 
 END MODULE micm_ODE_solver_rosenbrock

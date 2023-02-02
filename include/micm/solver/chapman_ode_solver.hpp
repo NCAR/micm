@@ -27,7 +27,7 @@ namespace micm
     ~ChapmanODESolver();
     /// @brief Move the system to the next state
     /// @param state The collection of species concentrations
-    void Solve(double state[]) override;
+    std::vector<double> Solve(std::vector<double> LU, std::vector<double> b) override;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -65,6 +65,9 @@ namespace micm
     /// @brief Factor
     /// @param LU
     void factor(std::vector<double>& LU);
+
+    std::vector<double> backsolve_L_y_eq_b(std::vector<double>& LU, std::vector<double>& b);
+    std::vector<double> backsolve_U_x_eq_b(std::vector<double>& LU, std::vector<double>& y);
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
@@ -75,8 +78,11 @@ namespace micm
   {
   }
 
-  inline void ChapmanODESolver::Solve(double state[])
+  inline std::vector<double> ChapmanODESolver::Solve(std::vector<double> LU, std::vector<double> b)
   {
+    auto y = backsolve_L_y_eq_b(LU, b);
+    auto x = backsolve_U_x_eq_b(LU, y);
+    return x;
   }
 
   inline std::vector<std::string> ChapmanODESolver::reaction_names()
@@ -265,6 +271,63 @@ namespace micm
     result[8] = result[8] + dforce_dy[22] * vector[8];
 
     return result;
+  }
+
+
+  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(std::vector<double>& LU, std::vector<double>& b){
+    std::vector<double> y(LU.size());
+
+    y[0] = b[0];
+    y[1] = b[1];
+    y[2] = b[2];
+    y[3] = b[3];
+    y[4] = b[4];
+    y[5] = b[5];
+    y[5] = y[5] - LU[8] * y[4];
+    y[6] = b[6];
+    y[6] = y[6] - LU[1] * y[0];
+    y[6] = y[6] - LU[9] * y[4];
+    y[6] = y[6] - LU[11] * y[5];
+    y[7] = b[7];
+    y[7] = y[7] - LU[2] * y[0];
+    y[7] = y[7] - LU[13] * y[6];
+    y[8] = b[8];
+    y[8] = y[8] - LU[3] * y[0];
+    y[8] = y[8] - LU[14] * y[6];
+    y[8] = y[8] - LU[18] * y[7];
+
+    return y;
+  }
+
+  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(std::vector<double>& LU, std::vector<double>& y){
+    std::vector<double> x(LU.size(), 0);
+    double temporary{};
+
+    temporary = y[8];
+    x[8] = LU[22] * temporary;
+    temporary = y[7];
+    temporary = temporary - LU[21] * x[8];
+    x[7] = LU[17] * temporary;
+    temporary = y[6];
+    temporary = temporary - LU[16] * x[7];
+    temporary = temporary - LU[20] * x[8];
+    x[6] = LU[12] * temporary;
+    temporary = y[5];
+    temporary = temporary - LU[15] * x[7];
+    temporary = temporary - LU[19] * x[8];
+    x[5] = LU[10] * temporary;
+    temporary = y[4];
+    x[4] = LU[7] * temporary;
+    temporary = y[3];
+    x[3] = LU[6] * temporary;
+    temporary = y[2];
+    x[2] = LU[5] * temporary;
+    temporary = y[1];
+    x[1] = LU[4] * temporary;
+    temporary = y[0];
+    x[0] = LU[0] * temporary;
+
+    return x;
   }
 
 }  // namespace micm
