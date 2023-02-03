@@ -11,7 +11,7 @@ TEST(ChapmanODESolver, DefaultConstructor){
 TEST(ChapmanODESolver, matrix_solver){
   micm::ChapmanODESolver solver{};
   std::vector<double> LU(23, 1), b(23, 0.5);
-  auto solved = solver.Solve(LU, b);
+  auto solved = solver.matrix_solver(LU, b);
 
   EXPECT_EQ(solved[0], 0.5);
   EXPECT_EQ(solved[1], 0.5);

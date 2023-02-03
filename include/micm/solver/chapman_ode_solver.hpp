@@ -62,9 +62,15 @@ namespace micm
     /// @brief Default constructor
     ChapmanODESolver();
     ~ChapmanODESolver();
-    /// @brief Move the system to the next state
-    /// @param state The collection of species concentrations
-    std::vector<double> Solve(std::vector<double> LU, std::vector<double> b) override;
+
+    /// @brief An implementation of the 3-stage rosenbrock solver
+    /// @param time_start Time step to start at
+    /// @param time_end Time step to end at
+    /// @param number_densities Species concentrations in molecules / cm3
+    /// @return A new state representing the species concentrations
+    std::vector<double> Solve(double time_start, double time_end, std::vector<double> number_densities) override;
+
+    std::vector<double> matrix_solver(std::vector<double> LU, std::vector<double> b);
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -106,7 +112,6 @@ namespace micm
     std::vector<double> backsolve_L_y_eq_b(std::vector<double>& LU, std::vector<double>& b);
     std::vector<double> backsolve_U_x_eq_b(std::vector<double>& LU, std::vector<double>& y);
 
-
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
     void three_stage_rosenbrock();
   };
@@ -121,7 +126,12 @@ namespace micm
   {
   }
 
-  inline std::vector<double> ChapmanODESolver::Solve(std::vector<double> LU, std::vector<double> b)
+  inline std::vector<double> ChapmanODESolver::Solve(double time_start, double time_end, std::vector<double> number_densities)
+  {
+    return std::vector<double>();
+  }
+
+  inline std::vector<double> ChapmanODESolver::matrix_solver(std::vector<double> LU, std::vector<double> b)
   {
     auto y = backsolve_L_y_eq_b(LU, b);
     auto x = backsolve_U_x_eq_b(LU, y);
@@ -315,7 +325,6 @@ namespace micm
 
     return result;
   }
-
 
   inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(std::vector<double>& LU, std::vector<double>& b){
     std::vector<double> y(LU.size());

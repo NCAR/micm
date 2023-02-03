@@ -45,7 +45,7 @@ TEST(RegressionChapmanODESolver, matrix_solver){
   micm::ChapmanODESolver solver{};
   std::vector<double> LU(23, 1), b(23, 0.5);
 
-  auto solved = solver.Solve(LU, b);
+  auto solved = solver.matrix_solver(LU, b);
   auto f_solved = call_fortran_solve(LU, b);
 
   EXPECT_EQ(solved.size(), f_solved.size());
