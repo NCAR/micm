@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <vector>
 
 namespace micm
 {
@@ -26,7 +27,7 @@ namespace micm
     virtual ~Solver() = default;
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param state The current species concentrations of the system
-    virtual void Solve(double state[]) = 0;
+    virtual std::vector<double> Solve(std::vector<double> LU, std::vector<double> b) = 0;
   };
 
   inline Solver::Solver()

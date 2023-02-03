@@ -60,25 +60,33 @@ module factor_solve_utilities
   
     temporary = y(9)
     x(9) = LU(23) * temporary
+
     temporary = y(8)
     temporary = temporary - LU(22) * x(9)
     x(8) = LU(18) * temporary
+
     temporary = y(7)
     temporary = temporary - LU(17) * x(8)
     temporary = temporary - LU(21) * x(9)
     x(7) = LU(13) * temporary
+
     temporary = y(6)
     temporary = temporary - LU(16) * x(8)
     temporary = temporary - LU(20) * x(9)
     x(6) = LU(11) * temporary
+
     temporary = y(5)
     x(5) = LU(8) * temporary
+
     temporary = y(4)
     x(4) = LU(7) * temporary
+
     temporary = y(3)
     x(3) = LU(6) * temporary
+
     temporary = y(2)
     x(2) = LU(5) * temporary
+
     temporary = y(1)
     x(1) = LU(1) * temporary
   
@@ -125,6 +133,8 @@ module factor_solve_utilities
     real(r8), intent(in) :: LU(:), b(:) ! solve LU * x = b 
     real(r8), intent(out) :: x(:) 
     real(r8) :: y(size(b)) 
+
+    y = 0
   
     call backsolve_L_y_eq_b(LU, b, y)
     call backsolve_U_x_eq_y(LU, y, x)

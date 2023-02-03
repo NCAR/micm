@@ -33,10 +33,14 @@ add_test(NAME factored_alpha_minus_jac
           COMMAND regression_test_factored_alpha_minus_jac ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-
-
 add_executable(regression_test_dforce_dy_times_vector regresstion_test_dforce_dy_times_vector.cpp dforce_dy_times_vector.F90)
 target_link_libraries(regression_test_dforce_dy_times_vector musica::micm micmlib GTest::gtest_main)
 add_test(NAME dforce_dy_times_vector
           COMMAND regression_test_dforce_dy_times_vector ""
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(regression_test_solve regression_test_solve.cpp solve.F90)
+target_link_libraries(regression_test_solve musica::micm micmlib GTest::gtest_main)
+add_test(NAME solve
+          COMMAND regression_test_solve ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
