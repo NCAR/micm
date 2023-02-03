@@ -4,40 +4,38 @@
 
 TEST(ChapmanODESolver, DefaultConstructor){
   micm::ChapmanODESolver solver{};
+
+  EXPECT_EQ(solver.parameters_.stages_, 3);
 }
 
-TEST(ChapmanODESolver, Solve){
+TEST(ChapmanODESolver, matrix_solver){
   micm::ChapmanODESolver solver{};
   std::vector<double> LU(23, 1), b(23, 0.5);
   auto solved = solver.Solve(LU, b);
 
-EXPECT_EQ(solved[0], 0.5);
-EXPECT_EQ(solved[1], 0.5);
-EXPECT_EQ(solved[2], 0.5);
-EXPECT_EQ(solved[3], 0.5);
-EXPECT_EQ(solved[4], 0.5);
-EXPECT_EQ(solved[5], -0.5);
-EXPECT_EQ(solved[6], -1);
-EXPECT_EQ(solved[7], 0.5);
-EXPECT_EQ(solved[8], 0);
-EXPECT_EQ(solved[9], 0);
-EXPECT_EQ(solved[10], 0);
-EXPECT_EQ(solved[11], 0);
-EXPECT_EQ(solved[12], 0);
-EXPECT_EQ(solved[13], 0);
-EXPECT_EQ(solved[14], 0);
-EXPECT_EQ(solved[15], 0);
-EXPECT_EQ(solved[16], 0);
-EXPECT_EQ(solved[17], 0);
-EXPECT_EQ(solved[18], 0);
-EXPECT_EQ(solved[19], 0);
-EXPECT_EQ(solved[20], 0);
-EXPECT_EQ(solved[21], 0);
-EXPECT_EQ(solved[22], 0);
-
-  for(auto& elem : solved){
-    std::cout << elem << std::endl;
-  }
+  EXPECT_EQ(solved[0], 0.5);
+  EXPECT_EQ(solved[1], 0.5);
+  EXPECT_EQ(solved[2], 0.5);
+  EXPECT_EQ(solved[3], 0.5);
+  EXPECT_EQ(solved[4], 0.5);
+  EXPECT_EQ(solved[5], -0.5);
+  EXPECT_EQ(solved[6], -1);
+  EXPECT_EQ(solved[7], 0.5);
+  EXPECT_EQ(solved[8], 0);
+  EXPECT_EQ(solved[9], 0);
+  EXPECT_EQ(solved[10], 0);
+  EXPECT_EQ(solved[11], 0);
+  EXPECT_EQ(solved[12], 0);
+  EXPECT_EQ(solved[13], 0);
+  EXPECT_EQ(solved[14], 0);
+  EXPECT_EQ(solved[15], 0);
+  EXPECT_EQ(solved[16], 0);
+  EXPECT_EQ(solved[17], 0);
+  EXPECT_EQ(solved[18], 0);
+  EXPECT_EQ(solved[19], 0);
+  EXPECT_EQ(solved[20], 0);
+  EXPECT_EQ(solved[21], 0);
+  EXPECT_EQ(solved[22], 0);
 }
 
 TEST(ChapmanODESolver, ReactionNames){

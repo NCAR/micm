@@ -10,6 +10,7 @@
 #include <micm/solver/solver.hpp>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace micm
 {
@@ -20,7 +21,43 @@ namespace micm
    */
   class ChapmanODESolver : public Solver
   {
-   private:
+  private:
+    struct Rosenbrock_params {
+      size_t N_;
+      size_t stages_;
+      size_t upper_limit_tolerance_;
+      size_t max_number_of_steps_;
+
+      double round_off_; // Unit roundoff (1+round_off)>1
+      double factor_min_; // solver step size minimum boundary
+      double factor_max_; // solver step size maximum boundary
+      double rejection_factor_decrease_; // used to decrease the step after 2 successive rejections
+      double safety_factor_; // safety factor in new step size computation
+
+      double h_min_; // step size min
+      double h_max_; // step size max
+      double h_start_; // step size start
+
+      std::array<bool, 6> new_function_evaluation_; // which steps reuse the previous iterations evaluation or do a new evaluation
+
+      double estimator_of_local_order_; // the minumu between the main and the embedded scheme orders plus one
+      std::array<double, 15> a_; // coefficient matrix a
+      std::array<double, 15> c_; // coefficient matrix c
+      std::array<double, 6> m_; // coefficients for new step evaluation
+      std::array<double, 6> e_; // error estimation coefficients
+      std::array<double, 6> alpha_;
+      std::array<double, 6> gamma_;
+
+      std::vector<double> absolute_tolerance_;
+      std::vector<double> relative_tolerance_;
+    };
+
+  public:
+    Rosenbrock_params parameters_;
+    double t_start_;
+    double t_end_;
+
+
    public:
     /// @brief Default constructor
     ChapmanODESolver();
@@ -68,10 +105,16 @@ namespace micm
 
     std::vector<double> backsolve_L_y_eq_b(std::vector<double>& LU, std::vector<double>& b);
     std::vector<double> backsolve_U_x_eq_b(std::vector<double>& LU, std::vector<double>& y);
+
+
+    /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
+    void three_stage_rosenbrock();
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
+    : parameters_()
   {
+    three_stage_rosenbrock();
   }
 
   inline ChapmanODESolver::~ChapmanODESolver()
@@ -328,6 +371,65 @@ namespace micm
     x[0] = LU[0] * temporary;
 
     return x;
+  }
+
+  inline void ChapmanODESolver::three_stage_rosenbrock()
+  {
+   // an L-stable method, 3 stages, order 3, 2 function evaluations
+
+    parameters_.stages_ = 3;
+
+   //  The coefficient matrices A and C are strictly lower triangular.
+   //  The lower triangular (subdiagonal) elements are stored in row-wise order:
+   //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+   //  The general mapping formula is:
+   //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+   //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+
+   parameters_.a_.fill(0);
+   parameters_.a_[0] = 1;
+   parameters_.a_[0] = 1;
+   parameters_.a_[0] = 0;
+
+   parameters_.c_.fill(0);
+   parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
+   parameters_.c_[0] = 0.40759956452537699824805835358067e+01;
+   parameters_.c_[0] = 0.92076794298330791242156818474003e+01;
+
+   // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   parameters_.new_function_evaluation_.fill(false);
+   parameters_.new_function_evaluation_[0] = true;
+   parameters_.new_function_evaluation_[1] = true;
+   parameters_.new_function_evaluation_[2] = false;
+
+   // Coefficients for new step solution
+   parameters_.m_.fill(0);
+   parameters_.m_[0] = 0.1e+01;
+   parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
+   parameters_.m_[2] = -0.42772256543218573326238373806514;
+
+   // Coefficients for error estimator
+   parameters_.e_.fill(0);
+   parameters_.e_[0] = 0.5;
+   parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
+   parameters_.e_[2] = 0.22354069897811569627360909276199;
+
+   // ros_ELO = estimator of local order - the minimum between the
+   // main and the embedded scheme orders plus 1
+   parameters_.estimator_of_local_order_ = 3;
+
+   // Y_stage_i ~ Y( T + H*Alpha_i )
+   parameters_.alpha_.fill(0);
+   parameters_.alpha_[0] = 0;
+   parameters_.alpha_[1] = 0.43586652150845899941601945119356;
+   parameters_.alpha_[2] = 0.43586652150845899941601945119356;
+
+   // Gamma_i = \sum_j  gamma_{i,j}
+   parameters_.gamma_.fill(0);
+   parameters_.gamma_[0] = 0.43586652150845899941601945119356;
+   parameters_.gamma_[1] = 0.24291996454816804366592249683314;
+   parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
 }  // namespace micm

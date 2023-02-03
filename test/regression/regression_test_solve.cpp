@@ -41,7 +41,7 @@ std::vector<double> call_fortran_solve(std::vector<double>& LU, std::vector<doub
   return result;
 }
 
-TEST(RegressionChapmanODESolver, factored_alpha_minus_jac){
+TEST(RegressionChapmanODESolver, matrix_solver){
   micm::ChapmanODESolver solver{};
   std::vector<double> LU(23, 1), b(23, 0.5);
 

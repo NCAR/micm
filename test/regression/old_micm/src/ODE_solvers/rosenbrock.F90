@@ -589,7 +589,7 @@ SUBROUTINE Ros3( this )
    this%ros_C(1) = -0.10156171083877702091975600115545E+01_r8
    this%ros_C(2) =  0.40759956452537699824805835358067E+01_r8
    this%ros_C(3) =  0.92076794298330791242156818474003E+01_r8
-   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !~~~> 
    !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    this%ros_NewF(1:3) = (/ .TRUE.,.TRUE.,.FALSE. /)
    !~~~> M_i = Coefficients for new step solution
