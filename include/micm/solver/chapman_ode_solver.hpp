@@ -8,6 +8,7 @@
 #include <cassert>
 #include <iostream>
 #include <micm/solver/solver.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
 #include <string>
 #include <vector>
 #include <array>
@@ -23,40 +24,66 @@ namespace micm
   {
   private:
     struct Rosenbrock_params {
-      size_t N_;
-      size_t stages_;
-      size_t upper_limit_tolerance_;
-      size_t max_number_of_steps_;
+      size_t N_ {};
+      size_t stages_ {};
+      size_t upper_limit_tolerance_ {};
+      size_t max_number_of_steps_ {};
 
-      double round_off_; // Unit roundoff (1+round_off)>1
-      double factor_min_; // solver step size minimum boundary
-      double factor_max_; // solver step size maximum boundary
-      double rejection_factor_decrease_; // used to decrease the step after 2 successive rejections
-      double safety_factor_; // safety factor in new step size computation
+      double round_off_ {}; // Unit roundoff (1+round_off)>1
+      double factor_min_ {}; // solver step size minimum boundary
+      double factor_max_ {}; // solver step size maximum boundary
+      double rejection_factor_decrease_ {}; // used to decrease the step after 2 successive rejections
+      double safety_factor_ {}; // safety factor in new step size computation
 
-      double h_min_; // step size min
-      double h_max_; // step size max
-      double h_start_; // step size start
+      double h_min_ {}; // step size min
+      double h_max_ {}; // step size max
+      double h_start_ {}; // step size start
 
-      std::array<bool, 6> new_function_evaluation_; // which steps reuse the previous iterations evaluation or do a new evaluation
+      std::array<bool, 6> new_function_evaluation_ {}; // which steps reuse the previous iterations evaluation or do a new evaluation
 
-      double estimator_of_local_order_; // the minumu between the main and the embedded scheme orders plus one
-      std::array<double, 15> a_; // coefficient matrix a
-      std::array<double, 15> c_; // coefficient matrix c
-      std::array<double, 6> m_; // coefficients for new step evaluation
-      std::array<double, 6> e_; // error estimation coefficients
-      std::array<double, 6> alpha_;
-      std::array<double, 6> gamma_;
+      double estimator_of_local_order_ {}; // the minumu between the main and the embedded scheme orders plus one
+      std::array<double, 15> a_ {}; // coefficient matrix a
+      std::array<double, 15> c_ {}; // coefficient matrix c
+      std::array<double, 6> m_ {}; // coefficients for new step evaluation
+      std::array<double, 6> e_ {}; // error estimation coefficients
+      std::array<double, 6> alpha_ {};
+      std::array<double, 6> gamma_ {};
 
-      std::vector<double> absolute_tolerance_;
-      std::vector<double> relative_tolerance_;
+      std::vector<double> absolute_tolerance_ {};
+      std::vector<double> relative_tolerance_ {};
+    };
+
+    struct Rosenbrock_stats {
+      uint64_t forcing_function_calls {}; // Nfun
+      uint64_t jacobian_updates {}; // Njac
+      uint64_t number_of_steps {}; // Nstp
+      uint64_t accepted {}; // Nacc
+      uint64_t rejected {}; // Nrej
+      uint64_t decompositions {}; // Ndec
+      uint64_t solves {}; // Nsol
+      uint64_t singular {}; // Nsng
+      uint64_t total_steps {}; // Ntotstp
+
+      void reset(){
+        forcing_function_calls = 0;
+        jacobian_updates = 0;
+        number_of_steps = 0;
+        accepted = 0;
+        rejected = 0;
+        decompositions = 0;
+        solves = 0;
+        singular = 0;
+        total_steps = 0;
+      }
+
     };
 
   public:
     Rosenbrock_params parameters_;
-    double t_start_;
-    double t_end_;
+    Rosenbrock_stats stats_;
+    std::array<double, 7> rate_constants_;
 
+    static constexpr double delta_min_ = 1.0e-5;
 
    public:
     /// @brief Default constructor
@@ -67,8 +94,8 @@ namespace micm
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
     /// @param number_densities Species concentrations in molecules / cm3
-    /// @return A new state representing the species concentrations
-    std::vector<double> Solve(double time_start, double time_end, std::vector<double> number_densities) override;
+    /// @return A SolverResult containing the new state and solver status codes
+    SolverResult Solve(double time_start, double time_end, std::vector<double> number_densities) override;
 
     std::vector<double> matrix_solver(std::vector<double> LU, std::vector<double> b);
 
@@ -104,6 +131,11 @@ namespace micm
     /// @return Product of jacobian with vector
     std::vector<double> dforce_dy_times_vector(std::vector<double> dforce_dy, std::vector<double> vector);
 
+    /// @brief Update the rate constants for the environment state
+    /// @param temperature in kelvin
+    /// @param pressure in pascals
+    void calculate_rate_constants(double temperature, double pressure);
+
    private:
     /// @brief Factor
     /// @param LU
@@ -117,7 +149,9 @@ namespace micm
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
-    : parameters_()
+    : parameters_(), 
+      stats_(),
+      rate_constants_()
   {
     three_stage_rosenbrock();
   }
@@ -126,9 +160,140 @@ namespace micm
   {
   }
 
-  inline std::vector<double> ChapmanODESolver::Solve(double time_start, double time_end, std::vector<double> number_densities)
+  inline Solver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, std::vector<double> number_densities)
   {
-    return std::vector<double>();
+    double present_time = time_start;
+    double H = std::min(std::max(std::abs(parameters_.h_min_),abs(parameters_.h_start_)) , abs(parameters_.h_max_) );
+
+    SolverResult result {};
+
+    if(std::abs(H) <= 10*parameters_.round_off_) {
+      H = delta_min_;
+    }
+
+    bool reject_last_h = false;
+    bool reject_more_h = false;
+
+
+    // TimeLoop: 
+    // DO WHILE ( (presentTime-time_end)+this%Roundoff <= ZERO )
+    while( (present_time - time_end + parameters_.round_off_) <= 0){
+      if (stats_.number_of_steps > parameters_.max_number_of_steps_){
+        // too many steps
+        result.state_ = Solver::SolverState::ConvergenceExceededMaxSteps;
+        break;
+      }
+
+      if ( ((present_time + 0.1*H) == present_time) || (H <= parameters_.round_off_) ) {
+        result.state_ = Solver::SolverState::StepSizeTooSmall;
+        break;
+      }
+
+      //  Limit H if necessary to avoid going beyond time_end
+      H = std::min(H,std::abs(time_end-present_time));
+
+      //   Compute the function at current time
+      // Fcn0(:) = p_force( Y )
+      // this%icntrl(Nfun) = this%icntrl(Nfun) + 1
+
+
+    // ======= left off here =============
+
+    //   !~~~>  Repeat step calculation until current step accepted
+    //   UntilAccepted: 
+    //   DO
+    //     !~~~>  Form and factor the rosenbrock ode jacobian
+    //     CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
+    //     this%icntrl(Njac) = this%icntrl(Njac) + 1
+    //     IF (Singular) THEN ! More than 5 consecutive failed decompositions
+    //         Ierr = -8
+    //         CALL ros_ErrorMsg(-8,present_time,H,IERR)
+    //         RETURN
+    //     END IF
+
+    //     !~~~>   Compute the stages
+    //     Stage_loop: &
+    //     DO istage = 1, this%ros_S
+    //       IF ( istage /= 1 ) THEN
+    //         S_ndx = (istage - 1)*(istage - 2)/2
+    //         IF ( this%ros_NewF(istage) ) THEN
+    //           Ynew(1:N) = Y(1:N)
+    //           DO j = 1, istage-1
+    //             Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
+    //           END DO
+    //           Tau = present_time + this%ros_Alpha(istage)*H
+    //           Fcn(:) = theKinetics%force( Ynew )
+    //           this%icntrl(Nfun) = this%icntrl(Nfun) + 1
+    //         ENDIF
+    //         K(:,istage) = Fcn(:)
+    //         DO j = 1, istage-1
+    //           HC = this%ros_C(S_ndx+j)/H
+    //           K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
+    //         END DO
+    //       ELSE
+    //         K(:,1) = Fcn0(:)
+    //         Fcn(:) = Fcn0(:)
+    //       ENDIF
+    //       CALL theKinetics%LinSolve( K(:,istage) )
+    //       this%icntrl(Nsol) = this%icntrl(Nsol) + 1
+    //     END DO Stage_loop
+
+    //     !~~~>  Compute the new solution
+    //     Ynew(1:N) = Y(1:N)
+    //     DO j=1,this%ros_S
+    //       Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
+    //     END DO
+
+    //     !~~~>  Compute the error estimation
+    //     Yerr(1:N) = ZERO
+    //     DO j=1,this%ros_S
+    //       Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
+    //     END DO
+    //     Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
+
+    //     !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
+    //     Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
+    //     Hnew = H*Fac
+
+    //     !~~~>  Check the error magnitude and adjust step size
+    //     this%icntrl(Nstp) = this%icntrl(Nstp) + 1
+    //     this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
+    //     Accepted: &
+    //     IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
+    //       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
+    //       Y(1:N) = Ynew(1:N)
+    //       present_time = present_time + H
+    //       Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
+    //       IF (RejectLastH) THEN  ! No step size increase after a rejected step
+    //           Hnew = MIN(Hnew,H)
+    //       END IF
+    //       this%rcntrl(Nhexit) = H
+    //       this%rcntrl(Nhnew)  = Hnew
+    //       this%rcntrl(Ntexit) = present_time
+    //       RejectLastH = .FALSE.
+    //       RejectMoreH = .FALSE.
+    //       H = Hnew
+    //       EXIT UntilAccepted ! EXIT THE LOOP: WHILE STEP NOT ACCEPTED
+    //     ELSE Accepted  !~~~> Reject step
+    //       IF (RejectMoreH) THEN
+    //           Hnew = H*this%FacRej
+    //       END IF
+    //       RejectMoreH = RejectLastH
+    //       RejectLastH = .TRUE.
+    //       H = Hnew
+    //       IF (this%icntrl(Nacc) >= 1)  this%icntrl(Nrej) = this%icntrl(Nrej) + 1
+    //     ENDIF Accepted ! Err <= 1
+
+    //   END DO UntilAccepted
+    }
+
+    // !~~~> Succesful exit
+    // IERR = 0  !~~~> The integration was successful
+    // IF( present(T) ) THEN
+    //   T = presentTime
+    // ENDIF
+
+    return result;
   }
 
   inline std::vector<double> ChapmanODESolver::matrix_solver(std::vector<double> LU, std::vector<double> b)
@@ -439,6 +604,45 @@ namespace micm
    parameters_.gamma_[0] = 0.43586652150845899941601945119356;
    parameters_.gamma_[1] = 0.24291996454816804366592249683314;
    parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
+  }
+
+  inline void ChapmanODESolver::calculate_rate_constants(double temperature, double pressure){
+    //O2_1
+    //k_O2_1: O2 -> 2*O
+    // photolysis = rate_constant_photolysis_t( &
+    //     photolysis_rate_constant_index = 1 )
+    // rate_constants(1) = photolysis%calculate( environment )
+    rate_constants_[0] = 0; // TODO fix
+
+    //O3_1
+    //k_O3_1: O3 -> 1*O1D + 1*O2
+    // photolysis = rate_constant_photolysis_t( &
+    //     photolysis_rate_constant_index = 2 )
+    // rate_constants(2) = photolysis%calculate( environment )
+    rate_constants_[1] = 0; // TODO fix
+
+    //O3_2
+    //k_O3_2: O3 -> 1*O + 1*O2
+    // photolysis = rate_constant_photolysis_t( &
+    //     photolysis_rate_constant_index = 3 )
+    // rate_constants(3) = photolysis%calculate( environment )
+    rate_constants_[2] = 0; // TODO fix
+
+    //N2_O1D_1
+    //k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    rate_constants_[3] = ArrheniusRateConstant(2.15e-11, 0, 110, 0, 0).calculate(temperature, pressure);
+
+    //O1D_O2_1
+    //k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    rate_constants_[4] = ArrheniusRateConstant(3.3e-11, 0, 55, 0, 0).calculate(temperature, pressure);
+
+    //O_O3_1
+    //k_O_O3_1: O + O3 -> 2*O2
+    rate_constants_[5] = ArrheniusRateConstant(8e-12, 0, -2060, 0, 0).calculate(temperature, pressure);
+
+    //M_O_O2_1
+    //k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    rate_constants_[5] = ArrheniusRateConstant(6e-34, 0, 2.4, 0, 0).calculate(temperature, pressure);
   }
 
 }  // namespace micm
