@@ -1,4 +1,4 @@
-module solve_mod
+module kinetic_solve_mod
   use iso_c_binding
 
   implicit none
@@ -20,4 +20,4 @@ contains
 
   end subroutine kinetic_solve
 
-end module solve_mod
+end module kinetic_solve_mod

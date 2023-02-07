@@ -56,7 +56,7 @@ namespace micm
       }
     };
 
-    struct SolverResult
+    struct [[nodiscard]] SolverResult
     {
       std::vector<double> result_{};
       SolverState state_ = SolverState::NotYetCalled;
