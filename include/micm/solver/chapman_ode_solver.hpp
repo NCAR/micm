@@ -78,7 +78,7 @@ namespace micm
     SolverResult Solve(
         const double& time_start,
         const double& time_end,
-        std::vector<double> number_densities,
+        const std::vector<double>& number_densities,
         const double& number_density_air) override;
 
     /// @brief Returns a list of reaction names
@@ -185,7 +185,7 @@ namespace micm
   inline Solver::SolverResult ChapmanODESolver::Solve(
       const double& time_start,
       const double& time_end,
-      std::vector<double> number_densities,
+      const std::vector<double>& original_number_densities,
       const double& number_density_air)
   {
     double present_time = time_start;
@@ -193,7 +193,8 @@ namespace micm
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
     std::vector<std::vector<double>> K(parameters_.N_, std::vector<double>(parameters_.stages_, nan("")));
-    std::vector<double> Fcn(parameters_.N_, nan(""));
+    std::vector<double> number_densities(original_number_densities);
+    std::vector<double> forcing{};
 
     SolverResult result{};
     stats_.reset();
@@ -223,7 +224,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto forced = force(rate_constants_, number_densities, number_density_air);
+      auto initial_forcing = force(rate_constants_, number_densities, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -244,7 +245,8 @@ namespace micm
         {
           if (stage == 0)
           {
-            K[0] = forced;
+            K[0] = initial_forcing;
+            forcing = initial_forcing;
           }
           else
           {
@@ -256,13 +258,14 @@ namespace micm
               {
                 for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
                 {
+                  assert((stage_index + j) < parameters_.a_.size());
                   new_number_densities[idx] = parameters_.a_[stage_index + j] * K[j][idx];
                 }
               }
-              forced = force(rate_constants_, new_number_densities, number_density_air);
+              forcing = force(rate_constants_, new_number_densities, number_density_air);
             }
-            K[stage] = forced;
-            for (uint64_t j = 0; j < stage; ++j)
+            K[stage] = forcing;
+            for (uint64_t j = 0; j < stage - 1; ++j)
             {
               auto HC = parameters_.c_[stage_index + j] / H;
               for (uint64_t idx = 0; idx < K[stage].size(); ++idx)
@@ -280,7 +283,7 @@ namespace micm
         {
           for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
           {
-            new_number_densities[idx] = parameters_.m_[stage] + K[stage][idx];
+            new_number_densities[idx] += parameters_.m_[stage] + K[stage][idx];
           }
         }
 
@@ -291,7 +294,7 @@ namespace micm
           uint64_t idx = 0;
           for (uint64_t idx = 0; idx < error_vec.size(); ++idx)
           {
-            error_vec[idx] = parameters_.e_[stage] + K[stage][idx];
+            error_vec[idx] += parameters_.e_[stage] + K[stage][idx];
           }
         }
         auto error = error_norm(number_densities, new_number_densities, error_vec);
@@ -307,12 +310,11 @@ namespace micm
         // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
         stats_.total_steps += 1;
-        // Accepted: &
         if ((error < 1) || (H < parameters_.h_min_))
         {
           stats_.accepted += 1;
           present_time = present_time + H;
-          number_densities = std::move(new_number_densities);
+          number_densities = new_number_densities;
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
           if (reject_last_h)
           {
@@ -344,6 +346,7 @@ namespace micm
 
     result.T = present_time;
     result.stats_ = stats_;
+    result.result_ = std::move(number_densities);
 
     return result;
   }
@@ -543,7 +546,7 @@ namespace micm
       const std::vector<double>& jacobian,
       const std::vector<double>& b)
   {
-    std::vector<double> y(jacobian.size());
+    std::vector<double> y(jacobian.size(), 0);
 
     y[0] = b[0];
     y[1] = b[1];
@@ -715,16 +718,16 @@ namespace micm
     From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     */
 
-    std::vector<double> ode_jacobian = dforce_dy(rate_constants_, number_densities, number_density_air);
     std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
+    std::vector<double> ode_jacobian;
     uint64_t n_consecutive = 0;
     singular = true;
 
     while (true)
     {
       double alpha = 1 / (H * gamma);
-      // compute jacobian decomposition of alpha*I - ode_jacobian
-      ode_jacobian = factored_alpha_minus_jac(ode_jacobian, alpha);
+      // compute jacobian decomposition of alpha*I - dforce_dy
+      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants_, number_densities, number_density_air), alpha);
       stats_.decompositions += 1;
 
       if (is_successful(ode_jacobian))

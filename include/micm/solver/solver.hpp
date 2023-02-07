@@ -79,7 +79,7 @@ namespace micm
     virtual SolverResult Solve(
         const double& time_start,
         const double& time_end,
-        std::vector<double> number_densities,
+        const std::vector<double>& number_densities,
         const double& number_density_air) = 0;
   };
 
