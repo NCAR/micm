@@ -5,14 +5,14 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cassert>
-#include <iostream>
 #include <functional>
-#include <micm/solver/solver.hpp>
+#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/solver.hpp>
 #include <string>
 #include <vector>
-#include <array>
 
 namespace micm
 {
@@ -23,38 +23,40 @@ namespace micm
    */
   class ChapmanODESolver : public Solver
   {
-  private:
-    struct Rosenbrock_params {
-      size_t N_ {};
-      size_t stages_ {};
-      size_t upper_limit_tolerance_ {};
-      size_t max_number_of_steps_ {};
+   private:
+    struct Rosenbrock_params
+    {
+      size_t N_{};
+      size_t stages_{};
+      size_t upper_limit_tolerance_{};
+      size_t max_number_of_steps_{};
 
-      double round_off_ {}; // Unit roundoff (1+round_off)>1
-      double factor_min_ {}; // solver step size minimum boundary
-      double factor_max_ {}; // solver step size maximum boundary
-      double rejection_factor_decrease_ {}; // used to decrease the step after 2 successive rejections
-      double safety_factor_ {}; // safety factor in new step size computation
+      double round_off_{};                  // Unit roundoff (1+round_off)>1
+      double factor_min_{};                 // solver step size minimum boundary
+      double factor_max_{};                 // solver step size maximum boundary
+      double rejection_factor_decrease_{};  // used to decrease the step after 2 successive rejections
+      double safety_factor_{};              // safety factor in new step size computation
 
-      double h_min_ {}; // step size min
-      double h_max_ {}; // step size max
-      double h_start_ {}; // step size start
+      double h_min_{};    // step size min
+      double h_max_{};    // step size max
+      double h_start_{};  // step size start
 
-      std::array<bool, 6> new_function_evaluation_ {}; // which steps reuse the previous iterations evaluation or do a new evaluation
+      std::array<bool, 6>
+          new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
 
-      double estimator_of_local_order_ {}; // the minumu between the main and the embedded scheme orders plus one
-      std::array<double, 15> a_ {}; // coefficient matrix a
-      std::array<double, 15> c_ {}; // coefficient matrix c
-      std::array<double, 6> m_ {}; // coefficients for new step evaluation
-      std::array<double, 6> e_ {}; // error estimation coefficients
-      std::array<double, 6> alpha_ {};
-      std::array<double, 6> gamma_ {};
+      double estimator_of_local_order_{};  // the minumu between the main and the embedded scheme orders plus one
+      std::array<double, 15> a_{};         // coefficient matrix a
+      std::array<double, 15> c_{};         // coefficient matrix c
+      std::array<double, 6> m_{};          // coefficients for new step evaluation
+      std::array<double, 6> e_{};          // error estimation coefficients
+      std::array<double, 6> alpha_{};
+      std::array<double, 6> gamma_{};
 
-      double absolute_tolerance_ {0.01};
-      double relative_tolerance_ {0.01};
+      double absolute_tolerance_{ 0.01 };
+      double relative_tolerance_{ 0.01 };
     };
 
-  public:
+   public:
     Rosenbrock_params parameters_;
     std::vector<double> rate_constants_;
     Solver::Rosenbrock_stats stats_;
@@ -73,7 +75,11 @@ namespace micm
     /// @param number_densities Species concentrations in molecules / cm3
     /// @param number_density_air The number density of air in molecules / cm3
     /// @return A struct containing results and a status code
-    SolverResult Solve(const double& time_start, const double& time_end, std::vector<double> number_densities, const double& number_density_air) override;
+    SolverResult Solve(
+        const double& time_start,
+        const double& time_end,
+        std::vector<double> number_densities,
+        const double& number_density_air) override;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -92,8 +98,10 @@ namespace micm
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
-    std::vector<double>
-    force(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air);
+    std::vector<double> force(
+        const std::vector<double>& rate_constants,
+        const std::vector<double>& number_densities,
+        const double& number_density_air);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -134,27 +142,38 @@ namespace micm
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return The jacobian
-    std::vector<double> dforce_dy(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air);
+    std::vector<double> dforce_dy(
+        const std::vector<double>& rate_constants,
+        const std::vector<double>& number_densities,
+        const double& number_density_air);
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
     /// @param gamma time step factor for specific rosenbrock method
     /// @param Y  constituent concentration (molec/cm^3)
     /// @param singular indicates if the matrix is singular
-    std::vector<double> lin_factor(double& H, const double& gamma, bool& singular,const std::vector<double>& number_densities, const double& number_density_air);
+    std::vector<double> lin_factor(
+        double& H,
+        const double& gamma,
+        bool& singular,
+        const std::vector<double>& number_densities,
+        const double& number_density_air);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
     /// @param new_number_densities the new number densities
     /// @param errors The computed errors
-    /// @return 
-    double error_norm(std::vector<double> original_number_densities, std::vector<double> new_number_densities, std::vector<double> errors);
+    /// @return
+    double error_norm(
+        std::vector<double> original_number_densities,
+        std::vector<double> new_number_densities,
+        std::vector<double> errors);
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
-    : parameters_(), 
-      rate_constants_(7, 0),
-      stats_()
+      : parameters_(),
+        rate_constants_(7, 0),
+        stats_()
   {
     three_stage_rosenbrock();
   }
@@ -163,73 +182,91 @@ namespace micm
   {
   }
 
-  inline Solver::SolverResult ChapmanODESolver::Solve(const double& time_start, const double& time_end, std::vector<double> number_densities, const double& number_density_air)
+  inline Solver::SolverResult ChapmanODESolver::Solve(
+      const double& time_start,
+      const double& time_end,
+      std::vector<double> number_densities,
+      const double& number_density_air)
   {
     double present_time = time_start;
-    double H = std::min(std::max(std::abs(parameters_.h_min_),std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_) );
+    double H =
+        std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
     std::vector<std::vector<double>> K(parameters_.N_, std::vector<double>(parameters_.stages_, nan("")));
     std::vector<double> Fcn(parameters_.N_, nan(""));
 
-    SolverResult result {};
+    SolverResult result{};
     stats_.reset();
 
-    if(std::abs(H) <= 10*parameters_.round_off_) {
+    if (std::abs(H) <= 10 * parameters_.round_off_)
+    {
       H = delta_min_;
     }
 
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while( (present_time - time_end + parameters_.round_off_) <= 0) {
-      if (stats_.number_of_steps > parameters_.max_number_of_steps_){
+    while ((present_time - time_end + parameters_.round_off_) <= 0)
+    {
+      if (stats_.number_of_steps > parameters_.max_number_of_steps_)
+      {
         result.state_ = Solver::SolverState::ConvergenceExceededMaxSteps;
         break;
       }
 
-      if ( ((present_time + 0.1*H) == present_time) || (H <= parameters_.round_off_) ) {
+      if (((present_time + 0.1 * H) == present_time) || (H <= parameters_.round_off_))
+      {
         result.state_ = Solver::SolverState::StepSizeTooSmall;
         break;
       }
 
       //  Limit H if necessary to avoid going beyond time_end
-      H = std::min(H,std::abs(time_end-present_time));
+      H = std::min(H, std::abs(time_end - present_time));
 
       auto forced = force(rate_constants_, number_densities, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
-      while (!accepted){
-        bool is_singular{false};
+      while (!accepted)
+      {
+        bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
         auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, number_densities, number_density_air);
         stats_.jacobian_updates += 1;
-        if (is_singular) {
+        if (is_singular)
+        {
           result.state_ = Solver::SolverState::RepeatedlySingularMatrix;
           break;
         }
 
         // Compute the stages
-        for(uint64_t stage = 0; stage < parameters_.stages_; ++stage){
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        {
           if (stage == 0)
           {
             K[0] = forced;
           }
-          else {
+          else
+          {
             double stage_index = (stage) * (stage - 1) / 2;
-            if (parameters_.new_function_evaluation_[stage]){
+            if (parameters_.new_function_evaluation_[stage])
+            {
               auto new_number_densities(number_densities);
-              for(uint64_t j = 0; j < stage - 1; ++j){
-                for(uint64_t idx = 0; idx < new_number_densities.size(); ++idx){
+              for (uint64_t j = 0; j < stage - 1; ++j)
+              {
+                for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
+                {
                   new_number_densities[idx] = parameters_.a_[stage_index + j] * K[j][idx];
                 }
               }
               forced = force(rate_constants_, new_number_densities, number_density_air);
             }
             K[stage] = forced;
-            for(uint64_t j = 0; j < stage; ++j){
-              auto HC = parameters_.c_[stage_index+j]/H;
-              for(uint64_t idx = 0; idx < K[stage].size(); ++idx){
+            for (uint64_t j = 0; j < stage; ++j)
+            {
+              auto HC = parameters_.c_[stage_index + j] / H;
+              for (uint64_t idx = 0; idx < K[stage].size(); ++idx)
+              {
                 K[stage][idx] = HC * K[j][idx];
               }
             }
@@ -239,17 +276,21 @@ namespace micm
 
         // Compute the new solution
         auto new_number_densities(number_densities);
-        for(uint64_t stage = 0; stage < parameters_.stages_; ++stage){
-          for(uint64_t idx = 0; idx < new_number_densities.size(); ++idx){
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        {
+          for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
+          {
             new_number_densities[idx] = parameters_.m_[stage] + K[stage][idx];
           }
         }
 
         // Compute the error estimation
         std::vector<double> error_vec(number_densities.size(), 0);
-        for(uint64_t stage = 0; stage < parameters_.stages_; ++stage){
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        {
           uint64_t idx = 0;
-          for(uint64_t idx = 0; idx < error_vec.size(); ++idx){
+          for (uint64_t idx = 0; idx < error_vec.size(); ++idx)
+          {
             error_vec[idx] = parameters_.e_[stage] + K[stage][idx];
           }
         }
@@ -258,23 +299,23 @@ namespace micm
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         // Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
         double Hnew = H * std::min(
-          parameters_.factor_max_,
-          std::max(
-            parameters_.factor_min_, 
-            parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)
-          )
-        );
+                              parameters_.factor_max_,
+                              std::max(
+                                  parameters_.factor_min_,
+                                  parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
 
         // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
         stats_.total_steps += 1;
         // Accepted: &
-        if ((error < 1) || (H < parameters_.h_min_)){
+        if ((error < 1) || (H < parameters_.h_min_))
+        {
           stats_.accepted += 1;
           present_time = present_time + H;
           number_densities = std::move(new_number_densities);
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
-          if (reject_last_h){
+          if (reject_last_h)
+          {
             // No step size increase after a rejected step
             Hnew = std::min(Hnew, H);
           }
@@ -283,15 +324,18 @@ namespace micm
           H = Hnew;
           accepted = true;
         }
-        else{
+        else
+        {
           // Reject step
-          if (reject_more_h){
+          if (reject_more_h)
+          {
             Hnew = H * parameters_.rejection_factor_decrease_;
           }
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats_.accepted >= 1){
+          if (stats_.accepted >= 1)
+          {
             stats_.rejected += 1;
           }
         }
@@ -394,7 +438,9 @@ namespace micm
     return force;
   }
 
-  inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha)
+  inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(
+      const std::vector<double>& dforce_dy,
+      const double& alpha)
   {
     std::vector<double> jacobian(dforce_dy);
     // multiply jacobian by -1
@@ -493,7 +539,10 @@ namespace micm
     return result;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b){
+  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(
+      const std::vector<double>& jacobian,
+      const std::vector<double>& b)
+  {
     std::vector<double> y(jacobian.size());
 
     y[0] = b[0];
@@ -518,7 +567,10 @@ namespace micm
     return y;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y){
+  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(
+      const std::vector<double>& jacobian,
+      const std::vector<double>& y)
+  {
     std::vector<double> x(jacobian.size(), 0);
     double temporary{};
 
@@ -551,118 +603,125 @@ namespace micm
 
   inline void ChapmanODESolver::three_stage_rosenbrock()
   {
-   // an L-stable method, 3 stages, order 3, 2 function evaluations
+    // an L-stable method, 3 stages, order 3, 2 function evaluations
 
     parameters_.stages_ = 3;
 
     parameters_.N_ = 23;
 
-   //  The coefficient matrices A and C are strictly lower triangular.
-   //  The lower triangular (subdiagonal) elements are stored in row-wise order:
-   //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-   //  The general mapping formula is:
-   //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-   //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+    //  The coefficient matrices A and C are strictly lower triangular.
+    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
+    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+    //  The general mapping formula is:
+    //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+    //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
-   parameters_.a_.fill(0);
-   parameters_.a_[0] = 1;
-   parameters_.a_[0] = 1;
-   parameters_.a_[0] = 0;
+    parameters_.a_.fill(0);
+    parameters_.a_[0] = 1;
+    parameters_.a_[0] = 1;
+    parameters_.a_[0] = 0;
 
-   parameters_.c_.fill(0);
-   parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
-   parameters_.c_[0] = 0.40759956452537699824805835358067e+01;
-   parameters_.c_[0] = 0.92076794298330791242156818474003e+01;
+    parameters_.c_.fill(0);
+    parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
+    parameters_.c_[0] = 0.40759956452537699824805835358067e+01;
+    parameters_.c_[0] = 0.92076794298330791242156818474003e+01;
 
-   // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-   // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-   parameters_.new_function_evaluation_.fill(false);
-   parameters_.new_function_evaluation_[0] = true;
-   parameters_.new_function_evaluation_[1] = true;
-   parameters_.new_function_evaluation_[2] = false;
+    // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+    // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+    parameters_.new_function_evaluation_.fill(false);
+    parameters_.new_function_evaluation_[0] = true;
+    parameters_.new_function_evaluation_[1] = true;
+    parameters_.new_function_evaluation_[2] = false;
 
-   // Coefficients for new step solution
-   parameters_.m_.fill(0);
-   parameters_.m_[0] = 0.1e+01;
-   parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
-   parameters_.m_[2] = -0.42772256543218573326238373806514;
+    // Coefficients for new step solution
+    parameters_.m_.fill(0);
+    parameters_.m_[0] = 0.1e+01;
+    parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
+    parameters_.m_[2] = -0.42772256543218573326238373806514;
 
-   // Coefficients for error estimator
-   parameters_.e_.fill(0);
-   parameters_.e_[0] = 0.5;
-   parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
-   parameters_.e_[2] = 0.22354069897811569627360909276199;
+    // Coefficients for error estimator
+    parameters_.e_.fill(0);
+    parameters_.e_[0] = 0.5;
+    parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
+    parameters_.e_[2] = 0.22354069897811569627360909276199;
 
-   // ros_ELO = estimator of local order - the minimum between the
-   // main and the embedded scheme orders plus 1
-   parameters_.estimator_of_local_order_ = 3;
+    // ros_ELO = estimator of local order - the minimum between the
+    // main and the embedded scheme orders plus 1
+    parameters_.estimator_of_local_order_ = 3;
 
-   // Y_stage_i ~ Y( T + H*Alpha_i )
-   parameters_.alpha_.fill(0);
-   parameters_.alpha_[0] = 0;
-   parameters_.alpha_[1] = 0.43586652150845899941601945119356;
-   parameters_.alpha_[2] = 0.43586652150845899941601945119356;
+    // Y_stage_i ~ Y( T + H*Alpha_i )
+    parameters_.alpha_.fill(0);
+    parameters_.alpha_[0] = 0;
+    parameters_.alpha_[1] = 0.43586652150845899941601945119356;
+    parameters_.alpha_[2] = 0.43586652150845899941601945119356;
 
-   // Gamma_i = \sum_j  gamma_{i,j}
-   parameters_.gamma_.fill(0);
-   parameters_.gamma_[0] = 0.43586652150845899941601945119356;
-   parameters_.gamma_[1] = 0.24291996454816804366592249683314;
-   parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
+    // Gamma_i = \sum_j  gamma_{i,j}
+    parameters_.gamma_.fill(0);
+    parameters_.gamma_[0] = 0.43586652150845899941601945119356;
+    parameters_.gamma_[1] = 0.24291996454816804366592249683314;
+    parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline void ChapmanODESolver::calculate_rate_constants(const double& temperature, const double& pressure){
-    //O2_1
-    //k_O2_1: O2 -> 2*O
-    // photolysis = rate_constant_photolysis_t( &
-    //     photolysis_rate_constant_index = 1 )
-    // rate_constants(1) = photolysis%calculate( environment )
-    rate_constants_[0] = 0; // TODO fix
+  inline void ChapmanODESolver::calculate_rate_constants(const double& temperature, const double& pressure)
+  {
+    // O2_1
+    // k_O2_1: O2 -> 2*O
+    //  photolysis = rate_constant_photolysis_t( &
+    //      photolysis_rate_constant_index = 1 )
+    //  rate_constants(1) = photolysis%calculate( environment )
+    rate_constants_[0] = 0;  // TODO fix
 
-    //O3_1
-    //k_O3_1: O3 -> 1*O1D + 1*O2
-    // photolysis = rate_constant_photolysis_t( &
-    //     photolysis_rate_constant_index = 2 )
-    // rate_constants(2) = photolysis%calculate( environment )
-    rate_constants_[1] = 0; // TODO fix
+    // O3_1
+    // k_O3_1: O3 -> 1*O1D + 1*O2
+    //  photolysis = rate_constant_photolysis_t( &
+    //      photolysis_rate_constant_index = 2 )
+    //  rate_constants(2) = photolysis%calculate( environment )
+    rate_constants_[1] = 0;  // TODO fix
 
-    //O3_2
-    //k_O3_2: O3 -> 1*O + 1*O2
-    // photolysis = rate_constant_photolysis_t( &
-    //     photolysis_rate_constant_index = 3 )
-    // rate_constants(3) = photolysis%calculate( environment )
-    rate_constants_[2] = 0; // TODO fix
+    // O3_2
+    // k_O3_2: O3 -> 1*O + 1*O2
+    //  photolysis = rate_constant_photolysis_t( &
+    //      photolysis_rate_constant_index = 3 )
+    //  rate_constants(3) = photolysis%calculate( environment )
+    rate_constants_[2] = 0;  // TODO fix
 
-    //N2_O1D_1
-    //k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
+    // N2_O1D_1
+    // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     rate_constants_[3] = ArrheniusRateConstant(2.15e-11, 0, 110, 0, 0).calculate(temperature, pressure);
 
-    //O1D_O2_1
-    //k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    // O1D_O2_1
+    // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     rate_constants_[4] = ArrheniusRateConstant(3.3e-11, 0, 55, 0, 0).calculate(temperature, pressure);
 
-    //O_O3_1
-    //k_O_O3_1: O + O3 -> 2*O2
+    // O_O3_1
+    // k_O_O3_1: O + O3 -> 2*O2
     rate_constants_[5] = ArrheniusRateConstant(8e-12, 0, -2060, 0, 0).calculate(temperature, pressure);
 
-    //M_O_O2_1
-    //k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
+    // M_O_O2_1
+    // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     rate_constants_[5] = ArrheniusRateConstant(6e-34, 0, 2.4, 0, 0).calculate(temperature, pressure);
   }
 
-  inline std::vector<double> ChapmanODESolver::lin_factor(double& H, const double& gamma, bool& singular, const std::vector<double>& number_densities, const double& number_density_air){
-
+  inline std::vector<double> ChapmanODESolver::lin_factor(
+      double& H,
+      const double& gamma,
+      bool& singular,
+      const std::vector<double>& number_densities,
+      const double& number_density_air)
+  {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
 
     From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     */
 
-    std::vector<double> ode_jacobian = dforce_dy(rate_constants_, number_densities, number_density_air );
+    std::vector<double> ode_jacobian = dforce_dy(rate_constants_, number_densities, number_density_air);
     std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     uint64_t n_consecutive = 0;
     singular = true;
 
-    while(true) {
+    while (true)
+    {
       double alpha = 1 / (H * gamma);
       // compute jacobian decomposition of alpha*I - ode_jacobian
       ode_jacobian = factored_alpha_minus_jac(ode_jacobian, alpha);
@@ -673,14 +732,17 @@ namespace micm
         singular = false;
         break;
       }
-      else {
+      else
+      {
         stats_.singular += 1;
         n_consecutive += 1;
 
-        if (n_consecutive <= 5){
+        if (n_consecutive <= 5)
+        {
           H /= 2;
         }
-        else {
+        else
+        {
           break;
         }
       }
@@ -696,7 +758,11 @@ namespace micm
     return x;
   }
 
-  inline std::vector<double> ChapmanODESolver::dforce_dy(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air){
+  inline std::vector<double> ChapmanODESolver::dforce_dy(
+      const std::vector<double>& rate_constants,
+      const std::vector<double>& number_densities,
+      const double& number_density_air)
+  {
     std::vector<double> jacobian(number_densities.size(), 0);
 
     // df_O/d[M]
@@ -742,7 +808,7 @@ namespace micm
 
     // df_O2/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[13] = jacobian[13] + 1*rate_constants[5] * number_densities[8];
+    jacobian[13] = jacobian[13] + 1 * rate_constants[5] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     jacobian[13] = jacobian[13] - rate_constants[6] * number_densities[0] * number_densities[7];
@@ -760,7 +826,7 @@ namespace micm
 
     // df_O/d[O2]
     //  k_O2_1: O2 -> 2*O
-    jacobian[16] = jacobian[16] + 1*rate_constants[0];
+    jacobian[16] = jacobian[16] + 1 * rate_constants[0];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     jacobian[16] = jacobian[16] + rate_constants[4] * number_densities[5];
@@ -798,7 +864,7 @@ namespace micm
     jacobian[21] = jacobian[21] + rate_constants[2];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[21] = jacobian[21] + 1*rate_constants[5] * number_densities[6];
+    jacobian[21] = jacobian[21] + 1 * rate_constants[5] * number_densities[6];
 
     // df_O3/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
@@ -813,24 +879,30 @@ namespace micm
     return jacobian;
   }
 
-  inline double ChapmanODESolver::error_norm(std::vector<double> original_number_densities, std::vector<double> new_number_densities, std::vector<double> errors){
+  inline double ChapmanODESolver::error_norm(
+      std::vector<double> original_number_densities,
+      std::vector<double> new_number_densities,
+      std::vector<double> errors)
+  {
+    std::vector<double> maxs(original_number_densities.size());
+    std::vector<double> scale(original_number_densities.size());
 
-   std::vector<double> maxs(original_number_densities.size());
-   std::vector<double> scale(original_number_densities.size());
+    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
+    {
+      maxs[idx] = std::max(std::abs(original_number_densities[idx]), std::abs(new_number_densities[idx]));
+    }
 
-   for(uint64_t idx = 0; idx < original_number_densities.size(); ++idx){
-    maxs[idx] = std::max(std::abs(original_number_densities[idx]), std::abs(new_number_densities[idx]));
-   }
+    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
+    {
+      scale[idx] = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * maxs[idx];
+    }
 
-   for(uint64_t idx = 0; idx < original_number_densities.size(); ++idx){
-    scale[idx] = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * maxs[idx];
-   }
+    double sum = 0;
+    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
+    {
+      sum += std::pow(errors[idx] / scale[idx], 2);
+    }
 
-   double sum = 0;
-   for(uint64_t idx = 0; idx < original_number_densities.size(); ++idx){
-    sum += std::pow(errors[idx] / scale[idx], 2);
-   }
-
-   return std::max(std::sqrt(sum / parameters_.N_), error_min_);
+    return std::max(std::sqrt(sum / parameters_.N_), error_min_);
   }
 }  // namespace micm
