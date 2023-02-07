@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <functional>
 #include <micm/solver/solver.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <string>
@@ -165,7 +166,7 @@ namespace micm
   inline Solver::SolverResult ChapmanODESolver::Solve(const double& time_start, const double& time_end, std::vector<double> number_densities, const double& number_density_air)
   {
     double present_time = time_start;
-    double H = std::min(std::max(std::abs(parameters_.h_min_),abs(parameters_.h_start_)) , abs(parameters_.h_max_) );
+    double H = std::min(std::max(std::abs(parameters_.h_min_),std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_) );
 
     std::vector<std::vector<double>> K(parameters_.N_, std::vector<double>(parameters_.stages_, nan("")));
     std::vector<double> Fcn(parameters_.N_, nan(""));
@@ -212,7 +213,7 @@ namespace micm
 
         // Compute the stages
         for(uint64_t stage = 0; stage < parameters_.stages_; ++stage){
-          if (stage == 1)
+          if (stage == 0)
           {
             K[0] = forced;
           }
@@ -335,7 +336,7 @@ namespace micm
     // M, Ar, CO2, H2O, N2, O1D, O, O2, O3,
     std::vector<double> force(number_densities.size(), 0);
 
-    assert(force.size() == 9);
+    assert(force.size() >= 9);
 
     // M, Ar, CO2, H2O, N2 are all zero
 
@@ -556,6 +557,8 @@ namespace micm
 
     parameters_.stages_ = 3;
 
+    parameters_.N_ = 23;
+
    //  The coefficient matrices A and C are strictly lower triangular.
    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
@@ -657,16 +660,32 @@ namespace micm
     */
 
     std::vector<double> ode_jacobian = dforce_dy(rate_constants_, number_densities, number_density_air );
-
+    std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
+    uint64_t n_consecutive = 0;
     singular = true;
 
-    for(uint64_t n_consecutive{};;singular){
+    while(true) {
       double alpha = 1 / (H * gamma);
-
       // compute jacobian decomposition of alpha*I - ode_jacobian
       ode_jacobian = factored_alpha_minus_jac(ode_jacobian, alpha);
       stats_.decompositions += 1;
-      singular = false;
+
+      if (is_successful(ode_jacobian))
+      {
+        singular = false;
+        break;
+      }
+      else {
+        stats_.singular += 1;
+        n_consecutive += 1;
+
+        if (n_consecutive <= 5){
+          H /= 2;
+        }
+        else {
+          break;
+        }
+      }
     }
 
     return ode_jacobian;
@@ -680,7 +699,7 @@ namespace micm
   }
 
   inline std::vector<double> ChapmanODESolver::dforce_dy(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air){
-    std::vector<double> jacobian(rate_constants.size(), 0);
+    std::vector<double> jacobian(number_densities.size(), 0);
 
     // df_O/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M

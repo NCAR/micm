@@ -82,4 +82,22 @@ namespace micm
   {
   }
 
+  std::string state_to_string(const Solver::SolverState& state){
+    switch(state){
+      case micm::Solver::SolverState::NotYetCalled:
+          return "Not Yet Called";
+      case micm::Solver::SolverState::Converged:
+          return "Converged";
+      case micm::Solver::SolverState::ConvergenceExceededMaxSteps:
+          return "Convergence Exceeded Max Steps";
+      case micm::Solver::SolverState::StepSizeTooSmall:
+          return "Step Size Too Small";
+      case micm::Solver::SolverState::RepeatedlySingularMatrix:
+          return "Repeatedly Singular Matrix";
+      default:
+        return "Unknown";
+    }
+    return "";
+  }
+
 }  // namespace micm

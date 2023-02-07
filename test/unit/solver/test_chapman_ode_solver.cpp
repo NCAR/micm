@@ -1,4 +1,5 @@
 #include <micm/solver/chapman_ode_solver.hpp>
+#include <micm/solver/solver.hpp>
 
 #include <gtest/gtest.h>
 
@@ -12,11 +13,6 @@ TEST(ChapmanODESolver, lin_solve){
   micm::ChapmanODESolver solver{};
   std::vector<double> jacobian(23, 1), b(23, 0.5);
   auto solved = solver.lin_solve(b, jacobian);
-
-  for(auto& elem : solved){
-    std::cout << elem << " ";
-  }
-  std::cout << "\n";
 
   EXPECT_EQ(solved[0], 0.5);
   EXPECT_EQ(solved[1], 0.5);
@@ -165,4 +161,14 @@ TEST(ChapmanODESolver, dforce_dy_time_vector){
   EXPECT_NEAR(product[20], 0, 0.01);
   EXPECT_NEAR(product[21], 0, 0.01);
   EXPECT_NEAR(product[22], 0, 0.01);
+}
+
+TEST(ChapmanODESolver, Solve){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> number_densities(23, 5e-8);
+  double number_density_air = 2.7e19;
+
+  auto results = solver.Solve(0, 5, number_densities, number_density_air);
+
+  std::cout << "solver state: " << micm::state_to_string(results.state_) << "\n";
 }

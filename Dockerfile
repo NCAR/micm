@@ -35,6 +35,7 @@ RUN mkdir /build \
       && cd /build \
       && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-8.2.0" \
       && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
       && make 
