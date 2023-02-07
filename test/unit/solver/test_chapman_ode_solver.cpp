@@ -57,13 +57,13 @@ TEST(ChapmanODESolver, SpeciesNames){
   ASSERT_EQ(names.size(), 9);
 }
 
-TEST(ChapmanODESolver, simple_p_force){
+TEST(ChapmanODESolver, simple_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 1);
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -77,13 +77,13 @@ TEST(ChapmanODESolver, simple_p_force){
   EXPECT_EQ(forcing[8], -2);
 }
 
-TEST(ChapmanODESolver, smaller_p_force){
+TEST(ChapmanODESolver, smaller_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 3e-8);
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{6e-14};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);

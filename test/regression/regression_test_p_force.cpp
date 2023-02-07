@@ -42,13 +42,13 @@ std::vector<double> call_fortran_p_force(std::vector<double>& rate_constants, st
   return result;
 }
 
-TEST(RegressionChapmanODESolver, simple_p_force){
+TEST(RegressionChapmanODESolver, simple_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 1);
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
   auto f_forcing = call_fortran_p_force(rate_constants, number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());
@@ -57,13 +57,13 @@ TEST(RegressionChapmanODESolver, simple_p_force){
   }
 }
 
-TEST(RegressionChapmanODESolver, smaller_p_force){
+TEST(RegressionChapmanODESolver, smaller_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 3e-8);
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{6e-14};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
   auto f_forcing = call_fortran_p_force(rate_constants, number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());

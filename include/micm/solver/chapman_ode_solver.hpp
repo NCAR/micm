@@ -93,7 +93,7 @@ namespace micm
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
     std::vector<double>
-    p_force(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air);
+    force(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -195,9 +195,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H,std::abs(time_end-present_time));
 
-      //   Compute the function at current time
-      auto forced = p_force(rate_constants_, number_densities, number_density_air);
-      auto last_forcing = forced;
+      auto forced = force(rate_constants_, number_densities, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -226,7 +224,7 @@ namespace micm
                   new_number_densities[idx] = parameters_.a_[stage_index + j] * K[j][idx];
                 }
               }
-              forced = p_force(rate_constants_, new_number_densities, number_density_air);
+              forced = force(rate_constants_, new_number_densities, number_density_air);
             }
             K[stage] = forced;
             for(uint64_t j = 0; j < stage; ++j){
@@ -327,7 +325,7 @@ namespace micm
     };
   }
 
-  inline std::vector<double> ChapmanODESolver::p_force(
+  inline std::vector<double> ChapmanODESolver::force(
       const std::vector<double>& rate_constants,
       const std::vector<double>& number_densities,
       const double& number_density_air)
