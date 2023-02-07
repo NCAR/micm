@@ -39,8 +39,8 @@ add_test(NAME dforce_dy_times_vector
           COMMAND regression_test_dforce_dy_times_vector ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_executable(regression_test_solve regression_test_solve.cpp solve.F90)
-target_link_libraries(regression_test_solve musica::micm micmlib GTest::gtest_main)
-add_test(NAME solve
-          COMMAND regression_test_solve ""
+add_executable(regression_test_kinetic_solve regression_test_kinetic_solve.cpp kinetic_solve.F90)
+target_link_libraries(regression_test_kinetic_solve musica::micm micmlib GTest::gtest_main)
+add_test(NAME kinetic_solve
+          COMMAND regression_test_kinetic_solve ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -5,7 +5,7 @@ module solve_mod
 
 contains
 
-  subroutine solve(LU, b, x) bind(c)
+  subroutine kinetic_solve(LU, b, x) bind(c)
     use iso_c_binding,      only : c_double
     use factor_solve_utilities, only : old_solver => solve
 
@@ -18,6 +18,6 @@ contains
 
     call old_solver(LU, x, b)
 
-  end subroutine solve
+  end subroutine kinetic_solve
 
 end module solve_mod

@@ -33,12 +33,12 @@ namespace micm
       size_t max_number_of_steps_{100};
 
       double round_off_{std::numeric_limits<double>::epsilon()}; // Unit roundoff (1+round_off)>1
-      double factor_min_{};                 // solver step size minimum boundary
-      double factor_max_{};                 // solver step size maximum boundary
-      double rejection_factor_decrease_{};  // used to decrease the step after 2 successive rejections
-      double safety_factor_{};              // safety factor in new step size computation
+      double factor_min_{0.2};                 // solver step size minimum boundary
+      double factor_max_{6};                 // solver step size maximum boundary
+      double rejection_factor_decrease_{0.1};  // used to decrease the step after 2 successive rejections
+      double safety_factor_{0.9};              // safety factor in new step size computation
 
-      double h_min_{};    // step size min
+      double h_min_{0};    // step size min
       double h_max_{};    // step size max
       double h_start_{};  // step size start
 
@@ -53,8 +53,8 @@ namespace micm
       std::array<double, 6> alpha_{};
       std::array<double, 6> gamma_{};
 
-      double absolute_tolerance_{ 0.01 };
-      double relative_tolerance_{ 0.01 };
+      double absolute_tolerance_{ 1e-12 };
+      double relative_tolerance_{ 1e-4 };
     };
 
    public:
@@ -191,6 +191,8 @@ namespace micm
   {
     // TODO: make this configurable?
     parameters_.h_max_ = time_end - time_start;
+    // TODO: make this configurable?
+    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
     double present_time = time_start;
     double H =
@@ -234,6 +236,10 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
+        if (stats_.number_of_steps > parameters_.max_number_of_steps_)
+        {
+          break;
+        }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
         auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, number_densities, number_density_air);
@@ -672,24 +678,15 @@ namespace micm
   {
     // O2_1
     // k_O2_1: O2 -> 2*O
-    //  photolysis = rate_constant_photolysis_t( &
-    //      photolysis_rate_constant_index = 1 )
-    //  rate_constants(1) = photolysis%calculate( environment )
-    rate_constants_[0] = 0;  // TODO fix
+    rate_constants_[0] = 1.0e-4;
 
     // O3_1
     // k_O3_1: O3 -> 1*O1D + 1*O2
-    //  photolysis = rate_constant_photolysis_t( &
-    //      photolysis_rate_constant_index = 2 )
-    //  rate_constants(2) = photolysis%calculate( environment )
-    rate_constants_[1] = 0;  // TODO fix
+    rate_constants_[1] = 1.0e-5;
 
     // O3_2
     // k_O3_2: O3 -> 1*O + 1*O2
-    //  photolysis = rate_constant_photolysis_t( &
-    //      photolysis_rate_constant_index = 3 )
-    //  rate_constants(3) = photolysis%calculate( environment )
-    rate_constants_[2] = 0;  // TODO fix
+    rate_constants_[2] = 1.0e-6;
 
     // N2_O1D_1
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
