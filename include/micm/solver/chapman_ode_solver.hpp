@@ -74,8 +74,6 @@ namespace micm
     /// @return A struct containing results and a status code
     SolverResult Solve(const double& time_start, const double& time_end, std::vector<double> number_densities, const double& number_density_air) override;
 
-    std::vector<double> matrix_solver(const std::vector<double>& LU, const std::vector<double>& b);
-
     /// @brief Returns a list of reaction names
     /// @return vector of strings
     std::vector<std::string> reaction_names();
@@ -96,14 +94,14 @@ namespace micm
     std::vector<double>
     p_force(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air);
 
-    /// @brief compute LU decomposition of [alpha * I - dforce_dy]
+    /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
     /// @param alpha
-    /// @return An LU decomposition
+    /// @return An jacobian decomposition
     std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
 
     /// @brief Computes product of [dforce_dy * vector]
-    /// @param dforce_dy  Jacobian of forcing
+    /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
     std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
@@ -113,13 +111,19 @@ namespace micm
     /// @param pressure in pascals
     void calculate_rate_constants(const double& temperature, const double& pressure);
 
+    /// @brief Solve the system
+    /// @param K idk, something
+    /// @param ode_jacobian the jacobian
+    /// @return the new state?
+    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
+
    private:
     /// @brief Factor
-    /// @param LU
-    void factor(std::vector<double>& LU);
+    /// @param jacobian
+    void factor(std::vector<double>& jacobian);
 
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& LU, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& LU, const std::vector<double>& y);
+    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
+    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
 
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
     void three_stage_rosenbrock();
@@ -137,12 +141,6 @@ namespace micm
     /// @param Y  constituent concentration (molec/cm^3)
     /// @param singular indicates if the matrix is singular
     std::vector<double> lin_factor(double& H, const double& gamma, bool& singular,const std::vector<double>& number_densities, const double& number_density_air);
-
-    /// @brief Solve the system
-    /// @param K idk, something
-    /// @param ode_jacobian the jacobian
-    /// @return the new state?
-    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
@@ -307,13 +305,6 @@ namespace micm
     return result;
   }
 
-  inline std::vector<double> ChapmanODESolver::matrix_solver(const std::vector<double>& LU, const std::vector<double>& b)
-  {
-    auto y = backsolve_L_y_eq_b(LU, b);
-    auto x = backsolve_U_x_eq_b(LU, y);
-    return x;
-  }
-
   inline std::vector<std::string> ChapmanODESolver::reaction_names()
   {
     return std::vector<std::string>{ "O2_1", "O3_1", "O3_2", "N2_O1D_1", "O1D_O2_1", "O_O3_1", "M_O_O2_1" };
@@ -406,53 +397,53 @@ namespace micm
 
   inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha)
   {
-    std::vector<double> LU(dforce_dy);
-    // multiply LU by -1
-    std::transform(LU.begin(), LU.end(), LU.begin(), [](auto& c) { return -c; });
+    std::vector<double> jacobian(dforce_dy);
+    // multiply jacobian by -1
+    std::transform(jacobian.begin(), jacobian.end(), jacobian.begin(), [](auto& c) { return -c; });
 
-    assert(LU.size() >= 23);
+    assert(jacobian.size() >= 23);
 
-    LU[0] = -dforce_dy[0] + alpha;
-    LU[4] = -dforce_dy[4] + alpha;
-    LU[5] = -dforce_dy[5] + alpha;
-    LU[6] = -dforce_dy[6] + alpha;
-    LU[7] = -dforce_dy[7] + alpha;
-    LU[10] = -dforce_dy[10] + alpha;
-    LU[12] = -dforce_dy[12] + alpha;
-    LU[17] = -dforce_dy[17] + alpha;
-    LU[22] = -dforce_dy[22] + alpha;
+    jacobian[0] = -dforce_dy[0] + alpha;
+    jacobian[4] = -dforce_dy[4] + alpha;
+    jacobian[5] = -dforce_dy[5] + alpha;
+    jacobian[6] = -dforce_dy[6] + alpha;
+    jacobian[7] = -dforce_dy[7] + alpha;
+    jacobian[10] = -dforce_dy[10] + alpha;
+    jacobian[12] = -dforce_dy[12] + alpha;
+    jacobian[17] = -dforce_dy[17] + alpha;
+    jacobian[22] = -dforce_dy[22] + alpha;
 
-    factor(LU);
-    return LU;
+    factor(jacobian);
+    return jacobian;
   }
 
-  inline void ChapmanODESolver::factor(std::vector<double>& LU)
+  inline void ChapmanODESolver::factor(std::vector<double>& jacobian)
   {
-    LU[0] = 1. / LU[0];
-    LU[1] = LU[1] * LU[0];
-    LU[2] = LU[2] * LU[0];
-    LU[3] = LU[3] * LU[0];
-    LU[4] = 1. / LU[4];
-    LU[5] = 1. / LU[5];
-    LU[6] = 1. / LU[6];
-    LU[7] = 1. / LU[7];
-    LU[8] = LU[8] * LU[7];
-    LU[9] = LU[9] * LU[7];
-    LU[10] = 1. / LU[10];
-    LU[11] = LU[11] * LU[10];
-    LU[16] = LU[16] - LU[11] * LU[15];
-    LU[20] = LU[20] - LU[11] * LU[19];
-    LU[12] = 1. / LU[12];
-    LU[13] = LU[13] * LU[12];
-    LU[14] = LU[14] * LU[12];
-    LU[17] = LU[17] - LU[13] * LU[16];
-    LU[18] = LU[18] - LU[14] * LU[16];
-    LU[21] = LU[21] - LU[13] * LU[20];
-    LU[22] = LU[22] - LU[14] * LU[20];
-    LU[17] = 1. / LU[17];
-    LU[18] = LU[18] * LU[17];
-    LU[22] = LU[22] - LU[18] * LU[21];
-    LU[22] = 1. / LU[22];
+    jacobian[0] = 1. / jacobian[0];
+    jacobian[1] = jacobian[1] * jacobian[0];
+    jacobian[2] = jacobian[2] * jacobian[0];
+    jacobian[3] = jacobian[3] * jacobian[0];
+    jacobian[4] = 1. / jacobian[4];
+    jacobian[5] = 1. / jacobian[5];
+    jacobian[6] = 1. / jacobian[6];
+    jacobian[7] = 1. / jacobian[7];
+    jacobian[8] = jacobian[8] * jacobian[7];
+    jacobian[9] = jacobian[9] * jacobian[7];
+    jacobian[10] = 1. / jacobian[10];
+    jacobian[11] = jacobian[11] * jacobian[10];
+    jacobian[16] = jacobian[16] - jacobian[11] * jacobian[15];
+    jacobian[20] = jacobian[20] - jacobian[11] * jacobian[19];
+    jacobian[12] = 1. / jacobian[12];
+    jacobian[13] = jacobian[13] * jacobian[12];
+    jacobian[14] = jacobian[14] * jacobian[12];
+    jacobian[17] = jacobian[17] - jacobian[13] * jacobian[16];
+    jacobian[18] = jacobian[18] - jacobian[14] * jacobian[16];
+    jacobian[21] = jacobian[21] - jacobian[13] * jacobian[20];
+    jacobian[22] = jacobian[22] - jacobian[14] * jacobian[20];
+    jacobian[17] = 1. / jacobian[17];
+    jacobian[18] = jacobian[18] * jacobian[17];
+    jacobian[22] = jacobian[22] - jacobian[18] * jacobian[21];
+    jacobian[22] = 1. / jacobian[22];
   }
 
   inline std::vector<double> ChapmanODESolver::dforce_dy_times_vector(
@@ -503,8 +494,8 @@ namespace micm
     return result;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(const std::vector<double>& LU, const std::vector<double>& b){
-    std::vector<double> y(LU.size());
+  inline std::vector<double> ChapmanODESolver::backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b){
+    std::vector<double> y(jacobian.size());
 
     y[0] = b[0];
     y[1] = b[1];
@@ -512,49 +503,49 @@ namespace micm
     y[3] = b[3];
     y[4] = b[4];
     y[5] = b[5];
-    y[5] = y[5] - LU[8] * y[4];
+    y[5] = y[5] - jacobian[8] * y[4];
     y[6] = b[6];
-    y[6] = y[6] - LU[1] * y[0];
-    y[6] = y[6] - LU[9] * y[4];
-    y[6] = y[6] - LU[11] * y[5];
+    y[6] = y[6] - jacobian[1] * y[0];
+    y[6] = y[6] - jacobian[9] * y[4];
+    y[6] = y[6] - jacobian[11] * y[5];
     y[7] = b[7];
-    y[7] = y[7] - LU[2] * y[0];
-    y[7] = y[7] - LU[13] * y[6];
+    y[7] = y[7] - jacobian[2] * y[0];
+    y[7] = y[7] - jacobian[13] * y[6];
     y[8] = b[8];
-    y[8] = y[8] - LU[3] * y[0];
-    y[8] = y[8] - LU[14] * y[6];
-    y[8] = y[8] - LU[18] * y[7];
+    y[8] = y[8] - jacobian[3] * y[0];
+    y[8] = y[8] - jacobian[14] * y[6];
+    y[8] = y[8] - jacobian[18] * y[7];
 
     return y;
   }
 
-  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(const std::vector<double>& LU, const std::vector<double>& y){
-    std::vector<double> x(LU.size(), 0);
+  inline std::vector<double> ChapmanODESolver::backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y){
+    std::vector<double> x(jacobian.size(), 0);
     double temporary{};
 
     temporary = y[8];
-    x[8] = LU[22] * temporary;
+    x[8] = jacobian[22] * temporary;
     temporary = y[7];
-    temporary = temporary - LU[21] * x[8];
-    x[7] = LU[17] * temporary;
+    temporary = temporary - jacobian[21] * x[8];
+    x[7] = jacobian[17] * temporary;
     temporary = y[6];
-    temporary = temporary - LU[16] * x[7];
-    temporary = temporary - LU[20] * x[8];
-    x[6] = LU[12] * temporary;
+    temporary = temporary - jacobian[16] * x[7];
+    temporary = temporary - jacobian[20] * x[8];
+    x[6] = jacobian[12] * temporary;
     temporary = y[5];
-    temporary = temporary - LU[15] * x[7];
-    temporary = temporary - LU[19] * x[8];
-    x[5] = LU[10] * temporary;
+    temporary = temporary - jacobian[15] * x[7];
+    temporary = temporary - jacobian[19] * x[8];
+    x[5] = jacobian[10] * temporary;
     temporary = y[4];
-    x[4] = LU[7] * temporary;
+    x[4] = jacobian[7] * temporary;
     temporary = y[3];
-    x[3] = LU[6] * temporary;
+    x[3] = jacobian[6] * temporary;
     temporary = y[2];
-    x[2] = LU[5] * temporary;
+    x[2] = jacobian[5] * temporary;
     temporary = y[1];
-    x[1] = LU[4] * temporary;
+    x[1] = jacobian[4] * temporary;
     temporary = y[0];
-    x[0] = LU[0] * temporary;
+    x[0] = jacobian[0] * temporary;
 
     return x;
   }
@@ -672,7 +663,7 @@ namespace micm
     for(uint64_t n_consecutive{};;singular){
       double alpha = 1 / (H * gamma);
 
-      // compute LU decomposition of alpha*I - ode_jacobian
+      // compute jacobian decomposition of alpha*I - ode_jacobian
       ode_jacobian = factored_alpha_minus_jac(ode_jacobian, alpha);
       stats_.decompositions += 1;
       singular = false;
@@ -681,127 +672,128 @@ namespace micm
     return ode_jacobian;
   }
 
-  inline std::vector<double> ChapmanODESolver::lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian)
+  inline std::vector<double> ChapmanODESolver::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
   {
-
+    auto x = backsolve_U_x_eq_b(jacobian, backsolve_L_y_eq_b(jacobian, K));
     stats_.solves += 1;
+    return x;
   }
 
   inline std::vector<double> ChapmanODESolver::dforce_dy(const std::vector<double>& rate_constants, const std::vector<double>& number_densities, const double& number_density_air){
-    std::vector<double> LU(rate_constants.size(), 0);
+    std::vector<double> jacobian(rate_constants.size(), 0);
 
     // df_O/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[1] = LU[1] - rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[1] = jacobian[1] - rate_constants[6] * number_densities[6] * number_densities[7];
 
     // df_O2/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[2] = LU[2] - rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[2] = jacobian[2] - rate_constants[6] * number_densities[6] * number_densities[7];
 
     // df_O3/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[3] = LU[3] + rate_constants[6] * number_densities[6] * number_densities[7];
+    jacobian[3] = jacobian[3] + rate_constants[6] * number_densities[6] * number_densities[7];
 
     // df_O1D/d[N2]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    LU[8] = LU[8] - rate_constants[3] * number_densities[5];
+    jacobian[8] = jacobian[8] - rate_constants[3] * number_densities[5];
 
     // df_O/d[N2]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    LU[9] = LU[9] + rate_constants[3] * number_densities[5];
+    jacobian[9] = jacobian[9] + rate_constants[3] * number_densities[5];
 
     // df_O1D/d[O1D]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    LU[10] = LU[10] - rate_constants[3] * number_densities[4];
+    jacobian[10] = jacobian[10] - rate_constants[3] * number_densities[4];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    LU[10] = LU[10] - rate_constants[4] * number_densities[7];
+    jacobian[10] = jacobian[10] - rate_constants[4] * number_densities[7];
 
     // df_O/d[O1D]
     //  k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    LU[11] = LU[11] + rate_constants[3] * number_densities[4];
+    jacobian[11] = jacobian[11] + rate_constants[3] * number_densities[4];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    LU[11] = LU[11] + rate_constants[4] * number_densities[7];
+    jacobian[11] = jacobian[11] + rate_constants[4] * number_densities[7];
 
     // df_O/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[12] = LU[12] - rate_constants[5] * number_densities[8];
+    jacobian[12] = jacobian[12] - rate_constants[5] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[12] = LU[12] - rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[12] = jacobian[12] - rate_constants[6] * number_densities[0] * number_densities[7];
 
     // df_O2/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[13] = LU[13] + 1*rate_constants[5] * number_densities[8];
+    jacobian[13] = jacobian[13] + 1*rate_constants[5] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[13] = LU[13] - rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[13] = jacobian[13] - rate_constants[6] * number_densities[0] * number_densities[7];
 
     // df_O3/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[14] = LU[14] - rate_constants[5] * number_densities[8];
+    jacobian[14] = jacobian[14] - rate_constants[5] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[14] = LU[14] + rate_constants[6] * number_densities[0] * number_densities[7];
+    jacobian[14] = jacobian[14] + rate_constants[6] * number_densities[0] * number_densities[7];
 
     // df_O1D/d[O2]
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    LU[15] = LU[15] - rate_constants[4] * number_densities[5];
+    jacobian[15] = jacobian[15] - rate_constants[4] * number_densities[5];
 
     // df_O/d[O2]
     //  k_O2_1: O2 -> 2*O
-    LU[16] = LU[16] + 1*rate_constants[0];
+    jacobian[16] = jacobian[16] + 1*rate_constants[0];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    LU[16] = LU[16] + rate_constants[4] * number_densities[5];
+    jacobian[16] = jacobian[16] + rate_constants[4] * number_densities[5];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[16] = LU[16] - rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[16] = jacobian[16] - rate_constants[6] * number_densities[0] * number_densities[6];
 
     // df_O2/d[O2]
     //  k_O2_1: O2 -> 2*O
-    LU[17] = LU[17] - rate_constants[0];
+    jacobian[17] = jacobian[17] - rate_constants[0];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[17] = LU[17] - rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[17] = jacobian[17] - rate_constants[6] * number_densities[0] * number_densities[6];
 
     // df_O3/d[O2]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    LU[18] = LU[18] + rate_constants[6] * number_densities[0] * number_densities[6];
+    jacobian[18] = jacobian[18] + rate_constants[6] * number_densities[0] * number_densities[6];
 
     // df_O1D/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    LU[19] = LU[19] + rate_constants[1];
+    jacobian[19] = jacobian[19] + rate_constants[1];
 
     // df_O/d[O3]
     //  k_O3_2: O3 -> 1*O + 1*O2
-    LU[20] = LU[20] + rate_constants[2];
+    jacobian[20] = jacobian[20] + rate_constants[2];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[20] = LU[20] - rate_constants[5] * number_densities[6];
+    jacobian[20] = jacobian[20] - rate_constants[5] * number_densities[6];
 
     // df_O2/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    LU[21] = LU[21] + rate_constants[1];
+    jacobian[21] = jacobian[21] + rate_constants[1];
 
     //  k_O3_2: O3 -> 1*O + 1*O2
-    LU[21] = LU[21] + rate_constants[2];
+    jacobian[21] = jacobian[21] + rate_constants[2];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[21] = LU[21] + 1*rate_constants[5] * number_densities[6];
+    jacobian[21] = jacobian[21] + 1*rate_constants[5] * number_densities[6];
 
     // df_O3/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
-    LU[22] = LU[22] - rate_constants[1];
+    jacobian[22] = jacobian[22] - rate_constants[1];
 
     //  k_O3_2: O3 -> 1*O + 1*O2
-    LU[22] = LU[22] - rate_constants[2];
+    jacobian[22] = jacobian[22] - rate_constants[2];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    LU[22] = LU[22] - rate_constants[5] * number_densities[6];
+    jacobian[22] = jacobian[22] - rate_constants[5] * number_densities[6];
 
-    return LU;
+    return jacobian;
   }
 
   inline double ChapmanODESolver::error_norm(std::vector<double> original_number_densities, std::vector<double> new_number_densities, std::vector<double> errors){

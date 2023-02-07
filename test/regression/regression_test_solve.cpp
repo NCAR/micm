@@ -4,10 +4,10 @@
 #include <micm/solver/chapman_ode_solver.hpp>
 
 extern "C" {
-  void solve(CFI_cdesc_t * LU, CFI_cdesc_t * b, CFI_cdesc_t * x);
+  void solve(CFI_cdesc_t * jacobian, CFI_cdesc_t * b, CFI_cdesc_t * x);
 }
 
-std::vector<double> call_fortran_solve(std::vector<double>& LU, std::vector<double>& b){
+std::vector<double> call_fortran_solve(std::vector<double>& jacobian, std::vector<double>& b){
   std::vector<double> result{};
 
   CFI_CDESC_T(1) f_x;
@@ -15,11 +15,11 @@ std::vector<double> call_fortran_solve(std::vector<double>& LU, std::vector<doub
                       CFI_attribute_pointer,
                       CFI_type_double, 0, (CFI_rank_t)1, NULL);
 
-  CFI_CDESC_T(1) f_LU;
-  CFI_index_t extent[1] = { (long int) LU.size() };
-  CFI_establish((CFI_cdesc_t *)&f_LU, LU.data(),
+  CFI_CDESC_T(1) f_jacobian;
+  CFI_index_t extent[1] = { (long int) jacobian.size() };
+  CFI_establish((CFI_cdesc_t *)&f_jacobian, jacobian.data(),
                       CFI_attribute_other,
-                      CFI_type_double, LU.size() * sizeof(double), (CFI_rank_t)1, extent);
+                      CFI_type_double, jacobian.size() * sizeof(double), (CFI_rank_t)1, extent);
 
   CFI_CDESC_T(1) f_b;
   CFI_index_t b_extent[1] = { (long int) b.size() };
@@ -28,7 +28,7 @@ std::vector<double> call_fortran_solve(std::vector<double>& LU, std::vector<doub
                       CFI_type_double, b.size() * sizeof(double), (CFI_rank_t)1, b_extent);
 
   solve(
-    (CFI_cdesc_t *)&f_LU, 
+    (CFI_cdesc_t *)&f_jacobian, 
     (CFI_cdesc_t *)&f_b,
     (CFI_cdesc_t *)&f_x
   );
@@ -41,12 +41,12 @@ std::vector<double> call_fortran_solve(std::vector<double>& LU, std::vector<doub
   return result;
 }
 
-TEST(RegressionChapmanODESolver, matrix_solver){
+TEST(RegressionChapmanODESolver, lin_solve){
   micm::ChapmanODESolver solver{};
-  std::vector<double> LU(23, 1), b(23, 0.5);
+  std::vector<double> jacobian(23, 1), b(23, 0.5);
 
-  auto solved = solver.matrix_solver(LU, b);
-  auto f_solved = call_fortran_solve(LU, b);
+  auto solved = solver.lin_solve(b, jacobian);
+  auto f_solved = call_fortran_solve(jacobian, b);
 
   EXPECT_EQ(solved.size(), f_solved.size());
   for(size_t i{}; i < solved.size(); ++i) {
