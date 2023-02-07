@@ -168,7 +168,9 @@ TEST(ChapmanODESolver, Solve){
   std::vector<double> number_densities(23, 5e-8);
   double number_density_air = 2.7e19;
 
-  auto results = solver.Solve(0, 5, number_densities, number_density_air);
+  solver.calculate_rate_constants(273.15, 100000);
+
+  auto results = solver.Solve(0, 0.1, number_densities, number_density_air);
 
   std::cout << "solver state: " << micm::state_to_string(results.state_) << "\n";
 }

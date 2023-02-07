@@ -9,6 +9,7 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/solver.hpp>
 #include <string>
@@ -29,9 +30,9 @@ namespace micm
       size_t N_{};
       size_t stages_{};
       size_t upper_limit_tolerance_{};
-      size_t max_number_of_steps_{};
+      size_t max_number_of_steps_{100};
 
-      double round_off_{};                  // Unit roundoff (1+round_off)>1
+      double round_off_{std::numeric_limits<double>::epsilon()}; // Unit roundoff (1+round_off)>1
       double factor_min_{};                 // solver step size minimum boundary
       double factor_max_{};                 // solver step size maximum boundary
       double rejection_factor_decrease_{};  // used to decrease the step after 2 successive rejections
@@ -188,11 +189,14 @@ namespace micm
       const std::vector<double>& original_number_densities,
       const double& number_density_air)
   {
+    // TODO: make this configurable?
+    parameters_.h_max_ = time_end - time_start;
+
     double present_time = time_start;
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    std::vector<std::vector<double>> K(parameters_.N_, std::vector<double>(parameters_.stages_, nan("")));
+    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, nan("")));
     std::vector<double> number_densities(original_number_densities);
     std::vector<double> forcing{};
 
@@ -254,7 +258,7 @@ namespace micm
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_number_densities(number_densities);
-              for (uint64_t j = 0; j < stage - 1; ++j)
+              for (uint64_t j = 0; j < stage; ++j)
               {
                 for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
                 {
@@ -265,7 +269,7 @@ namespace micm
               forcing = force(rate_constants_, new_number_densities, number_density_air);
             }
             K[stage] = forcing;
-            for (uint64_t j = 0; j < stage - 1; ++j)
+            for (uint64_t j = 0; j < stage; ++j)
             {
               auto HC = parameters_.c_[stage_index + j] / H;
               for (uint64_t idx = 0; idx < K[stage].size(); ++idx)
@@ -609,7 +613,6 @@ namespace micm
     // an L-stable method, 3 stages, order 3, 2 function evaluations
 
     parameters_.stages_ = 3;
-
     parameters_.N_ = 23;
 
     //  The coefficient matrices A and C are strictly lower triangular.
