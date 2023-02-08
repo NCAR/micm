@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -39,8 +40,8 @@ namespace micm
       double safety_factor_{0.9};              // safety factor in new step size computation
 
       double h_min_{0};    // step size min
-      double h_max_{};    // step size max
-      double h_start_{};  // step size start
+      double h_max_{0.5};    // step size max
+      double h_start_{0.005};  // step size start
 
       std::array<bool, 6>
           new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
@@ -61,6 +62,7 @@ namespace micm
     Rosenbrock_params parameters_;
     std::vector<double> rate_constants_;
     Solver::Rosenbrock_stats stats_;
+    static constexpr uint64_t number_sparse_factor_elements_ = 23;
 
     static constexpr double delta_min_ = 1.0e-5;
     static constexpr double error_min_ = 1.0e-10;
@@ -189,18 +191,13 @@ namespace micm
       const std::vector<double>& original_number_densities,
       const double& number_density_air)
   {
-    // TODO: make this configurable?
-    parameters_.h_max_ = time_end - time_start;
-    // TODO: make this configurable?
-    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, nan("")));
+    std::vector<double> number_densities(original_number_densities);
+    std::vector<double> forcing{};
 
     double present_time = time_start;
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
-
-    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, nan("")));
-    std::vector<double> number_densities(original_number_densities);
-    std::vector<double> forcing{};
 
     SolverResult result{};
     stats_.reset();
@@ -286,6 +283,14 @@ namespace micm
           }
           K[stage] = lin_solve(K[stage], ode_jacobian);
         }
+        // for(int i = 0; i < K.size(); ++i){
+        //   std::cout << i << ": ";
+        //   for(int j = 0; j < K[i].size(); ++j){
+        //     std::cout << K[i][j] << " ";
+        //   }
+        //   std::cout << std::endl;
+        // }
+        // std::exit(0);
 
         // Compute the new solution
         auto new_number_densities(number_densities);
@@ -455,9 +460,9 @@ namespace micm
       const std::vector<double>& dforce_dy,
       const double& alpha)
   {
-    std::vector<double> jacobian(dforce_dy);
+    std::vector<double> jacobian(number_sparse_factor_elements_);
     // multiply jacobian by -1
-    std::transform(jacobian.begin(), jacobian.end(), jacobian.begin(), [](auto& c) { return -c; });
+    std::transform(dforce_dy.begin(), dforce_dy.end(), jacobian.begin(), [](auto& c) { return -c; });
 
     assert(jacobian.size() >= 23);
 
@@ -619,7 +624,7 @@ namespace micm
     // an L-stable method, 3 stages, order 3, 2 function evaluations
 
     parameters_.stages_ = 3;
-    parameters_.N_ = 23;
+    parameters_.N_ = species_names().size();
 
     //  The coefficient matrices A and C are strictly lower triangular.
     //  The lower triangular (subdiagonal) elements are stored in row-wise order:
@@ -690,19 +695,29 @@ namespace micm
 
     // N2_O1D_1
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
-    rate_constants_[3] = ArrheniusRateConstant(2.15e-11, 0, 110, 0, 0).calculate(temperature, pressure);
+    ArrheniusRateConstantParameters params;
+    params.A_ = 2.15e-11;
+    params.C_ = 110;
+    rate_constants_[3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O1D_O2_1
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
-    rate_constants_[4] = ArrheniusRateConstant(3.3e-11, 0, 55, 0, 0).calculate(temperature, pressure);
+    params.A_ = 3.3e-11;
+    params.C_ = 55;
+    rate_constants_[4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O_O3_1
     // k_O_O3_1: O + O3 -> 2*O2
-    rate_constants_[5] = ArrheniusRateConstant(8e-12, 0, -2060, 0, 0).calculate(temperature, pressure);
+    params.A_ = 8e-12;
+    params.C_ = -2060;
+    rate_constants_[5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // M_O_O2_1
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
-    rate_constants_[5] = ArrheniusRateConstant(6e-34, 0, 2.4, 0, 0).calculate(temperature, pressure);
+    params.A_ = 6e-34;
+    params.B_ = 2.4;
+    params.C_ = 0;
+    rate_constants_[6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
   }
 
   inline std::vector<double> ChapmanODESolver::lin_factor(
@@ -766,7 +781,7 @@ namespace micm
       const std::vector<double>& number_densities,
       const double& number_density_air)
   {
-    std::vector<double> jacobian(number_densities.size(), 0);
+    std::vector<double> jacobian(number_sparse_factor_elements_, 0);
 
     // df_O/d[M]
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M

@@ -367,6 +367,10 @@ subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
       CALL theKinetics%LinSolve( K(:,istage) )
       this%icntrl(Nsol) = this%icntrl(Nsol) + 1
       END DO Stage_loop
+      ! print '(23e13.5)', K(:,1)
+      ! print '(23e13.5)', K(:,2)
+      ! print '(23e13.5)', K(:,3)
+      ! call exit(0)
 
       !~~~>  Compute the new solution
       Ynew(1:N) = Y(1:N)

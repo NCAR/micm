@@ -1,6 +1,6 @@
 {
-  "chemistry time step [min]" : 5.0,
+  "chemistry time step [s]" : 0.5,
   "absolute tolerance" : 1.0e-12,
   "relative tolerance" : 1.0e-4,
-  "number of variables": 23
+  "number of variables": 9
 }

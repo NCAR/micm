@@ -46,7 +46,8 @@ std::vector<double> call_fortran_solve(
 
 TEST(RegressionChapmanODESolver, solve){
   micm::ChapmanODESolver solver{};
-  std::vector<double> number_densities(23, 5e8);
+  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
+                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   double number_density_air = 2.7e19;
   double temperature = 273.15;
   double pressure = 1000 * 100; // 1000 hPa
@@ -55,8 +56,8 @@ TEST(RegressionChapmanODESolver, solve){
 
   solver.calculate_rate_constants(temperature, pressure);
 
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air);
   auto f_results = call_fortran_solve(temperature, pressure, number_density_air, time_start, time_end, number_densities);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air);
 
   for(const auto& elem : f_results){
     std::cout << elem << " ";
