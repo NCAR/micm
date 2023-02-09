@@ -12,16 +12,16 @@ namespace micm
 
   struct ArrheniusRateConstantParameters {
     /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
-    double A_{};
+    double A_{1};
     /// @brief Unitless exponential factor
-    double B_{};
+    double B_{0};
     /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
     /// k_b), K
-    double C_{};
+    double C_{0};
     /// @brief A factor that determines temperature dependence, (K)
-    double D_{};
+    double D_{300};
     /// @brief A factor that determines pressure dependence (Pa-1)
-    double E_{};
+    double E_{0};
   };
 
   /**
