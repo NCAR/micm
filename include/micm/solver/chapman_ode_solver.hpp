@@ -363,6 +363,7 @@ namespace micm
     result.T = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(number_densities);
+    result.state_ = Solver::SolverState::Converged;
 
     return result;
   }
@@ -590,7 +591,7 @@ namespace micm
       const std::vector<double>& jacobian,
       const std::vector<double>& y)
   {
-    std::vector<double> x(jacobian.size(), 0);
+    std::vector<double> x(y.size(), 0);
     double temporary{};
 
     temporary = y[8];

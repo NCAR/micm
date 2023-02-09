@@ -59,15 +59,15 @@ TEST(RegressionChapmanODESolver, solve){
   auto f_results = call_fortran_solve(temperature, pressure, number_density_air, time_start, time_end, number_densities);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air);
 
-  for(const auto& elem : f_results){
-    std::cout << elem << " ";
-  }
-  std::cout << "\n";
-
-  // EXPECT_DEATH(
-  //   call_fortran_solve(temperature, pressure, number_density_air, time_start, time_end, number_densities),
-  //   "asdf"
-  // );
-
-  std::cout << "solver state: " << micm::state_to_string(results.state_) << "\n";
+  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.result_.size(), f_results.size());
+  EXPECT_EQ(results.result_[0], f_results[0]);
+  EXPECT_EQ(results.result_[1], f_results[1]);
+  EXPECT_EQ(results.result_[2], f_results[2]);
+  EXPECT_EQ(results.result_[3], f_results[3]);
+  EXPECT_EQ(results.result_[4], f_results[4]);
+  EXPECT_EQ(results.result_[5], f_results[5]);
+  EXPECT_EQ(results.result_[6], f_results[6]);
+  EXPECT_EQ(results.result_[7], f_results[7]);
+  EXPECT_EQ(results.result_[8], f_results[8]);
 }
