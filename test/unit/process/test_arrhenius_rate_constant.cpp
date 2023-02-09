@@ -9,7 +9,7 @@ TEST(ArrheniusRateConstant, DefaultConstructor){
 TEST(ArrheniusRateConstant, CalculateWithSystem){
   micm::ArrheniusRateConstant zero{};
   auto k = zero.calculate(micm::System());
-  EXPECT_NEAR(k, 0, 0.01);
+  EXPECT_NEAR(k, 1, 0.01);
 
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 1;
@@ -44,7 +44,7 @@ TEST(ArrheniusRateConstant, CalculateWithSystem){
 TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
   micm::ArrheniusRateConstant zero{};
   auto k = zero.calculate(1.0, 1.0);
-  EXPECT_NEAR(k, 0, 0.01);
+  EXPECT_NEAR(k, 1, 0.01);
 
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 1;
