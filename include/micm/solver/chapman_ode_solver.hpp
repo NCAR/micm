@@ -129,17 +129,6 @@ namespace micm
     /// @return the new state?
     std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
 
-   private:
-    /// @brief Factor
-    /// @param jacobian
-    void factor(std::vector<double>& jacobian);
-
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
-
-    /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
-    void three_stage_rosenbrock();
-
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
@@ -161,6 +150,18 @@ namespace micm
         bool& singular,
         const std::vector<double>& number_densities,
         const double& number_density_air);
+
+   private:
+    /// @brief Factor
+    /// @param jacobian
+    void factor(std::vector<double>& jacobian);
+
+    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
+    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
+
+    /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
+    void three_stage_rosenbrock();
+
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
@@ -561,7 +562,7 @@ namespace micm
       const std::vector<double>& jacobian,
       const std::vector<double>& b)
   {
-    std::vector<double> y(jacobian.size(), 0);
+    std::vector<double> y(parameters_.N_, 0);
 
     y[0] = b[0];
     y[1] = b[1];
@@ -844,7 +845,7 @@ namespace micm
 
     // df_O/d[O2]
     //  k_O2_1: O2 -> 2*O
-    jacobian[16] = jacobian[16] + 1 * rate_constants[0];
+    jacobian[16] = jacobian[16] + 2 * rate_constants[0];
 
     //  k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     jacobian[16] = jacobian[16] + rate_constants[4] * number_densities[5];
