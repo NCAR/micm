@@ -47,7 +47,7 @@ contains
     )
 
     allocate(new_number_densities(size(f_number_densities)))
-    new_number_densities = f_number_densities
+    new_number_densities(:) = f_number_densities(:)
 
   end subroutine solve
 

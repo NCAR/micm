@@ -12,7 +12,7 @@ contains
     real(kind=c_double), intent(in) :: LU(:), b(:)
     real(kind=c_double), pointer, intent(out) :: x(:)
 
-    allocate(x(size(LU)))
+    allocate(x(size(b)))
 
     x = 0
 

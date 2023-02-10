@@ -11,7 +11,7 @@ TEST(ChapmanODESolver, DefaultConstructor){
 
 TEST(ChapmanODESolver, lin_solve){
   micm::ChapmanODESolver solver{};
-  std::vector<double> jacobian(23, 1), b(23, 0.5);
+  std::vector<double> jacobian(23, 1), b(9, 0.5);
   auto solved = solver.lin_solve(b, jacobian);
 
   EXPECT_EQ(solved[0], 0.5);
@@ -19,24 +19,10 @@ TEST(ChapmanODESolver, lin_solve){
   EXPECT_EQ(solved[2], 0.5);
   EXPECT_EQ(solved[3], 0.5);
   EXPECT_EQ(solved[4], 0.5);
-  EXPECT_EQ(solved[5], -0.5);
+  EXPECT_EQ(solved[5], -.5);
   EXPECT_EQ(solved[6], -1);
   EXPECT_EQ(solved[7], 0.5);
   EXPECT_EQ(solved[8], 0);
-  EXPECT_EQ(solved[9], 0);
-  EXPECT_EQ(solved[10], 0);
-  EXPECT_EQ(solved[11], 0);
-  EXPECT_EQ(solved[12], 0);
-  EXPECT_EQ(solved[13], 0);
-  EXPECT_EQ(solved[14], 0);
-  EXPECT_EQ(solved[15], 0);
-  EXPECT_EQ(solved[16], 0);
-  EXPECT_EQ(solved[17], 0);
-  EXPECT_EQ(solved[18], 0);
-  EXPECT_EQ(solved[19], 0);
-  EXPECT_EQ(solved[20], 0);
-  EXPECT_EQ(solved[21], 0);
-  EXPECT_EQ(solved[22], 0);
 }
 
 TEST(ChapmanODESolver, ReactionNames){

@@ -43,13 +43,14 @@ std::vector<double> call_fortran_kinetic_solve(std::vector<double>& jacobian, st
 
 TEST(RegressionChapmanODESolver, lin_solve){
   micm::ChapmanODESolver solver{};
-  std::vector<double> jacobian(23, 1), b(23, 0.5);
+  std::vector<double> jacobian(23, 1), b(9, 0.5);
 
   auto solved = solver.lin_solve(b, jacobian);
   auto f_solved = call_fortran_kinetic_solve(jacobian, b);
 
   EXPECT_EQ(solved.size(), f_solved.size());
   for(size_t i{}; i < solved.size(); ++i) {
+    std::cout << solved[i] << " " << f_solved[i] << std::endl;
     EXPECT_EQ(solved[i], f_solved[i]);
   }
 }

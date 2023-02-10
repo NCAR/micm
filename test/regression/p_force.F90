@@ -13,7 +13,7 @@ contains
     real(kind=c_double), intent(in), value :: number_density_air
     real(kind=c_double), pointer, intent(out) :: force(:)
 
-    allocate(force(size(rate_constants)))
+    allocate(force(size(number_densities)))
 
     call old_p_force(rate_constants, number_densities, number_density_air, force)
 

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -192,8 +191,8 @@ namespace micm
       const std::vector<double>& original_number_densities,
       const double& number_density_air)
   {
-    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, nan("")));
-    std::vector<double> number_densities(original_number_densities);
+    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
+    std::vector<double> Y(original_number_densities);
     std::vector<double> forcing{};
 
     double present_time = time_start;
@@ -228,7 +227,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto initial_forcing = force(rate_constants_, number_densities, number_density_air);
+      auto initial_forcing = force(rate_constants_, Y, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -240,7 +239,7 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, number_densities, number_density_air);
+        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -258,62 +257,55 @@ namespace micm
           }
           else
           {
-            double stage_index = (stage) * (stage - 1) / 2;
+            double stage_combinations = ((stage+1) - 1) * ((stage+1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
-              auto new_number_densities(number_densities);
-              for (uint64_t j = 0; j < stage; ++j)
+              auto new_Y(Y);
+              for (uint64_t j = 0; j <= stage; ++j)
               {
-                for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
+                assert((stage_combinations + j) < parameters_.a_.size());
+                auto a = parameters_.a_[stage_combinations + j];
+                for (uint64_t idx = 0; idx < new_Y.size(); ++idx)
                 {
-                  assert((stage_index + j) < parameters_.a_.size());
-                  new_number_densities[idx] = parameters_.a_[stage_index + j] * K[j][idx];
+                  new_Y[idx] += a * K[j][idx];
                 }
               }
-              forcing = force(rate_constants_, new_number_densities, number_density_air);
+              forcing = force(rate_constants_, new_Y, number_density_air);
             }
             K[stage] = forcing;
             for (uint64_t j = 0; j < stage; ++j)
             {
-              auto HC = parameters_.c_[stage_index + j] / H;
+              auto HC = parameters_.c_[stage_combinations + j] / H;
               for (uint64_t idx = 0; idx < K[stage].size(); ++idx)
               {
-                K[stage][idx] = HC * K[j][idx];
+                K[stage][idx] += HC * K[j][idx];
               }
             }
           }
           K[stage] = lin_solve(K[stage], ode_jacobian);
         }
-        // for(int i = 0; i < K.size(); ++i){
-        //   std::cout << i << ": ";
-        //   for(int j = 0; j < K[i].size(); ++j){
-        //     std::cout << K[i][j] << " ";
-        //   }
-        //   std::cout << std::endl;
-        // }
-        // std::exit(0);
 
         // Compute the new solution
-        auto new_number_densities(number_densities);
+        auto new_Y(Y);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
-          for (uint64_t idx = 0; idx < new_number_densities.size(); ++idx)
+          for (uint64_t idx = 0; idx < new_Y.size(); ++idx)
           {
-            new_number_densities[idx] += parameters_.m_[stage] + K[stage][idx];
+            new_Y[idx] += parameters_.m_[stage] * K[stage][idx];
           }
         }
 
         // Compute the error estimation
-        std::vector<double> error_vec(number_densities.size(), 0);
+        std::vector<double> Yerror(Y.size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
           uint64_t idx = 0;
-          for (uint64_t idx = 0; idx < error_vec.size(); ++idx)
+          for (uint64_t idx = 0; idx < Yerror.size(); ++idx)
           {
-            error_vec[idx] += parameters_.e_[stage] + K[stage][idx];
+            Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
           }
         }
-        auto error = error_norm(number_densities, new_number_densities, error_vec);
+        auto error = error_norm(Y, new_Y, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         // Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
@@ -330,7 +322,7 @@ namespace micm
         {
           stats_.accepted += 1;
           present_time = present_time + H;
-          number_densities = new_number_densities;
+          Y = new_Y;
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
           if (reject_last_h)
           {
@@ -362,7 +354,7 @@ namespace micm
 
     result.T = present_time;
     result.stats_ = stats_;
-    result.result_ = std::move(number_densities);
+    result.result_ = std::move(Y);
     result.state_ = Solver::SolverState::Converged;
 
     return result;
@@ -637,13 +629,13 @@ namespace micm
 
     parameters_.a_.fill(0);
     parameters_.a_[0] = 1;
-    parameters_.a_[0] = 1;
-    parameters_.a_[0] = 0;
+    parameters_.a_[1] = 1;
+    parameters_.a_[2] = 0;
 
     parameters_.c_.fill(0);
     parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
-    parameters_.c_[0] = 0.40759956452537699824805835358067e+01;
-    parameters_.c_[0] = 0.92076794298330791242156818474003e+01;
+    parameters_.c_[1] = 0.40759956452537699824805835358067e+01;
+    parameters_.c_[2] = 0.92076794298330791242156818474003e+01;
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
@@ -685,15 +677,15 @@ namespace micm
   {
     // O2_1
     // k_O2_1: O2 -> 2*O
-    rate_constants_[0] = 1.0e-4;
+    rate_constants_[0] = 1e-4;
 
     // O3_1
     // k_O3_1: O3 -> 1*O1D + 1*O2
-    rate_constants_[1] = 1.0e-5;
+    rate_constants_[1] = 1e-5;
 
     // O3_2
     // k_O3_2: O3 -> 1*O + 1*O2
-    rate_constants_[2] = 1.0e-6;
+    rate_constants_[2] = 1e-6;
 
     // N2_O1D_1
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
@@ -773,7 +765,8 @@ namespace micm
 
   inline std::vector<double> ChapmanODESolver::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
   {
-    auto x = backsolve_U_x_eq_b(jacobian, backsolve_L_y_eq_b(jacobian, K));
+    auto y = backsolve_L_y_eq_b(jacobian, K);
+    auto x = backsolve_U_x_eq_b(jacobian, y);
     stats_.solves += 1;
     return x;
   }

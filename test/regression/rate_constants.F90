@@ -23,4 +23,33 @@ contains
     arrhenius_rate = rate%calculate(env)
 
   end function arrhenius_rate
+
+  subroutine reaction_rate_constants(temperature, pressure, rate_constants) bind(c)
+    use iso_c_binding,              only : c_double
+    use micm_ODE_solver_rosenbrock, only : ODE_solver_rosenbrock_t
+    use musica_config,              only : config_t
+    use micm_environment,           only : environment_t
+    use micm_kinetics,              only : kinetics_t
+    use musica_constants,           only : musica_dk, musica_ik
+
+    real(kind=c_double), value :: temperature, pressure
+    real(kind=c_double), pointer, intent(out) :: rate_constants(:)
+    real(kind=musica_dk), allocatable :: f_rate_constants(:)
+
+    type(environment_t) :: env
+    class(kinetics_t), pointer :: kinetics
+
+    env%temperature = temperature
+    env%pressure = pressure
+    env%photolysis_rate_constants = (/1e-4, 1e-5, 1e-6/)
+
+    kinetics => kinetics_t()
+    call kinetics%update(env)
+
+    f_rate_constants = kinetics%reaction_rate_constants()
+    allocate(rate_constants(size(f_rate_constants)))
+    rate_constants(:) = f_rate_constants(:)
+
+  end subroutine reaction_rate_constants
+
 end module rate_constants
