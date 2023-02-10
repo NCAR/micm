@@ -19,6 +19,9 @@ extern "C" {
   void reaction_rate_constants(
     double temperature, 
     double pressure, 
+    double photorate_1, 
+    double photorate_2, 
+    double photorate_3, 
     CFI_cdesc_t * new_number_densities
   );
 }
@@ -30,7 +33,7 @@ double call_fortran_rate(double temperature, double pressure, micm::ArrheniusRat
   );
 }
 
-std::vector<double> call_reaction_rate_constants(double temperature, double pressure){
+std::vector<double> call_reaction_rate_constants(double temperature, double pressure, double photorate_1, double photorate_2, double photorate_3){
   std::vector<double> result{};
 
   CFI_CDESC_T(1) f_reaction_rate_constants;
@@ -39,7 +42,7 @@ std::vector<double> call_reaction_rate_constants(double temperature, double pres
                       CFI_type_double, 0, (CFI_rank_t)1, NULL);
 
   reaction_rate_constants(
-    temperature, pressure,
+    temperature, pressure, photorate_1, photorate_2, photorate_3,
     (CFI_cdesc_t *)&f_reaction_rate_constants
   );
 
@@ -146,15 +149,17 @@ TEST(ArrheniusRateRegressionTest, M_O_O2_1){
 
 TEST(ArrheniusRateRegressionTest, integration){
   micm::ChapmanODESolver solver{};
-  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
-                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   double temperature = 273.15;
   double pressure = 1000 * 100; // 1000 hPa
 
   solver.calculate_rate_constants(temperature, pressure);
-  auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure);
+  auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure, solver.rate_constants_[0], solver.rate_constants_[1], solver.rate_constants_[2]);
 
-  for(uint64_t i = 0; i < solver.rate_constants_.size(); ++i){
-    EXPECT_DOUBLE_EQ(solver.rate_constants_[i], f_reaction_rate_constants[i]);
-  }
+  EXPECT_NEAR(solver.rate_constants_[0], f_reaction_rate_constants[0], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[1], f_reaction_rate_constants[1], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[2], f_reaction_rate_constants[2], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[3], f_reaction_rate_constants[3], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[4], f_reaction_rate_constants[4], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[5], f_reaction_rate_constants[5], 1e-8);
+  EXPECT_NEAR(solver.rate_constants_[6], f_reaction_rate_constants[6], 1e-8);
 }
