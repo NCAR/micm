@@ -1,43 +1,28 @@
 #include <micm/solver/chapman_ode_solver.hpp>
+#include <micm/solver/solver.hpp>
 
 #include <gtest/gtest.h>
 
 TEST(ChapmanODESolver, DefaultConstructor){
   micm::ChapmanODESolver solver{};
+
+  EXPECT_EQ(solver.parameters_.stages_, 3);
 }
 
-TEST(ChapmanODESolver, Solve){
+TEST(ChapmanODESolver, lin_solve){
   micm::ChapmanODESolver solver{};
-  std::vector<double> LU(23, 1), b(23, 0.5);
-  auto solved = solver.Solve(LU, b);
+  std::vector<double> jacobian(23, 1), b(9, 0.5);
+  auto solved = solver.lin_solve(b, jacobian);
 
-EXPECT_EQ(solved[0], 0.5);
-EXPECT_EQ(solved[1], 0.5);
-EXPECT_EQ(solved[2], 0.5);
-EXPECT_EQ(solved[3], 0.5);
-EXPECT_EQ(solved[4], 0.5);
-EXPECT_EQ(solved[5], -0.5);
-EXPECT_EQ(solved[6], -1);
-EXPECT_EQ(solved[7], 0.5);
-EXPECT_EQ(solved[8], 0);
-EXPECT_EQ(solved[9], 0);
-EXPECT_EQ(solved[10], 0);
-EXPECT_EQ(solved[11], 0);
-EXPECT_EQ(solved[12], 0);
-EXPECT_EQ(solved[13], 0);
-EXPECT_EQ(solved[14], 0);
-EXPECT_EQ(solved[15], 0);
-EXPECT_EQ(solved[16], 0);
-EXPECT_EQ(solved[17], 0);
-EXPECT_EQ(solved[18], 0);
-EXPECT_EQ(solved[19], 0);
-EXPECT_EQ(solved[20], 0);
-EXPECT_EQ(solved[21], 0);
-EXPECT_EQ(solved[22], 0);
-
-  for(auto& elem : solved){
-    std::cout << elem << std::endl;
-  }
+  EXPECT_EQ(solved[0], 0.5);
+  EXPECT_EQ(solved[1], 0.5);
+  EXPECT_EQ(solved[2], 0.5);
+  EXPECT_EQ(solved[3], 0.5);
+  EXPECT_EQ(solved[4], 0.5);
+  EXPECT_EQ(solved[5], -.5);
+  EXPECT_EQ(solved[6], -1);
+  EXPECT_EQ(solved[7], 0.5);
+  EXPECT_EQ(solved[8], 0);
 }
 
 TEST(ChapmanODESolver, ReactionNames){
@@ -58,13 +43,13 @@ TEST(ChapmanODESolver, SpeciesNames){
   ASSERT_EQ(names.size(), 9);
 }
 
-TEST(ChapmanODESolver, simple_p_force){
+TEST(ChapmanODESolver, simple_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 1);
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -78,13 +63,13 @@ TEST(ChapmanODESolver, simple_p_force){
   EXPECT_EQ(forcing[8], -2);
 }
 
-TEST(ChapmanODESolver, smaller_p_force){
+TEST(ChapmanODESolver, smaller_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 3e-8);
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{6e-14};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
 
   // the truth values were calculated in fortran with old micm
   EXPECT_EQ(forcing[0], 0);
@@ -103,32 +88,32 @@ TEST(ChapmanODESolver, factored_alpha_minus_jac){
   std::vector<double> dforce_dy(23, 1);
   double alpha{2};
 
-  auto LU = solver.factored_alpha_minus_jac(dforce_dy, alpha);
+  auto jacobian = solver.factored_alpha_minus_jac(dforce_dy, alpha);
 
   // the truth values were calculated in fortran with old micm
-  EXPECT_NEAR(LU[0], 1.000, 0.01);
-  EXPECT_NEAR(LU[1], -1.000, 0.01);
-  EXPECT_NEAR(LU[2], -1.000, 0.01);
-  EXPECT_NEAR(LU[3], -1.000, 0.01);
-  EXPECT_NEAR(LU[4], 1.000, 0.01);
-  EXPECT_NEAR(LU[5], 1.000, 0.01);
-  EXPECT_NEAR(LU[6], 1.000, 0.01);
-  EXPECT_NEAR(LU[7], 1.000, 0.01);
-  EXPECT_NEAR(LU[8], -1.000, 0.01);
-  EXPECT_NEAR(LU[9], -1.000, 0.01);
-  EXPECT_NEAR(LU[10], 1.000, 0.01);
-  EXPECT_NEAR(LU[11], -1.000, 0.01);
-  EXPECT_NEAR(LU[12], 1.000, 0.01);
-  EXPECT_NEAR(LU[13], -1.000, 0.01);
-  EXPECT_NEAR(LU[14], -1.000, 0.01);
-  EXPECT_NEAR(LU[15], -1.000, 0.01);
-  EXPECT_NEAR(LU[16], -2.000, 0.01);
-  EXPECT_NEAR(LU[17], -1.000, 0.01);
-  EXPECT_NEAR(LU[18], 3.000, 0.01);
-  EXPECT_NEAR(LU[19], -1.000, 0.01);
-  EXPECT_NEAR(LU[20], -2.000, 0.01);
-  EXPECT_NEAR(LU[21], -3.000, 0.01);
-  EXPECT_NEAR(LU[22], 0.125, 0.01);
+  EXPECT_NEAR(jacobian[0], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[1], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[2], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[3], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[4], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[5], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[6], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[7], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[8], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[9], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[10], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[11], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[12], 1.000, 0.01);
+  EXPECT_NEAR(jacobian[13], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[14], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[15], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[16], -2.000, 0.01);
+  EXPECT_NEAR(jacobian[17], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[18], 3.000, 0.01);
+  EXPECT_NEAR(jacobian[19], -1.000, 0.01);
+  EXPECT_NEAR(jacobian[20], -2.000, 0.01);
+  EXPECT_NEAR(jacobian[21], -3.000, 0.01);
+  EXPECT_NEAR(jacobian[22], 0.125, 0.01);
 }
 
 TEST(ChapmanODESolver, dforce_dy_time_vector){
@@ -162,4 +147,21 @@ TEST(ChapmanODESolver, dforce_dy_time_vector){
   EXPECT_NEAR(product[20], 0, 0.01);
   EXPECT_NEAR(product[21], 0, 0.01);
   EXPECT_NEAR(product[22], 0, 0.01);
+}
+
+TEST(ChapmanODESolver, Solve){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
+                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
+  double number_density_air = 2.7e19;
+  double temperature = 273.15;
+  double pressure = 1000 * 100; // 1000 hPa
+  double time_start = 0;
+  double time_end = 1;
+
+  solver.calculate_rate_constants(temperature, pressure);
+
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air);
+
+  std::cout << "solver state: " << micm::state_to_string(results.state_) << "\n";
 }

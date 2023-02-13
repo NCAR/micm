@@ -270,7 +270,7 @@ contains
 
    associate( Ghimj => this%MBOdeJac )
 
-! Set the chemical entries for the Ode Jacobian
+    ! Set the chemical entries for the Ode Jacobian
     Ghimj(:) = this%dforce_dy( Y )
     this%chemJac(:) = Ghimj(:)
 
@@ -279,16 +279,16 @@ contains
 
    DO WHILE (Singular)
      ghinv = ONE/(H*gam)
-!    Compute LU decomposition of [ghinv*I - Ghimj]
+    !    Compute LU decomposition of [ghinv*I - Ghimj]
      call factored_alpha_minus_jac( LU_factored, ghinv, Ghimj )
      ising = 0;
      istatus(Ndec) = istatus(Ndec) + 1
      IF (ising == 0) THEN
-!~~~>    If successful done
+      !~~~>    If successful done
        Ghimj(:) = LU_factored(:)
        Singular = .FALSE.
      ELSE ! ISING .ne. 0
-!~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
+      !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
        istatus(Nsng) = istatus(Nsng) + 1
        Nconsecutive = Nconsecutive + 1
        Singular = .TRUE.

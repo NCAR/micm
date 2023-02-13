@@ -332,87 +332,87 @@ subroutine solve( this, Y, Tstart, Tend, T, theKinetics, Ierr )
    !~~~>  Repeat step calculation until current step accepted
    UntilAccepted: DO
 
-   !~~~>  Form and factor the rosenbrock ode jacobian
-   CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
-   this%icntrl(Njac) = this%icntrl(Njac) + 1
-   IF (Singular) THEN ! More than 5 consecutive failed decompositions
-       Ierr = -8
-       CALL ros_ErrorMsg(-8,presentTime,H,IERR)
-       RETURN
-   END IF
+      !~~~>  Form and factor the rosenbrock ode jacobian
+      CALL theKinetics%LinFactor( H, this%ros_Gamma(1), Y, Singular, this%icntrl )
+      this%icntrl(Njac) = this%icntrl(Njac) + 1
+      IF (Singular) THEN ! More than 5 consecutive failed decompositions
+         Ierr = -8
+         CALL ros_ErrorMsg(-8,presentTime,H,IERR)
+         RETURN
+      END IF
 
-   !~~~>   Compute the stages
-   Stage_loop: &
-   DO istage = 1, this%ros_S
-     IF ( istage /= 1 ) THEN
-       S_ndx = (istage - 1)*(istage - 2)/2
-       IF ( this%ros_NewF(istage) ) THEN
-         Ynew(1:N) = Y(1:N)
+      !~~~>   Compute the stages
+      Stage_loop: &
+      DO istage = 1, this%ros_S
+      IF ( istage /= 1 ) THEN
+         S_ndx = (istage - 1)*(istage - 2)/2
+         IF ( this%ros_NewF(istage) ) THEN
+            Ynew(1:N) = Y(1:N)
+            DO j = 1, istage-1
+            Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
+            END DO
+            Tau = presentTime + this%ros_Alpha(istage)*H
+            Fcn(:) = theKinetics%force( Ynew )
+            this%icntrl(Nfun) = this%icntrl(Nfun) + 1
+         ENDIF
+         K(:,istage) = Fcn(:)
          DO j = 1, istage-1
-           Ynew(1:N) = Ynew(1:N) + this%ros_A(S_ndx+j)*K(1:N,j)
+            HC = this%ros_C(S_ndx+j)/H
+            K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
          END DO
-         Tau = presentTime + this%ros_Alpha(istage)*H
-         Fcn(:) = theKinetics%force( Ynew )
-         this%icntrl(Nfun) = this%icntrl(Nfun) + 1
-       ENDIF
-       K(:,istage) = Fcn(:)
-       DO j = 1, istage-1
-         HC = this%ros_C(S_ndx+j)/H
-         K(1:N,istage) = K(1:N,istage) + HC*K(1:N,j)
-       END DO
-     ELSE
-       K(:,1) = Fcn0(:)
-       Fcn(:) = Fcn0(:)
-     ENDIF
-     CALL theKinetics%LinSolve( K(:,istage) )
-     this%icntrl(Nsol) = this%icntrl(Nsol) + 1
-   END DO Stage_loop
+      ELSE
+         K(:,1) = Fcn0(:)
+         Fcn(:) = Fcn0(:)
+      ENDIF
+      CALL theKinetics%LinSolve( K(:,istage) )
+      this%icntrl(Nsol) = this%icntrl(Nsol) + 1
+      END DO Stage_loop
 
-   !~~~>  Compute the new solution
-   Ynew(1:N) = Y(1:N)
-   DO j=1,this%ros_S
-     Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
-   END DO
+      !~~~>  Compute the new solution
+      Ynew(1:N) = Y(1:N)
+      DO j=1,this%ros_S
+      Ynew(1:N) = Ynew(1:N) + this%ros_M(j)*K(1:N,j)
+      END DO
 
-   !~~~>  Compute the error estimation
-   Yerr(1:N) = ZERO
-   DO j=1,this%ros_S
-     Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
-   END DO
-   Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
+      !~~~>  Compute the error estimation
+      Yerr(1:N) = ZERO
+      DO j=1,this%ros_S
+      Yerr(1:N) = Yerr(1:N) + this%ros_E(j)*K(1:N,j)
+      END DO
+      Err = ros_ErrorNorm( this, Y, Ynew, Yerr )
 
-   !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
-   Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
-   Hnew = H*Fac
+      !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
+      Fac  = MIN(this%FacMax,MAX(this%FacMin,this%FacSafe/Err**(ONE/this%ros_ELO)))
+      Hnew = H*Fac
 
-   !~~~>  Check the error magnitude and adjust step size
-   this%icntrl(Nstp) = this%icntrl(Nstp) + 1
-   this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
-   Accepted: &
-   IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
-      this%icntrl(Nacc) = this%icntrl(Nacc) + 1
-      Y(1:N) = Ynew(1:N)
-      presentTime = presentTime + H
-      Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
-      IF (RejectLastH) THEN  ! No step size increase after a rejected step
-         Hnew = MIN(Hnew,H)
-      END IF
-      this%rcntrl(Nhexit) = H
-      this%rcntrl(Nhnew)  = Hnew
-      this%rcntrl(Ntexit) = presentTime
-      RejectLastH = .FALSE.
-      RejectMoreH = .FALSE.
-      H = Hnew
-      EXIT UntilAccepted ! EXIT THE LOOP: WHILE STEP NOT ACCEPTED
-   ELSE Accepted  !~~~> Reject step
-      IF (RejectMoreH) THEN
-         Hnew = H*this%FacRej
-      END IF
-      RejectMoreH = RejectLastH
-      RejectLastH = .TRUE.
-      H = Hnew
-      IF (this%icntrl(Nacc) >= 1)  this%icntrl(Nrej) = this%icntrl(Nrej) + 1
-   ENDIF Accepted ! Err <= 1
+      !~~~>  Check the error magnitude and adjust step size
+      this%icntrl(Nstp) = this%icntrl(Nstp) + 1
+      this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
+      Accepted: &
+      IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
+         this%icntrl(Nacc) = this%icntrl(Nacc) + 1
+         Y(1:N) = Ynew(1:N)
+         presentTime = presentTime + H
+         Hnew = MAX(this%Hmin,MIN(Hnew,this%Hmax))
+         IF (RejectLastH) THEN  ! No step size increase after a rejected step
+            Hnew = MIN(Hnew,H)
+         END IF
+         this%rcntrl(Nhexit) = H
+         this%rcntrl(Nhnew)  = Hnew
+         this%rcntrl(Ntexit) = presentTime
+         RejectLastH = .FALSE.
+         RejectMoreH = .FALSE.
+         H = Hnew
+         EXIT UntilAccepted ! EXIT THE LOOP: WHILE STEP NOT ACCEPTED
+      ELSE Accepted  !~~~> Reject step
+         IF (RejectMoreH) THEN
+            Hnew = H*this%FacRej
+         END IF
+         RejectMoreH = RejectLastH
+         RejectLastH = .TRUE.
+         H = Hnew
+         IF (this%icntrl(Nacc) >= 1)  this%icntrl(Nrej) = this%icntrl(Nrej) + 1
+      ENDIF Accepted ! Err <= 1
 
    END DO UntilAccepted
 
@@ -589,7 +589,7 @@ SUBROUTINE Ros3( this )
    this%ros_C(1) = -0.10156171083877702091975600115545E+01_r8
    this%ros_C(2) =  0.40759956452537699824805835358067E+01_r8
    this%ros_C(3) =  0.92076794298330791242156818474003E+01_r8
-   !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+   !~~~> 
    !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    this%ros_NewF(1:3) = (/ .TRUE.,.TRUE.,.FALSE. /)
    !~~~> M_i = Coefficients for new step solution

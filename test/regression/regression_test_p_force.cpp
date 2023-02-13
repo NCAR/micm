@@ -42,13 +42,13 @@ std::vector<double> call_fortran_p_force(std::vector<double>& rate_constants, st
   return result;
 }
 
-TEST(RegressionChapmanODESolver, simple_p_force){
+TEST(RegressionChapmanODESolver, simple_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 1);
   std::vector<double> number_densities(9, 1);
   double number_density_air{};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
   auto f_forcing = call_fortran_p_force(rate_constants, number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());
@@ -57,14 +57,56 @@ TEST(RegressionChapmanODESolver, simple_p_force){
   }
 }
 
-TEST(RegressionChapmanODESolver, smaller_p_force){
+TEST(RegressionChapmanODESolver, smaller_force){
   micm::ChapmanODESolver solver{};
   std::vector<double> rate_constants(9, 3e-8);
   std::vector<double> number_densities(9, 5e-6);
   double number_density_air{6e-14};
 
-  auto forcing = solver.p_force(rate_constants, number_densities, number_density_air);
+  auto forcing = solver.force(rate_constants, number_densities, number_density_air);
   auto f_forcing = call_fortran_p_force(rate_constants, number_densities, number_density_air);
+
+  EXPECT_EQ(forcing.size(), f_forcing.size());
+  for(size_t i{}; i < forcing.size(); ++i) {
+    EXPECT_EQ(forcing[i], f_forcing[i]);
+  }
+}
+
+TEST(RegressionChapmanODESolver, realistic_number_densities){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
+                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
+  double number_density_air = 2.7e19;
+  double temperature = 273.15;
+  double pressure = 1000 * 100; // 1000 hPa
+
+  solver.calculate_rate_constants(temperature, pressure);
+
+  auto forcing = solver.force(solver.rate_constants_, number_densities, number_density_air);
+  auto f_forcing = call_fortran_p_force(solver.rate_constants_, number_densities, number_density_air);
+
+  EXPECT_EQ(forcing.size(), f_forcing.size());
+  for(size_t i{}; i < forcing.size(); ++i) {
+    EXPECT_EQ(forcing[i], f_forcing[i]);
+  }
+}
+
+TEST(RegressionChapmanODESolver, realistic_number_densities_scaled_down){
+  micm::ChapmanODESolver solver{};
+  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
+                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
+  double number_density_air = 2.7e19;
+  double temperature = 273.15;
+  double pressure = 1000 * 100; // 1000 hPa
+
+  solver.calculate_rate_constants(temperature, pressure);
+
+  for(auto& elem: number_densities){
+    elem *= 1e-10;
+  }
+
+  auto forcing = solver.force(solver.rate_constants_, number_densities, number_density_air);
+  auto f_forcing = call_fortran_p_force(solver.rate_constants_, number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());
   for(size_t i{}; i < forcing.size(); ++i) {

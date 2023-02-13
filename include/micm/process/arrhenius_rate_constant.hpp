@@ -10,6 +10,20 @@
 namespace micm
 {
 
+  struct ArrheniusRateConstantParameters {
+    /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
+    double A_{1};
+    /// @brief Unitless exponential factor
+    double B_{0};
+    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
+    /// k_b), K
+    double C_{0};
+    /// @brief A factor that determines temperature dependence, (K)
+    double D_{300};
+    /// @brief A factor that determines pressure dependence (Pa-1)
+    double E_{0};
+  };
+
   /**
    * @brief An arrhenius rate constant dependent on temperature and pressure
    *
@@ -18,17 +32,7 @@ namespace micm
   class ArrheniusRateConstant : public RateConstant
   {
    private:
-    /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
-    const double A_;
-    /// @brief Unitless exponential factor
-    const double B_;
-    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
-    /// k_b), K
-    const double C_;
-    /// @brief A factor that determines temperature dependence, (K)
-    const double D_;
-    /// @brief A factor that determines pressure dependence (Pa-1)
-    const double E_;
+    const ArrheniusRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor. All terms will be zero
@@ -42,7 +46,7 @@ namespace micm
     /// k_b), K
     /// @param D A factor that determines temperature dependence, (K)
     /// @param E A factor that determines pressure dependence (Pa-1)
-    ArrheniusRateConstant(double A, double B, double C, double D, double E);
+    ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -53,20 +57,12 @@ namespace micm
   };
 
   inline ArrheniusRateConstant::ArrheniusRateConstant()
-      : A_(),
-        B_(),
-        C_(),
-        D_(),
-        E_()
+      : parameters_()
   {
   }
 
-  inline ArrheniusRateConstant::ArrheniusRateConstant(double A, double B, double C, double D, double E)
-      : A_(A),
-        B_(B),
-        C_(C),
-        D_(D),
-        E_(E)
+  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
+      : parameters_(parameters)
   {
   }
 
@@ -80,7 +76,7 @@ namespace micm
 
   inline double ArrheniusRateConstant::calculate(double temperature, double pressure)
   {
-    return this->A_ * std::exp(this->C_ / temperature) * pow(temperature / this->D_, this->B_) * (1.0 + this->E_ * pressure);
+    return parameters_.A_ * std::exp(parameters_.C_ / temperature) * pow(temperature / parameters_.D_, parameters_.B_) * (1.0 + parameters_.E_ * pressure);
   }
 
 }  // namespace micm
