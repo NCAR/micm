@@ -821,7 +821,7 @@ namespace micm
 
     // df_O2/d[O]
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[13] = jacobian[13] + 1 * rate_constants[5] * number_densities[8];
+    jacobian[13] = jacobian[13] + 2 * rate_constants[5] * number_densities[8];
 
     //  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     jacobian[13] = jacobian[13] - rate_constants[6] * number_densities[0] * number_densities[7];
@@ -877,7 +877,7 @@ namespace micm
     jacobian[21] = jacobian[21] + rate_constants[2];
 
     //  k_O_O3_1: O + O3 -> 2*O2
-    jacobian[21] = jacobian[21] + 1 * rate_constants[5] * number_densities[6];
+    jacobian[21] = jacobian[21] + 2 * rate_constants[5] * number_densities[6];
 
     // df_O3/d[O3]
     //  k_O3_1: O3 -> 1*O1D + 1*O2
