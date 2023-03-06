@@ -6,6 +6,4 @@ include(test_util)
 ################################################################################
 # Tests
 
-# compile the old micm library
-add_subdirectory(old_micm)
-add_subdirectory(HardCodedChapman)
+create_standard_test(NAME factory SOURCES test_factory.cpp)

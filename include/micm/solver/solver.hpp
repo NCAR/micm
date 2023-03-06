@@ -32,7 +32,7 @@ namespace micm
 
     struct Rosenbrock_stats
     {
-      uint64_t forcing_function_calls{};  // Nfun
+      uint64_t function_calls{};  // Nfun
       uint64_t jacobian_updates{};        // Njac
       uint64_t number_of_steps{};         // Nstp
       uint64_t accepted{};                // Nacc
@@ -44,7 +44,7 @@ namespace micm
 
       void reset()
       {
-        forcing_function_calls = 0;
+        function_calls = 0;
         jacobian_updates = 0;
         number_of_steps = 0;
         accepted = 0;
@@ -58,9 +58,13 @@ namespace micm
 
     struct [[nodiscard]] SolverResult
     {
+      /// @brief The new state computed by the solver
       std::vector<double> result_{};
+      /// @brief The finals state the solver was in
       SolverState state_ = SolverState::NotYetCalled;
+      /// @brief A collection of runtime state for this call of the solver
       Rosenbrock_stats stats_{};
+      /// @brief The final time the solver iterated to
       double T{};
     };
 
@@ -80,7 +84,7 @@ namespace micm
         const double& time_start,
         const double& time_end,
         const std::vector<double>& number_densities,
-        const double& number_density_air) = 0;
+        const double& number_density_air) noexcept = 0;
   };
 
   inline Solver::Solver()
