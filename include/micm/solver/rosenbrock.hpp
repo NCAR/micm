@@ -185,6 +185,7 @@ namespace micm
         rate_constants_(),
         stats_()
   {
+    std::cout << parameters_.N_ << std::endl;
     three_stage_rosenbrock();
   }
 
@@ -366,14 +367,17 @@ namespace micm
 
   inline std::vector<std::string> RosenbrockSolver::reaction_names()
   {
+    return std::vector<std::string>();
   }
 
   inline std::vector<std::string> RosenbrockSolver::photolysis_names()
   {
+    return std::vector<std::string>();
   }
 
   inline std::vector<std::string> RosenbrockSolver::species_names()
   {
+    return std::vector<std::string>();
   }
 
   inline std::vector<double> RosenbrockSolver::force(

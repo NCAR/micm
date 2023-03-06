@@ -43,15 +43,15 @@ namespace micm
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
-    std::vector<std::string> reaction_names();
+    std::vector<std::string> reaction_names() override;
 
     /// @brief Returns a list of species that participate in photolysis
     /// @return vector of strings
-    std::vector<std::string> photolysis_names();
+    std::vector<std::string> photolysis_names() override;
 
     /// @brief Returns a list of species names
     /// @return vector of strings
-    std::vector<std::string> species_names();
+    std::vector<std::string> species_names() override;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
