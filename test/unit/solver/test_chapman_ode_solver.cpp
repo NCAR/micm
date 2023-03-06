@@ -3,10 +3,15 @@
 
 #include <gtest/gtest.h>
 
-TEST(ChapmanODESolver, DefaultConstructor){
-  micm::ChapmanODESolver solver{};
-
+void TestDefaultConstructor(micm::RosenbrockSolver& solver){
   EXPECT_EQ(solver.parameters_.stages_, 3);
+}
+
+TEST(ChapmanODESolver, DefaultConstructor){
+  micm::ChapmanODESolver hard_coded{};
+  // micm::RosenbrockSolver general{};
+  TestDefaultConstructor(hard_coded);
+  // TestDefaultConstructor(general);
 }
 
 TEST(ChapmanODESolver, lin_solve){
@@ -44,6 +49,7 @@ void TestSpeciesNames(micm::RosenbrockSolver& solver) {
 
 TEST(ChapmanODESolver, SpeciesNames){
   micm::ChapmanODESolver solver{};
+  TestSpeciesNames(solver);
 }
 
 TEST(ChapmanODESolver, simple_force){

@@ -21,7 +21,7 @@ namespace micm
     /// @brief The name of this species
     const std::string name_;
     /// @brief A list of properties of this species
-    const std::vector<const Property> properties_;
+    const std::vector<Property> properties_;
 
     /// @brief Default constructor
     Species() = default;
@@ -31,7 +31,7 @@ namespace micm
     /// @brief
     /// @param name The name of the species
     /// @param properties The properties of teh species
-    Species(const std::string name, const std::vector<const Property> properties) :
+    Species(const std::string name, const std::vector<Property> properties) :
       name_(name), properties_(properties) {};
   };
 

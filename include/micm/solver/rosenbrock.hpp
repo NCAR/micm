@@ -32,7 +32,7 @@ namespace micm
    */
   class RosenbrockSolver : public Solver
   {
-   private:
+   protected:
     struct Rosenbrock_params
     {
       size_t N_{};
@@ -77,7 +77,7 @@ namespace micm
    public:
     /// @brief Default constructor
     RosenbrockSolver();
-    ~RosenbrockSolver();
+    virtual ~RosenbrockSolver();
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
@@ -165,7 +165,7 @@ namespace micm
     virtual std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
     virtual std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
 
-   private:
+   protected:
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
     void three_stage_rosenbrock();
 
@@ -182,7 +182,7 @@ namespace micm
 
   inline RosenbrockSolver::RosenbrockSolver()
       : parameters_(),
-        rate_constants_(7, 0),
+        rate_constants_(),
         stats_()
   {
     three_stage_rosenbrock();
@@ -436,6 +436,7 @@ namespace micm
     // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers. 
     // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
 
+    std::cout << __LINE__ << std::endl;
 
     parameters_.stages_ = 3;
     parameters_.N_ = species_names().size();
