@@ -37,10 +37,13 @@ TEST(ChapmanODESolver, PhotolysisNames){
   ASSERT_EQ(names.size(), 3);
 }
 
-TEST(ChapmanODESolver, SpeciesNames){
-  micm::ChapmanODESolver solver{};
+void TestSpeciesNames(micm::RosenbrockSolver& solver) {
   auto names = solver.species_names();
   ASSERT_EQ(names.size(), 9);
+}
+
+TEST(ChapmanODESolver, SpeciesNames){
+  micm::ChapmanODESolver solver{};
 }
 
 TEST(ChapmanODESolver, simple_force){

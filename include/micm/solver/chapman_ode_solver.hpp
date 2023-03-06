@@ -11,7 +11,7 @@
 #include <iostream>
 #include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/solver.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <string>
 #include <vector>
 
@@ -22,7 +22,7 @@ namespace micm
    * @brief An implementation of the Chapman mechnanism solver
    *
    */
-  class ChapmanODESolver : public Solver
+  class ChapmanODESolver : public RosenbrockSolver
   {
    private:
     struct Rosenbrock_params
@@ -103,30 +103,30 @@ namespace micm
     std::vector<double> force(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
+    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha) override;
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
+    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector) override;
 
     /// @brief Update the rate constants for the environment state
     /// @param temperature in kelvin
     /// @param pressure in pascals
-    void calculate_rate_constants(const double& temperature, const double& pressure);
+    void calculate_rate_constants(const double& temperature, const double& pressure) override;
 
     /// @brief Solve the system
     /// @param K idk, something
     /// @param ode_jacobian the jacobian
     /// @return the new state?
-    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
+    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian) override;
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
@@ -136,7 +136,7 @@ namespace micm
     std::vector<double> dforce_dy(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
@@ -148,19 +148,18 @@ namespace micm
         const double& gamma,
         bool& singular,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
-   private:
     /// @brief Factor
     /// @param jacobian
-    void factor(std::vector<double>& jacobian);
+    void factor(std::vector<double>& jacobian) override;
 
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
+    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b) override;
+    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y) override;
 
+   private:
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
     void three_stage_rosenbrock();
-
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities

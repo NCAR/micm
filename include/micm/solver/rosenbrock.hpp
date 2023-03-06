@@ -93,22 +93,22 @@ namespace micm
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
-    std::vector<std::string> reaction_names();
+    virtual std::vector<std::string> reaction_names();
 
     /// @brief Returns a list of species that participate in photolysis
     /// @return vector of strings
-    std::vector<std::string> photolysis_names();
+    virtual std::vector<std::string> photolysis_names();
 
     /// @brief Returns a list of species names
     /// @return vector of strings
-    std::vector<std::string> species_names();
+    virtual std::vector<std::string> species_names();
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
-    std::vector<double> force(
+    virtual std::vector<double> force(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
         const double& number_density_air);
@@ -117,31 +117,31 @@ namespace micm
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
+    virtual std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
+    virtual std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
 
     /// @brief Update the rate constants for the environment state
     /// @param temperature in kelvin
     /// @param pressure in pascals
-    void calculate_rate_constants(const double& temperature, const double& pressure);
+    virtual void calculate_rate_constants(const double& temperature, const double& pressure);
 
     /// @brief Solve the system
     /// @param K idk, something
     /// @param ode_jacobian the jacobian
     /// @return the new state?
-    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
+    virtual std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return The jacobian
-    std::vector<double> dforce_dy(
+    virtual std::vector<double> dforce_dy(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
         const double& number_density_air);
@@ -151,24 +151,23 @@ namespace micm
     /// @param gamma time step factor for specific rosenbrock method
     /// @param Y  constituent concentration (molec/cm^3)
     /// @param singular indicates if the matrix is singular
-    std::vector<double> lin_factor(
+    virtual std::vector<double> lin_factor(
         double& H,
         const double& gamma,
         bool& singular,
         const std::vector<double>& number_densities,
         const double& number_density_air);
 
-   private:
     /// @brief Factor
     /// @param jacobian
-    void factor(std::vector<double>& jacobian);
+    virtual void factor(std::vector<double>& jacobian);
 
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
+    virtual std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
+    virtual std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
 
+   private:
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
     void three_stage_rosenbrock();
-
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
