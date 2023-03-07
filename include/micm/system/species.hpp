@@ -30,7 +30,7 @@ namespace micm
     Species(const std::string name) : name_(name) {};
     /// @brief
     /// @param name The name of the species
-    /// @param properties The properties of teh species
+    /// @param properties The properties of the species
     Species(const std::string name, const std::vector<Property> properties) :
       name_(name), properties_(properties) {};
   };

@@ -5,13 +5,26 @@
 
 TEST(Phase, DefaultConstructor){
   micm::Phase phase{};
-}
 
-TEST(Phase, CopyConstructor){
-}
-
-TEST(Phase, CopyAssignment){
+  EXPECT_EQ(phase.species_.size(), 0);
 }
 
 TEST(Phase, ConstructorWithVector){
+  micm::Phase phase(std::vector<micm::Species>({micm::Species("species1"), micm::Species("species2")}));
+
+  EXPECT_EQ(phase.species_.size(), 2);
+}
+
+TEST(Phase, CopyConstructor){
+  micm::Phase phase(std::vector<micm::Species>({micm::Species("species1"), micm::Species("species2")}));
+  micm::Phase phase2(phase);
+
+  EXPECT_EQ(phase.species_.size(), 2);
+}
+
+TEST(Phase, CopyAssignment){
+  micm::Phase phase(std::vector<micm::Species>({micm::Species("species1"), micm::Species("species2")}));
+  micm::Phase phase2 = phase;
+
+  EXPECT_EQ(phase.species_.size(), 2);
 }
