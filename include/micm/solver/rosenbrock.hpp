@@ -185,8 +185,6 @@ namespace micm
         rate_constants_(),
         stats_()
   {
-    std::cout << parameters_.N_ << std::endl;
-    three_stage_rosenbrock();
   }
 
   inline RosenbrockSolver::~RosenbrockSolver()
@@ -439,8 +437,6 @@ namespace micm
     // Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. 
     // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers. 
     // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
-
-    std::cout << __LINE__ << std::endl;
 
     parameters_.stages_ = 3;
     parameters_.N_ = species_names().size();

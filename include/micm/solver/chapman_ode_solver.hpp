@@ -121,6 +121,7 @@ namespace micm
       : RosenbrockSolver()
   {
     rate_constants_ = std::vector<double>(7, 0);
+    three_stage_rosenbrock();
   }
 
   inline ChapmanODESolver::~ChapmanODESolver()
