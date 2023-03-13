@@ -23,8 +23,6 @@ namespace micm
     const std::string units_;
 
    public:
-    /// @brief Default constructor
-    Condition() = default;
     /// @brief Define an environmental condition
     /// @param name The name
     /// @param units The units

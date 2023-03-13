@@ -1,6 +1,7 @@
 if(ENABLE_FORTRAN_LINK)
   add_subdirectory(interface)
 endif()
+add_subdirectory(configure)
 add_subdirectory(generics)
 add_subdirectory(process)
 add_subdirectory(solver)
