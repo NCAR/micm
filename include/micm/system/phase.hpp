@@ -26,8 +26,10 @@ namespace micm
     Phase() = default;
     /// @brief Create a phase with a set of species
     /// @param species A unique list of species
-    Phase(std::vector<Species> species) 
-      : species_(std::move(species)) { }
+    Phase(std::vector<Species> species)
+        : species_(std::move(species))
+    {
+    }
   };
 
 }  // namespace micm

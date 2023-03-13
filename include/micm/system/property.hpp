@@ -29,7 +29,11 @@ namespace micm
     /// @param units The units of the value
     /// @param value The value of the property
     Property(std::string name, std::string units, const double value)
-      : name_(name), units_(units), value_(value) { }
+        : name_(name),
+          units_(units),
+          value_(value)
+    {
+    }
   };
 
 }  // namespace micm

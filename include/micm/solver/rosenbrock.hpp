@@ -1,14 +1,17 @@
 /* Copyright (C) 2023 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  * Much of this solver was formulated and implemented from this book:
- * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd edition. ed. Springer, Berlin ; New York.
- * The source code for many (all?) of the solvers in that book can be found here: http://www.unige.ch/~hairer/software.html
- * 
+ * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+ * edition. ed. Springer, Berlin ; New York. The source code for many (all?) of the solvers in that book can be found here:
+ * http://www.unige.ch/~hairer/software.html
+ *
  * Some extensions to the rosenbrock solver formulated there were formulated in this paper
- * Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers. Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
- * 
+ * Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. Benchmarking stiff ode solvers for
+ * atmospheric chemistry problems II: Rosenbrock solvers. Atmospheric Environment 31, 3459–3472.
+ * https://doi.org/10.1016/S1352-2310(97)83212-8
+ *
  */
 #pragma once
 
@@ -38,17 +41,17 @@ namespace micm
       size_t N_{};
       size_t stages_{};
       size_t upper_limit_tolerance_{};
-      size_t max_number_of_steps_{100};
+      size_t max_number_of_steps_{ 100 };
 
-      double round_off_{std::numeric_limits<double>::epsilon()}; // Unit roundoff (1+round_off)>1
-      double factor_min_{0.2};                 // solver step size minimum boundary
-      double factor_max_{6};                 // solver step size maximum boundary
-      double rejection_factor_decrease_{0.1};  // used to decrease the step after 2 successive rejections
-      double safety_factor_{0.9};              // safety factor in new step size computation
+      double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
+      double factor_min_{ 0.2 };                                    // solver step size minimum boundary
+      double factor_max_{ 6 };                                      // solver step size maximum boundary
+      double rejection_factor_decrease_{ 0.1 };  // used to decrease the step after 2 successive rejections
+      double safety_factor_{ 0.9 };              // safety factor in new step size computation
 
-      double h_min_{0};    // step size min
-      double h_max_{0.5};    // step size max
-      double h_start_{0.005};  // step size start
+      double h_min_{ 0 };        // step size min
+      double h_max_{ 0.5 };      // step size max
+      double h_start_{ 0.005 };  // step size start
 
       std::array<bool, 6>
           new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
@@ -123,7 +126,9 @@ namespace micm
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    virtual std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
+    virtual std::vector<double> dforce_dy_times_vector(
+        const std::vector<double>& dforce_dy,
+        const std::vector<double>& vector);
 
     /// @brief Update the rate constants for the environment state
     /// @param temperature in kelvin
@@ -262,7 +267,7 @@ namespace micm
           // stages (1-# of stages)
           for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
           {
-            double stage_combinations = ((stage+1) - 1) * ((stage+1) - 2) / 2;
+            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
               Ynew = Y;
@@ -434,8 +439,8 @@ namespace micm
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
     // original formaulation for three stages:
-    // Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. 
-    // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers. 
+    // Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997.
+    // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers.
     // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
 
     parameters_.stages_ = 3;
@@ -565,10 +570,7 @@ namespace micm
     return jacobian;
   }
 
-  inline double RosenbrockSolver::error_norm(
-      std::vector<double> Y,
-      std::vector<double> Ynew,
-      std::vector<double> errors)
+  inline double RosenbrockSolver::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

@@ -32,15 +32,15 @@ namespace micm
 
     struct Rosenbrock_stats
     {
-      uint64_t function_calls{};  // Nfun
-      uint64_t jacobian_updates{};        // Njac
-      uint64_t number_of_steps{};         // Nstp
-      uint64_t accepted{};                // Nacc
-      uint64_t rejected{};                // Nrej
-      uint64_t decompositions{};          // Ndec
-      uint64_t solves{};                  // Nsol
-      uint64_t singular{};                // Nsng
-      uint64_t total_steps{};             // Ntotstp
+      uint64_t function_calls{};    // Nfun
+      uint64_t jacobian_updates{};  // Njac
+      uint64_t number_of_steps{};   // Nstp
+      uint64_t accepted{};          // Nacc
+      uint64_t rejected{};          // Nrej
+      uint64_t decompositions{};    // Ndec
+      uint64_t solves{};            // Nsol
+      uint64_t singular{};          // Nsng
+      uint64_t total_steps{};       // Ntotstp
 
       void reset()
       {

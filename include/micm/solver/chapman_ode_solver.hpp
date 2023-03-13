@@ -73,7 +73,8 @@ namespace micm
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector) override;
+    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector)
+        override;
 
     /// @brief Update the rate constants for the environment state
     /// @param temperature in kelvin
@@ -114,7 +115,6 @@ namespace micm
 
     std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b) override;
     std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y) override;
-
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
@@ -200,7 +200,7 @@ namespace micm
           }
           else
           {
-            double stage_combinations = ((stage+1) - 1) * ((stage+1) - 2) / 2;
+            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_Y(Y);
