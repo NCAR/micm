@@ -17,21 +17,21 @@ namespace micm
   class TroeRateConstant : public RateConstant
   {
    private:
-    /// @brief // TODO
+    /// @brief // TODO:
     const double k0_A_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double k0_B_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double k0_C_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double kinf_A_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double kinf_B_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double kinf_C_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double Fc_;
-    /// @brief // TODO
+    /// @brief // TODO:
     const double N_;
 
    public:
