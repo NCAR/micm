@@ -53,10 +53,3 @@ target_link_libraries(regression_test_solve musica::micm micmlib GTest::gtest_ma
 add_test(NAME solve
           COMMAND regression_test_solve ""
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-
-################################################################################
-# Copy test data
-
-add_custom_target(copy_test_data ALL ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_CURRENT_SOURCE_DIR}/configs ${CMAKE_BINARY_DIR}/configs)
