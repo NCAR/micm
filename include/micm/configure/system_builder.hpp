@@ -18,8 +18,9 @@ namespace micm
    public:
     static std::unique_ptr<micm::System> ReadAndParse(std::filesystem::path path)
     {
-      if (!std::filesystem::exists(path)) {
-        std::string err_msg ="Configuration file at path " + path.string() + " does not exist\n";
+      if (!std::filesystem::exists(path))
+      {
+        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
         throw std::runtime_error(err_msg);
       }
       return std::make_unique<micm::System>(micm::System());
