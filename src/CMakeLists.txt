@@ -29,9 +29,14 @@ if(ENABLE_FORTRAN_LINK)
 endif()
 
 if(ENABLE_OPENMP)
-  target_link_libraries(micm PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(micm PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 if(ENABLE_MPI)
-  target_link_libraries(micm PUBLIC MPI::MPI_CXX)
+  target_link_libraries(micm PRIVATE MPI::MPI_CXX)
+endif()
+
+if(ENABLE_JSON)
+  target_link_libraries(micm PRIVATE nlohmann_json::nlohmann_json)
+  target_compile_definitions(micm PUBLIC USE_JSON)
 endif()

@@ -4,6 +4,10 @@
 #include <string>
 #include <iostream>
 
+#ifdef USE_JSON
+#include <nlohmann/json.hpp>
+#endif
+
 class NoArgs {
   public:
   std::string hello(){
@@ -41,3 +45,33 @@ TEST(Factory, CanCreateClassTaking1StringArugment){
   auto created = factory.CreateObject("StringArg", "hello");
   EXPECT_EQ(created->hello(), "hello");
 }
+
+#ifdef USE_JSON
+using json = nlohmann::json;
+class JsonArg {
+  public:
+    std::string s_;
+
+    JsonArg(const json& s)
+      : s_(s["arg"].get<std::string>()) {
+      }
+
+    std::string hello(){ return s_;}
+};
+
+TEST(Factory, CanCreateClassTakingJsonArgument){
+  using ObjectCreator = std::function<JsonArg*(json)>;
+  micm::Factory<JsonArg, std::string, ObjectCreator> factory;
+
+  factory.Register("JsonArg", [](json arg){ return new JsonArg(arg);});
+
+  json config = json::parse(R"(
+    {
+      "arg": "hello"
+    }
+  )");
+
+  auto created = factory.CreateObject("JsonArg", config);
+  EXPECT_EQ(created->hello(), "hello");
+}
+#endif

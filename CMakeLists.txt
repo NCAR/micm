@@ -41,6 +41,7 @@ option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
+option(ENABLE_JSON "Enable json configureation file reading" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_FORTRAN_LINK "Add functions to allow Fortran to access micm solvers" ON)
 
@@ -86,8 +87,8 @@ endif()
 # Packaging
 
 # only include packaging if we are the top level project being built
-if(PROJECT_IS_TOP_LEVEL)
-  add_subdirectory(packaging)
-endif()
+# if(PROJECT_IS_TOP_LEVEL)
+#   add_subdirectory(packaging)
+# endif()
 
 ################################################################################

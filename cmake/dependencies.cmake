@@ -62,6 +62,18 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 ################################################################################
+# nlohmann::json
+
+if(ENABLE_JSON)
+  FetchContent_Declare(json
+      GIT_REPOSITORY https://github.com/nlohmann/json.git
+      GIT_TAG v3.11.2
+      FIND_PACKAGE_ARGS NAMES GTest
+  )
+  FetchContent_MakeAvailable(json)
+endif()
+
+################################################################################
 # Docs
 
 if(BUILD_DOCS)
