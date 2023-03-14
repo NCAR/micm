@@ -81,24 +81,4 @@ TEST(Factory, CanCreateClassTakingJsonArgument){
   EXPECT_EQ(created->i_, 10);
   EXPECT_EQ(created->d_, 3.14);
 }
-
-// TEST(Factory, CanCreateMultipleClassesTakingJson){
-//   using ObjectCreator = std::function<JsonArg*(json)>;
-//   micm::Factory<JsonArg, std::string, ObjectCreator> factory;
-
-//   factory.Register("JsonArg", [](json arg){ return new JsonArg(arg);});
-
-//   json config = json::parse(R"(
-//     {
-//       "s": "hello",
-//       "i": 10,
-//       "d": 3.14
-//     }
-//   )");
-
-//   auto created = factory.CreateObject("JsonArg", config);
-//   EXPECT_EQ(created->s_, "hello");
-//   EXPECT_EQ(created->i_, 10);
-//   EXPECT_EQ(created->d_, 3.14);
-// }
 #endif
