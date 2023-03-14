@@ -51,12 +51,15 @@ using json = nlohmann::json;
 class JsonArg {
   public:
     std::string s_;
+    int i_;
+    double d_;
 
     JsonArg(const json& s)
-      : s_(s["arg"].get<std::string>()) {
+      : s_(s["s"].get<std::string>())
+      , i_(s["i"].get<int>())
+      , d_(s["d"].get<double>())
+      {
       }
-
-    std::string hello(){ return s_;}
 };
 
 TEST(Factory, CanCreateClassTakingJsonArgument){
@@ -67,11 +70,35 @@ TEST(Factory, CanCreateClassTakingJsonArgument){
 
   json config = json::parse(R"(
     {
-      "arg": "hello"
+      "s": "hello",
+      "i": 10,
+      "d": 3.14
     }
   )");
 
   auto created = factory.CreateObject("JsonArg", config);
-  EXPECT_EQ(created->hello(), "hello");
+  EXPECT_EQ(created->s_, "hello");
+  EXPECT_EQ(created->i_, 10);
+  EXPECT_EQ(created->d_, 3.14);
 }
+
+// TEST(Factory, CanCreateMultipleClassesTakingJson){
+//   using ObjectCreator = std::function<JsonArg*(json)>;
+//   micm::Factory<JsonArg, std::string, ObjectCreator> factory;
+
+//   factory.Register("JsonArg", [](json arg){ return new JsonArg(arg);});
+
+//   json config = json::parse(R"(
+//     {
+//       "s": "hello",
+//       "i": 10,
+//       "d": 3.14
+//     }
+//   )");
+
+//   auto created = factory.CreateObject("JsonArg", config);
+//   EXPECT_EQ(created->s_, "hello");
+//   EXPECT_EQ(created->i_, 10);
+//   EXPECT_EQ(created->d_, 3.14);
+// }
 #endif
