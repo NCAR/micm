@@ -14,6 +14,7 @@ BinPackParameters: 'false'
 Cpp11BracedListStyle: 'false'
 ColumnLimit: 125 
 IndentWidth: 2
+IndentPPDirectives: AfterHash
 NamespaceIndentation: All
 PackConstructorInitializers: 'Never'
 SpaceAfterTemplateKeyword: 'false'

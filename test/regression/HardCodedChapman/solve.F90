@@ -27,7 +27,7 @@ contains
     class(ODE_solver_rosenbrock_t), pointer :: solver 
     integer(kind=musica_ik) :: error_flag
 
-    call config%from_file( "configs/solver.json" )
+    call config%from_file("regression_configs/solver.json" )
 
     env%temperature = temperature
     env%pressure = pressure

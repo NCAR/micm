@@ -11,7 +11,7 @@
 #include <iostream>
 #include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/solver.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <string>
 #include <vector>
 
@@ -22,50 +22,8 @@ namespace micm
    * @brief An implementation of the Chapman mechnanism solver
    *
    */
-  class ChapmanODESolver : public Solver
+  class ChapmanODESolver : public RosenbrockSolver
   {
-   private:
-    struct Rosenbrock_params
-    {
-      size_t N_{};
-      size_t stages_{};
-      size_t upper_limit_tolerance_{};
-      size_t max_number_of_steps_{100};
-
-      double round_off_{std::numeric_limits<double>::epsilon()}; // Unit roundoff (1+round_off)>1
-      double factor_min_{0.2};                 // solver step size minimum boundary
-      double factor_max_{6};                 // solver step size maximum boundary
-      double rejection_factor_decrease_{0.1};  // used to decrease the step after 2 successive rejections
-      double safety_factor_{0.9};              // safety factor in new step size computation
-
-      double h_min_{0};    // step size min
-      double h_max_{0.5};    // step size max
-      double h_start_{0.005};  // step size start
-
-      std::array<bool, 6>
-          new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
-
-      double estimator_of_local_order_{};  // the minumu between the main and the embedded scheme orders plus one
-      std::array<double, 15> a_{};         // coefficient matrix a
-      std::array<double, 15> c_{};         // coefficient matrix c
-      std::array<double, 6> m_{};          // coefficients for new step evaluation
-      std::array<double, 6> e_{};          // error estimation coefficients
-      std::array<double, 6> alpha_{};
-      std::array<double, 6> gamma_{};
-
-      double absolute_tolerance_{ 1e-12 };
-      double relative_tolerance_{ 1e-4 };
-    };
-
-   public:
-    Rosenbrock_params parameters_;
-    std::vector<double> rate_constants_;
-    Solver::Rosenbrock_stats stats_;
-    static constexpr uint64_t number_sparse_factor_elements_ = 23;
-
-    static constexpr double delta_min_ = 1.0e-5;
-    static constexpr double error_min_ = 1.0e-10;
-
    public:
     /// @brief Default constructor
     ChapmanODESolver();
@@ -81,19 +39,19 @@ namespace micm
         const double& time_start,
         const double& time_end,
         const std::vector<double>& number_densities,
-        const double& number_density_air) override;
+        const double& number_density_air) noexcept override;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
-    std::vector<std::string> reaction_names();
+    std::vector<std::string> reaction_names() override;
 
     /// @brief Returns a list of species that participate in photolysis
     /// @return vector of strings
-    std::vector<std::string> photolysis_names();
+    std::vector<std::string> photolysis_names() override;
 
     /// @brief Returns a list of species names
     /// @return vector of strings
-    std::vector<std::string> species_names();
+    std::vector<std::string> species_names() override;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -103,30 +61,31 @@ namespace micm
     std::vector<double> force(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
+    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha) override;
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
     /// @param vector vector ordered as the order of number density in dy
     /// @return Product of jacobian with vector
-    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector);
+    std::vector<double> dforce_dy_times_vector(const std::vector<double>& dforce_dy, const std::vector<double>& vector)
+        override;
 
     /// @brief Update the rate constants for the environment state
     /// @param temperature in kelvin
     /// @param pressure in pascals
-    void calculate_rate_constants(const double& temperature, const double& pressure);
+    void calculate_rate_constants(const double& temperature, const double& pressure) override;
 
     /// @brief Solve the system
     /// @param K idk, something
     /// @param ode_jacobian the jacobian
     /// @return the new state?
-    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
+    std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian) override;
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
@@ -136,7 +95,7 @@ namespace micm
     std::vector<double> dforce_dy(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
@@ -148,36 +107,20 @@ namespace micm
         const double& gamma,
         bool& singular,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air) override;
 
-   private:
     /// @brief Factor
     /// @param jacobian
-    void factor(std::vector<double>& jacobian);
+    void factor(std::vector<double>& jacobian) override;
 
-    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
-
-    /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
-    void three_stage_rosenbrock();
-
-
-    /// @brief Computes the scaled norm of the vector errors
-    /// @param original_number_densities the original number densities
-    /// @param new_number_densities the new number densities
-    /// @param errors The computed errors
-    /// @return
-    double error_norm(
-        std::vector<double> original_number_densities,
-        std::vector<double> new_number_densities,
-        std::vector<double> errors);
+    std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b) override;
+    std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y) override;
   };
 
   inline ChapmanODESolver::ChapmanODESolver()
-      : parameters_(),
-        rate_constants_(7, 0),
-        stats_()
+      : RosenbrockSolver()
   {
+    rate_constants_ = std::vector<double>(7, 0);
     three_stage_rosenbrock();
   }
 
@@ -189,7 +132,7 @@ namespace micm
       const double& time_start,
       const double& time_end,
       const std::vector<double>& original_number_densities,
-      const double& number_density_air)
+      const double& number_density_air) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(original_number_densities);
@@ -257,7 +200,7 @@ namespace micm
           }
           else
           {
-            double stage_combinations = ((stage+1) - 1) * ((stage+1) - 2) / 2;
+            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_Y(Y);
@@ -446,7 +389,7 @@ namespace micm
       force[8] = force[8] + rate_constants[6] * number_densities[0] * number_densities[6] * number_densities[7];
     }
 
-    stats_.forcing_function_calls += 1;
+    stats_.function_calls += 1;
     return force;
   }
 
@@ -611,66 +554,6 @@ namespace micm
     x[0] = jacobian[0] * temporary;
 
     return x;
-  }
-
-  inline void ChapmanODESolver::three_stage_rosenbrock()
-  {
-    // an L-stable method, 3 stages, order 3, 2 function evaluations
-
-    parameters_.stages_ = 3;
-    parameters_.N_ = species_names().size();
-
-    //  The coefficient matrices A and C are strictly lower triangular.
-    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
-    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-    //  The general mapping formula is:
-    //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-    //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-
-    parameters_.a_.fill(0);
-    parameters_.a_[0] = 1;
-    parameters_.a_[1] = 1;
-    parameters_.a_[2] = 0;
-
-    parameters_.c_.fill(0);
-    parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
-    parameters_.c_[1] = 0.40759956452537699824805835358067e+01;
-    parameters_.c_[2] = 0.92076794298330791242156818474003e+01;
-
-    // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-    // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-    parameters_.new_function_evaluation_.fill(false);
-    parameters_.new_function_evaluation_[0] = true;
-    parameters_.new_function_evaluation_[1] = true;
-    parameters_.new_function_evaluation_[2] = false;
-
-    // Coefficients for new step solution
-    parameters_.m_.fill(0);
-    parameters_.m_[0] = 0.1e+01;
-    parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
-    parameters_.m_[2] = -0.42772256543218573326238373806514;
-
-    // Coefficients for error estimator
-    parameters_.e_.fill(0);
-    parameters_.e_[0] = 0.5;
-    parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
-    parameters_.e_[2] = 0.22354069897811569627360909276199;
-
-    // ros_ELO = estimator of local order - the minimum between the
-    // main and the embedded scheme orders plus 1
-    parameters_.estimator_of_local_order_ = 3;
-
-    // Y_stage_i ~ Y( T + H*Alpha_i )
-    parameters_.alpha_.fill(0);
-    parameters_.alpha_[0] = 0;
-    parameters_.alpha_[1] = 0.43586652150845899941601945119356;
-    parameters_.alpha_[2] = 0.43586652150845899941601945119356;
-
-    // Gamma_i = \sum_j  gamma_{i,j}
-    parameters_.gamma_.fill(0);
-    parameters_.gamma_[0] = 0.43586652150845899941601945119356;
-    parameters_.gamma_[1] = 0.24291996454816804366592249683314;
-    parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
   inline void ChapmanODESolver::calculate_rate_constants(const double& temperature, const double& pressure)
@@ -890,32 +773,5 @@ namespace micm
     jacobian[22] = jacobian[22] - rate_constants[5] * number_densities[6];
 
     return jacobian;
-  }
-
-  inline double ChapmanODESolver::error_norm(
-      std::vector<double> original_number_densities,
-      std::vector<double> new_number_densities,
-      std::vector<double> errors)
-  {
-    std::vector<double> maxs(original_number_densities.size());
-    std::vector<double> scale(original_number_densities.size());
-
-    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
-    {
-      maxs[idx] = std::max(std::abs(original_number_densities[idx]), std::abs(new_number_densities[idx]));
-    }
-
-    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
-    {
-      scale[idx] = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * maxs[idx];
-    }
-
-    double sum = 0;
-    for (uint64_t idx = 0; idx < original_number_densities.size(); ++idx)
-    {
-      sum += std::pow(errors[idx] / scale[idx], 2);
-    }
-
-    return std::max(std::sqrt(sum / parameters_.N_), error_min_);
   }
 }  // namespace micm

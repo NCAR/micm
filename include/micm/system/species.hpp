@@ -17,22 +17,24 @@ namespace micm
    */
   class Species
   {
-   private:
+   public:
     /// @brief The name of this species
     const std::string name_;
     /// @brief A list of properties of this species
     const std::vector<Property> properties_;
 
-   public:
     /// @brief Default constructor
     Species() = default;
     /// @brief Construct a species by name only
     /// @param name The name of the species
-    Species(std::string name);
+    Species(const std::string name)
+        : name_(name){};
     /// @brief
     /// @param name The name of the species
-    /// @param properties The properties of teh species
-    Species(std::string name, std::vector<Property> properties);
+    /// @param properties The properties of the species
+    Species(const std::string name, const std::vector<Property> properties)
+        : name_(name),
+          properties_(properties){};
   };
 
 }  // namespace micm

@@ -34,7 +34,7 @@ namespace micm
 
   inline ExternalRateConstant::ExternalRateConstant()
       : rate_(),
-        condition_()
+        condition_("", "")
   {
   }
 
