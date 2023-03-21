@@ -87,8 +87,8 @@ endif()
 # Packaging
 
 # only include packaging if we are the top level project being built
-# if(PROJECT_IS_TOP_LEVEL)
-#   add_subdirectory(packaging)
-# endif()
+if(PROJECT_IS_TOP_LEVEL)
+  add_subdirectory(packaging)
+endif()
 
 ################################################################################

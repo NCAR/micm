@@ -13,6 +13,11 @@ target_include_directories(
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 )
 
+if(ENABLE_JSON)
+  target_link_libraries(micm_header_only INTERFACE nlohmann_json::nlohmann_json)
+  target_compile_definitions(micm_header_only INTERFACE USE_JSON)
+endif()
+
 ################################################################################
 # micm solver
 add_library(micm)
@@ -34,9 +39,4 @@ endif()
 
 if(ENABLE_MPI)
   target_link_libraries(micm PRIVATE MPI::MPI_CXX)
-endif()
-
-if(ENABLE_JSON)
-  target_link_libraries(micm PRIVATE nlohmann_json::nlohmann_json)
-  target_compile_definitions(micm PUBLIC USE_JSON)
 endif()
