@@ -12,6 +12,7 @@
 #include <micm/system/system.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/property.hpp>
+#include <micm/process/intraphase_process.hpp>
 
 #ifdef USE_JSON
 #include <nlohmann/json.hpp>
@@ -80,6 +81,7 @@ namespace micm
       for(const auto& file : files){
         ValidateFilePath(file);
         json file_data = json::parse(std::ifstream(file));
+        ValidateJsonWithKey(file_data, key);
         std::vector<json> objects;
         for(const auto& element : file_data[key]){
           objects.push_back(element);
@@ -110,6 +112,7 @@ namespace micm
         std::string key = "type";
         ValidateJsonWithKey(object, key);
         std::string type = object[key].get<std::string>();
+
         if (type == "CHEM_SPEC"){
           ParseChemicalSpecies(object);
         }
@@ -118,6 +121,18 @@ namespace micm
         }
         else if (type == "MECHANISM") {
           ParseMechanism(object);
+        }
+        else if (type == "PHOTOLYSIS") {
+          ParsePhotolysis(object);
+        }
+        else if (type == "ARRHENIUS") {
+          ParseArrhenius(object);
+        }
+        else if (type == "EMISSION") {
+          ParseEmission(object);
+        }
+        else if (type == "FIRST_ORDER_LOSS") {
+          ParseFirstOrderLoss(object);
         }
         else {
           this->OnError("Unknown key in config file: " + type);
@@ -128,7 +143,6 @@ namespace micm
     void ParseChemicalSpecies(const json& object){
       std::vector<std::string> required_keys = {"name"};
       std::vector<std::string> optional_keys = {"absolute tolerance"};
-
       for(const auto& key : required_keys) ValidateJsonWithKey(object, key);
 
       std::string name = object["name"].get<std::string>();
@@ -148,7 +162,31 @@ namespace micm
     }
 
     void ParseMechanism(const json& object){
+      std::vector<std::string> required_keys = {"name", "reactions"};
+      for(const auto& key : required_keys) ValidateJsonWithKey(object, key);
+
+      std::vector<json> objects;
+      for(const auto& element : object["reactions"]){
+        objects.push_back(element);
+      }
+
+      ParseObjectArray(objects);
     }
+
+    void ParsePhotolysis(const json& object){
+      std::vector<std::string> required_keys = {"reactants", "products", "MUSICA name"};
+      for(const auto& key : required_keys) ValidateJsonWithKey(object, key);
+    }
+
+    void ParseArrhenius(const json& object){
+    }
+
+    void ParseEmission(const json& object){
+    }
+
+    void ParseFirstOrderLoss(const json& object){
+    }
+
   };
 
   template<
