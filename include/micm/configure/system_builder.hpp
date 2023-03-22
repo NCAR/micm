@@ -10,6 +10,9 @@
 #include <fstream>
 #include <iostream>
 #include <micm/process/intraphase_process.hpp>
+#include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/intraphase_process.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
@@ -62,6 +65,10 @@ namespace micm
   {
     using json = nlohmann::json;
     std::vector<std::unique_ptr<Species>> species_;
+    std::vector<std::unique_ptr<Species>> emissions_;
+    std::vector<std::unique_ptr<Species>> first_order_loss_;
+    std::vector<std::unique_ptr<IntraPhaseProcess<PhotolysisRateConstant>>> photolysis_reactions_;
+    std::vector<std::unique_ptr<IntraPhaseProcess<ArrheniusRateConstant>>> arrhenius_reactions_;
 
    public:
     std::unique_ptr<micm::System> ReadAndParse(std::filesystem::path path)
@@ -164,8 +171,6 @@ namespace micm
 
       std::string name = object["name"].get<std::string>();
 
-      std::unique_ptr<Species> species;
-
       if (object.contains("absolute tolerance"))
       {
         double abs_tol = object["absolute tolerance"].get<double>();
@@ -179,6 +184,7 @@ namespace micm
 
     void ParseRelativeTolerance(const json& object)
     {
+      // TODO: what is this?
     }
 
     void ParseMechanism(const json& object)
@@ -201,18 +207,85 @@ namespace micm
       std::vector<std::string> required_keys = { "reactants", "products", "MUSICA name" };
       for (const auto& key : required_keys)
         ValidateJsonWithKey(object, key);
+
+      std::vector<Species> reactants;
+      for (auto& [key, value] : object["reactants"].items()) {
+          reactants.push_back(Species(key));
+      }
+      std::vector<Species> products;
+      for (auto& [key, value] : object["products"].items()) {
+          products.push_back(Species(key));
+      }
+      std::string name = object["MUSICA name"].get<std::string>();
+
+      using reaction = IntraPhaseProcess<PhotolysisRateConstant>;
+      photolysis_reactions_.push_back(
+        std::make_unique<reaction>(reaction(reactants, products, PhotolysisRateConstant(0, name)))
+      );
     }
 
     void ParseArrhenius(const json& object)
     {
+      std::vector<std::string> required_keys = { "reactants", "products" };
+      for (const auto& key : required_keys)
+        ValidateJsonWithKey(object, key);
+
+      std::vector<Species> reactants;
+      for (auto& [key, value] : object["reactants"].items()) {
+          reactants.push_back(Species(key));
+      }
+      std::vector<Species> products;
+      for (auto& [key, value] : object["products"].items()) {
+          products.push_back(Species(key));
+      }
+
+      ArrheniusRateConstantParameters parameters;
+
+      if (object.contains("A")){
+        parameters.A_ = object["A"].get<double>();
+      }
+      if (object.contains("B")){
+        parameters.B_ = object["B"].get<double>();
+      }
+      if (object.contains("C")){
+        parameters.C_ = object["C"].get<double>();
+      }
+      if (object.contains("D")){
+        parameters.D_ = object["D"].get<double>();
+      }
+      if (object.contains("E")){
+        parameters.E_ = object["E"].get<double>();
+      }
+
+      using reaction = IntraPhaseProcess<ArrheniusRateConstant>;
+      arrhenius_reactions_.push_back(
+        std::make_unique<reaction>(reaction(reactants, products, ArrheniusRateConstant(parameters)))
+      );
+
     }
 
     void ParseEmission(const json& object)
     {
+      std::vector<std::string> required_keys = { "species" };
+      std::vector<std::string> optional_keys = { "MUSICA name" };
+      for (const auto& key : required_keys)
+        ValidateJsonWithKey(object, key);
+
+      std::string name = object["species"].get<std::string>();
+
+      emissions_.push_back(std::make_unique<Species>(Species(name)));
     }
 
     void ParseFirstOrderLoss(const json& object)
     {
+      std::vector<std::string> required_keys = { "species" };
+      std::vector<std::string> optional_keys = { "MUSICA name" };
+      for (const auto& key : required_keys)
+        ValidateJsonWithKey(object, key);
+
+      std::string name = object["species"].get<std::string>();
+
+      first_order_loss_.push_back(std::make_unique<Species>(Species(name)));
     }
   };
 
