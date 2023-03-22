@@ -40,7 +40,7 @@ namespace micm
     /// @param property A property of the species
     Species(const std::string name, const Property property)
         : name_(name),
-          properties_({property}){};
+          properties_({ property }){};
   };
 
 }  // namespace micm

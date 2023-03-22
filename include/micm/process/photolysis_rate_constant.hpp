@@ -10,13 +10,12 @@
 namespace micm
 {
 
-
   /**
    * @brief A photolysis rate constant
    */
   class PhotolysisRateConstant : public RateConstant
   {
-    public:
+   public:
     const double rate_;
     const std::string name_;
 
@@ -24,11 +23,11 @@ namespace micm
     /// @brief Default constructor.
     PhotolysisRateConstant();
 
-    /// @brief 
+    /// @brief
     /// @param rate A reaction rate
     PhotolysisRateConstant(double rate);
 
-    /// @brief 
+    /// @brief
     /// @param rate A reaction rate
     /// @param name A name for this reaction
     PhotolysisRateConstant(double rate, std::string name);
@@ -40,17 +39,20 @@ namespace micm
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
-    : rate_(), name_()
+      : rate_(),
+        name_()
   {
   }
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate)
-    : rate_(rate), name_()
+      : rate_(rate),
+        name_()
   {
   }
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate, std::string name)
-    : rate_(rate), name_(name)
+      : rate_(rate),
+        name_(name)
   {
   }
 
