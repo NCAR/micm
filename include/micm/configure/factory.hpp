@@ -17,7 +17,7 @@ namespace micm
 {
 
   template<class IdentifierType, class Object>
-  class DefaultFactoryError
+  class ThrowExceptionOnFactoryError
   {
    public:
     class Exception : public std::exception
@@ -48,7 +48,7 @@ namespace micm
       class Object,
       typename IdentifierType,
       typename ObjectCreator = Object* (*)(),
-      template<typename, class> class FactoryErrorPolicy = DefaultFactoryError>
+      template<typename, class> class FactoryErrorPolicy = ThrowExceptionOnFactoryError>
 
   class Factory : public FactoryErrorPolicy<IdentifierType, Object>
   {

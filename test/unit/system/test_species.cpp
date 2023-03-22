@@ -31,6 +31,16 @@ TEST(Species, StringAndVectorConstructor){
   EXPECT_EQ(species.properties_[1].value_, 2.0);
 }
 
+TEST(Species, StringAndSinglePropertyConstructor){
+  micm::Species species("thing", micm::Property("name", "units", 1.0));
+
+  EXPECT_EQ(species.name_, "thing");
+  EXPECT_EQ(species.properties_.size(), 1);
+  EXPECT_EQ(species.properties_[0].name_, "name");
+  EXPECT_EQ(species.properties_[0].units_, "units");
+  EXPECT_EQ(species.properties_[0].value_, 1.0);
+}
+
 TEST(Species, CopyConstructor){
   micm::Species species("thing", std::vector<micm::Property>{
     micm::Property("name", "units", 1.0),

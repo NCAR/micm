@@ -1,11 +1,5 @@
 include(CMakePackageConfigHelpers)
 
-# if(ENABLE_JSON)
-#   # seems to be needed for the install, but not sure why. Perhaps because
-#   set_target_properties(nlohmann_json PROPERTIES EXPORT_NAME nlohmann_json)
-#   install(TARGETS nlohmann_json EXPORT micm_Exports)
-# endif()
-
 install(
   TARGETS 
     micm micm_header_only
