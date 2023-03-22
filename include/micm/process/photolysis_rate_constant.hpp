@@ -26,6 +26,11 @@ namespace micm
 
     /// @brief 
     /// @param rate A reaction rate
+    PhotolysisRateConstant(double rate);
+
+    /// @brief 
+    /// @param rate A reaction rate
+    /// @param name A name for this reaction
     PhotolysisRateConstant(double rate, std::string name);
 
     /// @brief Calculate the rate constant
@@ -36,6 +41,11 @@ namespace micm
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
     : rate_(), name_()
+  {
+  }
+
+  inline PhotolysisRateConstant::PhotolysisRateConstant(double rate)
+    : rate_(rate), name_()
   {
   }
 
