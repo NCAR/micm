@@ -24,6 +24,7 @@
 namespace micm
 {
 
+  template<class Object>
   class ThrowPolicy
   {
     class Exception : public std::exception
@@ -44,7 +45,7 @@ namespace micm
     };
 
    public:
-    void OnError(std::string message)
+    Object OnError(std::string message)
     {
       throw Exception(message.c_str());
     }
@@ -54,9 +55,10 @@ namespace micm
   class NoThrowPolicy
   {
    public:
-    void OnError(std::string message)
+    Object OnError(std::string message)
     {
       std::cerr << message << std::endl;
+      return Object();
     }
   };
 
@@ -75,7 +77,11 @@ namespace micm
     {
       species_.clear();
 
-      ValidateFilePath(path);
+      if (!std::filesystem::exists(path))
+      {
+        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
+        return this->OnError(err_msg);
+      }
 
       json data = json::parse(std::ifstream(path));
 
@@ -87,7 +93,11 @@ namespace micm
       key = "camp-data";
       for (const auto& file : files)
       {
-        ValidateFilePath(file);
+        if (!std::filesystem::exists(path))
+        {
+          std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
+          return this->OnError(err_msg);
+        }
         json file_data = json::parse(std::ifstream(file));
         ValidateJsonWithKey(file_data, key);
         std::vector<json> objects;
@@ -100,15 +110,6 @@ namespace micm
       }
 
       return std::make_unique<micm::System>(micm::System());
-    }
-
-    void ValidateFilePath(std::filesystem::path path)
-    {
-      if (!std::filesystem::exists(path))
-      {
-        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
-        this->OnError(err_msg);
-      }
     }
 
     void ValidateJsonWithKey(const json& object, std::string key)
@@ -289,8 +290,11 @@ namespace micm
     }
   };
 
-  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, class ErrorPolicy = ThrowPolicy>
-  class SystemBuilder : public ConfigTypePolicy<ErrorPolicy>
+  template<
+    template<class> class ConfigTypePolicy = JsonReaderPolicy, 
+    template<class> class ErrorPolicy = ThrowPolicy
+  >
+  class SystemBuilder : public ConfigTypePolicy<ErrorPolicy<std::unique_ptr<micm::System>>>
   {
    public:
     std::unique_ptr<micm::System> Build(std::filesystem::path path)

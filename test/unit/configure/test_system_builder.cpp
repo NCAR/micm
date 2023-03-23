@@ -11,6 +11,11 @@ TEST(SystemBuilder, DetectsInvalidConfigFile){
   EXPECT_ANY_THROW(builder.Build("not_a_config_file.json"));
 }
 
+TEST(SystemBuilder, DetectsInvalidConfigFileAndNoThrowDoesntThrow){
+  micm::SystemBuilder<micm::JsonReaderPolicy, micm::NoThrowPolicy> builder{};
+  EXPECT_NO_THROW(builder.Build("not_a_config_file.json"));
+}
+
 TEST(SystemBuilder, JsonBuilder){
   micm::SystemBuilder builder{};
   auto system = builder.Build("unit_configs/chapman/config.json");
