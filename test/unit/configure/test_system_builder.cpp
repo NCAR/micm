@@ -14,6 +14,9 @@ TEST(SystemBuilder, DetectsInvalidConfigFile){
 TEST(SystemBuilder, DetectsInvalidConfigFileAndNoThrowDoesntThrow){
   micm::SystemBuilder<micm::JsonReaderPolicy, micm::NoThrowPolicy> builder{};
   EXPECT_NO_THROW(builder.Build("not_a_config_file.json"));
+
+  auto system = builder.Build("not_a_config_file.json");
+  ASSERT_TRUE(system.get() == nullptr);
 }
 
 TEST(SystemBuilder, JsonBuilder){
