@@ -11,7 +11,6 @@
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/intraphase_process.hpp>
-#include <micm/process/intraphase_process.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>

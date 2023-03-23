@@ -17,12 +17,15 @@ namespace micm
   template<class Rate>
   class IntraPhaseProcess
   {
-   private:
+   public:
     std::vector<Species> reactants_;
     std::vector<Species> products_;
     Rate rate_;
 
    public:
+    /// @brief Default constructor
+    IntraPhaseProcess();
+
     /// @brief 
     /// @param reactants 
     /// @param products 
@@ -31,8 +34,18 @@ namespace micm
   };
 
   template<class Rate>
+  inline IntraPhaseProcess<Rate>::IntraPhaseProcess()
+      : reactants_(),
+        products_(),
+        rate_()
+  {
+  }
+
+  template<class Rate>
   inline IntraPhaseProcess<Rate>::IntraPhaseProcess(std::vector<Species> reactants, std::vector<Species> products, Rate rate)
-    : reactants_(reactants), products_(products), rate_(rate)
+      : reactants_(reactants),
+        products_(products),
+        rate_(rate)
   {
 
   }

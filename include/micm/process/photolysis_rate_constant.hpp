@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <cmath>
+#include <micm/system/system.hpp>
 #include <micm/process/rate_constant.hpp>
 
 namespace micm
@@ -58,7 +58,7 @@ namespace micm
 
   inline double PhotolysisRateConstant::calculate(const System& system)
   {
-    return rate_;
+    return (double)rate_;
   }
 
 }  // namespace micm
