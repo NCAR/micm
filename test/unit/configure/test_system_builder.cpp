@@ -1,7 +1,10 @@
+#ifdef USE_JSON
 #include <micm/configure/system_builder.hpp>
+#endif
 
 #include <gtest/gtest.h>
 
+#ifdef USE_JSON
 TEST(SystemBuilder, DefaultConstructor){
   micm::SystemBuilder builder{};
 }
@@ -25,3 +28,4 @@ TEST(SystemBuilder, JsonBuilder){
 
   EXPECT_TRUE(system != nullptr);
 }
+#endif
