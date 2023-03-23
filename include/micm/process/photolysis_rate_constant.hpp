@@ -24,11 +24,11 @@ namespace micm
     PhotolysisRateConstant();
 
     /// @brief
-    /// @param rate A reaction rate
+    /// @param rate A reaction rate, (molec cm-3)^(n-1) s-1
     PhotolysisRateConstant(double rate);
 
     /// @brief
-    /// @param rate A reaction rate
+    /// @param rate A reaction rate, (molec cm-3)^(n-1) s-1
     /// @param name A name for this reaction
     PhotolysisRateConstant(double rate, std::string name);
 
