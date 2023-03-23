@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <micm/system/system.hpp>
 
 namespace micm
 {
+
+  class System;
 
   /**
    * @brief A base class for any type of rate constant

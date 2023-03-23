@@ -9,13 +9,13 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <micm/system/system.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/intraphase_process.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/process/intraphase_process.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
-#include <micm/system/system.hpp>
 
 #ifdef USE_JSON
 #  include <nlohmann/json.hpp>

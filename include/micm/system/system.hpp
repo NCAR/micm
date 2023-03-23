@@ -7,8 +7,8 @@
 #include <micm/system/condition.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
-#include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/intraphase_process.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@ namespace micm
     /// @brief Photolysis reactions in this system
     const IntraPhaseProcess<PhotolysisRateConstant> photolysis_reactions_;
     /// @brief Arrhenius reactions in this system
-    // const IntraPhaseProcess<ArrheniusRateConstant> arrhenius_reactions_;
+    const IntraPhaseProcess<ArrheniusRateConstant> arrhenius_reactions_;
 
    public:
     /// @brief Default constructor
@@ -51,27 +51,14 @@ namespace micm
     /// @param gas_phase 
     /// @param conditions 
     System(Phase gas_phase, std::vector<Condition> conditions);
-
-    /// @brief The size of the system
-    /// @return The number of reacting species
-    std::size_t Size();
-    /// @brief Locate a particular phase held by the system
-    /// @param name The identifier for a phase
-    /// @return A non-owning pointer to a micm::Phase or `nullptr`.
-    const Phase* FindPhase(const std::string& name);
-    /// @brief Locate a species inside of a phase
-    /// @param phase The identifier for a phase
-    /// @param name The name of a particular species in a particular phase.
-    /// @return A non-owning pointer to a micm::Phase or `nullptr`.
-    const Species* FindSpecies(const Phase& phase, const std::string& name);
   };
 
   inline micm::System::System()
       : gas_phase_(),
         phases_(),
         conditions_(),
-        photolysis_reactions_()
-        // arrhenius_reactions_()
+        photolysis_reactions_(),
+        arrhenius_reactions_()
   {
   }
 
@@ -79,8 +66,8 @@ namespace micm
       : gas_phase_(gas_phase),
         phases_(),
         conditions_(),
-        photolysis_reactions_()
-        // arrhenius_reactions_()
+        photolysis_reactions_(),
+        arrhenius_reactions_()
   {
   }
 
@@ -88,8 +75,8 @@ namespace micm
       : gas_phase_(gas_phase),
         phases_(),
         conditions_({condition}),
-        photolysis_reactions_()
-        // arrhenius_reactions_()
+        photolysis_reactions_(),
+        arrhenius_reactions_()
   {
   }
 
@@ -97,8 +84,8 @@ namespace micm
       : gas_phase_(gas_phase),
         phases_(),
         conditions_(conditions),
-        photolysis_reactions_()
-        // arrhenius_reactions_()
+        photolysis_reactions_(),
+        arrhenius_reactions_()
   {
   }
 

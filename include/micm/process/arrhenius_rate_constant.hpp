@@ -10,6 +10,8 @@
 namespace micm
 {
 
+  class System;
+
   struct ArrheniusRateConstantParameters
   {
     /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1

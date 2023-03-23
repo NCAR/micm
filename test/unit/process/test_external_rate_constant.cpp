@@ -1,4 +1,5 @@
 #include <micm/process/external_rate_constant.hpp>
+#include <micm/system/system.hpp>
 
 #include <gtest/gtest.h>
 

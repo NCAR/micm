@@ -4,11 +4,12 @@
  */
 #pragma once
 
-#include <micm/system/system.hpp>
 #include <micm/process/rate_constant.hpp>
+#include <string>
 
 namespace micm
 {
+  class System;
 
   /**
    * @brief A photolysis rate constant
