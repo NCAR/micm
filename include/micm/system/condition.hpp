@@ -15,7 +15,6 @@ namespace micm
    */
   class Condition
   {
-   private:
    public:
     /// @brief The name of this condition
     const std::string name_;

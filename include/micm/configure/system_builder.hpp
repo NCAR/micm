@@ -9,10 +9,11 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <micm/process/intraphase_process.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/intraphase_process.hpp>
+#include <micm/process/intraphase_process.hpp>
+#include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
@@ -66,16 +67,20 @@ namespace micm
   class JsonReaderPolicy : public ErrorPolicy
   {
     using json = nlohmann::json;
-    std::vector<std::unique_ptr<Species>> species_;
-    std::vector<std::unique_ptr<Species>> emissions_;
-    std::vector<std::unique_ptr<Species>> first_order_loss_;
-    std::vector<std::unique_ptr<IntraPhaseProcess<PhotolysisRateConstant>>> photolysis_reactions_;
-    std::vector<std::unique_ptr<IntraPhaseProcess<ArrheniusRateConstant>>> arrhenius_reactions_;
+    std::vector<Species> species_;
+    std::vector<Species> emissions_;
+    std::vector<Species> first_order_loss_;
+    std::vector<IntraPhaseProcess<PhotolysisRateConstant>> photolysis_reactions_;
+    std::vector<IntraPhaseProcess<ArrheniusRateConstant>> arrhenius_reactions_;
 
    public:
     std::unique_ptr<micm::System> ReadAndParse(std::filesystem::path path)
     {
       species_.clear();
+      emissions_.clear();
+      first_order_loss_.clear();
+      photolysis_reactions_.clear();
+      arrhenius_reactions_.clear();
 
       if (!std::filesystem::exists(path))
       {
@@ -109,7 +114,7 @@ namespace micm
         ParseObjectArray(objects);
       }
 
-      return std::make_unique<micm::System>(micm::System());
+      return std::make_unique<micm::System>(micm::System(micm::Phase(species_)));
     }
 
     void ValidateJsonWithKey(const json& object, std::string key)
@@ -175,11 +180,11 @@ namespace micm
       if (object.contains("absolute tolerance"))
       {
         double abs_tol = object["absolute tolerance"].get<double>();
-        species_.push_back(std::make_unique<Species>(Species(name, Property("absolute tolerance", "", abs_tol))));
+        species_.push_back(Species(name, Property("absolute tolerance", "", abs_tol)));
       }
       else
       {
-        species_.push_back(std::make_unique<Species>(Species(name)));
+        species_.push_back(Species(name));
       }
     }
 
@@ -221,7 +226,7 @@ namespace micm
 
       using reaction = IntraPhaseProcess<PhotolysisRateConstant>;
       photolysis_reactions_.push_back(
-        std::make_unique<reaction>(reaction(reactants, products, PhotolysisRateConstant(0, name)))
+        reaction(reactants, products, PhotolysisRateConstant(0, name))
       );
     }
 
@@ -260,7 +265,7 @@ namespace micm
 
       using reaction = IntraPhaseProcess<ArrheniusRateConstant>;
       arrhenius_reactions_.push_back(
-        std::make_unique<reaction>(reaction(reactants, products, ArrheniusRateConstant(parameters)))
+        reaction(reactants, products, ArrheniusRateConstant(parameters))
       );
 
     }
@@ -274,7 +279,7 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      emissions_.push_back(std::make_unique<Species>(Species(name)));
+      emissions_.push_back(Species(name));
     }
 
     void ParseFirstOrderLoss(const json& object)
@@ -286,7 +291,7 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      first_order_loss_.push_back(std::make_unique<Species>(Species(name)));
+      first_order_loss_.push_back(Species(name));
     }
   };
 

@@ -19,7 +19,7 @@ namespace micm
    */
   class System
   {
-   private:
+   public:
     /// @brief The gas phase is a micm::Phase and determines what species are present.
     const Phase gas_phase_;
     /// @brief This is a catchall for anything that is not the gas phase.
@@ -30,6 +30,20 @@ namespace micm
    public:
     /// @brief Default constructor
     System();
+
+    /// @brief 
+    /// @param gas_phase A Gas phase
+    System(Phase gas_phase);
+
+    /// @brief 
+    /// @param gas_phase 
+    /// @param condition 
+    System(Phase gas_phase, Condition condition);
+
+    /// @brief 
+    /// @param gas_phase 
+    /// @param conditions 
+    System(Phase gas_phase, std::vector<Condition> conditions);
 
     /// @brief The size of the system
     /// @return The number of reacting species
@@ -49,6 +63,27 @@ namespace micm
       : gas_phase_(),
         phases_(),
         conditions_()
+  {
+  }
+
+  inline micm::System::System(Phase gas_phase)
+      : gas_phase_(gas_phase),
+        phases_(),
+        conditions_()
+  {
+  }
+
+  inline System::System(Phase gas_phase, Condition condition)
+      : gas_phase_(gas_phase),
+        phases_(),
+        conditions_({condition})
+  {
+  }
+
+  inline System::System(Phase gas_phase, std::vector<Condition> conditions)
+      : gas_phase_(gas_phase),
+        phases_(),
+        conditions_(conditions)
   {
   }
 
