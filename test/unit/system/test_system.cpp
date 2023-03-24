@@ -38,21 +38,6 @@ micm::SystemParameters FullSetOfParameters(){
   return parameters;
 }
 
-void TestFullSetOfParameters(micm::System system){
-  EXPECT_EQ(system.gas_phase_.species_.size(), 0);
-  EXPECT_EQ(system.phases_.size(), 3);
-  EXPECT_EQ(system.conditions_.size(), 1);
-  EXPECT_EQ(system.conditions_[0].name_, "name");
-  EXPECT_EQ(system.conditions_[0].units_, "units");
-  EXPECT_EQ(system.photolysis_reactions_[0].rate_.rate_, 1.1);
-  EXPECT_EQ(system.photolysis_reactions_[0].reactants_.size(), 1);
-  EXPECT_EQ(system.photolysis_reactions_[0].products_.size(), 2);
-  EXPECT_EQ(system.arrhenius_reactions_[0].rate_.parameters_.A_, 3.3e-11);
-  EXPECT_EQ(system.arrhenius_reactions_[0].rate_.parameters_.C_, 55);
-  EXPECT_EQ(system.arrhenius_reactions_[0].reactants_.size(), 2);
-  EXPECT_EQ(system.arrhenius_reactions_[0].products_.size(), 2);
-}
-
 TEST(System, DefaultConstructor){
   micm::System system{};
 }
@@ -132,5 +117,16 @@ TEST(System, ConstructorWithArrheniusReaction){
 TEST(System, ConstructorWithAllParameters){
   micm::System system{FullSetOfParameters()};
 
-  TestFullSetOfParameters(system);
+  EXPECT_EQ(system.gas_phase_.species_.size(), 0);
+  EXPECT_EQ(system.phases_.size(), 3);
+  EXPECT_EQ(system.conditions_.size(), 1);
+  EXPECT_EQ(system.conditions_[0].name_, "name");
+  EXPECT_EQ(system.conditions_[0].units_, "units");
+  EXPECT_EQ(system.photolysis_reactions_[0].rate_.rate_, 1.1);
+  EXPECT_EQ(system.photolysis_reactions_[0].reactants_.size(), 1);
+  EXPECT_EQ(system.photolysis_reactions_[0].products_.size(), 2);
+  EXPECT_EQ(system.arrhenius_reactions_[0].rate_.parameters_.A_, 3.3e-11);
+  EXPECT_EQ(system.arrhenius_reactions_[0].rate_.parameters_.C_, 55);
+  EXPECT_EQ(system.arrhenius_reactions_[0].reactants_.size(), 2);
+  EXPECT_EQ(system.arrhenius_reactions_[0].products_.size(), 2);
 }
