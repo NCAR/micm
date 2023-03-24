@@ -7,46 +7,6 @@ TEST(ArrheniusRateConstant, DefaultConstructor){
   micm::ArrheniusRateConstant arrhenius{};
 }
 
-TEST(ArrheniusRateConstant, CopyConstructor){
-  micm::ArrheniusRateConstantParameters parameters;
-  parameters.A_ = 1;
-
-  micm::ArrheniusRateConstant arrhenius{ parameters };
-
-  micm::ArrheniusRateConstant arrhenius2{ arrhenius};
-
-  EXPECT_EQ(arrhenius.parameters_.A_, arrhenius2.parameters_.A_);
-}
-
-TEST(ArrheniusRateConstant, MoveConstructor){
-  micm::ArrheniusRateConstantParameters parameters;
-  parameters.A_ = 1;
-
-  micm::ArrheniusRateConstant arrhenius{micm::ArrheniusRateConstant(parameters)};
-
-  EXPECT_EQ(arrhenius.parameters_.A_, 1);
-}
-
-TEST(ArrheniusRateConstant, CopyAssignment){
-  micm::ArrheniusRateConstantParameters parameters;
-  parameters.A_ = 1;
-
-  micm::ArrheniusRateConstant arrhenius{parameters};
-
-  auto second = arrhenius;
-
-  EXPECT_EQ(second.parameters_.A_, arrhenius.parameters_.A_);
-}
-
-TEST(ArrheniusRateConstant, MoveAssignment){
-  micm::ArrheniusRateConstantParameters parameters;
-  parameters.A_ = 1;
-
-  auto arrhenius = micm::ArrheniusRateConstant(parameters);
-
-  EXPECT_EQ(arrhenius.parameters_.A_, 1);
-}
-
 TEST(ArrheniusRateConstant, CalculateWithSystem){
   micm::ArrheniusRateConstant zero{};
   auto k = zero.calculate(micm::System());

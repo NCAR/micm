@@ -35,7 +35,7 @@ namespace micm
   class ArrheniusRateConstant : public RateConstant
   {
    public:
-    ArrheniusRateConstantParameters parameters_;
+    const ArrheniusRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor. All terms will be zero
@@ -45,20 +45,6 @@ namespace micm
     /// Arrhenius equation
     /// @param parameters A set of arrhenius rate constants
     ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
-
-    /// @brief Copy constructor
-    /// @param other
-    ArrheniusRateConstant(const ArrheniusRateConstant& other);
-
-    /// @brief Move constructor
-    /// @param other
-    ArrheniusRateConstant(ArrheniusRateConstant&& other);
-
-    /// @brief Copy assignment operator
-    ArrheniusRateConstant& operator=(ArrheniusRateConstant& other);
-
-    /// @brief Move assignment operator
-    ArrheniusRateConstant& operator=(ArrheniusRateConstant&& other);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -76,34 +62,6 @@ namespace micm
   inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
       : parameters_(parameters)
   {
-  }
-
-  inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstant& other)
-      : parameters_(other.parameters_)
-  {
-  }
-
-  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstant&& other)
-      : parameters_(std::move(other.parameters_))
-  {
-  }
-
-  inline ArrheniusRateConstant& ArrheniusRateConstant::operator=(ArrheniusRateConstant& other)
-  {
-    if (this != &other)
-    {
-      parameters_ = other.parameters_;
-    }
-    return *this;
-  }
-
-  inline ArrheniusRateConstant& ArrheniusRateConstant::operator=(ArrheniusRateConstant&& other)
-  {
-    if (this != &other)
-    {
-      parameters_ = std::move(other.parameters_);
-    }
-    return *this;
   }
 
   inline double ArrheniusRateConstant::calculate(const System& system)

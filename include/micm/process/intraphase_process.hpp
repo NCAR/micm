@@ -39,7 +39,7 @@ namespace micm
     IntraPhaseProcess(IntraPhaseProcess&& other);
 
     /// @brief Copy assignment operator
-    IntraPhaseProcess& operator=(IntraPhaseProcess& other);
+    IntraPhaseProcess& operator=(const IntraPhaseProcess& other);
 
     /// @brief Move assignment operator
     IntraPhaseProcess& operator=(IntraPhaseProcess&& other);
@@ -78,7 +78,7 @@ namespace micm
   }
 
   template<class Rate>
-  inline IntraPhaseProcess<Rate>& IntraPhaseProcess<Rate>::operator=(IntraPhaseProcess<Rate>& other)
+  inline IntraPhaseProcess<Rate>& IntraPhaseProcess<Rate>::operator=(const IntraPhaseProcess<Rate>& other)
   {
     if (this != &other)
     {
