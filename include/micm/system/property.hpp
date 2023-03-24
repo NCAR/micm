@@ -17,11 +17,11 @@ namespace micm
   {
    public:
     /// @brief The name of this property
-    const std::string name_;
+    std::string name_;
     /// @brief The units
-    const std::string units_;
+    std::string units_;
     /// @brief The value of this property
-    const double value_;
+    double value_;
 
    public:
     /// @brief Constructs a property

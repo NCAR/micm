@@ -20,8 +20,8 @@ namespace micm
     Phase gas_phase_{};
     std::vector<Phase> phases_{};
     std::vector<Condition> conditions_{};
-    IntraPhaseProcess<PhotolysisRateConstant> photolysis_reactions_{};
-    IntraPhaseProcess<ArrheniusRateConstant> arrhenius_reactions_{};
+    std::vector<IntraPhaseProcess<PhotolysisRateConstant>> photolysis_reactions_{};
+    std::vector<IntraPhaseProcess<ArrheniusRateConstant>> arrhenius_reactions_{};
   };
 
   /**
@@ -38,9 +38,9 @@ namespace micm
     /// @brief This represents any physical measurement of a grid cell.
     const std::vector<Condition> conditions_;
     /// @brief Photolysis reactions in this system
-    const IntraPhaseProcess<PhotolysisRateConstant> photolysis_reactions_;
+    const std::vector<IntraPhaseProcess<PhotolysisRateConstant>> photolysis_reactions_;
     /// @brief Arrhenius reactions in this system
-    const IntraPhaseProcess<ArrheniusRateConstant> arrhenius_reactions_;
+    const std::vector<IntraPhaseProcess<ArrheniusRateConstant>> arrhenius_reactions_;
 
    public:
     /// @brief Default constructor

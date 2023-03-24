@@ -113,7 +113,11 @@ namespace micm
         ParseObjectArray(objects);
       }
 
-      // return std::make_unique<micm::System>(micm::System(micm::Phase(species_)));
+      // micm::SystemParameters parameters;
+      // parameters.arrhenius_reactions_ = arrhenius_reactions_;
+      // parameters.photolysis_reactions_ = photolysis_reactions_;
+      // parameters.gas_phase_ = micm::Phase(species_);
+
       return std::make_unique<micm::System>(micm::System());
     }
 
