@@ -8,9 +8,9 @@ TEST(PhotolysisRateConstant, DefaultConstructor){
 }
 
 TEST(PhotolysisRateConstant, CalculateWithSystem){
-  micm::PhotolysisRateConstant rate{};
+  micm::PhotolysisRateConstant rate{0.5};
   auto k = rate.calculate(micm::System());
-  EXPECT_EQ(k, 0);
+  EXPECT_EQ(k, 0.5);
 }
 
 TEST(PhotolysisRateConstant, ConstructorWithRate){

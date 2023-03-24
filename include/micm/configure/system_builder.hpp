@@ -9,13 +9,13 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <micm/system/system.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/intraphase_process.hpp>
+#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
+#include <micm/system/system.hpp>
 
 #ifdef USE_JSON
 #  include <nlohmann/json.hpp>
@@ -113,7 +113,8 @@ namespace micm
         ParseObjectArray(objects);
       }
 
-      return std::make_unique<micm::System>(micm::System(micm::Phase(species_)));
+      // return std::make_unique<micm::System>(micm::System(micm::Phase(species_)));
+      return std::make_unique<micm::System>(micm::System());
     }
 
     void ValidateJsonWithKey(const json& object, std::string key)
@@ -214,19 +215,19 @@ namespace micm
         ValidateJsonWithKey(object, key);
 
       std::vector<Species> reactants;
-      for (auto& [key, value] : object["reactants"].items()) {
-          reactants.push_back(Species(key));
+      for (auto& [key, value] : object["reactants"].items())
+      {
+        reactants.push_back(Species(key));
       }
       std::vector<Species> products;
-      for (auto& [key, value] : object["products"].items()) {
-          products.push_back(Species(key));
+      for (auto& [key, value] : object["products"].items())
+      {
+        products.push_back(Species(key));
       }
       std::string name = object["MUSICA name"].get<std::string>();
 
       using reaction = IntraPhaseProcess<PhotolysisRateConstant>;
-      photolysis_reactions_.push_back(
-        reaction(reactants, products, PhotolysisRateConstant(0, name))
-      );
+      photolysis_reactions_.push_back(reaction(reactants, products, PhotolysisRateConstant(0, name)));
     }
 
     void ParseArrhenius(const json& object)
@@ -236,37 +237,41 @@ namespace micm
         ValidateJsonWithKey(object, key);
 
       std::vector<Species> reactants;
-      for (auto& [key, value] : object["reactants"].items()) {
-          reactants.push_back(Species(key));
+      for (auto& [key, value] : object["reactants"].items())
+      {
+        reactants.push_back(Species(key));
       }
       std::vector<Species> products;
-      for (auto& [key, value] : object["products"].items()) {
-          products.push_back(Species(key));
+      for (auto& [key, value] : object["products"].items())
+      {
+        products.push_back(Species(key));
       }
 
       ArrheniusRateConstantParameters parameters;
 
-      if (object.contains("A")){
+      if (object.contains("A"))
+      {
         parameters.A_ = object["A"].get<double>();
       }
-      if (object.contains("B")){
+      if (object.contains("B"))
+      {
         parameters.B_ = object["B"].get<double>();
       }
-      if (object.contains("C")){
+      if (object.contains("C"))
+      {
         parameters.C_ = object["C"].get<double>();
       }
-      if (object.contains("D")){
+      if (object.contains("D"))
+      {
         parameters.D_ = object["D"].get<double>();
       }
-      if (object.contains("E")){
+      if (object.contains("E"))
+      {
         parameters.E_ = object["E"].get<double>();
       }
 
       using reaction = IntraPhaseProcess<ArrheniusRateConstant>;
-      arrhenius_reactions_.push_back(
-        reaction(reactants, products, ArrheniusRateConstant(parameters))
-      );
-
+      arrhenius_reactions_.push_back(reaction(reactants, products, ArrheniusRateConstant(parameters)));
     }
 
     void ParseEmission(const json& object)
@@ -294,10 +299,7 @@ namespace micm
     }
   };
 
-  template<
-    template<class> class ConfigTypePolicy = JsonReaderPolicy, 
-    template<class> class ErrorPolicy = ThrowPolicy
-  >
+  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, template<class> class ErrorPolicy = ThrowPolicy>
   class SystemBuilder : public ConfigTypePolicy<ErrorPolicy<std::unique_ptr<micm::System>>>
   {
    public:

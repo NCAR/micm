@@ -19,17 +19,20 @@ namespace micm
   {
    public:
     /// @brief The list of species
-    const std::vector<Species> species_;
+    std::vector<Species> species_;
 
    public:
     /// @brief Default constructor
     Phase() = default;
+
     /// @brief Create a phase with a set of species
     /// @param species A unique list of species
-    Phase(std::vector<Species> species)
-        : species_(std::move(species))
-    {
-    }
+    Phase(std::vector<Species> species);
   };
+
+  Phase::Phase(std::vector<Species> species)
+      : species_(std::move(species))
+  {
+  }
 
 }  // namespace micm

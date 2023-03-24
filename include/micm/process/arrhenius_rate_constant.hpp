@@ -34,8 +34,8 @@ namespace micm
    */
   class ArrheniusRateConstant : public RateConstant
   {
-   private:
-    const ArrheniusRateConstantParameters parameters_;
+   public:
+    ArrheniusRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor. All terms will be zero
@@ -43,13 +43,22 @@ namespace micm
 
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the
     /// Arrhenius equation
-    /// @param A Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
-    /// @param B Unitless exponential factor
-    /// @param C Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
-    /// k_b), K
-    /// @param D A factor that determines temperature dependence, (K)
-    /// @param E A factor that determines pressure dependence (Pa-1)
+    /// @param parameters A set of arrhenius rate constants
     ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
+
+    /// @brief Copy constructor
+    /// @param other
+    ArrheniusRateConstant(const ArrheniusRateConstant& other);
+
+    /// @brief Move constructor
+    /// @param other
+    ArrheniusRateConstant(ArrheniusRateConstant&& other);
+
+    /// @brief Copy assignment operator
+    ArrheniusRateConstant& operator=(ArrheniusRateConstant& other);
+
+    /// @brief Move assignment operator
+    ArrheniusRateConstant& operator=(ArrheniusRateConstant&& other);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -67,6 +76,34 @@ namespace micm
   inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
       : parameters_(parameters)
   {
+  }
+
+  inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstant& other)
+      : parameters_(other.parameters_)
+  {
+  }
+
+  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstant&& other)
+      : parameters_(std::move(other.parameters_))
+  {
+  }
+
+  inline ArrheniusRateConstant& ArrheniusRateConstant::operator=(ArrheniusRateConstant& other)
+  {
+    if (this != &other)
+    {
+      parameters_ = other.parameters_;
+    }
+    return *this;
+  }
+
+  inline ArrheniusRateConstant& ArrheniusRateConstant::operator=(ArrheniusRateConstant&& other)
+  {
+    if (this != &other)
+    {
+      parameters_ = std::move(other.parameters_);
+    }
+    return *this;
   }
 
   inline double ArrheniusRateConstant::calculate(const System& system)

@@ -17,8 +17,8 @@ namespace micm
   class PhotolysisRateConstant : public RateConstant
   {
    public:
-    const double rate_;
-    const std::string name_;
+    double rate_;
+    std::string name_;
 
    public:
     /// @brief Default constructor.
