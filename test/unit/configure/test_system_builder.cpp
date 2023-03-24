@@ -27,5 +27,8 @@ TEST(SystemBuilder, JsonBuilder){
   auto system = builder.Build("unit_configs/chapman/config.json");
 
   EXPECT_TRUE(system != nullptr);
+  EXPECT_EQ(system->gas_phase_.species_.size(), 9);
+  EXPECT_EQ(system->photolysis_reactions_.size(), 3);
+  EXPECT_EQ(system->arrhenius_reactions_.size(), 4);
 }
 #endif
