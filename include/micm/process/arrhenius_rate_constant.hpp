@@ -35,7 +35,7 @@ namespace micm
   class ArrheniusRateConstant : public RateConstant
   {
    public:
-    const ArrheniusRateConstantParameters parameters_;
+    ArrheniusRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor. All terms will be zero

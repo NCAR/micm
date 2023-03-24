@@ -114,7 +114,7 @@ namespace micm
       }
 
       micm::SystemParameters parameters;
-      // parameters.arrhenius_reactions_ = arrhenius_reactions_;
+      parameters.arrhenius_reactions_ = arrhenius_reactions_;
       parameters.photolysis_reactions_ = photolysis_reactions_;
       parameters.gas_phase_ = micm::Phase(species_);
 
