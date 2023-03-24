@@ -46,14 +46,6 @@ namespace micm
     /// @brief Default constructor
     System();
 
-    /// @brief Copy Constructor
-    /// @param other
-    System(System& other);
-
-    /// @brief Move Constructor
-    /// @param other
-    System(System&& other);
-
     /// @brief
     /// @param gas_phase
     System(SystemParameters parameters);
@@ -74,24 +66,6 @@ namespace micm
         conditions_(parameters.conditions_),
         photolysis_reactions_(parameters.photolysis_reactions_),
         arrhenius_reactions_(parameters.arrhenius_reactions_)
-  {
-  }
-
-  inline System::System(System& other)
-      : gas_phase_(other.gas_phase_),
-        phases_(other.phases_),
-        conditions_(other.conditions_),
-        photolysis_reactions_(other.photolysis_reactions_),
-        arrhenius_reactions_(other.arrhenius_reactions_)
-  {
-  }
-
-  inline System::System(System&& other)
-      : gas_phase_(std::move(other.gas_phase_)),
-        phases_(std::move(other.phases_)),
-        conditions_(std::move(other.conditions_)),
-        photolysis_reactions_(std::move(other.photolysis_reactions_)),
-        arrhenius_reactions_(std::move(other.arrhenius_reactions_))
   {
   }
 

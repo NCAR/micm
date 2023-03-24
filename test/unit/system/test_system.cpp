@@ -128,15 +128,3 @@ TEST(System, ConstructorWithArrheniusReaction){
   EXPECT_EQ(system.arrhenius_reactions_[0].reactants_.size(), 2);
   EXPECT_EQ(system.arrhenius_reactions_[0].products_.size(), 2);
 }
-
-TEST(System, CopyConstructor){
-  micm::System system{FullSetOfParameters()};
-  auto system2{system};
-
-  TestFullSetOfParameters(system2);
-}
-
-TEST(System, MoveConstructor){
-  micm::System system{micm::System(FullSetOfParameters())};
-  TestFullSetOfParameters(system);
-}
