@@ -181,10 +181,10 @@ contains
      real(musica_dk)               :: number_density_air(ncell)
      integer                       :: i
 
-     !$acc data copyin  (this,this%rateConst,this%environment, &
-     !$acc               number_density) &
-     !$acc      copyout (reaction_rates) &
-     !$acc      create  (number_density_air)
+     !$acc data copyin (this,number_density) &
+     !$acc      create (number_density_air) &
+     !$acc     copyout (reaction_rates)
+     !$acc data copyin (this%rateConst,this%environment)
 
      !$acc parallel default(present) vector_length(VLEN)
      !$acc loop gang vector
@@ -195,6 +195,7 @@ contains
 
      call rxn_rates( this%rateConst, number_density, number_density_air, reaction_rates )
 
+     !$acc end data
      !$acc end data 
 
   end subroutine calc_reaction_rates
@@ -300,8 +301,8 @@ contains
       write(*,*) 'jacobian_init: Pivot already allocated'
     endif
 
-    !$acc enter data copyin(this) &
-    !$acc            create(this%chemJac,this%MBOdeJac,this%rateConst) &
+    !$acc enter data copyin(this) async(STREAM0)
+    !$acc enter data create(this%chemJac,this%MBOdeJac,this%rateConst) &
     !$acc            async(STREAM0)
 
   end function constructor
@@ -471,10 +472,12 @@ contains
    real(musica_dk) ::  d2Fdy2(ncell,number_of_species)
 
    !$acc data copyout (d2Fdy2) &
-   !$acc      copyin  (this,this%chemJac,force)
+   !$acc       copyin (this,force)
+   !$acc data  copyin (this%chemJac)
 
-    call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
+   call dforce_dy_times_vector( this%chemJac, force, d2Fdy2 )
 
+   !$acc end data
    !$acc end data
 
   end function dForcedyxForce

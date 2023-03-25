@@ -386,38 +386,38 @@ contains
   character(len=128) :: str
   logical            :: missing_var_flag
   !> Corresponding MICM photolysis reaction names in CAM output for Chapman mechanism
-  character(len=128), parameter :: cam_photo_reaction_names(number_of_photolysis_reactions) = &
-                                   (/'jo2_a','jo3_a','jo3_b'/)
+!  character(len=128), parameter :: cam_photo_reaction_names(number_of_photolysis_reactions) = &
+!                                   (/'jo2_a','jo3_a','jo3_b'/)
 
 !  !> Corresponding MICM photolysis reaction names in CAM output for TS1 mechanism
-!  character(len=*), parameter :: cam_photo_reaction_names(number_of_photolysis_reactions) = &
-!             (/ 'jterpnit       ', 'jo2_b          ', 'jmvk           ', 'jmgly          ', &
-!                'jxylenooh      ', 'jso3           ', 'jchbr3         ', 'jterprd2       ', &
-!                'jch4_b         ', 'jmek           ', 'jacet          ', 'jterp2ooh      ', &
-!                'jbrono2_a      ', 'jbigald4       ', 'jcf2clbr       ', 'jh2o_c         ', &
-!                'jbro           ', 'jtepomuc       ', 'jxylolooh      ', 'jso2           ', &
-!                'jmekooh        ', 'jch2o_b        ', 'jbrono2_b      ', 'jno            ', &
-!                'jphenooh       ', 'jh2o_b         ', 'jc3h7ooh       ', 'jccl4          ', &
-!                'jnoa           ', 'jno2           ', 'jbigald3       ', 'jch2br2        ', &
-!                'jbepomuc       ', 'jmacr_b        ', 'jnterpooh      ', 'jn2o           ', &
-!                'jrooh          ', 'jch2o_a        ', 'jhbr           ', 'jpooh          ', &
-!                'jhcfc22        ', 'jnc4cho        ', 'jhonitr        ', 'jxooh          ', &
-!                'jch4_a         ', 'jhobr          ', 'jno3_a         ', 'jh2o_a         ', &
-!                'jch3co3h       ', 'jhcfc141b      ', 'jhyac          ', 'jonitr         ', &
-!                'jterpooh       ', 'jcl2           ', 'jhcfc142b      ', 'jisopooh       ', &
-!                'jh2o2          ', 'jch3cho        ', 'jbigald1       ', 'joclo          ', &
-!                'jhno3          ', 'jc2h5ooh       ', 'jmacr_a        ', 'jco2           ', &
-!                'jbenzooh       ', 'jn2o5_b        ', 'jcfc115        ', 'jcfcl3         ', &
-!                'jterprd1       ', 'jso            ', 'jmpan          ', 'jclono2_a      ', &
-!                'jisopnooh      ', 'jalkooh        ', 'jcf3br         ', 'jch3cl         ', &
-!                'jhcl           ', 'jtolooh        ', 'jch3ccl3       ', 'jglyald        ', &
-!                'jeooh          ', 'jbrcl          ', 'jocs           ', 'jc6h5ooh       ', &
-!                'jcfc114        ', 'jho2no2_b      ', 'jpan           ', 'jhocl          ', &
-!                'jo3_b          ', 'jcf2cl2        ', 'jno3_b         ', 'jbigald2       ', &
-!                'jch3ooh        ', 'jclo           ', 'jcfc113        ', 'jho2no2_a      ', &
-!                'jch3br         ', 'jclono2_b      ', 'jglyoxal       ', 'jo3_a          ', &
-!                'jn2o5_a        ', 'jhpald         ', 'jbzooh         ', 'jh2402         ', &
-!                'jcl2o2         ', 'jalknit        ', 'jbigald        ' /)
+  character(len=*), parameter :: cam_photo_reaction_names(number_of_photolysis_reactions) = &
+             (/ 'jterpnit       ', 'jo2_b          ', 'jmvk           ', 'jmgly          ', &
+                'jxylenooh      ', 'jso3           ', 'jchbr3         ', 'jterprd2       ', &
+                'jch4_b         ', 'jmek           ', 'jacet          ', 'jterp2ooh      ', &
+                'jbrono2_a      ', 'jbigald4       ', 'jcf2clbr       ', 'jh2o_c         ', &
+                'jbro           ', 'jtepomuc       ', 'jxylolooh      ', 'jso2           ', &
+                'jmekooh        ', 'jch2o_b        ', 'jbrono2_b      ', 'jno            ', &
+                'jphenooh       ', 'jh2o_b         ', 'jc3h7ooh       ', 'jccl4          ', &
+                'jnoa           ', 'jno2           ', 'jbigald3       ', 'jch2br2        ', &
+                'jbepomuc       ', 'jmacr_b        ', 'jnterpooh      ', 'jn2o           ', &
+                'jrooh          ', 'jch2o_a        ', 'jhbr           ', 'jpooh          ', &
+                'jhcfc22        ', 'jnc4cho        ', 'jhonitr        ', 'jxooh          ', &
+                'jch4_a         ', 'jhobr          ', 'jno3_a         ', 'jh2o_a         ', &
+                'jch3co3h       ', 'jhcfc141b      ', 'jhyac          ', 'jonitr         ', &
+                'jterpooh       ', 'jcl2           ', 'jhcfc142b      ', 'jisopooh       ', &
+                'jh2o2          ', 'jch3cho        ', 'jbigald1       ', 'joclo          ', &
+                'jhno3          ', 'jc2h5ooh       ', 'jmacr_a        ', 'jco2           ', &
+                'jbenzooh       ', 'jn2o5_b        ', 'jcfc115        ', 'jcfcl3         ', &
+                'jterprd1       ', 'jso            ', 'jmpan          ', 'jclono2_a      ', &
+                'jisopnooh      ', 'jalkooh        ', 'jcf3br         ', 'jch3cl         ', &
+                'jhcl           ', 'jtolooh        ', 'jch3ccl3       ', 'jglyald        ', &
+                'jeooh          ', 'jbrcl          ', 'jocs           ', 'jc6h5ooh       ', &
+                'jcfc114        ', 'jho2no2_b      ', 'jpan           ', 'jhocl          ', &
+                'jo3_b          ', 'jcf2cl2        ', 'jno3_b         ', 'jbigald2       ', &
+                'jch3ooh        ', 'jclo           ', 'jcfc113        ', 'jho2no2_a      ', &
+                'jch3br         ', 'jclono2_b      ', 'jglyoxal       ', 'jo3_a          ', &
+                'jn2o5_a        ', 'jhpald         ', 'jbzooh         ', 'jh2402         ', &
+                'jcl2o2         ', 'jalknit        ', 'jbigald        ' /)
 
   !> Path to CAM output file  
   file_name = '/glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc'

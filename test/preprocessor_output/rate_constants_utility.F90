@@ -58,64 +58,4258 @@ contains
 
     integer :: i
 
-    !O2_1
-    !k_O2_1: O2 -> 2*O
+    !HO2_MALO2_1
+    !k_HO2_MALO2_1: HO2 + MALO2 -> 0.16*GLYOXAL + 0.16*HO2 + 0.16*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,1) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H2_OH_1
+    !k_C2H2_OH_1: C2H2 + OH -> 0.65*GLYOXAL + 0.65*OH + 0.35*HCOOH + 0.35*HO2 + 0.35*CO
+    troe = rate_constant_troe_t( &
+      k0_A = real( 5.5e-30, kind=musica_dk ), &
+      kinf_A = real( 8.3e-13, kind=musica_dk ), &
+      N = real( -2, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,2) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH3O2_TERPO2_1
+    !k_CH3O2_TERPO2_1: CH3O2 + TERPO2 -> 1*TERPROD1 + 0.95*CH2O + 0.25*CH3OH + 1*HO2 + 0.025*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,3) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C3H7OOH_OH_1
+    !k_C3H7OOH_OH_1: C3H7OOH + OH -> 1*H2O + 1*C3H7O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,4) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TERPNIT_1
+    !k_TERPNIT_1: TERPNIT -> 1*TERPROD1 + 1*NO2 + 1*HO2
     photolysis = rate_constant_photolysis_t( &
       photolysis_rate_constant_index = 1 )
     !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:ncell,1) )
-    !$acc exit data delete(photolysis) async(STREAM0)
-
-    !O3_1
-    !k_O3_1: O3 -> 1*O1D + 1*O2
-    photolysis = rate_constant_photolysis_t( &
-      photolysis_rate_constant_index = 2 )
-    !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:ncell,2) )
-    !$acc exit data delete(photolysis) async(STREAM0)
-
-    !O3_2
-    !k_O3_2: O3 -> 1*O + 1*O2
-    photolysis = rate_constant_photolysis_t( &
-      photolysis_rate_constant_index = 3 )
-    !$acc enter data copyin(photolysis) async(STREAM0)
-    call photolysis%calculate( environment, rate_constants(1:ncell,3) )
+    call photolysis%calculate( environment, rate_constants(1:ncell,5) )
     !$acc exit data delete(photolysis) async(STREAM0)
 
     !N2_O1D_1
     !k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     arrhenius = rate_constant_arrhenius_t( &
       A = real( 2.15e-11, kind=musica_dk ), &
-      C = real( 110, kind=musica_dk ) )
+      Ea = real( -1.51871e-21, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:ncell,4) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,6) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
-    !O1D_O2_1
-    !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    !OH_XYLENES_1
+    !k_OH_XYLENES_1: OH + XYLENES -> 0.15*XYLOL + 0.23*TEPOMUC + 0.06*BZOO + 0.56*XYLENO2 + 0.38*HO2
     arrhenius = rate_constant_arrhenius_t( &
-      A = real( 3.3e-11, kind=musica_dk ), &
-      C = real( 55, kind=musica_dk ) )
+      A = real( 1.7e-11, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:ncell,5) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,7) )
     !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N_NO2_1
+    !k_N_NO2_1: N + NO2 -> 1*N2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.45e-12, kind=musica_dk ), &
+      Ea = real( -3.03743e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,8) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO3_OH_1
+    !k_NO3_OH_1: NO3 + OH -> 1*HO2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.2e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,9) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_O_1
+    !k_CH2O_O_1: CH2O + O -> 1*HO2 + 1*OH + 1*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.4e-11, kind=musica_dk ), &
+      Ea = real( 2.20904e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,10) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBO_NO3_1
+    !k_MBO_NO3_1: MBO + NO3 -> 1*MBONO3O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.6e-14, kind=musica_dk ), &
+      Ea = real( 5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,11) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O2_1
+    !k_O2_1: O2 -> 2*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 2 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,12) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CFC113_O1D_1
+    !k_CFC113_O1D_1: CFC113 + O1D -> 3*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.088e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,13) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC142B_OH_1
+    !k_HCFC142B_OH_1: HCFC142B + OH -> 1*CL + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-12, kind=musica_dk ), &
+      Ea = real( 2.44375e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,14) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MVK_1
+    !k_MVK_1: MVK -> 0.7*C3H6 + 0.7*CO + 0.3*CH3O2 + 0.3*CH3CO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 3 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,15) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !EO2_NO_1
+    !k_EO2_NO_1: EO2 + NO -> 0.5*CH2O + 0.25*HO2 + 0.75*EO + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,16) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COCHO_1
+    !k_CH3COCHO_1: CH3COCHO -> 1*CH3CO3 + 1*CO + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 4 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,17) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CFC114_O1D_1
+    !k_CFC114_O1D_1: CFC114 + O1D -> 2*CL + 2*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.17e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,18) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HBR_O1D_1
+    !k_HBR_O1D_1: HBR + O1D -> 1*BRO + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,19) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !XYLENOOH_1
+    !k_XYLENOOH_1: XYLENOOH -> 1*OH + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 5 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,20) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CLO_O_1
+    !k_CLO_O_1: CLO + O -> 1*CL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.8e-11, kind=musica_dk ), &
+      Ea = real( -1.17355e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,21) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_SO2_1
+    !k_OH_SO2_1: OH + SO2 -> 1*SO3 + 1*HO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 3e-31, kind=musica_dk ), &
+      k0_B = real( -3.3, kind=musica_dk ), &
+      kinf_A = real( 1.5e-12, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,22) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH4_CL_1
+    !k_CH4_CL_1: CH4 + CL -> 1*CH3O2 + 1*HCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.1e-12, kind=musica_dk ), &
+      Ea = real( 1.75342e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,23) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !SO3_1
+    !k_SO3_1: SO3 -> 1*SO2 + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 6 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,24) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CO3_NO_1
+    !k_CH3CO3_NO_1: CH3CO3 + NO -> 1*CH3O2 + 1*CO2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.1e-12, kind=musica_dk ), &
+      Ea = real( -3.72775e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,25) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HONITR_OH_1
+    !k_HONITR_OH_1: HONITR + OH -> 1*ONITR + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,26) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2BR2_CL_1
+    !k_CH2BR2_CL_1: CH2BR2 + CL -> 2*BR + 1*HCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.3e-12, kind=musica_dk ), &
+      Ea = real( 1.10452e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,27) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MPAN_OH_1
+    !k_MPAN_OH_1: MPAN + OH -> 0.5*HYAC + 0.5*NO3 + 0.5*CH2O + 0.5*HO2 + 0.5*CO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 8e-27, kind=musica_dk ), &
+      k0_B = real( -3.5, kind=musica_dk ), &
+      kinf_A = real( 3e-11, kind=musica_dk ), &
+      Fc = real( 0.5, kind=musica_dk ), &
+      N = real( 0, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,28) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !PBZNIT_1
+    !k_PBZNIT_1: PBZNIT -> 1*ACBZO2 + 1*NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.07767, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      k0_C = real( -14000, kind=musica_dk ), &
+      kinf_A = real( 1.03323e17, kind=musica_dk ), &
+      kinf_C = real( -14000, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,29) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HOCL_OH_1
+    !k_HOCL_OH_1: HOCL + OH -> 1*H2O + 1*CLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-12, kind=musica_dk ), &
+      Ea = real( 6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,30) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !PAN_1
+    !k_PAN_1: PAN -> 1*CH3CO3 + 1*NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.07767, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      k0_C = real( -14000, kind=musica_dk ), &
+      kinf_A = real( 1.03323e17, kind=musica_dk ), &
+      kinf_C = real( -14000, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,31) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH3CO3_CH3CO3_1
+    !k_CH3CO3_CH3CO3_1: CH3CO3 + CH3CO3 -> 2*CH3O2 + 2*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.9e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,32) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CHBR3_1
+    !k_CHBR3_1: CHBR3 -> 3*BR
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 7 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,33) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CHO_NO3_1
+    !k_CH3CHO_NO3_1: CH3CHO + NO3 -> 1*CH3CO3 + 1*HNO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-12, kind=musica_dk ), &
+      Ea = real( 2.62323e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,34) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TERPROD2_1
+    !k_TERPROD2_1: TERPROD2 -> 0.15*RO2 + 0.68*CH2O + 0.8*CO2 + 0.5*CH3COCH3 + 0.65*CH3CO3 + 1.2*HO2 + 1.7*CO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 8 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,35) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_MACRO2_1
+    !k_HO2_MACRO2_1: HO2 + MACRO2 -> 1*MACROOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,36) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_1
+    !k_CH4_1: CH4 -> 1.44*H2 + 0.18*CH2O + 0.18*O + 0.33*OH + 0.33*H + 0.44*CO2 + 0.38*CO + 0.05*H2O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 9 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,37) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BR_HO2_1
+    !k_BR_HO2_1: BR + HO2 -> 1*HBR + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.8e-12, kind=musica_dk ), &
+      Ea = real( 4.28001e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,38) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_O1D_1
+    !k_H2O_O1D_1: H2O + O1D -> 2*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.63e-10, kind=musica_dk ), &
+      Ea = real( -8.28389e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,39) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACRO2_NO_1
+    !k_MACRO2_NO_1: MACRO2 + NO -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.53*GLYALD + 0.25*CH3COCHO + 0.53*CH3CO3 + 0.22*HYAC + 0.22*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.7e-12, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,40) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_NO3_1
+    !k_NO_NO3_1: NO + NO3 -> 2*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.5e-11, kind=musica_dk ), &
+      Ea = real( -2.3471e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,41) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOP_O3_1
+    !k_ISOP_O3_1: ISOP + O3 -> 1*ISOP + 1*O3 + 0.0033*SOAG3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.05e-14, kind=musica_dk ), &
+      Ea = real( 2.7613e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,42) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_OH_1
+    !k_CLO_OH_1: CLO + OH -> 1*HCL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6e-13, kind=musica_dk ), &
+      Ea = real( -3.17549e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,43) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBONO3O2_NO3_1
+    !k_MBONO3O2_NO3_1: MBONO3O2 + NO3 -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,44) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MEK_1
+    !k_MEK_1: MEK -> 1*CH3CO3 + 1*C2H5O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 10 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,45) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3COCH3_1
+    !k_CH3COCH3_1: CH3COCH3 -> 1*CH3CO3 + 1*CH3O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 11 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,46) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OCLO_SO_1
+    !k_OCLO_SO_1: OCLO + SO -> 1*SO2 + 1*CLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,47) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3BR_O1D_1
+    !k_CH3BR_O1D_1: CH3BR + O1D -> 1*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.8e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,48) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TERP2OOH_1
+    !k_TERP2OOH_1: TERP2OOH -> 1*OH + 0.375*CH2O + 0.3*CH3COCH3 + 0.25*CO + 1*CO2 + 1*TERPROD2 + 1*HO2 + 0.25*GLYALD
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 12 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,49) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OH_XYLENOOH_1
+    !k_OH_XYLENOOH_1: OH + XYLENOOH -> 1*XYLENO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,50) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_SVOC_1
+    !k_OH_SVOC_1: OH + SVOC -> 1*OH + 0.5931*SOAG0 + 0.1534*SOAG1 + 0.0459*SOAG2 + 0.0085*SOAG3 + 0.0128*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.34e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,51) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ACBZO2_HO2_1
+    !k_ACBZO2_HO2_1: ACBZO2 + HO2 -> 0.4*C6H5O2 + 0.4*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,52) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCL_O1D_1
+    !k_HCL_O1D_1: HCL + O1D -> 1*CL + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.9e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,53) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2NO2_OH_1
+    !k_HO2NO2_OH_1: HO2NO2 + OH -> 1*H2O + 1*NO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-12, kind=musica_dk ), &
+      Ea = real( -5.24647e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,54) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TOLUENE_1
+    !k_OH_TOLUENE_1: OH + TOLUENE -> 1*TOLUENE + 1*OH + 0.1364*SOAG0 + 0.0101*SOAG1 + 0.0763*SOAG2 + 0.2157*SOAG3 + 0.0738*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-12, kind=musica_dk ), &
+      Ea = real( -4.85988e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,55) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRONO2_1
+    !k_BRONO2_1: BRONO2 -> 1*BR + 1*NO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 13 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,56) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BZALD_OH_1
+    !k_BZALD_OH_1: BZALD + OH -> 1*ACBZO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.9e-12, kind=musica_dk ), &
+      Ea = real( -3.10646e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,57) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_SO_1
+    !k_BRO_SO_1: BRO + SO -> 1*SO2 + 1*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.7e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,58) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BENZO2_NO_1
+    !k_BENZO2_NO_1: BENZO2 + NO -> 1*NO2 + 1*GLYOXAL + 0.5*BIGALD1 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,59) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_TOLO2_1
+    !k_NO_TOLO2_1: NO + TOLO2 -> 1*NO2 + 0.6*GLYOXAL + 0.4*CH3COCHO + 1*HO2 + 0.2*BIGALD1 + 0.2*BIGALD2 + 0.2*BIGALD3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,60) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGALD4_1
+    !k_BIGALD4_1: BIGALD4 -> 1*HO2 + 1*CO + 1*CH3COCHO + 1*CH3CO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 14 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,61) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !NO_O_1
+    !k_NO_O_1: NO + O -> 1*NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9e-32, kind=musica_dk ), &
+      k0_B = real( -1.5, kind=musica_dk ), &
+      kinf_A = real( 3e-11, kind=musica_dk ), &
+      N = real( 0, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,62) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !C3H7O2_CH3O2_1
+    !k_C3H7O2_CH3O2_1: C3H7O2 + CH3O2 -> 1*CH2O + 1*HO2 + 0.82*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.75e-13, kind=musica_dk ), &
+      Ea = real( 5.5226e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,63) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC22_O1D_1
+    !k_HCFC22_O1D_1: HCFC22 + O1D -> 1*CL + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.65e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,64) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CO3_ISOPAO2_1
+    !k_CH3CO3_ISOPAO2_1: CH3CO3 + ISOPAO2 -> 1*CH3O2 + 1*HO2 + 1*CH2O + 0.39*MACR + 0.61*MVK + 1*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,65) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MEK_OH_1
+    !k_MEK_OH_1: MEK + OH -> 1*MEKO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-12, kind=musica_dk ), &
+      Ea = real( 2.3471e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,66) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL2O2_M_1
+    !k_CL2O2_M_1: CL2O2 + M -> 2*CLO + 1*M
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.38889e16, kind=musica_dk ), &
+      Ea = real( 8.40401e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,67) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COCH3_OH_1
+    !k_CH3COCH3_OH_1: CH3COCH3 + OH -> 1*RO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.82e-11, kind=musica_dk ), &
+      Ea = real( 2.7613e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,68) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COCH3_OH_2
+    !k_CH3COCH3_OH_2: CH3COCH3 + OH -> 1*RO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.33e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,69) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TOLOOH_1
+    !k_OH_TOLOOH_1: OH + TOLOOH -> 1*TOLO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,70) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKO2_NO_1
+    !k_ALKO2_NO_1: ALKO2 + NO -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 1*HO2 + 0.8*MEK + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.7e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,71) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MCO3_NO2_1
+    !k_MCO3_NO2_1: MCO3 + NO2 -> 1*MPAN
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.1e-11, kind=musica_dk ), &
+      B = real( -1, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,72) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_NO2_1
+    !k_HO2_NO2_1: HO2 + NO2 -> 1*HO2NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.9e-31, kind=musica_dk ), &
+      k0_B = real( -3.4, kind=musica_dk ), &
+      kinf_A = real( 4e-12, kind=musica_dk ), &
+      N = real( 0.3, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,73) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CF2CLBR_1
+    !k_CF2CLBR_1: CF2CLBR -> 1*BR + 1*CL + 1*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 15 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,74) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ISOP_OH_1
+    !k_ISOP_OH_1: ISOP + OH -> 1*ISOP + 1*OH + 0.0031*SOAG0 + 0.0035*SOAG1 + 0.0003*SOAG2 + 0.0271*SOAG3 + 0.0474*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.54e-11, kind=musica_dk ), &
+      Ea = real( -5.66066e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,75) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOP_OH_2
+    !k_ISOP_OH_2: ISOP + OH -> 0.6*ISOPAO2 + 0.4*ISOPBO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.54e-11, kind=musica_dk ), &
+      Ea = real( -5.66066e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,76) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_1
+    !k_H2O_1: H2O -> 2*H + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 16 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,77) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MTERP_O3_1
+    !k_MTERP_O3_1: MTERP + O3 -> 1*MTERP + 1*O3 + 0.0508*SOAG0 + 0.1149*SOAG1 + 0.0348*SOAG2 + 0.0554*SOAG3 + 0.1278*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.3e-16, kind=musica_dk ), &
+      Ea = real( 8.00776e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,78) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPNITB_OH_1
+    !k_ISOPNITB_OH_1: ISOPNITB + OH -> 0.5*HYAC + 0.5*GLYALD + 0.5*NOA + 1*HO2 + 0.5*HONITR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,79) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_XYLOL_1
+    !k_OH_XYLOL_1: OH + XYLOL -> 0.3*XYLOLO2 + 0.63*HO2 + 0.07*PHENO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,80) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CO3_MCO3_1
+    !k_CH3CO3_MCO3_1: CH3CO3 + MCO3 -> 2*CO2 + 1*CH3O2 + 1*CH2O + 1*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.6e-12, kind=musica_dk ), &
+      Ea = real( -7.31744e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,81) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_O3S_1
+    !k_NO2_O3S_1: NO2 + O3S -> 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-13, kind=musica_dk ), &
+      Ea = real( 3.38259e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,82) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_1
+    !k_BRO_1: BRO -> 1*BR + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 17 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,83) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3O2_MCO3_1
+    !k_CH3O2_MCO3_1: CH3O2 + MCO3 -> 2*CH2O + 1*HO2 + 1*CO2 + 1*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,84) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TEPOMUC_1
+    !k_TEPOMUC_1: TEPOMUC -> 0.5*CH3CO3 + 1*HO2 + 1.5*CO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 18 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,85) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !XYLOLOOH_1
+    !k_XYLOLOOH_1: XYLOLOOH -> 1*OH + 0.17*GLYOXAL + 0.51*CH3COCHO + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 19 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,86) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !SO2_1
+    !k_SO2_1: SO2 -> 1*SO + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 20 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,87) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MDIALO2_NO2_1
+    !k_MDIALO2_NO2_1: MDIALO2 + NO2 -> 
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9.7e-29, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      kinf_A = real( 9.3e-12, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,88) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !MEKOOH_1
+    !k_MEKOOH_1: MEKOOH -> 1*OH + 1*CH3CO3 + 1*CH3CHO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 21 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,89) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_MBONO3O2_1
+    !k_HO2_MBONO3O2_1: HO2 + MBONO3O2 -> 
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,90) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL_HOCL_1
+    !k_CL_HOCL_1: CL + HOCL -> 1*HCL + 1*CLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.4e-12, kind=musica_dk ), &
+      Ea = real( 1.79484e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,91) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CL_OH_1
+    !k_CH3CL_OH_1: CH3CL + OH -> 1*CL + 1*H2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.96e-12, kind=musica_dk ), &
+      Ea = real( 1.65678e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,92) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_1
+    !k_CH2O_1: CH2O -> 1*CO + 1*H2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 22 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,93) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BRONO2_2
+    !k_BRONO2_2: BRONO2 -> 1*BRO + 1*NO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 23 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,94) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CRESOL_OH_1
+    !k_CRESOL_OH_1: CRESOL + OH -> 0.2*PHENO2 + 0.73*HO2 + 0.07*PHENO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.7e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,95) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPBO2_NO_1
+    !k_ISOPBO2_NO_1: ISOPBO2 + NO -> 0.87*HYDRALD + 0.08*ISOPNITB + 0.92*NO2 + 0.92*HO2 + 0.05*GLYOXAL + 0.05*GLYALD + 0.05*CH3COCHO + 0.05*HYAC
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.4e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,96) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_1
+    !k_NO_1: NO -> 1*N + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 24 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,97) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !PHENOOH_1
+    !k_PHENOOH_1: PHENOOH -> 1*OH + 1*HO2 + 0.7*GLYOXAL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 25 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,98) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CO3_CH3O2_1
+    !k_CH3CO3_CH3O2_1: CH3CO3 + CH3O2 -> 0.9*CH3O2 + 1*CH2O + 0.9*HO2 + 0.9*CO2 + 0.1*CH3COOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,99) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_OH_1
+    !k_OH_OH_1: OH + OH -> 1*H2O + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.8e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,100) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACR_O3_1
+    !k_MACR_O3_1: MACR + O3 -> 0.12*CH2O + 0.24*OH + 0.65*CO + 0.1*CH3CO3 + 0.88*CH3COCHO + 0.33*HCOOH + 0.14*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.5e-15, kind=musica_dk ), &
+      Ea = real( 2.89936e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,101) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CL_CL_1
+    !k_CH3CL_CL_1: CH3CL + CL -> 1*HO2 + 1*CO + 2*HCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.03e-11, kind=musica_dk ), &
+      Ea = real( 1.53252e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,102) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_CLO_1
+    !k_CLO_CLO_1: CLO + CLO -> 2*CL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-11, kind=musica_dk ), &
+      Ea = real( 3.38259e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,103) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKOOH_OH_1
+    !k_ALKOOH_OH_1: ALKOOH + OH -> 1*ALKO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,104) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBOOOH_OH_1
+    !k_MBOOOH_OH_1: MBOOOH + OH -> 0.5*MBOO2 + 0.5*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,105) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CO3_XO2_1
+    !k_CH3CO3_XO2_1: CH3CO3 + XO2 -> 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 1*CH3O2 + 1*HO2 + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD + 1*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-12, kind=musica_dk ), &
+      Ea = real( -8.83615e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,106) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COOH_OH_1
+    !k_CH3COOH_OH_1: CH3COOH + OH -> 1*CH3O2 + 1*CO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,107) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CHO_OH_1
+    !k_CH3CHO_OH_1: CH3CHO + OH -> 1*CH3CO3 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.63e-12, kind=musica_dk ), &
+      Ea = real( -4.83227e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,108) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO3_XO2_1
+    !k_NO3_XO2_1: NO3 + XO2 -> 1*NO2 + 1*HO2 + 0.5*CO + 0.25*HYAC + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*GLYALD
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,109) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_TERP2O2_1
+    !k_NO_TERP2O2_1: NO + TERP2O2 -> 0.1*ONITR + 0.9*NO2 + 0.34*CH2O + 0.27*CH3COCH3 + 0.225*CO + 0.9*CO2 + 0.9*TERPROD2 + 0.9*HO2 + 0.225*GLYALD
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,110) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MTERP_NO3_1
+    !k_MTERP_NO3_1: MTERP + NO3 -> 1*NTERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-12, kind=musica_dk ), &
+      Ea = real( -6.76518e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,111) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3BR_OH_1
+    !k_CH3BR_OH_1: CH3BR + OH -> 1*BR + 1*H2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.42e-12, kind=musica_dk ), &
+      Ea = real( 1.58775e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,112) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HOCH2OO_NO_1
+    !k_HOCH2OO_NO_1: HOCH2OO + NO -> 1*HCOOH + 1*NO2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -3.65872e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,113) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_2
+    !k_H2O_2: H2O -> 1*H2 + 1*O1D
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 26 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,114) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C3H7OOH_1
+    !k_C3H7OOH_1: C3H7OOH -> 0.82*CH3COCH3 + 1*OH + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 27 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,115) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CCL4_1
+    !k_CCL4_1: CCL4 -> 4*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 28 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,116) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !N_O2_1
+    !k_N_O2_1: N + O2 -> 1*NO + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.5e-11, kind=musica_dk ), &
+      Ea = real( 4.97034e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,117) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_SO_1
+    !k_CLO_SO_1: CLO + SO -> 1*SO2 + 1*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.8e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,118) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NOA_1
+    !k_NOA_1: NOA -> 1*NO2 + 1*CH2O + 1*CH3CO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 29 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,119) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH2BR2_O1D_1
+    !k_CH2BR2_O1D_1: CH2BR2 + O1D -> 2*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.57e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,120) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_1
+    !k_NO2_1: NO2 -> 1*NO + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 30 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,121) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3COCHO_OH_1
+    !k_CH3COCHO_OH_1: CH3COCHO + OH -> 1*CH3CO3 + 1*CO + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.4e-13, kind=musica_dk ), &
+      Ea = real( -1.14594e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,122) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !GLYALD_OH_1
+    !k_GLYALD_OH_1: GLYALD + OH -> 1*HO2 + 0.2*GLYOXAL + 0.8*CH2O + 0.8*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,123) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_NTERPO2_1
+    !k_HO2_NTERPO2_1: HO2 + NTERPO2 -> 1*NTERPOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,124) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_O3S_1
+    !k_NO_O3S_1: NO + O3S -> 1*NO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-12, kind=musica_dk ), &
+      Ea = real( 2.07097e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,125) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGALD3_1
+    !k_BIGALD3_1: BIGALD3 -> 0.6*HO2 + 0.6*CO + 0.6*MDIALO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 31 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,126) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OH_POOH_1
+    !k_OH_POOH_1: OH + POOH -> 0.5*PO2 + 0.5*OH + 0.5*HYAC + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,127) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CF2CLBR_O1D_1
+    !k_CF2CLBR_O1D_1: CF2CLBR + O1D -> 1*CL + 1*BR + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.75e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,128) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO3_O_1
+    !k_NO3_O_1: NO3 + O -> 1*NO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,129) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CCL3_OH_1
+    !k_CH3CCL3_OH_1: CH3CCL3 + OH -> 1*H2O + 3*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.64e-12, kind=musica_dk ), &
+      Ea = real( 2.09859e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,130) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2BR2_1
+    !k_CH2BR2_1: CH2BR2 -> 2*BR
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 32 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,131) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BEPOMUC_1
+    !k_BEPOMUC_1: BEPOMUC -> 1*BIGALD1 + 1.5*HO2 + 1.5*CO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 33 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,132) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_RO2_1
+    !k_HO2_RO2_1: HO2 + RO2 -> 0.85*ROOH + 0.15*OH + 0.15*CH2O + 0.15*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.6e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,133) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACRO2_NO3_1
+    !k_MACRO2_NO3_1: MACRO2 + NO3 -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.25*CH3COCHO + 0.22*CO + 0.53*GLYALD + 0.22*HYAC + 0.53*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,134) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_NTERPO2_1
+    !k_CH3O2_NTERPO2_1: CH3O2 + NTERPO2 -> 0.5*TERPNIT + 0.75*CH2O + 0.25*CH3OH + 0.5*HO2 + 0.5*TERPROD1 + 0.5*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,135) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACROOH_OH_1
+    !k_MACROOH_OH_1: MACROOH + OH -> 0.5*MCO3 + 0.2*MACRO2 + 0.1*OH + 0.2*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-11, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,136) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC141B_O1D_1
+    !k_HCFC141B_O1D_1: HCFC141B + O1D -> 1*CL + 1*COFCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.794e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,137) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACR_1
+    !k_MACR_1: MACR -> 0.66*HO2 + 1.34*CO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 34 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,138) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_MEKO2_1
+    !k_HO2_MEKO2_1: HO2 + MEKO2 -> 0.8*MEKOOH + 0.2*OH + 0.2*CH3CHO + 0.2*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,139) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O3_SO_1
+    !k_O3_SO_1: O3 + SO -> 1*SO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.4e-12, kind=musica_dk ), &
+      Ea = real( 1.51871e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,140) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_O1D_1
+    !k_CH4_O1D_1: CH4 + O1D -> 1*CH2O + 1*H2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,141) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C3H7O2_HO2_1
+    !k_C3H7O2_HO2_1: C3H7O2 + HO2 -> 1*C3H7OOH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,142) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NTERPOOH_1
+    !k_NTERPOOH_1: NTERPOOH -> 1*TERPROD1 + 1*NO2 + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 35 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,143) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OH_PAN_1
+    !k_OH_PAN_1: OH + PAN -> 1*CH2O + 1*NO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4e-14, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,144) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_TERPO2_1
+    !k_HO2_TERPO2_1: HO2 + TERPO2 -> 1*TERPOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,145) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MCO3_NO3_1
+    !k_MCO3_NO3_1: MCO3 + NO3 -> 1*NO2 + 1*CH2O + 1*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,146) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O_1
+    !k_N2O_1: N2O -> 1*O1D + 1*N2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 36 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,147) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ROOH_1
+    !k_ROOH_1: ROOH -> 1*CH3CO3 + 1*CH2O + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 37 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,148) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH2O_2
+    !k_CH2O_2: CH2O -> 1*CO + 2*H
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 38 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,149) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CL_O3_1
+    !k_CL_O3_1: CL + O3 -> 1*CLO + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-11, kind=musica_dk ), &
+      Ea = real( 2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,150) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TERPROD1_1
+    !k_OH_TERPROD1_1: OH + TERPROD1 -> 1*TERP2O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.7e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,151) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !EO2_HO2_1
+    !k_EO2_HO2_1: EO2 + HO2 -> 1*EOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,152) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CN_OH_1
+    !k_CH3CN_OH_1: CH3CN + OH -> 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.8e-13, kind=musica_dk ), &
+      Ea = real( 1.44968e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,153) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N_NO2_2
+    !k_N_NO2_2: N + NO2 -> 2*NO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.45e-12, kind=musica_dk ), &
+      Ea = real( -3.03743e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,154) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_MBOO2_1
+    !k_CH3O2_MBOO2_1: CH3O2 + MBOO2 -> 0.917*CH2O + 1*HO2 + 0.25*CH3OH + 0.333*GLYALD + 0.333*CH3COCH3 + 0.167*HMPROP
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.75e-13, kind=musica_dk ), &
+      Ea = real( 5.5226e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,155) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HMPROPO2_NO_1
+    !k_HMPROPO2_NO_1: HMPROPO2 + NO -> 1*NO2 + 1*CO2 + 1*HO2 + 1*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,156) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HBR_1
+    !k_HBR_1: HBR -> 1*BR + 1*H
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 39 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,157) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !H_O3_1
+    !k_H_O3_1: H + O3 -> 1*OH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-10, kind=musica_dk ), &
+      Ea = real( 6.48905e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,158) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2NO2_1
+    !k_HO2NO2_1: HO2NO2 -> 1*HO2 + 1*NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 0.0000904762, kind=musica_dk ), &
+      k0_B = real( -3.4, kind=musica_dk ), &
+      k0_C = real( -10900, kind=musica_dk ), &
+      kinf_A = real( 1.90476e15, kind=musica_dk ), &
+      kinf_C = real( -10900, kind=musica_dk ), &
+      N = real( 0.3, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,159) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH3O2_ISOPNO3_1
+    !k_CH3O2_ISOPNO3_1: CH3O2 + ISOPNO3 -> 0.8*NC4CHO + 1.2*HO2 + 0.8*CH2O + 0.2*CH3OH + 0.2*NC4CH2OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( -5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,160) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_MDIALO2_1
+    !k_HO2_MDIALO2_1: HO2 + MDIALO2 -> 0.4*OH + 0.33*HO2 + 0.07*CH3COCHO + 0.14*CO + 0.07*CH3O2 + 0.07*GLYOXAL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,161) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !POOH_1
+    !k_POOH_1: POOH -> 1*CH3CHO + 1*CH2O + 1*HO2 + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 40 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,162) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HCFC22_1
+    !k_HCFC22_1: HCFC22 -> 1*CL + 1*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 41 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,163) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !O3_OH_1
+    !k_O3_OH_1: O3 + OH -> 1*HO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-12, kind=musica_dk ), &
+      Ea = real( 1.29781e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,164) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_O3_1
+    !k_NO2_O3_1: NO2 + O3 -> 1*NO3 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-13, kind=musica_dk ), &
+      Ea = real( 3.38259e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,165) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL_H2_1
+    !k_CL_H2_1: CL + H2 -> 1*HCL + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.05e-11, kind=musica_dk ), &
+      Ea = real( 3.13407e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,166) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_ISOPBO2_1
+    !k_CH3O2_ISOPBO2_1: CH3O2 + ISOPBO2 -> 0.25*CH3OH + 1*HO2 + 0.75*CH2O + 0.75*HYDRALD
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( -5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,167) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BCARY_OH_1
+    !k_BCARY_OH_1: BCARY + OH -> 1*BCARY + 1*OH + 0.2202*SOAG0 + 0.2067*SOAG1 + 0.0653*SOAG2 + 0.1284*SOAG3 + 0.114*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,168) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NC4CHO_1
+    !k_NC4CHO_1: NC4CHO -> 1*BIGALD3 + 1*NO2 + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 42 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,169) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C3H6_O3_1
+    !k_C3H6_O3_1: C3H6 + O3 -> 0.5*CH2O + 0.12*HCOOH + 0.12*CH3COOH + 0.5*CH3CHO + 0.56*CO + 0.28*CH3O2 + 0.1*CH4 + 0.2*CO2 + 0.28*HO2 + 0.36*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.5e-15, kind=musica_dk ), &
+      Ea = real( 2.62323e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,170) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HONITR_1
+    !k_HONITR_1: HONITR -> 1*NO2 + 0.67*HO2 + 0.33*CH3CHO + 0.33*CH2O + 0.33*CO + 0.33*GLYALD + 0.33*CH3CO3 + 0.17*HYAC + 0.17*CH3COCH3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 43 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,171) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_HOCH2OO_1
+    !k_HO2_HOCH2OO_1: HO2 + HOCH2OO -> 1*HCOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,172) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MTERP_NO3_2
+    !k_MTERP_NO3_2: MTERP + NO3 -> 1*MTERP + 1*NO3 + 0.17493*SOAG3 + 0.59019*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-12, kind=musica_dk ), &
+      Ea = real( -6.76518e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,173) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H6_OH_1
+    !k_C2H6_OH_1: C2H6 + OH -> 1*C2H5O2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.66e-12, kind=musica_dk ), &
+      Ea = real( 1.40826e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,174) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C6H5O2_NO_1
+    !k_C6H5O2_NO_1: C6H5O2 + NO -> 1*PHENO + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,175) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !GLYOXAL_OH_1
+    !k_GLYOXAL_OH_1: GLYOXAL + OH -> 1*HO2 + 1*CO + 1*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.15e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,176) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !XOOH_1
+    !k_XOOH_1: XOOH -> 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 44 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,177) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ISOPBO2_NO3_1
+    !k_ISOPBO2_NO3_1: ISOPBO2 + NO3 -> 1*NO2 + 0.95*HYDRALD + 1*HO2 + 0.05*GLYOXAL + 0.05*GLYALD + 0.05*CH3COCHO + 0.05*HYAC
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,178) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C6H5O2_HO2_1
+    !k_C6H5O2_HO2_1: C6H5O2 + HO2 -> 1*C6H5OOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,179) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O_O1D_1
+    !k_N2O_O1D_1: N2O + O1D -> 2*NO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.26e-11, kind=musica_dk ), &
+      Ea = real( -2.7613e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,180) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MTERP_OH_1
+    !k_MTERP_OH_1: MTERP + OH -> 1*TERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-11, kind=musica_dk ), &
+      Ea = real( -6.07486e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,181) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NC4CHO_OH_1
+    !k_NC4CHO_OH_1: NC4CHO + OH -> 1*GLYOXAL + 1*NOA + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,182) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_2
+    !k_CH4_2: CH4 -> 1*H + 1*CH3O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 45 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,183) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BRO_NO2_1
+    !k_BRO_NO2_1: BRO + NO2 -> 1*BRONO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 5.2e-31, kind=musica_dk ), &
+      k0_B = real( -3.2, kind=musica_dk ), &
+      kinf_A = real( 6.9e-12, kind=musica_dk ), &
+      N = real( 2.9, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,184) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !OH_XOOH_1
+    !k_OH_XOOH_1: OH + XOOH -> 0.5*XO2 + 0.5*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.52e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,185) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HOBR_1
+    !k_HOBR_1: HOBR -> 1*BR + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 46 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,186) )
+    !$acc exit data delete(photolysis) async(STREAM0)
 
     !O_O3_1
     !k_O_O3_1: O + O3 -> 2*O2
     arrhenius = rate_constant_arrhenius_t( &
       A = real( 8e-12, kind=musica_dk ), &
-      C = real( -2060, kind=musica_dk ) )
+      Ea = real( 2.84414e-20, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:ncell,6) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,187) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H4_CL_1
+    !k_C2H4_CL_1: C2H4 + CL -> 1*CL
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.6e-29, kind=musica_dk ), &
+      k0_B = real( -3.3, kind=musica_dk ), &
+      kinf_A = real( 3.1e-10, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,188) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !NO3_1
+    !k_NO3_1: NO3 -> 1*NO2 + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 47 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,189) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !IEPOX_OH_1
+    !k_IEPOX_OH_1: IEPOX + OH -> 1*XO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,190) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBO_OH_1
+    !k_MBO_OH_1: MBO + OH -> 1*MBOO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.1e-12, kind=musica_dk ), &
+      Ea = real( -8.42196e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,191) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_3
+    !k_H2O_3: H2O -> 1*OH + 1*H
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 48 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,192) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C2H6_CL_1
+    !k_C2H6_CL_1: C2H6 + CL -> 1*HCL + 1*C2H5O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.2e-11, kind=musica_dk ), &
+      Ea = real( 9.66454e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,193) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKO2_NO_2
+    !k_ALKO2_NO_2: ALKO2 + NO -> 1*ALKNIT
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.4e-14, kind=musica_dk ), &
+      Ea = real( -1.20116e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,194) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BZOO_NO_1
+    !k_BZOO_NO_1: BZOO + NO -> 1*BZALD + 1*NO2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,195) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O_OH_1
+    !k_O_OH_1: O + OH -> 1*H + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.8e-11, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,196) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !DMS_NO3_1
+    !k_DMS_NO3_1: DMS + NO3 -> 1*SO2 + 1*HNO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-13, kind=musica_dk ), &
+      Ea = real( -7.17937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,197) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MCO3_MCO3_1
+    !k_MCO3_MCO3_1: MCO3 + MCO3 -> 2*CO2 + 2*CH2O + 2*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-12, kind=musica_dk ), &
+      Ea = real( -7.31744e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,198) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COOOH_1
+    !k_CH3COOOH_1: CH3COOOH -> 1*CH3O2 + 1*OH + 1*CO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 49 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,199) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HCFC141B_1
+    !k_HCFC141B_1: HCFC141B -> 2*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 50 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,200) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ENEO2_NO_1
+    !k_ENEO2_NO_1: ENEO2 + NO -> 1*CH3CHO + 0.5*CH2O + 0.5*CH3COCH3 + 1*HO2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.8e-12, kind=musica_dk ), &
+      Ea = real( -1.65678e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,201) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
     !M_O_O2_1
     !k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     arrhenius = rate_constant_arrhenius_t( &
       A = real( 6e-34, kind=musica_dk ), &
-      B = real( 2.4, kind=musica_dk ) )
+      B = real( -2.4, kind=musica_dk ) )
     !$acc enter data copyin(arrhenius) async(STREAM0)
-    call arrhenius%calculate( environment, rate_constants(1:ncell,7) )
+    call arrhenius%calculate( environment, rate_constants(1:ncell,202) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_NO_1
+    !k_CLO_NO_1: CLO + NO -> 1*NO2 + 1*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.4e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,203) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_OH_1
+    !k_BRO_OH_1: BRO + OH -> 1*BR + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-11, kind=musica_dk ), &
+      Ea = real( -3.45162e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,204) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_XO2_1
+    !k_HO2_XO2_1: HO2 + XO2 -> 1*XOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,205) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_NO_1
+    !k_BRO_NO_1: BRO + NO -> 1*BR + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.8e-12, kind=musica_dk ), &
+      Ea = real( -3.58969e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,206) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_OH_1
+    !k_NO2_OH_1: NO2 + OH -> 1*HNO3
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.8e-30, kind=musica_dk ), &
+      k0_B = real( -3, kind=musica_dk ), &
+      kinf_A = real( 2.8e-11, kind=musica_dk ), &
+      N = real( 0, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,207) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CO_OH_1
+    !k_CO_OH_1: CO + OH -> 1*CO2 + 1*HO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 5.9e-33, kind=musica_dk ), &
+      k0_B = real( -1, kind=musica_dk ), &
+      kinf_A = real( 1.1e-12, kind=musica_dk ), &
+      N = real( -1.3, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,208) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HO2_HO2_1
+    !k_HO2_HO2_1: HO2 + HO2 -> 1*H2O2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-13, kind=musica_dk ), &
+      Ea = real( -6.35099e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,209) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_HO2_M_1
+    !k_HO2_HO2_M_1: HO2 + HO2 + M -> 1*H2O2 + 1*O2 + 1*M
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.1e-33, kind=musica_dk ), &
+      Ea = real( -1.2702e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,210) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_HO2_HO2_1
+    !k_H2O_HO2_HO2_1: H2O + HO2 + HO2 -> 1*H2O2 + 1*O2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-34, kind=musica_dk ), &
+      Ea = real( -3.67253e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,211) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_HO2_HO2_M_1
+    !k_H2O_HO2_HO2_M_1: H2O + HO2 + HO2 + M -> 1*H2O2 + 1*O2 + 1*M + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.94e-54, kind=musica_dk ), &
+      Ea = real( -4.30762e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,212) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_OH_2
+    !k_OH_OH_2: OH + OH -> 1*H2O2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 6.9e-31, kind=musica_dk ), &
+      k0_B = real( -1, kind=musica_dk ), &
+      kinf_A = real( 2.6e-11, kind=musica_dk ), &
+      N = real( 0, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,213) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CLO_NO2_1
+    !k_CLO_NO2_1: CLO + NO2 -> 1*CLONO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.8e-31, kind=musica_dk ), &
+      k0_B = real( -3.4, kind=musica_dk ), &
+      kinf_A = real( 1.5e-11, kind=musica_dk ), &
+      N = real( 1.9, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,214) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HYAC_1
+    !k_HYAC_1: HYAC -> 1*CH3CO3 + 1*HO2 + 1*CH2O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 51 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,215) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ONITR_1
+    !k_ONITR_1: ONITR -> 1*NO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 52 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,216) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_O_1
+    !k_HO2_O_1: HO2 + O -> 1*OH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-11, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,217) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TERPOOH_1
+    !k_TERPOOH_1: TERPOOH -> 0.4*CH2O + 0.05*CH3COCH3 + 1*TERPROD1 + 1*HO2 + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 53 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,218) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CL2_1
+    !k_CL2_1: CL2 -> 2*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 54 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,219) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MACR_OH_1
+    !k_MACR_OH_1: MACR + OH -> 0.5*MACRO2 + 0.5*H2O + 0.5*MCO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.6e-12, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,220) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C3H6_NO3_1
+    !k_C3H6_NO3_1: C3H6 + NO3 -> 1*NOA
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.6e-13, kind=musica_dk ), &
+      Ea = real( 1.59603e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,221) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC12_O1D_1
+    !k_CFC12_O1D_1: CFC12 + O1D -> 2*CL + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.204e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,222) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_O_1
+    !k_BRO_O_1: BRO + O -> 1*BR + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-11, kind=musica_dk ), &
+      Ea = real( -3.17549e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,223) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H_HO2_1
+    !k_H_HO2_1: H + HO2 -> 1*H2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.9e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,224) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BCARY_NO3_1
+    !k_BCARY_NO3_1: BCARY + NO3 -> 1*NTERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,225) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HBR_OH_1
+    !k_HBR_OH_1: HBR + OH -> 1*BR + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.5e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,226) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !DMS_OH_1
+    !k_DMS_OH_1: DMS + OH -> 0.5*SO2 + 0.5*HO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 3.57e-43, kind=musica_dk ), &
+      k0_C = real( 7810, kind=musica_dk ), &
+      kinf_A = real( 3.09091e-12, kind=musica_dk ), &
+      kinf_C = real( 350, kind=musica_dk ), &
+      Fc = real( 1, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,227) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !MBO_O3_1
+    !k_MBO_O3_1: MBO + O3 -> 0.7*HMPROP + 0.64*CO + 0.36*OH + 0.48*HO2 + 0.17*HCOOH + 0.3*CH2O + 0.23*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-17, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,228) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BCARY_O3_1
+    !k_BCARY_O3_1: BCARY + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-14, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,229) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC142B_1
+    !k_HCFC142B_1: HCFC142B -> 1*CL + 1*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 55 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,230) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C3H6_OH_1
+    !k_C3H6_OH_1: C3H6 + OH -> 1*PO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 8e-27, kind=musica_dk ), &
+      k0_B = real( -3.5, kind=musica_dk ), &
+      kinf_A = real( 3e-11, kind=musica_dk ), &
+      Fc = real( 0.5, kind=musica_dk ), &
+      N = real( 0, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,231) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !BCARY_OH_2
+    !k_BCARY_OH_2: BCARY + OH -> 1*TERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,232) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPOOH_1
+    !k_ISOPOOH_1: ISOPOOH -> 0.402*MVK + 0.288*MACR + 0.69*CH2O + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 56 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,233) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HCN_OH_1
+    !k_HCN_OH_1: HCN + OH -> 1*HO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 4.28e-33, kind=musica_dk ), &
+      kinf_A = real( 9.3e-15, kind=musica_dk ), &
+      Fc = real( 0.8, kind=musica_dk ), &
+      N = real( -4.42, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,234) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH3CO3_MACRO2_1
+    !k_CH3CO3_MACRO2_1: CH3CO3 + MACRO2 -> 0.25*CH3COCHO + 1*CH3O2 + 0.22*CO + 0.47*HO2 + 0.53*GLYALD + 0.22*HYAC + 0.25*CH2O + 0.53*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,235) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O5_1
+    !k_N2O5_1: N2O5 -> 1*NO2 + 1*NO3
+    troe = rate_constant_troe_t( &
+      k0_A = real( 0.000413793, kind=musica_dk ), &
+      k0_B = real( -3, kind=musica_dk ), &
+      k0_C = real( -10840, kind=musica_dk ), &
+      kinf_A = real( 2.75862e14, kind=musica_dk ), &
+      kinf_C = real( -10840, kind=musica_dk ), &
+      N = real( -0.1, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,236) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !H2_O1D_1
+    !k_H2_O1D_1: H2 + O1D -> 1*H + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,237) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC22_OH_1
+    !k_HCFC22_OH_1: HCFC22 + OH -> 1*H2O + 1*CL + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.2e-13, kind=musica_dk ), &
+      Ea = real( 2.15381e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,238) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O2_1
+    !k_H2O2_1: H2O2 -> 2*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 57 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,239) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !H_O2_1
+    !k_H_O2_1: H + O2 -> 1*HO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 4.4e-32, kind=musica_dk ), &
+      k0_B = real( -1.3, kind=musica_dk ), &
+      kinf_A = real( 7.5e-11, kind=musica_dk ), &
+      N = real( -0.2, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,240) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !O2_SO_1
+    !k_O2_SO_1: O2 + SO -> 1*SO2 + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e-13, kind=musica_dk ), &
+      Ea = real( 3.14788e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,241) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C6H5OOH_OH_1
+    !k_C6H5OOH_OH_1: C6H5OOH + OH -> 1*C6H5O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,242) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !IVOC_OH_1
+    !k_IVOC_OH_1: IVOC + OH -> 1*OH + 0.2381*SOAG0 + 0.1308*SOAG1 + 0.0348*SOAG2 + 0.0076*SOAG3 + 0.0113*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.34e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,243) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HOCL_O_1
+    !k_HOCL_O_1: HOCL + O -> 1*CLO + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,244) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CHO_1
+    !k_CH3CHO_1: CH3CHO -> 1*CH3O2 + 1*CO + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 58 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,245) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C2H5OOH_OH_1
+    !k_C2H5OOH_OH_1: C2H5OOH + OH -> 0.5*C2H5O2 + 0.5*CH3CHO + 0.5*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,246) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_MBOO2_1
+    !k_HO2_MBOO2_1: HO2 + MBOO2 -> 1*MBOOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,247) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H5O2_C2H5O2_1
+    !k_C2H5O2_C2H5O2_1: C2H5O2 + C2H5O2 -> 1.6*CH3CHO + 1.2*HO2 + 0.4*C2H5OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.8e-14, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,248) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O3_PHENO_1
+    !k_O3_PHENO_1: O3 + PHENO -> 1*C6H5O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.8e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,249) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N_OH_1
+    !k_N_OH_1: N + OH -> 1*NO + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,250) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C3H8_OH_1
+    !k_C3H8_OH_1: C3H8 + OH -> 1*C3H7O2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.7e-12, kind=musica_dk ), &
+      Ea = real( 8.49099e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,251) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_XO2_1
+    !k_NO_XO2_1: NO + XO2 -> 1*NO2 + 1*HO2 + 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.7e-12, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,252) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC115_O1D_1
+    !k_CFC115_O1D_1: CFC115 + O1D -> 1*CL + 1*F + 2*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.644e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,253) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MTERP_OH_2
+    !k_MTERP_OH_2: MTERP + OH -> 1*MTERP + 1*OH + 0.0508*SOAG0 + 0.1149*SOAG1 + 0.0348*SOAG2 + 0.0554*SOAG3 + 0.1278*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-11, kind=musica_dk ), &
+      Ea = real( -6.07486e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,254) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGALD1_1
+    !k_BIGALD1_1: BIGALD1 -> 0.6*MALO2 + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 59 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,255) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OCLO_1
+    !k_OCLO_1: OCLO -> 1*O + 1*CLO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 60 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,256) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !NO_PHENO2_1
+    !k_NO_PHENO2_1: NO + PHENO2 -> 1*HO2 + 0.7*GLYOXAL + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,257) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HNO3_1
+    !k_HNO3_1: HNO3 -> 1*NO2 + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 61 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,258) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CO3_HO2_1
+    !k_CH3CO3_HO2_1: CH3CO3 + HO2 -> 0.4*CH3COOOH + 0.15*CH3COOH + 0.15*O3 + 0.45*OH + 0.45*CH3O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,259) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_SO_1
+    !k_NO2_SO_1: NO2 + SO -> 1*SO2 + 1*NO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,260) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H5OOH_1
+    !k_C2H5OOH_1: C2H5OOH -> 1*CH3CHO + 1*HO2 + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 62 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,261) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CLO_CLO_2
+    !k_CLO_CLO_2: CLO + CLO -> 1*CL2O2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.9e-32, kind=musica_dk ), &
+      k0_B = real( -3.6, kind=musica_dk ), &
+      kinf_A = real( 3.7e-12, kind=musica_dk ), &
+      N = real( 1.6, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,262) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !ACBZO2_NO_1
+    !k_ACBZO2_NO_1: ACBZO2 + NO -> 1*C6H5O2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,263) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL_HO2_1
+    !k_CL_HO2_1: CL + HO2 -> 1*HCL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ), &
+      Ea = real( -3.72775e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,264) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_PO2_1
+    !k_HO2_PO2_1: HO2 + PO2 -> 1*POOH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,265) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_PHENOL_1
+    !k_OH_PHENOL_1: OH + PHENOL -> 0.14*PHENO2 + 0.8*HO2 + 0.06*PHENO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.7e-13, kind=musica_dk ), &
+      Ea = real( -1.68439e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,266) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_PHENO2_1
+    !k_HO2_PHENO2_1: HO2 + PHENO2 -> 1*PHENOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,267) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCN_O1D_1
+    !k_HCN_O1D_1: HCN + O1D -> 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.08e-10, kind=musica_dk ), &
+      Ea = real( -1.44968e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,268) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_MCO3_1
+    !k_HO2_MCO3_1: HO2 + MCO3 -> 0.15*O3 + 0.15*CH3COOH + 0.4*CH3COOOH + 0.45*OH + 0.45*CO2 + 0.45*CH2O + 0.45*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,269) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H5O2_NO_1
+    !k_C2H5O2_NO_1: C2H5O2 + NO -> 1*CH3CHO + 1*HO2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,270) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPNOOH_OH_1
+    !k_ISOPNOOH_OH_1: ISOPNOOH + OH -> 1*NOA + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,271) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MACR_2
+    !k_MACR_2: MACR -> 1.34*HO2 + 0.66*MCO3 + 1.34*CH2O + 1.34*CH3CO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 63 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,272) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !N_NO2_3
+    !k_N_NO2_3: N + NO2 -> 1*N2O + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.9e-12, kind=musica_dk ), &
+      Ea = real( -3.03743e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,273) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CO2_1
+    !k_CO2_1: CO2 -> 1*CO + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 64 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,274) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BENZOOH_1
+    !k_BENZOOH_1: BENZOOH -> 1*OH + 1*GLYOXAL + 0.5*BIGALD1 + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 65 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,275) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HBR_O1D_2
+    !k_HBR_O1D_2: HBR + O1D -> 1*BR + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,276) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H5O2_CH3O2_1
+    !k_C2H5O2_CH3O2_1: C2H5O2 + CH3O2 -> 0.7*CH2O + 0.8*CH3CHO + 1*HO2 + 0.3*CH3OH + 0.2*C2H5OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,277) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O5_2
+    !k_N2O5_2: N2O5 -> 1*NO + 1*O + 1*NO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 66 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,278) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_ISOPBO2_1
+    !k_HO2_ISOPBO2_1: HO2 + ISOPBO2 -> 1*ISOPOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,279) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC115_1
+    !k_CFC115_1: CFC115 -> 1*CL + 1*F + 2*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 67 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,280) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !H2_OH_1
+    !k_H2_OH_1: H2 + OH -> 1*H2O + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.8e-12, kind=musica_dk ), &
+      Ea = real( 2.48517e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,281) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H_HO2_2
+    !k_H_HO2_2: H + HO2 -> 1*H2O + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,282) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_O1D_2
+    !k_CH4_O1D_2: CH4 + O1D -> 1*CH2O + 1*H + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.5e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,283) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_OH_1
+    !k_CH4_OH_1: CH4 + OH -> 1*CH3O2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.45e-12, kind=musica_dk ), &
+      Ea = real( 2.45065e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,284) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC11_1
+    !k_CFC11_1: CFC11 -> 3*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 68 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,285) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !TERPROD1_1
+    !k_TERPROD1_1: TERPROD1 -> 1*HO2 + 1*CO + 1*TERPROD2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 69 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,286) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !SO_1
+    !k_SO_1: SO -> 1*S + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 70 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,287) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MPAN_1
+    !k_MPAN_1: MPAN -> 1*MCO3 + 1*NO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 71 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,288) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HMPROPO2_HO2_1
+    !k_HMPROPO2_HO2_1: HMPROPO2 + HO2 -> 0.4*OH + 0.4*HO2 + 0.4*CH3COCH3 + 0.4*CO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,289) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLONO2_1
+    !k_CLONO2_1: CLONO2 -> 1*CL + 1*NO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 72 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,290) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_OH_1
+    !k_HO2_OH_1: HO2 + OH -> 1*H2O + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.8e-11, kind=musica_dk ), &
+      Ea = real( -3.45162e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,291) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_PHENO_1
+    !k_NO2_PHENO_1: NO2 + PHENO -> 
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.1e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,292) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCL_O_1
+    !k_HCL_O_1: HCL + O -> 1*CL + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-11, kind=musica_dk ), &
+      Ea = real( 4.55614e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,293) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_BRO_1
+    !k_BRO_BRO_1: BRO + BRO -> 2*BR + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.5e-12, kind=musica_dk ), &
+      Ea = real( -3.17549e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,294) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NC4CH2OH_OH_1
+    !k_NC4CH2OH_OH_1: NC4CH2OH + OH -> 1*GLYALD + 1*NOA + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,295) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCOOH_OH_1
+    !k_HCOOH_OH_1: HCOOH + OH -> 1*HO2 + 1*CO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,296) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPNOOH_1
+    !k_ISOPNOOH_1: ISOPNOOH -> 1*NO2 + 1*HO2 + 1*ISOPOOH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 73 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,297) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BR_CH2O_1
+    !k_BR_CH2O_1: BR + CH2O -> 1*HBR + 1*HO2 + 1*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-11, kind=musica_dk ), &
+      Ea = real( 1.10452e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,298) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_HO2_1
+    !k_BRO_HO2_1: BRO + HO2 -> 1*HOBR + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.5e-12, kind=musica_dk ), &
+      Ea = real( -6.35099e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,299) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKOOH_1
+    !k_ALKOOH_1: ALKOOH -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 0.9*HO2 + 0.8*MEK + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 74 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,300) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3O2_HO2_1
+    !k_CH3O2_HO2_1: CH3O2 + HO2 -> 1*CH3OOH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.1e-13, kind=musica_dk ), &
+      Ea = real( -1.03549e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,301) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPNO3_NO_1
+    !k_ISOPNO3_NO_1: ISOPNO3 + NO -> 1*NC4CHO + 1*NO2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.7e-12, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,302) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CF3BR_1
+    !k_CF3BR_1: CF3BR -> 1*BR + 1*F + 1*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 75 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,303) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !M_O_O_1
+    !k_M_O_O_1: M + O + O -> 1*O2 + 1*M
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.76e-34, kind=musica_dk ), &
+      Ea = real( -9.94067e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,304) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_OH_2
+    !k_CLO_OH_2: CLO + OH -> 1*CL + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.4e-12, kind=musica_dk ), &
+      Ea = real( -3.72775e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,305) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_NTERPO2_1
+    !k_NO_NTERPO2_1: NO + NTERPO2 -> 0.2*TERPNIT + 1.6*NO2 + 0.8*TERPROD1
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,306) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MTERP_O3_2
+    !k_MTERP_O3_2: MTERP + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.3e-16, kind=musica_dk ), &
+      Ea = real( 8.00776e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,307) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBOO2_NO_1
+    !k_MBOO2_NO_1: MBOO2 + NO -> 1*HO2 + 0.67*GLYALD + 0.67*CH3COCH3 + 0.33*HMPROP + 0.33*CH2O + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,308) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO3_TERPROD1_1
+    !k_NO3_TERPROD1_1: NO3 + TERPROD1 -> 0.5*TERP2O2 + 0.5*NTERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,309) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL_H2O2_1
+    !k_CL_H2O2_1: CL + H2O2 -> 1*HCL + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.1e-11, kind=musica_dk ), &
+      Ea = real( 1.35304e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,310) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NOA_OH_1
+    !k_NOA_OH_1: NOA + OH -> 1*NO2 + 1*CH3COCHO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.7e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,311) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OCS_OH_1
+    !k_OCS_OH_1: OCS + OH -> 1*SO2 + 1*CO + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.2e-14, kind=musica_dk ), &
+      Ea = real( 1.47729e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,312) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MBONO3O2_NO_1
+    !k_MBONO3O2_NO_1: MBONO3O2 + NO -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,313) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TERPOOH_1
+    !k_OH_TERPOOH_1: OH + TERPOOH -> 1*TERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,314) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGALK_OH_1
+    !k_BIGALK_OH_1: BIGALK + OH -> 1*ALKO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.5e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,315) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !DICARBO2_NO2_1
+    !k_DICARBO2_NO2_1: DICARBO2 + NO2 -> 
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9.7e-29, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      kinf_A = real( 9.3e-12, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,316) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !BR_O3_1
+    !k_BR_O3_1: BR + O3 -> 1*BRO + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e-11, kind=musica_dk ), &
+      Ea = real( 1.07691e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,317) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BENZENE_OH_1
+    !k_BENZENE_OH_1: BENZENE + OH -> 0.53*PHENOL + 0.12*BEPOMUC + 0.65*HO2 + 0.35*BENZO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-12, kind=musica_dk ), &
+      Ea = real( 2.66465e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,318) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H4_OH_1
+    !k_C2H4_OH_1: C2H4 + OH -> 1*EO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 8.6e-29, kind=musica_dk ), &
+      k0_B = real( -3.1, kind=musica_dk ), &
+      kinf_A = real( 9e-12, kind=musica_dk ), &
+      Fc = real( 0.48, kind=musica_dk ), &
+      N = real( 0.85, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,319) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CH3CL_1
+    !k_CH3CL_1: CH3CL -> 1*CL + 1*CH3O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 76 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,320) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HCL_1
+    !k_HCL_1: HCL -> 1*H + 1*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 77 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,321) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3O2_MACRO2_1
+    !k_CH3O2_MACRO2_1: CH3O2 + MACRO2 -> 0.73*HO2 + 0.88*CH2O + 0.11*CO + 0.24*CH3COCHO + 0.26*GLYALD + 0.26*CH3CO3 + 0.25*CH3OH + 0.23*HYAC
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( -5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,322) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H4_O3_1
+    !k_C2H4_O3_1: C2H4 + O3 -> 0.63*CO + 0.13*OH + 0.13*HO2 + 0.37*HCOOH + 1*CH2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-14, kind=musica_dk ), &
+      Ea = real( 3.63111e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,323) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_ISOPAO2_1
+    !k_HO2_ISOPAO2_1: HO2 + ISOPAO2 -> 1*ISOPOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,324) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O_SO3_1
+    !k_H2O_SO3_1: H2O + SO3 -> 1*H2SO4 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.5e-41, kind=musica_dk ), &
+      Ea = real( -9.02944e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,325) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !TOLOOH_1
+    !k_TOLOOH_1: TOLOOH -> 1*OH + 0.6*GLYOXAL + 0.4*CH3COCHO + 1*HO2 + 0.2*BIGALD1 + 0.2*BIGALD2 + 0.2*BIGALD3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 78 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,326) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CCL3_1
+    !k_CH3CCL3_1: CH3CCL3 -> 3*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 79 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,327) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !NTERPOOH_OH_1
+    !k_NTERPOOH_OH_1: NTERPOOH + OH -> 1*NTERPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,328) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_NO_1
+    !k_CH3O2_NO_1: CH3O2 + NO -> 1*CH2O + 1*NO2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.8e-12, kind=musica_dk ), &
+      Ea = real( -4.14195e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,329) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPAO2_NO3_1
+    !k_ISOPAO2_NO3_1: ISOPAO2 + NO3 -> 1*NO2 + 0.4*MACR + 0.6*MVK + 1*CH2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,330) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BZOO_HO2_1
+    !k_BZOO_HO2_1: BZOO + HO2 -> 1*BZOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,331) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MEKO2_NO_1
+    !k_MEKO2_NO_1: MEKO2 + NO -> 1*CH3CO3 + 1*CH3CHO + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,332) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_XYLENO2_1
+    !k_HO2_XYLENO2_1: HO2 + XYLENO2 -> 1*XYLENOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,333) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLONO2_OH_1
+    !k_CLONO2_OH_1: CLONO2 + OH -> 1*HOCL + 1*NO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-12, kind=musica_dk ), &
+      Ea = real( 4.55614e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,334) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_ISOPNO3_1
+    !k_HO2_ISOPNO3_1: HO2 + ISOPNO3 -> 1*ISOPNOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,335) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MVK_OH_1
+    !k_MVK_OH_1: MVK + OH -> 1*MACRO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.13e-12, kind=musica_dk ), &
+      Ea = real( -6.24053e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,336) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !DICARBO2_NO_1
+    !k_DICARBO2_NO_1: DICARBO2 + NO -> 1*NO2 + 0.17*HO2 + 0.17*CH3COCHO + 0.17*CO + 0.83*CH3O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,337) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !GLYALD_1
+    !k_GLYALD_1: GLYALD -> 2*HO2 + 1*CO + 1*CH2O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 80 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,338) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !EOOH_1
+    !k_EOOH_1: EOOH -> 1*EO + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 81 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,339) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3CO3_ISOPBO2_1
+    !k_CH3CO3_ISOPBO2_1: CH3CO3 + ISOPBO2 -> 1*HYDRALD + 1*CH3O2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,340) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_TERP2O2_1
+    !k_HO2_TERP2O2_1: HO2 + TERP2O2 -> 1*TERP2OOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,341) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRCL_1
+    !k_BRCL_1: BRCL -> 1*BR + 1*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 82 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,342) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !C2H5O2_HO2_1
+    !k_C2H5O2_HO2_1: C2H5O2 + HO2 -> 1*C2H5OOH + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,343) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCL_O1D_2
+    !k_HCL_O1D_2: HCL + O1D -> 1*CLO + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,344) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OCS_1
+    !k_OCS_1: OCS -> 1*S + 1*CO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 83 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,345) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ISOP_NO3_1
+    !k_ISOP_NO3_1: ISOP + NO3 -> 1*ISOP + 1*NO3 + 0.059024*SOAG3 + 0.025024*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.03e-12, kind=musica_dk ), &
+      Ea = real( 6.15769e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,346) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2402_O1D_1
+    !k_H2402_O1D_1: H2402 + O1D -> 2*BR + 2*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,347) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3OOH_OH_1
+    !k_CH3OOH_OH_1: CH3OOH + OH -> 0.7*CH3O2 + 0.3*OH + 0.3*CH2O + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,348) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BCARY_O3_2
+    !k_BCARY_O3_2: BCARY + O3 -> 1*BCARY + 1*O3 + 0.2202*SOAG0 + 0.2067*SOAG1 + 0.0653*SOAG2 + 0.1284*SOAG3 + 0.114*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-14, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,349) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C6H5OOH_1
+    !k_C6H5OOH_1: C6H5OOH -> 1*PHENO + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 84 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,350) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !NO2_O_1
+    !k_NO2_O_1: NO2 + O -> 1*NO + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.1e-12, kind=musica_dk ), &
+      Ea = real( -2.89936e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,351) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MEKOOH_OH_1
+    !k_MEKOOH_OH_1: MEKOOH + OH -> 1*MEKO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,352) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MCO3_NO_1
+    !k_MCO3_NO_1: MCO3 + NO -> 1*NO2 + 1*CH2O + 1*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.3e-12, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,353) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_RO2_1
+    !k_CH3O2_RO2_1: CH3O2 + RO2 -> 0.3*CH3CO3 + 0.8*CH2O + 0.3*HO2 + 0.2*HYAC + 0.5*CH3COCHO + 0.5*CH3OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.1e-13, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,354) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC114_1
+    !k_CFC114_1: CFC114 -> 2*CL + 2*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 85 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,355) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MALO2_NO2_1
+    !k_MALO2_NO2_1: MALO2 + NO2 -> 
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9.7e-29, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      kinf_A = real( 9.3e-12, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,356) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HO2_XYLOLO2_1
+    !k_HO2_XYLOLO2_1: HO2 + XYLOLO2 -> 1*XYLOLOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,357) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BCARY_NO3_2
+    !k_BCARY_NO3_2: BCARY + NO3 -> 1*BCARY + 1*NO3 + 0.17493*SOAG3 + 0.59019*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,358) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2NO2_2
+    !k_HO2NO2_2: HO2NO2 -> 1*NO2 + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 86 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,359) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HCFC141B_OH_1
+    !k_HCFC141B_OH_1: HCFC141B + OH -> 1*CL + 1*COFCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.25e-12, kind=musica_dk ), &
+      Ea = real( 2.20904e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,360) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_CLO_1
+    !k_BRO_CLO_1: BRO + CLO -> 1*BR + 1*CL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-12, kind=musica_dk ), &
+      Ea = real( -3.58969e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,361) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !PAN_2
+    !k_PAN_2: PAN -> 0.6*CH3CO3 + 0.6*NO2 + 0.4*CH3O2 + 0.4*NO3 + 0.4*CO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 87 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,362) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HOCL_1
+    !k_HOCL_1: HOCL -> 1*OH + 1*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 88 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,363) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ISOPNITA_OH_1
+    !k_ISOPNITA_OH_1: ISOPNITA + OH -> 0.7*HYAC + 0.7*GLYALD + 0.7*NO2 + 0.3*CH2O + 0.3*HONITR + 0.3*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,364) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_PO2_1
+    !k_NO_PO2_1: NO + PO2 -> 1*CH3CHO + 1*CH2O + 1*HO2 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,365) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CCL4_O1D_1
+    !k_CCL4_O1D_1: CCL4 + O1D -> 4*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.607e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,366) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O3_1
+    !k_O3_1: O3 -> 1*O + 1*O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 89 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,367) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HO2_O3_1
+    !k_HO2_O3_1: HO2 + O3 -> 1*OH + 2*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-14, kind=musica_dk ), &
+      Ea = real( 6.76518e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,368) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC12_1
+    !k_CFC12_1: CFC12 -> 2*CL + 1*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 90 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,369) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !DICARBO2_HO2_1
+    !k_DICARBO2_HO2_1: DICARBO2 + HO2 -> 0.4*OH + 0.07*HO2 + 0.07*CH3COCHO + 0.07*CO + 0.33*CH3O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.3e-13, kind=musica_dk ), &
+      Ea = real( -1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,370) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_ROOH_1
+    !k_OH_ROOH_1: OH + ROOH -> 1*RO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,371) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !EO_1
+    !k_EO_1: EO -> 2*CH2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e11, kind=musica_dk ), &
+      Ea = real( 5.72969e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,372) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CHBR3_O1D_1
+    !k_CHBR3_O1D_1: CHBR3 + O1D -> 3*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.62e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,373) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO3_2
+    !k_NO3_2: NO3 -> 1*NO + 1*O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 91 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,374) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BIGALD2_1
+    !k_BIGALD2_1: BIGALD2 -> 0.6*HO2 + 0.6*DICARBO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 92 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,375) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MACRO2_NO_2
+    !k_MACRO2_NO_2: MACRO2 + NO -> 1*HONITR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-13, kind=musica_dk ), &
+      Ea = real( -4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,376) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOP_O3_2
+    !k_ISOP_O3_2: ISOP + O3 -> 0.3*MACR + 0.2*MVK + 0.11*HCOOH + 0.62*CO + 0.32*OH + 0.37*HO2 + 0.91*CH2O + 0.08*CH3CO3 + 0.13*C3H6 + 0.05*CH3O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.05e-14, kind=musica_dk ), &
+      Ea = real( 2.7613e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,377) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ENEO2_NO_2
+    !k_ENEO2_NO_2: ENEO2 + NO -> 1*HONITR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.1e-14, kind=musica_dk ), &
+      Ea = real( -9.5679e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,378) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3OOH_1
+    !k_CH3OOH_1: CH3OOH -> 1*CH2O + 1*H + 1*OH
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 93 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,379) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CLO_1
+    !k_CLO_1: CLO -> 1*CL + 1*O
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 94 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,380) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CF3BR_O1D_1
+    !k_CF3BR_O1D_1: CF3BR + O1D -> 1*BR + 1*F + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.5e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,381) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BENZOOH_OH_1
+    !k_BENZOOH_OH_1: BENZOOH + OH -> 1*BENZO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,382) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CO3_NO2_1
+    !k_CH3CO3_NO2_1: CH3CO3 + NO2 -> 1*PAN
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9.7e-29, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      kinf_A = real( 9.3e-12, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,383) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !CFC113_1
+    !k_CFC113_1: CFC113 -> 3*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 95 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,384) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !ISOP_NO3_2
+    !k_ISOP_NO3_2: ISOP + NO3 -> 1*ISOPNO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.03e-12, kind=musica_dk ), &
+      Ea = real( 6.15769e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,385) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH4_O1D_3
+    !k_CH4_O1D_3: CH4 + O1D -> 1*CH3O2 + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.31e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,386) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGENE_NO3_1
+    !k_BIGENE_NO3_1: BIGENE + NO3 -> 1*NO2 + 1*CH3CHO + 0.5*CH2O + 0.5*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.5e-13, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,387) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ACBZO2_NO2_1
+    !k_ACBZO2_NO2_1: ACBZO2 + NO2 -> 1*PBZNIT
+    troe = rate_constant_troe_t( &
+      k0_A = real( 9.7e-29, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      kinf_A = real( 9.3e-12, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,388) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !NO3_NTERPO2_1
+    !k_NO3_NTERPO2_1: NO3 + NTERPO2 -> 2*NO2 + 1*TERPROD1
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,389) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPBO2_1
+    !k_ISOPBO2_1: ISOPBO2 -> 1*HPALD + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1600000000, kind=musica_dk ), &
+      Ea = real( 1.14594e-19, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,390) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BENZO2_HO2_1
+    !k_BENZO2_HO2_1: BENZO2 + HO2 -> 1*BENZOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,391) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_TERPO2_1
+    !k_NO_TERPO2_1: NO + TERPO2 -> 0.2*TERPNIT + 0.8*NO2 + 0.32*CH2O + 0.04*CH3COCH3 + 0.8*TERPROD1 + 0.8*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,392) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COOOH_OH_1
+    !k_CH3COOOH_OH_1: CH3COOOH + OH -> 0.5*CH3CO3 + 0.5*CH2O + 0.5*CO2 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,393) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKNIT_OH_1
+    !k_ALKNIT_OH_1: ALKNIT + OH -> 0.4*CH2O + 0.8*CH3CHO + 0.8*CH3COCH3 + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,394) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O1D_O2_1
+    !k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-11, kind=musica_dk ), &
+      Ea = real( -7.59357e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,395) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3BR_CL_1
+    !k_CH3BR_CL_1: CH3BR + CL -> 1*HCL + 1*HO2 + 1*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.46e-11, kind=musica_dk ), &
+      Ea = real( 1.43587e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,396) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TERPROD2_1
+    !k_OH_TERPROD2_1: OH + TERPROD2 -> 0.15*RO2 + 0.68*CH2O + 1.8*CO2 + 0.5*CH3COCH3 + 0.65*CH3CO3 + 0.2*HO2 + 0.7*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,397) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HNO3_OH_1
+    !k_HNO3_OH_1: HNO3 + OH -> 1*NO3 + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-14, kind=musica_dk ), &
+      Ea = real( -6.35099e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,398) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HNO3_OH_2
+    !k_HNO3_OH_2: HNO3 + OH -> 1*NO3 + 1*H2O
+    troe = rate_constant_troe_t( &
+      k0_A = real( 6.5e-34, kind=musica_dk ), &
+      k0_C = real( 1335, kind=musica_dk ), &
+      kinf_A = real( 2.7e-17, kind=musica_dk ), &
+      kinf_C = real( 2199, kind=musica_dk ), &
+      Fc = real( 1, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,399) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HO2NO2_3
+    !k_HO2NO2_3: HO2NO2 -> 1*OH + 1*NO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 96 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,400) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CH3BR_1
+    !k_CH3BR_1: CH3BR -> 1*BR + 1*CH3O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 97 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,401) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CLO_HO2_1
+    !k_CLO_HO2_1: CLO + HO2 -> 1*O2 + 1*HOCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,402) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MDIALO2_NO_1
+    !k_MDIALO2_NO_1: MDIALO2 + NO -> 1*NO2 + 0.83*HO2 + 0.17*CH3COCHO + 0.35*CO + 0.17*CH3O2 + 0.17*GLYOXAL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,403) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_XYLOLO2_1
+    !k_NO_XYLOLO2_1: NO + XYLOLO2 -> 1*HO2 + 1*NO2 + 0.17*GLYOXAL + 0.51*CH3COCHO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,404) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3COCHO_NO3_1
+    !k_CH3COCHO_NO3_1: CH3COCHO + NO3 -> 1*HNO3 + 1*CO + 1*CH3CO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-12, kind=musica_dk ), &
+      Ea = real( 2.56801e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,405) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLONO2_2
+    !k_CLONO2_2: CLONO2 -> 1*CLO + 1*NO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 98 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,406) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HYDRALD_OH_1
+    !k_HYDRALD_OH_1: HYDRALD + OH -> 1*XO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.86e-11, kind=musica_dk ), &
+      Ea = real( -2.41614e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,407) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N_NO_1
+    !k_N_NO_1: N + NO -> 1*N2 + 1*O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.1e-11, kind=musica_dk ), &
+      Ea = real( -1.38065e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,408) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3OH_OH_1
+    !k_CH3OH_OH_1: CH3OH + OH -> 1*HO2 + 1*CH2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.9e-12, kind=musica_dk ), &
+      Ea = real( 4.76324e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,409) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_XO2_1
+    !k_CH3O2_XO2_1: CH3O2 + XO2 -> 0.3*CH3OH + 0.8*HO2 + 0.8*CH2O + 0.2*CO + 0.1*GLYOXAL + 0.1*CH3COCHO + 0.1*HYAC + 0.1*GLYALD
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( -5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,410) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_XYLENES_2
+    !k_OH_XYLENES_2: OH + XYLENES -> 1*XYLENES + 1*OH + 0.1677*SOAG0 + 0.0174*SOAG1 + 0.086*SOAG2 + 0.0512*SOAG3 + 0.1598*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,411) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_PHENOOH_1
+    !k_OH_PHENOOH_1: OH + PHENOOH -> 1*PHENO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,412) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3CO3_ISOPNO3_1
+    !k_CH3CO3_ISOPNO3_1: CH3CO3 + ISOPNO3 -> 1*NC4CHO + 1*CH3O2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,413) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_TERP2O2_1
+    !k_CH3O2_TERP2O2_1: CH3O2 + TERP2O2 -> 1*TERPROD2 + 0.93*CH2O + 0.25*CH3OH + 1*HO2 + 0.5*CO2 + 0.125*CO + 0.125*GLYALD + 0.15*CH3COCH3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( -6.90325e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,414) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_OH_1
+    !k_CH2O_OH_1: CH2O + OH -> 1*CO + 1*H2O + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.5e-12, kind=musica_dk ), &
+      Ea = real( -1.72581e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,415) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !GLYOXAL_1
+    !k_GLYOXAL_1: GLYOXAL -> 2*CO + 2*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 99 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,416) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !O3_2
+    !k_O3_2: O3 -> 1*O1D + 1*O2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 100 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,417) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !BRONO2_O_1
+    !k_BRONO2_O_1: BRONO2 + O -> 1*BRO + 1*NO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-11, kind=musica_dk ), &
+      Ea = real( -2.9684e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,418) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_XYLENO2_1
+    !k_NO_XYLENO2_1: NO + XYLENO2 -> 1*NO2 + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.6e-12, kind=musica_dk ), &
+      Ea = real( -5.03937e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,419) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MVK_O3_1
+    !k_MVK_O3_1: MVK + O3 -> 0.6*CH2O + 0.56*CO + 0.1*CH3CHO + 0.1*CO2 + 0.28*CH3CO3 + 0.5*CH3COCHO + 0.28*HO2 + 0.36*OH + 0.12*HCOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.5e-16, kind=musica_dk ), &
+      Ea = real( 2.09859e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,420) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_XYLOLOOH_1
+    !k_OH_XYLOLOOH_1: OH + XYLOLOOH -> 1*XYLOLO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,421) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HYAC_OH_1
+    !k_HYAC_OH_1: HYAC + OH -> 1*CH3COCHO + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,422) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_NO3_1
+    !k_CH2O_NO3_1: CH2O + NO3 -> 1*CO + 1*HO2 + 1*HNO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6e-13, kind=musica_dk ), &
+      Ea = real( 2.84138e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,423) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !MALO2_NO_1
+    !k_MALO2_NO_1: MALO2 + NO -> 0.4*GLYOXAL + 0.4*HO2 + 0.4*CO + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-12, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,424) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_CL_1
+    !k_CH2O_CL_1: CH2O + CL -> 1*HCL + 1*HO2 + 1*CO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 8.1e-11, kind=musica_dk ), &
+      Ea = real( 4.14195e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,425) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKO2_HO2_1
+    !k_ALKO2_HO2_1: ALKO2 + HO2 -> 1*ALKOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,426) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O5_3
+    !k_N2O5_3: N2O5 -> 1*NO2 + 1*NO3
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 101 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,427) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !OH_TERPNIT_1
+    !k_OH_TERPNIT_1: OH + TERPNIT -> 1*NO2 + 1*TERPROD1
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,428) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CO_OH_2
+    !k_CO_OH_2: CO + OH -> 1*CO2 + 1*H
+    ternary_chemical_activation = rate_constant_ternary_chemical_activation_t( &
+      k0_A = real( 1.5e-13, kind=musica_dk ), &
+      kinf_A = real( 2100000000, kind=musica_dk ), &
+      kinf_B = real( 6.1, kind=musica_dk ) )
+    !$acc enter data copyin(ternary_chemical_activation) async(STREAM0)
+    call ternary_chemical_activation%calculate( environment, rate_constants(1:ncell,429) )
+    !$acc exit data delete(ternary_chemical_activation) async(STREAM0)
+
+    !HPALD_1
+    !k_HPALD_1: HPALD -> 1*BIGALD3 + 1*OH + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 102 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,430) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HOCH2OO_1
+    !k_HOCH2OO_1: HOCH2OO -> 1*CH2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e12, kind=musica_dk ), &
+      Ea = real( 9.66454e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,431) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_CLO_2
+    !k_BRO_CLO_2: BRO + CLO -> 1*BRCL + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.1e-13, kind=musica_dk ), &
+      Ea = real( -4.00388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,432) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_CH3O2_1
+    !k_CH3O2_CH3O2_1: CH3O2 + CH3O2 -> 2*CH2O + 2*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( 5.85395e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,433) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_ISOPAO2_1
+    !k_CH3O2_ISOPAO2_1: CH3O2 + ISOPAO2 -> 0.25*CH3OH + 1*HO2 + 1.5*CH2O + 0.31*MACR + 0.44*MVK
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5e-13, kind=musica_dk ), &
+      Ea = real( -5.5226e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,434) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TOLUENE_2
+    !k_OH_TOLUENE_2: OH + TOLUENE -> 0.18*CRESOL + 0.1*TEPOMUC + 0.07*BZOO + 0.65*TOLO2 + 0.28*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-12, kind=musica_dk ), &
+      Ea = real( -4.85988e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,435) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_CLO_3
+    !k_CLO_CLO_3: CLO + CLO -> 1*CL2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-12, kind=musica_dk ), &
+      Ea = real( 2.19523e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,436) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BZOOH_1
+    !k_BZOOH_1: BZOOH -> 1*BZALD + 1*OH + 1*HO2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 103 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,437) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !MPAN_2
+    !k_MPAN_2: MPAN -> 1*MCO3 + 1*NO2
+    troe = rate_constant_troe_t( &
+      k0_A = real( 1.07767, kind=musica_dk ), &
+      k0_B = real( -5.6, kind=musica_dk ), &
+      k0_C = real( -14000, kind=musica_dk ), &
+      kinf_A = real( 1.03323e17, kind=musica_dk ), &
+      kinf_C = real( -14000, kind=musica_dk ), &
+      N = real( 1.5, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,438) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !NO_O3_1
+    !k_NO_O3_1: NO + O3 -> 1*NO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3e-12, kind=musica_dk ), &
+      Ea = real( 2.07097e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,439) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O2_O_1
+    !k_H2O2_O_1: H2O2 + O -> 1*OH + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-12, kind=musica_dk ), &
+      Ea = real( 2.7613e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,440) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2402_1
+    !k_H2402_1: H2402 -> 2*BR + 2*COF2
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 104 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,441) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !EO_O2_1
+    !k_EO_O2_1: EO + O2 -> 1*GLYALD + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1e-14, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,442) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !N2O_O1D_2
+    !k_N2O_O1D_2: N2O + O1D -> 1*N2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.64e-11, kind=musica_dk ), &
+      Ea = real( -2.7613e-22, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,443) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HPALD_OH_1
+    !k_HPALD_OH_1: HPALD + OH -> 1*XO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.86e-11, kind=musica_dk ), &
+      Ea = real( -2.41614e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,444) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_TERP2OOH_1
+    !k_OH_TERP2OOH_1: OH + TERP2OOH -> 1*TERP2O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,445) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL2O2_1
+    !k_CL2O2_1: CL2O2 -> 2*CL
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 105 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,446) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HOBR_O_1
+    !k_HOBR_O_1: HOBR + O -> 1*BRO + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-10, kind=musica_dk ), &
+      Ea = real( 5.93679e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,447) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BRO_CLO_3
+    !k_BRO_CLO_3: BRO + CLO -> 1*BR + 1*OCLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.5e-13, kind=musica_dk ), &
+      Ea = real( -7.59357e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,448) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2O_HO2_1
+    !k_CH2O_HO2_1: CH2O + HO2 -> 1*HOCH2OO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.7e-15, kind=musica_dk ), &
+      Ea = real( -8.62906e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,449) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H2_CL_1
+    !k_C2H2_CL_1: C2H2 + CL -> 1*CL
+    troe = rate_constant_troe_t( &
+      k0_A = real( 5.2e-30, kind=musica_dk ), &
+      k0_B = real( -2.4, kind=musica_dk ), &
+      kinf_A = real( 2.2e-10, kind=musica_dk ), &
+      N = real( 0.7, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,450) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !ISOPNO3_NO3_1
+    !k_ISOPNO3_NO3_1: ISOPNO3 + NO3 -> 1*NC4CHO + 1*NO2 + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.4e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,451) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ALKNIT_1
+    !k_ALKNIT_1: ALKNIT -> 1*NO2 + 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 1*HO2 + 0.8*MEK
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 106 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,452) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !HMPROP_OH_1
+    !k_HMPROP_OH_1: HMPROP + OH -> 1*HMPROPO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,453) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_NO3_1
+    !k_HO2_NO3_1: HO2 + NO3 -> 1*OH + 1*NO2 + 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.5e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,454) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH2BR2_OH_1
+    !k_CH2BR2_OH_1: CH2BR2 + OH -> 2*BR + 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2e-12, kind=musica_dk ), &
+      Ea = real( 1.15975e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,455) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2O2_OH_1
+    !k_H2O2_OH_1: H2O2 + OH -> 1*H2O + 1*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.8e-12, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,456) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H_HO2_3
+    !k_H_HO2_3: H + HO2 -> 2*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.2e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,457) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCL_OH_1
+    !k_HCL_OH_1: HCL + OH -> 1*H2O + 1*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.8e-12, kind=musica_dk ), &
+      Ea = real( 3.45162e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,458) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_CH3O2_2
+    !k_CH3O2_CH3O2_2: CH3O2 + CH3O2 -> 1*CH2O + 1*CH3OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.9e-14, kind=musica_dk ), &
+      Ea = real( -9.74738e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,459) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CHBR3_OH_1
+    !k_CHBR3_OH_1: CHBR3 + OH -> 3*BR
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9e-13, kind=musica_dk ), &
+      Ea = real( 4.97034e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,460) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NH3_OH_1
+    !k_NH3_OH_1: NH3 + OH -> 1*H2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.7e-12, kind=musica_dk ), &
+      Ea = real( 9.80261e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,461) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CHBR3_CL_1
+    !k_CHBR3_CL_1: CHBR3 + CL -> 3*BR + 1*HCL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.85e-12, kind=musica_dk ), &
+      Ea = real( 1.17355e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,462) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLONO2_O_1
+    !k_CLONO2_O_1: CLONO2 + O -> 1*CLO + 1*NO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.6e-12, kind=musica_dk ), &
+      Ea = real( 1.15975e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,463) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !ISOPAO2_NO_1
+    !k_ISOPAO2_NO_1: ISOPAO2 + NO -> 0.08*ISOPNITA + 0.92*NO2 + 0.36*MACR + 0.56*MVK + 0.92*CH2O + 0.92*HO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.4e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,464) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !H2_O_1
+    !k_H2_O_1: H2 + O -> 1*OH + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.6e-11, kind=musica_dk ), &
+      Ea = real( 6.30957e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,465) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HCFC142B_O1D_1
+    !k_HCFC142B_O1D_1: HCFC142B + O1D -> 1*CL + 1*COF2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.3e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,466) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CH3O2_CLO_1
+    !k_CH3O2_CLO_1: CH3O2 + CLO -> 1*CL + 1*HO2 + 1*CH2O
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-12, kind=musica_dk ), &
+      Ea = real( 1.58775e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,467) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CLO_CLO_4
+    !k_CLO_CLO_4: CLO + CLO -> 1*CL + 1*OCLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.5e-13, kind=musica_dk ), &
+      Ea = real( 1.89149e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,468) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGALD_1
+    !k_BIGALD_1: BIGALD -> 0.45*CO + 0.13*GLYOXAL + 0.56*HO2 + 0.13*CH3CO3 + 0.18*CH3COCHO
+    photolysis = rate_constant_photolysis_t( &
+      photolysis_rate_constant_index = 107 )
+    !$acc enter data copyin(photolysis) async(STREAM0)
+    call photolysis%calculate( environment, rate_constants(1:ncell,469) )
+    !$acc exit data delete(photolysis) async(STREAM0)
+
+    !CL_HO2_2
+    !k_CL_HO2_2: CL + HO2 -> 1*OH + 1*CLO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.6e-11, kind=musica_dk ), &
+      Ea = real( 5.17743e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,470) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C3H7O2_NO_1
+    !k_C3H7O2_NO_1: C3H7O2 + NO -> 0.82*CH3COCH3 + 1*NO2 + 1*HO2 + 0.27*CH3CHO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 4.2e-12, kind=musica_dk ), &
+      Ea = real( -2.48517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,471) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_O_2
+    !k_NO2_O_2: NO2 + O -> 1*NO3
+    troe = rate_constant_troe_t( &
+      k0_A = real( 2.5e-31, kind=musica_dk ), &
+      k0_B = real( -1.8, kind=musica_dk ), &
+      kinf_A = real( 2.2e-11, kind=musica_dk ), &
+      N = real( 0.7, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,472) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !HBR_O_1
+    !k_HBR_O_1: HBR + O -> 1*BR + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.8e-12, kind=musica_dk ), &
+      Ea = real( 2.07097e-20, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,473) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CFC11_O1D_1
+    !k_CFC11_O1D_1: CFC11 + O1D -> 3*CL
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.07e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,474) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BIGENE_OH_1
+    !k_BIGENE_OH_1: BIGENE + OH -> 1*ENEO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 5.4e-11, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,475) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !DMS_OH_2
+    !k_DMS_OH_2: DMS + OH -> 1*SO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 9.6e-12, kind=musica_dk ), &
+      Ea = real( 3.23072e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,476) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !C2H5OH_OH_1
+    !k_C2H5OH_OH_1: C2H5OH + OH -> 1*HO2 + 1*CH3CHO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.9e-12, kind=musica_dk ), &
+      Ea = real( 3.17549e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,477) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BENZENE_OH_2
+    !k_BENZENE_OH_2: BENZENE + OH -> 1*BENZENE + 1*OH + 0.0023*SOAG0 + 0.0008*SOAG1 + 0.0843*SOAG2 + 0.0443*SOAG3 + 0.1621*SOAG4
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.3e-12, kind=musica_dk ), &
+      Ea = real( 2.66465e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,478) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_TOLO2_1
+    !k_HO2_TOLO2_1: HO2 + TOLO2 -> 1*TOLOOH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 7.5e-13, kind=musica_dk ), &
+      Ea = real( -9.66454e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,479) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !CL_CLONO2_1
+    !k_CL_CLONO2_1: CL + CLONO2 -> 1*CL2 + 1*NO3
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 6.5e-12, kind=musica_dk ), &
+      Ea = real( -1.86388e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,480) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO2_NO3_1
+    !k_NO2_NO3_1: NO2 + NO3 -> 1*N2O5
+    troe = rate_constant_troe_t( &
+      k0_A = real( 2.4e-30, kind=musica_dk ), &
+      k0_B = real( -3, kind=musica_dk ), &
+      kinf_A = real( 1.6e-12, kind=musica_dk ), &
+      N = real( -0.1, kind=musica_dk ) )
+    !$acc enter data copyin(troe) async(STREAM0)
+    call troe%calculate( environment, rate_constants(1:ncell,481) )
+    !$acc exit data delete(troe) async(STREAM0)
+
+    !ISOPOOH_OH_1
+    !k_ISOPOOH_OH_1: ISOPOOH + OH -> 0.4*XO2 + 0.6*IEPOX + 0.6*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.52e-11, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,482) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !HO2_NO_1
+    !k_HO2_NO_1: HO2 + NO -> 1*NO2 + 1*OH
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.3e-12, kind=musica_dk ), &
+      Ea = real( -3.72775e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,483) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !NO_RO2_1
+    !k_NO_RO2_1: NO + RO2 -> 1*CH3CO3 + 1*CH2O + 1*NO2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.9e-12, kind=musica_dk ), &
+      Ea = real( -4.14195e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,484) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !BZOOH_OH_1
+    !k_BZOOH_OH_1: BZOOH + OH -> 1*BZOO
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 3.8e-12, kind=musica_dk ), &
+      Ea = real( -2.7613e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,485) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !OH_SO_1
+    !k_OH_SO_1: OH + SO -> 1*SO2 + 1*H
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 2.7e-11, kind=musica_dk ), &
+      Ea = real( -4.62517e-21, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,486) )
+    !$acc exit data delete(arrhenius) async(STREAM0)
+
+    !O1D_O3_1
+    !k_O1D_O3_1: O1D + O3 -> 1*O2
+    arrhenius = rate_constant_arrhenius_t( &
+      A = real( 1.2e-10, kind=musica_dk ) )
+    !$acc enter data copyin(arrhenius) async(STREAM0)
+    call arrhenius%calculate( environment, rate_constants(1:ncell,487) )
     !$acc exit data delete(arrhenius) async(STREAM0)
 
   end subroutine calculate_rate_constants

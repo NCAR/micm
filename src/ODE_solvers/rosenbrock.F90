@@ -263,9 +263,10 @@ CONTAINS
        write(*,*) ' '
     endif
 
-    !$acc enter data copyin(this,this%ros_A,this%ros_M,this%ros_E, &
-    !$acc                   this%AbsTol,this%RelTol,this%ros_Gamma) &
-    !$acc            async(STREAM0)
+    !$acc enter data copyin (this) async(STREAM0)
+    !$acc enter data copyin (this%ros_A,this%ros_M,this%ros_E, &
+    !$acc                    this%AbsTol,this%RelTol,this%ros_Gamma) &
+    !$acc             async (STREAM0)
 
     end function constructor
 
@@ -423,7 +424,9 @@ Stage_loop: &
    this%icntrl(Nstp) = this%icntrl(Nstp) + 1
    this%icntrl(Ntotstp) = this%icntrl(Ntotstp) + 1
 Accepted: &
-   IF ( (Err <= ONE).OR.(H <= this%Hmin) ) THEN
+   ! Add additional restriction to stop the time step refinement for
+   ! complex mechanisms like TS1
+   IF ( (Err <= ONE).OR.(H <= this%Hmin).OR.(H <= 0.1_r8*this%Hmax) ) THEN
       this%icntrl(Nacc) = this%icntrl(Nacc) + 1
       !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
       !$acc loop gang vector collapse(2)

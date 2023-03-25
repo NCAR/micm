@@ -42,6 +42,10 @@ set(FLAGGED_FILES preprocessor_output/kinetics_utilities.F90
                   constants.F90   
                   ODE_solvers/rosenbrock.F90)
 
-set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-acc -gpu=cc70,lineinfo,nofma -Minfo=all")
+if (CMAKE_Fortran_COMPILER STREQUAL "NVFORTRAN")
+   set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-acc -gpu=cc70,lineinfo,nofma -Minfo=all")
+else()    # GNU
+   set_source_files_properties(${FLAGGED_FILES} PROPERTIES COMPILE_FLAGS "-fopenacc")
+endif()
 
 endif()
