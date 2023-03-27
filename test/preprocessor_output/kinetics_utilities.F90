@@ -25,7 +25,7 @@ use constants, only : ncell=>kNumberOfGridCells, VLEN, &
   contains
 
 
-subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
+subroutine dforce_dy1(LU, rate_constant, number_density, number_density_air)
   ! Compute the derivative of the Forcing w.r.t. each chemical
   ! Also known as the Jacobian
   real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
@@ -34,16 +34,7 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   real(r8), intent(in) :: number_density_air(ncell)
 
   ! Local variables
-  integer :: i, j 
-
-  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-  !$acc loop gang vector collapse(2)
-  do j = 1, number_sparse_factor_elements
-     do i = 1, ncell
-        LU(i,j) = 0
-     end do
-  end do
-  !$acc end parallel
+  integer :: i
 
   !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
   !$acc loop gang vector
@@ -149,6 +140,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_N_O2_1: N + O2 -> 1*NO + 1*O
     LU(i,227) = LU(i,227) - rate_constant(i,117) * number_density(i,185)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy1
+
+subroutine dforce_dy2(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     LU(i,227) = LU(i,227) - rate_constant(i,202) * number_density(i,1) * number_density(i,187)
@@ -250,6 +261,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BIGALD1/d(BENZO2)
     !  k_BENZO2_NO_1: BENZO2 + NO -> 1*NO2 + 1*GLYOXAL + 0.5*BIGALD1 + 1*HO2
     LU(i,57) = LU(i,57) + 0.5*rate_constant(i,59) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy2
+
+subroutine dforce_dy3(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_BENZOOH/d(BENZO2)
     !  k_BENZO2_HO2_1: BENZO2 + HO2 -> 1*BENZOOH
@@ -351,6 +382,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HMPROPO2_NO_1: HMPROPO2 + NO -> 1*NO2 + 1*CO2 + 1*HO2 + 1*CH3COCH3
     LU(i,894) = LU(i,894) + rate_constant(i,156) * number_density(i,137)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy3
+
+subroutine dforce_dy4(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO/d(HMPROPO2)
     !  k_HMPROPO2_NO_1: HMPROPO2 + NO -> 1*NO2 + 1*CO2 + 1*HO2 + 1*CH3COCH3
     LU(i,917) = LU(i,917) - rate_constant(i,156) * number_density(i,137)
@@ -454,6 +505,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_MACROOH/d(MACROOH)
     !  k_MACROOH_OH_1: MACROOH + OH -> 0.5*MCO3 + 0.2*MACRO2 + 0.1*OH + 0.2*HO2
     LU(i,257) = LU(i,257) - rate_constant(i,136) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy4
+
+subroutine dforce_dy5(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_MACRO2/d(MACROOH)
     !  k_MACROOH_OH_1: MACROOH + OH -> 0.5*MCO3 + 0.2*MACRO2 + 0.1*OH + 0.2*HO2
@@ -555,6 +626,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_O2_SO_1: O2 + SO -> 1*SO2 + 1*O
     LU(i,159) = LU(i,159) - rate_constant(i,241) * number_density(i,41)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy5
+
+subroutine dforce_dy6(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_SO/d(SO)
     !  k_OCLO_SO_1: OCLO + SO -> 1*SO2 + 1*CLO
     LU(i,158) = LU(i,158) - rate_constant(i,47) * number_density(i,183)
@@ -656,6 +747,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_O3_SO_1: O3 + SO -> 1*SO2 + 1*O2
     LU(i,169) = LU(i,169) - rate_constant(i,140) * number_density(i,171)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy6
+
+subroutine dforce_dy7(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_O2/d(H)
     !  k_H_O3_1: H + O3 -> 1*OH + 1*O2
     LU(i,297) = LU(i,297) + rate_constant(i,158) * number_density(i,171)
@@ -758,6 +869,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_SOAG2/d(MTERP)
     !  k_MTERP_O3_1: MTERP + O3 -> 1*MTERP + 1*O3 + 0.0508*SOAG0 + 0.1149*SOAG1 + 0.0348*SOAG2 + 0.0554*SOAG3 + 0.1278*SOAG4
     LU(i,136) = LU(i,136) + 0.0348*rate_constant(i,78) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy7
+
+subroutine dforce_dy8(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MTERP_OH_2: MTERP + OH -> 1*MTERP + 1*OH + 0.0508*SOAG0 + 0.1149*SOAG1 + 0.0348*SOAG2 + 0.0554*SOAG3 + 0.1278*SOAG4
     LU(i,136) = LU(i,136) + 0.0348*rate_constant(i,254) * number_density(i,166)
@@ -859,6 +990,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_MTERP_O3_2: MTERP + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     LU(i,154) = LU(i,154) - rate_constant(i,307) * number_density(i,171)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy8
+
+subroutine dforce_dy9(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_CO/d(MTERP)
     !  k_MTERP_O3_2: MTERP + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     LU(i,155) = LU(i,155) + 0.23*rate_constant(i,307) * number_density(i,171)
@@ -960,6 +1111,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ISOPNO3_NO3_1: ISOPNO3 + NO3 -> 1*NC4CHO + 1*NO2 + 1*HO2
     LU(i,278) = LU(i,278) - rate_constant(i,451) * number_density(i,165)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy9
+
+subroutine dforce_dy10(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_CH3CO3/d(ISOPNO3)
     !  k_CH3CO3_ISOPNO3_1: CH3CO3 + ISOPNO3 -> 1*NC4CHO + 1*CH3O2 + 1*HO2
     LU(i,279) = LU(i,279) - rate_constant(i,413) * number_density(i,49)
@@ -1062,6 +1233,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO/d(RO2)
     !  k_NO_RO2_1: NO + RO2 -> 1*CH3CO3 + 1*CH2O + 1*NO2
     LU(i,222) = LU(i,222) - rate_constant(i,484) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy10
+
+subroutine dforce_dy11(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH3COCHO/d(RO2)
     !  k_CH3O2_RO2_1: CH3O2 + RO2 -> 0.3*CH3CO3 + 0.8*CH2O + 0.3*HO2 + 0.2*HYAC + 0.5*CH3COCHO + 0.5*CH3OH
@@ -1164,6 +1355,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_TERPROD1/d(TERPNIT)
     !  k_TERPNIT_1: TERPNIT -> 1*TERPROD1 + 1*NO2 + 1*HO2
     LU(i,211) = LU(i,211) + rate_constant(i,5)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy11
+
+subroutine dforce_dy12(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_OH_TERPNIT_1: OH + TERPNIT -> 1*NO2 + 1*TERPROD1
     LU(i,211) = LU(i,211) + rate_constant(i,428) * number_density(i,166)
@@ -1266,6 +1477,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO/d(ACBZO2)
     !  k_ACBZO2_NO_1: ACBZO2 + NO -> 1*C6H5O2 + 1*NO2
     LU(i,253) = LU(i,253) - rate_constant(i,263) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy12
+
+subroutine dforce_dy13(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(ACBZO2)
     !  k_ACBZO2_HO2_1: ACBZO2 + HO2 -> 0.4*C6H5O2 + 0.4*OH
@@ -1368,6 +1599,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3CO3_CH3CO3_1: CH3CO3 + CH3CO3 -> 2*CH3O2 + 2*CO2
     LU(i,322) = LU(i,322) - rate_constant(i,32) * number_density(i,49)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy13
+
+subroutine dforce_dy14(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3CO3_CH3CO3_1: CH3CO3 + CH3CO3 -> 2*CH3O2 + 2*CO2
     LU(i,322) = LU(i,322) - rate_constant(i,32) * number_density(i,49)
@@ -1470,6 +1721,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3CO3_MACRO2_1: CH3CO3 + MACRO2 -> 0.25*CH3COCHO + 1*CH3O2 + 0.22*CO + 0.47*HO2 + 0.53*GLYALD + 0.22*HYAC + 0.25*CH2O + 0.53*CH3CO3
     LU(i,351) = LU(i,351) + rate_constant(i,235) * number_density(i,188)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy14
+
+subroutine dforce_dy15(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3CO3_HO2_1: CH3CO3 + HO2 -> 0.4*CH3COOOH + 0.15*CH3COOH + 0.15*O3 + 0.45*OH + 0.45*CH3O2
     LU(i,351) = LU(i,351) + 0.45*rate_constant(i,259) * number_density(i,192)
@@ -1571,6 +1842,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3CO3_MACRO2_1: CH3CO3 + MACRO2 -> 0.25*CH3COCHO + 1*CH3O2 + 0.22*CO + 0.47*HO2 + 0.53*GLYALD + 0.22*HYAC + 0.25*CH2O + 0.53*CH3CO3
     LU(i,344) = LU(i,344) + 0.22*rate_constant(i,235) * number_density(i,188)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy15
+
+subroutine dforce_dy16(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH3COOH/d(CH3CO3)
     !  k_CH3CO3_CH3O2_1: CH3CO3 + CH3O2 -> 0.9*CH3O2 + 1*CH2O + 0.9*HO2 + 0.9*CO2 + 0.1*CH3COOH
@@ -1674,6 +1965,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HCL/d(CH4)
     !  k_CH4_CL_1: CH4 + CL -> 1*CH3O2 + 1*HCL
     LU(i,272) = LU(i,272) + rate_constant(i,23) * number_density(i,100)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy16
+
+subroutine dforce_dy17(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH3O2/d(CH4)
     !  k_CH4_CL_1: CH4 + CL -> 1*CH3O2 + 1*HCL
@@ -1776,6 +2087,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_TERPROD1_1: TERPROD1 -> 1*HO2 + 1*CO + 1*TERPROD2
     LU(i,548) = LU(i,548) - rate_constant(i,286)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy17
+
+subroutine dforce_dy18(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_NO3_TERPROD1_1: NO3 + TERPROD1 -> 0.5*TERP2O2 + 0.5*NTERPO2
     LU(i,548) = LU(i,548) - rate_constant(i,309) * number_density(i,165)
@@ -1877,6 +2208,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_SO3/d(H2O)
     !  k_H2O_SO3_1: H2O + SO3 -> 1*H2SO4 + 1*H2O
     LU(i,598) = LU(i,598) - rate_constant(i,325) * number_density(i,28)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy18
+
+subroutine dforce_dy19(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_H/d(H2O)
     !  k_H2O_1: H2O -> 2*H + 1*O
@@ -1978,6 +2329,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ACBZO2_NO2_1: ACBZO2 + NO2 -> 1*PBZNIT
     LU(i,379) = LU(i,379) - rate_constant(i,388) * number_density(i,43)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy19
+
+subroutine dforce_dy20(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_SO2/d(NO2)
     !  k_NO2_SO_1: NO2 + SO -> 1*SO2 + 1*NO
     LU(i,384) = LU(i,384) + rate_constant(i,260) * number_density(i,32)
@@ -2079,6 +2450,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_N/d(NO2)
     !  k_N_NO2_1: N + NO2 -> 1*N2 + 1*O2
     LU(i,428) = LU(i,428) - rate_constant(i,8) * number_density(i,185)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy20
+
+subroutine dforce_dy21(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_N_NO2_2: N + NO2 -> 2*NO
     LU(i,428) = LU(i,428) - rate_constant(i,154) * number_density(i,185)
@@ -2180,6 +2571,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO2/d(NTERPOOH)
     !  k_NTERPOOH_1: NTERPOOH -> 1*TERPROD1 + 1*NO2 + 1*OH
     LU(i,2696) = LU(i,2696) + rate_constant(i,143)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy21
+
+subroutine dforce_dy22(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NTERPOOH/d(NTERPOOH)
     !  k_NTERPOOH_1: NTERPOOH -> 1*TERPROD1 + 1*NO2 + 1*OH
@@ -2282,6 +2693,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_N2/d(NO)
     !  k_N_NO_1: N + NO -> 1*N2 + 1*O
     LU(i,4003) = LU(i,4003) + rate_constant(i,408) * number_density(i,185)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy22
+
+subroutine dforce_dy23(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HMPROPO2/d(NO)
     !  k_HMPROPO2_NO_1: HMPROPO2 + NO -> 1*NO2 + 1*CO2 + 1*HO2 + 1*CH3COCH3
@@ -2383,6 +2814,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_NO_O_1: NO + O -> 1*NO2
     LU(i,4018) = LU(i,4018) + rate_constant(i,62) * number_density(i,187)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy23
+
+subroutine dforce_dy24(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_ALKO2_NO_1: ALKO2 + NO -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 1*HO2 + 0.8*MEK + 1*NO2
     LU(i,4018) = LU(i,4018) + rate_constant(i,71) * number_density(i,85)
@@ -2486,6 +2937,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO/d(NO)
     !  k_EO2_NO_1: EO2 + NO -> 0.5*CH2O + 0.25*HO2 + 0.75*EO + 1*NO2
     LU(i,4064) = LU(i,4064) - rate_constant(i,16) * number_density(i,163)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy24
+
+subroutine dforce_dy25(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3CO3_NO_1: CH3CO3 + NO -> 1*CH3O2 + 1*CO2 + 1*NO2
     LU(i,4064) = LU(i,4064) - rate_constant(i,25) * number_density(i,49)
@@ -2588,6 +3059,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_NO_TERPO2_1: NO + TERPO2 -> 0.2*TERPNIT + 0.8*NO2 + 0.32*CH2O + 0.04*CH3COCH3 + 0.8*TERPROD1 + 0.8*HO2
     LU(i,4064) = LU(i,4064) - rate_constant(i,392) * number_density(i,147)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy25
+
+subroutine dforce_dy26(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MDIALO2_NO_1: MDIALO2 + NO -> 1*NO2 + 0.83*HO2 + 0.17*CH3COCHO + 0.35*CO + 0.17*CH3O2 + 0.17*GLYOXAL
     LU(i,4064) = LU(i,4064) - rate_constant(i,403) * number_density(i,164)
@@ -2689,6 +3180,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ALKO2_NO_1: ALKO2 + NO -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 1*HO2 + 0.8*MEK + 1*NO2
     LU(i,4035) = LU(i,4035) + 0.25*rate_constant(i,71) * number_density(i,85)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy26
+
+subroutine dforce_dy27(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_NO_TERP2O2_1: NO + TERP2O2 -> 0.1*ONITR + 0.9*NO2 + 0.34*CH2O + 0.27*CH3COCH3 + 0.225*CO + 0.9*CO2 + 0.9*TERPROD2 + 0.9*HO2 + 0.225*GLYALD
     LU(i,4035) = LU(i,4035) + 0.27*rate_constant(i,110) * number_density(i,145)
 
@@ -2791,6 +3302,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_MBONO3O2_NO_1: MBONO3O2 + NO -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
     LU(i,4054) = LU(i,4054) + 0.25*rate_constant(i,313) * number_density(i,123)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy27
+
+subroutine dforce_dy28(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3O2_NO_1: CH3O2 + NO -> 1*CH2O + 1*NO2 + 1*HO2
     LU(i,4054) = LU(i,4054) + rate_constant(i,329) * number_density(i,191)
@@ -2892,6 +3423,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_MALO2_NO_1: MALO2 + NO -> 0.4*GLYOXAL + 0.4*HO2 + 0.4*CO + 1*NO2
     LU(i,4059) = LU(i,4059) + 0.4*rate_constant(i,424) * number_density(i,170)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy28
+
+subroutine dforce_dy29(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HMPROP/d(NO)
     !  k_MBOO2_NO_1: MBOO2 + NO -> 1*HO2 + 0.67*GLYALD + 0.67*CH3COCH3 + 0.33*HMPROP + 0.33*CH2O + 1*NO2
     LU(i,4060) = LU(i,4060) + 0.33*rate_constant(i,308) * number_density(i,125)
@@ -2993,6 +3544,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_ISOPAO2_NO_1: ISOPAO2 + NO -> 0.08*ISOPNITA + 0.92*NO2 + 0.36*MACR + 0.56*MVK + 0.92*CH2O + 0.92*HO2
     LU(i,4115) = LU(i,4115) + 0.92*rate_constant(i,464) * number_density(i,189)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy29
+
+subroutine dforce_dy30(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C3H7O2_NO_1: C3H7O2 + NO -> 0.82*CH3COCH3 + 1*NO2 + 1*HO2 + 0.27*CH3CHO
     LU(i,4115) = LU(i,4115) + rate_constant(i,471) * number_density(i,109)
@@ -3094,6 +3665,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_MDIALO2_NO_1: MDIALO2 + NO -> 1*NO2 + 0.83*HO2 + 0.17*CH3COCHO + 0.35*CO + 0.17*CH3O2 + 0.17*GLYOXAL
     LU(i,4099) = LU(i,4099) + 0.35*rate_constant(i,403) * number_density(i,164)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy30
+
+subroutine dforce_dy31(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_MALO2_NO_1: MALO2 + NO -> 0.4*GLYOXAL + 0.4*HO2 + 0.4*CO + 1*NO2
     LU(i,4099) = LU(i,4099) + 0.4*rate_constant(i,424) * number_density(i,170)
 
@@ -3195,6 +3786,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BRCL/d(BRCL)
     !  k_BRCL_1: BRCL -> 1*BR + 1*CL
     LU(i,6833) = LU(i,6833) - rate_constant(i,342)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy31
+
+subroutine dforce_dy32(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CL/d(BRCL)
     !  k_BRCL_1: BRCL -> 1*BR + 1*CL
@@ -3297,6 +3908,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_BRO_BRO_1: BRO + BRO -> 2*BR + 1*O2
     LU(i,666) = LU(i,666) - rate_constant(i,294) * number_density(i,71)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy32
+
+subroutine dforce_dy33(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_BRO_BRO_1: BRO + BRO -> 2*BR + 1*O2
     LU(i,666) = LU(i,666) - rate_constant(i,294) * number_density(i,71)
@@ -3399,6 +4030,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CF2CLBR_O1D_1: CF2CLBR + O1D -> 1*CL + 1*BR + 1*COF2
     LU(i,1758) = LU(i,1758) + rate_constant(i,128) * number_density(i,112)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy33
+
+subroutine dforce_dy34(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_BR/d(CF2CLBR)
     !  k_CF2CLBR_1: CF2CLBR -> 1*BR + 1*CL + 1*COF2
@@ -3500,6 +4151,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CFC114_O1D_1: CFC114 + O1D -> 2*CL + 2*COF2
     LU(i,570) = LU(i,570) - rate_constant(i,18) * number_density(i,112)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy34
+
+subroutine dforce_dy35(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_COF2/d(CFC115)
     !  k_CFC115_O1D_1: CFC115 + O1D -> 1*CL + 1*F + 2*COF2
     LU(i,571) = LU(i,571) + 2*rate_constant(i,253) * number_density(i,112)
@@ -3602,6 +4273,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CH3O2/d(CH3BR)
     !  k_CH3BR_1: CH3BR -> 1*BR + 1*CH3O2
     LU(i,1680) = LU(i,1680) + rate_constant(i,401)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy35
+
+subroutine dforce_dy36(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(CH3BR)
     !  k_CH3BR_OH_1: CH3BR + OH -> 1*BR + 1*H2O + 1*HO2
@@ -3704,6 +4395,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BR/d(CL)
     !  k_CH2BR2_CL_1: CH2BR2 + CL -> 2*BR + 1*HCL
     LU(i,1883) = LU(i,1883) + 2*rate_constant(i,27) * number_density(i,169)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy36
+
+subroutine dforce_dy37(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3BR_CL_1: CH3BR + CL -> 1*HCL + 1*HO2 + 1*BR
     LU(i,1883) = LU(i,1883) + rate_constant(i,396) * number_density(i,94)
@@ -3805,6 +4516,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3CL_CL_1: CH3CL + CL -> 1*HO2 + 1*CO + 2*HCL
     LU(i,1924) = LU(i,1924) + 2*rate_constant(i,102) * number_density(i,53)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy37
+
+subroutine dforce_dy38(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CL_H2_1: CL + H2 -> 1*HCL + 1*H
     LU(i,1924) = LU(i,1924) + rate_constant(i,166) * number_density(i,152)
 
@@ -3906,6 +4637,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CL2O2_1: CL2O2 -> 2*CL
     LU(i,654) = LU(i,654) - rate_constant(i,446)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy38
+
+subroutine dforce_dy39(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CLO/d(CL2O2)
     !  k_CL2O2_M_1: CL2O2 + M -> 2*CLO + 1*M
@@ -4007,6 +4758,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3O2_CLO_1: CH3O2 + CLO -> 1*CL + 1*HO2 + 1*CH2O
     LU(i,1266) = LU(i,1266) + rate_constant(i,467) * number_density(i,191)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy39
+
+subroutine dforce_dy40(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CLO_CLO_4: CLO + CLO -> 1*CL + 1*OCLO
     LU(i,1266) = LU(i,1266) + rate_constant(i,468) * number_density(i,86)
 
@@ -4108,6 +4879,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CLO_CLO_4: CLO + CLO -> 1*CL + 1*OCLO
     LU(i,1263) = LU(i,1263) - rate_constant(i,468) * number_density(i,86)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy40
+
+subroutine dforce_dy41(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CLO_CLO_4: CLO + CLO -> 1*CL + 1*OCLO
     LU(i,1263) = LU(i,1263) - rate_constant(i,468) * number_density(i,86)
@@ -4211,6 +5002,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_O/d(CLONO2)
     !  k_CLONO2_O_1: CLONO2 + O -> 1*CLO + 1*NO3
     LU(i,882) = LU(i,882) - rate_constant(i,463) * number_density(i,187)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy41
+
+subroutine dforce_dy42(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NO3/d(CLONO2)
     !  k_CLONO2_1: CLONO2 -> 1*CL + 1*NO3
@@ -4312,6 +5123,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_HCFC141B_OH_1: HCFC141B + OH -> 1*CL + 1*COFCL
     LU(i,2230) = LU(i,2230) - rate_constant(i,360) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy42
+
+subroutine dforce_dy43(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_O1D/d(HCFC141B)
     !  k_HCFC141B_O1D_1: HCFC141B + O1D -> 1*CL + 1*COFCL
@@ -4413,6 +5244,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HCFC142B_1: HCFC142B -> 1*CL + 1*COF2
     LU(i,6769) = LU(i,6769) - rate_constant(i,230)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy43
+
+subroutine dforce_dy44(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_HCFC142B_O1D_1: HCFC142B + O1D -> 1*CL + 1*COF2
     LU(i,6769) = LU(i,6769) - rate_constant(i,466) * number_density(i,112)
 
@@ -4516,6 +5367,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HOCL/d(HOCL)
     !  k_HOCL_OH_1: HOCL + OH -> 1*H2O + 1*CLO
     LU(i,1380) = LU(i,1380) - rate_constant(i,30) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy44
+
+subroutine dforce_dy45(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CL_HOCL_1: CL + HOCL -> 1*HCL + 1*CLO
     LU(i,1380) = LU(i,1380) - rate_constant(i,91) * number_density(i,100)
@@ -4617,6 +5488,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_N2O/d(N)
     !  k_N_NO2_3: N + NO2 -> 1*N2O + 1*O
     LU(i,7703) = LU(i,7703) + rate_constant(i,273) * number_density(i,54)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy45
+
+subroutine dforce_dy46(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(N)
     !  k_N_OH_1: N + OH -> 1*NO + 1*H
@@ -4719,6 +5610,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_C2H5O2_C2H5O2_1: C2H5O2 + C2H5O2 -> 1.6*CH3CHO + 1.2*HO2 + 0.4*C2H5OH
     LU(i,1323) = LU(i,1323) - rate_constant(i,248) * number_density(i,87)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy46
+
+subroutine dforce_dy47(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C2H5O2_C2H5O2_1: C2H5O2 + C2H5O2 -> 1.6*CH3CHO + 1.2*HO2 + 0.4*C2H5OH
     LU(i,1323) = LU(i,1323) - rate_constant(i,248) * number_density(i,87)
@@ -4822,6 +5733,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO3/d(CH3COCHO)
     !  k_CH3COCHO_NO3_1: CH3COCHO + NO3 -> 1*HNO3 + 1*CO + 1*CH3CO3
     LU(i,2522) = LU(i,2522) - rate_constant(i,405) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy47
+
+subroutine dforce_dy48(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(CH3COCHO)
     !  k_CH3COCHO_OH_1: CH3COCHO + OH -> 1*CH3CO3 + 1*CO + 1*H2O
@@ -4923,6 +5854,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_NO2_O_1: NO2 + O -> 1*NO + 1*O2
     LU(i,7807) = LU(i,7807) - rate_constant(i,351) * number_density(i,54)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy48
+
+subroutine dforce_dy49(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_NO2_O_2: NO2 + O -> 1*NO3
     LU(i,7807) = LU(i,7807) - rate_constant(i,472) * number_density(i,54)
@@ -5024,6 +5975,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_M_O_O_1: M + O + O -> 1*O2 + 1*M
     LU(i,7876) = LU(i,7876) - rate_constant(i,304) * number_density(i,1) * number_density(i,187)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy49
+
+subroutine dforce_dy50(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_M_O_O_1: M + O + O -> 1*O2 + 1*M
     LU(i,7876) = LU(i,7876) - rate_constant(i,304) * number_density(i,1) * number_density(i,187)
@@ -5125,6 +6096,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HBR_O_1: HBR + O -> 1*BR + 1*OH
     LU(i,7855) = LU(i,7855) + rate_constant(i,473) * number_density(i,80)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy50
+
+subroutine dforce_dy51(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_O3/d(O)
     !  k_O_O3_1: O + O3 -> 2*O2
     LU(i,7860) = LU(i,7860) - rate_constant(i,187) * number_density(i,171)
@@ -5226,6 +6217,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HCN_O1D_1: HCN + O1D -> 1*OH
     LU(i,2555) = LU(i,2555) - rate_constant(i,268) * number_density(i,47)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy51
+
+subroutine dforce_dy52(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_CCL4/d(O1D)
     !  k_CCL4_O1D_1: CCL4 + O1D -> 4*CL
     LU(i,2561) = LU(i,2561) - rate_constant(i,366) * number_density(i,59)
@@ -5327,6 +6338,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HCFC22_O1D_1: HCFC22 + O1D -> 1*CL + 1*COF2
     LU(i,2582) = LU(i,2582) + rate_constant(i,64) * number_density(i,83)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy52
+
+subroutine dforce_dy53(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CF2CLBR_O1D_1: CF2CLBR + O1D -> 1*CL + 1*BR + 1*COF2
     LU(i,2582) = LU(i,2582) + rate_constant(i,128) * number_density(i,98)
 
@@ -5428,6 +6459,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_H2_O1D_1: H2 + O1D -> 1*H + 1*OH
     LU(i,2586) = LU(i,2586) - rate_constant(i,237) * number_density(i,152)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy53
+
+subroutine dforce_dy54(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CFC115_O1D_1: CFC115 + O1D -> 1*CL + 1*F + 2*COF2
     LU(i,2586) = LU(i,2586) - rate_constant(i,253) * number_density(i,63)
 
@@ -5531,6 +6582,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_O3/d(O1D)
     !  k_O1D_O3_1: O1D + O3 -> 1*O2
     LU(i,2613) = LU(i,2613) - rate_constant(i,487) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy54
+
+subroutine dforce_dy55(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_C6H5O2/d(PHENO)
     !  k_O3_PHENO_1: O3 + PHENO -> 1*C6H5O2
@@ -5633,6 +6704,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CLO/d(HCL)
     !  k_HCL_O1D_2: HCL + O1D -> 1*CLO + 1*H
     LU(i,7293) = LU(i,7293) + rate_constant(i,344) * number_density(i,112)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy55
+
+subroutine dforce_dy56(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_O/d(HCL)
     !  k_HCL_O_1: HCL + O -> 1*CL + 1*OH
@@ -5734,6 +6825,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_BENZENE_OH_1: BENZENE + OH -> 0.53*PHENOL + 0.12*BEPOMUC + 0.65*HO2 + 0.35*BENZO2
     LU(i,1959) = LU(i,1959) + 0.12*rate_constant(i,318) * number_density(i,166)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy56
+
+subroutine dforce_dy57(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_BENZENE/d(BENZENE)
     !  k_BENZENE_OH_1: BENZENE + OH -> 0.53*PHENOL + 0.12*BEPOMUC + 0.65*HO2 + 0.35*BENZO2
     LU(i,1961) = LU(i,1961) - rate_constant(i,318) * number_density(i,166)
@@ -5835,6 +6946,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3O2_MACRO2_1: CH3O2 + MACRO2 -> 0.73*HO2 + 0.88*CH2O + 0.11*CO + 0.24*CH3COCHO + 0.26*GLYALD + 0.26*CH3CO3 + 0.25*CH3OH + 0.23*HYAC
     LU(i,8125) = LU(i,8125) + 0.26*rate_constant(i,322) * number_density(i,188)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy57
+
+subroutine dforce_dy58(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CH3O2_RO2_1: CH3O2 + RO2 -> 0.3*CH3CO3 + 0.8*CH2O + 0.3*HO2 + 0.2*HYAC + 0.5*CH3COCHO + 0.5*CH3OH
     LU(i,8125) = LU(i,8125) + 0.3*rate_constant(i,354) * number_density(i,40)
 
@@ -5937,6 +7068,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3O2_MBOO2_1: CH3O2 + MBOO2 -> 0.917*CH2O + 1*HO2 + 0.25*CH3OH + 0.333*GLYALD + 0.333*CH3COCH3 + 0.167*HMPROP
     LU(i,8206) = LU(i,8206) - rate_constant(i,155) * number_density(i,125)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy58
+
+subroutine dforce_dy59(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3O2_ISOPNO3_1: CH3O2 + ISOPNO3 -> 0.8*NC4CHO + 1.2*HO2 + 0.8*CH2O + 0.2*CH3OH + 0.2*NC4CH2OH
     LU(i,8206) = LU(i,8206) - rate_constant(i,160) * number_density(i,46)
@@ -6038,6 +7189,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3O2_TERP2O2_1: CH3O2 + TERP2O2 -> 1*TERPROD2 + 0.93*CH2O + 0.25*CH3OH + 1*HO2 + 0.5*CO2 + 0.125*CO + 0.125*GLYALD + 0.15*CH3COCH3
     LU(i,8150) = LU(i,8150) + 0.93*rate_constant(i,414) * number_density(i,145)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy59
+
+subroutine dforce_dy60(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CH3O2_CH3O2_1: CH3O2 + CH3O2 -> 2*CH2O + 2*HO2
     LU(i,8150) = LU(i,8150) + 2*rate_constant(i,433) * number_density(i,191)
 
@@ -6139,6 +7310,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3O2_MACRO2_1: CH3O2 + MACRO2 -> 0.73*HO2 + 0.88*CH2O + 0.11*CO + 0.24*CH3COCHO + 0.26*GLYALD + 0.26*CH3CO3 + 0.25*CH3OH + 0.23*HYAC
     LU(i,8171) = LU(i,8171) + 0.26*rate_constant(i,322) * number_density(i,188)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy60
+
+subroutine dforce_dy61(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CH3O2_XO2_1: CH3O2 + XO2 -> 0.3*CH3OH + 0.8*HO2 + 0.8*CH2O + 0.2*CO + 0.1*GLYOXAL + 0.1*CH3COCHO + 0.1*HYAC + 0.1*GLYALD
     LU(i,8171) = LU(i,8171) + 0.1*rate_constant(i,410) * number_density(i,153)
 
@@ -6240,6 +7431,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3O2_TERP2O2_1: CH3O2 + TERP2O2 -> 1*TERPROD2 + 0.93*CH2O + 0.25*CH3OH + 1*HO2 + 0.5*CO2 + 0.125*CO + 0.125*GLYALD + 0.15*CH3COCH3
     LU(i,8191) = LU(i,8191) + 0.125*rate_constant(i,414) * number_density(i,145)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy61
+
+subroutine dforce_dy62(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH3COOH/d(CH3O2)
     !  k_CH3CO3_CH3O2_1: CH3CO3 + CH3O2 -> 0.9*CH3O2 + 1*CH2O + 0.9*HO2 + 0.9*CO2 + 0.1*CH3COOH
@@ -6343,6 +7554,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HO2/d(BCARY)
     !  k_BCARY_O3_1: BCARY + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     LU(i,2092) = LU(i,2092) + 0.57*rate_constant(i,229) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy62
+
+subroutine dforce_dy63(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NTERPO2/d(BCARY)
     !  k_BCARY_NO3_1: BCARY + NO3 -> 1*NTERPO2
@@ -6446,6 +7677,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CO/d(BIGALD4)
     !  k_BIGALD4_1: BIGALD4 -> 1*HO2 + 1*CO + 1*CH3COCHO + 1*CH3CO3
     LU(i,2467) = LU(i,2467) + rate_constant(i,61)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy63
+
+subroutine dforce_dy64(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_BIGALK/d(BIGALK)
     !  k_BIGALK_OH_1: BIGALK + OH -> 1*ALKO2
@@ -6548,6 +7799,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_C2H5O2/d(C2H6)
     !  k_C2H6_OH_1: C2H6 + OH -> 1*C2H5O2 + 1*H2O
     LU(i,6860) = LU(i,6860) + rate_constant(i,174) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy64
+
+subroutine dforce_dy65(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C2H6_CL_1: C2H6 + CL -> 1*HCL + 1*C2H5O2
     LU(i,6860) = LU(i,6860) + rate_constant(i,193) * number_density(i,100)
@@ -6651,6 +7922,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NOA/d(C3H6)
     !  k_C3H6_NO3_1: C3H6 + NO3 -> 1*NOA
     LU(i,3037) = LU(i,3037) + rate_constant(i,221) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy65
+
+subroutine dforce_dy66(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_H/d(CH2O)
     !  k_CH2O_2: CH2O -> 1*CO + 2*H
@@ -6753,6 +8044,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH2O_1: CH2O -> 1*CO + 1*H2
     LU(i,3300) = LU(i,3300) + rate_constant(i,93)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy66
+
+subroutine dforce_dy67(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH2O_2: CH2O -> 1*CO + 2*H
     LU(i,3300) = LU(i,3300) + rate_constant(i,149)
@@ -6854,6 +8165,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3OOH_OH_1: CH3OOH + OH -> 0.7*CH3O2 + 0.3*OH + 0.3*CH2O + 1*H2O
     LU(i,3906) = LU(i,3906) - 0.7*rate_constant(i,348) * number_density(i,166)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy67
+
+subroutine dforce_dy68(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_CH3OOH_1: CH3OOH -> 1*CH2O + 1*H + 1*OH
     LU(i,3906) = LU(i,3906) + rate_constant(i,379)
 
@@ -6955,6 +8286,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO/d(MACRO2)
     !  k_MACRO2_NO_1: MACRO2 + NO -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.53*GLYALD + 0.25*CH3COCHO + 0.53*CH3CO3 + 0.22*HYAC + 0.22*CO
     LU(i,7907) = LU(i,7907) - rate_constant(i,40) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy68
+
+subroutine dforce_dy69(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MACRO2_NO_2: MACRO2 + NO -> 1*HONITR
     LU(i,7907) = LU(i,7907) - rate_constant(i,376) * number_density(i,137)
@@ -7056,6 +8407,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_MACRO2_NO_1: MACRO2 + NO -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.53*GLYALD + 0.25*CH3COCHO + 0.53*CH3CO3 + 0.22*HYAC + 0.22*CO
     LU(i,7942) = LU(i,7942) + 0.22*rate_constant(i,40) * number_density(i,137)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy69
+
+subroutine dforce_dy70(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_MACRO2_NO3_1: MACRO2 + NO3 -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.25*CH3COCHO + 0.22*CO + 0.53*GLYALD + 0.22*HYAC + 0.53*CH3CO3
     LU(i,7942) = LU(i,7942) + 0.22*rate_constant(i,134) * number_density(i,165)
 
@@ -7157,6 +8528,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ISOPAO2_NO_1: ISOPAO2 + NO -> 0.08*ISOPNITA + 0.92*NO2 + 0.36*MACR + 0.56*MVK + 0.92*CH2O + 0.92*HO2
     LU(i,8037) = LU(i,8037) + 0.92*rate_constant(i,464) * number_density(i,137)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy70
+
+subroutine dforce_dy71(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_MACR/d(ISOPAO2)
     !  k_CH3CO3_ISOPAO2_1: CH3CO3 + ISOPAO2 -> 1*CH3O2 + 1*HO2 + 1*CH2O + 0.39*MACR + 0.61*MVK + 1*CO2
     LU(i,8002) = LU(i,8002) + 0.39*rate_constant(i,65) * number_density(i,49)
@@ -7258,6 +8649,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HMPROP/d(MBONO3O2)
     !  k_MBONO3O2_NO3_1: MBONO3O2 + NO3 -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
     LU(i,3203) = LU(i,3203) + 0.25*rate_constant(i,44) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy71
+
+subroutine dforce_dy72(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MBONO3O2_NO_1: MBONO3O2 + NO -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
     LU(i,3203) = LU(i,3203) + 0.25*rate_constant(i,313) * number_density(i,137)
@@ -7359,6 +8770,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3CO3_ISOPBO2_1: CH3CO3 + ISOPBO2 -> 1*HYDRALD + 1*CH3O2 + 1*HO2
     LU(i,8038) = LU(i,8038) - rate_constant(i,340) * number_density(i,49)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy72
+
+subroutine dforce_dy73(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HYAC/d(ISOPBO2)
     !  k_ISOPBO2_NO_1: ISOPBO2 + NO -> 0.87*HYDRALD + 0.08*ISOPNITB + 0.92*NO2 + 0.92*HO2 + 0.05*GLYOXAL + 0.05*GLYALD + 0.05*CH3COCHO + 0.05*HYAC
     LU(i,8041) = LU(i,8041) + 0.05*rate_constant(i,96) * number_density(i,137)
@@ -7462,6 +8893,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HYDRALD/d(ISOPBO2)
     !  k_ISOPBO2_NO_1: ISOPBO2 + NO -> 0.87*HYDRALD + 0.08*ISOPNITB + 0.92*NO2 + 0.92*HO2 + 0.05*GLYOXAL + 0.05*GLYALD + 0.05*CH3COCHO + 0.05*HYAC
     LU(i,8066) = LU(i,8066) + 0.87*rate_constant(i,96) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy73
+
+subroutine dforce_dy74(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3O2_ISOPBO2_1: CH3O2 + ISOPBO2 -> 0.25*CH3OH + 1*HO2 + 0.75*CH2O + 0.75*HYDRALD
     LU(i,8066) = LU(i,8066) + 0.75*rate_constant(i,167) * number_density(i,191)
@@ -7564,6 +9015,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3CO3_MCO3_1: CH3CO3 + MCO3 -> 2*CO2 + 1*CH3O2 + 1*CH2O + 1*CH3CO3
     LU(i,6399) = LU(i,6399) - rate_constant(i,81) * number_density(i,49)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy74
+
+subroutine dforce_dy75(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3O2_MCO3_1: CH3O2 + MCO3 -> 2*CH2O + 1*HO2 + 1*CO2 + 1*CH3CO3
     LU(i,6399) = LU(i,6399) - rate_constant(i,84) * number_density(i,191)
@@ -7665,6 +9136,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_MDIALO2_NO_1: MDIALO2 + NO -> 1*NO2 + 0.83*HO2 + 0.17*CH3COCHO + 0.35*CO + 0.17*CH3O2 + 0.17*GLYOXAL
     LU(i,6076) = LU(i,6076) + 0.83*rate_constant(i,403) * number_density(i,137)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy75
+
+subroutine dforce_dy76(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_OH/d(MDIALO2)
     !  k_HO2_MDIALO2_1: HO2 + MDIALO2 -> 0.4*OH + 0.33*HO2 + 0.07*CH3COCHO + 0.14*CO + 0.07*CH3O2 + 0.07*GLYOXAL
     LU(i,6050) = LU(i,6050) + 0.4*rate_constant(i,161) * number_density(i,192)
@@ -7766,6 +9257,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_EO_O2_1: EO + O2 -> 1*GLYALD + 1*HO2
     LU(i,5897) = LU(i,5897) - rate_constant(i,442) * number_density(i,41)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy76
+
+subroutine dforce_dy77(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_GLYALD/d(EO)
     !  k_EO_O2_1: EO + O2 -> 1*GLYALD + 1*HO2
     LU(i,5891) = LU(i,5891) + rate_constant(i,442) * number_density(i,41)
@@ -7867,6 +9378,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CO2/d(MPAN)
     !  k_MPAN_OH_1: MPAN + OH -> 0.5*HYAC + 0.5*NO3 + 0.5*CH2O + 0.5*HO2 + 0.5*CO2
     LU(i,5632) = LU(i,5632) + 0.5*rate_constant(i,28) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy77
+
+subroutine dforce_dy78(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH2O/d(MPAN)
     !  k_MPAN_OH_1: MPAN + OH -> 0.5*HYAC + 0.5*NO3 + 0.5*CH2O + 0.5*HO2 + 0.5*CO2
@@ -7970,6 +9501,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_GLYOXAL/d(GLYALD)
     !  k_GLYALD_OH_1: GLYALD + OH -> 1*HO2 + 0.2*GLYOXAL + 0.8*CH2O + 0.8*CO2
     LU(i,5420) = LU(i,5420) + 0.2*rate_constant(i,123) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy78
+
+subroutine dforce_dy79(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_GLYALD/d(GLYALD)
     !  k_GLYALD_OH_1: GLYALD + OH -> 1*HO2 + 0.2*GLYOXAL + 0.8*CH2O + 0.8*CO2
@@ -8072,6 +9623,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BZOO/d(HO2)
     !  k_BZOO_HO2_1: BZOO + HO2 -> 1*BZOOH
     LU(i,8214) = LU(i,8214) - rate_constant(i,331) * number_density(i,33)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy79
+
+subroutine dforce_dy80(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HMPROPO2/d(HO2)
     !  k_HMPROPO2_HO2_1: HMPROPO2 + HO2 -> 0.4*OH + 0.4*HO2 + 0.4*CH3COCH3 + 0.4*CO2
@@ -8174,6 +9745,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CL/d(HO2)
     !  k_CL_HO2_1: CL + HO2 -> 1*HCL + 1*O2
     LU(i,8248) = LU(i,8248) - rate_constant(i,264) * number_density(i,100)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy80
+
+subroutine dforce_dy81(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CL_HO2_2: CL + HO2 -> 1*OH + 1*CLO
     LU(i,8248) = LU(i,8248) - rate_constant(i,470) * number_density(i,100)
@@ -8275,6 +9866,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_H2O_HO2_HO2_M_1: H2O + HO2 + HO2 + M -> 1*H2O2 + 1*O2 + 1*M + 1*H2O
     LU(i,8314) = LU(i,8314) + rate_constant(i,212) * number_density(i,68) * number_density(i,192) * number_density(i,1)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy81
+
+subroutine dforce_dy82(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_C2H5OOH/d(HO2)
     !  k_C2H5O2_HO2_1: C2H5O2 + HO2 -> 1*C2H5OOH + 1*O2
@@ -8376,6 +9987,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HO2_MEKO2_1: HO2 + MEKO2 -> 0.8*MEKOOH + 0.2*OH + 0.2*CH3CHO + 0.2*CH3CO3
     LU(i,8327) = LU(i,8327) - rate_constant(i,139) * number_density(i,128)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy82
+
+subroutine dforce_dy83(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_C3H7O2_HO2_1: C3H7O2 + HO2 -> 1*C3H7OOH + 1*O2
     LU(i,8327) = LU(i,8327) - rate_constant(i,142) * number_density(i,109)
 
@@ -8477,6 +10108,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_HMPROPO2_HO2_1: HMPROPO2 + HO2 -> 0.4*OH + 0.4*HO2 + 0.4*CH3COCH3 + 0.4*CO2
     LU(i,8327) = LU(i,8327) - 0.6*rate_constant(i,289) * number_density(i,77)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy83
+
+subroutine dforce_dy84(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_HO2_OH_1: HO2 + OH -> 1*H2O + 1*O2
     LU(i,8327) = LU(i,8327) - rate_constant(i,291) * number_density(i,166)
@@ -8579,6 +10230,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_XYLOLO2/d(HO2)
     !  k_HO2_XYLOLO2_1: HO2 + XYLOLO2 -> 1*XYLOLOOH
     LU(i,8283) = LU(i,8283) - rate_constant(i,357) * number_density(i,148)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy84
+
+subroutine dforce_dy85(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_PO2/d(HO2)
     !  k_HO2_PO2_1: HO2 + PO2 -> 1*POOH + 1*O2
@@ -8680,6 +10351,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_HO2_XYLENO2_1: HO2 + XYLENO2 -> 1*XYLENOOH
     LU(i,8246) = LU(i,8246) + rate_constant(i,333) * number_density(i,146)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy85
+
+subroutine dforce_dy86(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_XYLOLOOH/d(HO2)
     !  k_HO2_XYLOLO2_1: HO2 + XYLOLO2 -> 1*XYLOLOOH
     LU(i,8213) = LU(i,8213) + rate_constant(i,357) * number_density(i,148)
@@ -8782,6 +10473,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_H2_O1D_1: H2 + O1D -> 1*H + 1*OH
     LU(i,5114) = LU(i,5114) + rate_constant(i,237) * number_density(i,112)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy86
+
+subroutine dforce_dy87(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_H2_OH_1: H2 + OH -> 1*H2O + 1*H
     LU(i,5114) = LU(i,5114) + rate_constant(i,281) * number_density(i,166)
@@ -8884,6 +10595,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CH3CO3/d(ISOP)
     !  k_ISOP_O3_2: ISOP + O3 -> 0.3*MACR + 0.2*MVK + 0.11*HCOOH + 0.62*CO + 0.32*OH + 0.37*HO2 + 0.91*CH2O + 0.08*CH3CO3 + 0.13*C3H6 + 0.05*CH3O2
     LU(i,4366) = LU(i,4366) + 0.08*rate_constant(i,377) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy87
+
+subroutine dforce_dy88(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HCOOH/d(ISOP)
     !  k_ISOP_O3_2: ISOP + O3 -> 0.3*MACR + 0.2*MVK + 0.11*HCOOH + 0.62*CO + 0.32*OH + 0.37*HO2 + 0.91*CH2O + 0.08*CH3CO3 + 0.13*C3H6 + 0.05*CH3O2
@@ -8985,6 +10716,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_NO3_NTERPO2_1: NO3 + NTERPO2 -> 2*NO2 + 1*TERPROD1
     LU(i,4443) = LU(i,4443) + 2*rate_constant(i,389) * number_density(i,165)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy88
+
+subroutine dforce_dy89(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NTERPOOH/d(NTERPO2)
     !  k_HO2_NTERPO2_1: HO2 + NTERPO2 -> 1*NTERPOOH
     LU(i,4460) = LU(i,4460) + rate_constant(i,124) * number_density(i,192)
@@ -9086,6 +10837,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CO2/d(TERP2O2)
     !  k_NO_TERP2O2_1: NO + TERP2O2 -> 0.1*ONITR + 0.9*NO2 + 0.34*CH2O + 0.27*CH3COCH3 + 0.225*CO + 0.9*CO2 + 0.9*TERPROD2 + 0.9*HO2 + 0.225*GLYALD
     LU(i,4605) = LU(i,4605) + 0.9*rate_constant(i,110) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy89
+
+subroutine dforce_dy90(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3O2_TERP2O2_1: CH3O2 + TERP2O2 -> 1*TERPROD2 + 0.93*CH2O + 0.25*CH3OH + 1*HO2 + 0.5*CO2 + 0.125*CO + 0.125*GLYALD + 0.15*CH3COCH3
     LU(i,4605) = LU(i,4605) + 0.5*rate_constant(i,414) * number_density(i,191)
@@ -9188,6 +10959,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_GLYOXAL/d(XYLENO2)
     !  k_NO_XYLENO2_1: NO + XYLENO2 -> 1*NO2 + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
     LU(i,4699) = LU(i,4699) + 0.34*rate_constant(i,419) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy90
+
+subroutine dforce_dy91(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(XYLENO2)
     !  k_HO2_XYLENO2_1: HO2 + XYLENO2 -> 1*XYLENOOH
@@ -9291,6 +11082,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_GLYOXAL/d(XYLOLO2)
     !  k_NO_XYLOLO2_1: NO + XYLOLO2 -> 1*HO2 + 1*NO2 + 0.17*GLYOXAL + 0.51*CH3COCHO
     LU(i,4853) = LU(i,4853) + 0.17*rate_constant(i,404) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy91
+
+subroutine dforce_dy92(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(XYLOLO2)
     !  k_HO2_XYLOLO2_1: HO2 + XYLOLO2 -> 1*XYLOLOOH
@@ -9392,6 +11203,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_NO_PO2_1: NO + PO2 -> 1*CH3CHO + 1*CH2O + 1*HO2 + 1*NO2
     LU(i,5113) = LU(i,5113) + rate_constant(i,365) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy92
+
+subroutine dforce_dy93(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_PO2/d(PO2)
     !  k_HO2_PO2_1: HO2 + PO2 -> 1*POOH + 1*O2
@@ -9494,6 +11325,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_NO3_XO2_1: NO3 + XO2 -> 1*NO2 + 1*HO2 + 0.5*CO + 0.25*HYAC + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*GLYALD
     LU(i,5205) = LU(i,5205) + 0.25*rate_constant(i,109) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy93
+
+subroutine dforce_dy94(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_NO_XO2_1: NO + XO2 -> 1*NO2 + 1*HO2 + 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD
     LU(i,5205) = LU(i,5205) + 0.25*rate_constant(i,252) * number_density(i,137)
@@ -9595,6 +11446,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_NO3_XO2_1: NO3 + XO2 -> 1*NO2 + 1*HO2 + 0.5*CO + 0.25*HYAC + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*GLYALD
     LU(i,5248) = LU(i,5248) + 0.5*rate_constant(i,109) * number_density(i,165)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy94
+
+subroutine dforce_dy95(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_NO_XO2_1: NO + XO2 -> 1*NO2 + 1*HO2 + 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD
     LU(i,5248) = LU(i,5248) + 0.25*rate_constant(i,252) * number_density(i,137)
 
@@ -9697,6 +11568,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_OH/d(MEKOOH)
     !  k_MEKOOH_1: MEKOOH -> 1*OH + 1*CH3CO3 + 1*CH3CHO
     LU(i,3975) = LU(i,3975) + rate_constant(i,89)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy95
+
+subroutine dforce_dy96(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MEKOOH_OH_1: MEKOOH + OH -> 1*MEKO2
     LU(i,3975) = LU(i,3975) - rate_constant(i,352) * number_density(i,166)
@@ -9798,6 +11689,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CH3COCH3/d(HONITR)
     !  k_HONITR_1: HONITR -> 1*NO2 + 0.67*HO2 + 0.33*CH3CHO + 0.33*CH2O + 0.33*CO + 0.33*GLYALD + 0.33*CH3CO3 + 0.17*HYAC + 0.17*CH3COCH3
     LU(i,3806) = LU(i,3806) + 0.17*rate_constant(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy96
+
+subroutine dforce_dy97(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH2O/d(HONITR)
     !  k_HONITR_1: HONITR -> 1*NO2 + 0.67*HO2 + 0.33*CH3CHO + 0.33*CH2O + 0.33*CO + 0.33*GLYALD + 0.33*CH3CO3 + 0.17*HYAC + 0.17*CH3COCH3
@@ -9899,6 +11810,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ISOPNOOH_OH_1: ISOPNOOH + OH -> 1*NOA + 1*HO2
     LU(i,5698) = LU(i,5698) + rate_constant(i,271) * number_density(i,166)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy97
+
+subroutine dforce_dy98(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_XO2/d(IEPOX)
     !  k_IEPOX_OH_1: IEPOX + OH -> 1*XO2
     LU(i,892) = LU(i,892) + rate_constant(i,190) * number_density(i,166)
@@ -10000,6 +11931,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_BCARY_NO3_2: BCARY + NO3 -> 1*BCARY + 1*NO3 + 0.17493*SOAG3 + 0.59019*SOAG4
     LU(i,6077) = LU(i,6077) + 0.17493*rate_constant(i,358) * number_density(i,102)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy98
+
+subroutine dforce_dy99(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_SOAG4/d(NO3)
     !  k_MTERP_NO3_2: MTERP + NO3 -> 1*MTERP + 1*NO3 + 0.17493*SOAG3 + 0.59019*SOAG4
     LU(i,6078) = LU(i,6078) + 0.59019*rate_constant(i,173) * number_density(i,31)
@@ -10102,6 +12053,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_ISOPAO2_NO3_1: ISOPAO2 + NO3 -> 1*NO2 + 0.4*MACR + 0.6*MVK + 1*CH2O + 1*HO2
     LU(i,6090) = LU(i,6090) + rate_constant(i,330) * number_density(i,189)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy99
+
+subroutine dforce_dy100(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_BIGENE_NO3_1: BIGENE + NO3 -> 1*NO2 + 1*CH3CHO + 0.5*CH2O + 0.5*CH3COCH3
     LU(i,6090) = LU(i,6090) + rate_constant(i,387) * number_density(i,97)
@@ -10205,6 +12176,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_ISOPBO2/d(NO3)
     !  k_ISOPBO2_NO3_1: ISOPBO2 + NO3 -> 1*NO2 + 0.95*HYDRALD + 1*HO2 + 0.05*GLYOXAL + 0.05*GLYALD + 0.05*CH3COCHO + 0.05*HYAC
     LU(i,6176) = LU(i,6176) - rate_constant(i,178) * number_density(i,190)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy100
+
+subroutine dforce_dy101(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_MCO3/d(NO3)
     !  k_MCO3_NO3_1: MCO3 + NO3 -> 1*NO2 + 1*CH2O + 1*CH3CO3
@@ -10306,6 +12297,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_MBO_NO3_1: MBO + NO3 -> 1*MBONO3O2
     LU(i,6151) = LU(i,6151) - rate_constant(i,11) * number_density(i,127)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy101
+
+subroutine dforce_dy102(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3CHO_NO3_1: CH3CHO + NO3 -> 1*CH3CO3 + 1*HNO3
     LU(i,6151) = LU(i,6151) - rate_constant(i,34) * number_density(i,178)
@@ -10409,6 +12420,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NOA/d(NO3)
     !  k_C3H6_NO3_1: C3H6 + NO3 -> 1*NOA
     LU(i,6081) = LU(i,6081) + rate_constant(i,221) * number_density(i,120)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy102
+
+subroutine dforce_dy103(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NC4CHO/d(NO3)
     !  k_ISOPNO3_NO3_1: ISOPNO3 + NO3 -> 1*NC4CHO + 1*NO2 + 1*HO2
@@ -10510,6 +12541,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_BENZENE_OH_2: BENZENE + OH -> 1*BENZENE + 1*OH + 0.0023*SOAG0 + 0.0008*SOAG1 + 0.0843*SOAG2 + 0.0443*SOAG3 + 0.1621*SOAG4
     LU(i,6190) = LU(i,6190) + 0.0023*rate_constant(i,478) * number_density(i,101)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy103
+
+subroutine dforce_dy104(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_SOAG1/d(OH)
     !  k_OH_SVOC_1: OH + SVOC -> 1*OH + 0.5931*SOAG0 + 0.1534*SOAG1 + 0.0459*SOAG2 + 0.0085*SOAG3 + 0.0128*SOAG4
@@ -10611,6 +12662,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_BENZENE_OH_2: BENZENE + OH -> 1*BENZENE + 1*OH + 0.0023*SOAG0 + 0.0008*SOAG1 + 0.0843*SOAG2 + 0.0443*SOAG3 + 0.1621*SOAG4
     LU(i,6194) = LU(i,6194) + 0.1621*rate_constant(i,478) * number_density(i,101)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy104
+
+subroutine dforce_dy105(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_ISOPNITB/d(OH)
     !  k_ISOPNITB_OH_1: ISOPNITB + OH -> 0.5*HYAC + 0.5*GLYALD + 0.5*NOA + 1*HO2 + 0.5*HONITR
     LU(i,6233) = LU(i,6233) - rate_constant(i,79) * number_density(i,73)
@@ -10713,6 +12784,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CH3COOOH/d(OH)
     !  k_CH3COOOH_OH_1: CH3COOOH + OH -> 0.5*CH3CO3 + 0.5*CH2O + 0.5*CO2 + 1*H2O
     LU(i,6341) = LU(i,6341) - rate_constant(i,393) * number_density(i,184)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy105
+
+subroutine dforce_dy106(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_SO2/d(OH)
     !  k_OH_SO2_1: OH + SO2 -> 1*SO3 + 1*HO2
@@ -10815,6 +12906,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_CH3BR_OH_1: CH3BR + OH -> 1*BR + 1*H2O + 1*HO2
     LU(i,6230) = LU(i,6230) + rate_constant(i,112) * number_density(i,94)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy106
+
+subroutine dforce_dy107(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CH3COCHO_OH_1: CH3COCHO + OH -> 1*CH3CO3 + 1*CO + 1*H2O
     LU(i,6230) = LU(i,6230) + rate_constant(i,122) * number_density(i,111)
@@ -10916,6 +13027,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_N_OH_1: N + OH -> 1*NO + 1*H
     LU(i,6294) = LU(i,6294) + rate_constant(i,250) * number_density(i,185)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy107
+
+subroutine dforce_dy108(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_BR/d(OH)
     !  k_CH3BR_OH_1: CH3BR + OH -> 1*BR + 1*H2O + 1*HO2
     LU(i,6249) = LU(i,6249) + rate_constant(i,112) * number_density(i,94)
@@ -11018,6 +13149,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_HCOOH_OH_1: HCOOH + OH -> 1*HO2 + 1*CO2 + 1*H2O
     LU(i,6277) = LU(i,6277) - rate_constant(i,296) * number_density(i,119)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy108
+
+subroutine dforce_dy109(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HCFC141B/d(OH)
     !  k_HCFC141B_OH_1: HCFC141B + OH -> 1*CL + 1*COFCL
@@ -11119,6 +13270,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CLO_OH_1: CLO + OH -> 1*HCL + 1*O2
     LU(i,6337) = LU(i,6337) + rate_constant(i,43) * number_density(i,86)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy109
+
+subroutine dforce_dy110(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_HCL_OH_1: HCL + OH -> 1*H2O + 1*CL
     LU(i,6337) = LU(i,6337) - rate_constant(i,458) * number_density(i,180)
 
@@ -11220,6 +13391,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3CN_OH_1: CH3CN + OH -> 1*HO2
     LU(i,6221) = LU(i,6221) - rate_constant(i,153) * number_density(i,50)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy110
+
+subroutine dforce_dy111(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_C2H2/d(OH)
     !  k_C2H2_OH_1: C2H2 + OH -> 0.65*GLYOXAL + 0.65*OH + 0.35*HCOOH + 0.35*HO2 + 0.35*CO
     LU(i,6325) = LU(i,6325) - rate_constant(i,2) * number_density(i,168)
@@ -11321,6 +13512,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_GLYALD_OH_1: GLYALD + OH -> 1*HO2 + 0.2*GLYOXAL + 0.8*CH2O + 0.8*CO2
     LU(i,6313) = LU(i,6313) - rate_constant(i,123) * number_density(i,156)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy111
+
+subroutine dforce_dy112(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_NC4CH2OH_OH_1: NC4CH2OH + OH -> 1*GLYALD + 1*NOA + 1*HO2
     LU(i,6313) = LU(i,6313) + rate_constant(i,295) * number_density(i,158)
@@ -11422,6 +13633,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_CH3OH_OH_1: CH3OH + OH -> 1*HO2 + 1*CH2O
     LU(i,6349) = LU(i,6349) + rate_constant(i,409) * number_density(i,122)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy112
+
+subroutine dforce_dy113(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     !  k_HYAC_OH_1: HYAC + OH -> 1*CH3COCHO + 1*HO2
     LU(i,6349) = LU(i,6349) + rate_constant(i,422) * number_density(i,57)
 
@@ -11523,6 +13754,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ISOPOOH_OH_1: ISOPOOH + OH -> 0.4*XO2 + 0.6*IEPOX + 0.6*OH
     LU(i,6310) = LU(i,6310) + 0.4*rate_constant(i,482) * number_density(i,138)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy113
+
+subroutine dforce_dy114(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_XOOH/d(OH)
     !  k_OH_XOOH_1: OH + XOOH -> 0.5*XO2 + 0.5*OH
     LU(i,6261) = LU(i,6261) - rate_constant(i,185) * number_density(i,103)
@@ -11624,6 +13875,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_OH_XYLENOOH_1: OH + XYLENOOH -> 1*XYLENO2
     LU(i,6323) = LU(i,6323) - rate_constant(i,50) * number_density(i,92)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy114
+
+subroutine dforce_dy115(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_HO2NO2_OH_1: HO2NO2 + OH -> 1*H2O + 1*NO2 + 1*O2
     LU(i,6323) = LU(i,6323) - rate_constant(i,54) * number_density(i,35)
@@ -11726,6 +13997,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_OH_XOOH_1: OH + XOOH -> 0.5*XO2 + 0.5*OH
     LU(i,6323) = LU(i,6323) - 0.5*rate_constant(i,185) * number_density(i,103)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy115
+
+subroutine dforce_dy116(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_IEPOX_OH_1: IEPOX + OH -> 1*XO2
     LU(i,6323) = LU(i,6323) - rate_constant(i,190) * number_density(i,76)
@@ -11828,6 +14119,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_BENZENE_OH_1: BENZENE + OH -> 0.53*PHENOL + 0.12*BEPOMUC + 0.65*HO2 + 0.35*BENZO2
     LU(i,6323) = LU(i,6323) - rate_constant(i,318) * number_density(i,101)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy116
+
+subroutine dforce_dy117(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C2H4_OH_1: C2H4 + OH -> 1*EO2
     LU(i,6323) = LU(i,6323) - rate_constant(i,319) * number_density(i,93)
@@ -11930,6 +14241,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_DMS_OH_2: DMS + OH -> 1*SO2
     LU(i,6323) = LU(i,6323) - rate_constant(i,476) * number_density(i,99)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy117
+
+subroutine dforce_dy118(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C2H5OH_OH_1: C2H5OH + OH -> 1*HO2 + 1*CH3CHO
     LU(i,6323) = LU(i,6323) - rate_constant(i,477) * number_density(i,126)
@@ -12031,6 +14362,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_ALKOOH_OH_1: ALKOOH + OH -> 1*ALKO2
     LU(i,6228) = LU(i,6228) - rate_constant(i,104) * number_density(i,65)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy118
+
+subroutine dforce_dy119(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_BENZOOH/d(OH)
     !  k_BENZOOH_OH_1: BENZOOH + OH -> 1*BENZO2
     LU(i,6250) = LU(i,6250) - rate_constant(i,382) * number_density(i,91)
@@ -12134,6 +14485,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_PHENOL/d(PHENOL)
     !  k_OH_PHENOL_1: OH + PHENOL -> 0.14*PHENO2 + 0.8*HO2 + 0.06*PHENO
     LU(i,78) = LU(i,78) - rate_constant(i,266) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy119
+
+subroutine dforce_dy120(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_PHENO/d(XYLOL)
     !  k_OH_XYLOL_1: OH + XYLOL -> 0.3*XYLOLO2 + 0.63*HO2 + 0.07*PHENO
@@ -12235,6 +14606,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_BCARY_O3_2: BCARY + O3 -> 1*BCARY + 1*O3 + 0.2202*SOAG0 + 0.2067*SOAG1 + 0.0653*SOAG2 + 0.1284*SOAG3 + 0.114*SOAG4
     LU(i,6628) = LU(i,6628) + 0.2202*rate_constant(i,349) * number_density(i,102)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy120
+
+subroutine dforce_dy121(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_SOAG1/d(O3)
     !  k_MTERP_O3_1: MTERP + O3 -> 1*MTERP + 1*O3 + 0.0508*SOAG0 + 0.1149*SOAG1 + 0.0348*SOAG2 + 0.0554*SOAG3 + 0.1278*SOAG4
@@ -12336,6 +14727,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     !  k_BR_O3_1: BR + O3 -> 1*BRO + 1*O2
     LU(i,6654) = LU(i,6654) - rate_constant(i,317) * number_density(i,90)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy121
+
+subroutine dforce_dy122(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_BRO/d(O3)
     !  k_BR_O3_1: BR + O3 -> 1*BRO + 1*O2
     LU(i,6646) = LU(i,6646) + rate_constant(i,317) * number_density(i,90)
@@ -12439,6 +14850,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BIGALD/d(O3)
     !  k_BCARY_O3_1: BCARY + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     LU(i,6658) = LU(i,6658) + 0.1*rate_constant(i,229) * number_density(i,102)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy122
+
+subroutine dforce_dy123(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_MTERP_O3_2: MTERP + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     LU(i,6658) = LU(i,6658) + 0.1*rate_constant(i,307) * number_density(i,31)
@@ -12542,6 +14973,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_NO3/d(O3)
     !  k_NO2_O3_1: NO2 + O3 -> 1*NO3 + 1*O2
     LU(i,6699) = LU(i,6699) + rate_constant(i,165) * number_density(i,54)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy123
+
+subroutine dforce_dy124(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(O3)
     !  k_MACR_O3_1: MACR + O3 -> 0.12*CH2O + 0.24*OH + 0.65*CO + 0.1*CH3CO3 + 0.88*CH3COCHO + 0.33*HCOOH + 0.14*HO2
@@ -12644,6 +15095,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CO/d(O3)
     !  k_MACR_O3_1: MACR + O3 -> 0.12*CH2O + 0.24*OH + 0.65*CO + 0.1*CH3CO3 + 0.88*CH3COCHO + 0.33*HCOOH + 0.14*HO2
     LU(i,6710) = LU(i,6710) + 0.65*rate_constant(i,101) * number_density(i,157)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy124
+
+subroutine dforce_dy125(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_C3H6_O3_1: C3H6 + O3 -> 0.5*CH2O + 0.12*HCOOH + 0.12*CH3COOH + 0.5*CH3CHO + 0.56*CO + 0.28*CH3O2 + 0.1*CH4 + 0.2*CO2 + 0.28*HO2 + 0.36*OH
     LU(i,6710) = LU(i,6710) + 0.56*rate_constant(i,170) * number_density(i,120)
@@ -12745,6 +15216,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_TOLOOH/d(TOLOOH)
     !  k_OH_TOLOOH_1: OH + TOLOOH -> 1*TOLO2
     LU(i,1683) = LU(i,1683) - rate_constant(i,70) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy125
+
+subroutine dforce_dy126(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_TOLOOH_1: TOLOOH -> 1*OH + 0.6*GLYOXAL + 0.4*CH3COCHO + 1*HO2 + 0.2*BIGALD1 + 0.2*BIGALD2 + 0.2*BIGALD3
     LU(i,1683) = LU(i,1683) - rate_constant(i,326)
@@ -12847,6 +15338,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_OH/d(CO)
     !  k_CO_OH_1: CO + OH -> 1*CO2 + 1*HO2
     LU(i,7038) = LU(i,7038) - rate_constant(i,208) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy126
+
+subroutine dforce_dy127(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_CO_OH_2: CO + OH -> 1*CO2 + 1*H
     LU(i,7038) = LU(i,7038) - rate_constant(i,429) * number_density(i,166)
@@ -12950,6 +15461,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_HO2/d(ALKOOH)
     !  k_ALKOOH_1: ALKOOH -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 0.9*HO2 + 0.8*MEK + 1*OH
     LU(i,587) = LU(i,587) + 0.9*rate_constant(i,300)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy127
+
+subroutine dforce_dy128(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(ALKOOH)
     !  k_ALKOOH_OH_1: ALKOOH + OH -> 1*ALKO2
@@ -13052,6 +15583,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_BENZOOH/d(BENZOOH)
     !  k_BENZOOH_1: BENZOOH -> 1*OH + 1*GLYOXAL + 0.5*BIGALD1 + 1*HO2
     LU(i,1562) = LU(i,1562) - rate_constant(i,275)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy128
+
+subroutine dforce_dy129(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_BENZOOH_OH_1: BENZOOH + OH -> 1*BENZO2
     LU(i,1562) = LU(i,1562) - rate_constant(i,382) * number_density(i,166)
@@ -13153,6 +15704,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
 
     !  k_HO2NO2_2: HO2NO2 -> 1*NO2 + 1*HO2
     LU(i,185) = LU(i,185) - rate_constant(i,359)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy129
+
+subroutine dforce_dy130(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     !  k_HO2NO2_3: HO2NO2 -> 1*OH + 1*NO3
     LU(i,185) = LU(i,185) - rate_constant(i,400)
@@ -13256,6 +15827,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CH2O/d(POOH)
     !  k_POOH_1: POOH -> 1*CH3CHO + 1*CH2O + 1*HO2 + 1*OH
     LU(i,35) = LU(i,35) + rate_constant(i,162)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy130
+
+subroutine dforce_dy131(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(POOH)
     !  k_POOH_1: POOH -> 1*CH3CHO + 1*CH2O + 1*HO2 + 1*OH
@@ -13358,6 +15949,26 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
     ! df_CO/d(TEPOMUC)
     !  k_TEPOMUC_1: TEPOMUC -> 0.5*CH3CO3 + 1*HO2 + 1.5*CO
     LU(i,11) = LU(i,11) + 1.5*rate_constant(i,85)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy131
+
+subroutine dforce_dy132(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_TEPOMUC/d(TEPOMUC)
     !  k_TEPOMUC_1: TEPOMUC -> 0.5*CH3CO3 + 1*HO2 + 1.5*CO
@@ -13421,9 +16032,167 @@ subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
   end do
   !$acc end parallel
 
+end subroutine dforce_dy132
+
+subroutine dforce_dy(LU, rate_constant, number_density, number_density_air)
+  ! Compute the derivative of the Forcing w.r.t. each chemical
+  ! Also known as the Jacobian
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+
+  ! Local variables
+  integer :: i, j 
+
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector collapse(2)
+  do j = 1, number_sparse_factor_elements
+     do i = 1, ncell
+        LU(i,j) = 0
+     end do
+  end do
+  !$acc end parallel
+
+
+  call dforce_dy1(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy2(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy3(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy4(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy5(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy6(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy7(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy8(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy9(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy10(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy11(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy12(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy13(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy14(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy15(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy16(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy17(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy18(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy19(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy20(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy21(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy22(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy23(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy24(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy25(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy26(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy27(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy28(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy29(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy30(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy31(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy32(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy33(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy34(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy35(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy36(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy37(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy38(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy39(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy40(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy41(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy42(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy43(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy44(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy45(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy46(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy47(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy48(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy49(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy50(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy51(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy52(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy53(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy54(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy55(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy56(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy57(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy58(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy59(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy60(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy61(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy62(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy63(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy64(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy65(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy66(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy67(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy68(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy69(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy70(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy71(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy72(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy73(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy74(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy75(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy76(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy77(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy78(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy79(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy80(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy81(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy82(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy83(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy84(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy85(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy86(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy87(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy88(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy89(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy90(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy91(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy92(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy93(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy94(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy95(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy96(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy97(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy98(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy99(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy100(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy101(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy102(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy103(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy104(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy105(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy106(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy107(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy108(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy109(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy110(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy111(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy112(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy113(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy114(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy115(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy116(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy117(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy118(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy119(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy120(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy121(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy122(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy123(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy124(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy125(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy126(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy127(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy128(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy129(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy130(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy131(LU, rate_constant, number_density, number_density_air)
+  call dforce_dy132(LU, rate_constant, number_density, number_density_air)
+
 end subroutine dforce_dy
 
-subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
+
+subroutine factored_alpha_minus_jac1(LU, alpha, dforce_dy)
   ! Compute LU decomposition of [alpha * I - dforce_dy]
 
   real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements)
@@ -13432,15 +16201,6 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
 
   ! Local variables
   integer :: i, j
-
-  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
-  !$acc loop gang vector collapse(2)
-  do j = 1, number_sparse_factor_elements 
-     do i = 1, ncell
-        LU(i,j) = -dforce_dy(i,j)
-     end do
-  end do
-  !$acc end parallel
 
   ! add alpha to diagonal elements
 
@@ -13548,6 +16308,27 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
     LU(i,1819) = -dforce_dy(i,1819) + alpha
     LU(i,1886) = -dforce_dy(i,1886) + alpha
     LU(i,1961) = -dforce_dy(i,1961) + alpha
+  end do
+  !$acc end parallel
+
+end subroutine factored_alpha_minus_jac1
+
+subroutine factored_alpha_minus_jac2(LU, alpha, dforce_dy)
+  ! Compute LU decomposition of [alpha * I - dforce_dy]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: alpha
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+
+  ! Local variables
+  integer :: i, j
+
+
+  ! add alpha to diagonal elements
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
     LU(i,2035) = -dforce_dy(i,2035) + alpha
     LU(i,2093) = -dforce_dy(i,2093) + alpha
     LU(i,2111) = -dforce_dy(i,2111) + alpha
@@ -13644,9 +16425,36 @@ subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
 
   call factor(LU)
 
+end subroutine factored_alpha_minus_jac2
+
+subroutine factored_alpha_minus_jac(LU, alpha, dforce_dy)
+  ! Compute LU decomposition of [alpha * I - dforce_dy]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements)
+  real(r8), intent(in) :: alpha
+  real(r8), intent(out) :: LU(ncell,number_sparse_factor_elements)
+
+  ! Local variables
+  integer :: i, j
+
+  ! add alpha to diagonal elements
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector collapse(2)
+  do j = 1, number_sparse_factor_elements 
+     do i = 1, ncell
+        LU(i,j) = -dforce_dy(i,j)
+     end do
+  end do
+  !$acc end parallel
+
+  call factored_alpha_minus_jac1(LU, alpha, dforce_dy)
+  call factored_alpha_minus_jac2(LU, alpha, dforce_dy)
+
 end subroutine factored_alpha_minus_jac
 
-subroutine p_force(rate_constant, number_density, number_density_air, force)
+
+subroutine p_force1(rate_constant, number_density, number_density_air, force)
   ! Compute force function for all molecules
 
   real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
@@ -13762,6 +16570,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! F
     force(i,7) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force1
+
+subroutine p_force2(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CFC115_O1D_1: CFC115 + O1D -> 1*CL + 1*F + 2*COF2
     force(i,7) = force(i,7) + rate_constant(i,253) * number_density(i,63) * number_density(i,112)
@@ -13864,6 +16691,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_OH_XYLOL_1: OH + XYLOL -> 0.3*XYLOLO2 + 0.63*HO2 + 0.07*PHENO
     force(i,14) = force(i,14) - rate_constant(i,80) * number_density(i,166) * number_density(i,14)
+  end do
+  !$acc end parallel
+
+end subroutine p_force2
+
+subroutine p_force3(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! SOAG0
     force(i,15) = 0
@@ -13966,6 +16812,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! SOAG3
     force(i,18) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force3
+
+subroutine p_force4(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_ISOP_O3_1: ISOP + O3 -> 1*ISOP + 1*O3 + 0.0033*SOAG3
     force(i,18) = force(i,18) + 0.0033*rate_constant(i,42) * number_density(i,142) * number_density(i,171)
@@ -14068,6 +16933,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_OH_PHENOL_1: OH + PHENOL -> 0.14*PHENO2 + 0.8*HO2 + 0.06*PHENO
     force(i,21) = force(i,21) - rate_constant(i,266) * number_density(i,166) * number_density(i,21)
+  end do
+  !$acc end parallel
+
+end subroutine p_force4
+
+subroutine p_force5(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BENZENE_OH_1: BENZENE + OH -> 0.53*PHENOL + 0.12*BEPOMUC + 0.65*HO2 + 0.35*BENZO2
     force(i,21) = force(i,21) + 0.53*rate_constant(i,318) * number_density(i,101) * number_density(i,166)
@@ -14170,6 +17054,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NC4CH2OH_OH_1: NC4CH2OH + OH -> 1*GLYALD + 1*NOA + 1*HO2
     force(i,27) = force(i,27) + rate_constant(i,295) * number_density(i,158) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force5
+
+subroutine p_force6(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NOA_OH_1: NOA + OH -> 1*NO2 + 1*CH3COCHO
     force(i,27) = force(i,27) - rate_constant(i,311) * number_density(i,27) * number_density(i,166)
@@ -14272,6 +17175,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2NO2_OH_1: HO2NO2 + OH -> 1*H2O + 1*NO2 + 1*O2
     force(i,35) = force(i,35) - rate_constant(i,54) * number_density(i,35) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force6
+
+subroutine p_force7(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_NO2_1: HO2 + NO2 -> 1*HO2NO2
     force(i,35) = force(i,35) + rate_constant(i,73) * number_density(i,192) * number_density(i,54)
@@ -14374,6 +17296,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_RO2_1: NO + RO2 -> 1*CH3CO3 + 1*CH2O + 1*NO2
     force(i,40) = force(i,40) - rate_constant(i,484) * number_density(i,137) * number_density(i,40)
+  end do
+  !$acc end parallel
+
+end subroutine p_force7
+
+subroutine p_force8(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! O2
     force(i,41) = 0
@@ -14476,6 +17417,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3O2_HO2_1: CH3O2 + HO2 -> 1*CH3OOH + 1*O2
     force(i,41) = force(i,41) + rate_constant(i,301) * number_density(i,191) * number_density(i,192)
+  end do
+  !$acc end parallel
+
+end subroutine p_force8
+
+subroutine p_force9(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_M_O_O_1: M + O + O -> 1*O2 + 1*M
     force(i,41) = force(i,41) + rate_constant(i,304) * number_density(i,1) * number_density(i,187) * number_density(i,187)
@@ -14578,6 +17538,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2_MACRO2_1: HO2 + MACRO2 -> 1*MACROOH
     force(i,44) = force(i,44) + rate_constant(i,36) * number_density(i,192) * number_density(i,188)
+  end do
+  !$acc end parallel
+
+end subroutine p_force9
+
+subroutine p_force10(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MACROOH_OH_1: MACROOH + OH -> 0.5*MCO3 + 0.2*MACRO2 + 0.1*OH + 0.2*HO2
     force(i,44) = force(i,44) - rate_constant(i,136) * number_density(i,44) * number_density(i,166)
@@ -14680,6 +17659,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_H_O2_1: H + O2 -> 1*HO2
     force(i,48) = force(i,48) - rate_constant(i,240) * number_density(i,48) * number_density(i,41)
+  end do
+  !$acc end parallel
+
+end subroutine p_force10
+
+subroutine p_force11(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_N_OH_1: N + OH -> 1*NO + 1*H
     force(i,48) = force(i,48) + rate_constant(i,250) * number_density(i,185) * number_density(i,166)
@@ -14782,6 +17780,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3CHO_OH_1: CH3CHO + OH -> 1*CH3CO3 + 1*H2O
     force(i,49) = force(i,49) + rate_constant(i,108) * number_density(i,178) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force11
+
+subroutine p_force12(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NOA_1: NOA -> 1*NO2 + 1*CH2O + 1*CH3CO3
     force(i,49) = force(i,49) + rate_constant(i,119) * number_density(i,27)
@@ -14884,6 +17901,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! N2O5
     force(i,51) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force12
+
+subroutine p_force13(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_N2O5_1: N2O5 -> 1*NO2 + 1*NO3
     force(i,51) = force(i,51) - rate_constant(i,236) * number_density(i,51)
@@ -14986,6 +18022,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_TERP2O2_1: NO + TERP2O2 -> 0.1*ONITR + 0.9*NO2 + 0.34*CH2O + 0.27*CH3COCH3 + 0.225*CO + 0.9*CO2 + 0.9*TERPROD2 + 0.9*HO2 + 0.225*GLYALD
     force(i,54) = force(i,54) + 0.9*rate_constant(i,110) * number_density(i,137) * number_density(i,145)
+  end do
+  !$acc end parallel
+
+end subroutine p_force13
+
+subroutine p_force14(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HOCH2OO_NO_1: HOCH2OO + NO -> 1*HCOOH + 1*NO2 + 1*HO2
     force(i,54) = force(i,54) + rate_constant(i,113) * number_density(i,154) * number_density(i,137)
@@ -15088,6 +18143,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MPAN_1: MPAN -> 1*MCO3 + 1*NO2
     force(i,54) = force(i,54) + rate_constant(i,288) * number_density(i,159)
+  end do
+  !$acc end parallel
+
+end subroutine p_force14
+
+subroutine p_force15(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NO2_PHENO_1: NO2 + PHENO -> 
     force(i,54) = force(i,54) - rate_constant(i,292) * number_density(i,54) * number_density(i,182)
@@ -15190,6 +18264,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_O3_1: NO + O3 -> 1*NO2 + 1*O2
     force(i,54) = force(i,54) + rate_constant(i,439) * number_density(i,137) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine p_force15
+
+subroutine p_force16(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_ISOPNO3_NO3_1: ISOPNO3 + NO3 -> 1*NC4CHO + 1*NO2 + 1*HO2
     force(i,54) = force(i,54) + rate_constant(i,451) * number_density(i,46) * number_density(i,165)
@@ -15292,6 +18385,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_OH_POOH_1: OH + POOH -> 0.5*PO2 + 0.5*OH + 0.5*HYAC + 1*H2O
     force(i,57) = force(i,57) + 0.5*rate_constant(i,127) * number_density(i,166) * number_density(i,9)
+  end do
+  !$acc end parallel
+
+end subroutine p_force16
+
+subroutine p_force17(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MACRO2_NO3_1: MACRO2 + NO3 -> 1*NO2 + 0.47*HO2 + 0.25*CH2O + 0.25*CH3COCHO + 0.22*CO + 0.53*GLYALD + 0.22*HYAC + 0.53*CH3CO3
     force(i,57) = force(i,57) + 0.22*rate_constant(i,134) * number_density(i,188) * number_density(i,165)
@@ -15394,6 +18506,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CFC11_1: CFC11 -> 3*CL
     force(i,61) = force(i,61) - rate_constant(i,285) * number_density(i,61)
+  end do
+  !$acc end parallel
+
+end subroutine p_force17
+
+subroutine p_force18(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CFC11_O1D_1: CFC11 + O1D -> 3*CL
     force(i,61) = force(i,61) - rate_constant(i,474) * number_density(i,61) * number_density(i,112)
@@ -15496,6 +18627,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3CHO_OH_1: CH3CHO + OH -> 1*CH3CO3 + 1*H2O
     force(i,68) = force(i,68) + rate_constant(i,108) * number_density(i,178) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force18
+
+subroutine p_force19(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3BR_OH_1: CH3BR + OH -> 1*BR + 1*H2O + 1*HO2
     force(i,68) = force(i,68) + rate_constant(i,112) * number_density(i,94) * number_density(i,166)
@@ -15598,6 +18748,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CL_CLONO2_1: CL + CLONO2 -> 1*CL2 + 1*NO3
     force(i,70) = force(i,70) + rate_constant(i,480) * number_density(i,100) * number_density(i,74)
+  end do
+  !$acc end parallel
+
+end subroutine p_force19
+
+subroutine p_force20(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! BRO
     force(i,71) = 0
@@ -15700,6 +18869,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! BIGALD1
     force(i,75) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force20
+
+subroutine p_force21(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_XYLENOOH_1: XYLENOOH -> 1*OH + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
     force(i,75) = force(i,75) + 0.06*rate_constant(i,20) * number_density(i,92)
@@ -15802,6 +18990,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_C6H5OOH_OH_1: C6H5OOH + OH -> 1*C6H5O2
     force(i,81) = force(i,81) + rate_constant(i,242) * number_density(i,10) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force21
+
+subroutine p_force22(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_O3_PHENO_1: O3 + PHENO -> 1*C6H5O2
     force(i,81) = force(i,81) + rate_constant(i,249) * number_density(i,171) * number_density(i,182)
@@ -15904,6 +19111,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MVK_O3_1: MVK + O3 -> 0.6*CH2O + 0.56*CO + 0.1*CH3CHO + 0.1*CO2 + 0.28*CH3CO3 + 0.5*CH3COCHO + 0.28*HO2 + 0.36*OH + 0.12*HCOOH
     force(i,82) = force(i,82) + 0.1*rate_constant(i,420) * number_density(i,25) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine p_force22
+
+subroutine p_force23(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CO_OH_2: CO + OH -> 1*CO2 + 1*H
     force(i,82) = force(i,82) + rate_constant(i,429) * number_density(i,176) * number_density(i,166)
@@ -16006,6 +19232,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CLO_OH_2: CLO + OH -> 1*CL + 1*HO2
     force(i,86) = force(i,86) - rate_constant(i,305) * number_density(i,86) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force23
+
+subroutine p_force24(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HCL_O1D_2: HCL + O1D -> 1*CLO + 1*H
     force(i,86) = force(i,86) + rate_constant(i,344) * number_density(i,180) * number_density(i,112)
@@ -16108,6 +19353,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_TERPROD2_1: TERPROD2 -> 0.15*RO2 + 0.68*CH2O + 0.8*CO2 + 0.5*CH3COCH3 + 0.65*CH3CO3 + 1.2*HO2 + 1.7*CO
     force(i,89) = force(i,89) + 0.5*rate_constant(i,35) * number_density(i,155)
+  end do
+  !$acc end parallel
+
+end subroutine p_force24
+
+subroutine p_force25(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MBONO3O2_NO3_1: MBONO3O2 + NO3 -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
     force(i,89) = force(i,89) + 0.75*rate_constant(i,44) * number_density(i,123) * number_density(i,165)
@@ -16210,6 +19474,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_BRONO2_1: BRONO2 -> 1*BR + 1*NO3
     force(i,90) = force(i,90) + rate_constant(i,56) * number_density(i,72)
+  end do
+  !$acc end parallel
+
+end subroutine p_force25
+
+subroutine p_force26(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BRO_SO_1: BRO + SO -> 1*SO2 + 1*BR
     force(i,90) = force(i,90) + rate_constant(i,58) * number_density(i,71) * number_density(i,32)
@@ -16312,6 +19595,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_BENZOOH_OH_1: BENZOOH + OH -> 1*BENZO2
     force(i,91) = force(i,91) - rate_constant(i,382) * number_density(i,91) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force26
+
+subroutine p_force27(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BENZO2_HO2_1: BENZO2 + HO2 -> 1*BENZOOH
     force(i,91) = force(i,91) + rate_constant(i,391) * number_density(i,13) * number_density(i,192)
@@ -16414,6 +19716,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HCFC142B_OH_1: HCFC142B + OH -> 1*CL + 1*COF2
     force(i,100) = force(i,100) + rate_constant(i,14) * number_density(i,172) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force27
+
+subroutine p_force28(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CFC114_O1D_1: CFC114 + O1D -> 2*CL + 2*COF2
     force(i,100) = force(i,100) + 2*rate_constant(i,18) * number_density(i,62) * number_density(i,112)
@@ -16516,6 +19837,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CL_H2O2_1: CL + H2O2 -> 1*HCL + 1*HO2
     force(i,100) = force(i,100) - rate_constant(i,310) * number_density(i,100) * number_density(i,179)
+  end do
+  !$acc end parallel
+
+end subroutine p_force28
+
+subroutine p_force29(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3CL_1: CH3CL -> 1*CL + 1*CH3O2
     force(i,100) = force(i,100) + rate_constant(i,320) * number_density(i,53)
@@ -16618,6 +19958,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! MEK
     force(i,104) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force29
+
+subroutine p_force30(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MEK_1: MEK -> 1*CH3CO3 + 1*C2H5O2
     force(i,104) = force(i,104) - rate_constant(i,45) * number_density(i,104)
@@ -16720,6 +20079,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_BIGALD4_1: BIGALD4 -> 1*HO2 + 1*CO + 1*CH3COCHO + 1*CH3CO3
     force(i,110) = force(i,110) - rate_constant(i,61) * number_density(i,110)
+  end do
+  !$acc end parallel
+
+end subroutine p_force30
+
+subroutine p_force31(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NO_XYLENO2_1: NO + XYLENO2 -> 1*NO2 + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
     force(i,110) = force(i,110) + 0.21*rate_constant(i,419) * number_density(i,137) * number_density(i,146)
@@ -16822,6 +20200,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     force(i,112) = force(i,112) - rate_constant(i,6) * number_density(i,11) * number_density(i,112)
+  end do
+  !$acc end parallel
+
+end subroutine p_force31
+
+subroutine p_force32(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CFC113_O1D_1: CFC113 + O1D -> 3*CL
     force(i,112) = force(i,112) - rate_constant(i,13) * number_density(i,52) * number_density(i,112)
@@ -16924,6 +20321,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2_TERPO2_1: HO2 + TERPO2 -> 1*TERPOOH
     force(i,113) = force(i,113) + rate_constant(i,145) * number_density(i,192) * number_density(i,147)
+  end do
+  !$acc end parallel
+
+end subroutine p_force32
+
+subroutine p_force33(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_TERPOOH_1: TERPOOH -> 0.4*CH2O + 0.05*CH3COCH3 + 1*TERPROD1 + 1*HO2 + 1*OH
     force(i,113) = force(i,113) - rate_constant(i,218) * number_density(i,113)
@@ -17026,6 +20442,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MVK_O3_1: MVK + O3 -> 0.6*CH2O + 0.56*CO + 0.1*CH3CHO + 0.1*CO2 + 0.28*CH3CO3 + 0.5*CH3COCHO + 0.28*HO2 + 0.36*OH + 0.12*HCOOH
     force(i,119) = force(i,119) + 0.12*rate_constant(i,420) * number_density(i,25) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine p_force33
+
+subroutine p_force34(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! C3H6
     force(i,120) = 0
@@ -17128,6 +20563,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MPAN_OH_1: MPAN + OH -> 0.5*HYAC + 0.5*NO3 + 0.5*CH2O + 0.5*HO2 + 0.5*CO2
     force(i,124) = force(i,124) + 0.5*rate_constant(i,28) * number_density(i,159) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force34
+
+subroutine p_force35(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_TERPROD2_1: TERPROD2 -> 0.15*RO2 + 0.68*CH2O + 0.8*CO2 + 0.5*CH3COCH3 + 0.65*CH3CO3 + 1.2*HO2 + 1.7*CO
     force(i,124) = force(i,124) + 0.68*rate_constant(i,35) * number_density(i,155)
@@ -17230,6 +20684,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HYAC_1: HYAC -> 1*CH3CO3 + 1*HO2 + 1*CH2O
     force(i,124) = force(i,124) + rate_constant(i,215) * number_density(i,57)
+  end do
+  !$acc end parallel
+
+end subroutine p_force35
+
+subroutine p_force36(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_TERPOOH_1: TERPOOH -> 0.4*CH2O + 0.05*CH3COCH3 + 1*TERPROD1 + 1*HO2 + 1*OH
     force(i,124) = force(i,124) + 0.4*rate_constant(i,218) * number_density(i,113)
@@ -17332,6 +20805,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3OH_OH_1: CH3OH + OH -> 1*HO2 + 1*CH2O
     force(i,124) = force(i,124) + rate_constant(i,409) * number_density(i,122) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force36
+
+subroutine p_force37(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3O2_XO2_1: CH3O2 + XO2 -> 0.3*CH3OH + 0.8*HO2 + 0.8*CH2O + 0.2*CO + 0.1*GLYOXAL + 0.1*CH3COCHO + 0.1*HYAC + 0.1*GLYALD
     force(i,124) = force(i,124) + 0.8*rate_constant(i,410) * number_density(i,191) * number_density(i,153)
@@ -17434,6 +20926,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MEKOOH_OH_1: MEKOOH + OH -> 1*MEKO2
     force(i,128) = force(i,128) + rate_constant(i,352) * number_density(i,136) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force37
+
+subroutine p_force38(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! ONITR
     force(i,129) = 0
@@ -17536,6 +21047,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_MALO2_NO_1: MALO2 + NO -> 0.4*GLYOXAL + 0.4*HO2 + 0.4*CO + 1*NO2
     force(i,131) = force(i,131) + 0.4*rate_constant(i,424) * number_density(i,170) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine p_force38
+
+subroutine p_force39(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BIGALD_1: BIGALD -> 0.45*CO + 0.13*GLYOXAL + 0.56*HO2 + 0.13*CH3CO3 + 0.18*CH3COCHO
     force(i,131) = force(i,131) + 0.13*rate_constant(i,469) * number_density(i,105)
@@ -17638,6 +21168,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_NO3_1: NO + NO3 -> 2*NO2
     force(i,137) = force(i,137) - rate_constant(i,41) * number_density(i,137) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine p_force39
+
+subroutine p_force40(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BENZO2_NO_1: BENZO2 + NO -> 1*NO2 + 1*GLYOXAL + 0.5*BIGALD1 + 1*HO2
     force(i,137) = force(i,137) - rate_constant(i,59) * number_density(i,13) * number_density(i,137)
@@ -17740,6 +21289,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO2_O_1: NO2 + O -> 1*NO + 1*O2
     force(i,137) = force(i,137) + rate_constant(i,351) * number_density(i,54) * number_density(i,187)
+  end do
+  !$acc end parallel
+
+end subroutine p_force40
+
+subroutine p_force41(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MCO3_NO_1: MCO3 + NO -> 1*NO2 + 1*CH2O + 1*CH3CO3
     force(i,137) = force(i,137) - rate_constant(i,353) * number_density(i,167) * number_density(i,137)
@@ -17842,6 +21410,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! ISOP
     force(i,142) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force41
+
+subroutine p_force42(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_ISOP_OH_2: ISOP + OH -> 0.6*ISOPAO2 + 0.4*ISOPBO2
     force(i,142) = force(i,142) - rate_constant(i,76) * number_density(i,142) * number_density(i,166)
@@ -17944,6 +21531,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_BCARY_OH_2: BCARY + OH -> 1*TERPO2
     force(i,147) = force(i,147) + rate_constant(i,232) * number_density(i,102) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force42
+
+subroutine p_force43(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_OH_TERPOOH_1: OH + TERPOOH -> 1*TERPO2
     force(i,147) = force(i,147) + rate_constant(i,314) * number_density(i,166) * number_density(i,113)
@@ -18046,6 +21652,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2_XO2_1: HO2 + XO2 -> 1*XOOH
     force(i,153) = force(i,153) - rate_constant(i,205) * number_density(i,192) * number_density(i,153)
+  end do
+  !$acc end parallel
+
+end subroutine p_force43
+
+subroutine p_force44(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NO_XO2_1: NO + XO2 -> 1*NO2 + 1*HO2 + 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD
     force(i,153) = force(i,153) - rate_constant(i,252) * number_density(i,137) * number_density(i,153)
@@ -18148,6 +21773,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_XO2_1: NO + XO2 -> 1*NO2 + 1*HO2 + 0.25*CO + 0.25*CH2O + 0.25*GLYOXAL + 0.25*CH3COCHO + 0.25*HYAC + 0.25*GLYALD
     force(i,156) = force(i,156) + 0.25*rate_constant(i,252) * number_density(i,137) * number_density(i,153)
+  end do
+  !$acc end parallel
+
+end subroutine p_force44
+
+subroutine p_force45(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NC4CH2OH_OH_1: NC4CH2OH + OH -> 1*GLYALD + 1*NOA + 1*HO2
     force(i,156) = force(i,156) + rate_constant(i,295) * number_density(i,158) * number_density(i,166)
@@ -18250,6 +21894,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_N2O_O1D_1: N2O + O1D -> 2*NO
     force(i,161) = force(i,161) - rate_constant(i,180) * number_density(i,161) * number_density(i,112)
+  end do
+  !$acc end parallel
+
+end subroutine p_force45
+
+subroutine p_force46(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_N_NO2_3: N + NO2 -> 1*N2O + 1*O
     force(i,161) = force(i,161) + rate_constant(i,273) * number_density(i,185) * number_density(i,54)
@@ -18352,6 +22015,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_DMS_NO3_1: DMS + NO3 -> 1*SO2 + 1*HNO3
     force(i,165) = force(i,165) - rate_constant(i,197) * number_density(i,99) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine p_force46
+
+subroutine p_force47(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_C3H6_NO3_1: C3H6 + NO3 -> 1*NOA
     force(i,165) = force(i,165) - rate_constant(i,221) * number_density(i,120) * number_density(i,165)
@@ -18454,6 +22136,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_XYLENOOH_1: XYLENOOH -> 1*OH + 1*HO2 + 0.34*GLYOXAL + 0.54*CH3COCHO + 0.06*BIGALD1 + 0.2*BIGALD2 + 0.15*BIGALD3 + 0.21*BIGALD4
     force(i,166) = force(i,166) + rate_constant(i,20) * number_density(i,92)
+  end do
+  !$acc end parallel
+
+end subroutine p_force47
+
+subroutine p_force48(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_OH_SO2_1: OH + SO2 -> 1*SO3 + 1*HO2
     force(i,166) = force(i,166) - rate_constant(i,22) * number_density(i,166) * number_density(i,55)
@@ -18556,6 +22257,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_C3H7OOH_1: C3H7OOH -> 0.82*CH3COCH3 + 1*OH + 1*HO2
     force(i,166) = force(i,166) + rate_constant(i,115) * number_density(i,20)
+  end do
+  !$acc end parallel
+
+end subroutine p_force48
+
+subroutine p_force49(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3COCHO_OH_1: CH3COCHO + OH -> 1*CH3CO3 + 1*CO + 1*H2O
     force(i,166) = force(i,166) - rate_constant(i,122) * number_density(i,111) * number_density(i,166)
@@ -18658,6 +22378,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_OH_OH_2: OH + OH -> 1*H2O2
     force(i,166) = force(i,166) - rate_constant(i,213) * number_density(i,166) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force49
+
+subroutine p_force50(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_O_1: HO2 + O -> 1*OH + 1*O2
     force(i,166) = force(i,166) + rate_constant(i,217) * number_density(i,192) * number_density(i,187)
@@ -18760,6 +22499,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HCOOH_OH_1: HCOOH + OH -> 1*HO2 + 1*CO2 + 1*H2O
     force(i,166) = force(i,166) - rate_constant(i,296) * number_density(i,119) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force50
+
+subroutine p_force51(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_ALKOOH_1: ALKOOH -> 0.4*CH3CHO + 0.1*CH2O + 0.25*CH3COCH3 + 0.9*HO2 + 0.8*MEK + 1*OH
     force(i,166) = force(i,166) + rate_constant(i,300) * number_density(i,65)
@@ -18862,6 +22620,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2NO2_3: HO2NO2 -> 1*OH + 1*NO3
     force(i,166) = force(i,166) + rate_constant(i,400) * number_density(i,35)
+  end do
+  !$acc end parallel
+
+end subroutine p_force51
+
+subroutine p_force52(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HYDRALD_OH_1: HYDRALD + OH -> 1*XO2
     force(i,166) = force(i,166) - rate_constant(i,407) * number_density(i,141) * number_density(i,166)
@@ -18964,6 +22741,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_OH_SO_1: OH + SO -> 1*SO2 + 1*H
     force(i,166) = force(i,166) - rate_constant(i,486) * number_density(i,166) * number_density(i,32)
+  end do
+  !$acc end parallel
+
+end subroutine p_force52
+
+subroutine p_force53(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! MCO3
     force(i,167) = 0
@@ -19066,6 +22862,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO2_O3_1: NO2 + O3 -> 1*NO3 + 1*O2
     force(i,171) = force(i,171) - rate_constant(i,165) * number_density(i,54) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine p_force53
+
+subroutine p_force54(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_C3H6_O3_1: C3H6 + O3 -> 0.5*CH2O + 0.12*HCOOH + 0.12*CH3COOH + 0.5*CH3CHO + 0.56*CO + 0.28*CH3O2 + 0.1*CH4 + 0.2*CO2 + 0.28*HO2 + 0.36*OH
     force(i,171) = force(i,171) - rate_constant(i,170) * number_density(i,120) * number_density(i,171)
@@ -19168,6 +22983,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2_MALO2_1: HO2 + MALO2 -> 0.16*GLYOXAL + 0.16*HO2 + 0.16*CO
     force(i,176) = force(i,176) + 0.16*rate_constant(i,1) * number_density(i,192) * number_density(i,170)
+  end do
+  !$acc end parallel
+
+end subroutine p_force54
+
+subroutine p_force55(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_C2H2_OH_1: C2H2 + OH -> 0.65*GLYOXAL + 0.65*OH + 0.35*HCOOH + 0.35*HO2 + 0.35*CO
     force(i,176) = force(i,176) + 0.35*rate_constant(i,2) * number_density(i,168) * number_density(i,166)
@@ -19270,6 +23104,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_TERPROD1_1: TERPROD1 -> 1*HO2 + 1*CO + 1*TERPROD2
     force(i,176) = force(i,176) + rate_constant(i,286) * number_density(i,58)
+  end do
+  !$acc end parallel
+
+end subroutine p_force55
+
+subroutine p_force56(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BR_CH2O_1: BR + CH2O -> 1*HBR + 1*HO2 + 1*CO
     force(i,176) = force(i,176) + rate_constant(i,298) * number_density(i,90) * number_density(i,124)
@@ -19372,6 +23225,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3CHO_OH_1: CH3CHO + OH -> 1*CH3CO3 + 1*H2O
     force(i,178) = force(i,178) - rate_constant(i,108) * number_density(i,178) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force56
+
+subroutine p_force57(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_MEKO2_1: HO2 + MEKO2 -> 0.8*MEKOOH + 0.2*OH + 0.2*CH3CHO + 0.2*CH3CO3
     force(i,178) = force(i,178) + 0.2*rate_constant(i,139) * number_density(i,192) * number_density(i,128)
@@ -19474,6 +23346,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CLO_OH_1: CLO + OH -> 1*HCL + 1*O2
     force(i,180) = force(i,180) + rate_constant(i,43) * number_density(i,86) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force57
+
+subroutine p_force58(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HCL_O1D_1: HCL + O1D -> 1*CL + 1*OH
     force(i,180) = force(i,180) - rate_constant(i,53) * number_density(i,180) * number_density(i,112)
@@ -19576,6 +23467,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3COOOH_1: CH3COOOH -> 1*CH3O2 + 1*OH + 1*CO2
     force(i,184) = force(i,184) - rate_constant(i,199) * number_density(i,184)
+  end do
+  !$acc end parallel
+
+end subroutine p_force58
+
+subroutine p_force59(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3CO3_HO2_1: CH3CO3 + HO2 -> 0.4*CH3COOOH + 0.15*CH3COOH + 0.15*O3 + 0.45*OH + 0.45*CH3O2
     force(i,184) = force(i,184) + 0.4*rate_constant(i,259) * number_density(i,49) * number_density(i,192)
@@ -19678,6 +23588,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_O_OH_1: O + OH -> 1*H + 1*O2
     force(i,187) = force(i,187) - rate_constant(i,196) * number_density(i,187) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force59
+
+subroutine p_force60(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     force(i,187) = force(i,187) - rate_constant(i,202) * number_density(i,1) * number_density(i,187) * number_density(i,41)
@@ -19780,6 +23709,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3O2_MACRO2_1: CH3O2 + MACRO2 -> 0.73*HO2 + 0.88*CH2O + 0.11*CO + 0.24*CH3COCHO + 0.26*GLYALD + 0.26*CH3CO3 + 0.25*CH3OH + 0.23*HYAC
     force(i,188) = force(i,188) - rate_constant(i,322) * number_density(i,191) * number_density(i,188)
+  end do
+  !$acc end parallel
+
+end subroutine p_force60
+
+subroutine p_force61(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MVK_OH_1: MVK + OH -> 1*MACRO2
     force(i,188) = force(i,188) + rate_constant(i,336) * number_density(i,25) * number_density(i,166)
@@ -19882,6 +23830,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3O2_ISOPNO3_1: CH3O2 + ISOPNO3 -> 0.8*NC4CHO + 1.2*HO2 + 0.8*CH2O + 0.2*CH3OH + 0.2*NC4CH2OH
     force(i,191) = force(i,191) - rate_constant(i,160) * number_density(i,191) * number_density(i,46)
+  end do
+  !$acc end parallel
+
+end subroutine p_force61
+
+subroutine p_force62(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_MDIALO2_1: HO2 + MDIALO2 -> 0.4*OH + 0.33*HO2 + 0.07*CH3COCHO + 0.14*CO + 0.07*CH3O2 + 0.07*GLYOXAL
     force(i,191) = force(i,191) + 0.07*rate_constant(i,161) * number_density(i,192) * number_density(i,164)
@@ -19984,6 +23951,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! HO2
     force(i,192) = 0
+  end do
+  !$acc end parallel
+
+end subroutine p_force62
+
+subroutine p_force63(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_MALO2_1: HO2 + MALO2 -> 0.16*GLYOXAL + 0.16*HO2 + 0.16*CO
     force(i,192) = force(i,192) - 0.84*rate_constant(i,1) * number_density(i,192) * number_density(i,170)
@@ -20086,6 +24072,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3CL_OH_1: CH3CL + OH -> 1*CL + 1*H2O + 1*HO2
     force(i,192) = force(i,192) + rate_constant(i,92) * number_density(i,53) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine p_force63
+
+subroutine p_force64(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CRESOL_OH_1: CRESOL + OH -> 0.2*PHENO2 + 0.73*HO2 + 0.07*PHENO
     force(i,192) = force(i,192) + 0.73*rate_constant(i,95) * number_density(i,139) * number_density(i,166)
@@ -20188,6 +24193,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CH3O2_ISOPBO2_1: CH3O2 + ISOPBO2 -> 0.25*CH3OH + 1*HO2 + 0.75*CH2O + 0.75*HYDRALD
     force(i,192) = force(i,192) + rate_constant(i,167) * number_density(i,191) * number_density(i,190)
+  end do
+  !$acc end parallel
+
+end subroutine p_force64
+
+subroutine p_force65(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_NC4CHO_1: NC4CHO -> 1*BIGALD3 + 1*NO2 + 1*HO2
     force(i,192) = force(i,192) + rate_constant(i,169) * number_density(i,23)
@@ -20290,6 +24314,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_HO2_MBOO2_1: HO2 + MBOO2 -> 1*MBOOOH
     force(i,192) = force(i,192) - rate_constant(i,247) * number_density(i,192) * number_density(i,125)
+  end do
+  !$acc end parallel
+
+end subroutine p_force65
+
+subroutine p_force66(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_C2H5O2_C2H5O2_1: C2H5O2 + C2H5O2 -> 1.6*CH3CHO + 1.2*HO2 + 0.4*C2H5OH
     force(i,192) = force(i,192) + 1.2*rate_constant(i,248) * number_density(i,87) * number_density(i,87)
@@ -20392,6 +24435,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_CL_H2O2_1: CL + H2O2 -> 1*HCL + 1*HO2
     force(i,192) = force(i,192) + rate_constant(i,310) * number_density(i,100) * number_density(i,179)
+  end do
+  !$acc end parallel
+
+end subroutine p_force66
+
+subroutine p_force67(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MBONO3O2_NO_1: MBONO3O2 + NO -> 0.25*HMPROP + 0.25*CH2O + 1.25*NO2 + 0.75*HONITR + 0.75*CH3COCH3 + 0.75*HO2
     force(i,192) = force(i,192) + 0.75*rate_constant(i,313) * number_density(i,123) * number_density(i,137)
@@ -20494,6 +24556,25 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
 
     ! k_NO_XYLOLO2_1: NO + XYLOLO2 -> 1*HO2 + 1*NO2 + 0.17*GLYOXAL + 0.51*CH3COCHO
     force(i,192) = force(i,192) + rate_constant(i,404) * number_density(i,137) * number_density(i,148)
+  end do
+  !$acc end parallel
+
+end subroutine p_force67
+
+subroutine p_force68(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN) async(STREAM0)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3OH_OH_1: CH3OH + OH -> 1*HO2 + 1*CH2O
     force(i,192) = force(i,192) + rate_constant(i,409) * number_density(i,122) * number_density(i,166)
@@ -20599,9 +24680,92 @@ subroutine p_force(rate_constant, number_density, number_density_air, force)
   end do
   !$acc end parallel
 
+end subroutine p_force68
+
+subroutine p_force(rate_constant, number_density, number_density_air, force)
+  ! Compute force function for all molecules
+
+  real(r8), intent(in) :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in) :: number_density(ncell,number_of_species)
+  real(r8), intent(in) :: number_density_air(ncell)
+  real(r8), intent(out) :: force(ncell,number_of_species)
+
+  ! Local variables
+  integer :: i
+
+  call p_force1(rate_constant, number_density, number_density_air, force)
+  call p_force2(rate_constant, number_density, number_density_air, force)
+  call p_force3(rate_constant, number_density, number_density_air, force)
+  call p_force4(rate_constant, number_density, number_density_air, force)
+  call p_force5(rate_constant, number_density, number_density_air, force)
+  call p_force6(rate_constant, number_density, number_density_air, force)
+  call p_force7(rate_constant, number_density, number_density_air, force)
+  call p_force8(rate_constant, number_density, number_density_air, force)
+  call p_force9(rate_constant, number_density, number_density_air, force)
+  call p_force10(rate_constant, number_density, number_density_air, force)
+  call p_force11(rate_constant, number_density, number_density_air, force)
+  call p_force12(rate_constant, number_density, number_density_air, force)
+  call p_force13(rate_constant, number_density, number_density_air, force)
+  call p_force14(rate_constant, number_density, number_density_air, force)
+  call p_force15(rate_constant, number_density, number_density_air, force)
+  call p_force16(rate_constant, number_density, number_density_air, force)
+  call p_force17(rate_constant, number_density, number_density_air, force)
+  call p_force18(rate_constant, number_density, number_density_air, force)
+  call p_force19(rate_constant, number_density, number_density_air, force)
+  call p_force20(rate_constant, number_density, number_density_air, force)
+  call p_force21(rate_constant, number_density, number_density_air, force)
+  call p_force22(rate_constant, number_density, number_density_air, force)
+  call p_force23(rate_constant, number_density, number_density_air, force)
+  call p_force24(rate_constant, number_density, number_density_air, force)
+  call p_force25(rate_constant, number_density, number_density_air, force)
+  call p_force26(rate_constant, number_density, number_density_air, force)
+  call p_force27(rate_constant, number_density, number_density_air, force)
+  call p_force28(rate_constant, number_density, number_density_air, force)
+  call p_force29(rate_constant, number_density, number_density_air, force)
+  call p_force30(rate_constant, number_density, number_density_air, force)
+  call p_force31(rate_constant, number_density, number_density_air, force)
+  call p_force32(rate_constant, number_density, number_density_air, force)
+  call p_force33(rate_constant, number_density, number_density_air, force)
+  call p_force34(rate_constant, number_density, number_density_air, force)
+  call p_force35(rate_constant, number_density, number_density_air, force)
+  call p_force36(rate_constant, number_density, number_density_air, force)
+  call p_force37(rate_constant, number_density, number_density_air, force)
+  call p_force38(rate_constant, number_density, number_density_air, force)
+  call p_force39(rate_constant, number_density, number_density_air, force)
+  call p_force40(rate_constant, number_density, number_density_air, force)
+  call p_force41(rate_constant, number_density, number_density_air, force)
+  call p_force42(rate_constant, number_density, number_density_air, force)
+  call p_force43(rate_constant, number_density, number_density_air, force)
+  call p_force44(rate_constant, number_density, number_density_air, force)
+  call p_force45(rate_constant, number_density, number_density_air, force)
+  call p_force46(rate_constant, number_density, number_density_air, force)
+  call p_force47(rate_constant, number_density, number_density_air, force)
+  call p_force48(rate_constant, number_density, number_density_air, force)
+  call p_force49(rate_constant, number_density, number_density_air, force)
+  call p_force50(rate_constant, number_density, number_density_air, force)
+  call p_force51(rate_constant, number_density, number_density_air, force)
+  call p_force52(rate_constant, number_density, number_density_air, force)
+  call p_force53(rate_constant, number_density, number_density_air, force)
+  call p_force54(rate_constant, number_density, number_density_air, force)
+  call p_force55(rate_constant, number_density, number_density_air, force)
+  call p_force56(rate_constant, number_density, number_density_air, force)
+  call p_force57(rate_constant, number_density, number_density_air, force)
+  call p_force58(rate_constant, number_density, number_density_air, force)
+  call p_force59(rate_constant, number_density, number_density_air, force)
+  call p_force60(rate_constant, number_density, number_density_air, force)
+  call p_force61(rate_constant, number_density, number_density_air, force)
+  call p_force62(rate_constant, number_density, number_density_air, force)
+  call p_force63(rate_constant, number_density, number_density_air, force)
+  call p_force64(rate_constant, number_density, number_density_air, force)
+  call p_force65(rate_constant, number_density, number_density_air, force)
+  call p_force66(rate_constant, number_density, number_density_air, force)
+  call p_force67(rate_constant, number_density, number_density_air, force)
+  call p_force68(rate_constant, number_density, number_density_air, force)
+
 end subroutine p_force
 
-subroutine calc_reaction_rates(rate_constant, number_density, number_density_air, reaction_rates)
+
+subroutine calc_reaction_rates1(rate_constant, number_density, number_density_air, reaction_rates)
   ! Compute reaction rates
 
   real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
@@ -20717,6 +24881,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_CH3CHO_NO3_1: CH3CHO + NO3 -> 1*CH3CO3 + 1*HNO3
     reaction_rates(i,34) = rate_constant(i,34) * number_density(i,178) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates1
+
+subroutine calc_reaction_rates2(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_TERPROD2_1: TERPROD2 -> 0.15*RO2 + 0.68*CH2O + 0.8*CO2 + 0.5*CH3COCH3 + 0.65*CH3CO3 + 1.2*HO2 + 1.7*CO
     reaction_rates(i,35) = rate_constant(i,35) * number_density(i,155)
@@ -20819,6 +25002,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_CH3COCH3_OH_1: CH3COCH3 + OH -> 1*RO2 + 1*H2O
     reaction_rates(i,68) = rate_constant(i,68) * number_density(i,89) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates2
+
+subroutine calc_reaction_rates3(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3COCH3_OH_2: CH3COCH3 + OH -> 1*RO2 + 1*H2O
     reaction_rates(i,69) = rate_constant(i,69) * number_density(i,89) * number_density(i,166)
@@ -20921,6 +25123,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_CH3CL_CL_1: CH3CL + CL -> 1*HO2 + 1*CO + 2*HCL
     reaction_rates(i,102) = rate_constant(i,102) * number_density(i,53) * number_density(i,100)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates3
+
+subroutine calc_reaction_rates4(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CLO_CLO_1: CLO + CLO -> 2*CL + 1*O2
     reaction_rates(i,103) = rate_constant(i,103) * number_density(i,86) * number_density(i,86)
@@ -21023,6 +25244,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_MACROOH_OH_1: MACROOH + OH -> 0.5*MCO3 + 0.2*MACRO2 + 0.1*OH + 0.2*HO2
     reaction_rates(i,136) = rate_constant(i,136) * number_density(i,44) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates4
+
+subroutine calc_reaction_rates5(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HCFC141B_O1D_1: HCFC141B + O1D -> 1*CL + 1*COFCL
     reaction_rates(i,137) = rate_constant(i,137) * number_density(i,106) * number_density(i,112)
@@ -21125,6 +25365,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_C3H6_O3_1: C3H6 + O3 -> 0.5*CH2O + 0.12*HCOOH + 0.12*CH3COOH + 0.5*CH3CHO + 0.56*CO + 0.28*CH3O2 + 0.1*CH4 + 0.2*CO2 + 0.28*HO2 + 0.36*OH
     reaction_rates(i,170) = rate_constant(i,170) * number_density(i,120) * number_density(i,171)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates5
+
+subroutine calc_reaction_rates6(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HONITR_1: HONITR -> 1*NO2 + 0.67*HO2 + 0.33*CH3CHO + 0.33*CH2O + 0.33*CO + 0.33*GLYALD + 0.33*CH3CO3 + 0.17*HYAC + 0.17*CH3COCH3
     reaction_rates(i,171) = rate_constant(i,171) * number_density(i,134)
@@ -21227,6 +25486,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_BRO_OH_1: BRO + OH -> 1*BR + 1*HO2
     reaction_rates(i,204) = rate_constant(i,204) * number_density(i,71) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates6
+
+subroutine calc_reaction_rates7(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_XO2_1: HO2 + XO2 -> 1*XOOH
     reaction_rates(i,205) = rate_constant(i,205) * number_density(i,192) * number_density(i,153)
@@ -21329,6 +25607,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_HCFC22_OH_1: HCFC22 + OH -> 1*H2O + 1*CL + 1*COF2
     reaction_rates(i,238) = rate_constant(i,238) * number_density(i,83) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates7
+
+subroutine calc_reaction_rates8(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_H2O2_1: H2O2 -> 2*OH
     reaction_rates(i,239) = rate_constant(i,239) * number_density(i,179)
@@ -21431,6 +25728,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_MACR_2: MACR -> 1.34*HO2 + 0.66*MCO3 + 1.34*CH2O + 1.34*CH3CO3
     reaction_rates(i,272) = rate_constant(i,272) * number_density(i,157)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates8
+
+subroutine calc_reaction_rates9(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_N_NO2_3: N + NO2 -> 1*N2O + 1*O
     reaction_rates(i,273) = rate_constant(i,273) * number_density(i,185) * number_density(i,54)
@@ -21533,6 +25849,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_NO_NTERPO2_1: NO + NTERPO2 -> 0.2*TERPNIT + 1.6*NO2 + 0.8*TERPROD1
     reaction_rates(i,306) = rate_constant(i,306) * number_density(i,137) * number_density(i,143)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates9
+
+subroutine calc_reaction_rates10(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_MTERP_O3_2: MTERP + O3 -> 0.33*TERPROD1 + 0.3*TERPROD2 + 0.63*OH + 0.57*HO2 + 0.23*CO + 0.27*CO2 + 0.52*CH3COCH3 + 0.34*CH2O + 0.1*BIGALD + 0.05*HCOOH + 0.05*BIGALK + 0.06*CH3CO3 + 0.06*RO2
     reaction_rates(i,307) = rate_constant(i,307) * number_density(i,31) * number_density(i,171)
@@ -21635,6 +25970,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_CH3CO3_ISOPBO2_1: CH3CO3 + ISOPBO2 -> 1*HYDRALD + 1*CH3O2 + 1*HO2
     reaction_rates(i,340) = rate_constant(i,340) * number_density(i,49) * number_density(i,190)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates10
+
+subroutine calc_reaction_rates11(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_HO2_TERP2O2_1: HO2 + TERP2O2 -> 1*TERP2OOH
     reaction_rates(i,341) = rate_constant(i,341) * number_density(i,192) * number_density(i,145)
@@ -21737,6 +26091,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_NO3_2: NO3 -> 1*NO + 1*O2
     reaction_rates(i,374) = rate_constant(i,374) * number_density(i,165)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates11
+
+subroutine calc_reaction_rates12(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_BIGALD2_1: BIGALD2 -> 0.6*HO2 + 0.6*DICARBO2
     reaction_rates(i,375) = rate_constant(i,375) * number_density(i,116)
@@ -21839,6 +26212,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_N_NO_1: N + NO -> 1*N2 + 1*O
     reaction_rates(i,408) = rate_constant(i,408) * number_density(i,185) * number_density(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates12
+
+subroutine calc_reaction_rates13(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_CH3OH_OH_1: CH3OH + OH -> 1*HO2 + 1*CH2O
     reaction_rates(i,409) = rate_constant(i,409) * number_density(i,122) * number_density(i,166)
@@ -21941,6 +26333,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_EO_O2_1: EO + O2 -> 1*GLYALD + 1*HO2
     reaction_rates(i,442) = rate_constant(i,442) * number_density(i,162) * number_density(i,41)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates13
+
+subroutine calc_reaction_rates14(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_N2O_O1D_2: N2O + O1D -> 1*N2 + 1*O2
     reaction_rates(i,443) = rate_constant(i,443) * number_density(i,161) * number_density(i,112)
@@ -22043,6 +26454,25 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
 
     ! k_DMS_OH_2: DMS + OH -> 1*SO2
     reaction_rates(i,476) = rate_constant(i,476) * number_density(i,99) * number_density(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine calc_reaction_rates14
+
+subroutine calc_reaction_rates15(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! k_C2H5OH_OH_1: C2H5OH + OH -> 1*HO2 + 1*CH3CHO
     reaction_rates(i,477) = rate_constant(i,477) * number_density(i,126) * number_density(i,166)
@@ -22080,7 +26510,37 @@ subroutine calc_reaction_rates(rate_constant, number_density, number_density_air
   end do
   !$acc end parallel
 
+end subroutine calc_reaction_rates15
+
+subroutine calc_reaction_rates(rate_constant, number_density, number_density_air, reaction_rates)
+  ! Compute reaction rates
+
+  real(r8), intent(in)  :: rate_constant(ncell,number_of_reactions)
+  real(r8), intent(in)  :: number_density(ncell,number_of_species)
+  real(r8), intent(in)  :: number_density_air(ncell)
+  real(r8), intent(out) :: reaction_rates(ncell,number_of_reactions)
+
+  ! Local variables
+  integer :: i
+
+  call calc_reaction_rates1(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates2(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates3(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates4(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates5(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates6(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates7(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates8(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates9(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates10(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates11(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates12(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates13(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates14(rate_constant, number_density, number_density_air, reaction_rates)
+  call calc_reaction_rates15(rate_constant, number_density, number_density_air, reaction_rates)
+
 end subroutine calc_reaction_rates
+
 
 
 function reaction_names()
@@ -22896,7 +27356,7 @@ function species_names()
 end function species_names
 
 
-subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
+subroutine dforce_dy_times_vector1(dforce_dy, vector, cummulative_product)
   !  Compute product of [ dforce_dy * vector ]
   !  Commonly used to compute time-truncation errors [dforce_dy * force ]
 
@@ -22906,15 +27366,6 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
   ! Local variables
   integer :: i, j
-
-  !$acc parallel default(present) vector_length(VLEN)
-  !$acc loop gang vector collapse(2)
-  do j = 1, number_of_species
-     do i = 1, ncell
-        cummulative_product(i,j) = 0
-     end do
-  end do
-  !$acc end parallel
 
   !$acc parallel default(present) vector_length(VLEN)
   !$acc loop gang vector
@@ -23020,6 +27471,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,131) = cummulative_product(i,131) + dforce_dy(i,59) * vector(i,13)
 
     ! df_HO2/d(BENZO2) * BENZO2_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector1
+
+subroutine dforce_dy_times_vector2(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,61) * vector(i,13)
 
     ! df_BIGALD1/d(BENZO2) * BENZO2_temporary
@@ -23121,6 +27592,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_CH2O/d(MVK) * MVK_temporary
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,98) * vector(i,25)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector2
+
+subroutine dforce_dy_times_vector3(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_MACRO2/d(MVK) * MVK_temporary
     cummulative_product(i,188) = cummulative_product(i,188) + dforce_dy(i,103) * vector(i,25)
 
@@ -23222,6 +27713,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_NO2/d(SO) * SO_temporary
     cummulative_product(i,54) = cummulative_product(i,54) + dforce_dy(i,161) * vector(i,32)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector3
+
+subroutine dforce_dy_times_vector4(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NO/d(SO) * SO_temporary
     cummulative_product(i,137) = cummulative_product(i,137) + dforce_dy(i,167) * vector(i,32)
@@ -23323,6 +27834,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,119) = cummulative_product(i,119) + dforce_dy(i,146) * vector(i,31)
 
     ! df_CH3COCH3/d(MTERP) * MTERP_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector4
+
+subroutine dforce_dy_times_vector5(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,89) = cummulative_product(i,89) + dforce_dy(i,144) * vector(i,31)
 
     ! df_BIGALD/d(MTERP) * MTERP_temporary
@@ -23424,6 +27955,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_CH3OH/d(ISOPNO3) * ISOPNO3_temporary
     cummulative_product(i,122) = cummulative_product(i,122) + dforce_dy(i,283) * vector(i,46)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector5
+
+subroutine dforce_dy_times_vector6(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NC4CH2OH/d(ISOPNO3) * ISOPNO3_temporary
     cummulative_product(i,158) = cummulative_product(i,158) + dforce_dy(i,287) * vector(i,46)
 
@@ -23525,6 +28076,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_OH/d(TERPNIT) * TERPNIT_temporary
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,212) * vector(i,39)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector6
+
+subroutine dforce_dy_times_vector7(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CCL4/d(CCL4) * CCL4_temporary
     cummulative_product(i,59) = cummulative_product(i,59) + dforce_dy(i,556) * vector(i,59)
@@ -23626,6 +28197,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,49) = cummulative_product(i,49) + dforce_dy(i,322) * vector(i,49)
 
     ! df_HYAC/d(CH3CO3) * CH3CO3_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector7
+
+subroutine dforce_dy_times_vector8(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,57) = cummulative_product(i,57) + dforce_dy(i,324) * vector(i,49)
 
     ! df_NO2/d(CH3CO3) * CH3CO3_temporary
@@ -23727,6 +28318,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_O/d(CH4) * CH4_temporary
     cummulative_product(i,187) = cummulative_product(i,187) + dforce_dy(i,273) * vector(i,45)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector8
+
+subroutine dforce_dy_times_vector9(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_O1D/d(CH4) * CH4_temporary
     cummulative_product(i,112) = cummulative_product(i,112) + dforce_dy(i,267) * vector(i,45)
 
@@ -23828,6 +28439,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_XO2/d(HPALD) * HPALD_temporary
     cummulative_product(i,153) = cummulative_product(i,153) + dforce_dy(i,594) * vector(i,67)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector9
+
+subroutine dforce_dy_times_vector10(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(HPALD) * HPALD_temporary
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,595) * vector(i,67)
@@ -23929,6 +28560,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,167) = cummulative_product(i,167) + dforce_dy(i,418) * vector(i,54)
 
     ! df_MDIALO2/d(NO2) * NO2_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector10
+
+subroutine dforce_dy_times_vector11(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,164) = cummulative_product(i,164) + dforce_dy(i,415) * vector(i,54)
 
     ! df_N2O/d(NO2) * NO2_temporary
@@ -24030,6 +28681,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_HMPROPO2/d(NO) * NO_temporary
     cummulative_product(i,77) = cummulative_product(i,77) + dforce_dy(i,4028) * vector(i,137)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector11
+
+subroutine dforce_dy_times_vector12(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_MVK/d(NO) * NO_temporary
     cummulative_product(i,25) = cummulative_product(i,25) + dforce_dy(i,4006) * vector(i,137)
 
@@ -24131,6 +28802,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_CH2O/d(NO) * NO_temporary
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,4054) * vector(i,137)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector12
+
+subroutine dforce_dy_times_vector13(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_ENEO2/d(NO) * NO_temporary
     cummulative_product(i,133) = cummulative_product(i,133) + dforce_dy(i,4061) * vector(i,137)
@@ -24232,6 +28923,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,4089) * vector(i,137)
 
     ! df_O3/d(NO) * NO_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector13
+
+subroutine dforce_dy_times_vector14(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,171) = cummulative_product(i,171) + dforce_dy(i,4094) * vector(i,137)
 
     ! df_CO/d(NO) * NO_temporary
@@ -24333,6 +29044,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_OH/d(BRO) * BRO_temporary
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,696) * vector(i,71)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector14
+
+subroutine dforce_dy_times_vector15(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO2/d(BRONO2) * BRONO2_temporary
     cummulative_product(i,54) = cummulative_product(i,54) + dforce_dy(i,717) * vector(i,72)
 
@@ -24434,6 +29165,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_BR/d(CH3BR) * CH3BR_temporary
     cummulative_product(i,90) = cummulative_product(i,90) + dforce_dy(i,1635) * vector(i,94)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector15
+
+subroutine dforce_dy_times_vector16(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH3BR/d(CH3BR) * CH3BR_temporary
     cummulative_product(i,94) = cummulative_product(i,94) + dforce_dy(i,1636) * vector(i,94)
@@ -24535,6 +29286,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,180) = cummulative_product(i,180) + dforce_dy(i,1924) * vector(i,100)
 
     ! df_CH3O2/d(CL) * CL_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector16
+
+subroutine dforce_dy_times_vector17(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,191) = cummulative_product(i,191) + dforce_dy(i,1935) * vector(i,100)
 
     ! df_H2O2/d(CL) * CL_temporary
@@ -24636,6 +29407,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_CH3O2/d(CLO) * CLO_temporary
     cummulative_product(i,191) = cummulative_product(i,191) + dforce_dy(i,1309) * vector(i,86)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector17
+
+subroutine dforce_dy_times_vector18(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_CH2O/d(CLO) * CLO_temporary
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,1273) * vector(i,86)
 
@@ -24737,6 +29528,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_HBR/d(HBR) * HBR_temporary
     cummulative_product(i,80) = cummulative_product(i,80) + dforce_dy(i,1017) * vector(i,80)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector18
+
+subroutine dforce_dy_times_vector19(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_O/d(HBR) * HBR_temporary
     cummulative_product(i,187) = cummulative_product(i,187) + dforce_dy(i,1061) * vector(i,80)
@@ -24838,6 +29649,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,187) = cummulative_product(i,187) + dforce_dy(i,7729) * vector(i,185)
 
     ! df_N2O/d(N) * N_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector19
+
+subroutine dforce_dy_times_vector20(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,161) = cummulative_product(i,161) + dforce_dy(i,7703) * vector(i,185)
 
     ! df_OH/d(N) * N_temporary
@@ -24939,6 +29770,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_HO2/d(CH3COCHO) * CH3COCHO_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,2548) * vector(i,111)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector20
+
+subroutine dforce_dy_times_vector21(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO3/d(CH3COCHO) * CH3COCHO_temporary
     cummulative_product(i,165) = cummulative_product(i,165) + dforce_dy(i,2522) * vector(i,111)
 
@@ -25040,6 +29891,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_SO2/d(OCLO) * OCLO_temporary
     cummulative_product(i,55) = cummulative_product(i,55) + dforce_dy(i,7510) * vector(i,183)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector21
+
+subroutine dforce_dy_times_vector22(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CLO/d(OCLO) * OCLO_temporary
     cummulative_product(i,86) = cummulative_product(i,86) + dforce_dy(i,7518) * vector(i,183)
@@ -25141,6 +30012,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,83) = cummulative_product(i,83) + dforce_dy(i,2575) * vector(i,112)
 
     ! df_O/d(O1D) * O1D_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector22
+
+subroutine dforce_dy_times_vector23(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,187) = cummulative_product(i,187) + dforce_dy(i,2629) * vector(i,112)
 
     ! df_O1D/d(O1D) * O1D_temporary
@@ -25242,6 +30133,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_BEPOMUC/d(BEPOMUC) * BEPOMUC_temporary
     cummulative_product(i,96) = cummulative_product(i,96) + dforce_dy(i,1693) * vector(i,96)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector23
+
+subroutine dforce_dy_times_vector24(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HO2/d(BEPOMUC) * BEPOMUC_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,1696) * vector(i,96)
 
@@ -25343,6 +30254,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_TERPROD1/d(CH3O2) * CH3O2_temporary
     cummulative_product(i,58) = cummulative_product(i,58) + dforce_dy(i,8129) * vector(i,191)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector24
+
+subroutine dforce_dy_times_vector25(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HYAC/d(CH3O2) * CH3O2_temporary
     cummulative_product(i,57) = cummulative_product(i,57) + dforce_dy(i,8128) * vector(i,191)
@@ -25444,6 +30375,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,176) = cummulative_product(i,176) + dforce_dy(i,8191) * vector(i,191)
 
     ! df_CH3COOH/d(CH3O2) * CH3O2_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector25
+
+subroutine dforce_dy_times_vector26(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,177) = cummulative_product(i,177) + dforce_dy(i,8192) * vector(i,191)
 
     ! df_CH3CHO/d(CH3O2) * CH3O2_temporary
@@ -25545,6 +30496,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_HO2/d(BIGALD2) * BIGALD2_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,2833) * vector(i,116)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector26
+
+subroutine dforce_dy_times_vector27(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_DICARBO2/d(BIGALD2) * BIGALD2_temporary
     cummulative_product(i,181) = cummulative_product(i,181) + dforce_dy(i,2832) * vector(i,116)
 
@@ -25646,6 +30617,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_C3H8/d(C3H8) * C3H8_temporary
     cummulative_product(i,56) = cummulative_product(i,56) + dforce_dy(i,491) * vector(i,56)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector27
+
+subroutine dforce_dy_times_vector28(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(C3H8) * C3H8_temporary
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,494) * vector(i,56)
@@ -25747,6 +30738,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,355) * vector(i,50)
 
     ! df_OH/d(CH3CN) * CH3CN_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector28
+
+subroutine dforce_dy_times_vector29(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,354) * vector(i,50)
 
     ! df_HCOOH/d(C2H2) * C2H2_temporary
@@ -25848,6 +30859,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_NO2/d(MACRO2) * MACRO2_temporary
     cummulative_product(i,54) = cummulative_product(i,54) + dforce_dy(i,7884) * vector(i,188)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector29
+
+subroutine dforce_dy_times_vector30(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO/d(MACRO2) * MACRO2_temporary
     cummulative_product(i,137) = cummulative_product(i,137) + dforce_dy(i,7907) * vector(i,188)
 
@@ -25949,6 +30980,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_CH3COCH3/d(MBONO3O2) * MBONO3O2_temporary
     cummulative_product(i,89) = cummulative_product(i,89) + dforce_dy(i,3189) * vector(i,123)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector30
+
+subroutine dforce_dy_times_vector31(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_CH2O/d(MBONO3O2) * MBONO3O2_temporary
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,3200) * vector(i,123)
@@ -26050,6 +31101,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,141) = cummulative_product(i,141) + dforce_dy(i,8066) * vector(i,190)
 
     ! df_NO3/d(ISOPBO2) * ISOPBO2_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector31
+
+subroutine dforce_dy_times_vector32(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,165) = cummulative_product(i,165) + dforce_dy(i,8089) * vector(i,190)
 
     ! df_CH3COOOH/d(MCO3) * MCO3_temporary
@@ -26151,6 +31222,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_EOOH/d(EO2) * EO2_temporary
     cummulative_product(i,78) = cummulative_product(i,78) + dforce_dy(i,5935) * vector(i,163)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector32
+
+subroutine dforce_dy_times_vector33(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO/d(EO2) * EO2_temporary
     cummulative_product(i,137) = cummulative_product(i,137) + dforce_dy(i,5951) * vector(i,163)
 
@@ -26252,6 +31343,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_GLYALD/d(NC4CH2OH) * NC4CH2OH_temporary
     cummulative_product(i,156) = cummulative_product(i,156) + dforce_dy(i,5587) * vector(i,158)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector33
+
+subroutine dforce_dy_times_vector34(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(NC4CH2OH) * NC4CH2OH_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,5623) * vector(i,158)
@@ -26353,6 +31464,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,81) = cummulative_product(i,81) + dforce_dy(i,8237) * vector(i,192)
 
     ! df_H2O/d(HO2) * HO2_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector34
+
+subroutine dforce_dy_times_vector35(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,68) = cummulative_product(i,68) + dforce_dy(i,8229) * vector(i,192)
 
     ! df_NO2/d(HO2) * HO2_temporary
@@ -26454,6 +31585,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_MEKO2/d(HO2) * HO2_temporary
     cummulative_product(i,128) = cummulative_product(i,128) + dforce_dy(i,8269) * vector(i,192)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector35
+
+subroutine dforce_dy_times_vector36(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_EO2/d(HO2) * HO2_temporary
     cummulative_product(i,163) = cummulative_product(i,163) + dforce_dy(i,8298) * vector(i,192)
 
@@ -26555,6 +31706,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_ALKO2/d(HO2) * HO2_temporary
     cummulative_product(i,85) = cummulative_product(i,85) + dforce_dy(i,8239) * vector(i,192)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector36
+
+subroutine dforce_dy_times_vector37(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2NO2/d(HO2) * HO2_temporary
     cummulative_product(i,35) = cummulative_product(i,35) + dforce_dy(i,8215) * vector(i,192)
@@ -26656,6 +31827,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,4386) * vector(i,142)
 
     ! df_ISOPAO2/d(ISOP) * ISOP_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector37
+
+subroutine dforce_dy_times_vector38(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,189) = cummulative_product(i,189) + dforce_dy(i,4438) * vector(i,142)
 
     ! df_ISOPBO2/d(ISOP) * ISOP_temporary
@@ -26757,6 +31948,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_NO2/d(TERP2O2) * TERP2O2_temporary
     cummulative_product(i,54) = cummulative_product(i,54) + dforce_dy(i,4597) * vector(i,145)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector38
+
+subroutine dforce_dy_times_vector39(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_NO/d(TERP2O2) * TERP2O2_temporary
     cummulative_product(i,137) = cummulative_product(i,137) + dforce_dy(i,4622) * vector(i,145)
 
@@ -26858,6 +32069,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_TERPO2/d(TERPO2) * TERPO2_temporary
     cummulative_product(i,147) = cummulative_product(i,147) + dforce_dy(i,4785) * vector(i,147)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector39
+
+subroutine dforce_dy_times_vector40(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_TERPOOH/d(TERPO2) * TERPO2_temporary
     cummulative_product(i,113) = cummulative_product(i,113) + dforce_dy(i,4771) * vector(i,147)
@@ -26959,6 +32190,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,15) = cummulative_product(i,15) + dforce_dy(i,2835) * vector(i,117)
 
     ! df_SOAG1/d(TOLUENE) * TOLUENE_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector40
+
+subroutine dforce_dy_times_vector41(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,16) = cummulative_product(i,16) + dforce_dy(i,2836) * vector(i,117)
 
     ! df_SOAG2/d(TOLUENE) * TOLUENE_temporary
@@ -27060,6 +32311,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_CH2O/d(TERPROD2) * TERPROD2_temporary
     cummulative_product(i,124) = cummulative_product(i,124) + dforce_dy(i,5362) * vector(i,155)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector41
+
+subroutine dforce_dy_times_vector42(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HO2/d(TERPROD2) * TERPROD2_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,5416) * vector(i,155)
 
@@ -27161,6 +32432,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_HYAC/d(ISOPNITA) * ISOPNITA_temporary
     cummulative_product(i,57) = cummulative_product(i,57) + dforce_dy(i,2912) * vector(i,118)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector42
+
+subroutine dforce_dy_times_vector43(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_NO2/d(ISOPNITA) * ISOPNITA_temporary
     cummulative_product(i,54) = cummulative_product(i,54) + dforce_dy(i,2910) * vector(i,118)
@@ -27262,6 +32553,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,18) = cummulative_product(i,18) + dforce_dy(i,6077) * vector(i,165)
 
     ! df_SOAG4/d(NO3) * NO3_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector43
+
+subroutine dforce_dy_times_vector44(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,19) = cummulative_product(i,19) + dforce_dy(i,6078) * vector(i,165)
 
     ! df_MTERP/d(NO3) * NO3_temporary
@@ -27363,6 +32674,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_MACR/d(NO3) * NO3_temporary
     cummulative_product(i,157) = cummulative_product(i,157) + dforce_dy(i,6143) * vector(i,165)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector44
+
+subroutine dforce_dy_times_vector45(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HONITR/d(NO3) * NO3_temporary
     cummulative_product(i,134) = cummulative_product(i,134) + dforce_dy(i,6124) * vector(i,165)
 
@@ -27464,6 +32795,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_SVOC/d(OH) * OH_temporary
     cummulative_product(i,30) = cummulative_product(i,30) + dforce_dy(i,6203) * vector(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector45
+
+subroutine dforce_dy_times_vector46(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_RO2/d(OH) * OH_temporary
     cummulative_product(i,40) = cummulative_product(i,40) + dforce_dy(i,6212) * vector(i,166)
@@ -27565,6 +32916,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,172) = cummulative_product(i,172) + dforce_dy(i,6329) * vector(i,166)
 
     ! df_HCFC22/d(OH) * OH_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector46
+
+subroutine dforce_dy_times_vector47(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,83) = cummulative_product(i,83) + dforce_dy(i,6242) * vector(i,166)
 
     ! df_HOCL/d(OH) * OH_temporary
@@ -27666,6 +33037,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_ISOPAO2/d(OH) * OH_temporary
     cummulative_product(i,189) = cummulative_product(i,189) + dforce_dy(i,6346) * vector(i,166)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector47
+
+subroutine dforce_dy_times_vector48(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_MBOO2/d(OH) * OH_temporary
     cummulative_product(i,125) = cummulative_product(i,125) + dforce_dy(i,6282) * vector(i,166)
 
@@ -27767,6 +33158,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_IEPOX/d(OH) * OH_temporary
     cummulative_product(i,76) = cummulative_product(i,76) + dforce_dy(i,6236) * vector(i,166)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector48
+
+subroutine dforce_dy_times_vector49(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_ONITR/d(OH) * OH_temporary
     cummulative_product(i,129) = cummulative_product(i,129) + dforce_dy(i,6286) * vector(i,166)
@@ -27868,6 +33279,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,38) = cummulative_product(i,38) + dforce_dy(i,79) * vector(i,21)
 
     ! df_PHENO/d(PHENOL) * PHENOL_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector49
+
+subroutine dforce_dy_times_vector50(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,182) = cummulative_product(i,182) + dforce_dy(i,81) * vector(i,21)
 
     ! df_HO2/d(PHENOL) * PHENOL_temporary
@@ -27969,6 +33400,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_BR/d(O3) * O3_temporary
     cummulative_product(i,90) = cummulative_product(i,90) + dforce_dy(i,6654) * vector(i,171)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector50
+
+subroutine dforce_dy_times_vector51(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_BRO/d(O3) * O3_temporary
     cummulative_product(i,71) = cummulative_product(i,71) + dforce_dy(i,6646) * vector(i,171)
 
@@ -28070,6 +33521,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_TERPO2/d(TERPOOH) * TERPOOH_temporary
     cummulative_product(i,147) = cummulative_product(i,147) + dforce_dy(i,2654) * vector(i,113)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector51
+
+subroutine dforce_dy_times_vector52(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_OH/d(TERPOOH) * TERPOOH_temporary
     cummulative_product(i,166) = cummulative_product(i,166) + dforce_dy(i,2669) * vector(i,113)
@@ -28171,6 +33642,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,68) = cummulative_product(i,68) + dforce_dy(i,7065) * vector(i,177)
 
     ! df_CO2/d(CH3COOH) * CH3COOH_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector52
+
+subroutine dforce_dy_times_vector53(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,82) = cummulative_product(i,82) + dforce_dy(i,7070) * vector(i,177)
 
     ! df_CH3O2/d(CH3COOH) * CH3COOH_temporary
@@ -28272,6 +33763,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     ! df_GLYOXAL/d(BENZOOH) * BENZOOH_temporary
     cummulative_product(i,131) = cummulative_product(i,131) + dforce_dy(i,1571) * vector(i,91)
 
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector53
+
+subroutine dforce_dy_times_vector54(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     ! df_HO2/d(BENZOOH) * BENZOOH_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,1607) * vector(i,91)
 
@@ -28373,6 +33884,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
 
     ! df_GLYALD/d(TERP2OOH) * TERP2OOH_temporary
     cummulative_product(i,156) = cummulative_product(i,156) + dforce_dy(i,199) * vector(i,37)
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector54
+
+subroutine dforce_dy_times_vector55(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
 
     ! df_HO2/d(TERP2OOH) * TERP2OOH_temporary
     cummulative_product(i,192) = cummulative_product(i,192) + dforce_dy(i,202) * vector(i,37)
@@ -28474,6 +34005,26 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
     cummulative_product(i,69) = cummulative_product(i,69) + dforce_dy(i,3) * vector(i,1)
 
     ! df_CLO/d(M) * M_temporary
+  end do
+  !$acc end parallel
+
+end subroutine dforce_dy_times_vector55
+
+subroutine dforce_dy_times_vector56(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector
+  do i = 1, ncell
     cummulative_product(i,86) = cummulative_product(i,86) + dforce_dy(i,4) * vector(i,1)
 
     ! df_O/d(M) * M_temporary
@@ -28491,6 +34042,88 @@ subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
   end do
   !$acc end parallel
 
+end subroutine dforce_dy_times_vector56
+
+subroutine dforce_dy_times_vector(dforce_dy, vector, cummulative_product)
+  !  Compute product of [ dforce_dy * vector ]
+  !  Commonly used to compute time-truncation errors [dforce_dy * force ]
+
+  real(r8), intent(in) :: dforce_dy(ncell,number_sparse_factor_elements) ! Jacobian of forcing
+  real(r8), intent(in) :: vector(ncell,number_of_species)    ! Vector ordered as the order of number density in dy
+  real(r8), intent(out) :: cummulative_product(ncell,number_of_species)  ! Product of jacobian with vector
+
+  ! Local variables
+  integer :: i, j
+
+
+  !$acc parallel default(present) vector_length(VLEN)
+  !$acc loop gang vector collapse(2)
+  do j = 1, number_of_species
+     do i = 1, ncell
+        cummulative_product(i,j) = 0
+     end do
+  end do
+  !$acc end parallel
+
+
+  call dforce_dy_times_vector1(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector2(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector3(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector4(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector5(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector6(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector7(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector8(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector9(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector10(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector11(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector12(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector13(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector14(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector15(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector16(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector17(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector18(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector19(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector20(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector21(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector22(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector23(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector24(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector25(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector26(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector27(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector28(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector29(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector30(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector31(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector32(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector33(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector34(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector35(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector36(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector37(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector38(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector39(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector40(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector41(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector42(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector43(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector44(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector45(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector46(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector47(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector48(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector49(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector50(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector51(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector52(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector53(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector54(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector55(dforce_dy, vector, cummulative_product)
+  call dforce_dy_times_vector56(dforce_dy, vector, cummulative_product)
+
 end subroutine dforce_dy_times_vector
+
 
 end module kinetics_utilities
