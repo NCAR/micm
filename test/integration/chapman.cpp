@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 #include <vector>
-#include <pair>
+#include <utility>
 
 #include <micm/system/system.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
+
+using yields = std::pair<micm::Species, double>;
 
 TEST(SystemBuilder, DefaultConstructor){
   auto o = micm::Species("O");
@@ -21,7 +23,7 @@ TEST(SystemBuilder, DefaultConstructor){
 
   micm::Phase gas_phase{
     std::vector<micm::Species> {
-      o, o1d, o2, o3, m, ar, n, h2o, co2
+      o, o1d, o2, o3, m, ar, n2, h2o, co2
     }
   };
 
@@ -61,7 +63,6 @@ TEST(SystemBuilder, DefaultConstructor){
     .phase_ = &gas_phase
   };
 
-  using std::pair<micm::Species, double = 1> = yields;
   micm::Process photo_1 {
     .reactants_ = { o2 },
     .products_ = { yields(o, 2) },
