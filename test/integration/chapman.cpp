@@ -96,42 +96,41 @@ TEST(SystemBuilder, DefaultConstructor){
     double temperature;
     double pressure; 
     std::vector<double> concentrations;
+
+    std::function<> get_jacobian();
   };
 
   System system{gas_phase};
 
-  Rosenbrock solver(system, r1, ..., photo_3 );
-  State state{system};
+  State state{(system, r1, ..., photo_3 )};
 
-  state.concentrations = {1, ...};
+  state.concentrations = {1, 2 };
   state.temperature = 2;
   state.pressure = 3;
+  state.photo_rates = {1, 4};
+
+  Rosenbrock solver( state );
 
   for(int t = {}, t < 100; ++t)
   {
-    update_photo_rates(photo_1, .... )
-    solver.solve(state);
+    state.update_photo_rates();
+    solver.solve( state );
     // output state
   }
 }
 
 class MICM {
   Solver* solver_;
-  System system_;;
-  std::vector<Process> {r1, ... photo_3};
-
-  void update_photo_rates();
+  State* state_;
 }
 
 // assumes that photo_rates, matches order in c++ already
-void fortran_solve(void* micm_address, double* concentrations, temperature, pressure, photo_rates) {
+void fortran_solve(void* micm_address, double* concentrations, double temperature, double pressure, double[] photo_rates) {
   MICM* micm = std::reinterpret_pointer_cast<MICM>(micm_address);
 
-  micm.update_photo_rates(photo_rates);
-  State state{system};
+  micm->state_->photo_rates = photo_rates;
+  micm->state_->concentrations = concentrations;
+  //temp and pres
 
-  state.concentrations = concentrations;
-  state.tempreature = tempreature;
-  state.pressure = pressure;
-  micm->solver_->solve(concenrations);
+  micm->solver_->solve(state);
 }
