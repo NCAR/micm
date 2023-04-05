@@ -4,37 +4,17 @@
  */
 #pragma once
 
+#include <vector>
+#include <micm/system/species.hpp>
+#include <micm/system/phase.hpp>
+#include <micm/process/rate_constant.hpp>
+
 namespace micm
 {
-
-  class NoPolicy {
-   private:
-   public:
+  struct Process {
+    std::vector<Species> reactants_;
+    std::vector<Species> products_;
+    RateConstant rate_constant_;
+    Phase* phase_;
   };
-
-  class GenerateForcingPolicy {
-   private:
-   public:
-  };
-
-  class GenerateJacobianPolicy {
-   private:
-   public:
-  };
-
-  template<
-    class ReactionType = NoPolicy,
-    class ForcingPolicy = NoPolicy,
-    class JacobianPolicy = NoPolicy
-  >
-  class Process
-  {
-    ReactionType reaction_type_;
-    ForcingPolicy forcing_policy_;
-    JacobianPolicy jacobian_policy_;
-   private:
-   public:
-
-  };
-
 }  // namespace micm

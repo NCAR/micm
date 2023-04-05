@@ -5,17 +5,7 @@
 #include <micm/system/system.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
-// #include <micm/process/process.hpp>
-
-namespace micm {
-
-  struct Process {
-    std::vector<Species> reactants_;
-    std::vector<Species> products_;
-    micm::RateConstant rate_constant_;
-    Phase* phase_;
-  };
-}
+#include <micm/process/process.hpp>
 
 TEST(SystemBuilder, DefaultConstructor){
   auto o = micm::Species("O");
@@ -98,11 +88,12 @@ TEST(SystemBuilder, DefaultConstructor){
     std::vector<double> concentrations;
 
     std::function<> get_jacobian();
+    std::function<> get_forcing();
   };
 
   System system{gas_phase};
 
-  State state{(system, r1, ..., photo_3 )};
+  State state{system, r1, ..., photo_3 };
 
   state.concentrations = {1, 2 };
   state.temperature = 2;
@@ -111,7 +102,7 @@ TEST(SystemBuilder, DefaultConstructor){
 
   Rosenbrock solver( state );
 
-  for(int t = {}, t < 100; ++t)
+  for(int t {}, t < 100; ++t)
   {
     state.update_photo_rates();
     solver.solve( state );
