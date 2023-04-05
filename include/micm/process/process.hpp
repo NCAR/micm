@@ -6,10 +6,35 @@
 
 namespace micm
 {
-  class Process
-  {
+
+  class NoPolicy {
    private:
    public:
+  };
+
+  class GenerateForcingPolicy {
+   private:
+   public:
+  };
+
+  class GenerateJacobianPolicy {
+   private:
+   public:
+  };
+
+  template<
+    class ReactionType = NoPolicy,
+    class ForcingPolicy = NoPolicy,
+    class JacobianPolicy = NoPolicy
+  >
+  class Process
+  {
+    ReactionType reaction_type_;
+    ForcingPolicy forcing_policy_;
+    JacobianPolicy jacobian_policy_;
+   private:
+   public:
+
   };
 
 }  // namespace micm
