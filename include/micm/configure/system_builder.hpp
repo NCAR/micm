@@ -181,13 +181,13 @@ namespace micm
 
       std::string name = object["name"].get<std::string>();
 
-      std::cout << object.dump(2) << std::endl;
       std::string key = "absolute tolerance";
+
       if (object.contains(key))
       {
-        std::cout << "here" << std::endl;
         double abs_tol = object[key].get<double>();
-        species_.push_back(Species(name, Property(key, "", abs_tol)));
+        auto species = Species(name, Property(key, "", abs_tol));
+        species_.push_back(species);
       }
       else
       {

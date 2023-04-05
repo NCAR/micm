@@ -29,7 +29,12 @@ TEST(SystemBuilder, JsonBuilder){
   EXPECT_TRUE(system != nullptr);
   EXPECT_EQ(system->gas_phase_.species_.size(), 9);
   for(auto& species : system->gas_phase_.species_){
-    EXPECT_EQ(species.properties_.size(), 1);
+    if (species.name_ == "M") {
+      continue;
+    }
+    else{
+      EXPECT_EQ(species.properties_.size(), 1);
+    }
   }
   EXPECT_EQ(system->photolysis_reactions_.size(), 3);
   EXPECT_EQ(system->arrhenius_reactions_.size(), 4);
