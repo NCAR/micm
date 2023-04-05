@@ -30,7 +30,7 @@ TEST(SystemBuilder, JsonBuilder){
   EXPECT_EQ(system->gas_phase_.species_.size(), 9);
   for(auto& species : system->gas_phase_.species_){
     if (species.name_ == "M") {
-      continue;
+      EXPECT_EQ(species.properties_.size(), 0);
     }
     else{
       EXPECT_EQ(species.properties_.size(), 1);
