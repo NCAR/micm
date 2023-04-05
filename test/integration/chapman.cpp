@@ -6,6 +6,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/solver/state.hpp>
 
 TEST(SystemBuilder, DefaultConstructor){
   auto o = micm::Species("O");
@@ -82,15 +83,6 @@ TEST(SystemBuilder, DefaultConstructor){
     .phase_ = &gas_phase
   };
 
-  struct State  {
-    double temperature;
-    double pressure; 
-    std::vector<double> concentrations;
-
-    std::function<> get_jacobian();
-    std::function<> get_forcing();
-  };
-
   System system{gas_phase};
 
   State state{system, r1, ..., photo_3 };
@@ -108,20 +100,4 @@ TEST(SystemBuilder, DefaultConstructor){
     solver.solve( state );
     // output state
   }
-}
-
-class MICM {
-  Solver* solver_;
-  State* state_;
-}
-
-// assumes that photo_rates, matches order in c++ already
-void fortran_solve(void* micm_address, double* concentrations, double temperature, double pressure, double[] photo_rates) {
-  MICM* micm = std::reinterpret_pointer_cast<MICM>(micm_address);
-
-  micm->state_->photo_rates = photo_rates;
-  micm->state_->concentrations = concentrations;
-  //temp and pres
-
-  micm->solver_->solve(state);
 }
