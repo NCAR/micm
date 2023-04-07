@@ -93,16 +93,20 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem){
     }
   };
 
-  state.concentrations_ = {1, 2 };
+  double concentrations[9] = { 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
+
+  state.concentrations_ = concentrations;
   state.temperature_ = 2;
   state.pressure_ = 3;
-  // state.photo_rates_ = {1, 4};
+
+  double photo_rates[3] = {0.1, 0.2, 0.3};
 
   micm::RosenbrockSolver solver( state );
+  state.update_photo_rates(photo_rates);
 
   for(double t{}; t < 100; ++t)
   {
-    state.update_photo_rates();
+    state.update_photo_rates(photo_rates);
     auto result = solver.Solve(t, t+0.5, state );
     // output state
   }

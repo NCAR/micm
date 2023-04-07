@@ -12,7 +12,8 @@
       std::vector<Process> processes_;
       double temperature_;
       double pressure_; 
-      std::vector<double> concentrations_;
+      double* concentrations_;
+      size_t concentrations_size_;
 
       /// @brief 
       State();
@@ -23,7 +24,7 @@
       State(System system, std::vector<Process> processes);
 
       /// @brief Update the photolysis rates contained within the processes vector
-      void update_photo_rates();
+      void update_photo_rates(double photo_rates[]);
 
       // std::function<> get_jacobian();
       // std::function<> get_forcing();
@@ -34,7 +35,8 @@
       , processes_()
       , temperature_(0)
       , pressure_(0)
-      , concentrations_()
+      , concentrations_(nullptr)
+      , concentrations_size_(0)
     {
     }
 
@@ -43,11 +45,12 @@
       , processes_(processes)
       , temperature_(0)
       , pressure_(0)
-      , concentrations_()
+      , concentrations_(nullptr)
+      , concentrations_size_(0)
     {
     }
 
-    inline void State::update_photo_rates()
+    inline void State::update_photo_rates(double photo_rates[])
     {
       // TODO: do it
     }

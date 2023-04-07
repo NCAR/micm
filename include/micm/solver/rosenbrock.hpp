@@ -93,8 +93,8 @@ namespace micm
     /// @param number_density_air The number density of air in molecules / cm3
     /// @return A struct containing results and a status code
     virtual Solver::SolverResult Solve(
-        const double& time_start,
-        const double& time_end,
+        double time_start,
+        double time_end,
         const std::vector<double>& number_densities,
         const double& number_density_air) noexcept;
 
@@ -103,8 +103,8 @@ namespace micm
     /// @param time_end Time step to end at
     /// @return A struct containing results and a status code
     Solver::SolverResult Solve(
-        const double& time_start,
-        const double& time_end,
+        double time_start,
+        double time_end,
         State state
         ) noexcept;
 
@@ -219,8 +219,8 @@ namespace micm
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(
-      const double& time_start,
-      const double& time_end,
+      double time_start,
+      double time_end,
       const std::vector<double>& original_number_densities,
       const double& number_density_air) noexcept
   {
@@ -390,7 +390,7 @@ namespace micm
     return result;
   }
 
-  inline Solver::SolverResult RosenbrockSolver::Solve(const double& time_start, const double& time_end, State state) noexcept
+  inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State state) noexcept
   {
     // TODO: do it
     return Solver::SolverResult();
