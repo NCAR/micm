@@ -5,12 +5,14 @@
 #include <micm/system/system.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/solver/rosenbrock.hpp>
 
 using yields = std::pair<micm::Species, double>;
 
-TEST(SystemBuilder, DefaultConstructor){
+TEST(ChapmanIntegration, CanBuildChapmanSystem){
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
   auto o2 = micm::Species("O2");
@@ -55,7 +57,7 @@ TEST(SystemBuilder, DefaultConstructor){
   };
 
   micm::Process r4 {
-    .reactants_ = {o, o2, M},
+    .reactants_ = {o, o2, m },
     .products_ = { yields(o3, 1), yields(m, 1) },
     .rate_constant_ = micm::ArrheniusRateConstant(
       micm::ArrheniusRateConstantParameters { .A_ = 6.0e-34, .C_=2.4 }
@@ -84,21 +86,26 @@ TEST(SystemBuilder, DefaultConstructor){
     .phase_ = &gas_phase
   };
 
-  System system{gas_phase};
+  micm::System system{micm::SystemParameters{.gas_phase_=gas_phase}};
 
-  State state{system, r1, ..., photo_3 };
+  micm::State state{
+    &system, 
+    std::vector<micm::Process> {
+      r1, r2, r3, r4, photo_1, photo_2, photo_3
+    }
+  };
 
-  state.concentrations = {1, 2 };
-  state.temperature = 2;
-  state.pressure = 3;
-  state.photo_rates = {1, 4};
+  state.concentrations_ = {1, 2 };
+  state.temperature_ = 2;
+  state.pressure_ = 3;
+  // state.photo_rates_ = {1, 4};
 
-  Rosenbrock solver( state );
+  micm::RosenbrockSolver solver( state );
 
-  for(int t {}, t < 100; ++t)
+  for(double t{}; t < 100; ++t)
   {
     state.update_photo_rates();
-    solver.solve( state );
+    auto result = solver.Solve(t, t+0.5, state );
     // output state
   }
 }

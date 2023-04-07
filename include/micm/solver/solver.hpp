@@ -17,10 +17,6 @@ namespace micm
    */
   class Solver
   {
-   protected:
-    /// @brief The size of the system
-    std::size_t size_;
-
    public:
     enum class SolverState
     {
@@ -70,28 +66,7 @@ namespace micm
     };
 
    public:
-    /// @brief Default constructor
-    Solver();
-    /// @brief Virtual destructor
-    virtual ~Solver() = default;
-
-    /// @brief A virtual function to be defined by any solver baseclass
-    /// @param time_start Time step to start at
-    /// @param time_end Time step to end at
-    /// @param number_densities Species concentrations in molecules / cm3
-    /// @param number_density_air The number density of air in molecules / cm3
-    /// @return A struct containing results and a status code
-    virtual SolverResult Solve(
-        const double& time_start,
-        const double& time_end,
-        const std::vector<double>& number_densities,
-        const double& number_density_air) noexcept = 0;
   };
-
-  inline Solver::Solver()
-      : size_()
-  {
-  }
 
   std::string state_to_string(const Solver::SolverState& state)
   {
