@@ -86,10 +86,8 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem){
     .phase_ = &gas_phase
   };
 
-  micm::System system{micm::SystemParameters{.gas_phase_=gas_phase}};
-
   micm::State state{
-    &system, 
+    micm::System(micm::SystemParameters{.gas_phase_=gas_phase}), 
     std::vector<micm::Process> {
       r1, r2, r3, r4, photo_1, photo_2, photo_3
     }

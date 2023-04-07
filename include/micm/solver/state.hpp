@@ -8,7 +8,7 @@
   namespace micm {
 
     struct State  {
-      System* system_;
+      System system_;
       std::vector<Process> processes_;
       double temperature_;
       double pressure_; 
@@ -20,7 +20,7 @@
       /// @brief 
       /// @param system 
       /// @param processes 
-      State(System* system, std::vector<Process> processes);
+      State(System system, std::vector<Process> processes);
 
       /// @brief Update the photolysis rates contained within the processes vector
       void update_photo_rates();
@@ -38,7 +38,7 @@
     {
     }
 
-    inline State::State(System* system, std::vector<Process> processes)
+    inline State::State(System system, std::vector<Process> processes)
       : system_(system)
       , processes_(processes)
       , temperature_(0)
