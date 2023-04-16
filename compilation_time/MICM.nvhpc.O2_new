@@ -1,0 +1,200 @@
+-- The C compiler identification is NVHPC 22.2.0
+-- The CXX compiler identification is NVHPC 22.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvc++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- The Fortran compiler identification is NVHPC 22.2.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran - skipped
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /glade/scratch/sunjian/temp/micm/build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -S/glade/scratch/sunjian/temp/micm -B/glade/scratch/sunjian/temp/micm/build --check-build-system CMakeFiles/Makefile.cmake 0
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_progress_start /glade/scratch/sunjian/temp/micm/build/CMakeFiles /glade/scratch/sunjian/temp/micm/build//CMakeFiles/progress.marks
+make  -f CMakeFiles/Makefile2 all
+make[1]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f libs/musica-core/src/CMakeFiles/musicalib.dir/build.make libs/musica-core/src/CMakeFiles/musicalib.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/libs/musica-core/src /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/depend.internal".
+Scanning dependencies of target musicalib
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f libs/musica-core/src/CMakeFiles/musicalib.dir/build.make libs/musica-core/src/CMakeFiles/musicalib.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[  2%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/constants.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/constants.F90 -o CMakeFiles/musicalib.dir/util/constants.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_constants.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_constants.mod.stamp NVHPC
+[  5%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/mpi.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/mpi.F90 -o CMakeFiles/musicalib.dir/util/mpi.F90.o
+  Timing stats:
+    expand                  17 millisecs    51%
+    vectorize2              16 millisecs    48%
+    Total time              33 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_mpi.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_mpi.mod.stamp NVHPC
+[  7%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/string.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/string.F90 -o CMakeFiles/musicalib.dir/util/string.F90.o
+  Timing stats:
+    init                    50 millisecs    23%
+    upper                   34 millisecs    15%
+    vectorize               16 millisecs     7%
+    vectorize2              16 millisecs     7%
+    schedule               100 millisecs    46%
+    Total time             216 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_string.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_string.mod.stamp NVHPC
+[ 10%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/assert.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/assert.F90 -o CMakeFiles/musicalib.dir/util/assert.F90.o
+NVFORTRAN-W-0155-- Unable to resolve user defined io   (/glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/assert.F90: 70)
+NVFORTRAN-W-0155-- Unable to resolve user defined io   (/glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/assert.F90: 75)
+  0 inform,   2 warnings,   0 severes, 0 fatal for assert_msg_string
+NVFORTRAN-W-0155-- Unable to resolve user defined io   (/glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/assert.F90: 144)
+  0 inform,   1 warnings,   0 severes, 0 fatal for assert_warn_msg_string
+  Timing stats:
+    init                    16 millisecs    32%
+    schedule                17 millisecs    34%
+    assemble                17 millisecs    34%
+    Total time              50 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_assert.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_assert.mod.stamp NVHPC
+[ 12%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/array.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/array.F90 -o CMakeFiles/musicalib.dir/util/array.F90.o
+  Timing stats:
+    upper                   16 millisecs    32%
+    expand                  17 millisecs    34%
+    schedule                17 millisecs    34%
+    Total time              50 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_array.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_array.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/array.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/assert.F90.o.provides.build
+[ 15%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/convert.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/convert.F90 -o CMakeFiles/musicalib.dir/util/convert.F90.o
+  Timing stats:
+    init                    16 millisecs    13%
+    upper                   34 millisecs    29%
+    vectorize               16 millisecs    13%
+    unroll                  17 millisecs    14%
+    schedule                33 millisecs    28%
+    Total time             116 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_convert.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_convert.mod.stamp NVHPC
+[ 17%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/iterator.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/iterator.F90 -o CMakeFiles/musicalib.dir/util/iterator.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_iterator.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_iterator.mod.stamp NVHPC
+[ 20%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/config.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/config.F90 -o CMakeFiles/musicalib.dir/util/config.F90.o
+NVFORTRAN-W-0155-- Unable to resolve user defined io   (/glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/config.F90: 1719)
+  0 inform,   1 warnings,   0 severes, 0 fatal for do_print
+  Timing stats:
+    init                   466 millisecs    45%
+    upper                  316 millisecs    31%
+    expand                  17 millisecs     1%
+    vectorize               50 millisecs     4%
+    unroll                  17 millisecs     1%
+    optimize                17 millisecs     1%
+    schedule               117 millisecs    11%
+    assemble                16 millisecs     1%
+    Total time            1016 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_config.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_config.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/config.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/constants.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/convert.F90.o.provides.build
+[ 23%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/data_type.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/data_type.F90 -o CMakeFiles/musicalib.dir/util/data_type.F90.o
+  Timing stats:
+    upper                   16 millisecs   100%
+    Total time              16 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_data_type.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_data_type.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/data_type.F90.o.provides.build
+[ 25%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/datetime.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/datetime.F90 -o CMakeFiles/musicalib.dir/util/datetime.F90.o
+  Timing stats:
+    init                   200 millisecs    54%
+    upper                  132 millisecs    36%
+    expand                  17 millisecs     4%
+    opt2c                   17 millisecs     4%
+    Total time             366 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_datetime.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_datetime.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/datetime.F90.o.provides.build
+[ 28%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/io.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/io.F90 -o CMakeFiles/musicalib.dir/util/io.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_io.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_io.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/io.F90.o.provides.build
+[ 30%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/io/netcdf.F90 -o CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+  Timing stats:
+    init                    66 millisecs    26%
+    upper                  101 millisecs    40%
+    vectorize               16 millisecs     6%
+    opt2d                   17 millisecs     6%
+    unrolln                 17 millisecs     6%
+    schedule                33 millisecs    13%
+    Total time             250 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_io_netcdf.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_io_netcdf.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/io/netcdf.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/iterator.F90.o.provides.build
+[ 33%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/logger.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/logger.F90 -o CMakeFiles/musicalib.dir/util/logger.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_logger.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_logger.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/logger.F90.o.provides.build
+[ 35%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/math.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/math.F90 -o CMakeFiles/musicalib.dir/util/math.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_math.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_math.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/math.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/mpi.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/string.F90.o.provides.build
+[ 38%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/target.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/target.F90 -o CMakeFiles/musicalib.dir/util/target.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_target.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_target.mod.stamp NVHPC
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/target.F90.o.provides.build
+[ 41%] Linking Fortran static library Fortran_MODULE_DIRECTORY/libmusica.a
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -P CMakeFiles/musicalib.dir/cmake_clean_target.cmake
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_link_script CMakeFiles/musicalib.dir/link.txt --verbose=1
+/bin/ar qc Fortran_MODULE_DIRECTORY/libmusica.a CMakeFiles/musicalib.dir/util/array.F90.o CMakeFiles/musicalib.dir/util/assert.F90.o CMakeFiles/musicalib.dir/util/constants.F90.o CMakeFiles/musicalib.dir/util/config.F90.o CMakeFiles/musicalib.dir/util/convert.F90.o CMakeFiles/musicalib.dir/util/data_type.F90.o CMakeFiles/musicalib.dir/util/datetime.F90.o CMakeFiles/musicalib.dir/util/iterator.F90.o CMakeFiles/musicalib.dir/util/io.F90.o CMakeFiles/musicalib.dir/util/logger.F90.o CMakeFiles/musicalib.dir/util/math.F90.o CMakeFiles/musicalib.dir/util/mpi.F90.o CMakeFiles/musicalib.dir/util/string.F90.o CMakeFiles/musicalib.dir/util/target.F90.o CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+/bin/ranlib Fortran_MODULE_DIRECTORY/libmusica.a
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+[ 41%] Built target musicalib
+make  -f src/CMakeFiles/micmlib.dir/build.make src/CMakeFiles/micmlib.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/src /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/src /glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/depend.internal".
+Scanning dependencies of target micmlib
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f src/CMakeFiles/micmlib.dir/build.make src/CMakeFiles/micmlib.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[ 43%] Building Fortran object src/CMakeFiles/micmlib.dir/constants.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/src/constants.F90 -o CMakeFiles/micmlib.dir/constants.F90.o
+  Timing stats:
+    Total time               0 millisecs
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/constants.mod src/CMakeFiles/micmlib.dir/constants.mod.stamp NVHPC
+[ 46%] Building Fortran object src/CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/nvhpc/22.2/nvfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/json-fortran-8.3.0/build/include -I/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O2 -Mextend -byteswapio -Mflushz -Kieee -Mnofma -Mfree -Mnobounds -mcmodel=medium -time -c /glade/scratch/sunjian/temp/micm/src/preprocessor_output/factor_solve_utilities.F90 -o CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o
+NVFORTRAN-F-0007-Subprogram too large to compile at this optimization level  (/glade/scratch/sunjian/temp/micm/src/preprocessor_output/factor_solve_utilities.F90)
+NVFORTRAN/x86-64 Linux 22.2-0: compilation aborted
+make[2]: *** [src/CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o] Error 2
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make[1]: *** [src/CMakeFiles/micmlib.dir/all] Error 2
+make[1]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make: *** [all] Error 2
+
+real	0m37.258s
+user	0m32.895s
+sys	0m3.803s

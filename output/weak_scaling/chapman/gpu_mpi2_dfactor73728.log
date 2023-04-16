@@ -1,0 +1,144 @@
+Start testing: Jan 31 09:46 MST
+----------------------------------------------------------
+1/2 Testing: test_stub
+1/2 Test: test_stub
+Command: "/glade/scratch/sunjian/temp/micm/build/test_stub"
+Directory: /glade/scratch/sunjian/temp/micm/build/test
+"test_stub" start time: Jan 31 09:46 MST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"test_stub" end time: Jan 31 09:46 MST
+"test_stub" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: test_performance
+2/2 Test: test_performance
+Command: "/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/bin/mpirun" "-v" "-np" "2" "/glade/scratch/sunjian/temp/micm/build/set_device_rank.sh" "/glade/scratch/sunjian/temp/micm/build/test_performance"
+Directory: /glade/scratch/sunjian/temp/micm/build/test/performance
+"test_performance" start time: Jan 31 09:46 MST
+Output:
+----------------------------------------------------------
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+Out of memory allocating 4341104640 bytes of device memory
+Failing in Thread:1
+total/free CUDA memory: 34089926656/2812477440
+Present table dump for device[1]: NVIDIA Tesla GPU 0, compute capability 7.0, threadid=1
+host:0x6b13b0 device:0x2b4ac4000000 size:849346560 presentcount:0+1 line:122 name:cam_vars
+host:0x330b13b0 device:0x2b4af8000000 size:283115520 presentcount:0+1 line:122 name:cam_photolysis_rates
+host:0x43eb13b0 device:0x2b4b0a000000 size:94371840 presentcount:0+1 line:122 name:cam_temp
+host:0x498b13b0 device:0x2b4b10000000 size:94371840 presentcount:0+1 line:122 name:cam_pmid
+host:0x4f2b13e0 device:0x2b4a10000000 size:3019898880 presentcount:0+1 line:120 name:env
+host:0x2f2ccfb90 device:0x2b46e7afa000 size:1112 presentcount:0+1 line:303 name:this
+host:0x2f3614a60 device:0x2b46e7bf4600 size:1104 presentcount:0+5 line:266 name:this
+host:0x2f3614fe0 device:0x2b46e7bf4c00 size:72 presentcount:0+1 line:266 name:(null)
+host:0x2f36151f0 device:0x2b46e7bf4e00 size:72 presentcount:0+1 line:266 name:(null)
+host:0x2b4446c01230 device:0x2b48f4000000 size:1321205760 presentcount:0+1 line:303 name:(null)
+host:0x2b4495802440 device:0x2b47f0000000 size:4341104640 presentcount:0+1 line:303 name:(null)
+host:0x2b4598403650 device:0x2b46ec000000 size:4341104640 presentcount:0+1 line:303 name:(null)
+host:0x2b4944000a70 device:0x2b49aa000000 size:1698693120 presentcount:0+1 line:120 name:number_densities__molec_cm3
+host:0x2b4b16000c80 device:0x2b4bcc000000 size:3019898880 presentcount:0+1 line:408 name:(null)
+host:0x2b4c80000020 device:0x2b4f46000000 size:1698693120 presentcount:0+1 line:297 name:ynew
+host:0x2b4ce5401230 device:0x2b4fac000000 size:1698693120 presentcount:0+1 line:297 name:fcn0
+host:0x2b4d4a802440 device:0x2b5012000000 size:1698693120 presentcount:0+1 line:297 name:fcn
+host:0x2b4dafc03650 device:0x2b5078000000 size:5096079360 presentcount:0+1 line:297 name:k
+host:0x2b4edf804860 device:0x2b51a8000000 size:1698693120 presentcount:0+1 line:297 name:yerr
+allocated block device:0x2b46e7afa000 size:1536 thread:1
+allocated block device:0x2b46e7bf4600 size:1536 thread:1
+allocated block device:0x2b46e7bf4c00 size:512 thread:1
+allocated block device:0x2b46e7bf4e00 size:512 thread:1
+allocated block device:0x2b46ec000000 size:4341104640 thread:1
+allocated block device:0x2b47f0000000 size:4341104640 thread:1
+allocated block device:0x2b48f4000000 size:1321205760 thread:1
+allocated block device:0x2b49aa000000 size:1698693120 thread:1
+allocated block device:0x2b4a10000000 size:3019898880 thread:1
+allocated block device:0x2b4ac4000000 size:849346560 thread:1
+allocated block device:0x2b4af8000000 size:283115520 thread:1
+allocated block device:0x2b4b0a000000 size:94371840 thread:1
+allocated block device:0x2b4b10000000 size:94371840 thread:1
+allocated block device:0x2b4bcc000000 size:3019898880 thread:1
+allocated block device:0x2b4f46000000 size:1698693120 thread:1
+allocated block device:0x2b4fac000000 size:1698693120 thread:1
+allocated block device:0x2b5012000000 size:1698693120 thread:1
+allocated block device:0x2b5078000000 size:5096079360 thread:1
+allocated block device:0x2b51a8000000 size:1698693120 thread:1
+call to cuMemAlloc returned error 2: Out of memory
+
+Out of memory allocating 4341104640 bytes of device memory
+Failing in Thread:1
+total/free CUDA memory: 34089926656/2812477440
+Present table dump for device[1]: NVIDIA Tesla GPU 0, compute capability 7.0, threadid=1
+host:0x6b13b0 device:0x2b8240000000 size:849346560 presentcount:0+1 line:122 name:cam_vars
+host:0x330b13b0 device:0x2b8274000000 size:283115520 presentcount:0+1 line:122 name:cam_photolysis_rates
+host:0x43eb13b0 device:0x2b8286000000 size:94371840 presentcount:0+1 line:122 name:cam_temp
+host:0x498b13b0 device:0x2b828c000000 size:94371840 presentcount:0+1 line:122 name:cam_pmid
+host:0x4f2b13e0 device:0x2b818c000000 size:3019898880 presentcount:0+1 line:120 name:env
+host:0x2f3ef4b90 device:0x2b7e63afa000 size:1112 presentcount:0+1 line:303 name:this
+host:0x2f4806af0 device:0x2b7e63bf4600 size:1104 presentcount:0+5 line:266 name:this
+host:0x2f4807070 device:0x2b7e63bf4c00 size:72 presentcount:0+1 line:266 name:(null)
+host:0x2f4807280 device:0x2b7e63bf4e00 size:72 presentcount:0+1 line:266 name:(null)
+host:0x2b7bc2c01230 device:0x2b8070000000 size:1321205760 presentcount:0+1 line:303 name:(null)
+host:0x2b7c11802440 device:0x2b7f6c000000 size:4341104640 presentcount:0+1 line:303 name:(null)
+host:0x2b7d14403650 device:0x2b7e68000000 size:4341104640 presentcount:0+1 line:303 name:(null)
+host:0x2b80c0000a70 device:0x2b8126000000 size:1698693120 presentcount:0+1 line:120 name:number_densities__molec_cm3
+host:0x2b8292000c80 device:0x2b8348000000 size:3019898880 presentcount:0+1 line:408 name:(null)
+host:0x2b83fc000020 device:0x2b86c2000000 size:1698693120 presentcount:0+1 line:297 name:ynew
+host:0x2b8461401230 device:0x2b8728000000 size:1698693120 presentcount:0+1 line:297 name:fcn0
+host:0x2b84c6802440 device:0x2b878e000000 size:1698693120 presentcount:0+1 line:297 name:fcn
+host:0x2b852bc03650 device:0x2b87f4000000 size:5096079360 presentcount:0+1 line:297 name:k
+host:0x2b865b804860 device:0x2b8924000000 size:1698693120 presentcount:0+1 line:297 name:yerr
+allocated block device:0x2b7e63afa000 size:1536 thread:1
+allocated block device:0x2b7e63bf4600 size:1536 thread:1
+allocated block device:0x2b7e63bf4c00 size:512 thread:1
+allocated block device:0x2b7e63bf4e00 size:512 thread:1
+allocated block device:0x2b7e68000000 size:4341104640 thread:1
+allocated block device:0x2b7f6c000000 size:4341104640 thread:1
+allocated block device:0x2b8070000000 size:1321205760 thread:1
+allocated block device:0x2b8126000000 size:1698693120 thread:1
+allocated block device:0x2b818c000000 size:3019898880 thread:1
+allocated block device:0x2b8240000000 size:849346560 thread:1
+allocated block device:0x2b8274000000 size:283115520 thread:1
+allocated block device:0x2b8286000000 size:94371840 thread:1
+allocated block device:0x2b828c000000 size:94371840 thread:1
+allocated block device:0x2b8348000000 size:3019898880 thread:1
+allocated block device:0x2b86c2000000 size:1698693120 thread:1
+allocated block device:0x2b8728000000 size:1698693120 thread:1
+allocated block device:0x2b878e000000 size:1698693120 thread:1
+allocated block device:0x2b87f4000000 size:5096079360 thread:1
+allocated block device:0x2b8924000000 size:1698693120 thread:1
+call to cuMemAlloc returned error 2: Out of memory
+
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[27197,1],1]
+  Exit code:    1
+--------------------------------------------------------------------------
+<end of output>
+Test time =   5.14 sec
+----------------------------------------------------------
+Test Failed.
+"test_performance" end time: Jan 31 09:46 MST
+"test_performance" time elapsed: 00:00:05
+----------------------------------------------------------
+
+End testing: Jan 31 09:46 MST

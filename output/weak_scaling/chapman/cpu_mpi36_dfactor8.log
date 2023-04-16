@@ -1,0 +1,1766 @@
+Start testing: Jan 30 16:56 MST
+----------------------------------------------------------
+1/2 Testing: test_stub
+1/2 Test: test_stub
+Command: "/glade/scratch/sunjian/temp/micm/build/test_stub"
+Directory: /glade/scratch/sunjian/temp/micm/build/test
+"test_stub" start time: Jan 30 16:56 MST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"test_stub" end time: Jan 30 16:56 MST
+"test_stub" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: test_performance
+2/2 Test: test_performance
+Command: "/glade/u/apps/dav/opt/openmpi/4.1.1/nvhpc/22.2/bin/mpirun" "-v" "-np" "36" "/glade/scratch/sunjian/temp/micm/build/test_performance"
+Directory: /glade/scratch/sunjian/temp/micm/build/test/performance
+"test_performance" start time: Jan 30 16:56 MST
+Output:
+----------------------------------------------------------
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : M
+ NetCDF: Variable not found : Ar
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : N2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ NetCDF: Variable not found : O2
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ Successfully read in the CAM output from 
+ /glade/scratch/fvitt/archive/TS1_chem_output_t01/atm/hist/TS1_chem_output_t01.cam.h1.2010-01-06-00000.nc                                                                                                                                                        
+ time step    5.000000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     882969.0110808829     
+ time step    10.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     980113.7367580314     
+ time step    15.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     980852.3791084846     
+ time step    20.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     981093.8604452837     
+ time step    25.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     981071.4499562188     
+ time step    30.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     981594.6282710547     
+ time step    35.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982285.5794144105     
+ time step    40.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     979957.1980438734     
+ time step    45.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     879489.4727573474     
+ time step    50.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     981908.8031823690     
+ time step    55.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     944620.1247773143     
+ time step    60.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     980509.0331303221     
+ time step    65.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982810.0538000753     
+ time step    70.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982915.0158925510     
+ time step    75.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     973383.3017473440     
+ time step    80.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     871276.5219900103     
+ time step    85.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     968149.0358259197     
+ time step    90.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     978052.9289688554     
+ time step    95.00000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     976913.4219903862     
+ time step    100.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982840.0406818275     
+ time step    105.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     981771.6386097876     
+ time step    110.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982223.1792713883     
+ time step    115.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     977150.4973381262     
+ time step    120.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     980143.5593263316     
+ time step    125.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     985362.9763771098     
+ time step    130.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     985204.7565451431     
+ time step    135.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     982255.6263563134     
+ time step    140.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     980737.9037344693     
+ time step    145.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ Calculated grids per second:     978644.7398615633     
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ time step    150.0000000000000     
+M
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+Ar
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+CO2
+    41467962180223.68         41468514164516.57         41474000639146.90      
+    41480799913050.02         41485399659779.49         41450192302306.98      
+    41450639626734.03         41458107716903.64         41466819571374.55      
+    41474470674925.64     
+H2O
+    542258397205.6353         542508812927.6385         542573936962.5143      
+    542625267401.1971         542634861745.0939         541989583818.8474      
+    542216940344.4905         542417312290.1646         542540499444.1071      
+    542606162272.1516     
+N2
+    106564125981.6960         106564835131.0266         106578750813.0620      
+    106596079898.6875         106607716802.2221         106519114319.3988      
+    106519586685.2710         106538268177.7644         106560265223.1343      
+    106579663766.7951     
+O1D
+    175068753.3636681         175924156.0471510         176255213.5697290      
+    176994763.9276720         177791029.7215913         174182844.0917902      
+    174627987.2170060         175326265.4111395         176088502.3466984      
+    176918951.2829329     
+O
+    10734970935.51147         10780694335.54391         12119079332.88171      
+    12495397917.79166         12562168403.94179         10676542181.48498      
+    11631246687.76749         12254492316.85371         12527362837.75652      
+    12333274325.59955     
+O2
+    116690747659.4948         116734657497.5101         117991028827.4853      
+    118358836217.8558         118433842532.1120         116589109036.6244      
+    117475856888.3217         118074107899.2121         118350728677.2870      
+    118191832621.0328     
+O3
+    707002599491.5148         707039308947.3383         705494807832.5426      
+    706096962051.5765         707830536298.4445         704106082789.3152      
+    704054223637.1791         704682333351.8599         705551657048.3285      
+    708056009380.6566     
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ NetCDF: Not a valid ID
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+ Calculated grids per second:     997445.5513667082     
+ Successfully write MICM output to 
+ ./test_output.nc                                                                                                                
+<end of output>
+Test time =   7.37 sec
+----------------------------------------------------------
+Test Passed.
+"test_performance" end time: Jan 30 16:57 MST
+"test_performance" time elapsed: 00:00:07
+----------------------------------------------------------
+
+End testing: Jan 30 16:57 MST

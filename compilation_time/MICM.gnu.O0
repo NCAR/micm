@@ -1,0 +1,225 @@
+-- The C compiler identification is GNU 12.1.0
+-- The CXX compiler identification is GNU 12.1.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- The Fortran compiler identification is GNU 12.1.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran - skipped
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /glade/scratch/sunjian/temp/micm/build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -S/glade/scratch/sunjian/temp/micm -B/glade/scratch/sunjian/temp/micm/build --check-build-system CMakeFiles/Makefile.cmake 0
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_progress_start /glade/scratch/sunjian/temp/micm/build/CMakeFiles /glade/scratch/sunjian/temp/micm/build//CMakeFiles/progress.marks
+make  -f CMakeFiles/Makefile2 all
+make[1]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f libs/musica-core/src/CMakeFiles/musicalib.dir/build.make libs/musica-core/src/CMakeFiles/musicalib.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/libs/musica-core/src /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src/CMakeFiles/musicalib.dir/depend.internal".
+Scanning dependencies of target musicalib
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f libs/musica-core/src/CMakeFiles/musicalib.dir/build.make libs/musica-core/src/CMakeFiles/musicalib.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[  2%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/constants.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/constants.F90 -o CMakeFiles/musicalib.dir/util/constants.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_constants.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_constants.mod.stamp GNU
+[  5%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/mpi.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/mpi.F90 -o CMakeFiles/musicalib.dir/util/mpi.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_mpi.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_mpi.mod.stamp GNU
+[  7%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/string.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/string.F90 -o CMakeFiles/musicalib.dir/util/string.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_string.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_string.mod.stamp GNU
+[ 10%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/assert.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/assert.F90 -o CMakeFiles/musicalib.dir/util/assert.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_assert.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_assert.mod.stamp GNU
+[ 12%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/array.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/array.F90 -o CMakeFiles/musicalib.dir/util/array.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_array.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_array.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/array.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/assert.F90.o.provides.build
+[ 15%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/convert.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/convert.F90 -o CMakeFiles/musicalib.dir/util/convert.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_convert.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_convert.mod.stamp GNU
+[ 17%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/iterator.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/iterator.F90 -o CMakeFiles/musicalib.dir/util/iterator.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_iterator.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_iterator.mod.stamp GNU
+[ 20%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/config.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/config.F90 -o CMakeFiles/musicalib.dir/util/config.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_config.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_config.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/config.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/constants.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/convert.F90.o.provides.build
+[ 23%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/data_type.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/data_type.F90 -o CMakeFiles/musicalib.dir/util/data_type.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_data_type.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_data_type.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/data_type.F90.o.provides.build
+[ 25%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/datetime.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/datetime.F90 -o CMakeFiles/musicalib.dir/util/datetime.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_datetime.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_datetime.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/datetime.F90.o.provides.build
+[ 28%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/io.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/io.F90 -o CMakeFiles/musicalib.dir/util/io.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_io.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_io.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/io.F90.o.provides.build
+[ 30%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/io/netcdf.F90 -o CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_io_netcdf.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_io_netcdf.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/io/netcdf.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/iterator.F90.o.provides.build
+[ 33%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/logger.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/logger.F90 -o CMakeFiles/musicalib.dir/util/logger.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_logger.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_logger.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/logger.F90.o.provides.build
+[ 35%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/math.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/math.F90 -o CMakeFiles/musicalib.dir/util/math.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_math.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_math.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/math.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/mpi.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/string.F90.o.provides.build
+[ 38%] Building Fortran object libs/musica-core/src/CMakeFiles/musicalib.dir/util/target.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/libs/musica-core/src/util/target.F90 -o CMakeFiles/musicalib.dir/util/target.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod libs/musica-core/src/musica_target.mod libs/musica-core/src/CMakeFiles/musicalib.dir/musica_target.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch libs/musica-core/src/CMakeFiles/musicalib.dir/util/target.F90.o.provides.build
+[ 41%] Linking Fortran static library Fortran_MODULE_DIRECTORY/libmusica.a
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -P CMakeFiles/musicalib.dir/cmake_clean_target.cmake
+cd /glade/scratch/sunjian/temp/micm/build/libs/musica-core/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_link_script CMakeFiles/musicalib.dir/link.txt --verbose=1
+/bin/ar qc Fortran_MODULE_DIRECTORY/libmusica.a CMakeFiles/musicalib.dir/util/array.F90.o CMakeFiles/musicalib.dir/util/assert.F90.o CMakeFiles/musicalib.dir/util/constants.F90.o CMakeFiles/musicalib.dir/util/config.F90.o CMakeFiles/musicalib.dir/util/convert.F90.o CMakeFiles/musicalib.dir/util/data_type.F90.o CMakeFiles/musicalib.dir/util/datetime.F90.o CMakeFiles/musicalib.dir/util/iterator.F90.o CMakeFiles/musicalib.dir/util/io.F90.o CMakeFiles/musicalib.dir/util/logger.F90.o CMakeFiles/musicalib.dir/util/math.F90.o CMakeFiles/musicalib.dir/util/mpi.F90.o CMakeFiles/musicalib.dir/util/string.F90.o CMakeFiles/musicalib.dir/util/target.F90.o CMakeFiles/musicalib.dir/util/io/netcdf.F90.o
+/bin/ranlib Fortran_MODULE_DIRECTORY/libmusica.a
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+[ 41%] Built target musicalib
+make  -f src/CMakeFiles/micmlib.dir/build.make src/CMakeFiles/micmlib.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/src /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/src /glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/src/CMakeFiles/micmlib.dir/depend.internal".
+Scanning dependencies of target micmlib
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f src/CMakeFiles/micmlib.dir/build.make src/CMakeFiles/micmlib.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[ 43%] Building Fortran object src/CMakeFiles/micmlib.dir/constants.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/constants.F90 -o CMakeFiles/micmlib.dir/constants.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/constants.mod src/CMakeFiles/micmlib.dir/constants.mod.stamp GNU
+[ 46%] Building Fortran object src/CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/preprocessor_output/factor_solve_utilities.F90 -o CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/factor_solve_utilities.mod src/CMakeFiles/micmlib.dir/factor_solve_utilities.mod.stamp GNU
+[ 48%] Building Fortran object src/CMakeFiles/micmlib.dir/preprocessor_output/kinetics_utilities.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/preprocessor_output/kinetics_utilities.F90 -o CMakeFiles/micmlib.dir/preprocessor_output/kinetics_utilities.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/kinetics_utilities.mod src/CMakeFiles/micmlib.dir/kinetics_utilities.mod.stamp GNU
+[ 51%] Building Fortran object src/CMakeFiles/micmlib.dir/environment.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/environment.F90 -o CMakeFiles/micmlib.dir/environment.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_environment.mod src/CMakeFiles/micmlib.dir/micm_environment.mod.stamp GNU
+[ 53%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constant.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constant.F90 -o CMakeFiles/micmlib.dir/rate_constant.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant.mod src/CMakeFiles/micmlib.dir/micm_rate_constant.mod.stamp GNU
+[ 56%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/arrhenius.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/arrhenius.F90 -o CMakeFiles/micmlib.dir/rate_constants/arrhenius.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_arrhenius.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_arrhenius.mod.stamp GNU
+[ 58%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/photolysis.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/photolysis.F90 -o CMakeFiles/micmlib.dir/rate_constants/photolysis.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_photolysis.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_photolysis.mod.stamp GNU
+[ 61%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/ternary_chemical_activation.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/ternary_chemical_activation.F90 -o CMakeFiles/micmlib.dir/rate_constants/ternary_chemical_activation.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_ternary_chemical_activation.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_ternary_chemical_activation.mod.stamp GNU
+[ 64%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/troe.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/troe.F90 -o CMakeFiles/micmlib.dir/rate_constants/troe.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_troe.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_troe.mod.stamp GNU
+[ 66%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/wennberg_alkoxy.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/wennberg_alkoxy.F90 -o CMakeFiles/micmlib.dir/rate_constants/wennberg_alkoxy.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_wennberg_alkoxy.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_wennberg_alkoxy.mod.stamp GNU
+[ 69%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/wennberg_nitrate.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/wennberg_nitrate.F90 -o CMakeFiles/micmlib.dir/rate_constants/wennberg_nitrate.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_wennberg_nitrate.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_wennberg_nitrate.mod.stamp GNU
+[ 71%] Building Fortran object src/CMakeFiles/micmlib.dir/rate_constants/wennberg_tunneling.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/rate_constants/wennberg_tunneling.F90 -o CMakeFiles/micmlib.dir/rate_constants/wennberg_tunneling.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_rate_constant_wennberg_tunneling.mod src/CMakeFiles/micmlib.dir/micm_rate_constant_wennberg_tunneling.mod.stamp GNU
+[ 74%] Building Fortran object src/CMakeFiles/micmlib.dir/preprocessor_output/rate_constants_utility.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/preprocessor_output/rate_constants_utility.F90 -o CMakeFiles/micmlib.dir/preprocessor_output/rate_constants_utility.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/rate_constants_utility.mod src/CMakeFiles/micmlib.dir/rate_constants_utility.mod.stamp GNU
+[ 76%] Building Fortran object src/CMakeFiles/micmlib.dir/kinetics.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/kinetics.F90 -o CMakeFiles/micmlib.dir/kinetics.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_kinetics.mod src/CMakeFiles/micmlib.dir/micm_kinetics.mod.stamp GNU
+[ 79%] Building Fortran object src/CMakeFiles/micmlib.dir/ODE_solver.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/ODE_solver.F90 -o CMakeFiles/micmlib.dir/ODE_solver.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_ode_solver.mod src/CMakeFiles/micmlib.dir/micm_ode_solver.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/ODE_solver.F90.o.provides.build
+[ 82%] Building Fortran object src/CMakeFiles/micmlib.dir/ODE_solvers/mozart.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/ODE_solvers/mozart.F90 -o CMakeFiles/micmlib.dir/ODE_solvers/mozart.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_ode_solver_mozart.mod src/CMakeFiles/micmlib.dir/micm_ode_solver_mozart.mod.stamp GNU
+[ 84%] Building Fortran object src/CMakeFiles/micmlib.dir/ODE_solvers/rosenbrock.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/ODE_solvers/rosenbrock.F90 -o CMakeFiles/micmlib.dir/ODE_solvers/rosenbrock.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_ode_solver_rosenbrock.mod src/CMakeFiles/micmlib.dir/micm_ode_solver_rosenbrock.mod.stamp GNU
+[ 87%] Building Fortran object src/CMakeFiles/micmlib.dir/ODE_solver_factory.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/src/ODE_solver_factory.F90 -o CMakeFiles/micmlib.dir/ODE_solver_factory.F90.o
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_copy_f90_mod src/micm_ode_solver_factory.mod src/CMakeFiles/micmlib.dir/micm_ode_solver_factory.mod.stamp GNU
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/ODE_solver_factory.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/ODE_solvers/mozart.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/ODE_solvers/rosenbrock.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/constants.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/environment.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/kinetics.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/preprocessor_output/kinetics_utilities.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/preprocessor_output/rate_constants_utility.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constant.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/arrhenius.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/photolysis.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/ternary_chemical_activation.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/troe.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/wennberg_alkoxy.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/wennberg_nitrate.F90.o.provides.build
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E touch src/CMakeFiles/micmlib.dir/rate_constants/wennberg_tunneling.F90.o.provides.build
+[ 89%] Linking Fortran static library libmicm.a
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -P CMakeFiles/micmlib.dir/cmake_clean_target.cmake
+cd /glade/scratch/sunjian/temp/micm/build/src && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_link_script CMakeFiles/micmlib.dir/link.txt --verbose=1
+/bin/ar qc libmicm.a CMakeFiles/micmlib.dir/constants.F90.o CMakeFiles/micmlib.dir/ODE_solver.F90.o CMakeFiles/micmlib.dir/ODE_solver_factory.F90.o CMakeFiles/micmlib.dir/ODE_solvers/mozart.F90.o CMakeFiles/micmlib.dir/ODE_solvers/rosenbrock.F90.o CMakeFiles/micmlib.dir/environment.F90.o CMakeFiles/micmlib.dir/kinetics.F90.o CMakeFiles/micmlib.dir/preprocessor_output/factor_solve_utilities.F90.o CMakeFiles/micmlib.dir/preprocessor_output/kinetics_utilities.F90.o CMakeFiles/micmlib.dir/preprocessor_output/rate_constants_utility.F90.o CMakeFiles/micmlib.dir/rate_constant.F90.o CMakeFiles/micmlib.dir/rate_constants/arrhenius.F90.o CMakeFiles/micmlib.dir/rate_constants/photolysis.F90.o CMakeFiles/micmlib.dir/rate_constants/ternary_chemical_activation.F90.o CMakeFiles/micmlib.dir/rate_constants/troe.F90.o CMakeFiles/micmlib.dir/rate_constants/wennberg_alkoxy.F90.o CMakeFiles/micmlib.dir/rate_constants/wennberg_nitrate.F90.o CMakeFiles/micmlib.dir/rate_constants/wennberg_tunneling.F90.o
+/bin/ranlib libmicm.a
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+[ 89%] Built target micmlib
+make  -f test/CMakeFiles/test_stub.dir/build.make test/CMakeFiles/test_stub.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/test /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/test /glade/scratch/sunjian/temp/micm/build/test/CMakeFiles/test_stub.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/test/CMakeFiles/test_stub.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/test/CMakeFiles/test_stub.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/test/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/test/CMakeFiles/test_stub.dir/depend.internal".
+Scanning dependencies of target test_stub
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f test/CMakeFiles/test_stub.dir/build.make test/CMakeFiles/test_stub.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[ 92%] Building Fortran object test/CMakeFiles/test_stub.dir/test_stub.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/test && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -I/glade/scratch/sunjian/temp/micm/build/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/test/test_stub.F90 -o CMakeFiles/test_stub.dir/test_stub.F90.o
+[ 94%] Linking Fortran executable ../test_stub
+cd /glade/scratch/sunjian/temp/micm/build/test && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_link_script CMakeFiles/test_stub.dir/link.txt --verbose=1
+/glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium CMakeFiles/test_stub.dir/test_stub.F90.o -o ../test_stub  -Wl,-rpath,/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/lib ../src/libmicm.a ../libs/musica-core/src/Fortran_MODULE_DIRECTORY/libmusica.a /glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/lib/libjsonfortran.so /glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/lib/libnetcdf.so /glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/lib/libnetcdff.so 
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+[ 94%] Built target test_stub
+make  -f test/performance/CMakeFiles/test_performance.dir/build.make test/performance/CMakeFiles/test_performance.dir/depend
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+cd /glade/scratch/sunjian/temp/micm/build && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_depends "Unix Makefiles" /glade/scratch/sunjian/temp/micm /glade/scratch/sunjian/temp/micm/test/performance /glade/scratch/sunjian/temp/micm/build /glade/scratch/sunjian/temp/micm/build/test/performance /glade/scratch/sunjian/temp/micm/build/test/performance/CMakeFiles/test_performance.dir/DependInfo.cmake --color=
+Dependee "/glade/scratch/sunjian/temp/micm/build/test/performance/CMakeFiles/test_performance.dir/DependInfo.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/test/performance/CMakeFiles/test_performance.dir/depend.internal".
+Dependee "/glade/scratch/sunjian/temp/micm/build/test/performance/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/glade/scratch/sunjian/temp/micm/build/test/performance/CMakeFiles/test_performance.dir/depend.internal".
+Scanning dependencies of target test_performance
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+make  -f test/performance/CMakeFiles/test_performance.dir/build.make test/performance/CMakeFiles/test_performance.dir/build
+make[2]: Entering directory `/glade/scratch/sunjian/temp/micm/build'
+[ 97%] Building Fortran object test/performance/CMakeFiles/test_performance.dir/driver.F90.o
+cd /glade/scratch/sunjian/temp/micm/build/test/performance && /glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -DUSE_NETCDF -I/glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/include -I/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/include -I/glade/scratch/sunjian/temp/micm/build/libs/musica-core/src -I/glade/scratch/sunjian/temp/micm/build/src -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium -c /glade/scratch/sunjian/temp/micm/test/performance/driver.F90 -o CMakeFiles/test_performance.dir/driver.F90.o
+[100%] Linking Fortran executable ../../test_performance
+cd /glade/scratch/sunjian/temp/micm/build/test/performance && /glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_link_script CMakeFiles/test_performance.dir/link.txt --verbose=1
+/glade/u/apps/dav/opt/ncarcompilers/0.5.0/gnu/12.1.0/gfortran -O0 -ffree-form -ffree-line-length-none -fno-range-check -fPIC -mcmodel=medium CMakeFiles/test_performance.dir/driver.F90.o -o ../../test_performance  -Wl,-rpath,/glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/lib ../../src/libmicm.a ../../libs/musica-core/src/Fortran_MODULE_DIRECTORY/libmusica.a /glade/scratch/sunjian/temp/json-fortran-gnu-8.3.0/build/lib/libjsonfortran.so /glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/lib/libnetcdf.so /glade/u/apps/dav/opt/netcdf/4.8.1/gnu/12.1.0/lib/libnetcdff.so 
+make[2]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+[100%] Built target test_performance
+make[1]: Leaving directory `/glade/scratch/sunjian/temp/micm/build'
+/glade/u/apps/dav/opt/cmake/3.22.0/bin/cmake -E cmake_progress_start /glade/scratch/sunjian/temp/micm/build/CMakeFiles 0
+
+real	3m1.544s
+user	2m56.779s
+sys	0m4.303s
