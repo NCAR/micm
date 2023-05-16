@@ -1,21 +1,20 @@
-FROM fedora:29
+FROM fedora:37
 
 RUN dnf -y update \
     && dnf -y install \
-        gcc-gfortran \
-        gcc-c++ \
-        netcdf-fortran-devel \
         cmake \
+        gcc-c++ \
+        gcc-fortran \
+        gdb \
+        git \
         make \
+        netcdf-fortran-devel \
     && dnf clean all
 
-# copy the MICM code
-COPY . /micm/
+#####
+# Only needed to build the old version of micm
+#####
 
-# use the test preprocessor output
-RUN cp /micm/test/preprocessor_output/* /micm/src/preprocessor_output/
-
-# install json-fortran
 RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.2.0.tar.gz \
     && tar -zxvf 8.2.0.tar.gz \
     && cd json-fortran-8.2.0 \
@@ -25,9 +24,20 @@ RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.2.0.tar.gz 
     && cmake -D SKIP_DOC_GEN:BOOL=TRUE .. \
     && make install
 
+#####
+#####
+
+# copy the MICM code
+COPY . /micm/
+
 # build the library and run the tests
 RUN mkdir /build \
       && cd /build \
       && export JSON_FORTRAN_HOME="/usr/local/jsonfortran-gnu-8.2.0" \
-      && cmake ../micm \
-      && make
+      && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
+        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
+        ../micm \
+      && make 
+
+WORKDIR /build

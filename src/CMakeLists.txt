@@ -1,29 +1,42 @@
-######################################################################
-# MICM library
+################################################################################
+# header only library
+add_library(micm_header_only INTERFACE)
+add_library(musica::micm_header_only ALIAS micm_header_only)
 
-set(MICM_SRC constants.F90
-             core.F90
-             ODE_solver.F90
-             ODE_solver_factory.F90
-             ODE_solvers/mozart.F90
-             ODE_solvers/rosenbrock.F90
-             environment.F90
-             kinetics.F90
-             preprocessor_output/factor_solve_utilities.F90
-             preprocessor_output/kinetics_utilities.F90
-             preprocessor_output/rate_constants_utility.F90
-             rate_constant.F90
-             rate_constants/arrhenius.F90
-             rate_constants/photolysis.F90
-             rate_constants/ternary_chemical_activation.F90
-             rate_constants/troe.F90
-             rate_constants/wennberg_alkoxy.F90
-             rate_constants/wennberg_nitrate.F90
-             rate_constants/wennberg_tunneling.F90
-             )
+# micm version
+configure_file(version.hpp.in ${PROJECT_SOURCE_DIR}/include/micm/version.hpp @ONLY)
 
-add_library(micmlib ${MICM_SRC})
+target_include_directories(
+  micm_header_only
+  INTERFACE
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
 
-target_link_libraries(micmlib musicalib)
+if(ENABLE_JSON)
+  target_link_libraries(micm_header_only INTERFACE nlohmann_json::nlohmann_json)
+  target_compile_definitions(micm_header_only INTERFACE USE_JSON)
+endif()
 
-set_target_properties(micmlib PROPERTIES OUTPUT_NAME micm)
+################################################################################
+# micm solver
+add_library(micm)
+add_library(musica::micm ALIAS micm)
+
+target_link_libraries(
+  micm
+  PUBLIC
+    micm_header_only
+)
+
+if(ENABLE_FORTRAN_LINK)
+  add_subdirectory(fortran_interface)
+endif()
+
+if(ENABLE_OPENMP)
+  target_link_libraries(micm PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+if(ENABLE_MPI)
+  target_link_libraries(micm PRIVATE MPI::MPI_CXX)
+endif()
