@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
-#include <micm/system/system.hpp>
 
 namespace micm
 {
+
+  class System;
 
   /**
    * @brief A base class for any type of rate constant
@@ -18,7 +19,7 @@ namespace micm
     /// @brief Virtual destructor
     virtual ~RateConstant(){};
     /// @brief Calculate the rate constant for a set of conditions
-    virtual double calculate(const System& system) = 0;
+    virtual double calculate(const System& system) { return 0; };
 
    private:
   };

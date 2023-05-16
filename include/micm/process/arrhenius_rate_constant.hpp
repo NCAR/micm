@@ -10,6 +10,8 @@
 namespace micm
 {
 
+  class System;
+
   struct ArrheniusRateConstantParameters
   {
     /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
@@ -32,8 +34,8 @@ namespace micm
    */
   class ArrheniusRateConstant : public RateConstant
   {
-   private:
-    const ArrheniusRateConstantParameters parameters_;
+   public:
+    ArrheniusRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor. All terms will be zero
@@ -41,12 +43,7 @@ namespace micm
 
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the
     /// Arrhenius equation
-    /// @param A Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
-    /// @param B Unitless exponential factor
-    /// @param C Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
-    /// k_b), K
-    /// @param D A factor that determines temperature dependence, (K)
-    /// @param E A factor that determines pressure dependence (Pa-1)
+    /// @param parameters A set of arrhenius rate constants
     ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant

@@ -35,9 +35,9 @@ namespace micm
     /// @param number_densities Species concentrations in molecules / cm3
     /// @param number_density_air The number density of air in molecules / cm3
     /// @return A struct containing results and a status code
-    SolverResult Solve(
-        const double& time_start,
-        const double& time_end,
+    Solver::SolverResult Solve(
+        double time_start,
+        double time_end,
         const std::vector<double>& number_densities,
         const double& number_density_air) noexcept override;
 
@@ -129,8 +129,8 @@ namespace micm
   }
 
   inline Solver::SolverResult ChapmanODESolver::Solve(
-      const double& time_start,
-      const double& time_end,
+      double time_start,
+      double time_end,
       const std::vector<double>& original_number_densities,
       const double& number_density_air) noexcept
   {
@@ -142,7 +142,7 @@ namespace micm
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    SolverResult result{};
+    Solver::SolverResult result{};
     stats_.reset();
 
     if (std::abs(H) <= 10 * parameters_.round_off_)

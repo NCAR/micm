@@ -4,11 +4,12 @@
  */
 #pragma once
 
-#include <cmath>
 #include <micm/process/rate_constant.hpp>
+#include <string>
 
 namespace micm
 {
+  class System;
 
   /**
    * @brief A photolysis rate constant
@@ -16,8 +17,8 @@ namespace micm
   class PhotolysisRateConstant : public RateConstant
   {
    public:
-    const double rate_;
-    const std::string name_;
+    double rate_;
+    std::string name_;
 
    public:
     /// @brief Default constructor.
@@ -58,7 +59,7 @@ namespace micm
 
   inline double PhotolysisRateConstant::calculate(const System& system)
   {
-    return rate_;
+    return (double)rate_;
   }
 
 }  // namespace micm

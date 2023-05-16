@@ -9,10 +9,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <micm/process/intraphase_process.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/intraphase_process.hpp>
+#include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
@@ -24,6 +24,7 @@
 namespace micm
 {
 
+  template<class Object>
   class ThrowPolicy
   {
     class Exception : public std::exception
@@ -44,7 +45,7 @@ namespace micm
     };
 
    public:
-    void OnError(std::string message)
+    Object OnError(std::string message)
     {
       throw Exception(message.c_str());
     }
@@ -54,9 +55,10 @@ namespace micm
   class NoThrowPolicy
   {
    public:
-    void OnError(std::string message)
+    Object OnError(std::string message)
     {
       std::cerr << message << std::endl;
+      return Object();
     }
   };
 
@@ -64,18 +66,26 @@ namespace micm
   class JsonReaderPolicy : public ErrorPolicy
   {
     using json = nlohmann::json;
-    std::vector<std::unique_ptr<Species>> species_;
-    std::vector<std::unique_ptr<Species>> emissions_;
-    std::vector<std::unique_ptr<Species>> first_order_loss_;
-    std::vector<std::unique_ptr<IntraPhaseProcess<PhotolysisRateConstant>>> photolysis_reactions_;
-    std::vector<std::unique_ptr<IntraPhaseProcess<ArrheniusRateConstant>>> arrhenius_reactions_;
+    std::vector<Species> species_;
+    std::vector<Species> emissions_;
+    std::vector<Species> first_order_loss_;
+    std::vector<IntraPhaseProcess<PhotolysisRateConstant>> photolysis_reactions_;
+    std::vector<IntraPhaseProcess<ArrheniusRateConstant>> arrhenius_reactions_;
 
    public:
     std::unique_ptr<micm::System> ReadAndParse(std::filesystem::path path)
     {
       species_.clear();
+      emissions_.clear();
+      first_order_loss_.clear();
+      photolysis_reactions_.clear();
+      arrhenius_reactions_.clear();
 
-      ValidateFilePath(path);
+      if (!std::filesystem::exists(path))
+      {
+        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
+        return this->OnError(err_msg);
+      }
 
       json data = json::parse(std::ifstream(path));
 
@@ -87,7 +97,11 @@ namespace micm
       key = "camp-data";
       for (const auto& file : files)
       {
-        ValidateFilePath(file);
+        if (!std::filesystem::exists(path))
+        {
+          std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
+          return this->OnError(err_msg);
+        }
         json file_data = json::parse(std::ifstream(file));
         ValidateJsonWithKey(file_data, key);
         std::vector<json> objects;
@@ -99,16 +113,12 @@ namespace micm
         ParseObjectArray(objects);
       }
 
-      return std::make_unique<micm::System>(micm::System());
-    }
+      micm::SystemParameters parameters;
+      parameters.arrhenius_reactions_ = arrhenius_reactions_;
+      parameters.photolysis_reactions_ = photolysis_reactions_;
+      parameters.gas_phase_ = micm::Phase(species_);
 
-    void ValidateFilePath(std::filesystem::path path)
-    {
-      if (!std::filesystem::exists(path))
-      {
-        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
-        this->OnError(err_msg);
-      }
+      return std::make_unique<micm::System>(micm::System(parameters));
     }
 
     void ValidateJsonWithKey(const json& object, std::string key)
@@ -171,14 +181,17 @@ namespace micm
 
       std::string name = object["name"].get<std::string>();
 
-      if (object.contains("absolute tolerance"))
+      std::string key = "absolute tolerance";
+
+      if (object.contains(key))
       {
-        double abs_tol = object["absolute tolerance"].get<double>();
-        species_.push_back(std::make_unique<Species>(Species(name, Property("absolute tolerance", "", abs_tol))));
+        double abs_tol = object[key].get<double>();
+        auto species = Species(name, Property(key, "", abs_tol));
+        species_.push_back(species);
       }
       else
       {
-        species_.push_back(std::make_unique<Species>(Species(name)));
+        species_.push_back(Species(name));
       }
     }
 
@@ -209,19 +222,19 @@ namespace micm
         ValidateJsonWithKey(object, key);
 
       std::vector<Species> reactants;
-      for (auto& [key, value] : object["reactants"].items()) {
-          reactants.push_back(Species(key));
+      for (auto& [key, value] : object["reactants"].items())
+      {
+        reactants.push_back(Species(key));
       }
       std::vector<Species> products;
-      for (auto& [key, value] : object["products"].items()) {
-          products.push_back(Species(key));
+      for (auto& [key, value] : object["products"].items())
+      {
+        products.push_back(Species(key));
       }
       std::string name = object["MUSICA name"].get<std::string>();
 
       using reaction = IntraPhaseProcess<PhotolysisRateConstant>;
-      photolysis_reactions_.push_back(
-        std::make_unique<reaction>(reaction(reactants, products, PhotolysisRateConstant(0, name)))
-      );
+      photolysis_reactions_.push_back(reaction(reactants, products, PhotolysisRateConstant(0, name)));
     }
 
     void ParseArrhenius(const json& object)
@@ -231,37 +244,41 @@ namespace micm
         ValidateJsonWithKey(object, key);
 
       std::vector<Species> reactants;
-      for (auto& [key, value] : object["reactants"].items()) {
-          reactants.push_back(Species(key));
+      for (auto& [key, value] : object["reactants"].items())
+      {
+        reactants.push_back(Species(key));
       }
       std::vector<Species> products;
-      for (auto& [key, value] : object["products"].items()) {
-          products.push_back(Species(key));
+      for (auto& [key, value] : object["products"].items())
+      {
+        products.push_back(Species(key));
       }
 
       ArrheniusRateConstantParameters parameters;
 
-      if (object.contains("A")){
+      if (object.contains("A"))
+      {
         parameters.A_ = object["A"].get<double>();
       }
-      if (object.contains("B")){
+      if (object.contains("B"))
+      {
         parameters.B_ = object["B"].get<double>();
       }
-      if (object.contains("C")){
+      if (object.contains("C"))
+      {
         parameters.C_ = object["C"].get<double>();
       }
-      if (object.contains("D")){
+      if (object.contains("D"))
+      {
         parameters.D_ = object["D"].get<double>();
       }
-      if (object.contains("E")){
+      if (object.contains("E"))
+      {
         parameters.E_ = object["E"].get<double>();
       }
 
       using reaction = IntraPhaseProcess<ArrheniusRateConstant>;
-      arrhenius_reactions_.push_back(
-        std::make_unique<reaction>(reaction(reactants, products, ArrheniusRateConstant(parameters)))
-      );
-
+      arrhenius_reactions_.push_back(reaction(reactants, products, ArrheniusRateConstant(parameters)));
     }
 
     void ParseEmission(const json& object)
@@ -273,7 +290,7 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      emissions_.push_back(std::make_unique<Species>(Species(name)));
+      emissions_.push_back(Species(name));
     }
 
     void ParseFirstOrderLoss(const json& object)
@@ -285,12 +302,12 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      first_order_loss_.push_back(std::make_unique<Species>(Species(name)));
+      first_order_loss_.push_back(Species(name));
     }
   };
 
-  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, class ErrorPolicy = ThrowPolicy>
-  class SystemBuilder : public ConfigTypePolicy<ErrorPolicy>
+  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, template<class> class ErrorPolicy = ThrowPolicy>
+  class SystemBuilder : public ConfigTypePolicy<ErrorPolicy<std::unique_ptr<micm::System>>>
   {
    public:
     std::unique_ptr<micm::System> Build(std::filesystem::path path)

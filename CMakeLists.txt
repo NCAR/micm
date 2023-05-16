@@ -31,10 +31,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
 
 include(GNUInstallDirs)
-set(
-  INSTALL_PREFIX 
-  "${CMAKE_INSTALL_PREFIX}/ncar/${PROJECT_NAME}-${PROJECT_VERSION}"
-)
+set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
+set(INSTALL_MOD_DIR "${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 
 option(ENABLE_CLANG_TIDY "Enable clang-tiday to format source code" ON)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
@@ -46,8 +44,10 @@ option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_FORTRAN_LINK "Add functions to allow Fortran to access micm solvers" ON)
 
 if(ENABLE_FORTRAN_LINK)
+  set(MICM_MOD_DIR "${PROJECT_BINARY_DIR}/include")
   enable_language(Fortran)
 endif()
+
 
 ################################################################################
 # Dependencies

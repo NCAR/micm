@@ -30,6 +30,14 @@ target_link_libraries(
 )
 
 if(ENABLE_FORTRAN_LINK)
+  set_target_properties(micm PROPERTIES
+    Fortran_MODULE_DIRECTORY ${MICM_MOD_DIR}
+  )
+  target_include_directories(micm
+    PUBLIC  
+      $<BUILD_INTERFACE:${MICM_MOD_DIR}>
+      $<INSTALL_INTERFACE:${INSTALL_MOD_DIR}>
+  )
   add_subdirectory(fortran_interface)
 endif()
 

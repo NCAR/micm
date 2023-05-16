@@ -23,6 +23,7 @@
 #include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/solver.hpp>
+#include <micm/solver/state.hpp>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,7 @@ namespace micm
    * @brief An implementation of the Chapman mechnanism solver
    *
    */
-  class RosenbrockSolver : public Solver
+  class RosenbrockSolver
   {
    protected:
     struct Rosenbrock_params
@@ -80,6 +81,9 @@ namespace micm
    public:
     /// @brief Default constructor
     RosenbrockSolver();
+    /// @brief Constructor that builds the jacobian and forcing function based off of the state
+    /// @param state 
+    RosenbrockSolver(State state);
     virtual ~RosenbrockSolver();
 
     /// @brief A virtual function to be defined by any solver baseclass
@@ -88,11 +92,21 @@ namespace micm
     /// @param number_densities Species concentrations in molecules / cm3
     /// @param number_density_air The number density of air in molecules / cm3
     /// @return A struct containing results and a status code
-    SolverResult Solve(
-        const double& time_start,
-        const double& time_end,
+    virtual Solver::SolverResult Solve(
+        double time_start,
+        double time_end,
         const std::vector<double>& number_densities,
-        const double& number_density_air) noexcept override;
+        const double& number_density_air) noexcept;
+
+    /// @brief A virtual function to be defined by any solver baseclass
+    /// @param time_start Time step to start at
+    /// @param time_end Time step to end at
+    /// @return A struct containing results and a status code
+    Solver::SolverResult Solve(
+        double time_start,
+        double time_end,
+        State state
+        ) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -192,13 +206,21 @@ namespace micm
   {
   }
 
+  inline RosenbrockSolver::RosenbrockSolver(State state)
+      : parameters_(),
+        rate_constants_(),
+        stats_()
+  {
+    // TODO: save the information needed for the forcing function and jacobian
+  }
+
   inline RosenbrockSolver::~RosenbrockSolver()
   {
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(
-      const double& time_start,
-      const double& time_end,
+      double time_start,
+      double time_end,
       const std::vector<double>& original_number_densities,
       const double& number_density_air) noexcept
   {
@@ -211,7 +233,7 @@ namespace micm
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    SolverResult result{};
+    Solver::SolverResult result{};
     stats_.reset();
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
@@ -366,6 +388,12 @@ namespace micm
     result.state_ = Solver::SolverState::Converged;
 
     return result;
+  }
+
+  inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State state) noexcept
+  {
+    // TODO: do it
+    return Solver::SolverResult();
   }
 
   inline std::vector<std::string> RosenbrockSolver::reaction_names()

@@ -1,4 +1,5 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/system/system.hpp>
 
 #include <gtest/gtest.h>
 
