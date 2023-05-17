@@ -1,8 +1,6 @@
 // clang-format off
 #pragma once
 
-#include <string>
-
 #ifdef __cplusplus
 namespace micm {
 extern "C" {
@@ -32,4 +30,4 @@ extern "C" {
 #ifdef __cplusplus
 }  // extern "C"
 }  // namespace micm
-#endif}
+#endif
