@@ -3,9 +3,12 @@
 
 #include <string>
 
+#ifdef __cplusplus
 namespace micm {
+extern "C" {
+#endif
 
-  std::string getmicmVersion()
+  const char* getmicmVersion()
   {
     return "3.0.0";
   }
@@ -26,4 +29,7 @@ namespace micm {
     return +0;
   }
 
-}
+#ifdef __cplusplus
+}  // extern "C"
+}  // namespace micm
+#endif}
