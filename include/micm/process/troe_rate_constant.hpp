@@ -10,37 +10,46 @@
 namespace micm
 {
 
+  struct TroeRateConstantParameters
+  {
+    /// @brief // TODO:
+    double k0_A_;
+    /// @brief // TODO:
+    double k0_B_;
+    /// @brief // TODO:
+    double k0_C_;
+    /// @brief // TODO:
+    double kinf_A_;
+    /// @brief // TODO:
+    double kinf_B_;
+    /// @brief // TODO:
+    double kinf_C_;
+    /// @brief // TODO:
+    double Fc_;
+    /// @brief // TODO:
+    double N_;
+  };
+
   /**
    * @brief A Troe rate constant
    *
    */
   class TroeRateConstant : public RateConstant
   {
-   private:
-    /// @brief // TODO:
-    const double k0_A_;
-    /// @brief // TODO:
-    const double k0_B_;
-    /// @brief // TODO:
-    const double k0_C_;
-    /// @brief // TODO:
-    const double kinf_A_;
-    /// @brief // TODO:
-    const double kinf_B_;
-    /// @brief // TODO:
-    const double kinf_C_;
-    /// @brief // TODO:
-    const double Fc_;
-    /// @brief // TODO:
-    const double N_;
+   public:
+    const TroeRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor
     TroeRateConstant();
 
+    /// @brief An explicit constructor
+    /// @param parameters A set of troe rate constants
+    TroeRateConstant(const TroeRateConstantParameters& parameters_);
+
     /// @brief Calculate the rate constant
     /// @param system the system
-    /// @return A rate constant based off of the conditions in the system
+    /// @return A rate constant based off of the conditions in the systßem
     double calculate(const System& system) override;
 
     /// @brief Calculate the rate constant
@@ -51,14 +60,7 @@ namespace micm
   };
 
   inline TroeRateConstant::TroeRateConstant()
-      : k0_A_(),
-        k0_B_(),
-        k0_C_(),
-        kinf_A_(),
-        kinf_B_(),
-        kinf_C_(),
-        Fc_(),
-        N_()
+      : parameters_()
   {
   }
 

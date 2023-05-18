@@ -44,7 +44,7 @@ namespace micm
   {
   }
 
-  inline System::System(SystemParameters parameters)
+  inline System::System(const SystemParameters& parameters)
       : gas_phase_(parameters.gas_phase_),
         phases_(parameters.phases_)
   {
