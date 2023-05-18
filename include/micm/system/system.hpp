@@ -35,7 +35,7 @@ namespace micm
 
     /// @brief
     /// @param gas_phase
-    System(SystemParameters parameters);
+    System(const SystemParameters& parameters);
   };
 
   inline micm::System::System()
