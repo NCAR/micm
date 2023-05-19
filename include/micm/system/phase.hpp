@@ -27,7 +27,7 @@ namespace micm
 
     /// @brief Create a phase with a set of species
     /// @param species A unique list of species
-    Phase(const std::vector<Species>& species)
+    Phase(std::vector<Species> species)
       : species_(species)
       {}
   };

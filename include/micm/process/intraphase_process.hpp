@@ -27,11 +27,11 @@ namespace micm
     /// @param reactants 
     /// @param products 
     /// @param rate 
-    IntraPhaseProcess(const std::vector<Species>& reactants, const std::vector<Species>& products, const Rate& rate);
+    IntraPhaseProcess(std::vector<Species> reactants, std::vector<Species> products, Rate rate);
   };
 
   template<class Rate>
-  inline IntraPhaseProcess<Rate>::IntraPhaseProcess(const std::vector<Species>& reactants, const std::vector<Species>& products, const Rate& rate)
+  inline IntraPhaseProcess<Rate>::IntraPhaseProcess(std::vector<Species> reactants, std::vector<Species> products, Rate rate)
     : reactants_(reactants), 
       products_(products), 
       rate_(rate)

@@ -44,7 +44,7 @@ namespace micm
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the
     /// Arrhenius equation
     /// @param parameters A set of arrhenius rate constants
-    ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters);
+    ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -58,7 +58,7 @@ namespace micm
     : parameters_()
     {}
 
-  inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters)
+  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
     : parameters_(parameters)
     {}
 

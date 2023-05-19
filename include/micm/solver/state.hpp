@@ -16,7 +16,7 @@
       size_t concentrations_size_;
 
       /// @brief 
-      State(System system);  //TODO: jiwon 5/18 - ask Matt and Kyle
+      State(System system);
 
       /// @brief 
       /// @param system 

@@ -24,6 +24,9 @@ namespace micm
     const double value_;
 
    public:
+    /// @brief Default constructor is not allowed
+    Property() = delete;
+
     /// @brief Constructs a property
     /// @param name The name of this property
     /// @param units The units of the value

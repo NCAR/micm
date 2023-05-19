@@ -45,7 +45,7 @@ namespace micm
 
     /// @brief An explicit constructor
     /// @param parameters A set of troe rate constants
-    TroeRateConstant(const TroeRateConstantParameters& parameters);
+    TroeRateConstant(TroeRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -59,7 +59,7 @@ namespace micm
     double calculate(double temperature, double air_number_density);
   };
 
-  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
+  inline TroeRateConstant::TroeRateConstant(TroeRateConstantParameters parameters)
     : parameters_(parameters)
     {}
 
