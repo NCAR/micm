@@ -23,8 +23,8 @@ namespace micm
     /// @brief A list of properties of this species
     const std::vector<Property> properties_;
 
-    /// @brief Default constructor
-    Species() = default;
+    /// @brief Default constructor is not allowed
+    Species() = delete;
 
     /// @brief Copy Constructor
     /// @param other 
@@ -34,32 +34,35 @@ namespace micm
     /// @param name The name of the species
     Species(const std::string& name);
 
-    /// @brief
+    /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
     Species(const std::string& name, const std::vector<Property>& properties);
 
-    /// @brief
+    /// @brief Construct a species by name and property
     /// @param name The name of the species
     /// @param property A property of the species
     Species(const std::string& name, const Property& property);
   };
 
   inline Species::Species(const Species& other)
-        : name_(other.name_)
-        , properties_(other.properties_)
-        {};
+    : name_(other.name_),
+      properties_(other.properties_)
+    {};
 
   inline Species::Species(const std::string& name)
-        : name_(name){};
+    : name_(name)
+    {};
 
   inline Species::Species(const std::string& name, const std::vector<Property>& properties)
-        : name_(name),
-          properties_(properties){};
+    : name_(name),
+      properties_(properties)
+    {};
 
   inline Species::Species(const std::string& name, const Property& property)
-        : name_(name),
-          properties_({ property }){};
-
+    : name_(name),
+      properties_({ property })
+    {};
 
 }  // namespace micm
+      

@@ -11,11 +11,14 @@
 
 namespace micm
 {
-  struct SystemParameters
-  {
-    Phase gas_phase_{};
-    std::vector<Phase> phases_{};
-  };
+  // TODO: jiwon 5/18 - commented out because there is no default constructor for Phase class
+  // struct SystemParameters
+  // {
+  //   /// @brief The gas phase is a micm::Phase and determines what species are present.
+  //   Phase gas_phase_{};
+  //   /// @brief This is a catchall for anything that is not the gas phase.
+  //   std::vector<Phase> phases_{};
+  // };
 
   /**
    * @brief A `System` holds all physical information that represents a grid cell.
@@ -30,24 +33,15 @@ namespace micm
     const std::vector<Phase> phases_;
 
    public:
-    /// @brief Default constructor
-    System();
+    /// @brief Default constructor is not allowed
+    System() = delete;
 
     /// @brief
     /// @param gas_phase
-    System(const SystemParameters& parameters);
+    System(const Phase& gas_phase, const std::vector<Phase>& phases)
+      : gas_phase_(gas_phase),
+        phases_(phases)
+      {}
   };
-
-  inline micm::System::System()
-      : gas_phase_(),
-        phases_()
-  {
-  }
-
-  inline System::System(const SystemParameters& parameters)
-      : gas_phase_(parameters.gas_phase_),
-        phases_(parameters.phases_)
-  {
-  }
 
 }  // namespace micm

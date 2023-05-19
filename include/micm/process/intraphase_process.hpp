@@ -32,9 +32,9 @@ namespace micm
 
   template<class Rate>
   inline IntraPhaseProcess<Rate>::IntraPhaseProcess(const std::vector<Species>& reactants, const std::vector<Species>& products, const Rate& rate)
-    : reactants_(reactants), products_(products), rate_(rate)
-  {
-
-  }
+    : reactants_(reactants), 
+      products_(products), 
+      rate_(rate)
+    {}
 
 }  // namespace micm

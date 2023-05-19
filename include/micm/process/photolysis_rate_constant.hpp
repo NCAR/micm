@@ -31,7 +31,7 @@ namespace micm
     /// @brief
     /// @param rate A reaction rate, (molec cm-3)^(n-1) s-1
     /// @param name A name for this reaction
-    PhotolysisRateConstant(double rate, std::string name);
+    PhotolysisRateConstant(double rate, const std::string& name);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -40,22 +40,19 @@ namespace micm
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
-      : rate_(),
-        name_()
-  {
-  }
+    : rate_(),
+      name_()
+    {}
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate)
-      : rate_(rate),
-        name_()
-  {
-  }
+    : rate_(rate),
+      name_()
+    {}
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate, const std::string& name)
-      : rate_(rate),
-        name_(name)
-  {
-  }
+    : rate_(rate),
+      name_(name)
+    {}
 
   inline double PhotolysisRateConstant::calculate(const System& system)
   {

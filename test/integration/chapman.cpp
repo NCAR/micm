@@ -86,8 +86,17 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem){
     .phase_ = &gas_phase
   };
 
+  //
+  // TODO: jiwon 5/18 - Talk to Kyle and Matt about System::phases_ (should it be data member? also about the description)
+  //
+  std::vector<micm::Phase> temp_phases {gas_phase};
+
   micm::State state{
-    micm::System(micm::SystemParameters{.gas_phase_=gas_phase}), 
+    // micm::System(micm::SystemParameters{.gas_phase_=gas_phase}),  // TODO: jiwon 5/18 - original
+                                                                     // SystemParameters are commented out because it cannot provide the default value for Phase object
+ 
+    micm::System(gas_phase, temp_phases),  // TODO: jiwon 5/18 - added the temporary second arg
+    
     std::vector<micm::Process> {
       r1, r2, r3, r4, photo_1, photo_2, photo_3
     }

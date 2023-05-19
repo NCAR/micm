@@ -33,10 +33,9 @@ namespace micm
   };
 
   inline ExternalRateConstant::ExternalRateConstant()
-      : rate_(),
-        condition_("", "")
-  {
-  }
+    : rate_(),
+      condition_("", "")
+    {}
 
   inline double ExternalRateConstant::calculate(const System& system)
   {

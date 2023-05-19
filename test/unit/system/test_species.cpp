@@ -2,12 +2,6 @@
 
 #include <gtest/gtest.h>
 
-TEST(Species, DefaultConstructor){
-  micm::Species species{};
-
-  EXPECT_EQ(species.properties_.size(), 0);
-}
-
 TEST(Species, StringConstructor){
   micm::Species species("thing");
 

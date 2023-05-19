@@ -40,12 +40,12 @@ namespace micm
     const TroeRateConstantParameters parameters_;
 
    public:
-    /// @brief Default constructor
-    TroeRateConstant();
+    /// @brief Default constructor is not allowed
+    TroeRateConstant() = delete;
 
     /// @brief An explicit constructor
     /// @param parameters A set of troe rate constants
-    TroeRateConstant(const TroeRateConstantParameters& parameters_);
+    TroeRateConstant(const TroeRateConstantParameters& parameters);
 
     /// @brief Calculate the rate constant
     /// @param system the system
@@ -59,10 +59,9 @@ namespace micm
     double calculate(double temperature, double air_number_density);
   };
 
-  inline TroeRateConstant::TroeRateConstant()
-      : parameters_()
-  {
-  }
+  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
+    : parameters_(parameters)
+    {}
 
   inline double TroeRateConstant::calculate(const System& system)
   {
@@ -73,11 +72,11 @@ namespace micm
 
   inline double TroeRateConstant::calculate(double temperature, double air_number_density)
   {
-    double k0 = this->k0_A_ * std::exp(this->k0_C_ / temperature) * pow(temperature / 300.0, this->k0_B_);
-    double kinf = this->kinf_A_ * std::exp(this->kinf_C_ / temperature) * pow(temperature / 300.0, this->kinf_B_);
+    double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * pow(temperature / 300.0, parameters_.k0_B_);
+    double kinf = parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) * pow(temperature / 300.0, parameters_.kinf_B_);
 
     return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
-           pow(this->Fc_, 1.0 / (1.0 + 1.0 / this->N_ * pow(log10(k0 * air_number_density / kinf), 2)));
+           pow(parameters_.Fc_, 1.0 / (1.0 + 1.0 / parameters_.N_ * pow(log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm

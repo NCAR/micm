@@ -55,14 +55,12 @@ namespace micm
   };
 
   inline ArrheniusRateConstant::ArrheniusRateConstant()
-      : parameters_()
-  {
-  }
+    : parameters_()
+    {}
 
   inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters)
-      : parameters_(parameters)
-  {
-  }
+    : parameters_(parameters)
+    {}
 
   inline double ArrheniusRateConstant::calculate(const System& system)
   {

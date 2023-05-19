@@ -16,7 +16,7 @@
       size_t concentrations_size_;
 
       /// @brief 
-      State();
+      State(System system);  //TODO: jiwon 5/18 - ask Matt and Kyle
 
       /// @brief 
       /// @param system 
@@ -30,8 +30,8 @@
       // std::function<> get_forcing();
     };
 
-    inline State::State()
-      : system_()
+    inline State::State(System system)
+      : system_(system)
       , processes_()
       , temperature_(0)
       , pressure_(0)
