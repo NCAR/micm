@@ -18,12 +18,15 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstddef>
+#include <cmath>
 #include <functional>
 #include <iostream>
 #include <limits>
-#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/process.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/system/system.hpp>
 #include <string>
 #include <vector>
 
@@ -70,6 +73,8 @@ namespace micm
     };
 
    public:
+    const System system_;
+    const std::vector<Process> processes_;
     Rosenbrock_params parameters_;
     std::vector<double> rate_constants_;
     Solver::Rosenbrock_stats stats_;
@@ -82,9 +87,14 @@ namespace micm
     /// @brief Default constructor
     RosenbrockSolver();
     /// @brief Constructor that builds the jacobian and forcing function based off of the state
-    /// @param state 
-    RosenbrockSolver(State state);
+    /// @param system The chemical system to create the solver for
+    /// @param processes The collection of chemical processes that will be applied during solving
+    RosenbrockSolver(const System& system, std::vector<Process>&& processes);
     virtual ~RosenbrockSolver();
+
+    /// @brief A virtual function to be defined by any solver baseclass
+    /// @return A object that can hold the full state of the chemical system
+    State GetState();
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
@@ -145,9 +155,8 @@ namespace micm
         const std::vector<double>& vector);
 
     /// @brief Update the rate constants for the environment state
-    /// @param temperature in kelvin
-    /// @param pressure in pascals
-    virtual void calculate_rate_constants(const double& temperature, const double& pressure);
+    /// @param state The current state of the chemical system
+    virtual void calculate_rate_constants(const State& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -200,15 +209,19 @@ namespace micm
   };
 
   inline RosenbrockSolver::RosenbrockSolver()
-      : parameters_(),
+      : system_(),
+        processes_(),
+        parameters_(),
         rate_constants_(),
         stats_()
   {
   }
 
-  inline RosenbrockSolver::RosenbrockSolver(State state)
-      : parameters_(),
-        rate_constants_(),
+  inline RosenbrockSolver::RosenbrockSolver(const System& system, std::vector<Process>&& processes)
+      : system_(system),
+        processes_(std::move(processes)),
+        parameters_(),
+        rate_constants_(processes_.size(), 0),
         stats_()
   {
     // TODO: save the information needed for the forcing function and jacobian
@@ -216,6 +229,14 @@ namespace micm
 
   inline RosenbrockSolver::~RosenbrockSolver()
   {
+  }
+
+  inline State RosenbrockSolver::GetState() {
+    std::size_t n_params = 0;
+    for (const auto& process : processes_) {
+      n_params += process.rate_constant_->SizeCustomParameters();
+    }
+    return State{system_.StateSize(), n_params};
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(
@@ -527,8 +548,14 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline void RosenbrockSolver::calculate_rate_constants(const double& temperature, const double& pressure)
+  inline void RosenbrockSolver::calculate_rate_constants(const State& state)
   {
+    std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_.begin();
+    std::vector<double>::iterator rate_constant = rate_constants_.begin();
+    for (auto& process : processes_) {
+      *(rate_constant++) = process.rate_constant_->calculate(state, custom_parameters);
+      custom_parameters += process.rate_constant_->SizeCustomParameters();
+    }
   }
 
   inline std::vector<double> RosenbrockSolver::lin_factor(

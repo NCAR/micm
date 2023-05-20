@@ -77,9 +77,8 @@ namespace micm
         override;
 
     /// @brief Update the rate constants for the environment state
-    /// @param temperature in kelvin
-    /// @param pressure in pascals
-    void calculate_rate_constants(const double& temperature, const double& pressure) override;
+    /// @param state The current state of the chemical system
+    void calculate_rate_constants(const State& state) override;
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -556,8 +555,11 @@ namespace micm
     return x;
   }
 
-  inline void ChapmanODESolver::calculate_rate_constants(const double& temperature, const double& pressure)
+  inline void ChapmanODESolver::calculate_rate_constants(const State& state)
   {
+    double temperature = state.temperature_;
+    double pressure = state.pressure_;
+
     // O2_1
     // k_O2_1: O2 -> 2*O
     rate_constants_[0] = 1e-4;

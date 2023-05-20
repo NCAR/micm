@@ -55,104 +55,134 @@ std::vector<double> call_reaction_rate_constants(double temperature, double pres
 }
 
 TEST(ArrheniusRateRegressionTest, AllZeros){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstant zero{};
-  auto k = zero.calculate(1.0, 1.0);
+  auto k = zero.calculate(state, params);
   auto k_fortran = call_fortran_rate(1, 1, micm::ArrheniusRateConstantParameters());
   EXPECT_NEAR(k, k_fortran, 1e-10);
 
 }
 
 TEST(ArrheniusRateRegressionTest, A1RestZero){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 1;
   micm::ArrheniusRateConstant basic(parameters);
-  auto k = basic.calculate(1.0, 1.0);
+  auto k = basic.calculate(state, params);
   auto k_fortran = call_fortran_rate(1, 1, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
 TEST(ArrheniusRateRegressionTest, O1D){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 2.2e-10;
   micm::ArrheniusRateConstant o1d(parameters);
-  auto k = o1d.calculate(1.0, 1.0);
+  auto k = o1d.calculate(state, params);
   auto k_fortran = call_fortran_rate(298, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // O + HO2 -> OH + O2
 TEST(ArrheniusRateRegressionTest, HOx){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 3e-11;
   parameters.C_ = -200;
   micm::ArrheniusRateConstant hox(parameters);
-  auto k = hox.calculate(298, 1.0);
-  auto k_fortran = call_fortran_rate(298, 100'000, parameters);
+  auto k = hox.calculate(state, params);
+  auto k_fortran = call_fortran_rate(301.24, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // OH + HCl → H2O + Cl
 TEST(ArrheniusRateRegressionTest, ClOx){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
   micm::ArrheniusRateConstant clox(parameters);
-  auto k = clox.calculate(298, 100'000);
-  auto k_fortran = call_fortran_rate(298, 100'000, parameters);
+  auto k = clox.calculate(state, params);
+  auto k_fortran = call_fortran_rate(301.24, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
 TEST(ArrheniusRateRegressionTest, N2_O1D_1){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 2.15e-11;
   parameters.C_ = 110;
   micm::ArrheniusRateConstant rate(parameters);
-  auto k = rate.calculate(298, 100'000);
-  auto k_fortran = call_fortran_rate(298, 100'000, parameters);
+  auto k = rate.calculate(state, params);
+  auto k_fortran = call_fortran_rate(301.24, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
 TEST(ArrheniusRateRegressionTest, O1D_O2_1){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 3.3e-11;
   parameters.C_ = 55;
   micm::ArrheniusRateConstant rate(parameters);
-  auto k = rate.calculate(298, 100'000);
-  auto k_fortran = call_fortran_rate(298, 100'000, parameters);
+  auto k = rate.calculate(state, params);
+  auto k_fortran = call_fortran_rate(301.24, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // k_O_O3_1: O + O3 -> 2*O2
 TEST(ArrheniusRateRegressionTest, O_O3_1){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 8e-12;
   parameters.C_ = -2060;
   micm::ArrheniusRateConstant rate(parameters);
-  auto k = rate.calculate(298, 100'000);
-  auto k_fortran = call_fortran_rate(298, 100'000, parameters);
+  auto k = rate.calculate(state, params);
+  auto k_fortran = call_fortran_rate(301.24, 100'000, parameters);
   EXPECT_NEAR(k, k_fortran, 1e-10);
 }
 
 // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
 TEST(ArrheniusRateRegressionTest, M_O_O2_1){
+  micm::State state {0,0};
+  state.temperature_ = 273.14; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
   parameters.A_ = 6e-34;
   parameters.B_ = -2.4;
   micm::ArrheniusRateConstant rate(parameters);
-  auto k = rate.calculate(273.14, 100'000);
+  auto k = rate.calculate(state, params);
   auto k_fortran = call_fortran_rate(273.14, 100'000, parameters);
   EXPECT_EQ(k, k_fortran);
 }
 
 TEST(ArrheniusRateRegressionTest, integration){
+  micm::State state {0,0};
+  state.temperature_ = 273.15; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ChapmanODESolver solver{};
   double temperature = 273.15;
   double pressure = 1000 * 100; // 1000 hPa
 
-  solver.calculate_rate_constants(temperature, pressure);
+  solver.calculate_rate_constants(state);
   auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure, solver.rate_constants_[0], solver.rate_constants_[1], solver.rate_constants_[2]);
 
   EXPECT_NEAR(solver.rate_constants_[0], f_reaction_rate_constants[0], 1e-8);

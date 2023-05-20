@@ -39,15 +39,19 @@ namespace micm
     TroeRateConstant();
 
     /// @brief Calculate the rate constant
-    /// @param system the system
+    /// @param state The current state of the chemical system
+    /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const System& system) override;
+    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @param air_number_density Number density in [# cm-3]
     /// @return
-    double calculate(double temperature, double air_number_density);
+    double calculate(const double& temperature, const double& air_number_density) const;
   };
 
   inline TroeRateConstant::TroeRateConstant()
@@ -62,14 +66,16 @@ namespace micm
   {
   }
 
-  inline double TroeRateConstant::calculate(const System& system)
-  {
-    double temperature{}, air_number_density{};
-
-    return calculate(temperature, air_number_density);
+  inline std::unique_ptr<RateConstant> TroeRateConstant::clone() const {
+    return std::unique_ptr<RateConstant>{new TroeRateConstant{*this}};
   }
 
-  inline double TroeRateConstant::calculate(double temperature, double air_number_density)
+  inline double TroeRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  {
+    return calculate(state.temperature_, state.air_density_);
+  }
+
+  inline double TroeRateConstant::calculate(const double& temperature, const double& air_number_density) const
   {
     double k0 = this->k0_A_ * std::exp(this->k0_C_ / temperature) * pow(temperature / 300.0, this->k0_B_);
     double kinf = this->kinf_A_ * std::exp(this->kinf_C_ / temperature) * pow(temperature / 300.0, this->kinf_B_);

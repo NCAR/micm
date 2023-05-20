@@ -17,7 +17,6 @@ namespace micm
   class PhotolysisRateConstant : public RateConstant
   {
    public:
-    double rate_;
     std::string name_;
 
    public:
@@ -25,41 +24,45 @@ namespace micm
     PhotolysisRateConstant();
 
     /// @brief
-    /// @param rate A reaction rate, (molec cm-3)^(n-1) s-1
-    PhotolysisRateConstant(double rate);
-
-    /// @brief
-    /// @param rate A reaction rate, (molec cm-3)^(n-1) s-1
     /// @param name A name for this reaction
-    PhotolysisRateConstant(double rate, std::string name);
+    PhotolysisRateConstant(std::string name);
+
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
+
+    /// @brief Returns the number of parameters (1) that can be set at runtime
+    ///        for photolysis reactions
+    ///
+    ///        The single editable parameter is the unscaled rate constant for
+    ///        the photolysis reaction
+    /// @return Number of custom rate constant parameters
+    std::size_t SizeCustomParameters() const override;
 
     /// @brief Calculate the rate constant
-    /// @param system the system
+    /// @param state The current state of the chemical system
+    /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const System& system) override;
+    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
-      : rate_(),
-        name_()
+      : name_()
   {
   }
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant(double rate)
-      : rate_(rate),
-        name_()
+  inline PhotolysisRateConstant::PhotolysisRateConstant(std::string name)
+      : name_(name)
   {
   }
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant(double rate, std::string name)
-      : rate_(rate),
-        name_(name)
-  {
+  inline std::unique_ptr<RateConstant> PhotolysisRateConstant::clone() const {
+    return std::unique_ptr<RateConstant>{new PhotolysisRateConstant{*this}};
   }
 
-  inline double PhotolysisRateConstant::calculate(const System& system)
+  inline double PhotolysisRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
   {
-    return (double)rate_;
+    return (double) *custom_parameters;
   }
 
+  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const { return 1; }
 }  // namespace micm

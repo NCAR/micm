@@ -46,12 +46,16 @@ namespace micm
     /// @param parameters A set of arrhenius rate constants
     ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
 
-    /// @brief Calculate the rate constant
-    /// @param system the system
-    /// @return A rate constant based off of the conditions in the system
-    double calculate(const System& system) override;
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
 
-    double calculate(double temperature, double pressure);
+    /// @brief Calculate the rate constant
+    /// @param state The current state of the chemical system
+    /// @param custom_parameters User-defined rate constant parameters
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+
+    double calculate(const double& temperature, const double& pressure) const;
   };
 
   inline ArrheniusRateConstant::ArrheniusRateConstant()
@@ -64,15 +68,16 @@ namespace micm
   {
   }
 
-  inline double ArrheniusRateConstant::calculate(const System& system)
-  {
-    double temperature{ 0.1 };
-    double pressure{};
-
-    return calculate(temperature, pressure);
+  inline std::unique_ptr<RateConstant> ArrheniusRateConstant::clone() const {
+    return std::unique_ptr<RateConstant>{new ArrheniusRateConstant{*this}};
   }
 
-  inline double ArrheniusRateConstant::calculate(double temperature, double pressure)
+  inline double ArrheniusRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  {
+    return calculate(state.temperature_, state.pressure_);
+  }
+
+  inline double ArrheniusRateConstant::calculate(const double& temperature, const double& pressure) const
   {
     return parameters_.A_ * std::exp(parameters_.C_ / temperature) * pow(temperature / parameters_.D_, parameters_.B_) *
            (1.0 + parameters_.E_ * pressure);

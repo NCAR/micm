@@ -3,18 +3,11 @@
 
 #include <gtest/gtest.h>
 
-TEST(TroeRateConstant, DefaultConstructor){
-  micm::TroeRateConstant troe{};
-}
-
-TEST(TroeRateConstant, CalculateWithSystem){
-  micm::TroeRateConstant troe{};
-  auto k = troe.calculate(micm::System());
-  ASSERT_TRUE(std::isnan(k));
-}
-
 TEST(TroeRateConstant, CalculateWithPrescribedArugments){
+  micm::State state {0,0};
+  state.temperature_ = 301.24; // [K]
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::TroeRateConstant troe{};
-  auto k = troe.calculate(1.0, 1.0);
+  auto k = troe.calculate(state, params);
   ASSERT_TRUE(std::isnan(k));
 }

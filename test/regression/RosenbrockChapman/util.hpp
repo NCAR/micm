@@ -8,11 +8,11 @@
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
-#include <micm/solver/rosenbrock.hpp>
 
 using yields = std::pair<micm::Species, double>;
 
-TEST(ChapmanIntegration, CanBuildChapmanSystem){
+micm::RosenbrockSolver getChapmanSolver() {
+
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
   auto o2 = micm::Species("O2");
@@ -57,7 +57,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem){
     .reactants({ o, o2, m })
     .products({ yields(o3, 1), yields(m, 1) })
     .rate_constant(micm::ArrheniusRateConstant(
-      micm::ArrheniusRateConstantParameters { .A_ = 6.0e-34, .C_=2.4 }
+      micm::ArrheniusRateConstantParameters { .A_ = 6.0e-34, .B_=2.4 }
     ))
     .phase(gas_phase);
 
@@ -79,26 +79,13 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem){
     .rate_constant(micm::PhotolysisRateConstant())
     .phase(gas_phase);
 
-  micm::RosenbrockSolver solver{ 
+
+  return micm::RosenbrockSolver{
     micm::System(micm::SystemParameters{.gas_phase_=gas_phase}), 
-    std::vector<micm::Process> {
-      r1, r2, r3, r4, photo_1, photo_2, photo_3
-    }
+    std::move(std::vector<micm::Process> {
+      photo_1, photo_2, photo_3, r1, r2, r3, r4
+    })
   };
 
-  micm::State state = solver.GetState();
-  
-  std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.concentrations_ = concentrations;
-  std::vector<double> photo_rates{0.1, 0.2, 0.3};
-  state.custom_rate_parameters_ = photo_rates;
-  state.temperature_ = 2;
-  state.pressure_ = 3;
-
-  for(double t{}; t < 100; ++t)
-  {
-    state.custom_rate_parameters_ = photo_rates;
-    auto result = solver.Solve(t, t+0.5, state );
-    // output state
-  }
 }
+
