@@ -18,8 +18,8 @@ TEST(RegressionRosenbrock, rate_constants) {
   fixed_state.temperature_ = state.temperature_;
   fixed_state.pressure_ = state.pressure_;
 
-  solver.calculate_rate_constants(state);
-  fixed_solver.calculate_rate_constants(fixed_state);
+  solver.UpdateState(state);
+  fixed_solver.UpdateState(fixed_state);
   
   EXPECT_EQ(state.rate_constants_.size(), fixed_state.rate_constants_.size());
   for(size_t i{}; i < state.rate_constants_.size(); ++i) {

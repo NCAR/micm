@@ -27,6 +27,12 @@ namespace micm
     const std::vector<Yield> products_;
     const std::unique_ptr<RateConstant> rate_constant_;
     const Phase phase_;
+
+    /// @brief Update the solver state rate constants
+    /// @param processes The set of processes being solved
+    /// @param state The solver state to update
+    static void UpdateState(const std::vector<Process>& processes, State& state);
+
     friend class ProcessBuilder;
     static ProcessBuilder create();
     Process(ProcessBuilder& builder);
@@ -46,6 +52,15 @@ namespace micm
     ProcessBuilder& rate_constant(const RateConstant& rate_constant);
     ProcessBuilder& phase(const Phase& phase);
   };
+
+  void Process::UpdateState(const std::vector<Process>& processes, State& state) {
+    std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_.begin();
+    std::vector<double>::iterator rate_constant = state.rate_constants_.begin();
+    for (auto& process : processes) {
+      *(rate_constant++) = process.rate_constant_->calculate(state, custom_parameters);
+      custom_parameters += process.rate_constant_->SizeCustomParameters();
+    }
+  }
 
   inline ProcessBuilder Process::create() { return ProcessBuilder{}; };
 

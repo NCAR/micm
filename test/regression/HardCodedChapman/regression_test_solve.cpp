@@ -66,7 +66,7 @@ TEST(RegressionChapmanODESolver, solve){
   double time_start = 0;
   double time_end = 1;
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
@@ -100,7 +100,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_larger){
     elem *= 10;
   }
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
@@ -134,7 +134,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller){
     elem /= 10;
   }
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
@@ -169,7 +169,7 @@ TEST(RegressionChapmanODESolver, solve_with_random_number_densities){
   std::generate(number_densities.begin(), number_densities.end(),
                 [&] { return distribution(generator); });
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);

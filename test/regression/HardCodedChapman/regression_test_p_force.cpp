@@ -81,7 +81,7 @@ TEST(RegressionChapmanODESolver, realistic_number_densities){
   state.temperature_ = 273.15;
   state.pressure_ = 1000 * 100; // 1000 hPa
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto forcing = solver.force(state.rate_constants_, number_densities, number_density_air);
   auto f_forcing = call_fortran_p_force(state.rate_constants_, number_densities, number_density_air);
@@ -101,7 +101,7 @@ TEST(RegressionChapmanODESolver, realistic_number_densities_scaled_down){
   state.temperature_ = 273.15;
   state.pressure_ = 1000 * 100; // 1000 hPa
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   for(auto& elem: number_densities){
     elem *= 1e-10;

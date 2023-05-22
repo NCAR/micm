@@ -200,7 +200,7 @@ void TestSolve(micm::RosenbrockSolver& solver){
   double time_start = 0;
   double time_end = 1;
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
@@ -234,7 +234,7 @@ void TestSolve10TimesLarger(micm::RosenbrockSolver& solver){
     elem *= 10;
   }
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
   EXPECT_NEAR(results.result_[0], 10, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 3.92, absolute_tolerance);
@@ -266,7 +266,7 @@ void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver){
     elem /= 10;
   }
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
   EXPECT_NEAR(results.result_[0], 0.1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.0392, absolute_tolerance);
@@ -299,7 +299,7 @@ void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver){
   std::generate(number_densities.begin(), number_densities.end(),
                 [&] { return distribution(generator); });
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
   EXPECT_NEAR(results.result_[0], 7.8259e-06, absolute_tolerance);

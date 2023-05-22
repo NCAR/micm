@@ -157,7 +157,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    virtual void calculate_rate_constants(State& state);
+    virtual void UpdateState(State& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -550,14 +550,9 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline void RosenbrockSolver::calculate_rate_constants(State& state)
+  inline void RosenbrockSolver::UpdateState(State& state)
   {
-    std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_.begin();
-    std::vector<double>::iterator rate_constant = state.rate_constants_.begin();
-    for (auto& process : processes_) {
-      *(rate_constant++) = process.rate_constant_->calculate(state, custom_parameters);
-      custom_parameters += process.rate_constant_->SizeCustomParameters();
-    }
+    Process::UpdateState(processes_, state);
   }
 
   inline std::vector<double> RosenbrockSolver::lin_factor(

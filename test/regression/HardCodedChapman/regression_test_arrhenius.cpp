@@ -182,7 +182,7 @@ TEST(ArrheniusRateRegressionTest, integration){
   double temperature = 273.15;
   double pressure = 1000 * 100; // 1000 hPa
 
-  solver.calculate_rate_constants(state);
+  solver.UpdateState(state);
   auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure, state.rate_constants_[0], state.rate_constants_[1], state.rate_constants_[2]);
 
   EXPECT_NEAR(state.rate_constants_[0], f_reaction_rate_constants[0], 1e-8);
