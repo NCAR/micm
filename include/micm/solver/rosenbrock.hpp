@@ -18,8 +18,8 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -113,11 +113,7 @@ namespace micm
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
     /// @return A struct containing results and a status code
-    Solver::SolverResult Solve(
-        double time_start,
-        double time_end,
-        State state
-        ) noexcept;
+    Solver::SolverResult Solve(double time_start, double time_end, State state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -232,12 +228,14 @@ namespace micm
   {
   }
 
-  inline State RosenbrockSolver::GetState() const {
+  inline State RosenbrockSolver::GetState() const
+  {
     std::size_t n_params = 0;
-    for (const auto& process : processes_) {
+    for (const auto& process : processes_)
+    {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{system_.StateSize(), n_params, processes_.size()};
+    return State{ system_.StateSize(), n_params, processes_.size() };
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(

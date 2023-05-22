@@ -1,12 +1,13 @@
+#include <gtest/gtest.h>
+
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/system/system.hpp>
 
-#include <gtest/gtest.h>
-
-TEST(ArrheniusRateConstant, CalculateWithSystem){
+TEST(ArrheniusRateConstant, CalculateWithSystem)
+{
   micm::ArrheniusRateConstant zero{};
-  micm::State state {0,0,1};
-  state.temperature_ = 301.24; // [K]
+  micm::State state{ 0, 0, 1 };
+  state.temperature_ = 301.24;  // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   auto k = zero.calculate(state, params);
   EXPECT_NEAR(k, 1, 0.01);
@@ -29,19 +30,20 @@ TEST(ArrheniusRateConstant, CalculateWithSystem){
   parameters.C_ = -200;
   micm::ArrheniusRateConstant hox(parameters);
   k = hox.calculate(state, params);
-  EXPECT_NEAR(k, 3e-11 * std::exp(-200/301.24), 0.01);
+  EXPECT_NEAR(k, 3e-11 * std::exp(-200 / 301.24), 0.01);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
   micm::ArrheniusRateConstant clox(parameters);
   k = clox.calculate(state, params);
-  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350/301.24), 0.01);
+  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350 / 301.24), 0.01);
 }
 
-TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
-  micm::State state {0,0,1};
-  state.temperature_ = 301.24; // [K]
+TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments)
+{
+  micm::State state{ 0, 0, 1 };
+  state.temperature_ = 301.24;  // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstant zero{};
   auto k = zero.calculate(state, params);
@@ -65,12 +67,12 @@ TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments){
   parameters.C_ = -200;
   micm::ArrheniusRateConstant hox(parameters);
   k = hox.calculate(state, params);
-  EXPECT_NEAR(k, 3e-11 * std::exp(200/301.24), 0.01);
+  EXPECT_NEAR(k, 3e-11 * std::exp(200 / 301.24), 0.01);
 
   // OH + HCl → H2O + Cl
   parameters.A_ = 2.6e-12;
   parameters.C_ = -350;
   micm::ArrheniusRateConstant clox(parameters);
   k = clox.calculate(state, params);
-  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350/301.24), 0.01);
+  EXPECT_NEAR(k, 2.6e-12 * std::exp(-350 / 301.24), 0.01);
 }

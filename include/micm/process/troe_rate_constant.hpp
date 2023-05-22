@@ -66,8 +66,9 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> TroeRateConstant::clone() const {
-    return std::unique_ptr<RateConstant>{new TroeRateConstant{*this}};
+  inline std::unique_ptr<RateConstant> TroeRateConstant::clone() const
+  {
+    return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
   }
 
   inline double TroeRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const

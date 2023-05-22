@@ -1,61 +1,63 @@
 #include <ISO_Fortran_binding.h>
-
 #include <gtest/gtest.h>
+
 #include <micm/solver/chapman_ode_solver.hpp>
 
-extern "C" {
+extern "C"
+{
   void dforce_dy(
-    CFI_cdesc_t * rate_constants,
-    CFI_cdesc_t * number_densities,
-    double number_density_air, 
-    CFI_cdesc_t * new_number_densities
-  );
+      CFI_cdesc_t *rate_constants,
+      CFI_cdesc_t *number_densities,
+      double number_density_air,
+      CFI_cdesc_t *new_number_densities);
 }
 
-std::vector<double> call_dforce_dy(
-    std::vector<double> rate_constants,
-    std::vector<double> number_densities,
-    double number_density_air
-    )
-  {
-
+std::vector<double>
+call_dforce_dy(std::vector<double> rate_constants, std::vector<double> number_densities, double number_density_air)
+{
   std::vector<double> result{};
 
   CFI_CDESC_T(1) f_rate_constants;
-  CFI_index_t extent[1] = { (long int) rate_constants.size() };
-  CFI_establish((CFI_cdesc_t *)&f_rate_constants, rate_constants.data(),
-                      CFI_attribute_other,
-                      CFI_type_double, rate_constants.size() * sizeof(double), (CFI_rank_t)1, extent);
+  CFI_index_t extent[1] = { (long int)rate_constants.size() };
+  CFI_establish(
+      (CFI_cdesc_t *)&f_rate_constants,
+      rate_constants.data(),
+      CFI_attribute_other,
+      CFI_type_double,
+      rate_constants.size() * sizeof(double),
+      (CFI_rank_t)1,
+      extent);
 
   CFI_CDESC_T(1) f_number_densities;
-  CFI_index_t extent_num[1] = { (long int) number_densities.size() };
-  CFI_establish((CFI_cdesc_t *)&f_number_densities, number_densities.data(),
-                      CFI_attribute_other,
-                      CFI_type_double, number_densities.size() * sizeof(double), (CFI_rank_t)1, extent_num);
+  CFI_index_t extent_num[1] = { (long int)number_densities.size() };
+  CFI_establish(
+      (CFI_cdesc_t *)&f_number_densities,
+      number_densities.data(),
+      CFI_attribute_other,
+      CFI_type_double,
+      number_densities.size() * sizeof(double),
+      (CFI_rank_t)1,
+      extent_num);
 
   CFI_CDESC_T(1) f_dforce_dy;
-  CFI_establish((CFI_cdesc_t *)&f_dforce_dy, NULL,
-                      CFI_attribute_pointer,
-                      CFI_type_double, 0, (CFI_rank_t)1, NULL);
+  CFI_establish((CFI_cdesc_t *)&f_dforce_dy, NULL, CFI_attribute_pointer, CFI_type_double, 0, (CFI_rank_t)1, NULL);
   dforce_dy(
-    (CFI_cdesc_t *)&f_rate_constants,
-    (CFI_cdesc_t *)&f_number_densities,
-    number_density_air,
-    (CFI_cdesc_t *)&f_dforce_dy
-  );
+      (CFI_cdesc_t *)&f_rate_constants, (CFI_cdesc_t *)&f_number_densities, number_density_air, (CFI_cdesc_t *)&f_dforce_dy);
 
-  for(size_t i{}; i < f_dforce_dy.dim[0].extent; ++i) {
-    double* d = (double *) ((char *)f_dforce_dy.base_addr + i * f_dforce_dy.elem_len);
+  for (size_t i{}; i < f_dforce_dy.dim[0].extent; ++i)
+  {
+    double *d = (double *)((char *)f_dforce_dy.base_addr + i * f_dforce_dy.elem_len);
     result.push_back(*d);
   }
 
   return result;
 }
 
-TEST(RegressionChapmanODESolver, solve){
+TEST(RegressionChapmanODESolver, solve)
+{
   micm::ChapmanODESolver solver{};
-  std::vector<double> number_densities = { 1,    3.92e-1, 1.69e-2, 0,     3.29e1, 0,     0,   8.84, 0};
-                                         //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
+  std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
+  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   std::vector<double> rate_constants(number_densities.size(), 5e-7);
   double number_density_air = 2.7e19;
 

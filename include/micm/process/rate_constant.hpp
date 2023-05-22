@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <vector>
 #include <micm/solver/state.hpp>
+#include <vector>
 
 namespace micm
 {
@@ -32,13 +32,17 @@ namespace micm
     /// @param state The current state of the chemical system
     /// @param custom_parameters User defined rate constant parameters
     /// @return The reaction rate constant
-    virtual double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const { return 0; };
+    virtual double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+    {
+      return 0;
+    };
 
    private:
   };
 
-
-
-  inline std::size_t RateConstant::SizeCustomParameters() const {return 0;}
+  inline std::size_t RateConstant::SizeCustomParameters() const
+  {
+    return 0;
+  }
 
 }  // namespace micm

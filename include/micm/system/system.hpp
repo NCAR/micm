@@ -53,12 +53,14 @@ namespace micm
   {
   }
 
-  inline size_t System::StateSize() const {
+  inline size_t System::StateSize() const
+  {
     size_t state_size = gas_phase_.species_.size();
-    for (const auto& phase : phases_) {
+    for (const auto& phase : phases_)
+    {
       state_size += phase.species_.size();
     }
-    return state_size; 
+    return state_size;
   }
 
 }  // namespace micm

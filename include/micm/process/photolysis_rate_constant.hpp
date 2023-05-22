@@ -55,14 +55,19 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> PhotolysisRateConstant::clone() const {
-    return std::unique_ptr<RateConstant>{new PhotolysisRateConstant{*this}};
-  }
-
-  inline double PhotolysisRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  inline std::unique_ptr<RateConstant> PhotolysisRateConstant::clone() const
   {
-    return (double) *custom_parameters;
+    return std::unique_ptr<RateConstant>{ new PhotolysisRateConstant{ *this } };
   }
 
-  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const { return 1; }
+  inline double PhotolysisRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters)
+      const
+  {
+    return (double)*custom_parameters;
+  }
+
+  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const
+  {
+    return 1;
+  }
 }  // namespace micm

@@ -132,8 +132,9 @@ namespace micm
   {
   }
 
-  inline State ChapmanODESolver::GetState() const {
-    return State {9, 0, 7};
+  inline State ChapmanODESolver::GetState() const
+  {
+    return State{ 9, 0, 7 };
   }
 
   inline Solver::SolverResult ChapmanODESolver::Solve(

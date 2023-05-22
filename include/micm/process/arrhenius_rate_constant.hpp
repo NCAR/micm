@@ -68,11 +68,13 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> ArrheniusRateConstant::clone() const {
-    return std::unique_ptr<RateConstant>{new ArrheniusRateConstant{*this}};
+  inline std::unique_ptr<RateConstant> ArrheniusRateConstant::clone() const
+  {
+    return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
   }
 
-  inline double ArrheniusRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  inline double ArrheniusRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters)
+      const
   {
     return calculate(state.temperature_, state.pressure_);
   }
