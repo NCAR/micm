@@ -12,7 +12,7 @@ namespace micm
     State state = *(micm->state_);
 
     state.update_photo_rates(photo_rates);
-    state.concentrations_ = concentrations;
+    state.concentrations_ = std::vector<double>(concentrations, concentrations + sizeof(concentrations) / sizeof(concentrations[0]));
     state.pressure_ = pressure;
     state.temperature_ = temperature;
 

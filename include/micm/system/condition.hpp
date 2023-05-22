@@ -30,8 +30,9 @@ namespace micm
     /// @param name The name
     /// @param units The units
     Condition(const std::string& name, const std::string& units)
-      : name_(name),
-        units_(units)
-      {};
+        : name_(name),
+          units_(units)
+    {
+    }
   };
 }  // namespace micm

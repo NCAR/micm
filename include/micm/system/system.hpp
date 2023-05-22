@@ -29,10 +29,20 @@ namespace micm
 
     /// @brief
     /// @param gas_phase
+    System(Phase gas_phase)
+        : gas_phase_(gas_phase),
+          phases_()
+    {
+    }
+
+    /// @brief
+    /// @param gas_phase
+    /// @param phases
     System(Phase gas_phase, std::vector<Phase> phases)
-      : gas_phase_(gas_phase),
-        phases_(phases)
-      {}
+        : gas_phase_(gas_phase),
+          phases_(phases)
+    {
+    }
   };
 
 }  // namespace micm

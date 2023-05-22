@@ -27,7 +27,7 @@ namespace micm
     Species() = delete;
 
     /// @brief Copy Constructor
-    /// @param other 
+    /// @param other
     Species(const Species& other);
 
     /// @brief Construct a species by name only
@@ -46,23 +46,18 @@ namespace micm
   };
 
   inline Species::Species(const Species& other)
-    : name_(other.name_),
-      properties_(other.properties_)
-    {};
+      : name_(other.name_),
+        properties_(other.properties_){};
 
   inline Species::Species(const std::string& name)
-    : name_(name)
-    {};
+      : name_(name){};
 
   inline Species::Species(const std::string& name, std::vector<Property> properties)
-    : name_(name),
-      properties_(properties)
-    {};
+      : name_(name),
+        properties_(properties){};
 
   inline Species::Species(const std::string& name, Property property)
-    : name_(name),
-      properties_({ property })
-    {};
+      : name_(name),
+        properties_({ property }){};
 
 }  // namespace micm
-      

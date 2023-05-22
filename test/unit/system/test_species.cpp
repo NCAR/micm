@@ -1,18 +1,18 @@
-#include <micm/system/species.hpp>
-
 #include <gtest/gtest.h>
 
-TEST(Species, StringConstructor){
+#include <micm/system/species.hpp>
+
+TEST(Species, StringConstructor)
+{
   micm::Species species("thing");
 
   EXPECT_EQ(species.name_, "thing");
 }
 
-TEST(Species, StringAndVectorConstructor){
-  micm::Species species("thing", std::vector<micm::Property>{
-    micm::Property("name", "units", 1.0),
-    micm::Property("name2", "units2", 2.0)
-  });
+TEST(Species, StringAndVectorConstructor)
+{
+  micm::Species species(
+      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
 
   EXPECT_EQ(species.name_, "thing");
   EXPECT_EQ(species.properties_.size(), 2);
@@ -25,7 +25,8 @@ TEST(Species, StringAndVectorConstructor){
   EXPECT_EQ(species.properties_[1].value_, 2.0);
 }
 
-TEST(Species, StringAndSinglePropertyConstructor){
+TEST(Species, StringAndSinglePropertyConstructor)
+{
   micm::Species species("thing", micm::Property("name", "units", 1.0));
 
   EXPECT_EQ(species.name_, "thing");
@@ -35,11 +36,10 @@ TEST(Species, StringAndSinglePropertyConstructor){
   EXPECT_EQ(species.properties_[0].value_, 1.0);
 }
 
-TEST(Species, CopyConstructor){
-  micm::Species species("thing", std::vector<micm::Property>{
-    micm::Property("name", "units", 1.0),
-    micm::Property("name2", "units2", 2.0)
-  });
+TEST(Species, CopyConstructor)
+{
+  micm::Species species(
+      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
 
   micm::Species species2(species);
 
@@ -54,11 +54,10 @@ TEST(Species, CopyConstructor){
   EXPECT_EQ(species2.properties_[1].value_, 2.0);
 }
 
-TEST(Species, CopyAssignment){
-  micm::Species species("thing", std::vector<micm::Property>{
-    micm::Property("name", "units", 1.0),
-    micm::Property("name2", "units2", 2.0)
-  });
+TEST(Species, CopyAssignment)
+{
+  micm::Species species(
+      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
 
   micm::Species species2 = species;
 

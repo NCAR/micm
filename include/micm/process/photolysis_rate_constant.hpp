@@ -40,19 +40,22 @@ namespace micm
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
-    : rate_(),
-      name_()
-    {}
+      : rate_(),
+        name_()
+  {
+  }
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate)
-    : rate_(rate),
-      name_()
-    {}
+      : rate_(rate),
+        name_()
+  {
+  }
 
   inline PhotolysisRateConstant::PhotolysisRateConstant(double rate, const std::string& name)
-    : rate_(rate),
-      name_(name)
-    {}
+      : rate_(rate),
+        name_(name)
+  {
+  }
 
   inline double PhotolysisRateConstant::calculate(const System& system)
   {
