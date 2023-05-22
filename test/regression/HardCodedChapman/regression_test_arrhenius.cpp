@@ -55,7 +55,7 @@ std::vector<double> call_reaction_rate_constants(double temperature, double pres
 }
 
 TEST(ArrheniusRateRegressionTest, AllZeros){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstant zero{};
@@ -66,7 +66,7 @@ TEST(ArrheniusRateRegressionTest, AllZeros){
 }
 
 TEST(ArrheniusRateRegressionTest, A1RestZero){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -79,7 +79,7 @@ TEST(ArrheniusRateRegressionTest, A1RestZero){
 
 // values from https://jpldataeval.jpl.nasa.gov/pdf/JPL_00-03.pdf
 TEST(ArrheniusRateRegressionTest, O1D){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -92,7 +92,7 @@ TEST(ArrheniusRateRegressionTest, O1D){
 
 // O + HO2 -> OH + O2
 TEST(ArrheniusRateRegressionTest, HOx){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -106,7 +106,7 @@ TEST(ArrheniusRateRegressionTest, HOx){
 
 // OH + HCl → H2O + Cl
 TEST(ArrheniusRateRegressionTest, ClOx){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -120,7 +120,7 @@ TEST(ArrheniusRateRegressionTest, ClOx){
 
 // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
 TEST(ArrheniusRateRegressionTest, N2_O1D_1){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -134,7 +134,7 @@ TEST(ArrheniusRateRegressionTest, N2_O1D_1){
 
 // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
 TEST(ArrheniusRateRegressionTest, O1D_O2_1){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -148,7 +148,7 @@ TEST(ArrheniusRateRegressionTest, O1D_O2_1){
 
 // k_O_O3_1: O + O3 -> 2*O2
 TEST(ArrheniusRateRegressionTest, O_O3_1){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 301.24; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -162,7 +162,7 @@ TEST(ArrheniusRateRegressionTest, O_O3_1){
 
 // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
 TEST(ArrheniusRateRegressionTest, M_O_O2_1){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 273.14; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ArrheniusRateConstantParameters parameters;
@@ -175,7 +175,7 @@ TEST(ArrheniusRateRegressionTest, M_O_O2_1){
 }
 
 TEST(ArrheniusRateRegressionTest, integration){
-  micm::State state {0,0};
+  micm::State state {0,0,1};
   state.temperature_ = 273.15; // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
   micm::ChapmanODESolver solver{};
@@ -183,13 +183,13 @@ TEST(ArrheniusRateRegressionTest, integration){
   double pressure = 1000 * 100; // 1000 hPa
 
   solver.calculate_rate_constants(state);
-  auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure, solver.rate_constants_[0], solver.rate_constants_[1], solver.rate_constants_[2]);
+  auto f_reaction_rate_constants = call_reaction_rate_constants(temperature, pressure, state.rate_constants_[0], state.rate_constants_[1], state.rate_constants_[2]);
 
-  EXPECT_NEAR(solver.rate_constants_[0], f_reaction_rate_constants[0], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[1], f_reaction_rate_constants[1], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[2], f_reaction_rate_constants[2], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[3], f_reaction_rate_constants[3], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[4], f_reaction_rate_constants[4], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[5], f_reaction_rate_constants[5], 1e-8);
-  EXPECT_NEAR(solver.rate_constants_[6], f_reaction_rate_constants[6], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[0], f_reaction_rate_constants[0], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[1], f_reaction_rate_constants[1], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[2], f_reaction_rate_constants[2], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[3], f_reaction_rate_constants[3], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[4], f_reaction_rate_constants[4], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[5], f_reaction_rate_constants[5], 1e-8);
+  EXPECT_NEAR(state.rate_constants_[6], f_reaction_rate_constants[6], 1e-8);
 }

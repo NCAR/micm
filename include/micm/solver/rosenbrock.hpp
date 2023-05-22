@@ -76,7 +76,6 @@ namespace micm
     const System system_;
     const std::vector<Process> processes_;
     Rosenbrock_params parameters_;
-    std::vector<double> rate_constants_;
     Solver::Rosenbrock_stats stats_;
     static constexpr uint64_t number_sparse_factor_elements_ = 23;
 
@@ -94,19 +93,21 @@ namespace micm
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @return A object that can hold the full state of the chemical system
-    State GetState();
+    virtual State GetState() const;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
     /// @param number_densities Species concentrations in molecules / cm3
     /// @param number_density_air The number density of air in molecules / cm3
+    /// @param rate_constants Rate constants for each process (molecules/cm3)^(n-1) s-1
     /// @return A struct containing results and a status code
     virtual Solver::SolverResult Solve(
         double time_start,
         double time_end,
         const std::vector<double>& number_densities,
-        const double& number_density_air) noexcept;
+        const double& number_density_air,
+        const std::vector<double>& rate_constants) noexcept;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
@@ -156,7 +157,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    virtual void calculate_rate_constants(const State& state);
+    virtual void calculate_rate_constants(State& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -179,12 +180,14 @@ namespace micm
     /// @param gamma time step factor for specific rosenbrock method
     /// @param Y  constituent concentration (molec/cm^3)
     /// @param singular indicates if the matrix is singular
+    /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
     virtual std::vector<double> lin_factor(
         double& H,
         const double& gamma,
         bool& singular,
         const std::vector<double>& number_densities,
-        const double& number_density_air);
+        const double& number_density_air,
+        const std::vector<double>& rate_constants);
 
     /// @brief Factor
     /// @param jacobian
@@ -212,7 +215,6 @@ namespace micm
       : system_(),
         processes_(),
         parameters_(),
-        rate_constants_(),
         stats_()
   {
   }
@@ -221,7 +223,6 @@ namespace micm
       : system_(system),
         processes_(std::move(processes)),
         parameters_(),
-        rate_constants_(processes_.size(), 0),
         stats_()
   {
     // TODO: save the information needed for the forcing function and jacobian
@@ -231,19 +232,20 @@ namespace micm
   {
   }
 
-  inline State RosenbrockSolver::GetState() {
+  inline State RosenbrockSolver::GetState() const {
     std::size_t n_params = 0;
     for (const auto& process : processes_) {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{system_.StateSize(), n_params};
+    return State{system_.StateSize(), n_params, processes_.size()};
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(
       double time_start,
       double time_end,
       const std::vector<double>& original_number_densities,
-      const double& number_density_air) noexcept
+      const double& number_density_air,
+      const std::vector<double>& rate_constants) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(original_number_densities);
@@ -282,7 +284,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto initial_forcing = force(rate_constants_, Y, number_density_air);
+      auto initial_forcing = force(rate_constants, Y, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -294,7 +296,7 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air);
+        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, rate_constants);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -322,7 +324,7 @@ namespace micm
                   Ynew[idx] += a * K[j][idx];
                 }
               }
-              forcing = force(rate_constants_, Ynew, number_density_air);
+              forcing = force(rate_constants, Ynew, number_density_air);
             }
             K[stage] = forcing;
             for (uint64_t j = 0; j < stage; ++j)
@@ -548,10 +550,10 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline void RosenbrockSolver::calculate_rate_constants(const State& state)
+  inline void RosenbrockSolver::calculate_rate_constants(State& state)
   {
     std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_.begin();
-    std::vector<double>::iterator rate_constant = rate_constants_.begin();
+    std::vector<double>::iterator rate_constant = state.rate_constants_.begin();
     for (auto& process : processes_) {
       *(rate_constant++) = process.rate_constant_->calculate(state, custom_parameters);
       custom_parameters += process.rate_constant_->SizeCustomParameters();
@@ -563,7 +565,8 @@ namespace micm
       const double& gamma,
       bool& singular,
       const std::vector<double>& number_densities,
-      const double& number_density_air)
+      const double& number_density_air,
+      const std::vector<double>& rate_constants)
   {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
@@ -580,7 +583,7 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       // compute jacobian decomposition of alpha*I - dforce_dy
-      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants_, number_densities, number_density_air), alpha);
+      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
       stats_.decompositions += 1;
 
       if (is_successful(ode_jacobian))
