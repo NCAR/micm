@@ -3,49 +3,15 @@
 
 #include <gtest/gtest.h>
 
-micm::SystemParameters FullSetOfParameters(){
-  micm::SystemParameters parameters;
-
-  parameters.gas_phase_ = micm::Phase();
-
-  parameters.phases_ = std::vector<micm::Phase> {
-    micm::Phase(),
-    micm::Phase(),
-    micm::Phase(),
-  };
-
-  return parameters;
-}
-
-TEST(System, DefaultConstructor){
-  micm::System system{};
-}
-
-TEST(System, ConstructorWithPhase){
-  micm::SystemParameters parameters;
-  parameters.gas_phase_ = micm::Phase();
-
-  micm::System system{parameters};
-
-  EXPECT_EQ(system.gas_phase_.species_.size(), 0);
-}
-
-TEST(System, ConstructorWithMultiplePhases){
-  micm::SystemParameters parameters;
-  parameters.phases_ = std::vector<micm::Phase> {
-    micm::Phase(),
-    micm::Phase(),
-    micm::Phase(),
-  };
-
-  micm::System system{parameters};
-
-  EXPECT_EQ(system.phases_.size(), 3);
-}
-
 TEST(System, ConstructorWithAllParameters){
-  micm::System system{FullSetOfParameters()};
+  std::vector<micm::Species> speciesA = {micm::Species("species1"), micm::Species("species2")};
+  std::vector<micm::Species> speciesB = {micm::Species("species3"), micm::Species("species4")};
+    
+  micm::Phase phase = speciesA;  
+  std::vector<micm::Phase> phases = {speciesA, speciesB};
+    
+  micm::System system = {phase, phases};
 
-  EXPECT_EQ(system.gas_phase_.species_.size(), 0);
-  EXPECT_EQ(system.phases_.size(), 3);
+  EXPECT_EQ(system.gas_phase_.species_.size(), 2);
+  EXPECT_EQ(system.phases_.size(), 2);
 }

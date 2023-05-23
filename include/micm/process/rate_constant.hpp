@@ -19,7 +19,10 @@ namespace micm
     /// @brief Virtual destructor
     virtual ~RateConstant(){};
     /// @brief Calculate the rate constant for a set of conditions
-    virtual double calculate(const System& system) { return 0; };
+    virtual double calculate(const System& system)
+    {
+      return 0;
+    };
 
    private:
   };

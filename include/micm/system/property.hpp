@@ -17,18 +17,21 @@ namespace micm
   {
    public:
     /// @brief The name of this property
-    std::string name_;
+    const std::string name_;
     /// @brief The units
-    std::string units_;
+    const std::string units_;
     /// @brief The value of this property
-    double value_;
+    const double value_;
 
    public:
+    /// @brief Default constructor is not allowed
+    Property() = delete;
+
     /// @brief Constructs a property
     /// @param name The name of this property
     /// @param units The units of the value
     /// @param value The value of the property
-    Property(std::string name, std::string units, const double value)
+    Property(const std::string& name, const std::string& units, const double value)
         : name_(name),
           units_(units),
           value_(value)
@@ -36,4 +39,4 @@ namespace micm
     }
   };
 
-}  // namespace micm
+}  // namespace micmß
