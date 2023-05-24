@@ -16,7 +16,7 @@ namespace micm
    */
   class ExternalRateConstant : public RateConstant
   {
-   private:
+   public:
     /// @brief The rate
     const double rate_;
     /// @brief The condition this rate applies to

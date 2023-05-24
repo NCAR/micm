@@ -23,11 +23,16 @@ namespace micm
     const std::string units_;
 
    public:
+    /// @brief Default constructor is not allowed
+    Condition() = delete;
+
     /// @brief Define an environmental condition
     /// @param name The name
     /// @param units The units
-    Condition(std::string name, std::string units)
-      : name_(std::move(name)),
-        units_(std::move(units)){};
+    Condition(const std::string& name, const std::string& units)
+        : name_(name),
+          units_(units)
+    {
+    }
   };
 }  // namespace micm

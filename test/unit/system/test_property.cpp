@@ -1,9 +1,9 @@
-#include <micm/system/property.hpp>
-
 #include <gtest/gtest.h>
 
+#include <micm/system/property.hpp>
 
-TEST(Property, Constructor){
+TEST(Property, Constructor)
+{
   micm::Property property("name", "units", 1.0);
 
   EXPECT_EQ(property.name_, "name");
@@ -11,7 +11,8 @@ TEST(Property, Constructor){
   EXPECT_EQ(property.value_, 1.0);
 }
 
-TEST(Property, CopyConstructor){
+TEST(Property, CopyConstructor)
+{
   micm::Property property("name", "units", 1.0);
   micm::Property property2(property);
 
@@ -20,7 +21,8 @@ TEST(Property, CopyConstructor){
   EXPECT_EQ(property2.value_, 1.0);
 }
 
-TEST(Property, CopyAssignment){
+TEST(Property, CopyAssignment)
+{
   micm::Property property("name", "units", 1.0);
   micm::Property property2 = property;
 

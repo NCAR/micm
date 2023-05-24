@@ -19,12 +19,16 @@ namespace micm
   {
    public:
     /// @brief The name of this species
-    std::string name_;
+    const std::string name_;
     /// @brief A list of properties of this species
-    std::vector<Property> properties_;
+    const std::vector<Property> properties_;
 
-    /// @brief Default constructor
-    Species() = default;
+    /// @brief Default constructor is not allowed
+    Species() = delete;
+
+    /// @brief Copy assignment
+    /// @param other species to copy
+    Species operator=(const Species& other);
 
     /// @brief Copy Constructor
     /// @param other
@@ -32,31 +36,36 @@ namespace micm
 
     /// @brief Construct a species by name only
     /// @param name The name of the species
-    Species(const std::string name);
+    Species(const std::string& name);
 
-    /// @brief
+    /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(const std::string name, const std::vector<Property> properties);
+    Species(const std::string& name, std::vector<Property> properties);
 
-    /// @brief
+    /// @brief Construct a species by name and property
     /// @param name The name of the species
     /// @param property A property of the species
-    Species(const std::string name, const Property property);
+    Species(const std::string& name, Property property);
   };
+
+  inline Species Species::operator=(const Species& other)
+  {
+    return Species{ other };
+  }
 
   inline Species::Species(const Species& other)
       : name_(other.name_),
         properties_(other.properties_){};
 
-  inline Species::Species(const std::string name)
+  inline Species::Species(const std::string& name)
       : name_(name){};
 
-  inline Species::Species(const std::string name, const std::vector<Property> properties)
+  inline Species::Species(const std::string& name, const std::vector<Property> properties)
       : name_(name),
         properties_(properties){};
 
-  inline Species::Species(const std::string name, const Property property)
+  inline Species::Species(const std::string& name, const Property property)
       : name_(name),
         properties_({ property }){};
 
