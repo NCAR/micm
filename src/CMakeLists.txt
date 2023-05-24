@@ -16,6 +16,12 @@ configure_file(version.hpp.in ${PROJECT_SOURCE_DIR}/include/micm/version.hpp @ON
 add_library(micm $<TARGET_OBJECTS:micm_object>)
 add_library(musica::micm ALIAS micm)
 
+set_target_properties(micm PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY ${MICM_LIB_DIR}
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
+
 if(ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
