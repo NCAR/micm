@@ -19,5 +19,5 @@ target_include_directories(
 )
 
 set_target_properties(micm_object PROPERTIES
-  Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include
+  Fortran_MODULE_DIRECTORY ${MICM_MOD_DIR}
 )

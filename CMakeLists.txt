@@ -29,6 +29,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 
 # Set up include and lib directories
 set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
+set(MICM_MOD_DIR "${PROJECT_BINARY_DIR}/include")
 
 include(GNUInstallDirs)
 set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
