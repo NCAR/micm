@@ -6,6 +6,8 @@ include(test_util)
 ################################################################################
 # Tests
 
+enable_language(Fortran)
+
 # compile the old micm library
 add_subdirectory(old_micm)
 add_subdirectory(HardCodedChapman)
