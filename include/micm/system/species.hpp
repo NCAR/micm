@@ -26,6 +26,10 @@ namespace micm
     /// @brief Default constructor is not allowed
     Species() = delete;
 
+    /// @brief Copy assignment
+    /// @param other species to copy
+    Species operator=(const Species& other);
+
     /// @brief Copy Constructor
     /// @param other
     Species(const Species& other);
@@ -45,6 +49,11 @@ namespace micm
     Species(const std::string& name, Property property);
   };
 
+  inline Species Species::operator=(const Species& other)
+  {
+    return Species{ other };
+  }
+
   inline Species::Species(const Species& other)
       : name_(other.name_),
         properties_(other.properties_){};
@@ -52,11 +61,11 @@ namespace micm
   inline Species::Species(const std::string& name)
       : name_(name){};
 
-  inline Species::Species(const std::string& name, std::vector<Property> properties)
+  inline Species::Species(const std::string& name, const std::vector<Property> properties)
       : name_(name),
         properties_(properties){};
 
-  inline Species::Species(const std::string& name, Property property)
+  inline Species::Species(const std::string& name, const Property property)
       : name_(name),
         properties_({ property }){};
 

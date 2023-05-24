@@ -39,4 +39,4 @@ namespace micm
     }
   };
 
-}  // namespace micmß
+}  // namespace micm

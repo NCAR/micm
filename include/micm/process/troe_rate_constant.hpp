@@ -12,22 +12,22 @@ namespace micm
 
   struct TroeRateConstantParameters
   {
-    /// @brief // TODO:
+    /// @brief low-pressure pre-exponential factor
     double k0_A_;
-    /// @brief // TODO:
-    double k0_B_;
-    /// @brief // TODO:
-    double k0_C_;
-    /// @brief // TODO:
+    /// @brief low-pressure temperature-scaling parameter
+    double k0_B_ = 0.0;
+    /// @brief low-pressure exponential factor
+    double k0_C_ = 0.0;
+    /// @brief high-pressure pre-exponential factor
     double kinf_A_;
-    /// @brief // TODO:
-    double kinf_B_;
-    /// @brief // TODO:
-    double kinf_C_;
-    /// @brief // TODO:
-    double Fc_;
-    /// @brief // TODO:
-    double N_;
+    /// @brief high-pressure temperature-scaling parameter
+    double kinf_B_ = 0.0;
+    /// @brief high-pressure exponential factor
+    double kinf_C_ = 0.0;
+    /// @brief Troe F_c parameter
+    double Fc_ = 0.6;
+    /// @brief Troe N parameter
+    double N_ = 1.0;
   };
 
   /**
@@ -48,15 +48,19 @@ namespace micm
     TroeRateConstant(TroeRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant
-    /// @param system the system
-    /// @return A rate constant based off of the conditions in the systßem
-    double calculate(const System& system) override;
+    /// @param state The current state of the chemical system
+    /// @param custom_parameters User-defined rate constant parameters
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @param air_number_density Number density in [# cm-3]
     /// @return
-    double calculate(double temperature, double air_number_density);
+    double calculate(const double& temperature, const double& air_number_density) const;
   };
 
   inline TroeRateConstant::TroeRateConstant(TroeRateConstantParameters parameters)
@@ -64,14 +68,17 @@ namespace micm
   {
   }
 
-  inline double TroeRateConstant::calculate(const System& system)
+  inline std::unique_ptr<RateConstant> TroeRateConstant::clone() const
   {
-    double temperature{}, air_number_density{};
-
-    return calculate(temperature, air_number_density);
+    return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
   }
 
-  inline double TroeRateConstant::calculate(double temperature, double air_number_density)
+  inline double TroeRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  {
+    return calculate(state.temperature_, state.air_density_);
+  }
+
+  inline double TroeRateConstant::calculate(const double& temperature, const double& air_number_density) const
   {
     double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * pow(temperature / 300.0, parameters_.k0_B_);
     double kinf =

@@ -1,30 +1,35 @@
+#include <gtest/gtest.h>
+
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/system/system.hpp>
 
-#include <gtest/gtest.h>
-
-TEST(PhotolysisRateConstant, DefaultConstructor){
-  micm::PhotolysisRateConstant rate{};
+TEST(PhotolysisRateConstant, CalculateWithSystem)
+{
+  micm::State state{ 0, 1, 1 };
+  state.custom_rate_parameters_[0] = 0.5;
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  micm::PhotolysisRateConstant photo{};
+  auto k = photo.calculate(state, params);
+  EXPECT_EQ(k, 0.5);
 }
 
-//
-// TODO: jiwon 5/18 - comment out because System dosn't have default constructor anymore
-//
-// TEST(PhotolysisRateConstant, CalculateWithSystem){
-//   micm::PhotolysisRateConstant rate{0.5};
-//   auto k = rate.calculate(micm::System());
-//   EXPECT_EQ(k, 0.5);
-// }
+TEST(PhotolysisRateConstant, ConstructorWithRate)
+{
+  micm::State state{ 0, 1, 1 };
+  state.custom_rate_parameters_[0] = 1.1;
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  micm::PhotolysisRateConstant photo{};
+  auto k = photo.calculate(state, params);
+  EXPECT_EQ(k, 1.1);
+}
 
-// TEST(PhotolysisRateConstant, ConstructorWithRate){
-//   micm::PhotolysisRateConstant rate(1.1);
-//   auto k = rate.calculate(micm::System());
-//   EXPECT_EQ(k, 1.1);
-// }
-
-// TEST(PhotolysisRateConstant, ConstructorWithRateAndName){
-//   micm::PhotolysisRateConstant rate(1.1, "a name");
-//   auto k = rate.calculate(micm::System());
-//   EXPECT_EQ(k, 1.1);
-//   EXPECT_EQ(rate.name_, "a name");
-// }
+TEST(PhotolysisRateConstant, ConstructorWithRateAndName)
+{
+  micm::State state{ 0, 1, 1 };
+  state.custom_rate_parameters_[0] = 1.1;
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  micm::PhotolysisRateConstant photo("a name");
+  auto k = photo.calculate(state, params);
+  EXPECT_EQ(k, 1.1);
+  EXPECT_EQ(photo.name_, "a name");
+}

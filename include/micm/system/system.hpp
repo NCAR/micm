@@ -11,6 +11,12 @@
 
 namespace micm
 {
+  struct SystemParameters
+  {
+    Phase gas_phase_{};
+    std::vector<Phase> phases_{};
+  };
+
   /**
    * @brief A `System` holds all physical information that represents a grid cell.
    *
@@ -24,25 +30,37 @@ namespace micm
     const std::vector<Phase> phases_;
 
    public:
-    /// @brief Default constructor is not allowed
-    System() = delete;
+    /// @brief Default constructor
+    System();
 
     /// @brief
     /// @param gas_phase
-    System(Phase gas_phase)
-        : gas_phase_(gas_phase),
-          phases_()
-    {
-    }
+    System(const SystemParameters& parameters);
 
-    /// @brief
-    /// @param gas_phase
-    /// @param phases
-    System(Phase gas_phase, std::vector<Phase> phases)
-        : gas_phase_(gas_phase),
-          phases_(phases)
-    {
-    }
+    /// @brief Returns the number of doubles required to store the system state
+    size_t StateSize() const;
   };
+
+  inline micm::System::System()
+      : gas_phase_(),
+        phases_()
+  {
+  }
+
+  inline System::System(const SystemParameters& parameters)
+      : gas_phase_(parameters.gas_phase_),
+        phases_(parameters.phases_)
+  {
+  }
+
+  inline size_t System::StateSize() const
+  {
+    size_t state_size = gas_phase_.species_.size();
+    for (const auto& phase : phases_)
+    {
+      state_size += phase.species_.size();
+    }
+    return state_size;
+  }
 
 }  // namespace micm
