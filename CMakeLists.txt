@@ -29,7 +29,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 
 # Set up include and lib directories
 set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
-set(MICM_MOD_DIR "${PROJECT_BINARY_DIR}/include")
 
 include(GNUInstallDirs)
 set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
@@ -42,12 +41,6 @@ option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
-option(ENABLE_FORTRAN_LINK "Add functions to allow Fortran to access micm solvers" ON)
-
-if(ENABLE_FORTRAN_LINK)
-  enable_language(Fortran)
-endif()
-
 
 ################################################################################
 # Dependencies
