@@ -3,21 +3,21 @@
 #include <gtest/gtest.h>
 
 TEST(Version, FullVersion){
-  auto version = micm::getmicmVersion();
+  auto version = micm::getMicmVersion();
 }
 
 TEST(Version, VersionMajor){
-  auto major = micm::getmicmVersionMajor();
+  auto major = micm::getMicmVersionMajor();
 }
 
 TEST(Version, VersionMinor){
-  auto minor = micm::getmicmVersionMinor();
+  auto minor = micm::getMicmVersionMinor();
 }
 
 TEST(Version, VersionPatch){
-  auto patch = micm::getmicmVersionPatch();
+  auto patch = micm::getMicmVersionPatch();
 }
 
 TEST(Version, VersionTweak){
- auto tweak = micm::getmicmVersionTweak();
+ auto tweak = micm::getMicmVersionTweak();
 }
