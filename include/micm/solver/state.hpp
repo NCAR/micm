@@ -1,57 +1,47 @@
-  #pragma once
+#pragma once
 
-  #include <vector>
+#include <cstddef>
+#include <vector>
 
-  #include <micm/system/system.hpp>
-  #include <micm/process/process.hpp>
-  
-  namespace micm {
+namespace micm
+{
 
-    struct State  {
-      System system_;
-      std::vector<Process> processes_;
-      double temperature_;
-      double pressure_; 
-      double* concentrations_;
-      size_t concentrations_size_;
+  struct State
+  {
+    double temperature_;
+    double pressure_;
+    double air_density_;
+    std::vector<double> concentrations_;
+    std::vector<double> custom_rate_parameters_;
+    std::vector<double> rate_constants_;
 
-      /// @brief 
-      State();
+    /// @brief
+    State();
 
-      /// @brief 
-      /// @param system 
-      /// @param processes 
-      State(System system, std::vector<Process> processes);
+    /// @brief
+    /// @param state_size The number of System state variables
+    /// @param custom_parameters_size The number of custom rate parameters
+    /// @param process_size The number of processes to store rate constants for
+    State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size);
+  };
 
-      /// @brief Update the photolysis rates contained within the processes vector
-      void update_photo_rates(double photo_rates[]);
-
-      // std::function<> get_jacobian();
-      // std::function<> get_forcing();
-    };
-
-    inline State::State()
-      : system_()
-      , processes_()
-      , temperature_(0)
-      , pressure_(0)
-      , concentrations_(nullptr)
-      , concentrations_size_(0)
-    {
-    }
-
-    inline State::State(System system, std::vector<Process> processes)
-      : system_(system)
-      , processes_(processes)
-      , temperature_(0)
-      , pressure_(0)
-      , concentrations_(nullptr)
-      , concentrations_size_(0)
-    {
-    }
-
-    inline void State::update_photo_rates(double photo_rates[])
-    {
-      // TODO: do it
-    }
+  inline State::State()
+      : temperature_(0),
+        pressure_(0),
+        air_density_(1),
+        concentrations_(),
+        custom_rate_parameters_(),
+        rate_constants_()
+  {
   }
+
+  inline State::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
+      : temperature_(0),
+        pressure_(0),
+        air_density_(1),
+        concentrations_(state_size, 0.0),
+        custom_rate_parameters_(custom_parameters_size, 0.0),
+        rate_constants_(process_size, 0.0)
+  {
+  }
+}  // namespace micm

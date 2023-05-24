@@ -35,7 +35,10 @@ namespace micm
 
     /// @brief
     /// @param gas_phase
-    System(SystemParameters parameters);
+    System(const SystemParameters& parameters);
+
+    /// @brief Returns the number of doubles required to store the system state
+    size_t StateSize() const;
   };
 
   inline micm::System::System()
@@ -44,10 +47,20 @@ namespace micm
   {
   }
 
-  inline System::System(SystemParameters parameters)
+  inline System::System(const SystemParameters& parameters)
       : gas_phase_(parameters.gas_phase_),
         phases_(parameters.phases_)
   {
+  }
+
+  inline size_t System::StateSize() const
+  {
+    size_t state_size = gas_phase_.species_.size();
+    for (const auto& phase : phases_)
+    {
+      state_size += phase.species_.size();
+    }
+    return state_size;
   }
 
 }  // namespace micm

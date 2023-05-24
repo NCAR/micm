@@ -29,6 +29,10 @@ namespace micm
     ChapmanODESolver();
     ~ChapmanODESolver();
 
+    /// Returns a state variable for the Chapman system
+    /// @return State variable for Chapman
+    State GetState() const override;
+
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
@@ -39,7 +43,8 @@ namespace micm
         double time_start,
         double time_end,
         const std::vector<double>& number_densities,
-        const double& number_density_air) noexcept override;
+        const double& number_density_air,
+        const std::vector<double>& rate_constants) noexcept override;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -77,9 +82,8 @@ namespace micm
         override;
 
     /// @brief Update the rate constants for the environment state
-    /// @param temperature in kelvin
-    /// @param pressure in pascals
-    void calculate_rate_constants(const double& temperature, const double& pressure) override;
+    /// @param state The current state of the chemical system
+    void UpdateState(State& state) override;
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -107,7 +111,8 @@ namespace micm
         const double& gamma,
         bool& singular,
         const std::vector<double>& number_densities,
-        const double& number_density_air) override;
+        const double& number_density_air,
+        const std::vector<double>& rate_constants) override;
 
     /// @brief Factor
     /// @param jacobian
@@ -120,7 +125,6 @@ namespace micm
   inline ChapmanODESolver::ChapmanODESolver()
       : RosenbrockSolver()
   {
-    rate_constants_ = std::vector<double>(7, 0);
     three_stage_rosenbrock();
   }
 
@@ -128,11 +132,17 @@ namespace micm
   {
   }
 
+  inline State ChapmanODESolver::GetState() const
+  {
+    return State{ 9, 0, 7 };
+  }
+
   inline Solver::SolverResult ChapmanODESolver::Solve(
       double time_start,
       double time_end,
       const std::vector<double>& original_number_densities,
-      const double& number_density_air) noexcept
+      const double& number_density_air,
+      const std::vector<double>& rate_constants) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(original_number_densities);
@@ -170,7 +180,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto initial_forcing = force(rate_constants_, Y, number_density_air);
+      auto initial_forcing = force(rate_constants, Y, number_density_air);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -182,7 +192,7 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air);
+        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, rate_constants);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -213,7 +223,7 @@ namespace micm
                   new_Y[idx] += a * K[j][idx];
                 }
               }
-              forcing = force(rate_constants_, new_Y, number_density_air);
+              forcing = force(rate_constants, new_Y, number_density_air);
             }
             K[stage] = forcing;
             for (uint64_t j = 0; j < stage; ++j)
@@ -556,45 +566,48 @@ namespace micm
     return x;
   }
 
-  inline void ChapmanODESolver::calculate_rate_constants(const double& temperature, const double& pressure)
+  inline void ChapmanODESolver::UpdateState(State& state)
   {
+    double temperature = state.temperature_;
+    double pressure = state.pressure_;
+
     // O2_1
     // k_O2_1: O2 -> 2*O
-    rate_constants_[0] = 1e-4;
+    state.rate_constants_[0] = 1e-4;
 
     // O3_1
     // k_O3_1: O3 -> 1*O1D + 1*O2
-    rate_constants_[1] = 1e-5;
+    state.rate_constants_[1] = 1e-5;
 
     // O3_2
     // k_O3_2: O3 -> 1*O + 1*O2
-    rate_constants_[2] = 1e-6;
+    state.rate_constants_[2] = 1e-6;
 
     // N2_O1D_1
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     ArrheniusRateConstantParameters params;
     params.A_ = 2.15e-11;
     params.C_ = 110;
-    rate_constants_[3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O1D_O2_1
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     params.A_ = 3.3e-11;
     params.C_ = 55;
-    rate_constants_[4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O_O3_1
     // k_O_O3_1: O + O3 -> 2*O2
     params.A_ = 8e-12;
     params.C_ = -2060;
-    rate_constants_[5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // M_O_O2_1
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     params.A_ = 6e-34;
     params.B_ = 2.4;
     params.C_ = 0;
-    rate_constants_[6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
   }
 
   inline std::vector<double> ChapmanODESolver::lin_factor(
@@ -602,7 +615,8 @@ namespace micm
       const double& gamma,
       bool& singular,
       const std::vector<double>& number_densities,
-      const double& number_density_air)
+      const double& number_density_air,
+      const std::vector<double>& rate_constants)
   {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
@@ -619,7 +633,7 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       // compute jacobian decomposition of alpha*I - dforce_dy
-      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants_, number_densities, number_density_air), alpha);
+      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
       stats_.decompositions += 1;
 
       if (is_successful(ode_jacobian))
