@@ -41,13 +41,6 @@ option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
-option(ENABLE_FORTRAN_LINK "Add functions to allow Fortran to access micm solvers" ON)
-
-if(ENABLE_FORTRAN_LINK)
-  set(MICM_MOD_DIR "${PROJECT_BINARY_DIR}/include")
-  enable_language(Fortran)
-endif()
-
 
 ################################################################################
 # Dependencies

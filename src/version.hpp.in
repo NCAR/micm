@@ -1,29 +1,33 @@
 // clang-format off
 #pragma once
 
-#include <string>
-
+#ifdef __cplusplus
 namespace micm {
+extern "C" {
+#endif
 
-  std::string getmicmVersion()
+  const char* getMicmVersion()
   {
     return "@micm_VERSION@";
   }
-  unsigned getmicmVersionMajor()
+  unsigned getMicmVersionMajor()
   {
     return @micm_VERSION_MAJOR@;
   }
-  unsigned getmicmVersionMinor()
+  unsigned getMicmVersionMinor()
   {
     return @micm_VERSION_MINOR@+0;
   }
-  unsigned getmicmVersionPatch()
+  unsigned getMicmVersionPatch()
   {
     return @micm_VERSION_PATCH@+0;
   }
-  unsigned getmicmVersionTweak()
+  unsigned getMicmVersionTweak()
   {
     return @micm_VERSION_TWEAK@+0;
   }
 
-}
+#ifdef __cplusplus
+}  // extern "C"
+}  // namespace micm
+#endif}
