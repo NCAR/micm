@@ -213,15 +213,18 @@ void TestSolve(micm::RosenbrockSolver& solver)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   double number_density_air = 2.7e19;
+  state.custom_rate_parameters_[0][0] = 1.0e-4;
+  state.custom_rate_parameters_[0][1] = 1.0e-5;
+  state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
   solver.UpdateState(state);
 
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_NEAR(results.result_[0], 1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.392, absolute_tolerance);
@@ -245,9 +248,12 @@ void TestSolve10TimesLarger(micm::RosenbrockSolver& solver)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   double number_density_air = 2.7e19;
+  state.custom_rate_parameters_[0][0] = 1.0e-4;
+  state.custom_rate_parameters_[0][1] = 1.0e-5;
+  state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
@@ -257,7 +263,7 @@ void TestSolve10TimesLarger(micm::RosenbrockSolver& solver)
   }
 
   solver.UpdateState(state);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
   EXPECT_NEAR(results.result_[0], 10, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 3.92, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.169, absolute_tolerance);
@@ -280,9 +286,12 @@ void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   double number_density_air = 2.7e19;
+  state.custom_rate_parameters_[0][0] = 1.0e-4;
+  state.custom_rate_parameters_[0][1] = 1.0e-5;
+  state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
@@ -292,7 +301,7 @@ void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver)
   }
 
   solver.UpdateState(state);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
   EXPECT_NEAR(results.result_[0], 0.1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.0392, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.00169, absolute_tolerance);
@@ -314,9 +323,12 @@ void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver)
 {
   std::vector<double> number_densities(9);
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   double number_density_air = 2.7e19;
+  state.custom_rate_parameters_[0][0] = 1.0e-4;
+  state.custom_rate_parameters_[0][1] = 1.0e-5;
+  state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
@@ -327,7 +339,7 @@ void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver)
 
   solver.UpdateState(state);
 
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
   EXPECT_NEAR(results.result_[0], 7.8259e-06, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.131538, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.755605, absolute_tolerance);

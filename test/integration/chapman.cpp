@@ -73,20 +73,21 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .phase(gas_phase);
 
   micm::RosenbrockSolver solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                 std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 } };
+                                 std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
+                                 micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.concentrations_ = concentrations;
+  state.concentrations_[0] = concentrations;
   std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-  state.custom_rate_parameters_ = photo_rates;
-  state.temperature_ = 2;
-  state.pressure_ = 3;
+  state.custom_rate_parameters_[0] = photo_rates;
+  state.conditions_[0].temperature_ = 2;
+  state.conditions_[0].pressure_ = 3;
 
   for (double t{}; t < 100; ++t)
   {
-    state.custom_rate_parameters_ = photo_rates;
+    state.custom_rate_parameters_[0] = photo_rates;
     auto result = solver.Solve(t, t + 0.5, state);
     // output state
   }

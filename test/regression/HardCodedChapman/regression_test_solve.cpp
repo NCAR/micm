@@ -54,9 +54,9 @@ std::vector<double> call_fortran_solve(
       number_density_air,
       time_start,
       time_end,
-      state.rate_constants_[0],
-      state.rate_constants_[1],
-      state.rate_constants_[2],
+      state.rate_constants_[0][0],
+      state.rate_constants_[0][1],
+      state.rate_constants_[0][2],
       (CFI_cdesc_t *)&f_number_densities,
       (CFI_cdesc_t *)&f_new_number_densities);
 
@@ -75,9 +75,9 @@ TEST(RegressionChapmanODESolver, solve)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;   // [K]
-  state.pressure_ = 1000 * 100;  // 1000 hPa
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  state.conditions_[0].temperature_ = 273.15;   // [K]
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   double number_density_air = 2.7e19;
   double time_start = 0;
   double time_end = 1;
@@ -85,8 +85,8 @@ TEST(RegressionChapmanODESolver, solve)
   solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(
-      state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+      state.conditions_[0].temperature_, state.conditions_[0].pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
 
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
@@ -107,9 +107,9 @@ TEST(RegressionChapmanODESolver, solve_10_times_larger)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;   // [K]
-  state.pressure_ = 1000 * 100;  // 1000 hPa
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  state.conditions_[0].temperature_ = 273.15;   // [K]
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   double number_density_air = 2.7e19;
   double time_start = 0;
   double time_end = 1;
@@ -122,8 +122,8 @@ TEST(RegressionChapmanODESolver, solve_10_times_larger)
   solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(
-      state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+      state.conditions_[0].temperature_, state.conditions_[0].pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
 
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
@@ -144,9 +144,9 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;   // [K]
-  state.pressure_ = 1000 * 100;  // 1000 hPa
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  state.conditions_[0].temperature_ = 273.15;   // [K]
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   double number_density_air = 2.7e19;
   double time_start = 0;
   double time_end = 1;
@@ -159,8 +159,8 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
   solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(
-      state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+      state.conditions_[0].temperature_, state.conditions_[0].pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
 
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
@@ -180,9 +180,9 @@ TEST(RegressionChapmanODESolver, solve_with_random_number_densities)
   micm::ChapmanODESolver solver{};
   std::vector<double> number_densities(9);
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;   // [K]
-  state.pressure_ = 1000 * 100;  // 1000 hPa
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_.begin();
+  state.conditions_[0].temperature_ = 273.15;   // [K]
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   double number_density_air = 2.7e19;
   double time_start = 0;
   double time_end = 1;
@@ -195,8 +195,8 @@ TEST(RegressionChapmanODESolver, solve_with_random_number_densities)
   solver.UpdateState(state);
 
   auto f_results = call_fortran_solve(
-      state.temperature_, state.pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_);
+      state.conditions_[0].temperature_, state.conditions_[0].pressure_, number_density_air, time_start, time_end, solver, state, number_densities);
+  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
 
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());

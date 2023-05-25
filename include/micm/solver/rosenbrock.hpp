@@ -33,62 +33,65 @@
 namespace micm
 {
 
+  /// @brief Rosenbrock solver parameters
+  struct RosenbrockSolverParameters
+  {
+    size_t N_{};
+    size_t stages_{};
+    size_t upper_limit_tolerance_{};
+    size_t max_number_of_steps_{ 100 };
+
+    double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
+    double factor_min_{ 0.2 };                                    // solver step size minimum boundary
+    double factor_max_{ 6 };                                      // solver step size maximum boundary
+    double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
+    double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
+
+    double h_min_{ 0 };        // step size min
+    double h_max_{ 0.5 };      // step size max
+    double h_start_{ 0.005 };  // step size start
+
+    std::array<bool, 6>
+        new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
+
+    double estimator_of_local_order_{};  // the minumum between the main and the embedded scheme orders plus one
+    std::array<double, 15> a_{};         // coefficient matrix a
+    std::array<double, 15> c_{};         // coefficient matrix c
+    std::array<double, 6> m_{};          // coefficients for new step evaluation
+    std::array<double, 6> e_{};          // error estimation coefficients
+    std::array<double, 6> alpha_{};
+    std::array<double, 6> gamma_{};
+
+    double absolute_tolerance_{ 1e-12 };
+    double relative_tolerance_{ 1e-4 };
+
+    size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
+  };
+
   /**
    * @brief An implementation of the Chapman mechnanism solver
    *
    */
   class RosenbrockSolver
   {
-   protected:
-    struct Rosenbrock_params
-    {
-      size_t N_{};
-      size_t stages_{};
-      size_t upper_limit_tolerance_{};
-      size_t max_number_of_steps_{ 100 };
-
-      double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
-      double factor_min_{ 0.2 };                                    // solver step size minimum boundary
-      double factor_max_{ 6 };                                      // solver step size maximum boundary
-      double rejection_factor_decrease_{ 0.1 };  // used to decrease the step after 2 successive rejections
-      double safety_factor_{ 0.9 };              // safety factor in new step size computation
-
-      double h_min_{ 0 };        // step size min
-      double h_max_{ 0.5 };      // step size max
-      double h_start_{ 0.005 };  // step size start
-
-      std::array<bool, 6>
-          new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
-
-      double estimator_of_local_order_{};  // the minumum between the main and the embedded scheme orders plus one
-      std::array<double, 15> a_{};         // coefficient matrix a
-      std::array<double, 15> c_{};         // coefficient matrix c
-      std::array<double, 6> m_{};          // coefficients for new step evaluation
-      std::array<double, 6> e_{};          // error estimation coefficients
-      std::array<double, 6> alpha_{};
-      std::array<double, 6> gamma_{};
-
-      double absolute_tolerance_{ 1e-12 };
-      double relative_tolerance_{ 1e-4 };
-    };
-
    public:
     const System system_;
     const std::vector<Process> processes_;
-    Rosenbrock_params parameters_;
+    RosenbrockSolverParameters parameters_;
     Solver::Rosenbrock_stats stats_;
     static constexpr uint64_t number_sparse_factor_elements_ = 23;
 
     static constexpr double delta_min_ = 1.0e-5;
     static constexpr double error_min_ = 1.0e-10;
 
-   public:
     /// @brief Default constructor
     RosenbrockSolver();
-    /// @brief Constructor that builds the jacobian and forcing function based off of the state
+
+    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    RosenbrockSolver(const System& system, std::vector<Process>&& processes);
+    RosenbrockSolver(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters parameters);
+
     virtual ~RosenbrockSolver();
 
     /// @brief A virtual function to be defined by any solver baseclass
@@ -215,10 +218,13 @@ namespace micm
   {
   }
 
-  inline RosenbrockSolver::RosenbrockSolver(const System& system, std::vector<Process>&& processes)
+  inline RosenbrockSolver::RosenbrockSolver(
+      const System& system,
+      std::vector<Process>&& processes,
+      const RosenbrockSolverParameters parameters)
       : system_(system),
         processes_(std::move(processes)),
-        parameters_(),
+        parameters_(parameters),
         stats_()
   {
     // TODO: save the information needed for the forcing function and jacobian
@@ -235,7 +241,10 @@ namespace micm
     {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{ system_.StateSize(), n_params, processes_.size() };
+    return State{ micm::StateParameters{ .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
+                                         .number_of_state_variables_ = system_.StateSize(),
+                                         .number_of_custom_parameters_ = n_params,
+                                         .number_of_rate_constants_ = processes_.size() } };
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(

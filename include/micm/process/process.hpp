@@ -62,12 +62,15 @@ namespace micm
 
   void Process::UpdateState(const std::vector<Process>& processes, State& state)
   {
-    std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_.begin();
-    std::vector<double>::iterator rate_constant = state.rate_constants_.begin();
-    for (auto& process : processes)
+    for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {
-      *(rate_constant++) = process.rate_constant_->calculate(state, custom_parameters);
-      custom_parameters += process.rate_constant_->SizeCustomParameters();
+      std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_[i].begin();
+      std::vector<double>::iterator rate_constant = state.rate_constants_[i].begin();
+      for (auto& process : processes)
+      {
+        *(rate_constant++) = process.rate_constant_->calculate(state.conditions_[i], custom_parameters);
+        custom_parameters += process.rate_constant_->SizeCustomParameters();
+      }
     }
   }
 

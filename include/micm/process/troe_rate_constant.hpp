@@ -48,10 +48,10 @@ namespace micm
     TroeRateConstant(TroeRateConstantParameters parameters);
 
     /// @brief Calculate the rate constant
-    /// @param state The current state of the chemical system
+    /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
@@ -73,9 +73,9 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
   }
 
-  inline double TroeRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+  inline double TroeRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const
   {
-    return calculate(state.temperature_, state.air_density_);
+    return calculate(conditions.temperature_, conditions.air_density_);
   }
 
   inline double TroeRateConstant::calculate(const double& temperature, const double& air_number_density) const

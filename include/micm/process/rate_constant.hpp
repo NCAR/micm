@@ -29,10 +29,10 @@ namespace micm
     /// @return Number of user-defined rate constant parameters
     virtual std::size_t SizeCustomParameters() const;
     /// @brief Calculate the rate constant for a set of conditions
-    /// @param state The current state of the chemical system
+    /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User defined rate constant parameters
     /// @return The reaction rate constant
-    virtual double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const
+    virtual double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const
     {
       return 0;
     };

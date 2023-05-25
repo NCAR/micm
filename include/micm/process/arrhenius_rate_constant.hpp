@@ -50,10 +50,10 @@ namespace micm
     std::unique_ptr<RateConstant> clone() const override;
 
     /// @brief Calculate the rate constant
-    /// @param state The current state of the chemical system
+    /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     double calculate(const double& temperature, const double& pressure) const;
   };
@@ -73,10 +73,10 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
   }
 
-  inline double ArrheniusRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters)
+  inline double ArrheniusRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
       const
   {
-    return calculate(state.temperature_, state.pressure_);
+    return calculate(conditions.temperature_, conditions.pressure_);
   }
 
   inline double ArrheniusRateConstant::calculate(const double& temperature, const double& pressure) const
