@@ -9,38 +9,42 @@ namespace micm
 {
 
   /// @brief A 2D array class with contiguous memory
-  template<class T, std::size_t x_dim, std::size_t y_dim>
+  template<class T>
   class Matrix
   {
     std::vector<T> data_;
+    const std::size_t x_dim_;
+    const std::size_t y_dim_;
 
     friend class Proxy;
 
     class Proxy
     {
       Matrix &matrix_;
-      std::size_t x_;
+      std::size_t offset_;
 
      public:
-      Proxy(Matrix &matrix, std::size_t x)
+      Proxy(Matrix &matrix, std::size_t offset)
           : matrix_(matrix),
-            x_(x)
+            offset_(offset)
       {
       }
       T &operator[](std::size_t y)
       {
-        return matrix_.data_[x_ * y_dim + y];
+        return matrix_.data_[offset_ + y];
       }
     };
 
    public:
-    Matrix()
-        : data_(x_dim * y_dim)
+    Matrix(std::size_t x_dim, std::size_t y_dim)
+        : x_dim_(x_dim),
+          y_dim_(y_dim),
+          data_(x_dim * y_dim)
     {
     }
     Proxy operator[](std::size_t x)
     {
-      return Proxy(*this, x);
+      return Proxy(*this, x * y_dim_);
     }
 
     std::vector<T> &AsVector()

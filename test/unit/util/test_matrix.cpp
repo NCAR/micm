@@ -4,7 +4,7 @@
 
 TEST(Matrix, SmallMatrix)
 {
-  micm::Matrix<double, 3, 5> matrix;
+  micm::Matrix<double> matrix{3, 5};
 
   matrix[1][3] = 64.7;
   matrix[0][0] = 41.2;
