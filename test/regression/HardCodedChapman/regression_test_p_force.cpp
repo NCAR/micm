@@ -9,7 +9,7 @@ extern "C"
 }
 
 std::vector<double> call_fortran_p_force(
-    std::vector<double> &rate_constants,
+    std::vector<double> rate_constants,
     std::vector<double> &number_densities,
     const double &number_density_air)
 {

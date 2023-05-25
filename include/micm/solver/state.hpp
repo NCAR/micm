@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <micm/util/matrix.hpp>
 
 namespace micm
 {
@@ -23,9 +24,9 @@ namespace micm
   struct State
   {
     std::vector<Conditions> conditions_;
-    std::vector<std::vector<double>> concentrations_;
-    std::vector<std::vector<double>> custom_rate_parameters_;
-    std::vector<std::vector<double>> rate_constants_;
+    Matrix<double> concentrations_;
+    Matrix<double> custom_rate_parameters_;
+    Matrix<double> rate_constants_;
 
     /// @brief
     State();
@@ -51,17 +52,17 @@ namespace micm
 
   inline State::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
       : conditions_(1),
-        concentrations_(1, std::vector<double>( state_size, 0.0 )),
-        custom_rate_parameters_(1, std::vector<double>( custom_parameters_size, 0.0 )),
-        rate_constants_(1, std::vector<double>( process_size, 0.0 ))
+        concentrations_(1, state_size, 0.0),
+        custom_rate_parameters_(1, custom_parameters_size, 0.0 ),
+        rate_constants_(1, process_size, 0.0 )
   {
   }
 
   inline State::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
-        concentrations_(parameters.number_of_grid_cells_, std::vector<double>( parameters.number_of_state_variables_, 0.0 )),
-        custom_rate_parameters_(parameters.number_of_grid_cells_, std::vector<double>( parameters.number_of_custom_parameters_, 0.0 )),
-        rate_constants_(parameters.number_of_grid_cells_, std::vector<double>( parameters.number_of_rate_constants_, 0.0 ))
+        concentrations_(parameters.number_of_grid_cells_, parameters.number_of_state_variables_, 0.0 ),
+        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.number_of_custom_parameters_, 0.0 ),
+        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0 )
   {
   }
 }  // namespace micm
