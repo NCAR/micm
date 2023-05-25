@@ -7,18 +7,19 @@ namespace micm
 {
 
   // assumes that photo_rates, matches order in c++ already
+  // TODO : will need to be adapted to handle multiple grid cells
   void fortran_solve(void* micm_address, double time_start, double time_end, double* concentrations, double temperature, double pressure, double* photo_rates) {
     MICM* micm = static_cast<MICM*>(micm_address);
     State state = *(micm->state_);
 
-    for (auto param : state.custom_rate_parameters_) {
+    for (auto param : state.custom_rate_parameters_[0]) {
       param = *(photo_rates++);
     }
-    for (auto concentration : state.concentrations_) {
+    for (auto concentration : state.concentrations_[0]) {
       concentration = *(concentrations++);
     }
-    state.pressure_ = pressure;
-    state.temperature_ = temperature;
+    state.conditions_[0].pressure_ = pressure;
+    state.conditions_[0].temperature_ = temperature;
 
     auto result = micm->solver_->Solve(time_start, time_end, state);
   }

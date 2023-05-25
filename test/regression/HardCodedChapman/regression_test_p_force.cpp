@@ -93,13 +93,13 @@ TEST(RegressionChapmanODESolver, realistic_number_densities)
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   double number_density_air = 2.7e19;
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
 
   solver.UpdateState(state);
 
-  auto forcing = solver.force(state.rate_constants_, number_densities, number_density_air);
-  auto f_forcing = call_fortran_p_force(state.rate_constants_, number_densities, number_density_air);
+  auto forcing = solver.force(state.rate_constants_[0], number_densities, number_density_air);
+  auto f_forcing = call_fortran_p_force(state.rate_constants_[0], number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());
   for (size_t i{}; i < forcing.size(); ++i)
@@ -115,8 +115,8 @@ TEST(RegressionChapmanODESolver, realistic_number_densities_scaled_down)
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   double number_density_air = 2.7e19;
   micm::State state = solver.GetState();
-  state.temperature_ = 273.15;
-  state.pressure_ = 1000 * 100;  // 1000 hPa
+  state.conditions_[0].temperature_ = 273.15;
+  state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
 
   solver.UpdateState(state);
 
@@ -125,8 +125,8 @@ TEST(RegressionChapmanODESolver, realistic_number_densities_scaled_down)
     elem *= 1e-10;
   }
 
-  auto forcing = solver.force(state.rate_constants_, number_densities, number_density_air);
-  auto f_forcing = call_fortran_p_force(state.rate_constants_, number_densities, number_density_air);
+  auto forcing = solver.force(state.rate_constants_[0], number_densities, number_density_air);
+  auto f_forcing = call_fortran_p_force(state.rate_constants_[0], number_densities, number_density_air);
 
   EXPECT_EQ(forcing.size(), f_forcing.size());
   for (size_t i{}; i < forcing.size(); ++i)

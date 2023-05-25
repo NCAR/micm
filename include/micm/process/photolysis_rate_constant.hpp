@@ -39,10 +39,10 @@ namespace micm
     std::size_t SizeCustomParameters() const override;
 
     /// @brief Calculate the rate constant
-    /// @param state The current state of the chemical system
+    /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const State& state, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
@@ -60,7 +60,7 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new PhotolysisRateConstant{ *this } };
   }
 
-  inline double PhotolysisRateConstant::calculate(const State& state, std::vector<double>::const_iterator custom_parameters)
+  inline double PhotolysisRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
       const
   {
     return (double)*custom_parameters;

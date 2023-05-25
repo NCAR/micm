@@ -11,7 +11,7 @@
 
 using yields = std::pair<micm::Species, double>;
 
-micm::RosenbrockSolver getChapmanSolver()
+micm::RosenbrockSolver getMultiCellChapmanSolver(const size_t number_of_grid_cells)
 {
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
@@ -72,5 +72,6 @@ micm::RosenbrockSolver getChapmanSolver()
                               .phase(gas_phase);
 
   return micm::RosenbrockSolver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                 std::move(std::vector<micm::Process>{ photo_1, photo_2, photo_3, r1, r2, r3, r4 }) };
+                                 std::move(std::vector<micm::Process>{ photo_1, photo_2, photo_3, r1, r2, r3, r4 }),
+                                 micm::RosenbrockSolverParameters{.number_of_grid_cells_ = number_of_grid_cells}};
 }

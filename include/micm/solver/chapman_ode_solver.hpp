@@ -134,7 +134,7 @@ namespace micm
 
   inline State ChapmanODESolver::GetState() const
   {
-    return State{ 9, 0, 7 };
+    return State{ 9, 3, 7 };
   }
 
   inline Solver::SolverResult ChapmanODESolver::Solve(
@@ -568,46 +568,46 @@ namespace micm
 
   inline void ChapmanODESolver::UpdateState(State& state)
   {
-    double temperature = state.temperature_;
-    double pressure = state.pressure_;
+    double temperature = state.conditions_[0].temperature_;
+    double pressure = state.conditions_[0].pressure_;
 
     // O2_1
     // k_O2_1: O2 -> 2*O
-    state.rate_constants_[0] = 1e-4;
+    state.rate_constants_[0][0] = state.custom_rate_parameters_[0][0];
 
     // O3_1
     // k_O3_1: O3 -> 1*O1D + 1*O2
-    state.rate_constants_[1] = 1e-5;
+    state.rate_constants_[0][1] = state.custom_rate_parameters_[0][1];
 
     // O3_2
     // k_O3_2: O3 -> 1*O + 1*O2
-    state.rate_constants_[2] = 1e-6;
+    state.rate_constants_[0][2] = state.custom_rate_parameters_[0][2];
 
     // N2_O1D_1
     // k_N2_O1D_1: N2 + O1D -> 1*O + 1*N2
     ArrheniusRateConstantParameters params;
     params.A_ = 2.15e-11;
     params.C_ = 110;
-    state.rate_constants_[3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O1D_O2_1
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     params.A_ = 3.3e-11;
     params.C_ = 55;
-    state.rate_constants_[4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // O_O3_1
     // k_O_O3_1: O + O3 -> 2*O2
     params.A_ = 8e-12;
     params.C_ = -2060;
-    state.rate_constants_[5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
 
     // M_O_O2_1
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     params.A_ = 6e-34;
     params.B_ = 2.4;
     params.C_ = 0;
-    state.rate_constants_[6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
   }
 
   inline std::vector<double> ChapmanODESolver::lin_factor(
