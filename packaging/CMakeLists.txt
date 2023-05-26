@@ -2,7 +2,7 @@ include(CMakePackageConfigHelpers)
 
 install(
   TARGETS 
-    micm micm_header_only
+    micm 
   EXPORT 
     micm_Exports
   LIBRARY DESTINATION ${INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
@@ -23,17 +23,8 @@ install(
     ${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-if(ENABLE_FORTRAN_LINK)
-  install(
-    DIRECTORY 
-      ${PROJECT_BINARY_DIR}/include/
-    DESTINATION 
-      ${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.mod"
-  )
-endif()
-
-set(cmake_config_install_location ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION})
+# install the cmake config files
+set(cmake_config_install_location ${INSTALL_PREFIX}/cmake)
 
 install(
   EXPORT 
@@ -61,7 +52,7 @@ install(
     ${PROJECT_BINARY_DIR}/micmConfig.cmake
     ${PROJECT_BINARY_DIR}/micmConfigVersion.cmake
   DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/cmake/micm-${PROJECT_VERSION}
+    ${cmake_config_install_location}
 )
 
 ######################################################################
