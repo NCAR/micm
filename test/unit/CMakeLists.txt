@@ -2,6 +2,7 @@ add_subdirectory(configure)
 add_subdirectory(process)
 add_subdirectory(solver)
 add_subdirectory(system)
+add_subdirectory(util)
 add_subdirectory(version)
 
 ################################################################################
