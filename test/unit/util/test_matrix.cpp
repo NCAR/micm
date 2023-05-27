@@ -22,9 +22,40 @@ TEST(Matrix, SmallMatrix)
   EXPECT_EQ(data[1 * 5 + 3], 64.7);
 }
 
+TEST(Matrix, SmallConstMatrix)
+{
+  micm::Matrix<double> orig_matrix{3, 5};
+
+  orig_matrix[1][3] = 64.7;
+  orig_matrix[0][0] = 41.2;
+  orig_matrix[2][4] = 102.3;
+
+  const micm::Matrix<double> matrix = orig_matrix;
+
+  EXPECT_EQ(matrix[1][3], 64.7);
+  EXPECT_EQ(matrix[0][0], 41.2);
+  EXPECT_EQ(matrix[2][4], 102.3);
+
+  const std::vector<double>& data = matrix.AsVector();
+
+  EXPECT_EQ(data.size(), 3 * 5);
+  EXPECT_EQ(data[0], 41.2);
+  EXPECT_EQ(data[3 * 5 - 1], 102.3);
+  EXPECT_EQ(data[1 * 5 + 3], 64.7);
+}
+
 TEST(Matrix, InitializeMatrix)
 {
   micm::Matrix<double> matrix{2, 3, 12.4};
+
+  EXPECT_EQ(matrix[0][0], 12.4);
+  EXPECT_EQ(matrix[1][0], 12.4);
+  EXPECT_EQ(matrix[1][2], 12.4);
+}
+
+TEST(Matrix, InitializeConstMatrix)
+{
+  const micm::Matrix<double> matrix{2, 3, 12.4};
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
@@ -45,6 +76,24 @@ TEST(Matrix, LoopOverMatrix)
   EXPECT_EQ(matrix[1][2], 102);
   EXPECT_EQ(matrix[2][3], 203);
   EXPECT_EQ(matrix[0][3], 3);
+}
+
+TEST(Matrix, LoopOverConstMatrix)
+{
+  micm::Matrix<int> matrix{3, 4, 0};
+
+  for (std::size_t i{}; i < matrix.size(); ++i) {
+    for (std::size_t j{}; j < matrix[i].size(); ++j) {
+      matrix[i][j] = i*100 + j;
+    }
+  }
+
+  const micm::Matrix<int> const_matrix = matrix;
+
+  EXPECT_EQ(const_matrix[0][0], 0);
+  EXPECT_EQ(const_matrix[1][2], 102);
+  EXPECT_EQ(const_matrix[2][3], 203);
+  EXPECT_EQ(const_matrix[0][3], 3);
 }
 
 TEST(Matrix, IterateOverMatrix)
@@ -79,6 +128,22 @@ TEST(Matrix, ConversionToVector)
   matrix[1][2] = 314.2;
 
   std::vector<double> slice = matrix[1];
+
+  EXPECT_EQ(slice[0], 13.2);
+  EXPECT_EQ(slice[1], 31.2);
+  EXPECT_EQ(slice[2], 314.2);
+}
+
+TEST(Matrix, ConstConversionToVector)
+{
+  micm::Matrix<double> matrix{2, 3, 0.0};
+
+  matrix[1][0] = 13.2;
+  matrix[1][1] = 31.2;
+  matrix[1][2] = 314.2;
+
+  const micm::Matrix<double> const_matrix = matrix;
+  std::vector<double> slice = const_matrix[1];
 
   EXPECT_EQ(slice[0], 13.2);
   EXPECT_EQ(slice[1], 31.2);

@@ -24,6 +24,7 @@
 #include <iostream>
 #include <limits>
 #include <micm/process/process.hpp>
+#include <micm/process/process_set.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
@@ -78,6 +79,7 @@ namespace micm
     const System system_;
     const std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
+    const ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
     static constexpr uint64_t number_sparse_factor_elements_ = 23;
 
@@ -214,6 +216,7 @@ namespace micm
       : system_(),
         processes_(),
         parameters_(),
+        process_set_(),
         stats_()
   {
   }
@@ -225,6 +228,7 @@ namespace micm
       : system_(system),
         processes_(std::move(processes)),
         parameters_(parameters),
+        process_set_(processes_, GetState()),
         stats_()
   {
     // TODO: save the information needed for the forcing function and jacobian
@@ -241,8 +245,8 @@ namespace micm
     {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{ micm::StateParameters{ .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-                                         .number_of_state_variables_ = system_.StateSize(),
+    return State{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
+                                         .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
                                          .number_of_custom_parameters_ = n_params,
                                          .number_of_rate_constants_ = processes_.size() } };
   }
