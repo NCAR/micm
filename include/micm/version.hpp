@@ -30,4 +30,4 @@ extern "C" {
 #ifdef __cplusplus
 }  // extern "C"
 }  // namespace micm
-#endif}
+#endif
