@@ -1,30 +1,33 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
+#include <map>
 #include <micm/util/matrix.hpp>
+#include <vector>
 
 namespace micm
 {
 
   struct StateParameters
   {
+    std::vector<std::string> state_variable_names_{};
     std::size_t number_of_grid_cells_{ 1 };
-    std::size_t number_of_state_variables_;
     std::size_t number_of_custom_parameters_{ 0 };
     std::size_t number_of_rate_constants_{ 0 };
   };
 
-  struct Conditions{
-    double temperature_{0.0};
-    double pressure_{0.0};
-    double air_density_{1.0};
+  struct Conditions
+  {
+    double temperature_{ 0.0 };
+    double pressure_{ 0.0 };
+    double air_density_{ 1.0 };
   };
 
   struct State
   {
     std::vector<Conditions> conditions_;
-    Matrix<double> concentrations_;
+    std::map<std::string, std::size_t> variable_map_;
+    Matrix<double> variables_;
     Matrix<double> custom_rate_parameters_;
     Matrix<double> rate_constants_;
 
@@ -44,7 +47,8 @@ namespace micm
 
   inline State::State()
       : conditions_(),
-        concentrations_(),
+        variable_map_(),
+        variables_(),
         custom_rate_parameters_(),
         rate_constants_()
   {
@@ -52,17 +56,22 @@ namespace micm
 
   inline State::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
       : conditions_(1),
-        concentrations_(1, state_size, 0.0),
-        custom_rate_parameters_(1, custom_parameters_size, 0.0 ),
-        rate_constants_(1, process_size, 0.0 )
+        variable_map_(),
+        variables_(1, state_size, 0.0),
+        custom_rate_parameters_(1, custom_parameters_size, 0.0),
+        rate_constants_(1, process_size, 0.0)
   {
   }
 
   inline State::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
-        concentrations_(parameters.number_of_grid_cells_, parameters.number_of_state_variables_, 0.0 ),
-        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.number_of_custom_parameters_, 0.0 ),
-        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0 )
+        variable_map_(),
+        variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
+        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.number_of_custom_parameters_, 0.0),
+        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0)
   {
+    std::size_t index = 0;
+    for (auto& name : parameters.state_variable_names_)
+      variable_map_[name] = index++;
   }
 }  // namespace micm

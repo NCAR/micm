@@ -18,6 +18,7 @@ namespace micm
     std::size_t y_dim_;
 
     friend class Proxy;
+    friend class ConstProxy;
 
     class Proxy
     {
@@ -32,10 +33,12 @@ namespace micm
             y_dim_(y_dim)
       {
       }
-      Proxy& operator=(const std::vector<T> other) {
+      Proxy &operator=(const std::vector<T> other)
+      {
         assert(other.size() >= y_dim_ && "Matrix row size mismatch in assignment from vector");
         auto other_elem = other.begin();
-        for (auto& elem : *this) {
+        for (auto &elem : *this)
+        {
           elem = *(other_elem++);
         }
         return *this;
@@ -44,7 +47,7 @@ namespace micm
       {
         return std::vector<T>(this->begin(), this->end());
       }
-      std::size_t size()
+      std::size_t size() const
       {
         return y_dim_;
       }
@@ -65,6 +68,41 @@ namespace micm
         return std::next(matrix_.data_.begin(), offset_ + y_dim_);
       }
       T &operator[](std::size_t y)
+      {
+        return matrix_.data_[offset_ + y];
+      }
+    };
+
+    class ConstProxy
+    {
+      const Matrix &matrix_;
+      std::size_t offset_;
+      std::size_t y_dim_;
+
+     public:
+      ConstProxy(const Matrix &matrix, std::size_t offset, std::size_t y_dim)
+          : matrix_(matrix),
+            offset_(offset),
+            y_dim_(y_dim)
+      {
+      }
+      operator std::vector<T>()
+      {
+        return std::vector<T>(this->begin(), this->end());
+      }
+      std::size_t size() const
+      {
+        return y_dim_;
+      }
+      typename std::vector<T>::const_iterator begin() const noexcept
+      {
+        return std::next(matrix_.data_.cbegin(), offset_);
+      }
+      typename std::vector<T>::const_iterator end() const noexcept
+      {
+        return std::next(matrix_.data_.begin(), offset_ + y_dim_);
+      }
+      const T &operator[](std::size_t y) const
       {
         return matrix_.data_[offset_ + y];
       }
@@ -99,7 +137,8 @@ namespace micm
               [&]() -> std::vector<T>
               {
                 std::size_t x_dim = other.size();
-                if (x_dim == 0) return std::vector<T>(0);
+                if (x_dim == 0)
+                  return std::vector<T>(0);
                 std::size_t y_dim = other[0].size();
                 std::vector<T> data(x_dim * y_dim);
                 auto elem = data.begin();
@@ -116,9 +155,14 @@ namespace micm
     {
     }
 
-    std::size_t size()
+    std::size_t size() const
     {
       return x_dim_;
+    }
+
+    ConstProxy operator[](std::size_t x) const
+    {
+      return ConstProxy(*this, x * y_dim_, y_dim_);
     }
 
     Proxy operator[](std::size_t x)
@@ -127,6 +171,11 @@ namespace micm
     }
 
     std::vector<T> &AsVector()
+    {
+      return data_;
+    }
+
+    const std::vector<T> &AsVector() const
     {
       return data_;
     }

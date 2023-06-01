@@ -79,7 +79,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::State state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.concentrations_[0] = concentrations;
+  state.variables_[0] = concentrations;
   std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
   state.custom_rate_parameters_[0] = photo_rates;
   state.conditions_[0].temperature_ = 2;

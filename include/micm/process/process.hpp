@@ -90,7 +90,7 @@ namespace micm
   Process::Process(const Process& other)
       : reactants_(other.reactants_),
         products_(other.products_),
-        rate_constant_(other.rate_constant_->clone()),
+        rate_constant_(other.rate_constant_ ? other.rate_constant_->clone() : nullptr),
         phase_(other.phase_)
   {
   }
