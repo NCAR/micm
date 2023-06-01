@@ -42,6 +42,25 @@ namespace micm
           row_start_(builder.RowStartVector())
     {
     }
+
+    std::vector<T>& AsVector() {
+      return data_;
+    }
+
+    std::size_t VectorIndex(std::size_t block, std::size_t row, std::size_t column) const {
+      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks_)
+        throw std::invalid_argument("SparseMatrix element out of range");
+      auto begin = std::next(row_ids_.begin(), row_start_[row]);
+      auto end   = std::next(row_ids_.begin(), row_start_[row + 1]);
+      auto elem = std::find(begin, end, column);
+      if (elem == end) throw std::invalid_argument("SparseMatrix zero element access not allowed");
+      return std::size_t { (elem - row_ids_.begin()) + block * row_ids_.size() };
+    }
+
+    std::size_t VectorIndex(std::size_t row, std::size_t column) const {
+      if (number_of_blocks_ != 1) throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
+      return VectorIndex(0, row, column);
+    }
   };
 
   template<class T>

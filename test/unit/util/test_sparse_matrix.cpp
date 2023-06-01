@@ -17,6 +17,31 @@ TEST(SparseMatrix, ZeroMatrix)
   EXPECT_EQ(row_starts[3], 0);
 
   micm::SparseMatrix<double> matrix{ builder };
+
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
@@ -29,8 +54,8 @@ TEST(SparseMatrix, SingleBlockMatrix)
                      .with_element(2, 1);
   // 0 X 0 0
   // 0 0 0 0
-  // 0 1 0 1
-  // 0 0 1 0
+  // 0 X 0 X
+  // 0 0 X 0
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -46,6 +71,52 @@ TEST(SparseMatrix, SingleBlockMatrix)
   EXPECT_EQ(row_starts[2], 1);
   EXPECT_EQ(row_starts[3], 3);
   EXPECT_EQ(row_starts[4], 4);
+
+  micm::SparseMatrix<int> matrix{ builder };
+
+  {
+    std::size_t elem = matrix.VectorIndex(3, 2);
+    EXPECT_EQ(elem, 3);
+    matrix.AsVector()[elem] = 42;
+    EXPECT_EQ(matrix.AsVector()[3], 42);
+  }
+  {
+    std::size_t elem = matrix.VectorIndex(2, 3);
+    EXPECT_EQ(elem, 2);
+    matrix.AsVector()[elem] = 21;
+    EXPECT_EQ(matrix.AsVector()[2], 21);
+  }
+
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
 }
 
 TEST(SparseMatrix, MultiBlockMatrix)
@@ -59,8 +130,8 @@ TEST(SparseMatrix, MultiBlockMatrix)
                      .number_of_blocks(3);
   // 0 X 0 0
   // 0 0 0 0
-  // 0 1 0 1
-  // 0 0 1 0
+  // 0 X 0 X
+  // 0 0 X 0
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -76,6 +147,58 @@ TEST(SparseMatrix, MultiBlockMatrix)
   EXPECT_EQ(row_starts[2], 1);
   EXPECT_EQ(row_starts[3], 3);
   EXPECT_EQ(row_starts[4], 4);
+
+  micm::SparseMatrix<int> matrix{ builder };
+
+  {
+    std::size_t elem = matrix.VectorIndex(0, 2, 3);
+    EXPECT_EQ(elem, 2);
+    matrix.AsVector()[elem] = 21;
+    EXPECT_EQ(matrix.AsVector()[2], 21);
+  }
+  {
+    std::size_t elem = matrix.VectorIndex(2, 2, 1);
+    EXPECT_EQ(elem, 9);
+    matrix.AsVector()[elem] = 31;
+    EXPECT_EQ(matrix.AsVector()[9], 31);
+  }
+
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(4, 0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 1, 1); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "Multi-block SparseMatrix access must specify block index");
+        throw;
+      },
+      std::invalid_argument);
 }
 
 TEST(SparseMatrixBuilder, BadConfiguration)
