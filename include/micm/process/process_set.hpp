@@ -25,7 +25,7 @@ namespace micm
     ProcessSet() = default;
 
     /// @brief Create a process set calculator for a given set of processes
-    /// @param processes Processes to create calcualtor for
+    /// @param processes Processes to create calculator for
     /// @param state Solver state
     ProcessSet(const std::vector<Process>& processes, const State& state);
 
