@@ -74,6 +74,8 @@ namespace micm
 
     SparseMatrixBuilder<T>& with_element(std::size_t x, std::size_t y)
     {
+      if (x >= block_size_ || y >= block_size_)
+        throw std::invalid_argument("SparseMatrix element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

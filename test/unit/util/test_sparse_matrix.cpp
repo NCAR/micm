@@ -77,3 +77,31 @@ TEST(SparseMatrix, MultiBlockMatrix)
   EXPECT_EQ(row_starts[3], 3);
   EXPECT_EQ(row_starts[4], 4);
 }
+
+TEST(SparseMatrixBuilder, BadConfiguration)
+{
+  EXPECT_THROW(
+      try {
+        auto builder = micm::SparseMatrix<double>::create(3).with_element(3, 0);
+      } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try {
+        auto builder = micm::SparseMatrix<double>::create(3).with_element(2, 4);
+      } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try {
+        auto builder = micm::SparseMatrix<double>::create(3).with_element(6, 7);
+      } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+}
