@@ -78,7 +78,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, SpeciesNames)
   TestSpeciesNames(solver);
 }
 
-void TestSimpleForce(micm::RosenbrockSolver& solver)
+void TestSimpleForce(micm::ChapmanODESolver& solver)
 {
   std::vector<double> rate_constants(9, 1);
   std::vector<double> number_densities(9, 1);
@@ -104,7 +104,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, simple_force)
   TestSimpleForce(solver);
 }
 
-void TestSmallerForce(micm::RosenbrockSolver& solver)
+void TestSmallerForce(micm::ChapmanODESolver& solver)
 {
   std::vector<double> rate_constants(9, 3e-8);
   std::vector<double> number_densities(9, 5e-6);
@@ -210,12 +210,12 @@ TEST(ChapmanMechanismHardCodedAndGeneral, dforce_dy_times_vector)
 
 void TestSolve(micm::RosenbrockSolver& solver)
 {
-  std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
-  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
+  state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
+  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
-  double number_density_air = 2.7e19;
+  state.conditions_[0].air_density_ = 2.7e19;
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
@@ -224,7 +224,7 @@ void TestSolve(micm::RosenbrockSolver& solver)
 
   solver.UpdateState(state);
 
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
+  auto results = solver.Solve(time_start, time_end, state);
   EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
   EXPECT_NEAR(results.result_[0], 1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.392, absolute_tolerance);
@@ -245,25 +245,25 @@ TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 
 void TestSolve10TimesLarger(micm::RosenbrockSolver& solver)
 {
-  std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
-  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
+  state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
+  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
-  double number_density_air = 2.7e19;
+  state.conditions_[0].air_density_ = 2.7e19;
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
-  for (auto& elem : number_densities)
+  for (auto& elem : state.variables_[0])
   {
     elem *= 10;
   }
 
   solver.UpdateState(state);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
+  auto results = solver.Solve(time_start, time_end, state);
   EXPECT_NEAR(results.result_[0], 10, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 3.92, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.169, absolute_tolerance);
@@ -283,25 +283,25 @@ TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 
 void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver)
 {
-  std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
-  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   micm::State state = solver.GetState();
+  state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
+  //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
-  double number_density_air = 2.7e19;
+  state.conditions_[0].air_density_ = 2.7e19;
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
   double time_start = 0;
   double time_end = 1;
 
-  for (auto& elem : number_densities)
+  for (auto& elem : state.variables_[0])
   {
     elem /= 10;
   }
 
   solver.UpdateState(state);
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
+  auto results = solver.Solve(time_start, time_end, state);
   EXPECT_NEAR(results.result_[0], 0.1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.0392, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.00169, absolute_tolerance);
@@ -321,11 +321,10 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 
 void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver)
 {
-  std::vector<double> number_densities(9);
   micm::State state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
-  double number_density_air = 2.7e19;
+  state.conditions_[0].air_density_ = 2.7e19;
   state.custom_rate_parameters_[0][0] = 1.0e-4;
   state.custom_rate_parameters_[0][1] = 1.0e-5;
   state.custom_rate_parameters_[0][2] = 1.0e-6;
@@ -335,11 +334,11 @@ void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver)
   std::default_random_engine generator;
   std::uniform_real_distribution<float> distribution(0.0, 1.0);
 
-  std::generate(number_densities.begin(), number_densities.end(), [&] { return distribution(generator); });
+  std::generate(state.variables_[0].begin(), state.variables_[0].end(), [&] { return distribution(generator); });
 
   solver.UpdateState(state);
 
-  auto results = solver.Solve(time_start, time_end, number_densities, number_density_air, state.rate_constants_[0]);
+  auto results = solver.Solve(time_start, time_end, state);
   EXPECT_NEAR(results.result_[0], 7.8259e-06, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.131538, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.755605, absolute_tolerance);

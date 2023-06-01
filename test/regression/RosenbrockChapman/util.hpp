@@ -23,7 +23,7 @@ micm::RosenbrockSolver getMultiCellChapmanSolver(const size_t number_of_grid_cel
   auto h2o = micm::Species("H2O");
   auto co2 = micm::Species("CO2");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
+  micm::Phase gas_phase{ std::vector<micm::Species>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
 
   micm::Process r1 =
       micm::Process::create()

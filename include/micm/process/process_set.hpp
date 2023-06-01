@@ -33,8 +33,10 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    void
-    AddForcingTerms(const Matrix<double>& rate_constants, const Matrix<double>& state_variables, Matrix<double>& forcing);
+    void AddForcingTerms(
+        const Matrix<double>& rate_constants,
+        const Matrix<double>& state_variables,
+        Matrix<double>& forcing) const;
   };
 
   inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State& state)
@@ -101,7 +103,7 @@ namespace micm
   inline void ProcessSet::AddForcingTerms(
       const Matrix<double>& rate_constants,
       const Matrix<double>& state_variables,
-      Matrix<double>& forcing)
+      Matrix<double>& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)

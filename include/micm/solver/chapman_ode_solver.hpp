@@ -36,15 +36,12 @@ namespace micm
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
-    /// @param number_densities Species concentrations in molecules / cm3
-    /// @param number_density_air The number density of air in molecules / cm3
+    /// @param state The system state to solve for
     /// @return A struct containing results and a status code
     Solver::SolverResult Solve(
         double time_start,
         double time_end,
-        const std::vector<double>& number_densities,
-        const double& number_density_air,
-        const std::vector<double>& rate_constants) noexcept override;
+        State& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -66,7 +63,7 @@ namespace micm
     std::vector<double> force(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air) override;
+        const double& number_density_air);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -126,6 +123,8 @@ namespace micm
       : RosenbrockSolver()
   {
     three_stage_rosenbrock();
+    // override state size for hard-coded Chapman mechanism
+    parameters_.N_ = 9;
   }
 
   inline ChapmanODESolver::~ChapmanODESolver()
@@ -140,12 +139,12 @@ namespace micm
   inline Solver::SolverResult ChapmanODESolver::Solve(
       double time_start,
       double time_end,
-      const std::vector<double>& original_number_densities,
-      const double& number_density_air,
-      const std::vector<double>& rate_constants) noexcept
+      State& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
-    std::vector<double> Y(original_number_densities);
+    std::vector<double> Y(state.variables_[0]);
+    std::vector<double> rate_constants = state.rate_constants_[0];
+    const double number_density_air = state.conditions_[0].air_density_;
     std::vector<double> forcing{};
 
     double present_time = time_start;

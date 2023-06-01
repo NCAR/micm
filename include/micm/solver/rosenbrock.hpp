@@ -103,22 +103,8 @@ namespace micm
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
-    /// @param number_densities Species concentrations in molecules / cm3
-    /// @param number_density_air The number density of air in molecules / cm3
-    /// @param rate_constants Rate constants for each process (molecules/cm3)^(n-1) s-1
     /// @return A struct containing results and a status code
-    virtual Solver::SolverResult Solve(
-        double time_start,
-        double time_end,
-        const std::vector<double>& number_densities,
-        const double& number_density_air,
-        const std::vector<double>& rate_constants) noexcept;
-
-    /// @brief A virtual function to be defined by any solver baseclass
-    /// @param time_start Time step to start at
-    /// @param time_end Time step to end at
-    /// @return A struct containing results and a status code
-    Solver::SolverResult Solve(double time_start, double time_end, State state) noexcept;
+    virtual Solver::SolverResult Solve(double time_start, double time_end, State& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -137,10 +123,10 @@ namespace micm
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
-    virtual std::vector<double> force(
-        const std::vector<double>& rate_constants,
-        const std::vector<double>& number_densities,
-        const double& number_density_air);
+    virtual void force(
+        const Matrix<double>& rate_constants,
+        const Matrix<double>& number_densities,
+        Matrix<double>& forcing);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -219,6 +205,7 @@ namespace micm
         process_set_(),
         stats_()
   {
+    three_stage_rosenbrock();
   }
 
   inline RosenbrockSolver::RosenbrockSolver(
@@ -231,7 +218,8 @@ namespace micm
         process_set_(processes_, GetState()),
         stats_()
   {
-    // TODO: save the information needed for the forcing function and jacobian
+    // TODO: move three stage rosenbrock to parameter constructor
+    three_stage_rosenbrock();
   }
 
   inline RosenbrockSolver::~RosenbrockSolver()
@@ -251,17 +239,18 @@ namespace micm
                                          .number_of_rate_constants_ = processes_.size() } };
   }
 
-  inline Solver::SolverResult RosenbrockSolver::Solve(
-      double time_start,
-      double time_end,
-      const std::vector<double>& original_number_densities,
-      const double& number_density_air,
-      const std::vector<double>& rate_constants) noexcept
+  inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
-    std::vector<double> Y(original_number_densities);
-    std::vector<double> Ynew(original_number_densities.size(), 0);
-    std::vector<double> forcing{};
+    Matrix<double> Y_matrix(state.variables_);
+    std::vector<double>& Y = Y_matrix.AsVector();
+    Matrix<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    std::vector<double>& Ynew = Ynew_matrix.AsVector();
+    Matrix<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    std::vector<double>& forcing = forcing_matrix.AsVector();
+
+    // TODO: update for multiple-grid cell solving
+    const double number_density_air = 0.0;
 
     double present_time = time_start;
     double H =
@@ -295,7 +284,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond time_end
       H = std::min(H, std::abs(time_end - present_time));
 
-      auto initial_forcing = force(rate_constants, Y, number_density_air);
+      force(state.rate_constants_, Y_matrix, forcing_matrix);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -307,7 +296,7 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, rate_constants);
+        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, state.rate_constants_.AsVector());
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -318,7 +307,7 @@ namespace micm
         // Compute the stages
         {
           // the first stage (stage 0), inlined to remove a branch in the following for loop
-          K[0] = lin_solve(initial_forcing, ode_jacobian);
+          K[0] = lin_solve(forcing, ode_jacobian);
 
           // stages (1-# of stages)
           for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
@@ -335,7 +324,7 @@ namespace micm
                   Ynew[idx] += a * K[j][idx];
                 }
               }
-              forcing = force(rate_constants, Ynew, number_density_air);
+              force(state.rate_constants_, Ynew_matrix, forcing_matrix);
             }
             K[stage] = forcing;
             for (uint64_t j = 0; j < stage; ++j)
@@ -424,12 +413,6 @@ namespace micm
     return result;
   }
 
-  inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State state) noexcept
-  {
-    // TODO: do it
-    return Solver::SolverResult();
-  }
-
   inline std::vector<std::string> RosenbrockSolver::reaction_names()
   {
     return std::vector<std::string>();
@@ -445,15 +428,14 @@ namespace micm
     return std::vector<std::string>();
   }
 
-  inline std::vector<double> RosenbrockSolver::force(
-      const std::vector<double>& rate_constants,
-      const std::vector<double>& number_densities,
-      const double& number_density_air)
+  inline void RosenbrockSolver::force(
+      const Matrix<double>& rate_constants,
+      const Matrix<double>& number_densities,
+      Matrix<double>& forcing)
   {
-    std::vector<double> force(number_densities.size(), 0);
-
+    std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
+    process_set_.AddForcingTerms(rate_constants, number_densities, forcing);
     stats_.function_calls += 1;
-    return force;
   }
 
   inline std::vector<double> RosenbrockSolver::factored_alpha_minus_jac(
@@ -506,7 +488,7 @@ namespace micm
     // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
 
     parameters_.stages_ = 3;
-    parameters_.N_ = species_names().size();
+    parameters_.N_ = system_.StateSize() * parameters_.number_of_grid_cells_;
 
     //  The coefficient matrices A and C are strictly lower triangular.
     //  The lower triangular (subdiagonal) elements are stored in row-wise order:
