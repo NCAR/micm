@@ -65,18 +65,13 @@ namespace micm
 
   inline State::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
-        variable_map_(
-            [&]() -> std::map<std::string, std::size_t>
-            {
-              std::map<std::string, std::size_t> var_map{};
-              std::size_t index = 0;
-              for (auto& name : parameters.state_variable_names_)
-                var_map[name] = index++;
-              return var_map;
-            }()),
+        variable_map_(),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
         custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.number_of_custom_parameters_, 0.0),
         rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0)
   {
+    std::size_t index = 0;
+    for (auto& name : parameters.state_variable_names_)
+      variable_map_[name] = index++;
   }
 }  // namespace micm

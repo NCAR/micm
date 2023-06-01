@@ -40,65 +40,27 @@ namespace micm
   };
 
   inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State& state)
-      : number_of_reactants_(
-            [&]() -> std::vector<std::size_t>
-            {
-              std::vector<std::size_t> num{};
-              for (auto& process : processes)
-              {
-                num.push_back(process.reactants_.size());
-              }
-              return num;
-            }()),
-        reactant_ids_(
-            [&]() -> std::vector<std::size_t>
-            {
-              std::vector<std::size_t> ids{};
-              for (auto& process : processes)
-              {
-                for (auto& reactant : process.reactants_)
-                {
-                  ids.push_back(state.variable_map_.at(reactant.name_));
-                }
-              }
-              return ids;
-            }()),
-        number_of_products_(
-            [&]() -> std::vector<std::size_t>
-            {
-              std::vector<std::size_t> num{};
-              for (auto& process : processes)
-              {
-                num.push_back(process.products_.size());
-              }
-              return num;
-            }()),
-        product_ids_(
-            [&]() -> std::vector<std::size_t>
-            {
-              std::vector<std::size_t> ids{};
-              for (auto& process : processes)
-              {
-                for (auto& product : process.products_)
-                {
-                  ids.push_back(state.variable_map_.at(product.first.name_));
-                }
-              }
-              return ids;
-            }()),
-        yields_(
-            [&]() -> std::vector<double>
-            {
-              std::vector<double> yields{};
-              for (auto& process : processes)
-              {
-                for (auto& product : process.products_)
-                {
-                  yields.push_back(product.second);
-                }
-              }
-              return yields;
-            }()){};
+      : number_of_reactants_(),
+        reactant_ids_(),
+        number_of_products_(),
+        product_ids_(),
+        yields_()
+  {
+    for (auto& process : processes)
+    {
+      number_of_reactants_.push_back(process.reactants_.size());
+      number_of_products_.push_back(process.products_.size());
+      for (auto& reactant : process.reactants_)
+      {
+        reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
+      }
+      for (auto& product : process.products_)
+      {
+        product_ids_.push_back(state.variable_map_.at(product.first.name_));
+        yields_.push_back(product.second);
+      }
+    }
+  };
 
   inline void ProcessSet::AddForcingTerms(
       const Matrix<double>& rate_constants,
