@@ -122,6 +122,11 @@ namespace micm
       return number_of_blocks_;
     }
 
+    std::size_t FlatBlockSize() const
+    {
+      return row_ids_.size();
+    }
+
     ProxyRow operator[](std::size_t b)
     {
       return ProxyRow(*this, b);
