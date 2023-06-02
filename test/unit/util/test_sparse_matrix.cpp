@@ -42,6 +42,30 @@ TEST(SparseMatrix, ZeroMatrix)
         throw;
       },
       std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][0][4] = 2.0; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[1][0][0] = 2.0; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][3][0] = 2.0; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][1][1] = 2.0; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
@@ -87,6 +111,9 @@ TEST(SparseMatrix, SingleBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[2], 21);
   }
 
+  matrix[0][2][1] = 45;
+  EXPECT_EQ(matrix[0][2][1], 45);
+
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
@@ -113,6 +140,30 @@ TEST(SparseMatrix, SingleBlockMatrix)
       std::invalid_argument);
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][0][4] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[1][0][0] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][5][0] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][1][1] = 2; } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
         throw;
       },
@@ -163,6 +214,12 @@ TEST(SparseMatrix, MultiBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[9], 31);
   }
 
+  matrix[0][2][1] = 45;
+  EXPECT_EQ(matrix[0][2][1], 45);
+
+  matrix[2][2][3] = 64;
+  EXPECT_EQ(matrix[2][2][3], 64);
+
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
@@ -196,6 +253,30 @@ TEST(SparseMatrix, MultiBlockMatrix)
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "Multi-block SparseMatrix access must specify block index");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][0][4] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[3][0][0] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][5][0] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { matrix[0][1][1] = 2; } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
         throw;
       },
       std::invalid_argument);

@@ -28,6 +28,56 @@ namespace micm
     std::vector<std::size_t> row_start_;  // Index in data_ and row_ids_ of the start of each column in a block
 
     friend class SparseMatrixBuilder<T>;
+    friend class ProxyRow;
+    friend class Proxy;
+
+    class Proxy
+    {
+      SparseMatrix& matrix_;
+      std::size_t block_id_;
+      std::size_t row_id_;
+
+     public:
+      Proxy(SparseMatrix& matrix, std::size_t block_id, std::size_t row_id)
+          : matrix_(matrix),
+            block_id_(block_id),
+            row_id_(row_id)
+      {
+      }
+
+      std::size_t size() const
+      {
+        return matrix_.row_start_.size() - 1;
+      }
+
+      T& operator[](std::size_t y)
+      {
+        return matrix_.data_[matrix_.VectorIndex(block_id_, row_id_, y)];
+      }
+    };
+
+    class ProxyRow
+    {
+      SparseMatrix& matrix_;
+      std::size_t block_id_;
+
+     public:
+      ProxyRow(SparseMatrix& matrix, std::size_t block_id)
+          : matrix_(matrix),
+            block_id_(block_id)
+      {
+      }
+
+      std::size_t size() const
+      {
+        return matrix_.row_start_.size() - 1;
+      }
+
+      Proxy operator[](std::size_t x)
+      {
+        return Proxy(matrix_, block_id_, x);
+      }
+    };
 
    public:
     static SparseMatrixBuilder<T> create(std::size_t block_size)
@@ -43,23 +93,38 @@ namespace micm
     {
     }
 
-    std::vector<T>& AsVector() {
+    std::vector<T>& AsVector()
+    {
       return data_;
     }
 
-    std::size_t VectorIndex(std::size_t block, std::size_t row, std::size_t column) const {
+    std::size_t VectorIndex(std::size_t block, std::size_t row, std::size_t column) const
+    {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks_)
         throw std::invalid_argument("SparseMatrix element out of range");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
-      auto end   = std::next(row_ids_.begin(), row_start_[row + 1]);
+      auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
-      if (elem == end) throw std::invalid_argument("SparseMatrix zero element access not allowed");
-      return std::size_t { (elem - row_ids_.begin()) + block * row_ids_.size() };
+      if (elem == end)
+        throw std::invalid_argument("SparseMatrix zero element access not allowed");
+      return std::size_t{ (elem - row_ids_.begin()) + block * row_ids_.size() };
     }
 
-    std::size_t VectorIndex(std::size_t row, std::size_t column) const {
-      if (number_of_blocks_ != 1) throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
+    std::size_t VectorIndex(std::size_t row, std::size_t column) const
+    {
+      if (number_of_blocks_ != 1)
+        throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
       return VectorIndex(0, row, column);
+    }
+
+    std::size_t size() const
+    {
+      return number_of_blocks_;
+    }
+
+    ProxyRow operator[](std::size_t b)
+    {
+      return ProxyRow(*this, b);
     }
   };
 
