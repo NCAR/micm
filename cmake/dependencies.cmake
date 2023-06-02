@@ -1,3 +1,5 @@
+include(FetchContent)
+
 ################################################################################
 # Memory check
 
@@ -44,11 +46,10 @@ if(PROJECT_IS_TOP_LEVEL)
     set("CMAKE_${lang}_CLANG_TIDY" "")
   endforeach ()
 
-  include(FetchContent)
   FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
-    FIND_PACKAGE_ARGS NAMES GTest
+    GIT_TAG v1.13.0
+    # FIND_PACKAGE_ARGS GTest
   )
 
   set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
@@ -68,7 +69,6 @@ if(ENABLE_JSON)
   FetchContent_Declare(json
       GIT_REPOSITORY https://github.com/nlohmann/json.git
       GIT_TAG v3.11.2
-      FIND_PACKAGE_ARGS NAMES GTest
   )
   FetchContent_MakeAvailable(json)
 endif()
