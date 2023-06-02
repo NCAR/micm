@@ -29,6 +29,10 @@ namespace micm
     /// @param state Solver state
     ProcessSet(const std::vector<Process>& processes, const State& state);
 
+    /// @brief Return the full set of non-zero Jacobian elements for the set of processes
+    /// @return Jacobian elements as a set of index pairs
+    std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const;
+
     /// @brief Add forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
@@ -61,6 +65,30 @@ namespace micm
       }
     }
   };
+
+  std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
+  {
+    std::set<std::pair<std::size_t, std::size_t>> ids;
+    auto react_id = reactant_ids_.begin();
+    auto prod_id = product_ids_.begin();
+    for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+    {
+      for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
+      {
+        for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+        {
+          ids.insert(std::make_pair(react_id[i_dep], react_id[i_ind]));
+        }
+        for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+        {
+          ids.insert(std::make_pair(prod_id[i_dep], react_id[i_ind]));
+        }
+      }
+      react_id += number_of_reactants_[i_rxn];
+      prod_id += number_of_products_[i_rxn];
+    }
+    return ids;
+  }
 
   inline void ProcessSet::AddForcingTerms(
       const Matrix<double>& rate_constants,
