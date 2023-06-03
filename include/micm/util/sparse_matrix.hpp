@@ -85,6 +85,8 @@ namespace micm
       return SparseMatrixBuilder<T>{ block_size };
     }
 
+    SparseMatrix() = default;
+
     SparseMatrix(SparseMatrixBuilder<T>& builder)
         : number_of_blocks_(builder.number_of_blocks_),
           data_(builder.NumberOfElements(), builder.initial_value_),

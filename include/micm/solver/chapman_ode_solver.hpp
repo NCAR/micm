@@ -24,6 +24,7 @@ namespace micm
    */
   class ChapmanODESolver : public RosenbrockSolver
   {
+    std::size_t number_sparse_factor_elements_ = 23;
    public:
     /// @brief Default constructor
     ChapmanODESolver();
@@ -96,7 +97,7 @@ namespace micm
     std::vector<double> dforce_dy(
         const std::vector<double>& rate_constants,
         const std::vector<double>& number_densities,
-        const double& number_density_air) override;
+        const double& number_density_air);
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
@@ -109,7 +110,7 @@ namespace micm
         bool& singular,
         const std::vector<double>& number_densities,
         const double& number_density_air,
-        const std::vector<double>& rate_constants) override;
+        const std::vector<double>& rate_constants);
 
     /// @brief Factor
     /// @param jacobian

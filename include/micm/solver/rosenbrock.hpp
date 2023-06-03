@@ -28,6 +28,7 @@
 #include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/sparse_matrix.hpp>
 #include <string>
 #include <vector>
 
@@ -79,9 +80,9 @@ namespace micm
     const System system_;
     const std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
-    const ProcessSet process_set_;
+    ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
-    static constexpr uint64_t number_sparse_factor_elements_ = 23;
+    SparseMatrix<double> jacobian_;
 
     static constexpr double delta_min_ = 1.0e-5;
     static constexpr double error_min_ = 1.0e-10;
@@ -123,10 +124,8 @@ namespace micm
     /// @param number_densities The number density of each species
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
-    virtual void force(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& number_densities,
-        Matrix<double>& forcing);
+    virtual void
+    force(const Matrix<double>& rate_constants, const Matrix<double>& number_densities, Matrix<double>& forcing);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -155,26 +154,25 @@ namespace micm
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
-    /// @param number_density_air The number density of air
+    /// @param jacobian The matrix of partial derivatives
     /// @return The jacobian
-    virtual std::vector<double> dforce_dy(
-        const std::vector<double>& rate_constants,
-        const std::vector<double>& number_densities,
-        const double& number_density_air);
+    virtual void dforce_dy(
+        const Matrix<double>& rate_constants,
+        const Matrix<double>& number_densities,
+        SparseMatrix<double>& jacobian);
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
     /// @param gamma time step factor for specific rosenbrock method
-    /// @param Y  constituent concentration (molec/cm^3)
     /// @param singular indicates if the matrix is singular
+    /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
     virtual std::vector<double> lin_factor(
         double& H,
         const double& gamma,
         bool& singular,
-        const std::vector<double>& number_densities,
-        const double& number_density_air,
-        const std::vector<double>& rate_constants);
+        const Matrix<double>& number_densities,
+        const Matrix<double>& rate_constants);
 
     /// @brief Factor
     /// @param jacobian
@@ -203,7 +201,8 @@ namespace micm
         processes_(),
         parameters_(),
         process_set_(),
-        stats_()
+        stats_(),
+        jacobian_()
   {
     three_stage_rosenbrock();
   }
@@ -216,8 +215,16 @@ namespace micm
         processes_(std::move(processes)),
         parameters_(parameters),
         process_set_(processes_, GetState()),
-        stats_()
+        stats_(),
+        jacobian_()
   {
+    auto builder = SparseMatrix<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
+    auto jac_elements = process_set_.NonZeroJacobianElements();
+    for (auto& elem : jac_elements)
+      builder = builder.with_element(elem.first, elem.second);
+    jacobian_ = builder;
+    process_set_.SetJacobianFlatIds(jacobian_);
+
     // TODO: move three stage rosenbrock to parameter constructor
     three_stage_rosenbrock();
   }
@@ -296,7 +303,8 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, state.rate_constants_.AsVector());
+        auto ode_jacobian =
+            lin_factor(H, parameters_.gamma_[0], is_singular, Y_matrix, state.rate_constants_);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -442,10 +450,20 @@ namespace micm
       const std::vector<double>& dforce_dy,
       const double& alpha)
   {
-    std::vector<double> jacobian(number_sparse_factor_elements_);
+    std::vector<double> jacobian(23); // TODO - remove hard-coded Chapman dimensions
 
     factor(jacobian);
     return jacobian;
+  }
+
+  inline void RosenbrockSolver::dforce_dy(
+      const Matrix<double>& rate_constants,
+      const Matrix<double>& number_densities,
+      SparseMatrix<double>& jacobian)
+  {
+    std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
+    process_set_.AddJacobianTerms(rate_constants, number_densities, jacobian);
+    stats_.jacobian_updates += 1;
   }
 
   inline void RosenbrockSolver::factor(std::vector<double>& jacobian)
@@ -552,9 +570,8 @@ namespace micm
       double& H,
       const double& gamma,
       bool& singular,
-      const std::vector<double>& number_densities,
-      const double& number_density_air,
-      const std::vector<double>& rate_constants)
+      const Matrix<double>& number_densities,
+      const Matrix<double>& rate_constants)
   {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
@@ -571,7 +588,8 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       // compute jacobian decomposition of alpha*I - dforce_dy
-      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
+      dforce_dy(rate_constants, number_densities, jacobian_);
+      ode_jacobian = factored_alpha_minus_jac(jacobian_.AsVector(), alpha);
       stats_.decompositions += 1;
 
       if (is_successful(ode_jacobian))
@@ -604,16 +622,6 @@ namespace micm
     auto x = backsolve_U_x_eq_b(jacobian, y);
     stats_.solves += 1;
     return x;
-  }
-
-  inline std::vector<double> RosenbrockSolver::dforce_dy(
-      const std::vector<double>& rate_constants,
-      const std::vector<double>& number_densities,
-      const double& number_density_air)
-  {
-    std::vector<double> jacobian(number_sparse_factor_elements_, 0);
-
-    return jacobian;
   }
 
   inline double RosenbrockSolver::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
