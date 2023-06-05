@@ -85,6 +85,8 @@ namespace micm
       return SparseMatrixBuilder<T>{ block_size };
     }
 
+    SparseMatrix() = default;
+
     SparseMatrix(SparseMatrixBuilder<T>& builder)
         : number_of_blocks_(builder.number_of_blocks_),
           data_(builder.NumberOfElements(), builder.initial_value_),
@@ -120,6 +122,11 @@ namespace micm
     std::size_t size() const
     {
       return number_of_blocks_;
+    }
+
+    std::size_t FlatBlockSize() const
+    {
+      return row_ids_.size();
     }
 
     ProxyRow operator[](std::size_t b)

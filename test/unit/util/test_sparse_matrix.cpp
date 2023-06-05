@@ -18,6 +18,8 @@ TEST(SparseMatrix, ZeroMatrix)
 
   micm::SparseMatrix<double> matrix{ builder };
 
+  EXPECT_EQ(matrix.FlatBlockSize(), 0);
+
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
@@ -98,6 +100,7 @@ TEST(SparseMatrix, SingleBlockMatrix)
 
   micm::SparseMatrix<int> matrix{ builder };
 
+  EXPECT_EQ(matrix.FlatBlockSize(), 4);
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 3);
@@ -111,6 +114,7 @@ TEST(SparseMatrix, SingleBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[2], 21);
   }
 
+  EXPECT_EQ(matrix[0][2][1], 0);
   matrix[0][2][1] = 45;
   EXPECT_EQ(matrix[0][2][1], 45);
 
@@ -178,6 +182,7 @@ TEST(SparseMatrix, MultiBlockMatrix)
                      .with_element(0, 1)
                      .with_element(2, 3)
                      .with_element(2, 1)
+                     .initial_value(24)
                      .number_of_blocks(3);
   // 0 X 0 0
   // 0 0 0 0
@@ -201,6 +206,7 @@ TEST(SparseMatrix, MultiBlockMatrix)
 
   micm::SparseMatrix<int> matrix{ builder };
 
+  EXPECT_EQ(matrix.FlatBlockSize(), 4);
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
     EXPECT_EQ(elem, 2);
@@ -214,6 +220,7 @@ TEST(SparseMatrix, MultiBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[9], 31);
   }
 
+  EXPECT_EQ(matrix[0][2][1], 24);
   matrix[0][2][1] = 45;
   EXPECT_EQ(matrix[0][2][1], 45);
 
