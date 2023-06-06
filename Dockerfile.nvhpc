@@ -1,0 +1,38 @@
+# nvidia rate limits requests. You can get around this by restarting docker if for 
+# some reason you have to build this image many times
+# https://stackoverflow.com/a/75757516/5217293
+FROM nvcr.io/nvidia/nvhpc:23.1-devel-cuda_multi-ubuntu22.04
+
+RUN apt update \
+    && apt -y install \
+      curl \
+      libnetcdff-dev \
+    && apt clean 
+
+ENV JSON_FORTRAN_HOME="/usr/local/jsonfortran-nvhpc-8.3.0"
+ENV CXX=nvc++
+ENV CC=nvc
+ENV FC=nvfortran
+
+RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.3.0.tar.gz \
+    && tar -zxvf 8.3.0.tar.gz \
+    && cd json-fortran-8.3.0 \
+    && mkdir build \
+    && cd build \
+    && cmake -D SKIP_DOC_GEN:BOOL=TRUE .. \
+    && make install
+
+# copy the MICM code
+COPY . /micm/
+
+# build the library and run the tests
+RUN mkdir /build \
+      && cd /build \ 
+      && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
+        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
+        # -D CMAKE_CXX_FLAGS=--c++20 \
+        ../micm
+      # && make -j 8 install
+
+WORKDIR /build
