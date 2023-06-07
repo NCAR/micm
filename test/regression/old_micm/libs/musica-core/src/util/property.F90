@@ -68,7 +68,7 @@ module musica_property
     !> Fails with an error if two properties are not the same
     procedure :: must_equal
     !> Finalizes the object
-    final :: finalize
+    ! final :: finalize
   end type property_t
 
   !> Property constructor
@@ -449,21 +449,21 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   !> Finalize a property_t object
-  elemental subroutine finalize( this )
+  ! elemental subroutine finalize( this )
 
-    !> Property
-    type(property_t), intent(inout) :: this
+  !   !> Property
+  !   type(property_t), intent(inout) :: this
 
-    if( associated( this%applies_to_ ) ) then
-      deallocate( this%applies_to_ )
-      this%applies_to_ => null( )
-    end if
-    if( associated( this%default_value_ ) ) then
-      deallocate( this%default_value_ )
-      this%default_value_ => null( )
-    end if
+  !   if( associated( this%applies_to_ ) ) then
+  !     deallocate( this%applies_to_ )
+  !     this%applies_to_ => null( )
+  !   end if
+  !   if( associated( this%default_value_ ) ) then
+  !     deallocate( this%default_value_ )
+  !     this%default_value_ => null( )
+  !   end if
 
-  end subroutine finalize
+  ! end subroutine finalize
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
