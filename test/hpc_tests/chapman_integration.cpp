@@ -12,6 +12,11 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
 
+void operator delete(void * p, unsigned long)
+{
+  std::free(p);
+}
+
 using yields = std::pair<micm::Species, double>;
 
 int main()
