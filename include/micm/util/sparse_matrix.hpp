@@ -6,6 +6,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <utility>
+#include <set>
 #include <vector>
 
 namespace micm
