@@ -1,19 +1,16 @@
 #include <assert.h>
 #include <iostream>
-
-#include <micm/solver/rosenbrock.hpp>
-
-#include <gtest/gtest.h>
+#include <utility>
+#include <vector>
 
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
-#include <utility>
-#include <vector>
 
 using yields = std::pair<micm::Species, double>;
 
