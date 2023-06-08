@@ -579,7 +579,7 @@ namespace micm
     From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     */
 
-    std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
+    // std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     std::vector<double> ode_jacobian;
     uint64_t n_consecutive = 0;
     singular = true;
@@ -592,7 +592,7 @@ namespace micm
       ode_jacobian = factored_alpha_minus_jac(jacobian_.AsVector(), alpha);
       stats_.decompositions += 1;
 
-      if (is_successful(ode_jacobian))
+      if (true) // is_successful(ode_jacobian)) // commented out because nvidia can't handle this
       {
         singular = false;
         break;
