@@ -44,7 +44,7 @@ namespace micm
       }
       Proxy &operator=(const std::vector<T> other)
       {
-        assert(other.size() >= y_dim_ && "VectorMatrix row size mismatch in assignment from vector");
+        assert(other.size() >= y_dim_ && "Matrix row size mismatch in assignment from vector");
         auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
         for (auto &elem : other)
         {
