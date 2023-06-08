@@ -25,7 +25,7 @@ namespace micm
 
     /// @brief
     /// @param name A name for this reaction
-    PhotolysisRateConstant(const std::string name);
+    PhotolysisRateConstant(const std::string& name);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
@@ -50,7 +50,7 @@ namespace micm
   {
   }
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant(const std::string name)
+  inline PhotolysisRateConstant::PhotolysisRateConstant(const std::string& name)
       : name_(name)
   {
   }

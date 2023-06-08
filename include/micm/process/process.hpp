@@ -21,14 +21,12 @@ namespace micm
     return Yield(species, yield);
   };
 
-  class ProcessBuilder;
-
   struct Process
   {
-    const std::vector<Species> reactants_;
-    const std::vector<Yield> products_;
-    const std::unique_ptr<RateConstant> rate_constant_;
-    const Phase phase_;
+    std::vector<Species> reactants_;
+    std::vector<Yield> products_;
+    std::shared_ptr<RateConstant> rate_constant_;
+    Phase phase_;
 
     /// @brief Update the solver state rate constants
     /// @param processes The set of processes being solved
@@ -39,6 +37,15 @@ namespace micm
     static ProcessBuilder create();
     Process(ProcessBuilder& builder);
     Process(const Process& other);
+  
+
+    Process(const std::vector<Species>& reactants, const std::vector<Yield>& products, std::shared_ptr<RateConstant> rate_constant, const Phase& phase)
+        : reactants_(reactants),
+        products_(products),
+        rate_constant_(rate_constant),  // TODO: jiwon 6/7 - need to be ptr, shared ptr okay?
+        phase_(phase)
+    {
+    }
   };
 
   class ProcessBuilder

@@ -47,14 +47,18 @@ namespace micm
     /// @param parameters A set of troe rate constants
     TroeRateConstant(TroeRateConstantParameters parameters);
 
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
+
+    /// @brief Returns the number of parameters
+    /// @return Number of custom rate constant parameters
+    virtual std::size_t SizeCustomParameters() const override { return 8; }  // TODO: jiwon 6/7 - should we make this function photolysis specific? (non virtual)
+
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
-
-    /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]

@@ -44,10 +44,14 @@ namespace micm
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the
     /// Arrhenius equation
     /// @param parameters A set of arrhenius rate constants
-    ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
+    ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
+    
+    /// @brief Returns the number of parameters
+    /// @return Number of custom rate constant parameters
+    std::size_t SizeCustomParameters() const override { return 5; }  // TODO: jiwon 6/7 - is this right?  5 = A,B,C,D,E 
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
@@ -63,7 +67,7 @@ namespace micm
   {
   }
 
-  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
+  inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }

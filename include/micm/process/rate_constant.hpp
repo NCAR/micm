@@ -27,7 +27,8 @@ namespace micm
     virtual std::unique_ptr<RateConstant> clone() const = 0;
     /// @brief Returns the number of doubles needed to hold user-defined rate constant parameters
     /// @return Number of user-defined rate constant parameters
-    virtual std::size_t SizeCustomParameters() const;
+    virtual std::size_t SizeCustomParameters() const { return 0; }
+    
     /// @brief Calculate the rate constant for a set of conditions
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User defined rate constant parameters
@@ -39,10 +40,5 @@ namespace micm
 
    private:
   };
-
-  inline std::size_t RateConstant::SizeCustomParameters() const
-  {
-    return 0;
-  }
 
 }  // namespace micm
