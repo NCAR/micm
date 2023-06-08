@@ -22,7 +22,7 @@ message(STATUS "CMake build configuration for micm(${CMAKE_BUILD_TYPE}) ${PROJEC
 include(cmake/StaticAnalyzers.cmake)
 
 # C++ options
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
@@ -40,6 +40,7 @@ option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" ON)
+option(ENABLE_REGESSION_TESTS "Enable regression tests against the old pre-processed version of micm" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
 
 ################################################################################
