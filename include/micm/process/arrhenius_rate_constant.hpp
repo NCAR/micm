@@ -46,6 +46,9 @@ namespace micm
     /// @param parameters A set of arrhenius rate constants
     ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
 
+    /// @brief Destructor
+    ~ArrheniusRateConstant() {};
+
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
 
