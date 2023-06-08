@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cassert>
+#include <set>
 #include <stdexcept>
 #include <utility>
-#include <set>
 #include <vector>
 
 namespace micm
