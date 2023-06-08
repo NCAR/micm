@@ -5,9 +5,7 @@
 
 TEST(Matrix, SmallMatrix)
 {
-  micm::Matrix<double> matrix{3, 5};
-
-  testSmallMatrix(matrix);
+  auto matrix = testSmallMatrix<micm::Matrix>();
 
   std::vector<double>& data = matrix.AsVector();
 
@@ -19,11 +17,8 @@ TEST(Matrix, SmallMatrix)
 
 TEST(Matrix, SmallConstMatrix)
 {
-  micm::Matrix<double> orig_matrix{3, 5};
+  auto matrix = testSmallConstMatrix<micm::Matrix>();
 
-  testSmallConstMatrix(orig_matrix);
-
-  const micm::Matrix<double> matrix = orig_matrix;
   const std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 3 * 5);
@@ -34,34 +29,22 @@ TEST(Matrix, SmallConstMatrix)
 
 TEST(Matrix, InitializeMatrix)
 {
-  micm::Matrix<double> matrix{2, 3, 12.4};
-
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  testInializeMatrix<micm::Matrix>();
 }
 
 TEST(Matrix, InitializeConstMatrix)
 {
-  const micm::Matrix<double> matrix{2, 3, 12.4};
-
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  testInializeConstMatrix<micm::Matrix>();
 }
 
 TEST(Matrix, LoopOverMatrix)
 {
-  micm::Matrix<int> matrix{3, 4, 0};
-
-  testLoopOverMatrix(matrix);
+  testLoopOverMatrix<micm::Matrix>();
 }
 
 TEST(Matrix, LoopOverConstMatrix)
 {
-  micm::Matrix<int> matrix{3, 4, 0};
-
-  testLoopOverConstMatrix(matrix);
+  testLoopOverConstMatrix<micm::Matrix>();
 }
 
 TEST(Matrix, IterateOverMatrix)
@@ -89,26 +72,20 @@ TEST(Matrix, IterateOverMatrix)
 
 TEST(Matrix, ConversionToVector)
 {
-  micm::Matrix<double> matrix{2, 3, 0.0};
-
-  testConversionToVector(matrix);
+  testConversionToVector<micm::Matrix>();
 }
 
 TEST(Matrix, ConstConversionToVector)
 {
-  micm::Matrix<double> matrix{2, 3, 0.0};
-
-  testConstConversionToVector(matrix);
+  testConstConversionToVector<micm::Matrix>();
 }
 
 TEST(Matrix, ConversionFromVector)
 {
-  testConversionFromVector<micm::Matrix<double>>();
+  testConversionFromVector<micm::Matrix>();
 }
 
 TEST(Matrix, AssignmentFromVector)
 {
-  micm::Matrix matrix{4, 3, 0.0};
-
-  testAssignmentFromVector(matrix);
+  testAssignmentFromVector<micm::Matrix>();
 }

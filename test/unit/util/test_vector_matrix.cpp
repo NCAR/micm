@@ -3,11 +3,18 @@
 #include <micm/util/vector_matrix.hpp>
 #include "test_matrix_policy.hpp"
 
+template<class T>
+using Block1MatrixAlias = micm::VectorMatrix<T, 1>;
+template<class T>
+using Block2MatrixAlias = micm::VectorMatrix<T, 2>;
+template<class T>
+using Block3MatrixAlias = micm::VectorMatrix<T, 3>;
+template<class T>
+using Block4MatrixAlias = micm::VectorMatrix<T, 4>;
+
 TEST(VectorMatrix, SmallVectorMatrix)
 {
-  micm::VectorMatrix<double, 2> matrix{3, 5};
-
-  testSmallMatrix(matrix);
+  auto matrix = testSmallMatrix<Block2MatrixAlias>();
 
   std::vector<double>& data = matrix.AsVector();
 
@@ -19,11 +26,8 @@ TEST(VectorMatrix, SmallVectorMatrix)
 
 TEST(VectorMatrix, SmallConstVectorMatrix)
 {
-  micm::VectorMatrix<double, 4> orig_matrix{3, 5};
+  auto matrix = testSmallConstMatrix<Block4MatrixAlias>();
 
-  testSmallConstMatrix(orig_matrix);
-
-  const micm::VectorMatrix<double, 4> matrix = orig_matrix;
   const std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
@@ -34,58 +38,40 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
 
 TEST(VectorMatrix, InitializeVectorMatrix)
 {
-  micm::VectorMatrix<double, 1> matrix{2, 3, 12.4};
-
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  testInializeMatrix<Block1MatrixAlias>();
 }
 
 TEST(VectorMatrix, InitializeConstVectorMatrix)
 {
-  const micm::VectorMatrix<double, 2> matrix{2, 3, 12.4};
-
-  EXPECT_EQ(matrix[0][0], 12.4);
-  EXPECT_EQ(matrix[1][0], 12.4);
-  EXPECT_EQ(matrix[1][2], 12.4);
+  testInializeConstMatrix<Block2MatrixAlias>();
 }
 
 TEST(VectorMatrix, LoopOverVectorMatrix)
 {
-  micm::VectorMatrix<int, 2> matrix{3, 4, 0};
-
-  testLoopOverMatrix(matrix);
+  testLoopOverMatrix<Block2MatrixAlias>();
 }
 
 TEST(VectorMatrix, LoopOverConstVectorMatrix)
 {
-  micm::VectorMatrix<int, 1> matrix{3, 4, 0};
-
-  testLoopOverConstMatrix(matrix);
+  testLoopOverConstMatrix<Block1MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConversionToVector)
 {
-  micm::VectorMatrix<double, 3> matrix{2, 3, 0.0};
-
-  testConversionToVector(matrix);
+  testConversionToVector<Block3MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConstConversionToVector)
 {
-  micm::VectorMatrix<double, 1> matrix{2, 3, 0.0};
-
-  testConstConversionToVector(matrix);
+  testConstConversionToVector<Block1MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConversionFromVector)
 {
-  testConversionFromVector<micm::VectorMatrix<double, 2>>();
+  testConversionFromVector<Block2MatrixAlias>();
 }
 
 TEST(VectorMatrix, AssignmentFromVector)
 {
-  micm::VectorMatrix<double, 2> matrix{4, 3, 0.0};
-
-  testAssignmentFromVector(matrix);
+  testAssignmentFromVector<Block2MatrixAlias>();
 }

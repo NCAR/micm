@@ -46,11 +46,10 @@ namespace micm
       {
         assert(other.size() >= y_dim_ && "Matrix row size mismatch in assignment from vector");
         auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
-        for (auto &elem : other)
-        {
+        std::for_each(other.begin(), std::next(other.begin(), y_dim_), [&](T const& elem) {
           *iter = elem;
           iter += L;
-        }
+        });
         return *this;
       }
       operator std::vector<T>() const
