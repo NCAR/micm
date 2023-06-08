@@ -43,7 +43,7 @@ namespace micm
         }
         return *this;
       }
-      operator std::vector<T>()
+      operator std::vector<T>() const
       {
         return std::vector<T>(this->begin(), this->end());
       }
@@ -86,7 +86,7 @@ namespace micm
             y_dim_(y_dim)
       {
       }
-      operator std::vector<T>()
+      operator std::vector<T>() const
       {
         return std::vector<T>(this->begin(), this->end());
       }
