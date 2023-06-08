@@ -6,4 +6,4 @@ include(test_util)
 ################################################################################
 # Tests
 
-create_standard_test(NAME chapman_integration SOURCES chapman_integration.cpp)
+create_hpc_test(NAME chapman_integration SOURCES chapman_integration.cpp)
