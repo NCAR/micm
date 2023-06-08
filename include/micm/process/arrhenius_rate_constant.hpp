@@ -9,9 +9,6 @@
 
 namespace micm
 {
-
-  class System;
-
   struct ArrheniusRateConstantParameters
   {
     /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
@@ -48,16 +45,13 @@ namespace micm
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
-    
-    /// @brief Returns the number of parameters
-    /// @return Number of custom rate constant parameters
-    std::size_t SizeCustomParameters() const override { return 5; }  // TODO: jiwon 6/7 - is this right?  5 = A,B,C,D,E 
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+        const override;
 
     double calculate(const double& temperature, const double& pressure) const;
   };
@@ -77,8 +71,9 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
   }
 
-  inline double ArrheniusRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
-      const
+  inline double ArrheniusRateConstant::calculate(
+      const Conditions& conditions,
+      const std::vector<double>::const_iterator& custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.pressure_);
   }

@@ -17,7 +17,7 @@ namespace micm
   class PhotolysisRateConstant : public RateConstant
   {
    public:
-    const std::string name_;
+    std::string name_;
 
    public:
     /// @brief Default constructor.
@@ -36,13 +36,14 @@ namespace micm
     ///        The single editable parameter is the unscaled rate constant for
     ///        the photolysis reaction
     /// @return Number of custom rate constant parameters
-    std::size_t SizeCustomParameters() const override;
+    std::size_t SizeCustomParameters() override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+        const override;
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
@@ -60,13 +61,14 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new PhotolysisRateConstant{ *this } };
   }
 
-  inline double PhotolysisRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
-      const
+  inline double PhotolysisRateConstant::calculate(
+      const Conditions& conditions,
+      const std::vector<double>::const_iterator& custom_parameters) const
   {
     return (double)*custom_parameters;
   }
 
-  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const
+  inline std::size_t PhotolysisRateConstant::SizeCustomParameters()
   {
     return 1;
   }
