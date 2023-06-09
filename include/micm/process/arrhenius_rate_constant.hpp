@@ -35,7 +35,7 @@ namespace micm
     const ArrheniusRateConstantParameters parameters_;
 
    public:
-    /// @brief Default constructor. All terms will be zero
+    /// @brief Default constructor.
     ArrheniusRateConstant();
 
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the

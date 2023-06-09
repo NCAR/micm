@@ -21,6 +21,8 @@ namespace micm
     return Yield(species, yield);
   };
 
+  class ProcessBuilder;
+  
   struct Process
   {
     std::vector<Species> reactants_;

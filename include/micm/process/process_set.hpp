@@ -8,6 +8,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
+#include <set>
 
 namespace micm
 {

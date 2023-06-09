@@ -69,7 +69,7 @@ namespace micm
   {
   }
 
-  inline TroeRateConstant::TroeRateConstant(TroeRateConstantParameters parameters)
+  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }

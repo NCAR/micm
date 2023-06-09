@@ -6,24 +6,27 @@
 
 #pragma once
 
+#define USE_JSON
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/intraphase_process.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
-#include <nlohmann/json.hpp>
+
 #include <variant>
 
-#ifdef USE_JSON
-#  include <nlohmann/json.hpp>
-#endif
+// #ifdef USE_JSON
+// #include <nlohmann/json.hpp>
+// using json = nlohmann::json;
+// #endif
 
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace micm
@@ -85,6 +88,8 @@ namespace micm
   template<class ErrorPolicy>
   class JsonReaderPolicy : public ErrorPolicy
   {
+  //  using json = nlohmann::json;
+
    private:
     std::vector<Species> species_;
     std::vector<Species> emissions_;
@@ -190,7 +195,7 @@ namespace micm
         }
       }
 
-      micm::SystemParameters sysParams = { phase_, std::vector<micm::Phase>() };  // TODO: jiwon 6/6 - second param
+      micm::SystemParameters sysParams = { phase_, std::unordered_map<std::string, micm::Phase>() };  // TODO: jiwon 6/6 - second param
 
       return micm::SolverParameters{ micm::System(sysParams), processes_ };
     }
