@@ -22,7 +22,7 @@ namespace micm
    * @brief An implementation of the Chapman mechnanism solver
    *
    */
-  class ChapmanODESolver : public RosenbrockSolver
+  class ChapmanODESolver : public RosenbrockSolver<micm::Matrix>
   {
     std::size_t number_sparse_factor_elements_ = 23;
    public:
@@ -32,7 +32,7 @@ namespace micm
 
     /// Returns a state variable for the Chapman system
     /// @return State variable for Chapman
-    State GetState() const override;
+    State<> GetState() const;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
@@ -42,7 +42,7 @@ namespace micm
     Solver::SolverResult Solve(
         double time_start,
         double time_end,
-        State& state) noexcept;
+        State<>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -81,7 +81,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    void UpdateState(State& state) override;
+    void UpdateState(State<>& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -132,7 +132,7 @@ namespace micm
   {
   }
 
-  inline State ChapmanODESolver::GetState() const
+  inline State<> ChapmanODESolver::GetState() const
   {
     return State{ 9, 3, 7 };
   }
@@ -140,7 +140,7 @@ namespace micm
   inline Solver::SolverResult ChapmanODESolver::Solve(
       double time_start,
       double time_end,
-      State& state) noexcept
+      State<>& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(state.variables_[0]);
@@ -566,7 +566,7 @@ namespace micm
     return x;
   }
 
-  inline void ChapmanODESolver::UpdateState(State& state)
+  inline void ChapmanODESolver::UpdateState(State<>& state)
   {
     double temperature = state.conditions_[0].temperature_;
     double pressure = state.conditions_[0].pressure_;

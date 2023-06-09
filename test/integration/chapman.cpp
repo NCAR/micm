@@ -72,9 +72,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                 std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-                                 micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                               std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
+                                               micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 

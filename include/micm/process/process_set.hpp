@@ -29,7 +29,8 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    ProcessSet(const std::vector<Process>& processes, const State& state);
+    template<template<class> class M>
+    ProcessSet(const std::vector<Process>& processes, const State<M>& state);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
@@ -58,7 +59,8 @@ namespace micm
         SparseMatrix<double>& jacobian) const;
   };
 
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State& state)
+  template<template<class> class M>
+  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<M>& state)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),
