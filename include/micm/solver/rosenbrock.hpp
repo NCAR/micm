@@ -125,7 +125,7 @@ namespace micm
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
     virtual void
-    force(const Matrix<double>& rate_constants, const Matrix<double>& number_densities, Matrix<double>& forcing);
+    force(const M<double>& rate_constants, const M<double>& number_densities, M<double>& forcing);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -157,8 +157,8 @@ namespace micm
     /// @param jacobian The matrix of partial derivatives
     /// @return The jacobian
     virtual void dforce_dy(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& number_densities,
+        const M<double>& rate_constants,
+        const M<double>& number_densities,
         SparseMatrix<double>& jacobian);
 
     /// @brief Prepare the rosenbrock ode solver matrix
@@ -171,8 +171,8 @@ namespace micm
         double& H,
         const double& gamma,
         bool& singular,
-        const Matrix<double>& number_densities,
-        const Matrix<double>& rate_constants);
+        const M<double>& number_densities,
+        const M<double>& rate_constants);
 
     /// @brief Factor
     /// @param jacobian
@@ -253,12 +253,13 @@ namespace micm
   template<template<class> class M>
   inline Solver::SolverResult RosenbrockSolver<M>::Solve(double time_start, double time_end, State<M>& state) noexcept
   {
+    /// TODO: Y, Ynew, and forcing will have to be removed before this works with different Matrix classes
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
-    Matrix<double> Y_matrix(state.variables_);
+    M<double> Y_matrix(state.variables_);
     std::vector<double>& Y = Y_matrix.AsVector();
-    Matrix<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    M<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
     std::vector<double>& Ynew = Ynew_matrix.AsVector();
-    Matrix<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    M<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
     std::vector<double>& forcing = forcing_matrix.AsVector();
 
     // TODO: update for multiple-grid cell solving
@@ -446,9 +447,9 @@ namespace micm
 
   template<template<class> class M>
   inline void RosenbrockSolver<M>::force(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& number_densities,
-      Matrix<double>& forcing)
+      const M<double>& rate_constants,
+      const M<double>& number_densities,
+      M<double>& forcing)
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.AddForcingTerms(rate_constants, number_densities, forcing);
@@ -468,8 +469,8 @@ namespace micm
 
   template<template<class> class M>
   inline void RosenbrockSolver<M>::dforce_dy(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& number_densities,
+      const M<double>& rate_constants,
+      const M<double>& number_densities,
       SparseMatrix<double>& jacobian)
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
@@ -588,8 +589,8 @@ namespace micm
       double& H,
       const double& gamma,
       bool& singular,
-      const Matrix<double>& number_densities,
-      const Matrix<double>& rate_constants)
+      const M<double>& number_densities,
+      const M<double>& rate_constants)
   {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
