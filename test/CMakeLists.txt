@@ -10,7 +10,3 @@ if(ENABLE_LOCAL_TESTS)
 
   add_subdirectory(integration)
 endif()
-
-if(ENABLE_HPC_TESTS)
-  add_subdirectory(hpc_tests)
-endif()

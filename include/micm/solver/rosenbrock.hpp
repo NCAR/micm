@@ -85,7 +85,6 @@ namespace micm
     SparseMatrix<double> jacobian_;
 
     static constexpr double delta_min_ = 1.0e-5;
-    static constexpr double error_min_ = 1.0e-10;
 
     /// @brief Default constructor
     RosenbrockSolver();
@@ -361,7 +360,6 @@ namespace micm
         std::vector<double> Yerror(Y.size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
-          uint64_t idx = 0;
           for (uint64_t idx = 0; idx < Yerror.size(); ++idx)
           {
             Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
@@ -492,7 +490,6 @@ namespace micm
       const std::vector<double>& y)
   {
     std::vector<double> x(y.size(), 0);
-    double temporary{};
     return x;
   }
 
@@ -647,6 +644,7 @@ namespace micm
       sum += std::pow(errors[idx] / scale[idx], 2);
     }
 
+    double error_min_ = 1.0e-10;
     return std::max(std::sqrt(sum / parameters_.N_), error_min_);
   }
 }  // namespace micm
