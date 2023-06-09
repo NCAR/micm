@@ -44,18 +44,20 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
+    template<template<class> class M>
     void AddForcingTerms(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& state_variables,
-        Matrix<double>& forcing) const;
+        const M<double>& rate_constants,
+        const M<double>& state_variables,
+        M<double>& forcing) const;
 
     /// @brief Add Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
+    template<template<class> class M>
     void AddJacobianTerms(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& state_variables,
+        const M<double>& rate_constants,
+        const M<double>& state_variables,
         SparseMatrix<double>& jacobian) const;
   };
 
@@ -130,10 +132,11 @@ namespace micm
     }
   }
 
+  template<template<class> class M>
   inline void ProcessSet::AddForcingTerms(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& state_variables,
-      Matrix<double>& forcing) const
+      const M<double>& rate_constants,
+      const M<double>& state_variables,
+      M<double>& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
@@ -160,9 +163,10 @@ namespace micm
     }
   };
 
+  template<template<class> class M>
   inline void ProcessSet::AddJacobianTerms(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& state_variables,
+      const M<double>& rate_constants,
+      const M<double>& state_variables,
       SparseMatrix<double>& jacobian) const
   {
     auto cell_jacobian = jacobian.AsVector().begin();
