@@ -9,7 +9,10 @@ TEST(TroeRateConstant, CalculateWithMinimalArugments)
   state.conditions_[0].temperature_ = 301.24;  // [K]
   state.conditions_[0].air_density_ = 1.0;     // [mol mol-1]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  micm::TroeRateConstant troe{ micm::TroeRateConstantParameters{ .k0_A_ = 1.0, .kinf_A_ = 1.0 } };
+  micm::TroeRateConstantParameters params;
+  params.k0_A_ = 1.0; 
+  params.kinf_A_ = 1.0;
+  micm::TroeRateConstant troe{params};
   auto k = troe.calculate(state.conditions_[0], params);
   double k0 = 1.0;
   double kinf = 1.0;
