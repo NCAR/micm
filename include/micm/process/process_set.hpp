@@ -18,6 +18,7 @@ namespace micm
   concept Vectorizable = requires(T t) {
     t.BlockSize();
     t.NumberOfBlocks();
+    t.VectorSize();
   };
 
   /// @brief Solver function calculators for a collection of processes
