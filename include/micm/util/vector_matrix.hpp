@@ -163,6 +163,21 @@ namespace micm
       return x_dim_;
     }
 
+    std::size_t NumberOfBlocks() const
+    {
+      return std::ceil(x_dim_ / (double)L);
+    }
+
+    std::size_t BlockSize() const
+    {
+      return L * y_dim_;
+    }
+
+    constexpr std::size_t VectorSize() const
+    {
+      return L;
+    }
+
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);

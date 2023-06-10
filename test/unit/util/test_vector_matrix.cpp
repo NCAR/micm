@@ -19,6 +19,9 @@ TEST(VectorMatrix, SmallVectorMatrix)
   std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
+  EXPECT_EQ(matrix.BlockSize(), 2 * 5);
+  EXPECT_EQ(matrix.NumberOfBlocks(), 2);
+  EXPECT_EQ(matrix.VectorSize(), 2);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
   EXPECT_EQ(data[1 + 2 * 3], 64.7);
@@ -31,6 +34,9 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
   const std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
+  EXPECT_EQ(matrix.BlockSize(), 4 * 5);
+  EXPECT_EQ(matrix.NumberOfBlocks(), 1);
+  EXPECT_EQ(matrix.VectorSize(), 4);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 + 4 * 4], 102.3);
   EXPECT_EQ(data[1 + 4 * 3], 64.7);
