@@ -29,7 +29,7 @@ if(ENABLE_MPI)
 endif()
 
 if(ENABLE_GPU)
-  add_library(micm_gpu INTERFACE)
+  add_library(micm_gpu)
   add_library(musica::micm_gpu ALIAS micm_gpu)
 
   target_link_libraries(micm_gpu PUBLIC cudart)
