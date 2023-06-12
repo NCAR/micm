@@ -23,14 +23,14 @@ namespace micm
     double air_density_{ 1.0 };
   };
 
-  template<template<class> class M = Matrix>
+  template<template<class> class MatrixPolicy = Matrix>
   struct State
   {
     std::vector<Conditions> conditions_;
     std::map<std::string, std::size_t> variable_map_;
-    M<double> variables_;
-    M<double> custom_rate_parameters_;
-    M<double> rate_constants_;
+    MatrixPolicy<double> variables_;
+    MatrixPolicy<double> custom_rate_parameters_;
+    MatrixPolicy<double> rate_constants_;
 
     /// @brief
     State();
@@ -46,8 +46,8 @@ namespace micm
     State(const StateParameters parameters);
   };
 
-  template<template<class> class M>
-  inline State<M>::State()
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State()
       : conditions_(),
         variable_map_(),
         variables_(),
@@ -55,8 +55,8 @@ namespace micm
         rate_constants_()
   {
   }
-  template<template<class> class M>
-  inline State<M>::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
       : conditions_(1),
         variable_map_(),
         variables_(1, state_size, 0.0),
@@ -65,8 +65,8 @@ namespace micm
   {
   }
 
-  template<template<class> class M>
-  inline State<M>::State(const StateParameters parameters)
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variable_map_(),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),

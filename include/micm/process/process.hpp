@@ -33,8 +33,8 @@ namespace micm
     /// @brief Update the solver state rate constants
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
-    template<template<class> class M>
-    static void UpdateState(const std::vector<Process>& processes, State<M>& state);
+    template<template<class> class MatrixPolicy>
+    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
@@ -61,8 +61,8 @@ namespace micm
     ProcessBuilder& phase(const Phase& phase);
   };
 
-  template<template<class> class M>
-  void Process::UpdateState(const std::vector<Process>& processes, State<M>& state)
+  template<template<class> class MatrixPolicy>
+  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
   {
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {

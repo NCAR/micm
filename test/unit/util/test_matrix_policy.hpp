@@ -1,10 +1,10 @@
 // Tests of common matrix functions
 #include <gtest/gtest.h>
 
-template<template<class> class M>
-M<double> testSmallMatrix()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testSmallMatrix()
 {
-  M<double> matrix(3, 5);
+  MatrixPolicy<double> matrix(3, 5);
 
   matrix[1][3] = 64.7;
   matrix[0][0] = 41.2;
@@ -21,16 +21,16 @@ M<double> testSmallMatrix()
   return matrix;
 }
 
-template<template<class> class M>
-const M<double> testSmallConstMatrix()
+template<template<class> class MatrixPolicy>
+const MatrixPolicy<double> testSmallConstMatrix()
 {
-  M<double> matrix(3, 5);
+  MatrixPolicy<double> matrix(3, 5);
 
   matrix[1][3] = 64.7;
   matrix[0][0] = 41.2;
   matrix[2][4] = 102.3;
 
-  const M<double> const_matrix = matrix;
+  const MatrixPolicy<double> const_matrix = matrix;
 
   EXPECT_EQ(const_matrix[1][3], 64.7);
   EXPECT_EQ(const_matrix[0][0], 41.2);
@@ -43,10 +43,10 @@ const M<double> testSmallConstMatrix()
   return const_matrix;
 }
 
-template<template<class> class M>
-M<double> testInializeMatrix()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testInializeMatrix()
 {
-  M<double> matrix{ 2, 3, 12.4 };
+  MatrixPolicy<double> matrix{ 2, 3, 12.4 };
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
@@ -55,10 +55,10 @@ M<double> testInializeMatrix()
   return matrix;
 }
 
-template<template<class> class M>
-const M<double> testInializeConstMatrix()
+template<template<class> class MatrixPolicy>
+const MatrixPolicy<double> testInializeConstMatrix()
 {
-  const M<double> matrix{ 2, 3, 12.4 };
+  const MatrixPolicy<double> matrix{ 2, 3, 12.4 };
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
@@ -67,10 +67,10 @@ const M<double> testInializeConstMatrix()
   return matrix;
 }
 
-template<template<class> class M>
-M<int> testLoopOverMatrix()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<int> testLoopOverMatrix()
 {
-  M<int> matrix(3, 4, 0);
+  MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.size(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
@@ -87,10 +87,10 @@ M<int> testLoopOverMatrix()
   return matrix;
 }
 
-template<template<class> class M>
-const M<int> testLoopOverConstMatrix()
+template<template<class> class MatrixPolicy>
+const MatrixPolicy<int> testLoopOverConstMatrix()
 {
-  M<int> matrix(3, 4, 0);
+  MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.size(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
@@ -99,7 +99,7 @@ const M<int> testLoopOverConstMatrix()
     }
   }
 
-  const M<int> const_matrix = matrix;
+  const MatrixPolicy<int> const_matrix = matrix;
 
   EXPECT_EQ(const_matrix[0][0], 0);
   EXPECT_EQ(const_matrix[1][2], 102);
@@ -109,10 +109,10 @@ const M<int> testLoopOverConstMatrix()
   return const_matrix;
 }
 
-template<template<class> class M>
-M<double> testConversionToVector()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testConversionToVector()
 {
-  M<double> matrix{ 2, 3, 0.0 };
+  MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
   matrix[1][0] = 13.2;
   matrix[1][1] = 31.2;
@@ -127,16 +127,16 @@ M<double> testConversionToVector()
   return matrix;
 }
 
-template<template<class> class M>
-const M<double> testConstConversionToVector()
+template<template<class> class MatrixPolicy>
+const MatrixPolicy<double> testConstConversionToVector()
 {
-  M<double> matrix{ 2, 3, 0.0 };
+  MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
   matrix[1][0] = 13.2;
   matrix[1][1] = 31.2;
   matrix[1][2] = 314.2;
 
-  const M<double> const_matrix = matrix;
+  const MatrixPolicy<double> const_matrix = matrix;
   std::vector<double> slice = const_matrix[1];
 
   EXPECT_EQ(slice[0], 13.2);
@@ -146,16 +146,16 @@ const M<double> testConstConversionToVector()
   return const_matrix;
 }
 
-template<template<class> class M>
-M<double> testConversionFromVector()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testConversionFromVector()
 {
-  M<double> zero_matrix = std::vector<std::vector<double>>{};
+  MatrixPolicy<double> zero_matrix = std::vector<std::vector<double>>{};
 
   EXPECT_EQ(zero_matrix.size(), 0);
 
   std::vector<std::vector<double>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
 
-  M<double> matrix = vec;
+  MatrixPolicy<double> matrix = vec;
 
   EXPECT_EQ(matrix.size(), 2);
   EXPECT_EQ(matrix[0].size(), 3);
@@ -169,16 +169,16 @@ M<double> testConversionFromVector()
 
   std::vector<std::vector<int>> bad_vector = { { 3 }, { 4, 5 }, { 5 } };
 
-  M<int> bad_matrix;
+  MatrixPolicy<int> bad_matrix;
   EXPECT_DEATH(bad_matrix = bad_vector, "Invalid vector for matrix assignment");
 
   return matrix;
 }
 
-template<template<class> class M>
-M<double> testAssignmentFromVector()
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testAssignmentFromVector()
 {
-  M<double> matrix{ 4, 3, 0.0 };
+  MatrixPolicy<double> matrix{ 4, 3, 0.0 };
   std::vector<double> other = { 12.3, 15.1, 24.3 };
   std::vector<double> big_other = { 14.3, 52.3, 65.7, 16.34 };
   std::vector<double> small_other = { 13.2, 52.8 };

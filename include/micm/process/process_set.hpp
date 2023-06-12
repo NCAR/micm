@@ -38,8 +38,8 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    template<template<class> class M>
-    ProcessSet(const std::vector<Process>& processes, const State<M>& state);
+    template<template<class> class MatrixPolicy>
+    ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
@@ -53,25 +53,25 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    template<template<class> typename M>
-      requires(!Vectorizable<M<double>>)
-    void AddForcingTerms(const M<double>& rate_constants, const M<double>& state_variables, M<double>& forcing) const;
-    template<template<class> typename M>
-      requires Vectorizable<M<double>>
-    void AddForcingTerms(const M<double>& rate_constants, const M<double>& state_variables, M<double>& forcing)
+    template<template<class> typename MatrixPolicy>
+      requires(!Vectorizable<MatrixPolicy<double>>)
+    void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const;
+    template<template<class> typename MatrixPolicy>
+      requires Vectorizable<MatrixPolicy<double>>
+    void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing)
         const;
 
     /// @brief Add Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
-    template<template<class> class M>
-    void AddJacobianTerms(const M<double>& rate_constants, const M<double>& state_variables, SparseMatrix<double>& jacobian)
+    template<template<class> class MatrixPolicy>
+    void AddJacobianTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, SparseMatrix<double>& jacobian)
         const;
   };
 
-  template<template<class> class M>
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<M>& state)
+  template<template<class> class MatrixPolicy>
+  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),
@@ -141,10 +141,10 @@ namespace micm
     }
   }
 
-  template<template<class> typename M>
-    requires(!Vectorizable<M<double>>)
+  template<template<class> typename MatrixPolicy>
+    requires(!Vectorizable<MatrixPolicy<double>>)
   inline void
-  ProcessSet::AddForcingTerms(const M<double>& rate_constants, const M<double>& state_variables, M<double>& forcing) const
+  ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
@@ -171,10 +171,10 @@ namespace micm
     }
   };
 
-  template<template<class> typename M>
-    requires Vectorizable<M<double>>
+  template<template<class> typename MatrixPolicy>
+    requires Vectorizable<MatrixPolicy<double>>
   inline void
-  ProcessSet::AddForcingTerms(const M<double>& rate_constants, const M<double>& state_variables, M<double>& forcing) const
+  ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
@@ -210,10 +210,10 @@ namespace micm
     }
   }
 
-  template<template<class> class M>
+  template<template<class> class MatrixPolicy>
   inline void ProcessSet::AddJacobianTerms(
-      const M<double>& rate_constants,
-      const M<double>& state_variables,
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
       SparseMatrix<double>& jacobian) const
   {
     auto cell_jacobian = jacobian.AsVector().begin();
