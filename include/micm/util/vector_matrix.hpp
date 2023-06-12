@@ -7,6 +7,8 @@
 #include <cmath>
 #include <vector>
 
+#include <micm/util/exit_codes.hpp>
+
 namespace micm
 {
 
@@ -44,7 +46,10 @@ namespace micm
       }
       Proxy &operator=(const std::vector<T> other)
       {
-        assert(other.size() >= y_dim_ && "Matrix row size mismatch in assignment from vector");
+        if (other.size() < y_dim_) {
+          std::cerr << "Matrix row size mismatch in assignment from vector";
+          std::exit(micm::ExitCodes::InvalidMatrixDimension);
+        }
         auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
         std::for_each(other.begin(), std::next(other.begin(), y_dim_), [&](T const& elem) {
           *iter = elem;
@@ -145,7 +150,11 @@ namespace micm
                 std::size_t i_row = 0;
                 for (auto &other_row : other)
                 {
-                  assert(other_row.size() == y_dim && "Invalid vector for matrix assignment");
+                  if (other_row.size() != y_dim)
+                  {
+                    std::cerr << "Invalid vector for matrix assignment\n";
+                    std::exit(micm::ExitCodes::InvalidMatrixDimension);
+                  }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)
                   {
