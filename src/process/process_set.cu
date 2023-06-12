@@ -1,18 +1,17 @@
-#pragma once
-
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
+namespace micm {
 
- void AddForcingTerms_kernelSetup(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& state_variables,
-      Matrix<double>& forcing, vector<std::size_t> number_of_reactants_, 
-      vector<std::size_t> reactant_ids_, vector<std::size_t> number_of_products_,
-      vector<std::size_t> product_ids_, vector<std::size_t> yields_) const
+    void AddForcingTerms_kernelSetup(
+        const Matrix<double>& rate_constants,
+        const Matrix<double>& state_variables,
+        Matrix<double>& forcing, vector<std::size_t> number_of_reactants_, 
+        vector<std::size_t> reactant_ids_, vector<std::size_t> number_of_products_,
+        vector<std::size_t> product_ids_, vector<std::size_t> yields_) const
     {
         vector <std::size_t> accumulated_n_reactants; 
         accumulated_n_reactants.push_back(0); 
@@ -54,8 +53,8 @@
         cudaMalloc(&d_accumulated_n_products, (sizeof(std::size_t) * accumulated_n_products.size())); 
         cudaMalloc(&d_product_ids_, (sizeof(std::size_t)* product_ids_.size()));  
         cudaMalloc(&d_yields, (sizeof(std::size_t) * yields_.size())); 
-     
-       //copy data from host to device memory 
+        
+        //copy data from host to device memory 
         cudaMemcpy(d_rate_constants, &rate_constants.data, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_state_variables, &state_variables.data, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_forcing, &forcing.data, cudaMemcpyHostToDevice); 
@@ -73,7 +72,7 @@
         int threadsPerBlock = 128; //32 threads per warp * 4 warps
         //grid size 
         int blocks_count = (int)ceil(threads_count/threadsPerBlock); 
-    
+
         int matrix_rows = rate_constants.x_dim; 
         int rate_constants_columns = rate_constants.y_dim; 
         int state_forcing_columns = state_variables.y_dim;
@@ -98,12 +97,12 @@
         cudaFree(d_accumulated_n_products);
         cudaFree(d_product_ids_);
         cudaFree(d_yields_ );
-    
+
     }
 
-  
-//one thread per reaction in atompheric model 
-__global__ void AddForcingTerms_kernel(vector<std:: double>* rate_constants, vector<std::double> state_variables, 
+
+    //one thread per reaction in atompheric model 
+    __global__ void AddForcingTerms_kernel(vector<std:: double>* rate_constants, vector<std::double> state_variables, 
     vector<std::double> forcing, int matrix_rows, int rate_constants_columns, int state_forcing_columns, 
     vector<std::size_t> number_of_reactants_, vector<std::size_t> accumulated_n_reactants, vector<std::size_t> reactant_ids_, 
     vector<std::size_t> number_of_products_,vector<std::size_t> accumulated_n_products, vector<std::size_t> product_ids_, 
@@ -111,7 +110,7 @@ __global__ void AddForcingTerms_kernel(vector<std:: double>* rate_constants, vec
 
     //define thread index 
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
-   
+
     if (tid < rate_constants.size()){
         int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
         int row_index = tid % rate_constants_columns; 
@@ -137,5 +136,5 @@ __global__ void AddForcingTerms_kernel(vector<std:: double>* rate_constants, vec
             forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
         }   
     }
+    }
 }
-

@@ -34,7 +34,7 @@ if(ENABLE_GPU)
 
   target_link_libraries(micm_gpu 
     PUBLIC cudart
-    INTERFACE micm
+    PRIVATE micm
   )
 
   add_subdirectory(process)
