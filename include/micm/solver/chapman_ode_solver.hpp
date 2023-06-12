@@ -252,7 +252,6 @@ namespace micm
         std::vector<double> Yerror(Y.size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
-          uint64_t idx = 0;
           for (uint64_t idx = 0; idx < Yerror.size(); ++idx)
           {
             Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
