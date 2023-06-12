@@ -27,9 +27,6 @@ namespace micm
     /// @param name A name for this reaction
     PhotolysisRateConstant(const std::string name);
 
-    /// @brief Destructor
-    ~PhotolysisRateConstant() {};
-
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
 

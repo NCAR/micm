@@ -38,7 +38,7 @@ endif()
 ################################################################################
 # google test
 
-if(PROJECT_IS_TOP_LEVEL AND ENABLE_LOCAL_TESTS)
+if(PROJECT_IS_TOP_LEVEL)
   # if google test isn't installed, fetch content will download and build what is needed
   # but, we don't want to run clang tidy on google test, save those variables and reset them later
   foreach (lang IN ITEMS C CXX)
