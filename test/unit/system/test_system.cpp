@@ -20,11 +20,7 @@ TEST(System, ConstructorWithAllParameters)
   params.gas_phase_ = phase;
   params.phases_ = phases;
 
-  std::cout << phase.species_.size() << std::endl;
-  std::cout << params.gas_phase_.species_.size() << std::endl;
-
   micm::System system(params);
-
 
   EXPECT_EQ(system.gas_phase_.species_.size(), 2);
   EXPECT_EQ(system.phases_.size(), 2);
