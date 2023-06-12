@@ -39,6 +39,7 @@ option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" OFF)
 option(ENABLE_REGESSION_TESTS "Enable regression tests against the old pre-processed version of micm" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
+option(ENABLE_GPU "Build the GPU library" OFF)
 
 ################################################################################
 # Dependencies

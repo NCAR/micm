@@ -12,17 +12,27 @@ function(create_standard_test)
   set(prefix TEST)
   set(singleValues NAME WORKING_DIRECTORY)
   set(multiValues SOURCES)
+
   include(CMakeParseArguments)
   cmake_parse_arguments(${prefix} " " "${singleValues}" "${multiValues}" ${ARGN})
+
   add_executable(test_${TEST_NAME} ${TEST_SOURCES})
+
   target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
+
+  if(ENABLE_GPU)
+    target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm_gpu)
+  endif()
+
   if(ENABLE_JSON)
     target_link_libraries(test_${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
     target_compile_definitions(test_${TEST_NAME} PUBLIC USE_JSON)
   endif()
+
   if(NOT DEFINED TEST_WORKING_DIRECTORY)
     set(TEST_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
   endif()
+
   add_micm_test(${TEST_NAME} test_${TEST_NAME} "" ${TEST_WORKING_DIRECTORY})
 endfunction(create_standard_test)
 

@@ -21,9 +21,18 @@ if(ENABLE_JSON)
 endif()
 
 if(ENABLE_OPENMP)
-  target_link_libraries(micm PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(micm INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
 if(ENABLE_MPI)
-  target_link_libraries(micm PRIVATE MPI::MPI_CXX)
+  target_link_libraries(micm INTERFACE MPI::MPI_CXX)
+endif()
+
+if(ENABLE_GPU)
+  add_library(micm_gpu INTERFACE)
+  add_library(musica::micm_gpu ALIAS micm_gpu)
+
+  target_link_libraries(micm_gpu PUBLIC cudart)
+
+  add_subdirectory(process)
 endif()

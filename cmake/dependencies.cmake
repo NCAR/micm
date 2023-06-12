@@ -80,3 +80,13 @@ if(BUILD_DOCS)
   find_package(Doxygen REQUIRED)
   find_package(Sphinx REQUIRED)
 endif()
+
+################################################################################
+# GPU Support
+
+if(ENABLE_GPU)
+  find_package(CUDA REQUIRED)
+  enable_language(CUDA)
+
+  set(CMAKE_CUDA_STANDARD 11.4.4)
+endif()
