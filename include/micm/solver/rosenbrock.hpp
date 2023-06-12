@@ -85,7 +85,6 @@ namespace micm
     SparseMatrix<double> jacobian_;
 
     static constexpr double delta_min_ = 1.0e-5;
-    static constexpr double error_min_ = 1.0e-10;
 
     /// @brief Default constructor
     RosenbrockSolver();
@@ -361,7 +360,6 @@ namespace micm
         std::vector<double> Yerror(Y.size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
-          uint64_t idx = 0;
           for (uint64_t idx = 0; idx < Yerror.size(); ++idx)
           {
             Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
@@ -492,7 +490,6 @@ namespace micm
       const std::vector<double>& y)
   {
     std::vector<double> x(y.size(), 0);
-    double temporary{};
     return x;
   }
 
@@ -579,7 +576,7 @@ namespace micm
     From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     */
 
-    std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
+    // std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     std::vector<double> ode_jacobian;
     uint64_t n_consecutive = 0;
     singular = true;
@@ -592,7 +589,7 @@ namespace micm
       ode_jacobian = factored_alpha_minus_jac(jacobian_.AsVector(), alpha);
       stats_.decompositions += 1;
 
-      if (is_successful(ode_jacobian))
+      if (true) // is_successful(ode_jacobian)) // commented out because nvidia can't handle this
       {
         singular = false;
         break;
@@ -647,6 +644,7 @@ namespace micm
       sum += std::pow(errors[idx] / scale[idx], 2);
     }
 
+    double error_min_ = 1.0e-10;
     return std::max(std::sqrt(sum / parameters_.N_), error_min_);
   }
 }  // namespace micm

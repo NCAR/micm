@@ -152,7 +152,7 @@ TEST(Matrix, ConstConversionToVector)
 
 TEST(Matrix, ConversionFromVector)
 {
-  micm::Matrix zero_matrix = std::vector<std::vector<double>>{};
+  micm::Matrix<double> zero_matrix = std::vector<std::vector<double>>{};
 
   EXPECT_EQ(zero_matrix.size(), 0);
 
@@ -161,7 +161,7 @@ TEST(Matrix, ConversionFromVector)
     { 5.33, -0.3, 31.2 }
   };
 
-  micm::Matrix matrix = vec;
+  micm::Matrix<double> matrix = vec;
 
   EXPECT_EQ(matrix.size(), 2);
   EXPECT_EQ(matrix[0].size(), 3);
@@ -179,7 +179,7 @@ TEST(Matrix, ConversionFromVector)
     { 5 }
   };
 
-  EXPECT_DEATH(micm::Matrix int_matrix = bad_vector, "Invalid vector for matrix assignment");
+  EXPECT_DEATH(micm::Matrix<int> int_matrix = bad_vector, "Invalid vector for matrix assignment");
 }
 
 TEST(Matrix, AssignmentFromVector)
@@ -187,7 +187,7 @@ TEST(Matrix, AssignmentFromVector)
   std::vector<double> other = { 12.3, 15.1, 24.3 };
   std::vector<double> big_other = { 14.3, 52.3, 65.7, 16.34 };
   std::vector<double> small_other = { 13.2, 52.8 };
-  micm::Matrix matrix{4, 3, 0.0};
+  micm::Matrix<double> matrix{4, 3, 0.0};
 
   matrix[2] = other;
 

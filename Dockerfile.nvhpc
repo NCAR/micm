@@ -8,6 +8,7 @@ RUN apt update \
       build-essential \
       ca-certificates \
       cmake \
+      cmake-curses-gui \
       curl \
       libcurl4-openssl-dev \
       libhdf5-dev \
