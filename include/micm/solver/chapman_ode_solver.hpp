@@ -70,7 +70,7 @@ namespace micm
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha) override;
+    std::vector<double> factored_alpha_minus_jac(std::vector<double> dforce_dy, const double& alpha) override;
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
@@ -403,12 +403,13 @@ namespace micm
   }
 
   inline std::vector<double> ChapmanODESolver::factored_alpha_minus_jac(
-      const std::vector<double>& dforce_dy,
+      std::vector<double> dforce_dy,
       const double& alpha)
   {
     std::vector<double> jacobian(number_sparse_factor_elements_);
     // multiply jacobian by -1
-    std::transform(dforce_dy.begin(), dforce_dy.end(), jacobian.begin(), [](auto& c) { return -c; });
+    // for(size_t idx{}; idx < dforce_dy.size(); ++idx) { dforce_dy[idx] *= -1};
+    std::transform(dforce_dy.begin(), dforce_dy.end(), jacobian.begin(), [](double& c) { return -c; });
 
     assert(jacobian.size() >= 23);
 

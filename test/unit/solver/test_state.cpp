@@ -4,12 +4,14 @@
 
 TEST(State, Constructor)
 {
-  micm::State state {micm::StateParameters{
-    .state_variable_names_{ "foo", "bar", "baz", "quz" },
-    .number_of_grid_cells_ = 3,
-    .number_of_custom_parameters_ = 5,
-    .number_of_rate_constants_ = 10
-  }};
+  micm::StateParameters params;
+  params.state_variable_names_ = { "foo", "bar", "baz", "quz" };
+  params.number_of_grid_cells_ = 3;
+  params.number_of_custom_parameters_ = 5;
+  params.number_of_rate_constants_ = 10;
+
+  micm::State state(params);
+
 
   EXPECT_EQ(state.conditions_.size(), 3);
   EXPECT_EQ(state.variable_map_["foo"], 0);

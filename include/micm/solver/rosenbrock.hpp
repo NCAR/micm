@@ -130,7 +130,7 @@ namespace micm
     /// @param dforce_dy
     /// @param alpha
     /// @return An jacobian decomposition
-    virtual std::vector<double> factored_alpha_minus_jac(const std::vector<double>& dforce_dy, const double& alpha);
+    virtual std::vector<double> factored_alpha_minus_jac(std::vector<double> dforce_dy, const double& alpha);
 
     /// @brief Computes product of [dforce_dy * vector]
     /// @param dforce_dy  jacobian of forcing
@@ -239,10 +239,14 @@ namespace micm
     {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
-                                         .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-                                         .number_of_custom_parameters_ = n_params,
-                                         .number_of_rate_constants_ = processes_.size() } };
+
+    micm::StateParameters params;
+    params.state_variable_names_ = system_.UniqueNames();
+    params.number_of_grid_cells_ = parameters_.number_of_grid_cells_;
+    params.number_of_custom_parameters_ = n_params;
+    params.number_of_rate_constants_ = processes_.size();
+
+    return State(params);
   }
 
   inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State& state) noexcept
@@ -445,7 +449,7 @@ namespace micm
   }
 
   inline std::vector<double> RosenbrockSolver::factored_alpha_minus_jac(
-      const std::vector<double>& dforce_dy,
+      std::vector<double> dforce_dy,
       const double& alpha)
   {
     std::vector<double> jacobian(23); // TODO - remove hard-coded Chapman dimensions

@@ -26,33 +26,50 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
 
-  micm::Process r1 =
-      micm::Process::create()
-          .reactants({ o1d, n2 })
-          .products({ yields(o, 1), yields(n2, 1) })
-          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_= 0, .C_ = 110 }))
-          .phase(gas_phase);
+  micm::ArrheniusRateConstantParameters r1_rate_params;
+  r1_rate_params.A_ = 2.15e-11;
+  r1_rate_params.B_ = 0;
+  r1_rate_params.C_ = 110;
 
-  micm::Process r2 =
-      micm::Process::create()
-          .reactants({ o1d, o2 })
-          .products({ yields(o, 1), yields(o2, 1) })
-          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
-          .phase(gas_phase);
+  micm::ArrheniusRateConstantParameters r2_rate_params;
+  r2_rate_params.A_ = 3.3e-11;
+  r2_rate_params.B_ = 0;
+  r2_rate_params.C_ = 55;
 
-  micm::Process r3 =
-      micm::Process::create()
-          .reactants({ o, o3 })
-          .products({ yields(o2, 2) })
-          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .B_ = 0, .C_ = -2060 }))
-          .phase(gas_phase);
+  micm::ArrheniusRateConstantParameters r3_rate_params;
+  r3_rate_params.A_ = 8e-12;
+  r3_rate_params.B_ = 0;
+  r3_rate_params.C_ = -2060;
 
-  micm::Process r4 =
-      micm::Process::create()
-          .reactants({ o, o2, m })
-          .products({ yields(o3, 1), yields(m, 1) })
-          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 0, .C_ = 2.4 }))
-          .phase(gas_phase);
+  micm::ArrheniusRateConstantParameters r4_rate_params;
+  r4_rate_params.A_ = 6.0e-34;
+  r4_rate_params.B_ = 0;
+  r4_rate_params.C_ = 2.4;
+
+  micm::Process r1 = micm::Process::create()
+      .reactants({ o1d, n2 })
+      .products({ yields(o, 1), yields(n2, 1) })
+      .rate_constant(micm::ArrheniusRateConstant(r1_rate_params))
+      .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+      .reactants({ o1d, o2 })
+      .products({ yields(o, 1), yields(o2, 1) })
+      .rate_constant(micm::ArrheniusRateConstant(r2_rate_params))
+      .phase(gas_phase);
+
+  micm::Process r3 = micm::Process::create()
+      .reactants({ o, o3 })
+      .products({ yields(o2, 2) })
+      .rate_constant(micm::ArrheniusRateConstant(r3_rate_params))
+      .phase(gas_phase);
+
+  micm::Process r4 = micm::Process::create()
+      .reactants({ o, o2, m })
+      .products({ yields(o3, 1), yields(m, 1) })
+      .rate_constant(micm::ArrheniusRateConstant(r4_rate_params))
+      .phase(gas_phase);
+
 
   micm::Process photo_1 = micm::Process::create()
                               .reactants({ o2 })
@@ -72,7 +89,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+  micm::SystemParameters system_params;
+  system_params.gas_phase_ = gas_phase;
+  micm::RosenbrockSolver solver{ micm::System(system_params),
                                  std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
                                  micm::RosenbrockSolverParameters{} };
 

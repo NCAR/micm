@@ -22,10 +22,13 @@ TEST(ProcessSet, Constructor)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
-                                            .number_of_grid_cells_ = 2,
-                                            .number_of_custom_parameters_ = 0,
-                                            .number_of_rate_constants_ = 3 } };
+  micm::StateParameters params;
+  params.state_variable_names_ = { "foo", "bar", "baz", "quz", "quuz" };
+  params.number_of_grid_cells_ = 2;
+  params.number_of_custom_parameters_ = 0;
+  params.number_of_rate_constants_ = 3;
+
+  micm::State state(params);
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
