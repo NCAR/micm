@@ -88,5 +88,5 @@ if(ENABLE_GPU)
   find_package(CUDA REQUIRED)
   enable_language(CUDA)
 
-  set(CMAKE_CUDA_STANDARD 11.4.4)
+  set(CMAKE_CUDA_STANDARD 11.7.1)
 endif()
