@@ -8,6 +8,7 @@
 #include <micm/system/species.hpp>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace micm
 {

@@ -6,8 +6,6 @@
 
 #pragma once
 
-#define USE_JSON
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -18,13 +16,12 @@
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
-
 #include <variant>
 
-// #ifdef USE_JSON
-// #include <nlohmann/json.hpp>
-// using json = nlohmann::json;
-// #endif
+#ifdef USE_JSON
+#  include <nlohmann/json.hpp>
+using json = nlohmann::json;
+#endif
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -69,7 +66,7 @@ namespace micm
     }
   };
 
-  /// Solover parameters
+  // Solover parameters
   struct SolverParameters
   {
     micm::System system_;
@@ -85,21 +82,22 @@ namespace micm
     KeyNotFound,
   };
 
+  // JSON Configure paser
   template<class ErrorPolicy>
   class JsonReaderPolicy : public ErrorPolicy
   {
-  //  using json = nlohmann::json;
-
-   private:
+   public:
+    // Set to "public" for "NoThrowPolcy"
     std::vector<Species> species_;
     std::vector<Species> emissions_;
     std::vector<Species> first_order_loss_;
     std::vector<micm::Process> processes_;
-    micm::Phase phase_;
+    micm::Phase gas_phase_;
+    std::unordered_map<std::string, micm::Phase> phases_;
 
-   public:
     // Constants
-    static const inline std::string SPECIES_CONFIG = "species.json";      // TODO:jiwon 6/6 - instead of searching
+    static const inline std::string SPECIES_CONFIG =
+        "species.json";  // TODO:jiwon 6/6 - instead of searching, pass the configure path
     static const inline std::string REACTIONS_CONFIG = "mechanism.json";  // TODO:jiwon 6/6
 
     static const inline std::string CAMP_FILES = "camp-files";
@@ -111,10 +109,10 @@ namespace micm
 
     /// @brief read and parse JSON objects
     /// @param
-    /// @return SolverParameters if success, else ConfigErrorCode
+    /// @return SolverParameters if parsing is success, else returns ConfigErrorCode
     std::variant<micm::SolverParameters, micm::ConfigErrorCode> ReadAndParse(const std::filesystem::path& path)
     {
-      // Check whether file to path exists
+      // Check whether file exists
       if (!std::filesystem::exists(path))
       {
         std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
@@ -130,7 +128,7 @@ namespace micm
         return micm::ConfigErrorCode::KeyNotFound;
       }
 
-      // Check whether the listed files exist, and determine the sequence to read files.
+      // Check whether the listed files exist and determine the sequence to read files.
       std::string species_file;
       std::vector<std::string> other_files;
       bool found_species_file = false;
@@ -195,12 +193,14 @@ namespace micm
         }
       }
 
-      micm::SystemParameters sysParams = { phase_, std::unordered_map<std::string, micm::Phase>() };  // TODO: jiwon 6/6 - second param
+      micm::SystemParameters sysParams = { gas_phase_, phases_ };
 
       return micm::SolverParameters{ micm::System(sysParams), processes_ };
     }
 
-    // create species and phase
+    /// @brief Create 'Species' and 'Phase'
+    /// @param path to 'Species' file
+    /// @return True at success
     bool ConfigureSpecies(const std::string& file)
     {
       json file_data = json::parse(std::ifstream(file));
@@ -231,7 +231,7 @@ namespace micm
         }
       }
       // After creating Species, create Phase
-      phase_.species_ = species_;
+      gas_phase_.species_ = species_;
 
       return true;
     }
@@ -377,10 +377,10 @@ namespace micm
         }
       }
 
-      std::shared_ptr<micm::PhotolysisRateConstant> rate_ptr =
-          std::make_shared<micm::PhotolysisRateConstant>(object[MUSICA_NAME].get<std::string>());
+      std::unique_ptr<micm::PhotolysisRateConstant> rate_ptr =
+          std::make_unique<micm::PhotolysisRateConstant>(object[MUSICA_NAME].get<std::string>());
 
-      processes_.push_back(micm::Process(reactants, products, rate_ptr, phase_));
+      processes_.push_back(micm::Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return true;
     }
@@ -442,10 +442,10 @@ namespace micm
         parameters.E_ = object["E"].get<double>();
       }
 
-      std::shared_ptr<micm::ArrheniusRateConstant> rate_ptr =
-          std::make_shared<micm::ArrheniusRateConstant>(micm::ArrheniusRateConstantParameters(parameters));
+      std::unique_ptr<micm::ArrheniusRateConstant> rate_ptr =
+          std::make_unique<micm::ArrheniusRateConstant>(micm::ArrheniusRateConstantParameters(parameters));
 
-      processes_.push_back(micm::Process(reactants, products, rate_ptr, phase_));
+      processes_.push_back(micm::Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return true;
     }

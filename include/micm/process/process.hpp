@@ -27,7 +27,7 @@ namespace micm
   {
     std::vector<Species> reactants_;
     std::vector<Yield> products_;
-    std::shared_ptr<RateConstant> rate_constant_;
+    std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
     /// @brief Update the solver state rate constants
@@ -39,12 +39,11 @@ namespace micm
     static ProcessBuilder create();
     Process(ProcessBuilder& builder);
     Process(const Process& other);
-  
 
-    Process(const std::vector<Species>& reactants, const std::vector<Yield>& products, std::shared_ptr<RateConstant> rate_constant, const Phase& phase)
+    Process(const std::vector<Species>& reactants, const std::vector<Yield>& products, std::unique_ptr<RateConstant> rate_constant, const Phase& phase)
         : reactants_(reactants),
         products_(products),
-        rate_constant_(rate_constant),  // TODO: jiwon 6/7 - need to be ptr, shared ptr okay?
+        rate_constant_(std::move(rate_constant)),
         phase_(phase)
     {
     }
