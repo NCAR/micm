@@ -19,7 +19,7 @@
 #include <variant>
 
 #ifdef USE_JSON
-#include <nlohmann/json.hpp>
+#  include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace micm

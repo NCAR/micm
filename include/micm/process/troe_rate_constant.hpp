@@ -40,7 +40,7 @@ namespace micm
     const TroeRateConstantParameters parameters_;
 
    public:
-    /// @brief Default constructor.
+    /// @brief Default constructor
     TroeRateConstant();
 
     /// @brief An explicit constructor
