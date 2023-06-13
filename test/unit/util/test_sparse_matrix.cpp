@@ -45,6 +45,24 @@ TEST(SparseMatrix, ZeroMatrix)
       },
       std::invalid_argument);
   EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
       try { matrix[0][0][4] = 2.0; } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
         throw;
@@ -113,6 +131,13 @@ TEST(SparseMatrix, SingleBlockMatrix)
     matrix.AsVector()[elem] = 21;
     EXPECT_EQ(matrix.AsVector()[2], 21);
   }
+
+  EXPECT_EQ(matrix.IsZero(0, 1), false);
+  EXPECT_EQ(matrix.IsZero(3, 2), false);
+  EXPECT_EQ(matrix.IsZero(2, 1), false);
+  EXPECT_EQ(matrix.IsZero(2, 2), true);
+  EXPECT_EQ(matrix.IsZero(0, 0), true);
+  EXPECT_EQ(matrix.IsZero(3, 3), true);
 
   EXPECT_EQ(matrix[0][2][1], 0);
   matrix[0][2][1] = 45;

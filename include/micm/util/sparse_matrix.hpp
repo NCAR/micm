@@ -121,6 +121,18 @@ namespace micm
       return VectorIndex(0, row, column);
     }
 
+    bool IsZero(std::size_t row, std::size_t column) const
+    {
+      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
+        throw std::invalid_argument("SparseMatrix element out of range");
+      auto begin = std::next(row_ids_.begin(), row_start_[row]);
+      auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
+      auto elem = std::find(begin, end, column);
+      if (elem == end)
+        return true;
+      return false;
+    }
+
     std::size_t size() const
     {
       return number_of_blocks_;
