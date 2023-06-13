@@ -21,7 +21,6 @@
 #ifdef USE_JSON
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-#endif
 
 namespace micm
 {
@@ -493,3 +492,4 @@ namespace micm
   };
 
 }  // namespace micm
+#endif
