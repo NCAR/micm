@@ -92,8 +92,7 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    // RosenbrockSolver(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters parameters);  // TODO: jiwon - 6/7 original
-    RosenbrockSolver(const System& system, const std::vector<Process>& processes, const RosenbrockSolverParameters parameters);
+    RosenbrockSolver(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters parameters);
 
     virtual ~RosenbrockSolver();
 
@@ -207,32 +206,12 @@ namespace micm
     three_stage_rosenbrock();
   }
 
-  // original
-  // inline RosenbrockSolver::RosenbrockSolver(
-  //     const System& system,
-  //     std::vector<Process>&& processes,
-  //     const RosenbrockSolverParameters parameters)
-  //     : system_(system),
-  //       processes_(std::move(processes)),
-  //       parameters_(parameters),
-  //       process_set_(processes_, GetState()),
-  //       stats_(),
-  //       jacobian_()
-  // {
-  //   auto builder = SparseMatrix<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
-  //   auto jac_elements = process_set_.NonZeroJacobianElements();
-  //   for (auto& elem : jac_elements)
-  //     builder = builder.with_element(elem.first, elem.second);
-  //   jacobian_ = builder;
-  //   process_set_.SetJacobianFlatIds(jacobian_);
-
-  // TODO - jiwon 6/8 
   inline RosenbrockSolver::RosenbrockSolver(
       const System& system,
-      const std::vector<Process>& processes,
+      std::vector<Process>&& processes,
       const RosenbrockSolverParameters parameters)
       : system_(system),
-        processes_(processes),
+        processes_(std::move(processes)),
         parameters_(parameters),
         process_set_(processes_, GetState()),
         stats_(),
