@@ -134,7 +134,7 @@ namespace micm
 
   inline State<> ChapmanODESolver::GetState() const
   {
-    return State{ 9, 3, 7 };
+    return State<Matrix>{ 9, 3, 7 };
   }
 
   inline Solver::SolverResult ChapmanODESolver::Solve(

@@ -51,10 +51,18 @@ namespace micm
           std::exit(micm::ExitCodes::InvalidMatrixDimension);
         }
         auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
-        std::for_each(other.begin(), std::next(other.begin(), y_dim_), [&](T const& elem) {
+#if __cpluscplus >= 201907L
+	std::for_each(other.begin(), std::next(other.begin(), y_dim_), [&](T const& elem) {
           *iter = elem;
           iter += L;
         });
+#else
+	for(auto elem = other.begin(); elem < std::next(other.begin(), y_dim_); ++elem)
+	{
+	  *iter = *elem;
+	  iter += L;
+	}
+#endif
         return *this;
       }
       operator std::vector<T>() const

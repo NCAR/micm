@@ -76,7 +76,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                                                std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
                                                micm::RosenbrockSolverParameters{} };
 
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
   state.variables_[0] = concentrations;

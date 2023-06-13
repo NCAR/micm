@@ -210,7 +210,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, dforce_dy_times_vector)
 
 void TestSolve(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -245,7 +245,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 
 void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -283,7 +283,7 @@ TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 
 void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -321,7 +321,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 
 void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   state.conditions_[0].air_density_ = 2.7e19;
