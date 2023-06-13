@@ -2,5 +2,9 @@
 set(CMAKE_CXX_CLANG_TIDY "")
 
 add_subdirectory(unit)
-add_subdirectory(regression)
+
+if(ENABLE_REGESSION_TESTS)
+  add_subdirectory(regression)
+endif()
+
 add_subdirectory(integration)

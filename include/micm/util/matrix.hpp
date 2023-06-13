@@ -6,6 +6,8 @@
 #include <cassert>
 #include <vector>
 
+#include <micm/util/exit_codes.hpp>
+
 namespace micm
 {
 
@@ -35,7 +37,12 @@ namespace micm
       }
       Proxy &operator=(const std::vector<T> other)
       {
-        assert(other.size() >= y_dim_ && "Matrix row size mismatch in assignment from vector");
+        // check that this row matches the expected rectangular matrix dimensions
+        if (other.size() < y_dim_)
+        {
+          std::cerr << "Matrix row size mismatch in assignment from vector";
+          std::exit(micm::ExitCodes::InvalidMatrixDimension);
+        }
         auto other_elem = other.begin();
         for (auto &elem : *this)
         {
@@ -144,7 +151,12 @@ namespace micm
                 auto elem = data.begin();
                 for (std::size_t x{}; x < x_dim; ++x)
                 {
-                  assert(other[x].size() == y_dim && "Invalid vector for matrix assignment");
+                  // check that this row matches the expected rectangular matrix dimensions
+                  if (other[x].size() != y_dim)
+                  {
+                    std::cerr << "Invalid vector for matrix assignment\n";
+                    std::exit(micm::ExitCodes::InvalidMatrixDimension);
+                  }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
                     *(elem++) = other[x][y];

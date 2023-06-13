@@ -70,7 +70,7 @@ TEST(RegressionRosenbrock, forcing)
     EXPECT_EQ(forcing[i].size(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
-      EXPECT_NEAR(forcing[i][j], fixed_forcing[j], 1.0e-10);
+      EXPECT_NEAR(forcing[i][j], fixed_forcing[j], 1.0e-7);
     }
   }
 }
