@@ -19,8 +19,6 @@
 #include <nlohmann/json.hpp>
 #include <variant>
 
-using json = nlohmann::json;
-
 namespace micm
 {
   template<class Object>
@@ -81,8 +79,9 @@ namespace micm
   template<class ErrorPolicy>
   class JsonReaderPolicy : public ErrorPolicy
   {
+    using json = nlohmann::json;
+
    public:
-    // Set to "public" for "NoThrowPolcy"
     std::vector<Species> species_;
     std::vector<Species> emissions_;
     std::vector<Species> first_order_loss_;
