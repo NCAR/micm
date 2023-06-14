@@ -7,7 +7,7 @@ namespace micm
 
     void deriv()
     {
-      const int N = 100000000;
+      const int N = 100'000'000;
       int data[N];
 
       // Initialize data
@@ -21,6 +21,20 @@ namespace micm
       for (int i = 0; i < N; ++i)
       {
         data[i] *= 2;
+      }
+    }
+
+#pragma acc parallel loop
+      for (int i = 0; i < N; ++i)
+      {
+        data[i] /= 3;
+      }
+    }
+
+#pragma acc parallel loop
+      for (int i = 0; i < N; ++i)
+      {
+        data[i] += 3;
       }
     }
 
