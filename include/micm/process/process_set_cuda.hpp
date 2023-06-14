@@ -7,6 +7,7 @@
 #include <vector>
 
 namespace micm {
+    namespace cuda {
 
     void AddForcingTerms_kernelSetup(
         const Matrix<double>& rate_constants,
@@ -35,4 +36,5 @@ namespace micm {
         std::vector<std::size_t> yields_
     );
 
+    } // namespace cuda
 } // namespace micm

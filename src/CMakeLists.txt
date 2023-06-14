@@ -28,14 +28,25 @@ if(ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
-if(ENABLE_GPU)
+if(ENABLE_CUDA OR ENABLE_OPENACC)
   add_library(micm_gpu)
   add_library(musica::micm_gpu ALIAS micm_gpu)
 
   target_link_libraries(micm_gpu 
-    PUBLIC cudart
     PRIVATE micm
   )
+
+  if(ENABLE_CUDA)
+    target_link_libraries(micm_gpu 
+      PUBLIC cudart
+    )
+  endif()
+
+  if(ENABLE_OPENACC)
+    target_link_libraries(micm_gpu 
+      PUBLIC OpenACC::OpenACC_CXX
+    )
+  endif()
 
   add_subdirectory(process)
 endif()

@@ -20,7 +20,7 @@ function(create_standard_test)
 
   target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
 
-  if(ENABLE_GPU)
+  if(ENABLE_CUDA OR ENABLE_OPENACC)
     target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm_gpu)
   endif()
 
