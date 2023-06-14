@@ -42,6 +42,16 @@ option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 
+include(CMakeDependentOption)
+# Option to collect custom OpenACC flags
+cmake_dependent_option(ENABLE_GPU_TYPE "Enable custom OpenACC flags" OFF
+  "ENABLE_OPENACC" ON)
+
+if(ENABLE_GPU_TYPE)
+  set(GPU_TYPE "" CACHE STRING "Custom OpenACC flags")
+endif()
+
+
 ################################################################################
 # Dependencies
 

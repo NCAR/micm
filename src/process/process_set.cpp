@@ -22,14 +22,12 @@ namespace micm
       {
         data[i] *= 2;
       }
-    }
 
 #pragma acc parallel loop
       for (int i = 0; i < N; ++i)
       {
         data[i] /= 3;
       }
-    }
 
 #pragma acc parallel loop
       for (int i = 0; i < N; ++i)

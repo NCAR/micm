@@ -62,6 +62,7 @@ RUN mkdir /build \
         -D ENABLE_REGESSION_TESTS:BOOL=FALSE \
         -D ENABLE_CUDA=OFF \
         -D ENABLE_OPENACC=ON \
+        -D GPU_TYPE="cc80" \
         ../micm 
       # && make -j 8 install
 

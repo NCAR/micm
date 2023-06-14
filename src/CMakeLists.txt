@@ -32,6 +32,14 @@ if(ENABLE_CUDA OR ENABLE_OPENACC)
   add_library(micm_gpu)
   add_library(musica::micm_gpu ALIAS micm_gpu)
 
+  message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS} -gpu=${GPU_TYPE},lineinfo")
+
+  if(NOT GPU_TYPE)
+    message(FATAL_ERROR "GPU_TYPE is not set or is empty. Please provide a GPU type.")
+  endif()
+
+  target_compile_options(micm_gpu PRIVATE ${OpenACC_CXX_FLAGS} -gpu=${GPU_TYPE},lineinfo)
+
   target_link_libraries(micm_gpu 
     PRIVATE micm
   )
