@@ -36,7 +36,7 @@ make
 qinteractive -A<ACCOUNT_NUMBER> --ngpus=1
 module load cmake/3.25.2 nvhpc/23.1 cuda/11.7.1
 mkdir build && cd build
-cmake -DENABLE_GPU=ON -DENABLE_REGESSION_TESTS=OFF ..
+cmake -DENABLE_OPENACC=ON -DENABLE_CUDA=ON -DENABLE_REGESSION_TESTS=OFF ..
 make
 make test
 ```
