@@ -7,7 +7,7 @@ namespace micm
 
     void deriv()
     {
-      const int N = 10000;
+      const int N = 1000000;
       int data[N];
 
       // Initialize data
