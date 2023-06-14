@@ -7,7 +7,7 @@ namespace micm
 
     void deriv()
     {
-      const int N = 1000000;
+      const int N = 100000000;
       int data[N];
 
       // Initialize data
@@ -22,13 +22,6 @@ namespace micm
       {
         data[i] *= 2;
       }
-
-      // Print the modified data
-      for (int i = 0; i < N; ++i)
-      {
-        std::cout << data[i] << " ";
-      }
-      std::cout << std::endl;
     }
 
   }  // namespace openacc
