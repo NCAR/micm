@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <micm/configure/solver_config.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
@@ -93,35 +92,3 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     // output state
   }
 }
-
-// TEST(ChapmanIntegrationWithConfigFile, ReadConfigAndBuildChapmanSystem)
-// {
-//   // Configure params for solver
-//   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
-//   std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-//       solverConfig.Configure("./test/unit/unit_configs/chapman/config.json");
-
-//   micm::SolverParameters solver_params =
-//       std::get<micm::SolverParameters>(configs);  // return type must be <micm::SolverParameters>
-
-//   std::vector<micm::Process> p = solver_params.processes_;
-//   micm::RosenbrockSolver solver{ solver_params.system_,
-//                                  p,
-//                                  micm::RosenbrockSolverParameters{} };  // TODO: jiwon 6/8 - talk about solver param
-
-//   micm::State state = solver.GetState();
-
-//   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-//   state.variables_[0] = concentrations;
-//   std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-//   state.custom_rate_parameters_[0] = photo_rates;
-//   state.conditions_[0].temperature_ = 2;
-//   state.conditions_[0].pressure_ = 3;
-
-//   for (double t{}; t < 100; ++t)
-//   {
-//     state.custom_rate_parameters_[0] = photo_rates;
-//     auto result = solver.Solve(t, t + 0.5, state);
-//     // output state
-//   }
-// }

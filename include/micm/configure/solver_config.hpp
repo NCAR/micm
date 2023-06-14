@@ -16,10 +16,9 @@
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
+#include <nlohmann/json.hpp>
 #include <variant>
 
-#ifdef USE_JSON
-#  include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace micm
@@ -492,4 +491,3 @@ namespace micm
   };
 
 }  // namespace micm
-#endif
