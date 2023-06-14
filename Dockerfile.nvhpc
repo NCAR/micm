@@ -60,7 +60,7 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
-        -D ENABLE_REGESSION_TESTS:BOOL=FALSE \
+        -D ENABLE_REGRESSION_TESTS:BOOL=FALSE \
         ../micm \
       && make -j 8 install
 
