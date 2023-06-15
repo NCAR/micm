@@ -2,70 +2,79 @@
 #include <micm/solver/state.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <vector>
+#include <iostream>
 
 namespace micm {
-    namespace cuda {
 
     void AddForcingTerms_kernelSetup(
         const Matrix<double>& rate_constants,
         const Matrix<double>& state_variables,
-        Matrix<double>& forcing, vector<std::size_t> number_of_reactants_, 
-        vector<std::size_t> reactant_ids_, vector<std::size_t> number_of_products_,
-        vector<std::size_t> product_ids_, vector<std::size_t> yields_) const
+        Matrix<double>& forcing, size_t* number_of_reactants_, int number_of_reactants_size, 
+        size_t* reactant_ids_, int reactant_ids_size, size_t* number_of_products_, int number_of_products_size,
+        size_t* product_ids_, int product_ids_size, size_t* yields_, int yields_size) const
     {
-        vector <std::size_t> accumulated_n_reactants; 
-        accumulated_n_reactants.push_back(0); 
-        for (int i = 0; i < number_of_reactants_.size(); i++){
+        
+        //allocate memory for host c pointers 
+        int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size + 1); 
+        size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
+        accumulated_n_reactants[0] = 0; 
+        for (int i = 0; i < number_of_reactants_size; i++){
             int sum = accumulated_n_reactants[i] + number_of_reactants_[i]; 
-            accumulated_n_reactants.push_back(sum); 
-        }
+            accumulated_n_reactants[i+1] = sum; 
+        }    
         
-        vector<std::size_t>accumulated_n_products;
-        accumulated_n_products.push_back(0); 
-        
-        for (int i = 0; i < number_of_products_.size(); i++){
-            int sum = accumulated_n_reactants[i] + number_of_products_[i]; 
-            accumlated_n_products.push_back[sum];     
+        int accumulated_n_products_bytes = sizeof(size_t) * (number_of_products_size + 1); 
+        size_t* accumulated_n_products = (size_t*)malloc(accumulated_n_products_bytes); 
+        accumulated_n_products[0] = 0;  
+        for (int i = 0; i < number_of_products_size; i++){
+            int sum = accumulated_n_products[i] + number_of_products_[i]; 
+            accumulated_n_products[i+1] = sum; 
         }
 
         // device pointer to vectors
-        std::vector<double>* d_rate_constants; 
-        std::vector<double>* d_state_variables; 
-        std::vector<double>* d_forcing; 
-        std::vector<std::size_t>* d_number_of_reactants_; 
-        std::vector<std::size_t>* d_accumulated_n_reactants; 
-        std::vector<std::size_t>* d_reactant_ids_; 
-        std::vector<std::size_t>* d_number_of_products_; 
-        std::vector<std::size_t>* d_accumulated_n_products; 
-        std::vector<std::size_t>* d_product_ids_; 
-        std::vector<std::size_t>* d_yields_; 
+        std::double* d_rate_constants; 
+        std::double* d_state_variables; 
+        std::double* d_forcing; 
+        std::size_t* d_number_of_reactants_; 
+        std::size_t* d_accumulated_n_reactants; 
+        std::size_t* d_reactant_ids_; 
+        std::size_t* d_number_of_products_; 
+        std::size_t* d_accumulated_n_products; 
+        std::size_t* d_product_ids_; 
+        std::size_t* d_yields_; 
         
-
-
+        size_t rate_constants_bytes = sizeof(std::double) * rate_constants.data_.size(); 
+        size_t state_variables_bytes = sizeof(std::double) * state_variables.data_.size();
+        size_t forcing_bytes = sizeof(std::double)* forcing.data_.size(); 
+        size_t number_of_reactants_bytes = sizeof(std::size_t) * number_of_reactants_size;
+        size_t reactant_ids_bytes = sizeof(std::size_t) * reactant_ids_size; 
+        size_t number_of_products_bytes = sizeof(std::size_t) * number_of_products_size; 
+        size_t product_ids_bytes = sizeof(std::size_t) * product_ids_size;
+        size_t yields_bytes = sizeof(std::size_t) * yields_size;
+        
         //allocate device memory
-        cudaMalloc(&d_rate_constants, (sizeof(std::double)* rate_constants.data.size())); 
-        cudaMalloc(&d_state_variables, (sizeof(std::double)* state_variables.data.size())); 
-        cudaMalloc(&d_forcing, (sizeof(std::double)* forcing.data.size())); 
-        cudaMalloc(&d_number_of_reactants_, (sizeof(std::size_t)* number_of_reactants_.size()));
-        cudaMalloc(&d_accumulated_n_reactants,(sizeof(std::size_t)* accumulated_n_reactants.size())); 
-        cudaMalloc(&d_reactant_ids_, (sizeof(std::size_t)* reactant_ids_.size()));  
-        cudaMalloc(&d_number_of_products_, (sizeof(std::size_t)* number_of_products_.size()));
-        cudaMalloc(&d_accumulated_n_products, (sizeof(std::size_t) * accumulated_n_products.size())); 
-        cudaMalloc(&d_product_ids_, (sizeof(std::size_t)* product_ids_.size()));  
-        cudaMalloc(&d_yields, (sizeof(std::size_t) * yields_.size())); 
+        cudaMalloc(&d_rate_constants, rate_constants_bytes); 
+        cudaMalloc(&d_state_variables, state_variables_bytes); 
+        cudaMalloc(&d_forcing, forcing_bytes); 
+        cudaMalloc(&d_number_of_reactants_, number_of_reactants_bytes);
+        cudaMalloc(&d_accumulated_n_reactants, accumulated_n_reactants_bytes); 
+        cudaMalloc(&d_reactant_ids_, reactant_ids_bytes);  
+        cudaMalloc(&d_number_of_products_, number_of_products_bytes);
+        cudaMalloc(&d_accumulated_n_products, accumulated_n_products_bytes); 
+        cudaMalloc(&d_product_ids_, product_ids_bytes);  
+        cudaMalloc(&d_yields, yields_bytes); 
         
         //copy data from host to device memory 
-        cudaMemcpy(d_rate_constants, &rate_constants.data, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_state_variables, &state_variables.data, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_forcing, &forcing.data, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_reactants_, &number_of_reactants_, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_accumulated_n_reactants, &accumulated_n_reactants, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_reactant_ids_, &reactant_ids_, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_products_, &number_of_products_, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_accumulated_n_products, &accumlated_n_products, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_product_ids_, &product_ids_, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_yields, &yields_, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_rate_constants, &rate_constants.data_, rate_constants_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_state_variables, &state_variables.data_, state_variables_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_forcing, &forcing.data_, forcing_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_reactants_, number_of_reactants_, number_of_reactants_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_accumulated_n_reactants, accumulated_n_reactants, accumulated_n_reactants_bytes,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_reactant_ids_, reactant_ids_, reactant_ids_bytes,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_products_, number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_accumulated_n_products, accumulated_n_products, accumulated_n_products_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_product_ids_, product_ids_, product_ids_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_yields, yields_, yields_bytes, cudaMemcpyHostToDevice); 
 
         //total thread count == rate_constants matrix size?
         int threads_count = rate_constants.x_dim * rate_constants.y_dim;
@@ -74,9 +83,9 @@ namespace micm {
         //grid size 
         int blocks_count = (int)ceil(threads_count/threadsPerBlock); 
 
-        int matrix_rows = rate_constants.x_dim; 
-        int rate_constants_columns = rate_constants.y_dim; 
-        int state_forcing_columns = state_variables.y_dim;
+        int matrix_rows = rate_constants.x_dim_; 
+        int rate_constants_columns = rate_constants.y_dim_; 
+        int state_forcing_columns = state_variables.y_dim_;
 
         //kernel function call
         AddForcingTerms_kernel(d_rate_constants, d_state_variables, 
@@ -103,16 +112,16 @@ namespace micm {
 
 
     //one thread per reaction in atompheric model 
-    __global__ void AddForcingTerms_kernel(vector<std:: double>* rate_constants, vector<std::double> state_variables, 
-    vector<std::double> forcing, int matrix_rows, int rate_constants_columns, int state_forcing_columns, 
-    vector<std::size_t> number_of_reactants_, vector<std::size_t> accumulated_n_reactants, vector<std::size_t> reactant_ids_, 
-    vector<std::size_t> number_of_products_,vector<std::size_t> accumulated_n_products, vector<std::size_t> product_ids_, 
-    vector<std::size_t> yields_){
+    __global__ void AddForcingTerms_kernel(std::double* rate_constants, int rate_reactants_size, std::double* state_variables, 
+    std::double* forcing, int matrix_rows, int rate_constants_columns, int state_forcing_columns, 
+    std::size_t* number_of_reactants_, std::size_t* accumulated_n_reactants, std:: size_t* reactant_ids_, 
+    std::size_t* number_of_products_, std::size_t* accumulated_n_products, std::size_t* product_ids_, 
+    std::size_t* yields_){
 
     //define thread index 
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
 
-    if (tid < rate_constants.size()){
+    if (tid < rate_reactants_size){
         int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
         int row_index = tid % rate_constants_columns; 
         int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
@@ -136,7 +145,6 @@ namespace micm {
             int forcing_col_index = product_ids_[product_ids_index]; 
             forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
         }   
-        }
     }
-  }  // namespace cuda
+    }
 }
