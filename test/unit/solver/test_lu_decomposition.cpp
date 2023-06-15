@@ -1,10 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <random>
 
 template<class T>
-void check_results(const micm::SparseMatrix<T>& A, const micm::SparseMatrix<T>& L, const micm::SparseMatrix<T>& U)
+void check_results(
+    const micm::SparseMatrix<T>& A,
+    const micm::SparseMatrix<T>& L,
+    const micm::SparseMatrix<T>& U,
+    const std::function<void(const T, const T)> f)
 {
   EXPECT_EQ(A.size(), L.size());
   EXPECT_EQ(A.size(), U.size());
@@ -24,11 +30,11 @@ void check_results(const micm::SparseMatrix<T>& A, const micm::SparseMatrix<T>& 
         }
         if (A.IsZero(i, j))
         {
-          EXPECT_EQ(result, 0);
+          f(result, T{});
         }
         else
         {
-          EXPECT_EQ(A[i_block][i][j], result);
+          f(result, A[i_block][i][j]);
         }
       }
     }
@@ -62,7 +68,7 @@ void print_matrix(const micm::SparseMatrix<T>& matrix, std::size_t width)
 }
 
 // tests example from https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
-TEST(LuDecomposition, denseMatrix)
+TEST(LuDecomposition, DenseMatrix)
 {
   micm::SparseMatrix<int> A = micm::SparseMatrix<int>::create(3)
                                   .with_element(0, 0)
@@ -86,17 +92,32 @@ TEST(LuDecomposition, denseMatrix)
   A[0][2][2] = 8;
 
   micm::LuDecomposition lud(A);
-  lud.Print();
-
   auto LU = micm::LuDecomposition::GetLUMatrices(A);
   lud.Decompose(A, LU.first, LU.second);
+  check_results<int>(A, LU.first, LU.second, [&](const int a, const int b) -> void { EXPECT_EQ(a, b); });
+}
 
-  std::cout << "A matrix" << std::endl;
-  print_matrix(A, 3);
-  std::cout << "L matrix" << std::endl;
-  print_matrix(LU.first, 3);
-  std::cout << "U matrix" << std::endl;
-  print_matrix(LU.second, 3);
+TEST(LuDecomposition, RandomSparseMatrix)
+{
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  check_results(A, LU.first, LU.second);
+  auto builder = micm::SparseMatrix<double>::create(10).number_of_blocks(5);
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t j = 0; j < 10; ++j)
+      if (i == j || gen_bool())
+        builder = builder.with_element(i, j);
+
+  micm::SparseMatrix<double> A(builder);
+
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t j = 0; j < 10; ++j)
+      if (!A.IsZero(i, j))
+        for (std::size_t i_block = 0; i_block < 5; ++i_block)
+          A[i_block][i][j] = get_double();
+
+  micm::LuDecomposition lud(A);
+  auto LU = micm::LuDecomposition::GetLUMatrices(A);
+  lud.Decompose(A, LU.first, LU.second);
+  check_results<double>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
