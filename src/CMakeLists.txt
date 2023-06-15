@@ -48,10 +48,10 @@ if(ENABLE_CUDA OR ENABLE_OPENACC)
     message(FATAL_ERROR "GPU_TYPE (${GPU_TYPE}) is not recognized. Available options are [a100, v100].")
   endif()
   
-  set(GPU_FLAGS -gpu=${GPU_ARCH},lineinfo,nofma -Minfo=accel)
+  set(GPU_FLAGS -gpu=${GPU_ARCH},lineinfo -Minfo=accel)
   message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS} ${GPU_FLAGS}")
 
-  target_compile_options(micm_gpu PRIVATE ${GPU_FLAGS})
+  target_compile_options(micm_gpu PRIVATE ${OpenACC_CXX_FLAGS} ${GPU_FLAGS})
 
   target_link_libraries(micm_gpu 
     PRIVATE micm
