@@ -14,14 +14,12 @@ namespace micm
 {
 
   /// Concept for vectorizable matrices
-#if __cplusplus >= 201907L
   template<typename T>
   concept Vectorizable = requires(T t) {
     t.BlockSize();
     t.NumberOfBlocks();
     t.VectorSize();
   };
-#endif
 
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
@@ -56,16 +54,12 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<template<class> typename MatrixPolicy>
-#if __cplusplus >= 201907L
       requires(!Vectorizable<MatrixPolicy<double>>)
-#endif
     void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const;
-#if __cplusplus >= 201907L
     template<template<class> typename MatrixPolicy>
       requires Vectorizable<MatrixPolicy<double>>
     void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing)
         const;
-#endif
 
     /// @brief Add Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
@@ -148,9 +142,7 @@ namespace micm
   }
 
   template<template<class> typename MatrixPolicy>
-#if __cplusplus >= 201907L
     requires(!Vectorizable<MatrixPolicy<double>>)
-#endif
   inline void
   ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
   {
@@ -179,7 +171,6 @@ namespace micm
     }
   };
 
-#if __cplusplus >= 201907L
   template<template<class> typename MatrixPolicy>
     requires Vectorizable<MatrixPolicy<double>>
   inline void
@@ -218,7 +209,6 @@ namespace micm
       }
     }
   }
-#endif
 
   template<template<class> class MatrixPolicy>
   inline void ProcessSet::AddJacobianTerms(
