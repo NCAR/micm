@@ -49,7 +49,7 @@ if(ENABLE_CUDA OR ENABLE_OPENACC)
   endif()
   
   set(GPU_FLAGS -gpu=${GPU_ARCH},lineinfo,nofma -Minfo=accel)
-  message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS}  ${GPU_FLAGS}")
+  message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS} ${GPU_FLAGS}")
 
   target_compile_options(micm_gpu PRIVATE ${GPU_FLAGS})
 
