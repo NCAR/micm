@@ -8,17 +8,63 @@
 namespace micm
 {
 
+  /// @brief LU decomposer for SparseMatrix
+  ///
+  /// The LU decomposition uses the Doolittle algorithm following the
+  /// naming used here: https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
+  ///
+  /// The sudo-code for the corresponding dense matrix algorithm for matrix A
+  /// and lower (upper) triangular matrix L(U) would be:
+  ///
+  /// for i = 0...n-1                 // Outer loop over rows (columns) for upper (lower) triangular matrix
+  ///   for k = i...n-1               // Middle loop over columns for upper triangular matrix
+  ///     sum = 0
+  ///     for j = 0...i-1             // Inner loop over columns (rows) for lower (upper) triangular matrix
+  ///       sum += L[i][j] * U[j][k]
+  ///     U[i][k] = A[i][k] - sum
+  ///   L[i][i] = 1                   // Lower triangular matrix is 1 along the diagonal
+  ///   for k = i+1...n-1             // Middle loop over rows for lower triangular matrix
+  ///     sum = 0
+  ///     for j = 0...i-1             // Inner loop over columns (rows) for lower (upper) triangular matrix
+  ///       sum += L[k][j] * U[j][i];
+  ///     L[k][i] = (A[k][i] - sum) / U[i][i]
+  ///
+  /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
+  /// several arrays during construction. These arrays are iterated through during
+  /// calls to Decompose to do the actual decomposition.
   class LuDecomposition
   {
+    /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
+    /// for each iteration of the outer (i) loop
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
+    /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
+    /// triangular matrix; False otherwise
     std::vector<bool> do_aik_;
+    /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
+    /// triangular matrix, when A[i][k] is non-zero
     std::vector<std::size_t> aik_;
+    /// Index in U.data_ for U[i][k] for each iteration of the middle (k) loop for the upper
+    /// triangular matrix, when U[i][k] is non-zero, and the corresponding number of elements
+    /// in the inner (j) loop
     std::vector<std::pair<std::size_t, std::size_t>> uik_nkj_;
+    /// Index in L.data_ for L[i][j], and in U.data_ for U[j][k] in the upper inner (j) loop
+    /// when L[i][j] and U[j][k] are both non-zero.
     std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
+    /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
+    /// triangular matrix; False otherwise
     std::vector<bool> do_aki_;
+    /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
+    /// triangular matrix, when A[k][i] is non-zero
     std::vector<std::size_t> aki_;
+    /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
+    /// triangular matrix, when L[k][i] is non-zero, and the corresponding number of elements
+    /// in the inner (j) loop
     std::vector<std::pair<std::size_t, std::size_t>> lki_nkj_;
+    /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the upper inner (j) loop
+    /// when L[k][j] and U[j][i] are both non-zero.
     std::vector<std::pair<std::size_t, std::size_t>> lkj_uji_;
+    /// Index in U.data_ for U[i][i] for each interation in the middle (k) loop for the lower
+    /// triangular matrix when L[k][i] is non-zero
     std::vector<std::size_t> uii_;
 
    public:
@@ -44,49 +90,6 @@ namespace micm
     template<class T>
     void Decompose(const SparseMatrix<T>& A, SparseMatrix<T>& L, SparseMatrix<T>& U) const;
 
-    void Print()
-    {
-      std::cout << "niLU ";
-      for (auto& elem : niLU_)
-        std::cout << "( " << elem.first << ", " << elem.second << ") ";
-      std::cout << std::endl;
-      std::cout << "do_aik ";
-      for (auto elem : do_aik_)
-        std::cout << elem << " ";
-      std::cout << std::endl;
-      std::cout << "aik ";
-      for (auto& elem : aik_)
-        std::cout << elem << " ";
-      std::cout << std::endl;
-      std::cout << "uik_nkj ";
-      for (auto& elem : uik_nkj_)
-        std::cout << "( " << elem.first << ", " << elem.second << ") ";
-      std::cout << std::endl;
-      std::cout << "lij_ujk ";
-      for (auto& elem : lij_ujk_)
-        std::cout << "( " << elem.first << ", " << elem.second << ") ";
-      std::cout << std::endl;
-      std::cout << "do_aki ";
-      for (auto elem : do_aki_)
-        std::cout << elem << " ";
-      std::cout << std::endl;
-      std::cout << "aki ";
-      for (auto& elem : aki_)
-        std::cout << elem << " ";
-      std::cout << std::endl;
-      std::cout << "lki_nkj ";
-      for (auto& elem : lki_nkj_)
-        std::cout << "( " << elem.first << ", " << elem.second << ") ";
-      std::cout << std::endl;
-      std::cout << "lkj_uji ";
-      for (auto& elem : lkj_uji_)
-        std::cout << "( " << elem.first << ", " << elem.second << ") ";
-      std::cout << std::endl;
-      std::cout << "uii ";
-      for (auto& elem : uii_)
-        std::cout << elem << " ";
-      std::cout << std::endl;
-    }
   };
 
   inline LuDecomposition::LuDecomposition()
