@@ -45,7 +45,7 @@ option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
 cmake_dependent_option(ENABLE_GPU_TYPE "Enable custom OpenACC flags" OFF
-  "ENABLE_OPENACC" ON)
+  "ENABLE_OPENACC OR ENABLE_CUDA" ON)
 
 if(ENABLE_GPU_TYPE)
   set(GPU_TYPE "" CACHE STRING "Custom OpenACC flags")
