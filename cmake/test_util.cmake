@@ -11,7 +11,7 @@ endif()
 function(create_standard_test)
   set(prefix TEST)
   set(singleValues NAME WORKING_DIRECTORY)
-  set(multiValues SOURCES)
+  set(multiValues SOURCES LIBRARIES)
 
   include(CMakeParseArguments)
   cmake_parse_arguments(${prefix} " " "${singleValues}" "${multiValues}" ${ARGN})
@@ -20,9 +20,10 @@ function(create_standard_test)
 
   target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
 
-  if(ENABLE_CUDA OR ENABLE_OPENACC)
-    target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm_gpu)
-  endif()
+  # link additional libraries
+  foreach(library ${TEST_LIBRARIES})
+    target_link_libraries(test_${TEST_NAME} PUBLIC ${library})
+  endforeach()
 
   if(ENABLE_JSON)
     target_link_libraries(test_${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
