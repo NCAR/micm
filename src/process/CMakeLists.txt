@@ -1,4 +1,12 @@
-target_sources(micm_gpu
-  PRIVATE
-    process_set.cu
-)
+if(ENABLE_CUDA)
+  target_sources(micm_gpu
+    PRIVATE
+      process_set.cu
+  )
+endif()
+if(ENABLE_OPENACC)
+  target_sources(micm_gpu
+    PRIVATE
+      process_set.cpp
+  )
+endif()

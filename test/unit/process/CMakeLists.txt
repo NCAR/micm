@@ -12,6 +12,10 @@ create_standard_test(NAME troe_rate_constant SOURCES test_troe_rate_constant.cpp
 create_standard_test(NAME process_set SOURCES test_process_set.cpp)
 
 # GPU tests
-if(ENABLE_GPU)
-  create_standard_test(NAME gpu_process_set SOURCES test_gpu_process_set.cpp)
+if(ENABLE_CUDA)
+  create_standard_test(NAME cuda_process_set SOURCES test_cuda_process_set.cpp)
+endif()
+
+if(ENABLE_OPENACC)
+  create_standard_test(NAME openacc_process_set SOURCES test_openacc_process_set.cpp)
 endif()

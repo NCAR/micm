@@ -84,9 +84,13 @@ endif()
 ################################################################################
 # GPU Support
 
-if(ENABLE_GPU)
+if(ENABLE_CUDA)
   find_package(CUDA REQUIRED)
   enable_language(CUDA)
 
   set(CMAKE_CUDA_STANDARD 11.7.1)
+endif()
+
+if(ENABLE_OPENACC)
+  find_package(OpenACC REQUIRED)
 endif()

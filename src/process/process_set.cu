@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace micm {
+    namespace cuda {
 
     void AddForcingTerms_kernelSetup(
         const Matrix<double>& rate_constants,
@@ -135,6 +136,7 @@ namespace micm {
             int forcing_col_index = product_ids_[product_ids_index]; 
             forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
         }   
+        }
     }
-    }
+  }  // namespace cuda
 }

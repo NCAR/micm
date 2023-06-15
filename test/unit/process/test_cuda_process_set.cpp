@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <micm/process/process.hpp>
-#include <micm/process/process_set_gpu.hpp>
+#include <micm/process/process_set_cuda.hpp>
 
 TEST(ProcessSet, Constructor)
 {
-  // AddForcingTerms_kernelSetup(...);
+  // micm::cuda::AddForcingTerms_kernelSetup(...);
 }
