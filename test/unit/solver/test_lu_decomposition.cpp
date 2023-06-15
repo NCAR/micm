@@ -121,3 +121,23 @@ TEST(LuDecomposition, RandomSparseMatrix)
   lud.Decompose(A, LU.first, LU.second);
   check_results<double>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
+
+TEST(LuDecomposition, DiagonalOnly)
+{
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
+
+  auto builder = micm::SparseMatrix<double>::create(6).number_of_blocks(5);
+  for (std::size_t i = 0; i < 6; ++i)
+    builder = builder.with_element(i, i);
+
+  micm::SparseMatrix<double> A(builder);
+
+  for (std::size_t i = 0; i < 6; ++i)
+    for (std::size_t i_block = 0; i_block < 5; ++i_block)
+      A[i_block][i][i] = get_double();
+
+  micm::LuDecomposition lud(A);
+  auto LU = micm::LuDecomposition::GetLUMatrices(A);
+  lud.Decompose(A, LU.first, LU.second);
+  check_results<double>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+}
