@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <micm/process/process_set_openacc.hpp>
+
 namespace micm
 {
   namespace openacc
