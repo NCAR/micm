@@ -41,10 +41,10 @@ namespace micm
     /// triangular matrix; False otherwise
     std::vector<bool> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
-    /// triangular matrix, when A[i][k] is non-zero
+    /// triangular matrix when A[i][k] is non-zero
     std::vector<std::size_t> aik_;
     /// Index in U.data_ for U[i][k] for each iteration of the middle (k) loop for the upper
-    /// triangular matrix, when U[i][k] is non-zero, and the corresponding number of elements
+    /// triangular matrix when U[i][k] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
     std::vector<std::pair<std::size_t, std::size_t>> uik_nkj_;
     /// Index in L.data_ for L[i][j], and in U.data_ for U[j][k] in the upper inner (j) loop
@@ -54,13 +54,13 @@ namespace micm
     /// triangular matrix; False otherwise
     std::vector<bool> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
-    /// triangular matrix, when A[k][i] is non-zero
+    /// triangular matrix when A[k][i] is non-zero
     std::vector<std::size_t> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
-    /// triangular matrix, when L[k][i] is non-zero, and the corresponding number of elements
+    /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
     /// in the inner (j) loop
     std::vector<std::pair<std::size_t, std::size_t>> lki_nkj_;
-    /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the upper inner (j) loop
+    /// Index in L.data_ for L[k][j], and in U.data_ for U[j][i] in the lower inner (j) loop
     /// when L[k][j] and U[j][i] are both non-zero.
     std::vector<std::pair<std::size_t, std::size_t>> lkj_uji_;
     /// Index in U.data_ for U[i][i] for each interation in the middle (k) loop for the lower
