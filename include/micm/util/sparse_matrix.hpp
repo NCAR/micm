@@ -31,7 +31,9 @@ namespace micm
 
     friend class SparseMatrixBuilder<T>;
     friend class ProxyRow;
+    friend class ConstProxyRow;
     friend class Proxy;
+    friend class ConstProxy;
 
     class Proxy
     {
@@ -53,6 +55,31 @@ namespace micm
       }
 
       T& operator[](std::size_t y)
+      {
+        return matrix_.data_[matrix_.VectorIndex(block_id_, row_id_, y)];
+      }
+    };
+
+    class ConstProxy
+    {
+      const SparseMatrix& matrix_;
+      std::size_t block_id_;
+      std::size_t row_id_;
+
+     public:
+      ConstProxy(const SparseMatrix& matrix, std::size_t block_id, std::size_t row_id)
+          : matrix_(matrix),
+            block_id_(block_id),
+            row_id_(row_id)
+      {
+      }
+
+      std::size_t size() const
+      {
+        return matrix_.row_start_.size() - 1;
+      }
+
+      const T& operator[](std::size_t y) const
       {
         return matrix_.data_[matrix_.VectorIndex(block_id_, row_id_, y)];
       }
@@ -81,6 +108,29 @@ namespace micm
       }
     };
 
+    class ConstProxyRow
+    {
+      const SparseMatrix& matrix_;
+      std::size_t block_id_;
+
+     public:
+      ConstProxyRow(const SparseMatrix& matrix, std::size_t block_id)
+          : matrix_(matrix),
+            block_id_(block_id)
+      {
+      }
+
+      std::size_t size() const
+      {
+        return matrix_.row_start_.size() - 1;
+      }
+
+      ConstProxy operator[](std::size_t x) const
+      {
+        return ConstProxy(matrix_, block_id_, x);
+      }
+    };
+
    public:
     static SparseMatrixBuilder<T> create(std::size_t block_size)
     {
@@ -99,6 +149,10 @@ namespace micm
 
     std::vector<T>& AsVector()
     {
+      return data_;
+    }
+
+    const std::vector<T>& AsVector() const{
       return data_;
     }
 
@@ -143,9 +197,24 @@ namespace micm
       return row_ids_.size();
     }
 
+    ConstProxyRow operator[](std::size_t b) const
+    {
+      return ConstProxyRow(*this, b);
+    }
+
     ProxyRow operator[](std::size_t b)
     {
       return ProxyRow(*this, b);
+    }
+
+    const std::vector<std::size_t>& RowStartVector() const
+    {
+      return row_start_;
+    }
+
+    const std::vector<std::size_t>& RowIdsVector() const
+    {
+      return row_ids_;
     }
   };
 
