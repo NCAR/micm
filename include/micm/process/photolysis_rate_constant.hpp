@@ -36,7 +36,7 @@ namespace micm
     ///        The single editable parameter is the unscaled rate constant for
     ///        the photolysis reaction
     /// @return Number of custom rate constant parameters
-    std::size_t SizeCustomParameters() override;
+    std::size_t SizeCustomParameters() const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
@@ -68,7 +68,7 @@ namespace micm
     return (double)*custom_parameters;
   }
 
-  inline std::size_t PhotolysisRateConstant::SizeCustomParameters()
+  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const
   {
     return 1;
   }

@@ -24,7 +24,7 @@ namespace micm
     virtual std::unique_ptr<RateConstant> clone() const = 0;
     /// @brief Returns the number of doubles needed to hold user-defined rate constant parameters
     /// @return Number of user-defined rate constant parameters
-    virtual std::size_t SizeCustomParameters()
+    virtual std::size_t SizeCustomParameters() const
     {
       return 0;
     }
