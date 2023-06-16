@@ -28,9 +28,9 @@ if(ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
-if(ENABLE_CUDA OR ENABLE_OPENACC)
-  add_library(micm_gpu)
-  add_library(musica::micm_gpu ALIAS micm_gpu)
+if(ENABLE_OPENACC)
+  add_library(micm_openacc)
+  add_library(musica::micm_openacc ALIAS micm_openacc)
 
   if(NOT GPU_TYPE)
     message(FATAL_ERROR "GPU_TYPE is not set or is empty. Please provide a GPU type.")
@@ -51,23 +51,30 @@ if(ENABLE_CUDA OR ENABLE_OPENACC)
   set(GPU_FLAGS -gpu=${GPU_ARCH},lineinfo -Minfo=accel)
   message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS} ${GPU_FLAGS}")
 
-  # target_compile_options(micm_gpu PRIVATE ${OpenACC_CXX_FLAGS} ${GPU_FLAGS})
+  target_compile_options(micm_openacc PRIVATE ${OpenACC_CXX_FLAGS} ${GPU_FLAGS})
 
-  target_link_libraries(micm_gpu 
+  target_link_libraries(micm_openacc 
+    PRIVATE micm
+  )
+
+  target_link_libraries(micm_openacc 
+    PUBLIC OpenACC::OpenACC_CXX
+  )
+endif()
+
+if(ENABLE_CUDA)
+  add_library(micm_cuda)
+  add_library(musica::micm_cuda ALIAS micm_cuda)
+
+  target_link_libraries(micm_cuda 
     PRIVATE micm
   )
 
   if(ENABLE_CUDA)
-    target_link_libraries(micm_gpu 
+    target_link_libraries(micm_cuda 
       PUBLIC cudart
     )
   endif()
-
-  if(ENABLE_OPENACC)
-    target_link_libraries(micm_gpu 
-      PUBLIC OpenACC::OpenACC_CXX
-    )
-  endif()
-
-  add_subdirectory(process)
 endif()
+
+add_subdirectory(process)
