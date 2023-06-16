@@ -56,6 +56,12 @@ namespace micm
         const Matrix<double>& rate_constants,
         const Matrix<double>& state_variables,
         SparseMatrix<double>& jacobian) const;
+    
+    void AddForcingTerms_kernelSetup(
+        const Matrix<double>& rate_constants, 
+        const Matrix<double>& state_variables, 
+        Matrix<double>& forcing);
+  
   };
 
   inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State& state)

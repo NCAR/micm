@@ -3,20 +3,30 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <iostream>
+#include <micm/process/process_set.hpp>
 
 namespace micm {
 
     //one thread per reaction
     //passing all device pointers 
-    __global__ void AddForcingTerms_kernel(double* rate_constants, int rate_reactants_size, 
-    double* state_variables, double* forcing, int matrix_rows, int rate_constants_columns, 
-    int state_forcing_columns,size_t* number_of_reactants_, size_t* accumulated_n_reactants, 
-    size_t* reactant_ids_, size_t* number_of_products_, size_t* accumulated_n_products, 
-    size_t* product_ids_, size_t* yields_){
-
+    __global__ void AddForcingTerms_kernel(
+        double* rate_constants, 
+        double* state_variables, 
+        double* forcing, 
+        int matrix_rows, 
+        int rate_constants_columns, 
+        int state_forcing_columns,
+        size_t* number_of_reactants_, 
+        size_t* accumulated_n_reactants, 
+        size_t* reactant_ids_, 
+        size_t* number_of_products_, 
+        size_t* accumulated_n_products, 
+        size_t* product_ids_, 
+        size_t* yields_)
+    {
     //define thread index 
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
-
+    int rate_reactants_size = matrix_rows * rate_constants_columns; 
     if (tid < rate_reactants_size){
         int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
         int row_index = tid % rate_constants_columns; 
@@ -43,20 +53,32 @@ namespace micm {
         }   
     }
   }
-    void AddForcingTerms_kernelSetup(
-        const Matrix<double>& rate_constants, int rate_constants_size,
-        const Matrix<double>& state_variables, int state_variables_size,
-        Matrix<double>& forcing, int forcing_size, size_t* number_of_reactants_, 
-        int number_of_reactants_size, size_t* reactant_ids_, int reactant_ids_size, 
-        size_t* number_of_products_, int number_of_products_size,size_t* product_ids_, 
-        int product_ids_size, size_t* yields_, int yields_size)
+    void ProcessSet::AddForcingTerms_kernelSetup(
+        const Matrix<double>& rate_constants, 
+        const Matrix<double>& state_variables, 
+        Matrix<double>& forcing)
     {
+        int matrix_rows = rate_constants.size(); 
+        int rate_constants_columns = rate_constants[0].size(); 
+        int state_forcing_columns = state_variables[0].size();
+        //access class member vectors 
+        size_t* number_of_reactants = number_of_reactants_.data();
+        int number_of_reactants_size = number_of_reactants_.size(); 
+        size_t* reactant_ids = reactant_ids_.data(); 
+        int reactant_ids_size = reactant_ids_.size(); 
+        size_t* number_of_products = number_of_products_.data();
+        int number_of_products_size = number_of_products_.size(); 
+        size_t* product_ids = product_ids_.data(); 
+        int product_ids_size = product_ids_.size(); 
+        double* yields = yields_.data();
+        int yields_size = yields_.size(); 
+
         //allocate memory for host c pointers 
         int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size + 1); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
         accumulated_n_reactants[0] = 0; 
         for (int i = 0; i < number_of_reactants_size; i++){
-            int sum = accumulated_n_reactants[i] + number_of_reactants_[i]; 
+            int sum = accumulated_n_reactants[i] + number_of_reactants[i]; 
             accumulated_n_reactants[i+1] = sum; 
         }    
         
@@ -64,7 +86,7 @@ namespace micm {
         size_t* accumulated_n_products = (size_t*)malloc(accumulated_n_products_bytes); 
         accumulated_n_products[0] = 0;  
         for (int i = 0; i < number_of_products_size; i++){
-            int sum = accumulated_n_products[i] + number_of_products_[i]; 
+            int sum = accumulated_n_products[i] + number_of_products[i]; 
             accumulated_n_products[i+1] = sum; 
         }
 
@@ -80,10 +102,10 @@ namespace micm {
         size_t* d_product_ids_; 
         size_t* d_yields_; 
         
-         //allocate device memory
-        size_t rate_constants_bytes = sizeof(double) * rate_constants_size; 
-        size_t state_variables_bytes = sizeof(double) * state_variables_size;
-        size_t forcing_bytes = sizeof(double)* forcing_size; 
+        //allocate device memory
+        size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
+        size_t state_variables_bytes = sizeof(double) * (matrix_rows * state_forcing_columns); 
+        size_t forcing_bytes = sizeof(double) * (matrix_rows * state_forcing_columns);  
         size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
         size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size; 
         size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size; 
@@ -105,20 +127,18 @@ namespace micm {
         const double* rate_constants_data = rate_constants.AsVector().data(); 
         const double* state_variables_data = state_variables.AsVector().data();
         double* forcing_data = forcing.AsVector().data(); 
+        
         cudaMemcpy(d_rate_constants, rate_constants_data, rate_constants_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_state_variables, state_variables_data, state_variables_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_forcing, forcing_data, forcing_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_reactants_, number_of_reactants_, number_of_reactants_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_reactants_, number_of_reactants, number_of_reactants_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_accumulated_n_reactants, accumulated_n_reactants, accumulated_n_reactants_bytes,cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_reactant_ids_, reactant_ids_, reactant_ids_bytes,cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_products_, number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_reactant_ids_, reactant_ids, reactant_ids_bytes,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_products_, number_of_products, number_of_products_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_accumulated_n_products, accumulated_n_products, accumulated_n_products_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_product_ids_, product_ids_, product_ids_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_yields_, yields_, yields_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_product_ids_, product_ids, product_ids_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice); 
 
-        int matrix_rows = rate_constants.size(); 
-        int rate_constants_columns = rate_constants[0].size(); 
-        int state_forcing_columns = state_variables[0].size();
         //total thread count == rate_constants matrix size?
         int threads_count = matrix_rows * rate_constants_columns; 
         //block size 
@@ -127,11 +147,11 @@ namespace micm {
         int blocks_count = (int)ceil(threads_count/threadsPerBlock); 
 
         //kernel function call
-        AddForcingTerms_kernel<<<blocks_count, threadsPerBlock>>>(d_rate_constants, rate_constants_size, d_state_variables, 
+        AddForcingTerms_kernel<<<blocks_count, threadsPerBlock>>>(d_rate_constants, d_state_variables, 
         d_forcing, matrix_rows, rate_constants_columns, state_forcing_columns, 
-        number_of_reactants_, accumulated_n_reactants, reactant_ids_, 
-        number_of_products_, accumulated_n_products, product_ids_, 
-        yields_);
+        d_number_of_reactants_, d_accumulated_n_reactants, d_reactant_ids_, 
+        d_number_of_products_, d_accumulated_n_products, d_product_ids_, 
+        d_yields_);
         cudaDeviceSynchronize(); 
         cudaMemcpy(d_forcing,forcing_data, forcing_bytes, cudaMemcpyDeviceToHost);
 
@@ -148,6 +168,5 @@ namespace micm {
 
         free(accumulated_n_reactants); 
         free(accumulated_n_products); 
-
     }
 }
