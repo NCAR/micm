@@ -57,11 +57,9 @@ if(ENABLE_OPENACC)
     PRIVATE micm
   )
 
-  if(ENABLE_OPENACC)
-    target_link_libraries(micm_openacc 
-      PUBLIC OpenACC::OpenACC_CXX
-    )
-  endif()
+  target_link_libraries(micm_openacc 
+    PUBLIC OpenACC::OpenACC_CXX
+  )
 endif()
 
 if(ENABLE_CUDA)
