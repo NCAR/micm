@@ -59,7 +59,7 @@ namespace micm
     }
   };
 
-  // Solover parameters
+  // Solver parameters
   struct SolverParameters
   {
     micm::System system_;
