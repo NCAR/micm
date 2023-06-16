@@ -75,6 +75,11 @@ if(ENABLE_CUDA)
       PUBLIC cudart
     )
   endif()
+
+  target_compile_definitions(micm_cuda
+    PUBLIC
+      USE_CUDA
+  )
 endif()
 
 add_subdirectory(process)

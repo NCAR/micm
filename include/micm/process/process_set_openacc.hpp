@@ -1,6 +1,5 @@
 #pragma once
 
-#include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>

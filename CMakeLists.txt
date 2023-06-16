@@ -51,7 +51,6 @@ if(ENABLE_GPU_TYPE)
   set(GPU_TYPE "" CACHE STRING "Custom OpenACC flags")
 endif()
 
-
 ################################################################################
 # Dependencies
 

@@ -57,10 +57,12 @@ namespace micm
         const Matrix<double>& state_variables,
         SparseMatrix<double>& jacobian) const;
     
+    #ifdef USE_CUDA
     void AddForcingTerms_kernelSetup(
         const Matrix<double>& rate_constants, 
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing);
+    #endif
   
   };
 
