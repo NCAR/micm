@@ -61,7 +61,7 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_REGESSION_TESTS:BOOL=FALSE \
         -D ENABLE_CUDA=ON \
-        -D ENABLE_OPENACC=ON \
+        -D ENABLE_OPENACC=OFF \
         -D GPU_TYPE="a100" \
         ../micm 
       # && make -j 8 install
