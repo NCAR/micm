@@ -28,6 +28,9 @@ void check_results(
             result += L[i_block][i][k] * U[i_block][k][j];
           }
         }
+        // Make sure these are actually triangular matrices
+        EXPECT_TRUE(i >= j || L.IsZero(i, j));
+        EXPECT_TRUE(j >= i || U.IsZero(i, j));
         if (A.IsZero(i, j))
         {
           f(result, T{});
