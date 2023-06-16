@@ -37,7 +37,7 @@ option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" ON)
-option(ENABLE_REGESSION_TESTS "Enable regression tests against the old pre-processed version of micm" ON)
+option(ENABLE_REGRESSION_TESTS "Enable regression tests against the old pre-processed version of micm" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
 
 ################################################################################
