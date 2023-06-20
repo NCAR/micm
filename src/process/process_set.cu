@@ -35,9 +35,9 @@ namespace micm {
         int initial_product_ids_index = accumulated_n_products[tid % rate_constants_columns];
         int initial_yields_index = accumulated_n_products[tid % rate_constants_columns]; 
         
-        //access index at reactant_ids based on number_of_reactant_
+        
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-            int reactant_ids_index = i_reactant + initial_reactant_ids_index; 
+            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             //how to match thread idx to state_variable index 
             //but we need to consider the row of state_variable 
@@ -60,7 +60,11 @@ namespace micm {
         int matrix_rows = rate_constants.size(); 
         int rate_constants_columns = rate_constants[0].size(); 
         int state_forcing_columns = state_variables[0].size();
-        //access class member vectors 
+
+       //create pointers to matrix data vectors and class member vectors 
+        const double* rate_constants_data = rate_constants.AsVector().data(); 
+        const double* state_variables_data = state_variables.AsVector().data();
+        double* forcing_data = forcing.AsVector().data(); 
         size_t* number_of_reactants = number_of_reactants_.data();
         int number_of_reactants_size = number_of_reactants_.size(); 
         size_t* reactant_ids = reactant_ids_.data(); 
@@ -72,19 +76,19 @@ namespace micm {
         double* yields = yields_.data();
         int yields_size = yields_.size(); 
 
-        //allocate memory for host c pointers 
-        int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size + 1); 
+      
+        int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
         accumulated_n_reactants[0] = 0; 
-        for (int i = 0; i < number_of_reactants_size; i++){
+        for (int i = 0; i < number_of_reactants_size - 1; i++){
             int sum = accumulated_n_reactants[i] + number_of_reactants[i]; 
             accumulated_n_reactants[i+1] = sum; 
         }    
         
-        int accumulated_n_products_bytes = sizeof(size_t) * (number_of_products_size + 1); 
+        int accumulated_n_products_bytes = sizeof(size_t) * (number_of_products_size); 
         size_t* accumulated_n_products = (size_t*)malloc(accumulated_n_products_bytes); 
         accumulated_n_products[0] = 0;  
-        for (int i = 0; i < number_of_products_size; i++){
+        for (int i = 0; i < number_of_products_size - 1; i++){
             int sum = accumulated_n_products[i] + number_of_products[i]; 
             accumulated_n_products[i+1] = sum; 
         }
@@ -103,8 +107,7 @@ namespace micm {
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
-        size_t state_variables_bytes = sizeof(double) * (matrix_rows * state_forcing_columns); 
-        size_t forcing_bytes = sizeof(double) * (matrix_rows * state_forcing_columns);  
+        size_t state_forcing_bytes = sizeof(double) * (matrix_rows * state_forcing_columns); 
         size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
         size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size; 
         size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size; 
@@ -112,8 +115,8 @@ namespace micm {
         size_t yields_bytes = sizeof(size_t) * yields_size;
         
         cudaMalloc(&d_rate_constants, rate_constants_bytes); 
-        cudaMalloc(&d_state_variables, state_variables_bytes); 
-        cudaMalloc(&d_forcing, forcing_bytes); 
+        cudaMalloc(&d_state_variables, state_forcing_bytes); 
+        cudaMalloc(&d_forcing, state_forcing_bytes); 
         cudaMalloc(&d_number_of_reactants_, number_of_reactants_bytes);
         cudaMalloc(&d_accumulated_n_reactants, accumulated_n_reactants_bytes); 
         cudaMalloc(&d_reactant_ids_, reactant_ids_bytes);  
@@ -121,15 +124,11 @@ namespace micm {
         cudaMalloc(&d_accumulated_n_products, accumulated_n_products_bytes); 
         cudaMalloc(&d_product_ids_, product_ids_bytes);  
         cudaMalloc(&d_yields_, yields_bytes); 
-        
-        //copy data from host to device memory 
-        const double* rate_constants_data = rate_constants.AsVector().data(); 
-        const double* state_variables_data = state_variables.AsVector().data();
-        double* forcing_data = forcing.AsVector().data(); 
-        
+
+        //copy data from host memory to device memory    
         cudaMemcpy(d_rate_constants, rate_constants_data, rate_constants_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_state_variables, state_variables_data, state_variables_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_forcing, forcing_data, forcing_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_state_variables, state_variables_data, state_forcing_bytes, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_number_of_reactants_, number_of_reactants, number_of_reactants_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_accumulated_n_reactants, accumulated_n_reactants, accumulated_n_reactants_bytes,cudaMemcpyHostToDevice); 
         cudaMemcpy(d_reactant_ids_, reactant_ids, reactant_ids_bytes,cudaMemcpyHostToDevice); 
@@ -152,7 +151,7 @@ namespace micm {
         d_number_of_products_, d_accumulated_n_products, d_product_ids_, 
         d_yields_);
         cudaDeviceSynchronize(); 
-        cudaMemcpy(d_forcing,forcing_data, forcing_bytes, cudaMemcpyDeviceToHost);
+        cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyDeviceToHost);
 
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
