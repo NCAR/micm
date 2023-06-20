@@ -25,8 +25,8 @@ namespace micm {
     {
     //define thread index 
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
-    int rate_reactants_size = matrix_rows * rate_constants_columns; 
-    if (tid < rate_reactants_size){
+    int rate_constants_size = matrix_rows * rate_constants_columns; 
+    if (tid < rate_constants_size){
         int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
         int row_index = tid % rate_constants_columns; 
         int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
@@ -138,7 +138,7 @@ namespace micm {
         cudaMemcpy(d_product_ids_, product_ids, product_ids_bytes, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice); 
 
-        //total thread count == rate_constants matrix size?
+        //total thread count == rate_constants matrix size
         int threads_count = matrix_rows * rate_constants_columns; 
         //block size 
         int threadsPerBlock = 128; //32 threads per warp * 4 warps
