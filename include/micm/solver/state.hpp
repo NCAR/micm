@@ -4,6 +4,7 @@
 #include <map>
 #include <micm/util/matrix.hpp>
 #include <vector>
+#include <string>
 
 namespace micm
 {

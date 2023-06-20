@@ -97,6 +97,16 @@ namespace micm
     {
     }
 
+    SparseMatrix<T>& operator=(SparseMatrixBuilder<T>& builder)
+    {
+      number_of_blocks_ = builder.number_of_blocks_;
+      data_ = std::vector<T>(builder.NumberOfElements(), builder.initial_value_);
+      row_ids_ = builder.RowIdsVector();
+      row_start_ = builder.RowStartVector();
+
+      return *this;
+    }
+
     std::vector<T>& AsVector()
     {
       return data_;

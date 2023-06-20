@@ -9,9 +9,6 @@
 
 namespace micm
 {
-
-  class System;
-
   struct ArrheniusRateConstantParameters
   {
     /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
@@ -38,13 +35,13 @@ namespace micm
     const ArrheniusRateConstantParameters parameters_;
 
    public:
-    /// @brief Default constructor. All terms will be zero
+    /// @brief Default constructor
     ArrheniusRateConstant();
 
     /// @brief An explicit constructor where each term can be set. Set B and E to zero to get the common form of the
     /// Arrhenius equation
     /// @param parameters A set of arrhenius rate constants
-    ArrheniusRateConstant(ArrheniusRateConstantParameters parameters);
+    ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
@@ -53,7 +50,8 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+        const override;
 
     double calculate(const double& temperature, const double& pressure) const;
   };
@@ -63,7 +61,7 @@ namespace micm
   {
   }
 
-  inline ArrheniusRateConstant::ArrheniusRateConstant(ArrheniusRateConstantParameters parameters)
+  inline ArrheniusRateConstant::ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }
@@ -73,8 +71,9 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
   }
 
-  inline double ArrheniusRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
-      const
+  inline double ArrheniusRateConstant::calculate(
+      const Conditions& conditions,
+      const std::vector<double>::const_iterator& custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.pressure_);
   }
