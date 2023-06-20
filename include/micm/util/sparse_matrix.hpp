@@ -96,7 +96,9 @@ namespace micm
           row_start_(builder.RowStartVector())
     {
     }
-
+    //
+    // TODO: jiwon 6/20 - need review for the implementation and the function name 
+    //
     SparseMatrix<T>& operator=(SparseMatrixBuilder<T>& builder)
     {
       number_of_blocks_ = builder.number_of_blocks_;

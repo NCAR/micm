@@ -18,7 +18,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
   std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-      solverConfig.Configure("./unit_configs/chapman/config.json");
+      solverConfig.Configure("./unit_configs/chapman");
 
   // Check if parsing is successful and returns 'Solverparameters'
   auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);

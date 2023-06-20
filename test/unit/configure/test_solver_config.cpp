@@ -6,15 +6,15 @@
 TEST(SolverConfig, DetectsInvalidConfigFileAndThrow)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};
-  EXPECT_ANY_THROW(solverConfig.Configure("not_a_config_file.json"));
+  EXPECT_ANY_THROW(solverConfig.Configure("not_a_config_file_directory"));
 }
 
 TEST(SolverConfig, DetectsInvalidConfigFileAndNoThrowDoesntThrow)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig{};
-  EXPECT_NO_THROW(solverConfig.Configure("not_a_config_file.json"));
+  EXPECT_NO_THROW(solverConfig.Configure("not_a_config_file_directory"));
 
-  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs = solverConfig.Configure("not_a_config_file.json");
+  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs = solverConfig.Configure("not_a_config_file_directory");
   EXPECT_EQ(std::get<micm::ConfigErrorCode>(configs), micm::ConfigErrorCode::FileNotFound);
 }
 
@@ -22,7 +22,7 @@ TEST(SolverConfig, ReadAndParseSystem)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};
   std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-      solverConfig.Configure("./unit_configs/chapman/config.json");
+      solverConfig.Configure("./unit_configs/chapman");
 
   // Check if parsing is successful and returns 'Solverparameters'
   auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);
@@ -56,7 +56,7 @@ TEST(SolverConfig, ReadAndParseProcess)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};
   std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-      solverConfig.Configure("./unit_configs/chapman/config.json");
+      solverConfig.Configure("./unit_configs/chapman");
 
   // Check if parsing is successful and returns 'Solverparameters'
   auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);

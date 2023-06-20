@@ -90,13 +90,10 @@ namespace micm
     std::unordered_map<std::string, micm::Phase> phases_;
 
     // Constants
-    static const inline std::string SPECIES_CONFIG =
-        "species.json";  // TODO:jiwon 6/6 - instead of searching, pass the configure path
-    static const inline std::string REACTIONS_CONFIG = "mechanism.json";  // TODO:jiwon 6/6
+    static const inline std::string SPECIES_CONFIG = "species.json";
+    static const inline std::string REACTIONS_CONFIG = "mechanism.json";
 
-    static const inline std::string CAMP_FILES = "camp-files";
     static const inline std::string CAMP_DATA = "camp-data";
-
     static const inline std::string TYPE = "type";
 
     // Functions
@@ -104,88 +101,39 @@ namespace micm
     /// @brief read and parse JSON objects
     /// @param
     /// @return SolverParameters if parsing is success, else returns ConfigErrorCode
-    std::variant<micm::SolverParameters, micm::ConfigErrorCode> ReadAndParse(const std::filesystem::path& path)
+    std::variant<micm::SolverParameters, micm::ConfigErrorCode> ReadAndParse(const std::filesystem::path& config_dir)
     {
-      // Check whether file exists
-      if (!std::filesystem::exists(path))
+      std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
+      std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
+
+      // Check all the configure files exist
+      for (auto config : { species_config, reactions_config })
       {
-        std::string err_msg = "Configuration file at path " + path.string() + " does not exist\n";
-        this->OnError(err_msg);
-
-        return micm::ConfigErrorCode::FileNotFound;
-      }
-
-      // Read file to get the list of configure files
-      json data = json::parse(std::ifstream(path));
-      if (!ValidateJsonWithKey(data, CAMP_FILES))
-      {
-        return micm::ConfigErrorCode::KeyNotFound;
-      }
-
-      // Check whether the listed files exist and determine the sequence to read files.
-      std::string species_file;
-      std::vector<std::string> other_files;
-      bool found_species_file = false;
-
-      for (const auto& file : data[CAMP_FILES].get<std::vector<nlohmann::json::string_t>>())
-      {
-        if (!std::filesystem::exists(file))
+        if (!std::filesystem::exists(config))
         {
-          std::string err_msg = "Configuration file at path " + file + " does not exist\n";
+          std::string err_msg = "Configuration file at path " + config.string() + " does not exist\n";
           this->OnError(err_msg);
-
           return micm::ConfigErrorCode::FileNotFound;
-        }
-
-        // Find species file to read first
-        std::size_t found = file.find(SPECIES_CONFIG);
-        if (found != std::string::npos)
-        {
-          species_file = file;
-          found_species_file = true;
-        }
-        else
-        {
-          other_files.push_back(file);
         }
       }
 
       // Read species file to create Species and Phase that needs to be known to System and Process
-      if (found_species_file)
+      if (!ConfigureSpecies(species_config))
+        return micm::ConfigErrorCode::KeyNotFound;
+
+      // Read reactions file
+      json reaction_data = json::parse(std::ifstream(reactions_config));
+      if (!ValidateJsonWithKey(reaction_data, CAMP_DATA))
+        return micm::ConfigErrorCode::KeyNotFound;
+
+      std::vector<json> reaction_objects;
+      for (const auto& element : reaction_data[CAMP_DATA])
       {
-        if (!ConfigureSpecies(species_file))
-        {
-          return micm::ConfigErrorCode::KeyNotFound;
-        }
-      }
-      else
-      {
-        std::string err_msg = "Species configure file does not exist\n";
-        this->OnError(err_msg);
-
-        return micm::ConfigErrorCode::FileNotFound;
+        reaction_objects.push_back(element);
       }
 
-      // Read files, eg. reactions.json
-      for (const auto& file : other_files)
-      {
-        json file_data = json::parse(std::ifstream(file));
-        if (!ValidateJsonWithKey(file_data, CAMP_DATA))
-        {
-          return micm::ConfigErrorCode::KeyNotFound;
-        }
-
-        std::vector<json> objects;
-        for (const auto& element : file_data[CAMP_DATA])
-        {
-          objects.push_back(element);
-        }
-
-        if (!ParseObjectArray(objects))
-        {
-          return micm::ConfigErrorCode::KeyNotFound;
-        }
-      }
+      if (!ParseObjectArray(reaction_objects))
+        return micm::ConfigErrorCode::KeyNotFound;
 
       micm::SystemParameters sysParams = { gas_phase_, phases_ };
 
@@ -195,7 +143,7 @@ namespace micm
     /// @brief Create 'Species' and 'Phase'
     /// @param path to 'Species' file
     /// @return True at success
-    bool ConfigureSpecies(const std::string& file)
+    bool ConfigureSpecies(const std::filesystem::path& file)
     {
       json file_data = json::parse(std::ifstream(file));
 
@@ -483,9 +431,9 @@ namespace micm
   class SolverConfig : public ConfigTypePolicy<ErrorPolicy<std::variant<micm::SolverParameters, micm::ConfigErrorCode>>>
   {
    public:
-    std::variant<micm::SolverParameters, micm::ConfigErrorCode> Configure(const std::filesystem::path& path)
+    std::variant<micm::SolverParameters, micm::ConfigErrorCode> Configure(const std::filesystem::path& config_dir)
     {
-      return this->ReadAndParse(path);
+      return this->ReadAndParse(config_dir);
     }
   };
 
