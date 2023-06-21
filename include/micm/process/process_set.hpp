@@ -16,7 +16,7 @@ namespace micm
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
-    public: 
+    
     std::vector<std::size_t> number_of_reactants_;
     std::vector<std::size_t> reactant_ids_;
     std::vector<std::size_t> number_of_products_;
@@ -65,6 +65,37 @@ namespace micm
     //     const Matrix<double>& state_variables, 
     //     Matrix<double>& forcing);
     // #endif
+
+  const std::vector<std::size_t>& number_of_reactants_vector() const
+  {
+    return number_of_reactants_;
+  }
+  
+  const std::vector<std::size_t>& reactant_ids_vector() const
+  {
+    return reactant_ids_;
+  }
+  
+  const std::vector<std::size_t>& number_of_products_vector() const
+  {
+    return number_of_products_;
+  }
+  
+  const std::vector<std::size_t>& product_ids_vector() const
+  {
+    return product_ids_; 
+  }
+  
+  const std::vector<double>& yields_vector() const
+  {
+    return yields_; 
+  }
+
+  const std::vector<std::size_t>& jacobian_flat_ids_vector() const
+  {
+    return jacobian_flat_ids_; 
+  }
+
   
   };
 
@@ -204,5 +235,8 @@ namespace micm
       cell_jacobian += jacobian.FlatBlockSize();
     }
   }
+  
+
+  
 
 }  // namespace micm

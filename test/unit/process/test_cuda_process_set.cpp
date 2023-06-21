@@ -37,16 +37,16 @@ TEST(ProcessSet, Constructor)
 
   micm::ProcessSet set{ std::vector<micm::Process>{ r1, r2, r3 }, state };
 
-  size_t* number_of_reactants = set.number_of_reactants_.data();
-  int number_of_reactants_size = set.number_of_reactants_.size();
-  size_t* reactant_ids = set.reactant_ids_.data();
-  int reactant_ids_size = set.reactant_ids_.size();
-  size_t* number_of_products = set.number_of_products_.data();
-  int number_of_products_size = set.number_of_products_.size();
-  size_t* product_ids = set.product_ids_.data(); 
-  int product_ids_size = set.product_ids_.size();
-  double* yields = set.yields_.data();
-  int yields_size = set.yields_.size(); 
+  const size_t* number_of_reactants = set.number_of_reactants_vector().data();
+  int number_of_reactants_size = set.number_of_reactants_vector().size();
+  const size_t* reactant_ids = set.reactant_ids_vector().data();
+  int reactant_ids_size = set.reactant_ids_vector().size();
+  const size_t* number_of_products = set.number_of_products_vector().data();
+  int number_of_products_size = set.number_of_products_vector().size();
+  const size_t* product_ids = set.product_ids_vector().data(); 
+  int product_ids_size = set.product_ids_vector().size();
+  const double* yields = set.yields_vector().data();
+  int yields_size = set.yields_vector().size(); 
 
   EXPECT_EQ(state.variables_.size(), 2);
   EXPECT_EQ(state.variables_[0].size(), 5);

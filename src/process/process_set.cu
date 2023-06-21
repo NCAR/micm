@@ -52,15 +52,15 @@ namespace micm {
     }
   }
     void AddForcingTerms_kernelSetup(
-        size_t* number_of_reactants,
+        const size_t* number_of_reactants,
         int number_of_reactants_size,
-        size_t* reactant_ids, 
+        const size_t* reactant_ids, 
         int reactant_ids_size,
-        size_t* number_of_products, 
+        const size_t* number_of_products, 
         int number_of_products_size,
-        size_t* product_ids,
+        const size_t* product_ids,
         int product_ids_size,
-        double* yields,
+        const double* yields,
         int yields_size,
         const Matrix<double>& rate_constants, 
         const Matrix<double>& state_variables, 
