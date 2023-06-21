@@ -2,10 +2,9 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <iostream>
-#include <micm/process/process_set.hpp>
 
 namespace micm {
-
+    namespace cuda {
     //one thread per reaction
     //passing all device pointers 
     __global__ void AddForcingTerms_kernel(
@@ -52,7 +51,17 @@ namespace micm {
         }   
     }
   }
-    void ProcessSet::AddForcingTerms_kernelSetup(
+    void AddForcingTerms_kernelSetup(
+        size_t* number_of_reactants,
+        int number_of_reactants_size,
+        size_t* reactant_ids, 
+        int reactant_ids_size,
+        size_t* number_of_products, 
+        int number_of_products_size,
+        size_t* product_ids,
+        int product_ids_size,
+        double* yields,
+        int yields_size,
         const Matrix<double>& rate_constants, 
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing)
@@ -65,18 +74,7 @@ namespace micm {
         const double* rate_constants_data = rate_constants.AsVector().data(); 
         const double* state_variables_data = state_variables.AsVector().data();
         double* forcing_data = forcing.AsVector().data(); 
-        size_t* number_of_reactants = number_of_reactants_.data();
-        int number_of_reactants_size = number_of_reactants_.size(); 
-        size_t* reactant_ids = reactant_ids_.data(); 
-        int reactant_ids_size = reactant_ids_.size(); 
-        size_t* number_of_products = number_of_products_.data();
-        int number_of_products_size = number_of_products_.size(); 
-        size_t* product_ids = product_ids_.data(); 
-        int product_ids_size = product_ids_.size(); 
-        double* yields = yields_.data();
-        int yields_size = yields_.size(); 
-
-      
+       
         int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
         accumulated_n_reactants[0] = 0; 
@@ -166,5 +164,6 @@ namespace micm {
 
         free(accumulated_n_reactants); 
         free(accumulated_n_products); 
-    }
-}
+        }
+    }//namespace cuda 
+}//namespace micm

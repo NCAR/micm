@@ -9,12 +9,14 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
+
 namespace micm
 {
 
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
+    public: 
     std::vector<std::size_t> number_of_reactants_;
     std::vector<std::size_t> reactant_ids_;
     std::vector<std::size_t> number_of_products_;
@@ -57,12 +59,12 @@ namespace micm
         const Matrix<double>& state_variables,
         SparseMatrix<double>& jacobian) const;
     
-    #ifdef USE_CUDA
-    void AddForcingTerms_kernelSetup(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing);
-    #endif
+    // #ifdef USE_CUDA
+    // void AddForcingTerms_kernelSetup(
+    //     const Matrix<double>& rate_constants, 
+    //     const Matrix<double>& state_variables, 
+    //     Matrix<double>& forcing);
+    // #endif
   
   };
 
