@@ -33,10 +33,10 @@ make
 
 #### On Gust
 ```
-qinteractive -A<ACCOUNT_NUMBER> --ngpus=1
+qinteractive -A NTDD0005 --ngpus=1
 module load cmake/3.25.2 nvhpc/23.1 cuda/11.7.1
 mkdir build && cd build
-cmake -DENABLE_OPENACC=ON -DENABLE_CUDA=ON -DENABLE_REGESSION_TESTS=OFF -D GPU_TYPE="a100" ..
+cmake -DENABLE_OPENACC=OFF -DENABLE_CUDA=ON -DENABLE_REGESSION_TESTS=OFF -D GPU_TYPE="a100" .
 make
 make test
 ```

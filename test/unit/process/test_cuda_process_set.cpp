@@ -37,17 +37,6 @@ TEST(ProcessSet, Constructor)
 
   micm::ProcessSet set{ std::vector<micm::Process>{ r1, r2, r3 }, state };
 
-  const size_t* number_of_reactants = set.number_of_reactants_vector().data();
-  int number_of_reactants_size = set.number_of_reactants_vector().size();
-  const size_t* reactant_ids = set.reactant_ids_vector().data();
-  int reactant_ids_size = set.reactant_ids_vector().size();
-  const size_t* number_of_products = set.number_of_products_vector().data();
-  int number_of_products_size = set.number_of_products_vector().size();
-  const size_t* product_ids = set.product_ids_vector().data(); 
-  int product_ids_size = set.product_ids_vector().size();
-  const double* yields = set.yields_vector().data();
-  int yields_size = set.yields_vector().size(); 
-
   EXPECT_EQ(state.variables_.size(), 2);
   EXPECT_EQ(state.variables_[0].size(), 5);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
@@ -58,7 +47,26 @@ TEST(ProcessSet, Constructor)
   rate_constants[1] = { 110.0, 120.0, 130.0 };
 
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
-
+  
+  //debugging 
+  std::cout<< "Before operation"<<std::endl; 
+  double* forcing_data = forcing.AsVector().data(); 
+  int forcing_data_size = forcing.AsVector().size();
+  for (int j = 0; j < forcing_data_size; j++){
+    std::cout << forcing_data[j]<<std::endl;
+  }
+  
+  const size_t* number_of_reactants = set.number_of_reactants_vector().data();
+  int number_of_reactants_size = set.number_of_reactants_vector().size();
+  const size_t* reactant_ids = set.reactant_ids_vector().data();
+  int reactant_ids_size = set.reactant_ids_vector().size();
+  const size_t* number_of_products = set.number_of_products_vector().data();
+  int number_of_products_size = set.number_of_products_vector().size();
+  const size_t* product_ids = set.product_ids_vector().data(); 
+  int product_ids_size = set.product_ids_vector().size();
+  const double* yields = set.yields_vector().data();
+  int yields_size = set.yields_vector().size(); 
+  
   micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
     number_of_reactants_size,
@@ -84,6 +92,15 @@ TEST(ProcessSet, Constructor)
   EXPECT_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4);
   EXPECT_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
   EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+  
+  //debugging 
+  std::cout<< "After operation operation"<<std::endl; 
+  double* forcing_data_after = forcing.AsVector().data(); 
+ 
+  for (int k = 0; k < forcing_data_size; k++){
+    std::cout << forcing_data_after[k]<<std::endl;
+  }
+ 
 
 //   auto non_zero_elements = set.NonZeroJacobianElements();
 

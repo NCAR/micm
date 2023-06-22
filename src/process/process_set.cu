@@ -26,29 +26,30 @@ namespace micm {
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
     int rate_constants_size = matrix_rows * rate_constants_columns; 
     if (tid < rate_constants_size){
-        int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
-        int row_index = tid % rate_constants_columns; 
-        int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
-        int product_num = number_of_products_[tid % rate_constants_columns]; //number of products of the reaction 
-        int initial_reactant_ids_index = accumulated_n_reactants[tid % rate_constants_columns];
-        int initial_product_ids_index = accumulated_n_products[tid % rate_constants_columns];
-        int initial_yields_index = accumulated_n_products[tid % rate_constants_columns]; 
+        // int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
+        // int row_index = tid % rate_constants_columns; 
+        // int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
+        // int product_num = number_of_products_[tid % rate_constants_columns]; //number of products of the reaction 
+        // int initial_reactant_ids_index = accumulated_n_reactants[tid % rate_constants_columns];
+        // int initial_product_ids_index = accumulated_n_products[tid % rate_constants_columns];
+        // int initial_yields_index = accumulated_n_products[tid % rate_constants_columns]; 
         
         
-        for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
-            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            //how to match thread idx to state_variable index 
-            //but we need to consider the row of state_variable 
-            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index]; 
-            forcing[row_index * state_forcing_columns + state_forcing_col_index] -= rate; 
-        }
-        for (int i_product = 0; i_product < product_num; i_product++){
-            int yields_index = initial_yields_index + i_product; 
-            int product_ids_index  = initial_product_ids_index + i_product; 
-            int forcing_col_index = product_ids_[product_ids_index]; 
-            forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
-        }   
+        // for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
+        //     int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
+        //     int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+        //     //how to match thread idx to state_variable index 
+        //     //but we need to consider the row of state_variable 
+        //     rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index]; 
+        //     forcing[row_index * state_forcing_columns + state_forcing_col_index] -= rate; 
+        // }
+        // for (int i_product = 0; i_product < product_num; i_product++){
+        //     int yields_index = initial_yields_index + i_product; 
+        //     int product_ids_index  = initial_product_ids_index + i_product; 
+        //     int forcing_col_index = product_ids_[product_ids_index]; 
+        //     forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
+        // } 
+        forcing[tid] = tid;   
     }
   }
     void AddForcingTerms_kernelSetup(
@@ -136,7 +137,8 @@ namespace micm {
         cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice); 
 
         //total thread count == rate_constants matrix size
-        int threads_count = matrix_rows * rate_constants_columns; 
+        //int threads_count = matrix_rows * rate_constants_columns; 
+        int threads_count = matrix_rows * state_forcing_columns;
         //block size 
         int threadsPerBlock = 128; //32 threads per warp * 4 warps
         //grid size 
@@ -149,7 +151,8 @@ namespace micm {
         d_number_of_products_, d_accumulated_n_products, d_product_ids_, 
         d_yields_);
         cudaDeviceSynchronize(); 
-        cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyDeviceToHost);
+        
+        cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
 
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
