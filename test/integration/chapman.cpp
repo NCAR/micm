@@ -17,10 +17,9 @@ using yields = std::pair<micm::Species, double>;
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
-  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-      solverConfig.Configure("./unit_configs/chapman");
+  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs = solverConfig.Configure("./unit_configs/chapman");
 
-  // Check if parsing is successful and returns 'Solverparameters'
+  // Check if parsing is successful and so the return type is 'Solverparameters'
   auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);
   EXPECT_TRUE(solver_params_ptr != nullptr);
 
@@ -32,8 +31,13 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   micm::State state = solver.GetState();
 
-  std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.variables_[0] = concentrations;
+  // Set concentrations
+  std::unordered_map<std::string, double> concentrations = { { "O", 0.1 },  { "O1D", 0.1 }, { "O2", 0.1 },
+                                                            { "O3", 0.2 }, { "M", 0.2 },   { "Ar", 0.2 },
+                                                            { "N2", 0.3 }, { "H2O", 0.3 }, { "CO2", 0.3 } };
+
+  state.set_concentrations(solver_params.system_, concentrations);
+
   std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
   state.custom_rate_parameters_[0] = photo_rates;
   state.conditions_[0].temperature_ = 2;

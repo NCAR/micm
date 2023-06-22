@@ -2,9 +2,12 @@
 
 #include <cstddef>
 #include <map>
+#include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
-#include <vector>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace micm
 {
@@ -44,6 +47,15 @@ namespace micm
     /// @brief
     /// @param parameters State dimension information
     State(const StateParameters parameters);
+
+    //
+    // TODO: jiwon 6/21 - function name convention, upper or lower case? and function name itself
+    //
+    /// @brief Set concentrations
+    /// @param species_to_concentration
+    void set_concentrations(
+        const micm::System& system,
+        const std::unordered_map<std::string, double>& species_to_concentration);
   };
 
   inline State::State()
@@ -74,5 +86,24 @@ namespace micm
     std::size_t index = 0;
     for (auto& name : parameters.state_variable_names_)
       variable_map_[name] = index++;
+  }
+
+  inline void State::set_concentrations(
+      const micm::System& system,
+      const std::unordered_map<std::string, double>& species_to_concentration)
+  {
+    std::vector<double> concentrations;
+    concentrations.reserve(system.gas_phase_.species_.size());
+
+    for (auto& species : system.gas_phase_.species_)
+    {
+      auto species_ptr = species_to_concentration.find(species.name_);
+      if (species_ptr == species_to_concentration.end())
+      {
+        throw std::invalid_argument("Invalid species: " + species.name_);
+      }
+      concentrations.push_back(species_ptr->second);
+    }
+    variables_[0] = concentrations;
   }
 }  // namespace micm
