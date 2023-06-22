@@ -56,6 +56,11 @@ namespace micm
     void set_concentrations(
         const micm::System& system,
         const std::unordered_map<std::string, double>& species_to_concentration);
+
+    // TODO: jiwon - 6/22 - can 'MUSICA name' be used as a key? Are they hashable (unique)?
+    // or do we just want to use index? 
+    // 
+    void set_custom_rate_parameters();
   };
 
   inline State::State()
