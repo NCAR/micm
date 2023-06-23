@@ -23,11 +23,12 @@ namespace micm {
         size_t* yields_)
     {
     //define thread index 
+    
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
     int rate_constants_size = matrix_rows * rate_constants_columns; 
     
     if (tid < rate_constants_size){
-        int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
+        int rate = rate_constants[tid];
         int row_index = tid % rate_constants_columns; 
         int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
         int product_num = number_of_products_[tid % rate_constants_columns]; //number of products of the reaction 
@@ -44,6 +45,7 @@ namespace micm {
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index]; 
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -= rate; 
         }
+        
         for (int i_product = 0; i_product < product_num; i_product++){
             int yields_index = initial_yields_index + i_product; 
             int product_ids_index  = initial_product_ids_index + i_product; 
@@ -68,15 +70,16 @@ namespace micm {
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing)
     {
+        //data of matrices
         int matrix_rows = rate_constants.size(); 
         int rate_constants_columns = rate_constants[0].size(); 
         int state_forcing_columns = state_variables[0].size();
 
-       //create pointers to matrix data vectors and class member vectors 
         const double* rate_constants_data = rate_constants.AsVector().data(); 
         const double* state_variables_data = state_variables.AsVector().data();
         double* forcing_data = forcing.AsVector().data(); 
        
+       //this vector provides initial index to reactant_ids_ to get reactant id of every reaction 
         int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
         accumulated_n_reactants[0] = 0; 
@@ -88,9 +91,9 @@ namespace micm {
         int accumulated_n_products_bytes = sizeof(size_t) * (number_of_products_size); 
         size_t* accumulated_n_products = (size_t*)malloc(accumulated_n_products_bytes); 
         accumulated_n_products[0] = 0;  
-        for (int i = 0; i < number_of_products_size - 1; i++){
-            int sum = accumulated_n_products[i] + number_of_products[i]; 
-            accumulated_n_products[i+1] = sum; 
+        for (int k = 0; k < number_of_products_size - 1; k++){
+            int sum = accumulated_n_products[k] + number_of_products[k]; 
+            accumulated_n_products[k+1] = sum; 
         }
 
         // device pointer to vectors
@@ -139,13 +142,24 @@ namespace micm {
 
         //total thread count == rate_constants matrix size
         int N = matrix_rows * rate_constants_columns; 
-
+        int block_size = 256; 
+        int num_block = (N + block_size -1)/block_size; 
         //kernel function call
-        AddForcingTerms_kernel<<<(N+255)/256, 256>>>(d_rate_constants, d_state_variables, 
-        d_forcing, matrix_rows, rate_constants_columns, state_forcing_columns, 
-        d_number_of_reactants_, d_accumulated_n_reactants, d_reactant_ids_, 
-        d_number_of_products_, d_accumulated_n_products, d_product_ids_, 
-        d_yields_);
+    
+        AddForcingTerms_kernel<<<num_block, block_size>>>(
+            d_rate_constants, 
+            d_state_variables, 
+            d_forcing, 
+            matrix_rows, 
+            rate_constants_columns, 
+            state_forcing_columns, 
+            d_number_of_reactants_, 
+            d_accumulated_n_reactants, 
+            d_reactant_ids_, 
+            d_number_of_products_, 
+            d_accumulated_n_products, 
+            d_product_ids_, 
+            d_yields_);
         cudaDeviceSynchronize(); 
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
 
