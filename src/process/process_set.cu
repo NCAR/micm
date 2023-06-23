@@ -29,7 +29,8 @@ namespace micm {
     
     if (tid < rate_constants_size){
         int rate = rate_constants[tid];
-        int row_index = tid % rate_constants_columns; 
+        int rate_constants_col_index = tid % rate_constants_columns; 
+        int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
         int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
         int product_num = number_of_products_[tid % rate_constants_columns]; //number of products of the reaction 
         int initial_reactant_ids_index = accumulated_n_reactants[tid % rate_constants_columns];
@@ -142,7 +143,7 @@ namespace micm {
 
         //total thread count == rate_constants matrix size
         int N = matrix_rows * rate_constants_columns; 
-        int block_size = 256; 
+        int block_size = 320; 
         int num_block = (N + block_size -1)/block_size; 
         //kernel function call
     
