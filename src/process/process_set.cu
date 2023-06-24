@@ -193,7 +193,7 @@ namespace micm {
         for (int k = 0; k < rate_array_size; k++){
             std::cout << rate_array[k]<<std::endl; 
         }
-        cudaMemcpy(state_variable_index_array, d_state_variable_index_array, sizeof(int) * matrix_rows * state_forcing_columns,cudaMemcpyDeviceToHost); 
+        cudaMemcpy(state_variable_index_array, d_state_variable_index_array, sizeof(int) * 8,cudaMemcpyDeviceToHost); 
         std::cout << "This is state variable index for rate:"<<std::endl; 
         for (int m = 0; m < 8; m++){
             std::cout << state_variable_index_array[m] <<std::endl; 
