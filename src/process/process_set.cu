@@ -45,7 +45,7 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            state_variable_index_array[tid + i_reactant] = state_forcing_col_index; 
+            state_variable_index_array[tid + i_reactant] = state_forcing_col_index; //debugging
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
         }
         //debugging 
@@ -127,8 +127,8 @@ namespace micm {
         rate_array = (double*)malloc(sizeof(double) * rate_array_size);
         int* d_state_variable_index_array; 
         int* state_variable_index_array; 
-        cudaMalloc(&d_state_variable_index_array, sizeof(int)* matrix_rows *state_forcing_columns); 
-        state_variable_index_array = (int*)malloc(sizeof(int) * matrix_rows*state_forcing_columns); 
+        cudaMalloc(&d_state_variable_index_array, sizeof(int) * 8); 
+        state_variable_index_array = (int*)malloc(sizeof(int) * 8); 
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -195,7 +195,7 @@ namespace micm {
         }
         cudaMemcpy(state_variable_index_array, d_state_variable_index_array, sizeof(int) * matrix_rows * state_forcing_columns,cudaMemcpyDeviceToHost); 
         std::cout << "This is state variable index for rate:"<<std::endl; 
-        for (int m = 0; m < matrix_rows * state_forcing_columns; m++){
+        for (int m = 0; m < 8; m++){
             std::cout << state_variable_index_array[m] <<std::endl; 
         }
        
