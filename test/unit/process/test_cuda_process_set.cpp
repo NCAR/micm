@@ -48,13 +48,7 @@ TEST(ProcessSet, Constructor)
 
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
 
-  std::cout << "rate_constants data: "<<std::endl; 
-  double* rate_constants_data = rate_constants.AsVector().data(); 
-  for (int i = 0; i < rate_constants.AsVector().size(); i++){
-      std::cout <<rate_constants_data[i]<<std::endl; 
-  } 
-  
-  
+ 
   //debugging 
   std::cout<< "Before operation"<<std::endl; 
   double* forcing_data = forcing.AsVector().data(); 
@@ -74,12 +68,6 @@ TEST(ProcessSet, Constructor)
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
   
-  
-  // //print reactant_ids_ 
-  // std::cout <<
-  // for (int m = 0; m < reactant_ids_size; m++){
-  //   std::cout << reactant_ids[m]<<std::endl; 
-  // }
   micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
     number_of_reactants_size,

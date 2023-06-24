@@ -8,7 +8,7 @@ namespace micm {
     //one thread per reaction
     //passing all device pointers 
     __global__ void AddForcingTerms_kernel(
-        int* tid_array,
+        double* rate_array,
         double* rate_constants, 
         double* state_variables, 
         double* forcing, 
@@ -29,13 +29,10 @@ namespace micm {
     int rate_constants_size = matrix_rows * rate_constants_columns; 
     
     if (tid < rate_constants_size){
-        tid_array[tid] = tid; 
-       
         int rate = rate_constants[tid];
         int rate_constants_col_index = tid % rate_constants_columns; 
         int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
-        
-        
+    
         int reactant_num = number_of_reactants_[rate_constants_col_index]; //number of reactants of the reaction
         int product_num = number_of_products_[rate_constants_col_index]; //number of products of the reaction 
         
@@ -47,9 +44,8 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            //how to match thread idx to state_variable index 
-            //but we need to consider the row of state_variable 
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+            rate_array[tid] = rate; 
         }
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
@@ -119,11 +115,13 @@ namespace micm {
         size_t* d_accumulated_n_products; 
         size_t* d_product_ids_; 
         size_t* d_yields_; 
+       
         //debugging
-        int* d_tid_array;
-        int* tid_array; 
-        cudaMalloc(&d_tid_array, sizeof(int) * matrix_rows * rate_constants_columns); 
-        tid_array = (int*)malloc(sizeof(int) * matrix_rows * rate_constants_columns);
+        int rate_array_size = matrix_rows * rate_constants_columns; 
+        double* d_rate_array;
+        double* rate_array; 
+        cudaMalloc(&d_rate_array, sizeof(double) * rate_array_size); 
+        rate_array = (double*)malloc(sizeof(double) * rate_array_size);
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -164,7 +162,7 @@ namespace micm {
         //kernel function call
     
         AddForcingTerms_kernel<<<num_block, block_size>>>(
-            d_tid_array,
+            d_rate_array,
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -182,11 +180,10 @@ namespace micm {
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
         
         //debugging 
-        int tid_array_size = matrix_rows * rate_constants_columns; 
-        cudaMemcpy(tid_array, d_tid_array, sizeof(int)*tid_array_size, cudaMemcpyDeviceToHost );
-        
-        for (int k = 0; k < tid_array_size; k++){
-            std::cout << tid_array[k]<<std::endl; 
+        cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost );    
+        std::cout << "this is rate_array: "<< std::endl; 
+        for (int k = 0; k < rate_array_size; k++){
+            std::cout << rate_array[k]<<std::endl; 
         }
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 

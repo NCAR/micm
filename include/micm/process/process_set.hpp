@@ -187,6 +187,9 @@ namespace micm
         double rate = cell_rate_constants[i_rxn];
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           rate *= cell_state[react_id[i_react]];
+        //debugging print 
+        std::cout << rate <<std::endl; 
+        
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           cell_forcing[react_id[i_react]] -= rate;
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
