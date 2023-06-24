@@ -30,9 +30,12 @@ namespace micm {
     
     if (tid < rate_constants_size){
         tid_array[tid] = tid; 
+       
         int rate = rate_constants[tid];
         int rate_constants_col_index = tid % rate_constants_columns; 
         int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
+        
+        
         int reactant_num = number_of_reactants_[rate_constants_col_index]; //number of reactants of the reaction
         int product_num = number_of_products_[rate_constants_col_index]; //number of products of the reaction 
         
@@ -40,14 +43,19 @@ namespace micm {
         int initial_product_ids_index = accumulated_n_products[rate_constants_col_index];
         int initial_yields_index = accumulated_n_products[rate_constants_col_index]; 
         
-        
+       
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             //how to match thread idx to state_variable index 
             //but we need to consider the row of state_variable 
-            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index]; 
-            forcing[row_index * state_forcing_columns + state_forcing_col_index] -= rate; 
+            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+        }
+        
+        for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
+            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
+            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+            forcing[row_index * state_forcing_columns + state_forcing_col_index] -=rate; 
         }
         
         for (int i_product = 0; i_product < product_num; i_product++){
@@ -176,6 +184,7 @@ namespace micm {
         //debugging 
         int tid_array_size = matrix_rows * rate_constants_columns; 
         cudaMemcpy(tid_array, d_tid_array, sizeof(int)*tid_array_size, cudaMemcpyDeviceToHost );
+        
         for (int k = 0; k < tid_array_size; k++){
             std::cout << tid_array[k]<<std::endl; 
         }
