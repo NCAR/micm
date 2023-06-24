@@ -45,8 +45,9 @@ namespace micm {
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
-            rate_array[tid] = rate; 
         }
+        //debugging 
+        rate_array[tid] = rate; 
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
