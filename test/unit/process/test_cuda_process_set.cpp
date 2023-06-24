@@ -49,13 +49,13 @@ TEST(ProcessSet, Constructor)
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
 
  
-  //debugging 
-  std::cout<< "Before operation"<<std::endl; 
-  double* forcing_data = forcing.AsVector().data(); 
-  int forcing_data_size = forcing.AsVector().size();
-  for (int j = 0; j < forcing_data_size; j++){
-    std::cout << forcing_data[j]<<std::endl;
-  }
+  // //debugging 
+  // std::cout<< "Before operation"<<std::endl; 
+  // double* forcing_data = forcing.AsVector().data(); 
+  // int forcing_data_size = forcing.AsVector().size();
+  // for (int j = 0; j < forcing_data_size; j++){
+  //   std::cout << forcing_data[j]<<std::endl;
+  // }
   
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
@@ -94,13 +94,13 @@ TEST(ProcessSet, Constructor)
   EXPECT_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
   EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
   
-  //debugging 
-  std::cout<< "After operation operation"<<std::endl; 
-  double* forcing_data_after = forcing.AsVector().data(); 
+  // //debugging 
+  // std::cout<< "After operation operation"<<std::endl; 
+  // double* forcing_data_after = forcing.AsVector().data(); 
  
-  for (int k = 0; k < forcing_data_size; k++){
-    std::cout << forcing_data_after[k]<<std::endl;
-  }
+  // for (int k = 0; k < forcing_data_size; k++){
+  //   std::cout << forcing_data_after[k]<<std::endl;
+  // }
  
 
 //   auto non_zero_elements = set.NonZeroJacobianElements();

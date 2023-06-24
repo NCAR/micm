@@ -9,6 +9,7 @@ namespace micm {
     //passing all device pointers 
     __global__ void AddForcingTerms_kernel(
         double* rate_array,
+        int* state_variable_index_array,
         double* rate_constants, 
         double* state_variables, 
         double* forcing, 
@@ -44,6 +45,7 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+            state_variable_index_array[tid + i_reactant] = state_forcing_col_index; 
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
         }
         //debugging 
@@ -123,6 +125,10 @@ namespace micm {
         double* rate_array; 
         cudaMalloc(&d_rate_array, sizeof(double) * rate_array_size); 
         rate_array = (double*)malloc(sizeof(double) * rate_array_size);
+        int* d_state_variable_index_array; 
+        int* state_variable_index_array; 
+        cudaMalloc(&d_state_variable_index_array, sizeof(int)* matrix_rows *state_forcing_columns); 
+        state_variable_index_array = (int*)malloc(sizeof(int) * matrix_rows*state_forcing_columns); 
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -164,6 +170,7 @@ namespace micm {
     
         AddForcingTerms_kernel<<<num_block, block_size>>>(
             d_rate_array,
+            d_state_variable_index_array,
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -186,6 +193,12 @@ namespace micm {
         for (int k = 0; k < rate_array_size; k++){
             std::cout << rate_array[k]<<std::endl; 
         }
+        cudaMemcpy(state_variable_index_array, d_state_variable_index_array, sizeof(int) * matrix_rows * state_forcing_columns,cudaMemcpyDeviceToHost); 
+        std::cout << "This is state variable index for rate:"<<std::endl; 
+        for (int m = 0; m < matrix_rows * state_forcing_columns; m++){
+            std::cout << state_variable_index_array[m] <<std::endl; 
+        }
+       
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
         cudaFree(d_forcing);
