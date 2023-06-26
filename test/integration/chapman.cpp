@@ -7,6 +7,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/matrix.hpp>
 #include <utility>
 #include <vector>
 
@@ -26,9 +27,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   micm::SolverParameters& solver_params = *solver_params_ptr;
 
-  micm::RosenbrockSolver solver{ solver_params.system_,
-                                 std::move(solver_params.processes_),
-                                 micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix> solver{ solver_params.system_,
+                                               std::move(solver_params.processes_),
+                                               micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 
