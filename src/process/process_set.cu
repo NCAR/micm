@@ -9,7 +9,7 @@ namespace micm {
     //passing all device pointers 
     __global__ void AddForcingTerms_kernel(
         double* rate_array,
-        int* state_variable_index_array,
+        double* state_variable, 
         double* rate_constants, 
         double* state_variables, 
         double* forcing, 
@@ -45,7 +45,10 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            state_variable_index_array[tid + i_reactant] = state_forcing_col_index; //debugging
+            //debugging
+            if (tid == 0){
+                state_variable[tid + i_reactant] = state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+            }
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
         }
         //debugging 
@@ -93,15 +96,17 @@ namespace micm {
        //this vector provides initial index to reactant_ids_ to get reactant id of every reaction 
         int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
+        
         accumulated_n_reactants[0] = 0; 
         for (int i = 0; i < number_of_reactants_size - 1; i++){
             int sum = accumulated_n_reactants[i] + number_of_reactants[i]; 
             accumulated_n_reactants[i+1] = sum; 
-        }    
-        
+        } 
+
         int accumulated_n_products_bytes = sizeof(size_t) * (number_of_products_size); 
         size_t* accumulated_n_products = (size_t*)malloc(accumulated_n_products_bytes); 
         accumulated_n_products[0] = 0;  
+        
         for (int k = 0; k < number_of_products_size - 1; k++){
             int sum = accumulated_n_products[k] + number_of_products[k]; 
             accumulated_n_products[k+1] = sum; 
@@ -125,10 +130,10 @@ namespace micm {
         double* rate_array; 
         cudaMalloc(&d_rate_array, sizeof(double) * rate_array_size); 
         rate_array = (double*)malloc(sizeof(double) * rate_array_size);
-        int* d_state_variable_index_array; 
-        int* state_variable_index_array; 
-        cudaMalloc(&d_state_variable_index_array, sizeof(int) * 8); 
-        state_variable_index_array = (int*)malloc(sizeof(int) * 8); 
+        double* d_state_variable; 
+        double* state_variable;
+        cudaMalloc(&d_state_variable, 2); 
+        rate_array = (double*)malloc(sizeof(double) * 2);
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -170,7 +175,7 @@ namespace micm {
     
         AddForcingTerms_kernel<<<num_block, block_size>>>(
             d_rate_array,
-            d_state_variable_index_array,
+            d_state_variable,
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -193,11 +198,11 @@ namespace micm {
         for (int k = 0; k < rate_array_size; k++){
             std::cout << rate_array[k]<<std::endl; 
         }
-        cudaMemcpy(state_variable_index_array, d_state_variable_index_array, sizeof(int) * 8,cudaMemcpyDeviceToHost); 
-        std::cout << "This is state variable index for rate:"<<std::endl; 
-        for (int m = 0; m < 8; m++){
-            std::cout << state_variable_index_array[m] <<std::endl; 
+        cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
+        for (int k = 0; k < 2; k++){
+            std::cout << state_variable[k]<<std::endl; 
         }
+       
        
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
