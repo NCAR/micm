@@ -2,6 +2,8 @@
 
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
@@ -12,7 +14,8 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-TEST(ProcessSet, Constructor)
+template<template<class> class MatrixPolicy>
+void testProcessSet()
 {
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
@@ -22,7 +25,7 @@ TEST(ProcessSet, Constructor)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
+  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
                                             .number_of_grid_cells_ = 2,
                                             .number_of_custom_parameters_ = 0,
                                             .number_of_rate_constants_ = 3 } };
@@ -42,13 +45,13 @@ TEST(ProcessSet, Constructor)
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5 };
 
-  micm::Matrix<double> rate_constants{ 2, 3 };
+  MatrixPolicy<double> rate_constants{ 2, 3 };
   rate_constants[0] = { 10.0, 20.0, 30.0 };
   rate_constants[1] = { 110.0, 120.0, 130.0 };
 
-  micm::Matrix<double> forcing{ 2, 5, 1000.0 };
+  MatrixPolicy<double> forcing{ 2, 5, 1000.0 };
 
-  set.AddForcingTerms(rate_constants, state.variables_, forcing);
+  set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
 
   EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
   EXPECT_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
@@ -89,7 +92,7 @@ TEST(ProcessSet, Constructor)
     builder = builder.with_element(elem.first, elem.second);
   micm::SparseMatrix<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.AddJacobianTerms(rate_constants, state.variables_, jacobian);
+  set.AddJacobianTerms<MatrixPolicy>(rate_constants, state.variables_, jacobian);
 
   EXPECT_EQ(jacobian[0][0][0], 100.0 - 10.0 * 0.3);  // foo -> foo
   EXPECT_EQ(jacobian[1][0][0], 100.0 - 110.0 * 1.3);
@@ -115,4 +118,26 @@ TEST(ProcessSet, Constructor)
   EXPECT_EQ(jacobian[1][4][0], 100.0 + 2.4 * 110.0 * 1.3);
   EXPECT_EQ(jacobian[0][4][2], 100.0 + 2.4 * 10.0 * 0.1);  // quuz -> baz
   EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
+}
+
+TEST(ProcessSet, Matrix)
+{
+  testProcessSet<micm::Matrix>();
+}
+
+template<class T>
+using Block1VectorMatrix = micm::VectorMatrix<T, 1>;
+template<class T>
+using Block2VectorMatrix = micm::VectorMatrix<T, 2>;
+template<class T>
+using Block3VectorMatrix = micm::VectorMatrix<T, 3>;
+template<class T>
+using Block4VectorMatrix = micm::VectorMatrix<T, 4>;
+
+TEST(ProcessSet, VectorMatrix)
+{
+  testProcessSet<Block1VectorMatrix>();
+  testProcessSet<Block2VectorMatrix>();
+  testProcessSet<Block3VectorMatrix>();
+  testProcessSet<Block4VectorMatrix>();
 }

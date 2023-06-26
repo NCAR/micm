@@ -5,7 +5,7 @@
 
 TEST(TroeRateConstant, CalculateWithMinimalArugments)
 {
-  micm::State state{ 0, 0, 1 };
+  micm::State<micm::Matrix> state{ 0, 0, 1 };
   state.conditions_[0].temperature_ = 301.24;  // [K]
   state.conditions_[0].air_density_ = 1.0;     // [mol mol-1]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -21,7 +21,7 @@ TEST(TroeRateConstant, CalculateWithMinimalArugments)
 
 TEST(TroeRateConstant, CalculateWithAllArugments)
 {
-  micm::State state{ 0, 0, 1 };
+  micm::State<micm::Matrix> state{ 0, 0, 1 };
   double temperature = 301.24;
   state.conditions_[0].temperature_ = temperature;  // [K]
   state.conditions_[0].air_density_ = 1.0;          // [mol mol-1]

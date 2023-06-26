@@ -6,8 +6,7 @@ configure_file(version.hpp.in ${PROJECT_SOURCE_DIR}/include/micm/version.hpp @ON
 # micm solver
 add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
-
-# target_compile_features(micm INTERFACE cxx_std_20)
+target_compile_features(micm INTERFACE cxx_std_20)
 
 target_include_directories(micm
   INTERFACE

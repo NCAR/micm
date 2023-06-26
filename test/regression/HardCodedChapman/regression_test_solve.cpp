@@ -29,7 +29,7 @@ std::vector<double> call_fortran_solve(
     double time_start,
     double time_end,
     micm::ChapmanODESolver &solver,
-    micm::State &state,
+    micm::State<micm::Matrix> &state,
     std::vector<double> number_densities)
 {
   std::vector<double> result{};
@@ -72,7 +72,7 @@ std::vector<double> call_fortran_solve(
 TEST(RegressionChapmanODESolver, solve)
 {
   micm::ChapmanODESolver solver{};
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   std::vector<double> number_densities = state.variables_[0];
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
@@ -107,7 +107,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_larger)
   micm::ChapmanODESolver solver{};
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;   // [K]
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -145,7 +145,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
   micm::ChapmanODESolver solver{};
   std::vector<double> number_densities = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;   // [K]
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -182,7 +182,7 @@ TEST(RegressionChapmanODESolver, solve_with_random_number_densities)
 {
   micm::ChapmanODESolver solver{};
   std::vector<double> number_densities(9);
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;   // [K]
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
