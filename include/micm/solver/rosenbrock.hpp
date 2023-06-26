@@ -25,6 +25,7 @@
 #include <limits>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
@@ -83,6 +84,7 @@ namespace micm
     ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
     SparseMatrix<double> jacobian_;
+    LinearSolver linear_solver_;
 
     static constexpr double delta_min_ = 1.0e-5;
 
@@ -202,7 +204,8 @@ namespace micm
         parameters_(),
         process_set_(),
         stats_(),
-        jacobian_()
+        jacobian_(),
+        linear_solver_()
   {
     three_stage_rosenbrock();
   }
@@ -217,13 +220,15 @@ namespace micm
         parameters_(parameters),
         process_set_(processes_, GetState()),
         stats_(),
-        jacobian_()
+        jacobian_(),
+        linear_solver_()
   {
     auto builder = SparseMatrix<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
     auto jac_elements = process_set_.NonZeroJacobianElements();
     for (auto& elem : jac_elements)
       builder = builder.with_element(elem.first, elem.second);
     jacobian_ = builder;
+    linear_solver_ = LinearSolver(jacobian_);
     process_set_.SetJacobianFlatIds(jacobian_);
 
     // TODO: move three stage rosenbrock to parameter constructor
