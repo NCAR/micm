@@ -99,8 +99,8 @@ namespace micm {
        //this vector provides initial index to reactant_ids_ to get reactant id of every reaction 
         int accumulated_n_reactants_bytes = sizeof(size_t) * (number_of_reactants_size); 
         size_t* accumulated_n_reactants = (size_t*)malloc(accumulated_n_reactants_bytes); 
-        
         accumulated_n_reactants[0] = 0; 
+        
         for (int i = 0; i < number_of_reactants_size - 1; i++){
             int sum = accumulated_n_reactants[i] + number_of_reactants[i]; 
             accumulated_n_reactants[i+1] = sum; 
@@ -142,7 +142,7 @@ namespace micm {
         
         double* d_state_variable; 
         double* state_variable;
-        cudaMalloc(&d_state_variable, 2); 
+        cudaMalloc(&d_state_variable, sizeof(double) *2); 
         state_variable = (double*)malloc(sizeof(double) * 2);
         
         //allocate device memory
@@ -201,6 +201,7 @@ namespace micm {
             d_product_ids_, 
             d_yields_);
         cudaDeviceSynchronize(); 
+        
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
         
         //debugging 
@@ -210,7 +211,7 @@ namespace micm {
             std::cout << rate_array[k]<<std::endl; 
         }
         cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
-        std::cout << "This is state variable index for first thread"<<std::endl;
+        std::cout << "This is state variable for first thread"<<std::endl;
         for (int k = 0; k < 2; k++){
             std::cout << state_variable[k]<<std::endl; 
         }
@@ -232,9 +233,13 @@ namespace micm {
         cudaFree(d_accumulated_n_products);
         cudaFree(d_product_ids_);
         cudaFree(d_yields_ );
-
+        cudaFree(d_rate_array); 
+        cudaFree(d_state_variable); 
         free(accumulated_n_reactants); 
         free(accumulated_n_products); 
+        free(rate_array_post); 
+        free(state_variable); 
+        
         }
     }//namespace cuda 
 }//namespace micm
