@@ -129,18 +129,21 @@ namespace micm {
        
         //debugging
         int rate_array_size = matrix_rows * rate_constants_columns; 
+        
         double* d_rate_array;
         double* rate_array; 
         cudaMalloc(&d_rate_array, sizeof(double) * rate_array_size); 
+        rate_array = (double*)malloc(sizeof(double)* rate_array_size);
+        
         double* d_rate_array_post;
         double* rate_array_post; 
         cudaMalloc(&d_rate_array_post, sizeof(double) * rate_array_size);
+        rate_array_post = (double*)malloc(sizeof(double)*rate_array_size); 
         
-        rate_array = (double*)malloc(sizeof(double) * rate_array_size);
         double* d_state_variable; 
         double* state_variable;
         cudaMalloc(&d_state_variable, 2); 
-        rate_array = (double*)malloc(sizeof(double) * 2);
+        state_variable = (double*)malloc(sizeof(double) * 2);
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -212,7 +215,7 @@ namespace micm {
             std::cout << state_variable[k]<<std::endl; 
         }
 
-        cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
+        cudaMemcpy(rate_array_post, d_rate_array_post, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
         std::cout << "this is rate_array after update: "<< std::endl; 
         for (int k = 0; k < rate_array_size; k++){
             std::cout << rate_array_post[k]<<std::endl; 
