@@ -55,7 +55,7 @@ namespace micm {
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
 
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -=rate; 
-            if (tid == 0){
+            if (tid == 1){
                 cell_forcing[tid + i_reactant] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
             }
         }
@@ -143,8 +143,8 @@ namespace micm {
 
         double* d_cell_forcing; 
         double* cell_forcing; 
-        cudaMalloc(&d_cell_forcing, sizeof(double) * 2); 
-        cell_forcing = (double*)malloc(sizeof(double) * 2); 
+        cudaMalloc(&d_cell_forcing, sizeof(double) * 8); 
+        cell_forcing = (double*)malloc(sizeof(double) * 8); 
 
 
         
@@ -228,7 +228,7 @@ namespace micm {
         // }
        
        cudaMemcpy(cell_forcing, d_cell_forcing, sizeof(double) * 2, cudaMemcpyDeviceToHost); 
-       for (int k = 0; k < 2; k++){
+       for (int k = 0; k < 8; k++){
         std::cout << "this is cell forcing after update"<< cell_forcing[k]<<std::endl; 
        }
        
