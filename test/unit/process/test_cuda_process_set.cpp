@@ -60,31 +60,6 @@ TEST(ProcessSet, Constructor)
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
   
-  //debugging 
-  std::cout << "number of reactants: "<<std::endl; 
-  for (int i = 0; i < number_of_reactants_size; i++){
-    std::cout << number_of_reactants[i]<<std::endl; 
-  }
-  std::cout << "reactant id"<<std::endl; 
-  for (int i = 0; i < reactant_ids_size; i++){
-    std::cout << reactant_ids[i]<<std::endl; 
-  }
-
-  // std::cout << "state_variables: "<<std::endl; 
-  // for (int i = 0; i < state.variabl_.size(); i++){
-  //   std::cout << state.variable_[i]<< " "<<std::endl;
-  // }
-
-  std::cout << "state variable data"<<std::endl; 
-  double* state_variable_data = state.variables_.AsVector().data(); 
-  int state_variable_size = state.variables_.AsVector().size(); 
-  for (int i = 0; i < state_variable_size; i++){
-    std::cout << state_variable_data[i]<<std::endl; 
-  }
-
-  
-  
-
   micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
     number_of_reactants_size,

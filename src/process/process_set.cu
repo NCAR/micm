@@ -11,6 +11,7 @@ namespace micm {
         double* rate_array,
         double* rate_array_post,
         double* state_variable, 
+        double* cell_forcing, 
         
         double* rate_constants, 
         double* state_variables, 
@@ -32,7 +33,7 @@ namespace micm {
     int rate_constants_size = matrix_rows * rate_constants_columns; 
     
     if (tid < rate_constants_size){
-        int rate = rate_constants[tid];
+        double rate = rate_constants[tid];
         int rate_constants_col_index = tid % rate_constants_columns; 
         int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
     
@@ -43,24 +44,20 @@ namespace micm {
         int initial_product_ids_index = accumulated_n_products[rate_constants_col_index];
         int initial_yields_index = accumulated_n_products[rate_constants_col_index]; 
         
-        rate_array[tid] = rate; 
-       
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            //debugging
-            if (tid == 0){
-                state_variable[tid + i_reactant] = state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
-            }
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
         }
-        //debugging 
-        rate_array_post[tid] = rate; 
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -=rate; 
+            if (tid == 0){
+                cell_forcing[tid + i_reactant] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
+            }
         }
         
         for (int i_product = 0; i_product < product_num; i_product++){
@@ -69,7 +66,6 @@ namespace micm {
             int forcing_col_index = product_ids_[product_ids_index]; 
             forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
         } 
-        
     }
   }
     void AddForcingTerms_kernelSetup(
@@ -144,6 +140,13 @@ namespace micm {
         double* state_variable;
         cudaMalloc(&d_state_variable, sizeof(double) *2); 
         state_variable = (double*)malloc(sizeof(double) * 2);
+
+        double* d_cell_forcing; 
+        double* cell_forcing; 
+        cudaMalloc(&d_cell_forcing, sizeof(double) * 2); 
+        cell_forcing = (double*)malloc(sizeof(double) * 2); 
+
+
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -181,12 +184,14 @@ namespace micm {
         int N = matrix_rows * rate_constants_columns; 
         int block_size = 320; 
         int num_block = (N + block_size -1)/block_size; 
+        
         //kernel function call
-    
         AddForcingTerms_kernel<<<num_block, block_size>>>(
             d_rate_array,
             d_rate_array_post,
             d_state_variable,
+            d_cell_forcing,
+            
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -204,24 +209,28 @@ namespace micm {
         
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
         
-        //debugging 
-        cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost );    
-        std::cout << "this is rate_array before update: "<< std::endl; 
-        for (int k = 0; k < rate_array_size; k++){
-            std::cout << rate_array[k]<<std::endl; 
-        }
-        cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
-        std::cout << "This is state variable for first thread"<<std::endl;
-        for (int k = 0; k < 2; k++){
-            std::cout << state_variable[k]<<std::endl; 
-        }
+        // //debugging 
+        // cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
+        // std::cout << "this is rate_array before update: "<< std::endl; 
+        // for (int k = 0; k < rate_array_size; k++){
+        //     std::cout << rate_array[k]<<std::endl; 
+        // }
+        // cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
+        // std::cout << "This is state variable for first thread"<<std::endl;
+        // for (int k = 0; k < 2; k++){
+        //     std::cout << state_variable[k]<<std::endl; 
+        // }
 
-        cudaMemcpy(rate_array_post, d_rate_array_post, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
-        std::cout << "this is rate_array after update: "<< std::endl; 
-        for (int k = 0; k < rate_array_size; k++){
-            std::cout << rate_array_post[k]<<std::endl; 
-        }
+        // cudaMemcpy(rate_array_post, d_rate_array_post, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
+        // std::cout << "this is rate_array after update: "<< std::endl; 
+        // for (int k = 0; k < rate_array_size; k++){
+        //     std::cout << rate_array_post[k]<<std::endl; 
+        // }
        
+       cudaMemcpy(cell_forcing, d_cell_forcing, sizeof(double) * 2, cudaMemcpyDeviceToHost); 
+       for (int k = 0; k < 2; k++){
+        std::cout << "this is cell forcing after update"<< cell_forcing[k]<<std::endl; 
+       }
        
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
@@ -234,11 +243,13 @@ namespace micm {
         cudaFree(d_product_ids_);
         cudaFree(d_yields_ );
         cudaFree(d_rate_array); 
+        cudaFree(d_cell_forcing);
         cudaFree(d_state_variable); 
         free(accumulated_n_reactants); 
         free(accumulated_n_products); 
         free(rate_array_post); 
         free(state_variable); 
+        free(cell_forcing);
         
         }
     }//namespace cuda 
