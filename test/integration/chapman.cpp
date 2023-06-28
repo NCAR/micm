@@ -7,6 +7,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/matrix.hpp>
 #include <utility>
 #include <vector>
 
@@ -25,9 +26,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   micm::SolverParameters& solver_params = *solver_params_ptr;
 
-  micm::RosenbrockSolver solver{ solver_params.system_,
-                                 std::move(solver_params.processes_),
-                                 micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix> solver{ solver_params.system_,
+                                               std::move(solver_params.processes_),
+                                               micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 
@@ -36,7 +37,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
                                                             { "O3", 0.2 }, { "M", 0.2 },   { "Ar", 0.2 },
                                                             { "N2", 0.3 }, { "H2O", 0.3 }, { "CO2", 0.3 } };
 
-  state.set_concentrations(solver_params.system_, concentrations);
+  state.SetConcentrations(solver_params.system_, concentrations);
 
   std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
   state.custom_rate_parameters_[0] = photo_rates;
@@ -111,11 +112,11 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                 std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-                                 micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                               std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
+                                               micm::RosenbrockSolverParameters{} };
 
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
   state.variables_[0] = concentrations;

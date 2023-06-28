@@ -27,13 +27,14 @@ namespace micm
     double air_density_{ 1.0 };
   };
 
+  template<template<class> class MatrixPolicy = Matrix>
   struct State
   {
     std::vector<Conditions> conditions_;
     std::map<std::string, std::size_t> variable_map_;
-    Matrix<double> variables_;
-    Matrix<double> custom_rate_parameters_;
-    Matrix<double> rate_constants_;
+    MatrixPolicy<double> variables_;
+    MatrixPolicy<double> custom_rate_parameters_;
+    MatrixPolicy<double> rate_constants_;
 
     /// @brief
     State();
@@ -48,22 +49,20 @@ namespace micm
     /// @param parameters State dimension information
     State(const StateParameters parameters);
 
-    //
-    // TODO: jiwon 6/21 - function name convention, upper or lower case? and function name itself
-    //
     /// @brief Set concentrations
     /// @param species_to_concentration
-    void set_concentrations(
+    void SetConcentrations(
         const micm::System& system,
         const std::unordered_map<std::string, double>& species_to_concentration);
 
     // TODO: jiwon - 6/22 - can 'MUSICA name' be used as a key? Are they hashable (unique)?
     // or do we just want to use index? 
     // 
-    void set_custom_rate_parameters();
+    void SetCustomRateParams();
   };
 
-  inline State::State()
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State()
       : conditions_(),
         variable_map_(),
         variables_(),
@@ -71,8 +70,8 @@ namespace micm
         rate_constants_()
   {
   }
-
-  inline State::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
       : conditions_(1),
         variable_map_(),
         variables_(1, state_size, 0.0),
@@ -81,7 +80,8 @@ namespace micm
   {
   }
 
-  inline State::State(const StateParameters parameters)
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variable_map_(),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
@@ -93,7 +93,8 @@ namespace micm
       variable_map_[name] = index++;
   }
 
-  inline void State::set_concentrations(
+  template<template<class> class MatrixPolicy>
+  inline void State<MatrixPolicy>::SetConcentrations(
       const micm::System& system,
       const std::unordered_map<std::string, double>& species_to_concentration)
   {

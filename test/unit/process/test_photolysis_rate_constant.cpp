@@ -5,7 +5,7 @@
 
 TEST(PhotolysisRateConstant, CalculateWithSystem)
 {
-  micm::State state{ 0, 1, 1 };
+  micm::State<micm::Matrix> state{ 0, 1, 1 };
   state.custom_rate_parameters_[0][0] = 0.5;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::PhotolysisRateConstant photo{};
@@ -15,7 +15,7 @@ TEST(PhotolysisRateConstant, CalculateWithSystem)
 
 TEST(PhotolysisRateConstant, ConstructorWithRate)
 {
-  micm::State state{ 0, 1, 1 };
+  micm::State<micm::Matrix> state{ 0, 1, 1 };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::PhotolysisRateConstant photo{};
@@ -25,7 +25,7 @@ TEST(PhotolysisRateConstant, ConstructorWithRate)
 
 TEST(PhotolysisRateConstant, ConstructorWithRateAndName)
 {
-  micm::State state{ 0, 1, 1 };
+  micm::State<micm::Matrix> state{ 0, 1, 1 };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::PhotolysisRateConstant photo("a name");
