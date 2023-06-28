@@ -53,7 +53,7 @@ namespace micm
     /// @param species_to_concentration
     void SetConcentrations(
         const micm::System& system,
-        const std::unordered_map<std::string, double>& species_to_concentration);
+        const std::unordered_map<micm::Species, double>& species_to_concentration);
 
     // TODO: jiwon - 6/22 - can 'MUSICA name' be used as a key? Are they hashable (unique)?
     // or do we just want to use index? 
@@ -96,7 +96,7 @@ namespace micm
   template<template<class> class MatrixPolicy>
   inline void State<MatrixPolicy>::SetConcentrations(
       const micm::System& system,
-      const std::unordered_map<std::string, double>& species_to_concentration)
+      const std::unordered_map<micm::Species, double>& species_to_concentration)
   {
     std::vector<double> concentrations;
     concentrations.reserve(system.gas_phase_.species_.size());
