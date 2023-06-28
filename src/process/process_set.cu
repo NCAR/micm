@@ -12,7 +12,9 @@ namespace micm {
         double* rate_array_post,
         double* state_variable, 
         double* cell_forcing, 
-        
+        double* cell_forcing_last,
+        size_t* yield,
+
         double* rate_constants, 
         double* state_variables, 
         double* forcing, 
@@ -53,17 +55,19 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -=rate; 
-           
-                cell_forcing[row_index * state_forcing_columns + state_forcing_col_index] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
-           
+            //debugging 
+            cell_forcing[row_index * state_forcing_columns + state_forcing_col_index] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
         }
-        
+        __syncthreads();
         for (int i_product = 0; i_product < product_num; i_product++){
             int yields_index = initial_yields_index + i_product; 
             int product_ids_index  = initial_product_ids_index + i_product; 
             int forcing_col_index = product_ids_[product_ids_index]; 
+            if (tid == 0){
+                cell_forcing_last[i_product] =  forcing[row_index * state_forcing_columns + forcing_col_index];
+                yield[i_product] = yields_[yields_index];
+            }
             forcing[row_index * state_forcing_columns + forcing_col_index] += yields_[yields_index] * rate; 
         } 
     }
@@ -146,6 +150,17 @@ namespace micm {
         cudaMalloc(&d_cell_forcing, sizeof(double) * 10); 
         cell_forcing = (double*)malloc(sizeof(double) * 10); 
         cudaMemcpy(d_cell_forcing, forcing_data, sizeof(double)* 10, cudaMemcpyHostToDevice); 
+
+        double* d_cell_forcing_last; 
+        double* cell_forcing_last; 
+        cudaMalloc(&d_cell_forcing_last, sizeof(double) * 2); 
+        cell_forcing_last = (double*)malloc(sizeof(double) * 2); 
+
+        size_t* d_yield; 
+        size_t* yield; 
+        cudaMalloc(&d_yield, sizeof(size_t) * 2); 
+        yield = (size_t*)malloc(sizeof(size_t) * 2); 
+
         
 
         
@@ -192,7 +207,9 @@ namespace micm {
             d_rate_array_post,
             d_state_variable,
             d_cell_forcing,
-            
+            d_cell_forcing_last, 
+            d_yield,
+
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -231,6 +248,13 @@ namespace micm {
        cudaMemcpy(cell_forcing, d_cell_forcing, sizeof(double)*10, cudaMemcpyDeviceToHost); 
        for (int k = 0; k < 10; k++){
         std::cout << "this is cell forcing after update"<< cell_forcing[k]<<std::endl; 
+       }
+
+       cudaMemcpy(cell_forcing_last, d_cell_forcing_last, sizeof(double)* 2, cudaMemcpyDeviceToHost); 
+       cudaMemcpy(yield, d_yield, sizeof(size_t) * 2, cudaMemcpyDeviceToHost); 
+       for (int i = 0; i < 2; i++){
+        std:: cout << "this is cell forcing data "<< cell_forcing_last[i]<< std::endl; 
+        std::cout << "this is yield" << yield[i]<<std::endl; 
        }
        
         cudaFree(d_rate_constants); 

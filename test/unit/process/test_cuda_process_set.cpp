@@ -60,8 +60,8 @@ TEST(ProcessSet, Constructor)
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
 
-  for (int i = 0; i < number_of_reactants_size; i++){
-    std::cout << number_of_reactants[i]<<std::endl; 
+  for (int i = 0; i < number_of_products_size; i++){
+    std::cout << "number of products: "<< number_of_products[i]<<std::endl; 
   }
   
   micm::cuda::AddForcingTerms_kernelSetup(
@@ -90,13 +90,6 @@ TEST(ProcessSet, Constructor)
   EXPECT_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
   EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
   
-  // //debugging 
-  // std::cout<< "After operation operation"<<std::endl; 
-  // double* forcing_data_after = forcing.AsVector().data(); 
- 
-  // for (int k = 0; k < forcing_data_size; k++){
-  //   std::cout << forcing_data_after[k]<<std::endl;
-  // }
  
 
 //   auto non_zero_elements = set.NonZeroJacobianElements();

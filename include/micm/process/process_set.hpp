@@ -194,9 +194,11 @@ namespace micm
           cell_forcing[react_id[i_react]] -= rate;
         
       
-        // for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
-        //   cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
-        
+        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod){
+          std::cout << "this is cell_forcing data: "<< cell_forcing[prod_id[i_prod]]<<std::endl; 
+          std:: cout << "this is yield data: "<<  yield[i_prod] <<std::endl; 
+          cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
+        }
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
