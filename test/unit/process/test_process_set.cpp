@@ -47,7 +47,7 @@ TEST(ProcessSet, Constructor)
   rate_constants[1] = { 110.0, 120.0, 130.0 };
 
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
-
+  
   set.AddForcingTerms(rate_constants, state.variables_, forcing);
 
   EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);

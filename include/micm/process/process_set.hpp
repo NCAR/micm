@@ -188,20 +188,24 @@ namespace micm
         double rate = cell_rate_constants[i_rxn];
         
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-          rate *= cell_state[react_id[i_react]];
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react){
-          std::cout << "this is cell forcing before update: " << cell_forcing[react_id[i_react]] <<std::endl; 
-          cell_forcing[react_id[i_react]] -= rate;
-          std::cout << "this is cell forcing after update: "  << cell_forcing[react_id[i_react]] <<std::endl; 
-          }
+          rate *= cell_state[react_id[i_react]]; 
         
-        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
-          cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          cell_forcing[react_id[i_react]] -= rate;
+        
+      
+        // for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+        //   cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
+        
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
       }
     }
+    double* forcing_data = forcing.AsVector().data(); 
+        for (int i = 0; i < forcing.AsVector().size(); i++){
+          std::cout << "this is cell forcing after update: "<< forcing_data[i]<<std::endl; 
+        }
   };
 
   inline void ProcessSet::AddJacobianTerms(

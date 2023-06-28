@@ -59,6 +59,10 @@ TEST(ProcessSet, Constructor)
   int product_ids_size = set.product_ids_vector().size();
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
+
+  for (int i = 0; i < number_of_reactants_size; i++){
+    std::cout << number_of_reactants[i]<<std::endl; 
+  }
   
   micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,

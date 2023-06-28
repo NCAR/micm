@@ -55,9 +55,9 @@ namespace micm {
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
 
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -=rate; 
-            if (tid == 1){
-                cell_forcing[tid + i_reactant] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
-            }
+           
+                cell_forcing[row_index * state_forcing_columns + state_forcing_col_index] = forcing[row_index * state_forcing_columns + state_forcing_col_index]; 
+           
         }
         
         for (int i_product = 0; i_product < product_num; i_product++){
@@ -143,9 +143,10 @@ namespace micm {
 
         double* d_cell_forcing; 
         double* cell_forcing; 
-        cudaMalloc(&d_cell_forcing, sizeof(double) * 8); 
-        cell_forcing = (double*)malloc(sizeof(double) * 8); 
-
+        cudaMalloc(&d_cell_forcing, sizeof(double) * 10); 
+        cell_forcing = (double*)malloc(sizeof(double) * 10); 
+        cudaMemcpy(d_cell_forcing, forcing_data, sizeof(double)* 10, cudaMemcpyHostToDevice); 
+        
 
         
         //allocate device memory
@@ -209,26 +210,26 @@ namespace micm {
         
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
         
-        // //debugging 
-        // cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
-        // std::cout << "this is rate_array before update: "<< std::endl; 
-        // for (int k = 0; k < rate_array_size; k++){
-        //     std::cout << rate_array[k]<<std::endl; 
-        // }
-        // cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
-        // std::cout << "This is state variable for first thread"<<std::endl;
-        // for (int k = 0; k < 2; k++){
-        //     std::cout << state_variable[k]<<std::endl; 
-        // }
+        //debugging 
+        cudaMemcpy(rate_array, d_rate_array, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
+        std::cout << "this is rate_array before update: "<< std::endl; 
+        for (int k = 0; k < rate_array_size; k++){
+            std::cout << rate_array[k]<<std::endl; 
+        }
+        cudaMemcpy(state_variable, d_state_variable, sizeof(double)*2, cudaMemcpyDeviceToHost);   
+        std::cout << "This is state variable for first thread"<<std::endl;
+        for (int k = 0; k < 2; k++){
+            std::cout << state_variable[k]<<std::endl; 
+        }
 
-        // cudaMemcpy(rate_array_post, d_rate_array_post, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
-        // std::cout << "this is rate_array after update: "<< std::endl; 
-        // for (int k = 0; k < rate_array_size; k++){
-        //     std::cout << rate_array_post[k]<<std::endl; 
-        // }
+        cudaMemcpy(rate_array_post, d_rate_array_post, sizeof(double)*rate_array_size, cudaMemcpyDeviceToHost);    
+        std::cout << "this is rate_array after update: "<< std::endl; 
+        for (int k = 0; k < rate_array_size; k++){
+            std::cout << rate_array_post[k]<<std::endl; 
+        }
        
-       cudaMemcpy(cell_forcing, d_cell_forcing, sizeof(double) * 2, cudaMemcpyDeviceToHost); 
-       for (int k = 0; k < 8; k++){
+       cudaMemcpy(cell_forcing, d_cell_forcing, sizeof(double)*10, cudaMemcpyDeviceToHost); 
+       for (int k = 0; k < 10; k++){
         std::cout << "this is cell forcing after update"<< cell_forcing[k]<<std::endl; 
        }
        
