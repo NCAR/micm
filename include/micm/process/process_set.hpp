@@ -191,7 +191,8 @@ namespace micm
       std::size_t offset_forcing = i_block * forcing.BlockSize();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        double rate[L];
+        // TODO: jiwon 6/29 - better way to do this?
+        double* rate = new double[L];
         for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
@@ -206,6 +207,8 @@ namespace micm
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
+        
+        delete[] rate;        
       }
     }
   }
