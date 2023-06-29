@@ -9,19 +9,6 @@
 #include <unordered_map>
 #include <vector>
 
-// custom hash function for 'Species'
-namespace std
-{
-  template<>
-  struct hash<micm::Species>
-  {
-    size_t operator()(const micm::Species& key)
-    {
-      return hash<std::string>()(key.name_);
-    }
-  };
-}  // namespace std
-
 namespace micm
 {
 
@@ -69,8 +56,8 @@ namespace micm
         const std::unordered_map<std::string, double>& species_to_concentration);
 
     // TODO: jiwon - 6/22 - can 'MUSICA name' be used as a key? Are they hashable (unique)?
-    // or do we just want to use index? 
-    // 
+    // or do we just want to use index?
+    //
     void SetCustomRateParams();
   };
 
@@ -84,7 +71,10 @@ namespace micm
   {
   }
   template<template<class> class MatrixPolicy>
-  inline State<MatrixPolicy>::State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size)
+  inline State<MatrixPolicy>::State(
+      const std::size_t state_size,
+      const std::size_t custom_parameters_size,
+      const std::size_t process_size)
       : conditions_(1),
         variable_map_(),
         variables_(1, state_size, 0.0),
@@ -123,7 +113,7 @@ namespace micm
       }
       concentrations.push_back(species_ptr->second);
     }
- 
+
     variables_[0] = concentrations;
   }
 }  // namespace micm

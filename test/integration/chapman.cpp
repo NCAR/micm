@@ -33,15 +33,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   micm::State state = solver.GetState();
 
   // Set concentrations
-  std::unordered_map<micm::Species, double> concentrations = { { micm::Species("O"), 0.1 },
-                                                               { micm::Species("O1D"), 0.1 },
-                                                               { micm::Species("O2"), 0.1 },
-                                                               { micm::Species("O3"), 0.2 },
-                                                               { micm::Species("M"), 0.2 },
-                                                               { micm::Species("Ar"), 0.2 },
-                                                               { micm::Species("N2"), 0.3 }, 
-                                                               { micm::Species("H2O"), 0.3 },
-                                                               { micm::Species("CO2"), 0.3 } };
+  std::unordered_map<std::string, double> concentrations = { { "O", 0.1 },  { "O1D", 0.1 }, { "O3", 0.2 },
+                                                             { "O2", 0.1 }, { "M", 0.2 },   { "Ar", 0.2 },
+                                                             { "N2", 0.3 }, { "H2O", 0.3 }, { "CO2", 0.3 } };
 
   state.SetConcentrations(solver_params.system_, concentrations);
 
