@@ -10,7 +10,7 @@ namespace micm
   ///
   /// Data is stored with blocks in the block diagonal matrix as the highest
   /// level structure, then by row, then by non-zero columns in each row.
-  class StandardSparseMatrix
+  class SparseMatrixStandardOrdering
   {
    protected:
     static std::size_t VectorSize(
