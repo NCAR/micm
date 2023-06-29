@@ -3,10 +3,49 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <iostream>
 
+
 namespace micm {
     namespace cuda {
     //one thread per reaction
     //passing all device pointers 
+
+   
+__device__ double atomicSub(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                              (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed,
+                        __double_as_longlong(val -
+                               __longlong_as_double(assumed)));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+
+__device__ double atomicAdd(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                              (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+
+    do {
+        assumed = old;
+        old = atomicCAS(address_as_ull, assumed,
+                        __double_as_longlong(val +
+                               __longlong_as_double(assumed)));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old);
+
+    return __longlong_as_double(old);
+}
+
     __global__ void AddForcingTerms_kernel(
         double* rate_constants, 
         double* state_variables, 
@@ -48,14 +87,14 @@ namespace micm {
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            atomicSub_device(forcing[row_index * state_forcing_columns + state_forcing_col_index], rate);
+            atomicSub(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate);
         }
 
         for (int i_product = 0; i_product < product_num; i_product++){
             int yields_index = initial_yields_index + i_product; 
             int product_ids_index  = initial_product_ids_index + i_product; 
             int forcing_col_index = product_ids_[product_ids_index]; 
-            atomicAdd_device(forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
+            atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
         } //looping number of product times
     } // checking valid tid value
   } //AddForcingTerms_kernel function
