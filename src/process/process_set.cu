@@ -43,7 +43,7 @@ __device__ double atomicAdd(double* address, double val)
         double* yields_)
     {
     //define thread index 
-    
+    //one thread per reaction
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
     int rate_constants_size = matrix_rows * rate_constants_columns; 
     
