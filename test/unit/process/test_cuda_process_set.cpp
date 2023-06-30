@@ -76,16 +76,16 @@ TEST(ProcessSet, Constructor)
     state.variables_, 
     forcing);
 
-  EXPECT_NEAR(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2, 1e-15);
-  EXPECT_NEAR(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2, 1e-15);
-  EXPECT_NEAR(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2, 1e-15);
-  EXPECT_NEAR(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2,1e-15);
-  EXPECT_NEAR(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3, 1e-15);
-  EXPECT_NEAR(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3, 1e-15);
-  EXPECT_NEAR(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4, 1e-15);
-  EXPECT_NEAR(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4, 1e-15);
-  EXPECT_NEAR(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4, 1e-15);
-  EXPECT_NEAR(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2,1e-15);
+  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4, 1e-15);
+  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4, 1e-15);
   
  
 

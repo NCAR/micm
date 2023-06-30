@@ -9,25 +9,6 @@ namespace micm {
     //one thread per reaction
     //passing all device pointers 
 
-   
-__device__ double atomicSub(double* address, double val)
-{
-    unsigned long long int* address_as_ull =
-                              (unsigned long long int*)address;
-    unsigned long long int old = *address_as_ull, assumed;
-
-    do {
-        assumed = old;
-        old = atomicCAS(address_as_ull, assumed,
-                        __double_as_longlong(val -
-                               __longlong_as_double(assumed)));
-
-    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-    } while (assumed != old);
-
-    return __longlong_as_double(old);
-}
-
 __device__ double atomicAdd(double* address, double val)
 {
     unsigned long long int* address_as_ull =
@@ -87,7 +68,8 @@ __device__ double atomicAdd(double* address, double val)
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            atomicSub(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate);
+            double rate_subtration = 0 - rate; 
+            atomicSub(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
         }
 
         for (int i_product = 0; i_product < product_num; i_product++){
@@ -211,6 +193,7 @@ __device__ double atomicAdd(double* address, double val)
         
         cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
         
+        //clean up
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
         cudaFree(d_forcing);
