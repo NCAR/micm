@@ -69,7 +69,7 @@ __device__ double atomicAdd(double* address, double val)
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             double rate_subtration = 0 - rate; 
-            atomicSub(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
+            atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
         }
 
         for (int i_product = 0; i_product < product_num; i_product++){
