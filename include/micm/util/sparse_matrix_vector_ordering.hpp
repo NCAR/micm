@@ -25,7 +25,7 @@ namespace micm
         const std::vector<std::size_t>& row_ids,
         const std::vector<std::size_t>& row_start)
     {
-      return std::ceil((double)number_of_blocks / (double)L) * row_ids.size();
+      return std::ceil((double)number_of_blocks / (double)L) * L * row_ids.size();
     };
 
     std::size_t VectorIndex(
@@ -43,7 +43,7 @@ namespace micm
       auto elem = std::find(begin, end, column);
       if (elem == end)
         throw std::invalid_argument("SparseMatrix zero element access not allowed");
-      return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * row_ids.size() };
+      return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * L * row_ids.size() };
     };
   };
 }  // namespace micm
