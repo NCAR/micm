@@ -21,13 +21,13 @@ namespace micm {
         size_t* number_of_products_, 
         size_t* accumulated_n_products, 
         size_t* product_ids_, 
-        size_t* yields_)
+        double* yields_)
     {
     //define thread index 
     int tid = blockIdx.x + blockDim.x + threadIdx.x; 
     int rate_reactants_size = matrix_rows * rate_constants_columns; 
     if (tid < rate_reactants_size){
-        int rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
+        double rate = rate_constants[tid]; // rate of a specific reaction in a specific gridcell 
         int row_index = tid % rate_constants_columns; 
         int reactant_num = number_of_reactants_[tid % rate_constants_columns]; //number of reactants of the reaction
         int product_num = number_of_products_[tid % rate_constants_columns]; //number of products of the reaction 
@@ -42,8 +42,17 @@ namespace micm {
             //how to match thread idx to state_variable index 
             //but we need to consider the row of state_variable 
             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index]; 
+            
+        }
+
+        for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
+            int reactant_ids_index = i_reactant + initial_reactant_ids_index; 
+            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+           
             forcing[row_index * state_forcing_columns + state_forcing_col_index] -= rate; 
         }
+
+
         for (int i_product = 0; i_product < product_num; i_product++){
             int yields_index = initial_yields_index + i_product; 
             int product_ids_index  = initial_product_ids_index + i_product; 
@@ -99,7 +108,7 @@ namespace micm {
         size_t* d_number_of_products_; 
         size_t* d_accumulated_n_products; 
         size_t* d_product_ids_; 
-        size_t* d_yields_; 
+        double* d_yields_; 
         
         //allocate device memory
         size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
@@ -109,7 +118,7 @@ namespace micm {
         size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size; 
         size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size; 
         size_t product_ids_bytes = sizeof(size_t) * product_ids_size;
-        size_t yields_bytes = sizeof(size_t) * yields_size;
+        size_t yields_bytes = sizeof(double) * yields_size;
         
         cudaMalloc(&d_rate_constants, rate_constants_bytes); 
         cudaMalloc(&d_state_variables, state_variables_bytes); 
