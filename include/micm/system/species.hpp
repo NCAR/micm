@@ -19,12 +19,9 @@ namespace micm
   {
    public:
     /// @brief The name of this species
-    const std::string name_;
+    std::string name_;
     /// @brief A list of properties of this species
-    const std::vector<Property> properties_;
-
-    /// @brief Default constructor is not allowed
-    Species() = delete;
+    std::vector<Property> properties_;
 
     /// @brief Copy assignment
     /// @param other species to copy
@@ -41,12 +38,12 @@ namespace micm
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(const std::string& name, std::vector<Property> properties);
+    Species(const std::string& name, const std::vector<Property>& properties);
 
     /// @brief Construct a species by name and property
     /// @param name The name of the species
     /// @param property A property of the species
-    Species(const std::string& name, Property property);
+    Species(const std::string& name, const Property& property);
   };
 
   inline Species Species::operator=(const Species& other)
@@ -61,11 +58,11 @@ namespace micm
   inline Species::Species(const std::string& name)
       : name_(name){};
 
-  inline Species::Species(const std::string& name, const std::vector<Property> properties)
+  inline Species::Species(const std::string& name, const std::vector<Property>& properties)
       : name_(name),
         properties_(properties){};
 
-  inline Species::Species(const std::string& name, const Property property)
+  inline Species::Species(const std::string& name, const Property& property)
       : name_(name),
         properties_({ property }){};
 

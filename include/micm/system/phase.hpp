@@ -35,11 +35,10 @@ namespace micm
     {
     }
 
-    Phase operator=(const Phase& other);
+    Phase& operator=(const Phase& other)
+    {
+      species_ = other.species_;
+      return *this;
+    }
   };
-
-  Phase Phase::operator=(const Phase& other)
-  {
-    return Phase{ other.species_ };
-  }
 }  // namespace micm
