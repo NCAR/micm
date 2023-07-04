@@ -4,6 +4,7 @@
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <random>
 
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
@@ -26,9 +27,9 @@ void testProcessSet()
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
-                                            .number_of_grid_cells_ = 2,
-                                            .number_of_custom_parameters_ = 0,
-                                            .number_of_rate_constants_ = 3 } };
+                                                          .number_of_grid_cells_ = 2,
+                                                          .number_of_custom_parameters_ = 0,
+                                                          .number_of_rate_constants_ = 3 } };
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
@@ -140,4 +141,64 @@ TEST(ProcessSet, VectorMatrix)
   testProcessSet<Block2VectorMatrix>();
   testProcessSet<Block3VectorMatrix>();
   testProcessSet<Block4VectorMatrix>();
+}
+
+template<template<class> class MatrixPolicy>
+void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+{
+  auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
+  auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
+  auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
+
+  std::vector<micm::Species> species{};
+  std::vector<std::string> species_names{};
+  for (std::size_t i = 0; i < n_species; ++i)
+  {
+    species.push_back(micm::Species{ std::to_string(i) });
+    species_names.push_back(std::to_string(i));
+  }
+  micm::Phase gas_phase{ species };
+  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
+                                                          .number_of_grid_cells_ = n_cells,
+                                                          .number_of_custom_parameters_ = 0,
+                                                          .number_of_rate_constants_ = n_reactions } };
+
+  std::vector<micm::Process> processes{};
+  for (std::size_t i = 0; i < n_reactions; ++i)
+  {
+    auto n_react = get_n_react();
+    std::vector<micm::Species> reactants{};
+    for (std::size_t i_react = 0; i_react < n_react; ++i_react)
+    {
+      reactants.push_back({ std::to_string(get_species_id()) });
+    }
+    auto n_product = get_n_product();
+    std::vector<yields> products{};
+    for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
+    {
+      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+    }
+    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+  }
+
+  micm::ProcessSet set{ processes, state };
+
+  for (auto& elem : state.variables_.AsVector())
+    elem = get_double();
+
+  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
+  for (auto& elem : rate_constants.AsVector())
+    elem = get_double();
+
+  MatrixPolicy<double> forcing{ n_cells, n_species, 1000.0 };
+
+  set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
+}
+
+TEST(RandomProcessSet, Matrix)
+{
+  testRandomSystem<micm::Matrix>(2000, 500, 400);
+  testRandomSystem<micm::Matrix>(3000, 300, 200);
+  testRandomSystem<micm::Matrix>(4000, 100, 80);
 }
