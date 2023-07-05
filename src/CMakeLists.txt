@@ -14,7 +14,7 @@ target_include_directories(micm
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-
+set(CMAKE_CUDA_ARCHITECTURES 80)
 if(ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
@@ -39,7 +39,6 @@ if(ENABLE_OPENACC)
   set(GPU_ARCH "")
   if (GPU_TYPE STREQUAL a100)
     set(GPU_ARCH "cc80")
-    set_property(TARGET tgt PROPERTY CUDA_ARCHITECTURES native)
   endif()
   
   if (GPU_TYPE STREQUAL v100)
@@ -81,7 +80,6 @@ if(ENABLE_CUDA)
   target_compile_definitions(micm_cuda
     PUBLIC
       USE_CUDA
-  
   )
 endif()
 
