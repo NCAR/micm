@@ -127,20 +127,20 @@ TEST(ProcessSet, Matrix)
 }
 
 template<class T>
-using Block1VectorMatrix = micm::VectorMatrix<T, 1>;
+using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
 template<class T>
-using Block2VectorMatrix = micm::VectorMatrix<T, 2>;
+using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
 template<class T>
-using Block3VectorMatrix = micm::VectorMatrix<T, 3>;
+using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
-using Block4VectorMatrix = micm::VectorMatrix<T, 4>;
+using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
 TEST(ProcessSet, VectorMatrix)
 {
-  testProcessSet<Block1VectorMatrix>();
-  testProcessSet<Block2VectorMatrix>();
-  testProcessSet<Block3VectorMatrix>();
-  testProcessSet<Block4VectorMatrix>();
+  testProcessSet<Group1VectorMatrix>();
+  testProcessSet<Group2VectorMatrix>();
+  testProcessSet<Group3VectorMatrix>();
+  testProcessSet<Group4VectorMatrix>();
 }
 
 template<template<class> class MatrixPolicy>

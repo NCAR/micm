@@ -13,11 +13,11 @@ namespace micm
 
   /// @brief A 2D array class with contiguous memory structured to encourage vectorization
   ///
-  /// The memory layout groups rows into blocks whose size can be set such that for a single
-  /// column, the block of rows can fit in the vector register.
+  /// The memory layout groups rows into groups whose size can be set such that for a single
+  /// column, the group of rows can fit in the vector register.
   ///
   /// The template arguments are the type of the matrix elements and the size of the number
-  /// of rows per block.
+  /// of rows per group.
   template<class T, std::size_t L>
   class VectorMatrix
   {
@@ -31,14 +31,14 @@ namespace micm
     class Proxy
     {
       VectorMatrix &matrix_;
-      std::size_t block_index_;
+      std::size_t group_index_;
       std::size_t row_index_;
       std::size_t y_dim_;
 
      public:
-      Proxy(VectorMatrix &matrix, std::size_t block_index, std::size_t row_index, std::size_t y_dim)
+      Proxy(VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
           : matrix_(matrix),
-            block_index_(block_index),
+            group_index_(group_index),
             row_index_(row_index),
             y_dim_(y_dim)
       {
@@ -50,7 +50,7 @@ namespace micm
           std::cerr << "Matrix row size mismatch in assignment from vector";
           std::exit(micm::ExitCodes::InvalidMatrixDimension);
         }
-        auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
+        auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
             other.begin(),
             std::next(other.begin(), y_dim_),
@@ -64,7 +64,7 @@ namespace micm
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
-        auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
+        auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         for (auto &elem : vec)
         {
           elem = *iter;
@@ -78,21 +78,21 @@ namespace micm
       }
       T &operator[](std::size_t y)
       {
-        return matrix_.data_[(block_index_ * y_dim_ + y) * L + row_index_];
+        return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
     };
 
     class ConstProxy
     {
       const VectorMatrix &matrix_;
-      std::size_t block_index_;
+      std::size_t group_index_;
       std::size_t row_index_;
       std::size_t y_dim_;
 
      public:
-      ConstProxy(const VectorMatrix &matrix, std::size_t block_index, std::size_t row_index, std::size_t y_dim)
+      ConstProxy(const VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
           : matrix_(matrix),
-            block_index_(block_index),
+            group_index_(group_index),
             row_index_(row_index),
             y_dim_(y_dim)
       {
@@ -100,7 +100,7 @@ namespace micm
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
-        auto iter = std::next(matrix_.data_.begin(), block_index_ * y_dim_ * L + row_index_);
+        auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         for (auto &elem : vec)
         {
           elem = *iter;
@@ -114,7 +114,7 @@ namespace micm
       }
       const T &operator[](std::size_t y) const
       {
-        return matrix_.data_[(block_index_ * y_dim_ + y) * L + row_index_];
+        return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
       }
     };
 
@@ -176,12 +176,12 @@ namespace micm
       return x_dim_;
     }
 
-    std::size_t NumberOfBlocks() const
+    std::size_t NumberOfGroups() const
     {
       return std::ceil(x_dim_ / (double)L);
     }
 
-    std::size_t BlockSize() const
+    std::size_t GroupSize() const
     {
       return L * y_dim_;
     }

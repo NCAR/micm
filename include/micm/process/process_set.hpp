@@ -13,11 +13,11 @@
 namespace micm
 {
 
-  /// Concept for vectorizable matrices
+  /// Concepts for vectorizable matrices
   template<typename T>
-  concept Vectorizable = requires(T t) {
-    t.BlockSize();
-    t.NumberOfBlocks();
+  concept VectorizableDense = requires(T t) {
+    t.GroupSize();
+    t.NumberOfGroups();
     t.VectorSize();
   };
 
@@ -54,10 +54,10 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<template<class> typename MatrixPolicy>
-      requires(!Vectorizable<MatrixPolicy<double>>)
+      requires(!VectorizableDense<MatrixPolicy<double>>)
     void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const;
     template<template<class> typename MatrixPolicy>
-      requires Vectorizable<MatrixPolicy<double>>
+      requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing)
         const;
 
@@ -142,7 +142,7 @@ namespace micm
   }
 
   template<template<class> typename MatrixPolicy>
-    requires(!Vectorizable<MatrixPolicy<double>>)
+    requires(!VectorizableDense<MatrixPolicy<double>>)
   inline void
   ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
   {
@@ -172,7 +172,7 @@ namespace micm
   };
 
   template<template<class> typename MatrixPolicy>
-    requires Vectorizable<MatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>>
   inline void
   ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
   {
@@ -180,15 +180,15 @@ namespace micm
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
     // loop over all rows
-    for (std::size_t i_block = 0; i_block < state_variables.NumberOfBlocks(); ++i_block)
+    for (std::size_t i_block = 0; i_block < state_variables.NumberOfGroups(); ++i_block)
     {
       std::size_t L = rate_constants.VectorSize();
       auto react_id = reactant_ids_.begin();
       auto prod_id = product_ids_.begin();
       auto yield = yields_.begin();
-      std::size_t offset_rc = i_block * rate_constants.BlockSize();
-      std::size_t offset_state = i_block * state_variables.BlockSize();
-      std::size_t offset_forcing = i_block * forcing.BlockSize();
+      std::size_t offset_rc = i_block * rate_constants.GroupSize();
+      std::size_t offset_state = i_block * state_variables.GroupSize();
+      std::size_t offset_forcing = i_block * forcing.GroupSize();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         double rate[L];

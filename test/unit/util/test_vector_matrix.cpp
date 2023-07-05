@@ -4,23 +4,23 @@
 #include "test_matrix_policy.hpp"
 
 template<class T>
-using Block1MatrixAlias = micm::VectorMatrix<T, 1>;
+using Group1MatrixAlias = micm::VectorMatrix<T, 1>;
 template<class T>
-using Block2MatrixAlias = micm::VectorMatrix<T, 2>;
+using Group2MatrixAlias = micm::VectorMatrix<T, 2>;
 template<class T>
-using Block3MatrixAlias = micm::VectorMatrix<T, 3>;
+using Group3MatrixAlias = micm::VectorMatrix<T, 3>;
 template<class T>
-using Block4MatrixAlias = micm::VectorMatrix<T, 4>;
+using Group4MatrixAlias = micm::VectorMatrix<T, 4>;
 
 TEST(VectorMatrix, SmallVectorMatrix)
 {
-  auto matrix = testSmallMatrix<Block2MatrixAlias>();
+  auto matrix = testSmallMatrix<Group2MatrixAlias>();
 
   std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
-  EXPECT_EQ(matrix.BlockSize(), 2 * 5);
-  EXPECT_EQ(matrix.NumberOfBlocks(), 2);
+  EXPECT_EQ(matrix.GroupSize(), 2 * 5);
+  EXPECT_EQ(matrix.NumberOfGroups(), 2);
   EXPECT_EQ(matrix.VectorSize(), 2);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
@@ -29,13 +29,13 @@ TEST(VectorMatrix, SmallVectorMatrix)
 
 TEST(VectorMatrix, SmallConstVectorMatrix)
 {
-  auto matrix = testSmallConstMatrix<Block4MatrixAlias>();
+  auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
 
   const std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
-  EXPECT_EQ(matrix.BlockSize(), 4 * 5);
-  EXPECT_EQ(matrix.NumberOfBlocks(), 1);
+  EXPECT_EQ(matrix.GroupSize(), 4 * 5);
+  EXPECT_EQ(matrix.NumberOfGroups(), 1);
   EXPECT_EQ(matrix.VectorSize(), 4);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 + 4 * 4], 102.3);
@@ -44,40 +44,40 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
 
 TEST(VectorMatrix, InitializeVectorMatrix)
 {
-  testInializeMatrix<Block1MatrixAlias>();
+  testInializeMatrix<Group1MatrixAlias>();
 }
 
 TEST(VectorMatrix, InitializeConstVectorMatrix)
 {
-  testInializeConstMatrix<Block2MatrixAlias>();
+  testInializeConstMatrix<Group2MatrixAlias>();
 }
 
 TEST(VectorMatrix, LoopOverVectorMatrix)
 {
-  testLoopOverMatrix<Block2MatrixAlias>();
+  testLoopOverMatrix<Group2MatrixAlias>();
 }
 
 TEST(VectorMatrix, LoopOverConstVectorMatrix)
 {
-  testLoopOverConstMatrix<Block1MatrixAlias>();
+  testLoopOverConstMatrix<Group1MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConversionToVector)
 {
-  testConversionToVector<Block3MatrixAlias>();
+  testConversionToVector<Group3MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConstConversionToVector)
 {
-  testConstConversionToVector<Block1MatrixAlias>();
+  testConstConversionToVector<Group1MatrixAlias>();
 }
 
 TEST(VectorMatrix, ConversionFromVector)
 {
-  testConversionFromVector<Block2MatrixAlias>();
+  testConversionFromVector<Group2MatrixAlias>();
 }
 
 TEST(VectorMatrix, AssignmentFromVector)
 {
-  testAssignmentFromVector<Block2MatrixAlias>();
+  testAssignmentFromVector<Group2MatrixAlias>();
 }
