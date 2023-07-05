@@ -9,6 +9,10 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
+#ifdef USE_CUDA
+#include <micm/process/process_set_cuda.hpp>
+#endif
+
 namespace micm
 {
 
@@ -58,7 +62,7 @@ namespace micm
         SparseMatrix<double>& jacobian) const;
     
     #ifdef USE_CUDA
-    void AddForcingTerms_kernelSetup(
+    void CudaAddForcingTerms(
         const Matrix<double>& rate_constants, 
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing);
@@ -89,7 +93,7 @@ namespace micm
     }
   };
 
-  std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
+  inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
@@ -113,7 +117,7 @@ namespace micm
     return ids;
   }
 
-  void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double>& matrix)
+  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
@@ -203,4 +207,22 @@ namespace micm
     }
   }
 
+    #ifdef USE_CUDA
+    inline void ProcessSet::CudaAddForcingTerms(
+        const Matrix<double>& rate_constants, 
+        const Matrix<double>& state_variables, 
+        Matrix<double>& forcing) {
+          AddForcingTerms_kernelSetup(
+            rate_constants, 
+            state_variables, 
+            forcing,
+            number_of_reactants_,
+            reactant_ids_,
+            number_of_products_,
+            product_ids_,
+            yields_,
+            jacobian_flat_ids_
+          );
+        }
+    #endif
 }  // namespace micm
