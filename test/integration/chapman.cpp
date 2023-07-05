@@ -18,7 +18,7 @@ using yields = std::pair<micm::Species, double>;
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
   std::string config_path = "./unit_configs/chapman";
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throwing-exception policy
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throw-exception policy
 
   // Read and parse the configure files
   // If parsing fails, it could throw exceptions - we probably want to catch them.
