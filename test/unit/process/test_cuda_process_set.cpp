@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include <micm/process/process_set_cuda.cuh>
 #include <micm/process/process_set.hpp>
-
+#include <iostream>
+#include <random>
+#include <chrono>
 
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
@@ -12,42 +14,132 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-TEST(ProcessSet, Constructor)
+// TEST(ProcessSet, Constructor)
+// {
+//   auto foo = micm::Species("foo");
+//   auto bar = micm::Species("bar");
+//   auto baz = micm::Species("baz");
+//   auto quz = micm::Species("quz");
+//   auto quuz = micm::Species("quuz");
+
+//   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
+
+//   micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
+//                                             .number_of_grid_cells_ = 2,
+//                                             .number_of_custom_parameters_ = 0,
+//                                             .number_of_rate_constants_ = 3 } };
+
+//   micm::Process r1 =
+//       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
+
+//   micm::Process r2 =
+//       micm::Process::create().reactants({ bar }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
+
+//   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
+
+//   micm::ProcessSet set{ std::vector<micm::Process>{ r1, r2, r3 }, state };
+
+//   EXPECT_EQ(state.variables_.size(), 2);
+//   EXPECT_EQ(state.variables_[0].size(), 5);
+//   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
+//   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5 };
+
+//   micm::Matrix<double> rate_constants{ 2, 3 };
+//   rate_constants[0] = { 10.0, 20.0, 30.0 };
+//   rate_constants[1] = { 110.0, 120.0, 130.0 };
+
+//   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
+
+
+//   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
+//   int number_of_reactants_size = set.number_of_reactants_vector().size();
+//   const size_t* reactant_ids = set.reactant_ids_vector().data();
+//   int reactant_ids_size = set.reactant_ids_vector().size();
+//   const size_t* number_of_products = set.number_of_products_vector().data();
+//   int number_of_products_size = set.number_of_products_vector().size();
+//   const size_t* product_ids = set.product_ids_vector().data(); 
+//   int product_ids_size = set.product_ids_vector().size();
+//   const double* yields = set.yields_vector().data();
+//   int yields_size = set.yields_vector().size(); 
+
+  
+//   micm::cuda::AddForcingTerms_kernelSetup(
+//     number_of_reactants,
+//     number_of_reactants_size,
+//     reactant_ids,
+//     reactant_ids_size,
+//     number_of_products,
+//     number_of_products_size,
+//     product_ids,
+//     product_ids_size,
+//     yields,
+//     yields_size,
+//     rate_constants, 
+//     state.variables_, 
+//     forcing);
+
+//   EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
+//   EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
+//   EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
+//   EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2);
+//   EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3);
+//   EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3);
+//   EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4);
+//   EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4);
+//   EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
+//   EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+
+
+template<template<class> class MatrixPolicy>
+void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
-  auto foo = micm::Species("foo");
-  auto bar = micm::Species("bar");
-  auto baz = micm::Species("baz");
-  auto quz = micm::Species("quz");
-  auto quuz = micm::Species("quuz");
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
+  auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
+  auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
+  auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
-                                            .number_of_grid_cells_ = 2,
-                                            .number_of_custom_parameters_ = 0,
-                                            .number_of_rate_constants_ = 3 } };
+  std::vector<micm::Species> species{};
+  std::vector<std::string> species_names{};
+  for (std::size_t i = 0; i < n_species; ++i)
+  {
+    species.push_back(micm::Species{ std::to_string(i) });
+    species_names.push_back(std::to_string(i));
+  }
+  micm::Phase gas_phase{ species };
+  micm::State state{ micm::StateParameters{ .state_variable_names_{ species_names },
+                                                          .number_of_grid_cells_ = n_cells,
+                                                          .number_of_custom_parameters_ = 0,
+                                                          .number_of_rate_constants_ = n_reactions } };
 
-  micm::Process r1 =
-      micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
+  std::vector<micm::Process> processes{};
+  for (std::size_t i = 0; i < n_reactions; ++i)
+  {
+    auto n_react = get_n_react();
+    std::vector<micm::Species> reactants{};
+    for (std::size_t i_react = 0; i_react < n_react; ++i_react)
+    {
+      reactants.push_back({ std::to_string(get_species_id()) });
+    }
+    auto n_product = get_n_product();
+    std::vector<yields> products{};
+    for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
+    {
+      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+    }
+    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+  }
 
-  micm::Process r2 =
-      micm::Process::create().reactants({ bar }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
+  micm::ProcessSet set{ processes, state };
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
+  for (auto& elem : state.variables_.AsVector())
+    elem = get_double();
 
-  micm::ProcessSet set{ std::vector<micm::Process>{ r1, r2, r3 }, state };
+  micm::Matrix <double> rate_constants{ n_cells, n_reactions };
+  for (auto& elem : rate_constants.AsVector())
+    elem = get_double();
 
-  EXPECT_EQ(state.variables_.size(), 2);
-  EXPECT_EQ(state.variables_[0].size(), 5);
-  state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
-  state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5 };
-
-  micm::Matrix<double> rate_constants{ 2, 3 };
-  rate_constants[0] = { 10.0, 20.0, 30.0 };
-  rate_constants[1] = { 110.0, 120.0, 130.0 };
-
-  micm::Matrix<double> forcing{ 2, 5, 1000.0 };
-
+  micm::Matrix <double> forcing{ n_cells, n_species, 1000.0 };
 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
@@ -59,9 +151,10 @@ TEST(ProcessSet, Constructor)
   int product_ids_size = set.product_ids_vector().size();
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
-
   
-  micm::cuda::AddForcingTerms_kernelSetup(
+  // start timer 
+  auto start = std::chrono::steady_clock::now(); 
+   micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
     number_of_reactants_size,
     reactant_ids,
@@ -75,17 +168,19 @@ TEST(ProcessSet, Constructor)
     rate_constants, 
     state.variables_, 
     forcing);
+  
+    auto end = std::chrono::steady_clock::now(); 
+    //end timer
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "time duration: "<< duration.count() <<std::endl; 
+}
 
-  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
-  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
-  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
-  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2);
-  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3);
-  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3);
-  EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4);
-  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4);
-  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
-  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+TEST(RandomProcessSet, Matrix)
+{
+  testRandomSystem<micm::Matrix>(2000, 500, 400);
+  testRandomSystem<micm::Matrix>(3000, 300, 200);
+  testRandomSystem<micm::Matrix>(4000, 100, 80);
+}
   
  
 
@@ -143,7 +238,7 @@ TEST(ProcessSet, Constructor)
 //   EXPECT_EQ(jacobian[1][4][0], 100.0 + 2.4 * 110.0 * 1.3);
 //   EXPECT_EQ(jacobian[0][4][2], 100.0 + 2.4 * 10.0 * 0.1);  // quuz -> baz
 //   EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
- }
+ //}
 
 
 

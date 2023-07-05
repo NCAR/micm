@@ -79,6 +79,8 @@ if(ENABLE_CUDA)
   target_compile_definitions(micm_cuda
     PUBLIC
       USE_CUDA
+      _arch=native
+     
   )
 endif()
 

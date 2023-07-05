@@ -2,6 +2,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <iostream>
+#include <cuda_runtime_api.h>
 
 
 namespace micm {
@@ -69,14 +70,14 @@ __device__ double atomicAdd(double* address, double val)
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             double rate_subtration = 0 - rate; 
-            atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
+            atomicAdd_system(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
         }
 
         for (int i_product = 0; i_product < product_num; i_product++){
             int yields_index = initial_yields_index + i_product; 
             int product_ids_index  = initial_product_ids_index + i_product; 
             int forcing_col_index = product_ids_[product_ids_index]; 
-            atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
+            atomicAdd_system(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
         } //looping number of product times
     } // checking valid tid value
   } //AddForcingTerms_kernel function
