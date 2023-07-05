@@ -4,7 +4,7 @@
 #include <iostream>
 #include <random>
 #include <chrono>
-
+#include <functional>
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
@@ -97,7 +97,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
   auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
-  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
+  std::lognormal_distribution<double> distribution(-2.0, 4.0);
+  auto get_double = std::bind(distribution, std::default_random_engine());
 
   std::vector<micm::Species> species{};
   std::vector<std::string> species_names{};
