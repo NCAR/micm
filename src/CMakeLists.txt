@@ -39,7 +39,9 @@ if(ENABLE_OPENACC)
   set(GPU_ARCH "")
   if (GPU_TYPE STREQUAL a100)
     set(GPU_ARCH "cc80")
+    set_property(TARGET tgt PROPERTY CUDA_ARCHITECTURES native)
   endif()
+  
   if (GPU_TYPE STREQUAL v100)
     set(GPU_ARCH "cc70")
   endif()
@@ -79,8 +81,7 @@ if(ENABLE_CUDA)
   target_compile_definitions(micm_cuda
     PUBLIC
       USE_CUDA
-      _arch=native
-     
+  
   )
 endif()
 
