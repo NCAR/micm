@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <map>
+#include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/solver/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <stdexcept>
@@ -20,12 +22,13 @@ namespace micm
     std::size_t number_of_rate_constants_{ 0 };
   };
 
-  struct Conditions
-  {
-    double temperature_{ 0.0 };
-    double pressure_{ 0.0 };
-    double air_density_{ 1.0 };
-  };
+  // TODO: jiwon 7/5 - moved to conditions.hpp
+  // struct Conditions
+  //{
+  //   double temperature_{ 0.0 };
+  //   double pressure_{ 0.0 };
+  //   double air_density_{ 1.0 };
+  // };
 
   template<template<class> class MatrixPolicy = Matrix>
   struct State
@@ -49,16 +52,17 @@ namespace micm
     /// @param parameters State dimension information
     State(const StateParameters parameters);
 
-    /// @brief Set concentrations
+    /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(
         const micm::System& system,
         const std::unordered_map<std::string, double>& species_to_concentration);
 
-    // TODO: jiwon - 6/22 - can 'MUSICA name' be used as a key? Are they hashable (unique)?
-    // or do we just want to use index?
-    //
-    void SetCustomRateParams();
+    /// @brief Set photolysis rate constants
+    /// @param photolysis rate
+    void SetPhotolysisRate(
+        const std::vector<PhotolysisRateConstant>& photolysis_rate_arr,
+        const std::unordered_map<std::string, double>& photolysis_rate);
   };
 
   template<template<class> class MatrixPolicy>
@@ -109,11 +113,34 @@ namespace micm
       auto species_ptr = species_to_concentration.find(species.name_);
       if (species_ptr == species_to_concentration.end())
       {
-        throw std::invalid_argument("Invalid species: " + species.name_);
+        throw std::invalid_argument("Concentration value for '" + species.name_ + "' must be given.");
       }
       concentrations.push_back(species_ptr->second);
     }
 
     variables_[0] = concentrations;
+  }
+
+  template<template<class> class MatrixPolicy>
+  inline void State<MatrixPolicy>::SetPhotolysisRate(
+      const std::vector<PhotolysisRateConstant>& photolysis_rate_arr,
+      const std::unordered_map<std::string, double>& photolysis_rate)
+  {
+    std::vector<double> photo_rates;
+
+    photo_rates.reserve(photolysis_rate_arr.size());
+
+    for (auto& elem : photolysis_rate_arr)
+    {
+      auto rate_ptr = photolysis_rate.find(elem.name_);
+      if (rate_ptr == photolysis_rate.end())
+      {
+        throw std::invalid_argument("Photolysis rate constant for '" + elem.name_ + "' must be given.");
+      }
+
+      photo_rates.push_back(rate_ptr->second);
+    }
+
+    custom_rate_parameters_[0] = photo_rates;
   }
 }  // namespace micm

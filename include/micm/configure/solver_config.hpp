@@ -21,6 +21,7 @@
 
 namespace micm
 {
+  // JSON-Parsing error policies
   template<class Object>
   class ThrowPolicy
   {
@@ -62,17 +63,20 @@ namespace micm
   // Solver parameters
   struct SolverParameters
   {
-    micm::System system_;
-    std::vector<micm::Process> processes_;
-  };
+    System system_;
+    std::vector<Process> processes_;
 
-  // Error code
-  enum class ConfigErrorCode
-  {
-    None = 0,
-    NoAcess,
-    FileNotFound,
-    KeyNotFound,
+    SolverParameters(const System& system, std::vector<Process>&& processes)
+        : system_(system),
+          processes_(std::move(processes))
+    {
+    }
+
+    SolverParameters(System&& system, std::vector<Process>&& processes)
+        : system_(std::move(system)),
+          processes_(std::move(processes))
+    {
+    }
   };
 
   // JSON Configure paser
@@ -82,12 +86,22 @@ namespace micm
     using json = nlohmann::json;
 
    public:
-    std::vector<Species> species_;
-    std::vector<Species> emissions_;
-    std::vector<Species> first_order_loss_;
-    std::vector<micm::Process> processes_;
-    micm::Phase gas_phase_;
-    std::unordered_map<std::string, micm::Phase> phases_;
+    // Read from species configure
+    std::vector<Species> species_arr_;
+
+    // Read from reaction configure
+    std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
+    std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
+    std::vector<Species> emission_arr_;
+    std::vector<Species> first_order_loss_arr_;
+
+    // Specific for solver parameters
+    Phase gas_phase_;
+    std::unordered_map<std::string, Phase> phases_;
+    std::vector<Process> processes_;
+
+    // Status of parsing
+    bool is_parse_success_ = false;
 
     // Constants
     static const inline std::string SPECIES_CONFIG = "species.json";
@@ -98,33 +112,37 @@ namespace micm
 
     // Functions
 
-    /// @brief read and parse JSON objects
-    /// @param
-    /// @return SolverParameters if parsing is success, else returns ConfigErrorCode
-    std::variant<micm::SolverParameters, micm::ConfigErrorCode> ReadAndParse(const std::filesystem::path& config_dir)
+    /// @brief Parse configures
+    /// @return True for successful parsing
+    bool Parse(const std::filesystem::path& config_dir)
     {
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
 
       // Check all the configure files exist
-      for (auto config : { species_config, reactions_config })
+      for (const auto& config : { species_config, reactions_config })
       {
         if (!std::filesystem::exists(config))
         {
           std::string err_msg = "Configuration file at path " + config.string() + " does not exist\n";
           this->OnError(err_msg);
-          return micm::ConfigErrorCode::FileNotFound;
+
+          return false;
         }
       }
 
       // Read species file to create Species and Phase that needs to be known to System and Process
       if (!ConfigureSpecies(species_config))
-        return micm::ConfigErrorCode::KeyNotFound;
+        return false;
+
+      // Assign the parsed 'Species' to 'Phase'
+      gas_phase_ = Phase(species_arr_);
 
       // Read reactions file
       json reaction_data = json::parse(std::ifstream(reactions_config));
+
       if (!ValidateJsonWithKey(reaction_data, CAMP_DATA))
-        return micm::ConfigErrorCode::KeyNotFound;
+        return false;
 
       std::vector<json> reaction_objects;
       for (const auto& element : reaction_data[CAMP_DATA])
@@ -133,13 +151,14 @@ namespace micm
       }
 
       if (!ParseObjectArray(reaction_objects))
-        return micm::ConfigErrorCode::KeyNotFound;
+        return false;
 
-      micm::SystemParameters sysParams = { gas_phase_, phases_ };
+      is_parse_success_ = true;
 
-      return micm::SolverParameters{ micm::System(sysParams), processes_ };
+      return is_parse_success_;
     }
 
+   private:
     /// @brief Create 'Species' and 'Phase'
     /// @param path to 'Species' file
     /// @return True at success
@@ -172,8 +191,6 @@ namespace micm
             return false;
         }
       }
-      // After creating Species, create Phase
-      gas_phase_.species_ = species_;
 
       return true;
     }
@@ -251,11 +268,11 @@ namespace micm
       {
         double abs_tol = object[key].get<double>();
         auto species = Species(name, Property(key, "", abs_tol));
-        species_.push_back(species);
+        species_arr_.push_back(species);
       }
       else
       {
-        species_.push_back(Species(name));
+        species_arr_.push_back(Species(name));
       }
 
       return true;
@@ -291,7 +308,7 @@ namespace micm
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string YIELD = "yield";
 
-      const double DEFAULT_YEILD = 1.0;
+      const static double DEFAULT_YEILD = 1.0;
 
       for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
       {
@@ -299,30 +316,31 @@ namespace micm
           return false;
       }
 
-      // Create process
-      std::vector<micm::Species> reactants;
+      std::vector<Species> reactants;
       for (auto& [key, value] : object[REACTANTS].items())
       {
-        reactants.push_back(micm::Species(key));
+        reactants.push_back(Species(key));
       }
 
-      std::vector<std::pair<micm::Species, double>> products;
+      std::vector<std::pair<Species, double>> products;
       for (auto& [key, value] : object[PRODUCTS].items())
       {
         if (value.contains(YIELD))
         {
-          products.push_back(std::make_pair(micm::Species(key), value[YIELD]));
+          products.push_back(std::make_pair(Species(key), value[YIELD]));
         }
         else
         {
-          products.push_back(std::make_pair(micm::Species(key), DEFAULT_YEILD));
+          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
         }
       }
 
-      std::unique_ptr<micm::PhotolysisRateConstant> rate_ptr =
-          std::make_unique<micm::PhotolysisRateConstant>(object[MUSICA_NAME].get<std::string>());
+      std::string name = object[MUSICA_NAME].get<std::string>();
 
-      processes_.push_back(micm::Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      photolysis_rate_arr_.push_back(name);
+
+      std::unique_ptr<PhotolysisRateConstant> rate_ptr = std::make_unique<PhotolysisRateConstant>(name);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return true;
     }
@@ -343,26 +361,26 @@ namespace micm
       }
 
       // Create process
-      std::vector<micm::Species> reactants;
+      std::vector<Species> reactants;
       for (auto& [key, value] : object[REACTANTS].items())
       {
-        reactants.push_back(micm::Species(key));
+        reactants.push_back(Species(key));
       }
 
-      std::vector<std::pair<micm::Species, double>> products;
+      std::vector<std::pair<Species, double>> products;
       for (auto& [key, value] : object[PRODUCTS].items())
       {
         if (value.contains(YIELD))
         {
-          products.push_back(std::make_pair(micm::Species(key), value[YIELD]));
+          products.push_back(std::make_pair(Species(key), value[YIELD]));
         }
         else
         {
-          products.push_back(std::make_pair(micm::Species(key), DEFAULT_YEILD));
+          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
         }
       }
 
-      micm::ArrheniusRateConstantParameters parameters;
+      ArrheniusRateConstantParameters parameters;
       if (object.contains("A"))
       {
         parameters.A_ = object["A"].get<double>();
@@ -384,10 +402,12 @@ namespace micm
         parameters.E_ = object["E"].get<double>();
       }
 
-      std::unique_ptr<micm::ArrheniusRateConstant> rate_ptr =
-          std::make_unique<micm::ArrheniusRateConstant>(micm::ArrheniusRateConstantParameters(parameters));
+      arrhenius_rate_arr_.push_back(parameters);
 
-      processes_.push_back(micm::Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      std::unique_ptr<ArrheniusRateConstant> rate_ptr =
+          std::make_unique<ArrheniusRateConstant>(ArrheniusRateConstantParameters(parameters));
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return true;
     }
@@ -404,7 +424,7 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      emissions_.push_back(Species(name));
+      emission_arr_.push_back(Species(name));
 
       return true;
     }
@@ -421,19 +441,48 @@ namespace micm
 
       std::string name = object["species"].get<std::string>();
 
-      first_order_loss_.push_back(Species(name));
+      first_order_loss_arr_.push_back(Species(name));
 
       return true;
     }
   };
 
-  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, template<class> class ErrorPolicy = NoThrowPolicy>
-  class SolverConfig : public ConfigTypePolicy<ErrorPolicy<std::variant<micm::SolverParameters, micm::ConfigErrorCode>>>
+  /// @brief Public interface to read and parse config
+  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, template<class> class ErrorPolicy = ThrowPolicy>
+  class SolverConfig : public ConfigTypePolicy<ErrorPolicy<std::exception>>  // TODO jiwon 7/3 : what should be the template
+                                                                             // speciailization for this?
   {
    public:
-    std::variant<micm::SolverParameters, micm::ConfigErrorCode> Configure(const std::filesystem::path& config_dir)
+    /// @brief Reads and parses configures
+    /// @return TRUE if parsing is success
+    bool ReadAndParse(const std::filesystem::path& config_dir)
     {
-      return this->ReadAndParse(config_dir);
+      return this->Parse(config_dir);
+    }
+
+    /// @brief Creates and returns SolverParameters
+    /// @return SolverParameters that contains 'System' and a collection of 'Process'
+    SolverParameters GetSolverParams()
+    {
+      if (!this->is_parse_success_)
+      {
+        throw std::runtime_error("Parsing configure files hasn't been completed");
+      }
+
+      return SolverParameters(
+          std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
+    }
+
+    /// @brief Get a collection of 'PhotolysisRateConstant'
+    /// @return a collection of 'PhotolysisRateConstant'
+    std::vector<PhotolysisRateConstant>& GetPhotolysisRateConstants()
+    {
+      if (!this->is_parse_success_)
+      {
+        throw std::runtime_error("Parsing configure files hasn't been completed");
+      }
+
+      return this->photolysis_rate_arr_;
     }
   };
 

@@ -17,36 +17,43 @@ using yields = std::pair<micm::Species, double>;
 #  include <micm/configure/solver_config.hpp>
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
-  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs = solverConfig.Configure("./unit_configs/chapman");
+  std::string config_path = "./unit_configs/chapman";
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throwing-exception policy
 
-  // Check if parsing is successful and so the return type is 'Solverparameters'
-  auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);
-  EXPECT_TRUE(solver_params_ptr != nullptr);
+  // Read and parse the configure files
+  // If parsing fails, it could throw exceptions - we probably want to catch them.
+  solverConfig.ReadAndParse(config_path);
 
-  micm::SolverParameters& solver_params = *solver_params_ptr;
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  // Get photolysis rate constants
+  std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
 
+  // Create a solver
   micm::RosenbrockSolver<micm::Matrix> solver{ solver_params.system_,
                                                std::move(solver_params.processes_),
                                                micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 
-  // Set concentrations
-  std::unordered_map<std::string, double> concentrations = { { "O", 0.1 },  { "O1D", 0.1 }, { "O3", 0.2 },
-                                                             { "O2", 0.1 }, { "M", 0.2 },   { "Ar", 0.2 },
+  // User gives an input of concentrations
+  std::unordered_map<std::string, double> concentrations = { { "O", 0.1 },  { "O1D", 0.1 }, { "O2", 0.1 },
+                                                             { "O3", 0.2 }, { "M", 0.2 },   { "Ar", 0.2 },
                                                              { "N2", 0.3 }, { "H2O", 0.3 }, { "CO2", 0.3 } };
 
   state.SetConcentrations(solver_params.system_, concentrations);
 
-  std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-  state.custom_rate_parameters_[0] = photo_rates;
+  // User gives an input of photolysis rate constants
+  std::unordered_map<std::string, double> photo_rates = { { "O2_1", 0.1 }, { "O3_1", 0.2 }, { "O3_2", 0.3 } };
+
+  state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
+
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
 
   for (double t{}; t < 100; ++t)
   {
-    state.custom_rate_parameters_[0] = photo_rates;
+    state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
     auto result = solver.Solve(t, t + 0.5, state);
     // output state
   }
