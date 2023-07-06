@@ -81,7 +81,7 @@ namespace micm
     /// @return L and U Sparse matrices
     template<typename T, typename OrderingPolicy>
     static std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> GetLUMatrices(
-        const SparseMatrix<T, OrderingPolicy>& A);
+        const SparseMatrix<T, OrderingPolicy>& A, T initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
@@ -104,7 +104,7 @@ namespace micm
   inline LuDecomposition::LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
   {
     std::size_t n = matrix[0].size();
-    auto LU = GetLUMatrices(matrix);
+    auto LU = GetLUMatrices(matrix, T{});
     const auto& L_row_start = LU.first.RowStartVector();
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
@@ -176,7 +176,7 @@ namespace micm
 
   template<typename T, typename OrderingPolicy>
   inline std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> LuDecomposition::GetLUMatrices(
-      const SparseMatrix<T, OrderingPolicy>& A)
+      const SparseMatrix<T, OrderingPolicy>& A, T initial_value)
   {
     std::size_t n = A[0].size();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
@@ -219,12 +219,12 @@ namespace micm
         }
       }
     }
-    auto L_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size());
+    auto L_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.with_element(pair.first, pair.second);
     }
-    auto U_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size());
+    auto U_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.with_element(pair.first, pair.second);
