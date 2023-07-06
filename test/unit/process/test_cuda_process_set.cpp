@@ -154,6 +154,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   int yields_size = set.yields_vector().size(); 
   
   // start timer 
+  double t0 = 0.0; 
+  for (int i = 0; i < 100; i++){
   auto start = std::chrono::steady_clock::now(); 
    micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
@@ -173,14 +175,24 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     auto end = std::chrono::steady_clock::now(); 
     //end timer
     std::chrono::duration<double> duration = end - start;
-    std::cout << "time duration: "<< duration.count() <<std::endl; 
+    t0 = t0 + duration.count(); 
+  }
+    std::cout << "time duration: "<< t0 << std::endl; 
 }
 
 TEST(RandomProcessSet, Matrix)
 {
-  testRandomSystem<micm::Matrix>(2000, 500, 400);
-  testRandomSystem<micm::Matrix>(3000, 300, 200);
-  testRandomSystem<micm::Matrix>(4000, 100, 80);
+  std::cout << "system with 500 reactions and 400 species"<<std::endl; 
+  testRandomSystem<micm::Matrix>(1000, 500, 400);
+  testRandomSystem<micm::Matrix>(10000, 500, 400);
+  testRandomSystem<micm::Matrix>(100000, 500, 400);
+  testRandomSystem<micm::Matrix>(1000000, 500, 400);
+  
+  std::cout << "system with 100 reactions and 80 species"<<std::endl; 
+  testRandomSystem<micm::Matrix>(1000, 100, 80);
+  testRandomSystem<micm::Matrix>(10000, 100, 80);
+  testRandomSystem<micm::Matrix>(100000, 100, 80);
+  testRandomSystem<micm::Matrix>(1000000, 100, 80);
 }
   
  
