@@ -34,7 +34,6 @@ namespace micm
   /// calls to Decompose to do the actual decomposition.
   class LuDecomposition
   {
-
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
@@ -89,11 +88,12 @@ namespace micm
     /// @param LU the lower and upper triangular matrices returned as a square matrix
     ///           The diagonal of LU belongs to the upper triangular matrix and the
     ///           diagonal of the lower triangular matrix shoud be assumed to be 1
-    template<typename T, typename OrderingPolicy>
-    void Decompose(
-        const SparseMatrix<T, OrderingPolicy>& A,
-        SparseMatrix<T, OrderingPolicy>& L,
-        SparseMatrix<T, OrderingPolicy>& U) const;
+    template<typename T, template<class> class SparseMatrixPolicy>
+      requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
+    template<typename T, template<class> class SparseMatrixPolicy>
+      requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
   };
 
   inline LuDecomposition::LuDecomposition()
@@ -124,7 +124,7 @@ namespace micm
           if (LU.second.IsZero(j, k))
             continue;
           ++nkj;
-          lij_ujk_.push_back(std::make_pair(j_id, LU.second.VectorIndex(0, j, k)));
+          lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
         if (matrix.IsZero(i, k))
         {
@@ -153,7 +153,7 @@ namespace micm
           if (LU.second.IsZero(j, i))
             continue;
           ++nkj;
-          lkj_uji_.push_back(std::make_pair(j_id, LU.second.VectorIndex(0, j, i)));
+          lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
         if (matrix.IsZero(k, i))
         {
@@ -233,11 +233,9 @@ namespace micm
     return LU;
   }
 
-  template<typename T, typename OrderingPolicy>
-  inline void LuDecomposition::Decompose(
-      const SparseMatrix<T, OrderingPolicy>& A,
-      SparseMatrix<T, OrderingPolicy>& L,
-      SparseMatrix<T, OrderingPolicy>& U) const
+  template<typename T, template<class> class SparseMatrixPolicy>
+    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
+  void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
   {
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
@@ -280,6 +278,72 @@ namespace micm
             ++lkj_uji;
           }
           L_vector[lki_nkj->first] /= U_vector[*uii];
+          ++lki_nkj;
+          ++uii;
+        }
+      }
+    }
+  }
+
+  template<typename T, template<class> class SparseMatrixPolicy>
+    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+  void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
+  {
+    // Loop over groups of blocks
+    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
+    {
+      const std::size_t n_cells = A.GroupVectorSize();
+      auto A_vector = std::next(A.AsVector().begin(), i_group * A.GroupSize(A.FlatBlockSize()));
+      auto L_vector = std::next(L.AsVector().begin(), i_group * L.GroupSize(L.FlatBlockSize()));
+      auto U_vector = std::next(U.AsVector().begin(), i_group * U.GroupSize(U.FlatBlockSize()));
+      auto do_aik = do_aik_.begin();
+      auto aik = aik_.begin();
+      auto uik_nkj = uik_nkj_.begin();
+      auto lij_ujk = lij_ujk_.begin();
+      auto do_aki = do_aki_.begin();
+      auto aki = aki_.begin();
+      auto lki_nkj = lki_nkj_.begin();
+      auto lkj_uji = lkj_uji_.begin();
+      auto uii = uii_.begin();
+      for (auto& inLU : niLU_)
+      {
+        // Upper trianglur matrix
+        for (std::size_t iU = 0; iU < inLU.second; ++iU)
+        {
+          if (*(do_aik++))
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              U_vector[uik_nkj->first + i_cell] = A_vector[*aik + i_cell];
+            ++aik;
+          }
+          for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              U_vector[uik_nkj->first + i_cell] -= L_vector[lij_ujk->first + i_cell] * U_vector[lij_ujk->second + i_cell];
+            ++lij_ujk;
+          }
+          ++uik_nkj;
+        }
+        // Lower triangular matrix
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          L_vector[lki_nkj->first + i_cell] = 1.0;
+        ++lki_nkj;
+        for (std::size_t iL = 0; iL < inLU.first; ++iL)
+        {
+          if (*(do_aki++))
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
+            ++aki;
+          }
+          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
+            ++lkj_uji;
+          }
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
           ++lki_nkj;
           ++uii;
         }
