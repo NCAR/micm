@@ -10,123 +10,105 @@ namespace micm {
     //one thread per reaction
     //passing all device pointers 
 
-// __device__ double atomicAdd(double* address, double val)
-// {
-//     unsigned long long int* address_as_ull =
-//                               (unsigned long long int*)address;
-//     unsigned long long int old = *address_as_ull, assumed;
-
-//     do {
-//         assumed = old;
-//         old = atomicCAS(address_as_ull, assumed,
-//                         __double_as_longlong(val +
-//                                __longlong_as_double(assumed)));
-
-//     // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-//     } while (assumed != old);
-
-//     return __longlong_as_double(old);
-// }
-
-//     __global__ void AddForcingTerms_kernel(
-//         double* rate_constants, 
-//         double* state_variables, 
-//         double* forcing, 
-//         int matrix_rows, 
-//         int rate_constants_columns, 
-//         int state_forcing_columns,
-//         size_t* number_of_reactants_, 
-//         size_t* accumulated_n_reactants, 
-//         size_t* reactant_ids_, 
-//         size_t* number_of_products_, 
-//         size_t* accumulated_n_products, 
-//         size_t* product_ids_, 
-//         double* yields_)
-//     {
-//     //define thread index 
-//     //one thread per reaction
-//     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-//     int rate_constants_size = matrix_rows * rate_constants_columns; 
-    
-//     if (tid < rate_constants_size){
-//         double rate = rate_constants[tid];
-//         int rate_constants_col_index = tid % rate_constants_columns; 
-//         int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
-    
-//         int reactant_num = number_of_reactants_[rate_constants_col_index]; //number of reactants of the reaction
-//         int product_num = number_of_products_[rate_constants_col_index]; //number of products of the reaction 
-        
-//         int initial_reactant_ids_index = accumulated_n_reactants[rate_constants_col_index];
-//         int initial_product_ids_index = accumulated_n_products[rate_constants_col_index];
-//         int initial_yields_index = accumulated_n_products[rate_constants_col_index]; 
-        
-//         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-//             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
-//             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-//             rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
-//         }
-        
-//         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-//             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
-//             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-//             double rate_subtration = 0 - rate; 
-//             atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
-//         }
-
-//         for (int i_product = 0; i_product < product_num; i_product++){
-//             int yields_index = initial_yields_index + i_product; 
-//             int product_ids_index  = initial_product_ids_index + i_product; 
-//             int forcing_col_index = product_ids_[product_ids_index]; 
-//             atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
-//         } //looping number of product times
-//     } // checking valid tid value
-//   } //AddForcingTerms_kernel function
-
-
-    //one CUDA thread per grid cell
-    //passing all device pointers 
     __global__ void AddForcingTerms_kernel(
-        double* rate_constants,
-        double* state_variables,
-        double* forcing,
-        int ngrids,
-        int nrxns,
-        int nspecs,
-        size_t* number_of_reactants_,
-        size_t* reactant_ids_,
-        size_t* number_of_products_,
-        size_t* product_ids_,
+        double* rate_constants, 
+        double* state_variables, 
+        double* forcing, 
+        int matrix_rows, 
+        int rate_constants_columns, 
+        int state_forcing_columns,
+        size_t* number_of_reactants_, 
+        size_t* accumulated_n_reactants, 
+        size_t* reactant_ids_, 
+        size_t* number_of_products_, 
+        size_t* accumulated_n_products, 
+        size_t* product_ids_, 
         double* yields_)
     {
-      //define thread index 
+    //define thread index 
+    //one thread per reaction
+    int tid = blockIdx.x * blockDim.x + threadIdx.x; 
+    int rate_constants_size = matrix_rows * rate_constants_columns; 
+    
+    if (tid < rate_constants_size){
+        double rate = rate_constants[tid];
+        int rate_constants_col_index = tid % rate_constants_columns; 
+        int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
+    
+        int reactant_num = number_of_reactants_[rate_constants_col_index]; //number of reactants of the reaction
+        int product_num = number_of_products_[rate_constants_col_index]; //number of products of the reaction 
+        
+        int initial_reactant_ids_index = accumulated_n_reactants[rate_constants_col_index];
+        int initial_product_ids_index = accumulated_n_products[rate_constants_col_index];
+        int initial_yields_index = accumulated_n_products[rate_constants_col_index]; 
+        
+        for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
+            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
+            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+        }
+        
+        for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
+            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
+            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
+            double rate_subtration = 0 - rate; 
+            atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
+        }
 
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      size_t react_id_offset, prod_id_offset, yield_offset;
+        for (int i_product = 0; i_product < product_num; i_product++){
+            int yields_index = initial_yields_index + i_product; 
+            int product_ids_index  = initial_product_ids_index + i_product; 
+            int forcing_col_index = product_ids_[product_ids_index]; 
+            atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
+        } //looping number of product times
+    } // checking valid tid value
+  } //AddForcingTerms_kernel function
 
-      if (tid < ngrids){
-         react_id_offset = 0;
-         prod_id_offset = 0;
-         yield_offset = 0;
-         for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
-         {
-           double rate = rate_constants[tid*nrxns+i_rxn];
-           size_t index;
 
-           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-             rate *= state_variables[tid*nspecs+reactant_ids_[react_id_offset+i_react]];
-           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react){
-             forcing[tid*nspecs+reactant_ids_[react_id_offset+i_react]] -= rate;
-           }
-           for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod){
-             index = tid*nspecs+product_ids_[prod_id_offset+i_prod];
-             forcing[index] += yields_[yield_offset+i_prod] * rate;
-           }
-           react_id_offset += number_of_reactants_[i_rxn];
-           prod_id_offset += number_of_products_[i_rxn];
-           yield_offset += number_of_products_[i_rxn];
-         } // for loop over number of reactions
-      }    // if check for valid CUDA threads
-    }      // end of AddForcingTerms_kernel
+    // //one CUDA thread per grid cell
+    // //passing all device pointers 
+    // __global__ void AddForcingTerms_kernel(
+    //     double* rate_constants,
+    //     double* state_variables,
+    //     double* forcing,
+    //     int ngrids,
+    //     int nrxns,
+    //     int nspecs,
+    //     size_t* number_of_reactants_,
+    //     size_t* reactant_ids_,
+    //     size_t* number_of_products_,
+    //     size_t* product_ids_,
+    //     double* yields_)
+    // {
+    //   //define thread index 
+
+    //   size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    //   size_t react_id_offset, prod_id_offset, yield_offset;
+
+    //   if (tid < ngrids){
+    //      react_id_offset = 0;
+    //      prod_id_offset = 0;
+    //      yield_offset = 0;
+    //      for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
+    //      {
+    //        double rate = rate_constants[tid*nrxns+i_rxn];
+    //        size_t index;
+
+    //        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+    //          rate *= state_variables[tid*nspecs+reactant_ids_[react_id_offset+i_react]];
+    //        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react){
+    //          forcing[tid*nspecs+reactant_ids_[react_id_offset+i_react]] -= rate;
+    //        }
+    //        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod){
+    //          index = tid*nspecs+product_ids_[prod_id_offset+i_prod];
+    //          forcing[index] += yields_[yield_offset+i_prod] * rate;
+    //        }
+    //        react_id_offset += number_of_reactants_[i_rxn];
+    //        prod_id_offset += number_of_products_[i_rxn];
+    //        yield_offset += number_of_products_[i_rxn];
+    //      } // for loop over number of reactions
+    //   }    // if check for valid CUDA threads
+    // }      // end of AddForcingTerms_kernel
 
 
     
@@ -232,10 +214,10 @@ namespace micm {
             rate_constants_columns, 
             state_forcing_columns, 
             d_number_of_reactants_, 
-            //d_accumulated_n_reactants, 
+            d_accumulated_n_reactants, 
             d_reactant_ids_, 
             d_number_of_products_, 
-            //d_accumulated_n_products, 
+            d_accumulated_n_products, 
             d_product_ids_, 
             d_yields_);
         cudaDeviceSynchronize(); 
