@@ -48,6 +48,7 @@ TEST(ProcessSet, Constructor)
 
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
 
+  set.AddForcingTerms_kernelSetup(rate_constants, state.variables_, forcing);
 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();

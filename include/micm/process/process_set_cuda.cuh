@@ -24,21 +24,7 @@ namespace micm {
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing);
 
-    // __global__ void AddForcingTerms_kernel(
-    //     double* rate_constants, 
-    //     int rate_reactants_size, 
-    //     double* state_variables, 
-    //     double* forcing, 
-    //     int matrix_rows, 
-    //     int rate_constants_columns, 
-    //     int state_forcing_columns,
-    //     size_t* number_of_reactants_, 
-    //     size_t* accumulated_n_reactants, 
-    //     size_t* reactant_ids_,
-    //     size_t* number_of_products_, 
-    //     size_t* accumulated_n_products, 
-    //     size_t* product_ids_, size_t* yields_
-    // );
+
 
         } // namespace cuda
 } // namespace micm
