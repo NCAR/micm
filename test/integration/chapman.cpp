@@ -17,17 +17,15 @@ using yields = std::pair<micm::Species, double>;
 #  include <micm/configure/solver_config.hpp>
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
-  std::string config_path = "./unit_configs/chapman";
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throw-exception policy
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
 
   // Read and parse the configure files
   // If parsing fails, it could throw exceptions - we probably want to catch them.
+  std::string config_path = "./unit_configs/chapman";
   solverConfig.ReadAndParse(config_path);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
-  // Get photolysis rate constants
-  std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
 
   // Create a solver
   micm::RosenbrockSolver<micm::Matrix> solver{ solver_params.system_,
@@ -43,6 +41,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   state.SetConcentrations(solver_params.system_, concentrations);
 
+  // Get photolysis rate constants
+  std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
+  
   // User gives an input of photolysis rate constants
   std::unordered_map<std::string, double> photo_rates = { { "O2_1", 0.1 }, { "O3_1", 0.2 }, { "O3_2", 0.3 } };
 

@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 
 TEST(State, Constructor)
 {
-  micm::State<micm::Matrix> state {micm::StateParameters{
-    .state_variable_names_{ "foo", "bar", "baz", "quz" },
-    .number_of_grid_cells_ = 3,
-    .number_of_custom_parameters_ = 5,
-    .number_of_rate_constants_ = 10
-  }};
+  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                                          .number_of_grid_cells_ = 3,
+                                                          .number_of_custom_parameters_ = 5,
+                                                          .number_of_rate_constants_ = 10 } };
 
   EXPECT_EQ(state.conditions_.size(), 3);
   EXPECT_EQ(state.variable_map_["foo"], 0);
@@ -26,12 +25,10 @@ TEST(State, Constructor)
 
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 {
-  micm::State<micm::Matrix> state {micm::StateParameters{
-    .state_variable_names_{ "foo", "bar", "baz", "quz" },
-    .number_of_grid_cells_ = 3,
-    .number_of_custom_parameters_ = 5,
-    .number_of_rate_constants_ = 10
-  }};
+  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                                          .number_of_grid_cells_ = 3,
+                                                          .number_of_custom_parameters_ = 5,
+                                                          .number_of_rate_constants_ = 10 } };
 
   std::unordered_map<std::string, double> concentrations = {
     { "FUU", 0.1 }, { "bar", 0.2 }, { "baz", 0.3 }, { "quz", 0.4 }
@@ -70,6 +67,36 @@ TEST(State, SetConcentrations)
   for (auto& val : state.variables_[0])
   {
     EXPECT_EQ(val, concentrations_in_order[idx]);
+    idx++;
+  }
+}
+
+TEST(State, SetPhotolysisRate)
+{
+  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                            .number_of_grid_cells_ = 3,
+                                            .number_of_custom_parameters_ = 5,
+                                            .number_of_rate_constants_ = 10 } };
+
+  // Build an array of photolysis rate constant
+  std::vector<micm::PhotolysisRateConstant> photolysis_rate_arr;
+  photolysis_rate_arr.reserve(3);
+  photolysis_rate_arr.emplace_back("O1");
+  photolysis_rate_arr.emplace_back("02");
+  photolysis_rate_arr.emplace_back("03");
+
+  // user input for photolysis rate constant (unordered)
+  std::unordered_map<std::string, double> photo_rates = { { "O3", 0.3 }, { "O1", 0.1 }, { "02", 0.5 } };
+
+  std::vector<double> photo_rates_in_order{ 0.1, 0.5, 0.3 };
+
+  // Compare photolysis rate constants
+  state.SetPhotolysisRate(photolysis_rate_arr, photo_rates);
+
+  short idx = 0;
+  for (auto& val : state.custom_rate_parameters_[0])
+  {
+    EXPECT_EQ(val, photo_rates_in_order[idx]);
     idx++;
   }
 }

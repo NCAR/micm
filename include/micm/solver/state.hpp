@@ -22,14 +22,6 @@ namespace micm
     std::size_t number_of_rate_constants_{ 0 };
   };
 
-  // TODO: jiwon 7/5 - moved to conditions.hpp
-  // struct Conditions
-  //{
-  //   double temperature_{ 0.0 };
-  //   double pressure_{ 0.0 };
-  //   double air_density_{ 1.0 };
-  // };
-
   template<template<class> class MatrixPolicy = Matrix>
   struct State
   {

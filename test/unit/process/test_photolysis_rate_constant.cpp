@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 
 TEST(PhotolysisRateConstant, CalculateWithSystem)
