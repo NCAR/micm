@@ -44,7 +44,7 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 
 TEST(State, SetConcentrations)
 {
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
                                             .number_of_grid_cells_ = 3,
                                             .number_of_custom_parameters_ = 5,
                                             .number_of_rate_constants_ = 10 } };
@@ -73,7 +73,7 @@ TEST(State, SetConcentrations)
 
 TEST(State, SetPhotolysisRate)
 {
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
                                             .number_of_grid_cells_ = 3,
                                             .number_of_custom_parameters_ = 5,
                                             .number_of_rate_constants_ = 10 } };
@@ -82,11 +82,11 @@ TEST(State, SetPhotolysisRate)
   std::vector<micm::PhotolysisRateConstant> photolysis_rate_arr;
   photolysis_rate_arr.reserve(3);
   photolysis_rate_arr.emplace_back("O1");
-  photolysis_rate_arr.emplace_back("02");
-  photolysis_rate_arr.emplace_back("03");
+  photolysis_rate_arr.emplace_back("O2");
+  photolysis_rate_arr.emplace_back("O3");
 
   // user input for photolysis rate constant (unordered)
-  std::unordered_map<std::string, double> photo_rates = { { "O3", 0.3 }, { "O1", 0.1 }, { "02", 0.5 } };
+  std::unordered_map<std::string, double> photo_rates = { { "O3", 0.3 }, { "O1", 0.1 }, { "O2", 0.5 } };
 
   std::vector<double> photo_rates_in_order{ 0.1, 0.5, 0.3 };
 

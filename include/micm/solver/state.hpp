@@ -47,7 +47,7 @@ namespace micm
     /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(
-        const micm::System& system,
+        const System& system,
         const std::unordered_map<std::string, double>& species_to_concentration);
 
     /// @brief Set photolysis rate constants
@@ -94,7 +94,7 @@ namespace micm
 
   template<template<class> class MatrixPolicy>
   inline void State<MatrixPolicy>::SetConcentrations(
-      const micm::System& system,
+      const System& system,
       const std::unordered_map<std::string, double>& species_to_concentration)
   {
     std::vector<double> concentrations;
