@@ -9,6 +9,9 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
+#ifdef USE_CUDA
+#include <micm/process/process_set_cuda.cuh>
+#endif
 
 namespace micm
 {
@@ -58,43 +61,12 @@ namespace micm
         const Matrix<double>& state_variables,
         SparseMatrix<double>& jacobian) const;
     
-    // #ifdef USE_CUDA
-    // void AddForcingTerms_kernelSetup(
-    //     const Matrix<double>& rate_constants, 
-    //     const Matrix<double>& state_variables, 
-    //     Matrix<double>& forcing);
-    // #endif
-
-  const std::vector<std::size_t>& number_of_reactants_vector() const
-  {
-    return number_of_reactants_;
-  }
-  
-  const std::vector<std::size_t>& reactant_ids_vector() const
-  {
-    return reactant_ids_;
-  }
-  
-  const std::vector<std::size_t>& number_of_products_vector() const
-  {
-    return number_of_products_;
-  }
-  
-  const std::vector<std::size_t>& product_ids_vector() const
-  {
-    return product_ids_; 
-  }
-  
-  const std::vector<double>& yields_vector() const
-  {
-    return yields_; 
-  }
-
-  const std::vector<std::size_t>& jacobian_flat_ids_vector() const
-  {
-    return jacobian_flat_ids_; 
-  }
-
+    #ifdef USE_CUDA
+    void CudaAddForcingTerms(
+        const Matrix<double>& rate_constants, 
+        const Matrix<double>& state_variables, 
+        Matrix<double>& forcing);
+    #endif
   
   };
 
@@ -121,7 +93,7 @@ namespace micm
     }
   };
 
-  std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
+  inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
@@ -145,7 +117,7 @@ namespace micm
     return ids;
   }
 
-  void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double>& matrix)
+  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
@@ -239,4 +211,37 @@ namespace micm
       cell_jacobian += jacobian.FlatBlockSize();
     }
   }
+
+    #ifdef USE_CUDA
+    inline void ProcessSet::CudaAddForcingTerms(
+        const Matrix<double>& rate_constants, 
+        const Matrix<double>& state_variables, 
+        Matrix<double>& forcing) {
+        const size_t* number_of_reactants = number_of_reactants_.data(); 
+        int number_of_reactants_size = number_of_reactants_.size(); 
+        const size_t* reactant_ids = reactant_ids_.data(); 
+        int reactant_ids_size = reactant_ids_.size(); 
+        const size_t* number_of_products = set.number_of_products_.data(); 
+        int number_of_products_size = number_of_products_.size(); 
+        const size_t* product_ids = product_ids_.data(); 
+        int product_ids_size = product_ids_.size()
+        const double* yields = yields_.data(); 
+        int yields_size = yields_.size(); 
+
+        micm::cuda::AddForcingTerms_kernelSetup(
+            number_of_reactants,
+            number_of_reactants_size,
+            reactant_ids,
+            reactant_ids_size,
+            number_of_products,
+            number_of_products_size,
+            product_ids,
+            product_ids_size,
+            yields,
+            yields_size,
+            rate_constants, 
+            state_variables, 
+            forcing);
+        }
+    #endif
 }  // namespace micm

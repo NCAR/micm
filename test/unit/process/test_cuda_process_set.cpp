@@ -48,34 +48,8 @@ TEST(ProcessSet, Constructor)
 
   micm::Matrix<double> forcing{ 2, 5, 1000.0 };
 
-  set.AddForcingTerms_kernelSetup(rate_constants, state.variables_, forcing);
+  set.CudaAddForcingTerms(rate_constants, state.variables_, forcing);
 
-  const size_t* number_of_reactants = set.number_of_reactants_vector().data();
-  int number_of_reactants_size = set.number_of_reactants_vector().size();
-  const size_t* reactant_ids = set.reactant_ids_vector().data();
-  int reactant_ids_size = set.reactant_ids_vector().size();
-  const size_t* number_of_products = set.number_of_products_vector().data();
-  int number_of_products_size = set.number_of_products_vector().size();
-  const size_t* product_ids = set.product_ids_vector().data(); 
-  int product_ids_size = set.product_ids_vector().size();
-  const double* yields = set.yields_vector().data();
-  int yields_size = set.yields_vector().size(); 
-
-  
-  micm::cuda::AddForcingTerms_kernelSetup(
-    number_of_reactants,
-    number_of_reactants_size,
-    reactant_ids,
-    reactant_ids_size,
-    number_of_products,
-    number_of_products_size,
-    product_ids,
-    product_ids_size,
-    yields,
-    yields_size,
-    rate_constants, 
-    state.variables_, 
-    forcing);
 
   EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
   EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
