@@ -15,6 +15,14 @@
 namespace micm
 {
 
+  /// Concept for vectorizable matrices
+  template<typename T>
+  concept VectorizableSparse = requires(T t) {
+    t.GroupSize(0);
+    t.GroupVectorSize();
+    t.NumberOfGroups(0);
+  };
+
   template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 

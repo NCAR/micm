@@ -34,6 +34,7 @@ namespace micm
   /// calls to Decompose to do the actual decomposition.
   class LuDecomposition
   {
+
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
@@ -73,31 +74,34 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class T>
-    LuDecomposition(const SparseMatrix<T>& matrix);
+    template<typename T, typename OrderingPolicy>
+    LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix the will be decomposed
     /// @return L and U Sparse matrices
-    template<class T>
-    static std::pair<SparseMatrix<T>, SparseMatrix<T>> GetLUMatrices(const SparseMatrix<T>& A);
+    template<typename T, typename OrderingPolicy>
+    static std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> GetLUMatrices(
+        const SparseMatrix<T, OrderingPolicy>& A);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
     /// @param LU the lower and upper triangular matrices returned as a square matrix
     ///           The diagonal of LU belongs to the upper triangular matrix and the
     ///           diagonal of the lower triangular matrix shoud be assumed to be 1
-    template<class T>
-    void Decompose(const SparseMatrix<T>& A, SparseMatrix<T>& L, SparseMatrix<T>& U) const;
-
+    template<typename T, typename OrderingPolicy>
+    void Decompose(
+        const SparseMatrix<T, OrderingPolicy>& A,
+        SparseMatrix<T, OrderingPolicy>& L,
+        SparseMatrix<T, OrderingPolicy>& U) const;
   };
 
   inline LuDecomposition::LuDecomposition()
   {
   }
 
-  template<class T>
-  inline LuDecomposition::LuDecomposition(const SparseMatrix<T>& matrix)
+  template<typename T, typename OrderingPolicy>
+  inline LuDecomposition::LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
   {
     std::size_t n = matrix[0].size();
     auto LU = GetLUMatrices(matrix);
@@ -170,8 +174,9 @@ namespace micm
     }
   }
 
-  template<class T>
-  inline std::pair<SparseMatrix<T>, SparseMatrix<T>> LuDecomposition::GetLUMatrices(const SparseMatrix<T>& A)
+  template<typename T, typename OrderingPolicy>
+  inline std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> LuDecomposition::GetLUMatrices(
+      const SparseMatrix<T, OrderingPolicy>& A)
   {
     std::size_t n = A[0].size();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
@@ -214,22 +219,25 @@ namespace micm
         }
       }
     }
-    auto L_builder = micm::SparseMatrix<T>::create(n).number_of_blocks(A.size());
+    auto L_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size());
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.with_element(pair.first, pair.second);
     }
-    auto U_builder = micm::SparseMatrix<T>::create(n).number_of_blocks(A.size());
+    auto U_builder = micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size());
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.with_element(pair.first, pair.second);
     }
-    std::pair<SparseMatrix<T>, SparseMatrix<T>> LU(L_builder, U_builder);
+    std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> LU(L_builder, U_builder);
     return LU;
   }
 
-  template<class T>
-  inline void LuDecomposition::Decompose(const SparseMatrix<T>& A, SparseMatrix<T>& L, SparseMatrix<T>& U) const
+  template<typename T, typename OrderingPolicy>
+  inline void LuDecomposition::Decompose(
+      const SparseMatrix<T, OrderingPolicy>& A,
+      SparseMatrix<T, OrderingPolicy>& L,
+      SparseMatrix<T, OrderingPolicy>& U) const
   {
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)

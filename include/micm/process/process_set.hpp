@@ -12,20 +12,6 @@
 namespace micm
 {
 
-  /// Concepts for vectorizable matrices
-  template<typename T>
-  concept VectorizableDense = requires(T t) {
-    t.GroupSize();
-    t.GroupVectorSize();
-    t.NumberOfGroups();
-  };
-  template<typename T>
-  concept VectorizableSparse = requires(T t) {
-    t.GroupSize(0);
-    t.GroupVectorSize();
-    t.NumberOfGroups(0);
-  };
-
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
