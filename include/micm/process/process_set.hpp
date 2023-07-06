@@ -221,10 +221,10 @@ namespace micm
         int number_of_reactants_size = number_of_reactants_.size(); 
         const size_t* reactant_ids = reactant_ids_.data(); 
         int reactant_ids_size = reactant_ids_.size(); 
-        const size_t* number_of_products = set.number_of_products_.data(); 
+        const size_t* number_of_products = number_of_products_.data(); 
         int number_of_products_size = number_of_products_.size(); 
         const size_t* product_ids = product_ids_.data(); 
-        int product_ids_size = product_ids_.size()
+        int product_ids_size = product_ids_.size();
         const double* yields = yields_.data(); 
         int yields_size = yields_.size(); 
 

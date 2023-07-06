@@ -15,6 +15,8 @@ target_include_directories(micm
     $<INSTALL_INTERFACE:include>
 )
 
+set(CMAKE_CUDA_ARCHITECTURES 80)
+
 if(ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
@@ -65,7 +67,7 @@ endif()
 if(ENABLE_CUDA)
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-
+  
   target_link_libraries(micm_cuda 
     PRIVATE micm
   )
