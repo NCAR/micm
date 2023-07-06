@@ -177,7 +177,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     std::chrono::duration<double> duration = end - start;
     t0 = t0 + duration.count(); 
   }
-    std::cout << "time duration: "<< t0 << std::endl; 
+    std::cout << "time duration: "<< t0/100 << std::endl; 
 }
 
 TEST(RandomProcessSet, Matrix)
