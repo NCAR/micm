@@ -45,5 +45,21 @@ namespace micm
         throw std::invalid_argument("SparseMatrix zero element access not allowed");
       return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * L * row_ids.size() };
     };
+
+   public:
+    std::size_t GroupVectorSize() const
+    {
+      return L;
+    }
+
+    std::size_t GroupSize(std::size_t number_of_non_zero_elements) const
+    {
+      return L * number_of_non_zero_elements;
+    }
+
+    std::size_t NumberOfGroups(std::size_t number_of_blocks) const
+    {
+      return std::ceil((double)number_of_blocks / (double)L);
+    }
   };
 }  // namespace micm

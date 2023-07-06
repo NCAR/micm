@@ -21,7 +21,7 @@ TEST(VectorMatrix, SmallVectorMatrix)
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 2);
-  EXPECT_EQ(matrix.VectorSize(), 2);
+  EXPECT_EQ(matrix.GroupVectorSize(), 2);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
   EXPECT_EQ(data[1 + 2 * 3], 64.7);
@@ -36,7 +36,7 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
   EXPECT_EQ(data.size(), 4 * 5);
   EXPECT_EQ(matrix.GroupSize(), 4 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 1);
-  EXPECT_EQ(matrix.VectorSize(), 4);
+  EXPECT_EQ(matrix.GroupVectorSize(), 4);
   EXPECT_EQ(data[0], 41.2);
   EXPECT_EQ(data[2 + 4 * 4], 102.3);
   EXPECT_EQ(data[1 + 4 * 3], 64.7);

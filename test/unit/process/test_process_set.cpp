@@ -4,6 +4,9 @@
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;
@@ -15,7 +18,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class MatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testProcessSet()
 {
   auto foo = micm::Species("foo");
@@ -88,12 +91,12 @@ void testProcessSet()
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = micm::SparseMatrix<double>::create(5).number_of_blocks(2).initial_value(100.0);
+  auto builder = SparseMatrixPolicy<double>::create(5).number_of_blocks(2).initial_value(100.0);
   for (auto& elem : non_zero_elements)
     builder = builder.with_element(elem.first, elem.second);
-  micm::SparseMatrix<double> jacobian{ builder };
+  SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.AddJacobianTerms<MatrixPolicy>(rate_constants, state.variables_, jacobian);
+  set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
 
   EXPECT_EQ(jacobian[0][0][0], 100.0 - 10.0 * 0.3);  // foo -> foo
   EXPECT_EQ(jacobian[1][0][0], 100.0 - 110.0 * 1.3);
@@ -123,7 +126,7 @@ void testProcessSet()
 
 TEST(ProcessSet, Matrix)
 {
-  testProcessSet<micm::Matrix>();
+  testProcessSet<micm::Matrix, micm::SparseMatrix>();
 }
 
 template<class T>
@@ -135,12 +138,21 @@ using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+
 TEST(ProcessSet, VectorMatrix)
 {
-  testProcessSet<Group1VectorMatrix>();
-  testProcessSet<Group2VectorMatrix>();
-  testProcessSet<Group3VectorMatrix>();
-  testProcessSet<Group4VectorMatrix>();
+  testProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }
 
 template<template<class> class MatrixPolicy>
