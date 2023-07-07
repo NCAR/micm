@@ -157,20 +157,22 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   double t0 = 0.0; 
   for (int i = 0; i < 100; i++){
   auto start = std::chrono::steady_clock::now(); 
-   micm::cuda::AddForcingTerms_kernelSetup(
-    number_of_reactants,
-    number_of_reactants_size,
-    reactant_ids,
-    reactant_ids_size,
-    number_of_products,
-    number_of_products_size,
-    product_ids,
-    product_ids_size,
-    yields,
-    yields_size,
-    rate_constants, 
-    state.variables_, 
-    forcing);
+  //  micm::cuda::AddForcingTerms_kernelSetup(
+  //   number_of_reactants,
+  //   number_of_reactants_size,
+  //   reactant_ids,
+  //   reactant_ids_size,
+  //   number_of_products,
+  //   number_of_products_size,
+  //   product_ids,
+  //   product_ids_size,
+  //   yields,
+  //   yields_size,
+  //   rate_constants, 
+  //   state.variables_, 
+  //   forcing);
+
+  set.AddForcingTerms(rate_constants, state.variables_, forcing); 
   
     auto end = std::chrono::steady_clock::now(); 
     //end timer
