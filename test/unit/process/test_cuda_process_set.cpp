@@ -178,7 +178,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector(); 
   std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector(); 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
-    ASSERT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1e-5); 
+    EXPECT_DOUBLE_EQ(cpu_forcing_vector[i], gpu_forcing_vector[i], 1e-5); 
   } 
  }
 
