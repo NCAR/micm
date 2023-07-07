@@ -55,19 +55,26 @@ namespace micm
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<template<class> typename MatrixPolicy>
       requires(!Vectorizable<MatrixPolicy<double>>)
-    void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const;
+    void AddForcingTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        MatrixPolicy<double>& forcing) const;
     template<template<class> typename MatrixPolicy>
       requires Vectorizable<MatrixPolicy<double>>
-    void AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing)
-        const;
+    void AddForcingTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        MatrixPolicy<double>& forcing) const;
 
     /// @brief Add Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy>
-    void AddJacobianTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, SparseMatrix<double>& jacobian)
-        const;
+    void AddJacobianTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrix<double>& jacobian) const;
   };
 
   template<template<class> class MatrixPolicy>
@@ -143,8 +150,10 @@ namespace micm
 
   template<template<class> typename MatrixPolicy>
     requires(!Vectorizable<MatrixPolicy<double>>)
-  inline void
-  ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
+  inline void ProcessSet::AddForcingTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      MatrixPolicy<double>& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
@@ -173,8 +182,10 @@ namespace micm
 
   template<template<class> typename MatrixPolicy>
     requires Vectorizable<MatrixPolicy<double>>
-  inline void
-  ProcessSet::AddForcingTerms(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& state_variables, MatrixPolicy<double>& forcing) const
+  inline void ProcessSet::AddForcingTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      MatrixPolicy<double>& forcing) const
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
@@ -189,10 +200,10 @@ namespace micm
       std::size_t offset_rc = i_block * rate_constants.BlockSize();
       std::size_t offset_state = i_block * state_variables.BlockSize();
       std::size_t offset_forcing = i_block * forcing.BlockSize();
+
+      double* rate = new double[L];
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        // TODO: jiwon 6/29 - better way to do this?
-        double* rate = new double[L];
         for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
@@ -207,9 +218,8 @@ namespace micm
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
-        
-        delete[] rate;        
       }
+      delete[] rate;
     }
   }
 
