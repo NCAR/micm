@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <functional>
+#include <vector>
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
@@ -140,7 +141,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
 
-  micm::Matrix <double> forcing{ n_cells, n_species, 1000.0 };
+  micm::Matrix <double> cpu_forcing{ n_cells, n_species, 1000.0};
+  micm::Matrix <double> gpu_forcing{ n_cells, n_species, 1000.0}; 
 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
@@ -153,34 +155,32 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
   
-  // start timer 
-  double t0 = 0.0; 
-  for (int i = 0; i < 100; i++){
-  auto start = std::chrono::steady_clock::now(); 
-  //  micm::cuda::AddForcingTerms_kernelSetup(
-  //   number_of_reactants,
-  //   number_of_reactants_size,
-  //   reactant_ids,
-  //   reactant_ids_size,
-  //   number_of_products,
-  //   number_of_products_size,
-  //   product_ids,
-  //   product_ids_size,
-  //   yields,
-  //   yields_size,
-  //   rate_constants, 
-  //   state.variables_, 
-  //   forcing);
-
-  set.AddForcingTerms(rate_constants, state.variables_, forcing); 
+  //kernel function call
+   micm::cuda::AddForcingTerms_kernelSetup(
+    number_of_reactants,
+    number_of_reactants_size,
+    reactant_ids,
+    reactant_ids_size,
+    number_of_products,
+    number_of_products_size,
+    product_ids,
+    product_ids_size,
+    yields,
+    yields_size,
+    rate_constants, 
+    state.variables_, 
+    gpu_forcing);
   
-    auto end = std::chrono::steady_clock::now(); 
-    //end timer
-    std::chrono::duration<double> duration = end - start;
-    t0 = t0 + duration.count(); 
-  }
-    std::cout << "time duration: "<< t0/100 << std::endl; 
-}
+  //CPU function call
+  set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
+  
+  //checking accuracy with comparison between CPU and GPU result
+  std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector(); 
+  std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector(); 
+  for (int i = 0; i < cpu_forcing_vector.size(); i++){
+    ASSERT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1e-5); 
+  } 
+ }
 
 TEST(RandomProcessSet, Matrix)
 {
