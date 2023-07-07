@@ -142,7 +142,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     elem = get_double();
 
   micm::Matrix <double> cpu_forcing{ n_cells, n_species, 1000.0};
-  micm::Matrix <double> gpu_forcing{ n_cells, n_species, 1000.0}; 
+  micm::Matrix <double> gpu_forcing = cpu_forcing; 
 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
