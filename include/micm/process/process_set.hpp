@@ -201,7 +201,9 @@ namespace micm
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_forcing = i_group * forcing.GroupSize();
 
-      double* rate = new double[L];
+      std::vector<double> rate;
+      rate.reserve(L);
+
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
@@ -219,7 +221,6 @@ namespace micm
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
       }
-      delete[] rate;
     }
   }
 
