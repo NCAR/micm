@@ -74,7 +74,7 @@ namespace micm
    /// @brief An implementation of the Chapman mechnanism solver
    ///
    /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy>
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   class RosenbrockSolver
   {
    public:
@@ -83,7 +83,7 @@ namespace micm
     RosenbrockSolverParameters parameters_;
     ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
-    SparseMatrix<double> jacobian_;
+    SparseMatrixPolicy<double> jacobian_;
     LinearSolver linear_solver_;
 
     static constexpr double delta_min_ = 1.0e-5;
@@ -160,7 +160,7 @@ namespace micm
     virtual void dforce_dy(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
-        SparseMatrix<double>& jacobian);
+        SparseMatrixPolicy<double>& jacobian);
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
@@ -197,8 +197,8 @@ namespace micm
         std::vector<double> errors);
   };
 
-  template<template<class> class MatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy>::RosenbrockSolver()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
       : system_(),
         processes_(),
         parameters_(),
@@ -210,8 +210,8 @@ namespace micm
     three_stage_rosenbrock();
   }
 
-  template<template<class> class MatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy>::RosenbrockSolver(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver(
       const System& system,
       std::vector<Process>&& processes,
       const RosenbrockSolverParameters parameters)
@@ -223,7 +223,7 @@ namespace micm
         jacobian_(),
         linear_solver_()
   {
-    auto builder = SparseMatrix<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
+    auto builder = SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
     auto jac_elements = process_set_.NonZeroJacobianElements();
     for (auto& elem : jac_elements)
       builder = builder.with_element(elem.first, elem.second);
@@ -235,13 +235,13 @@ namespace micm
     three_stage_rosenbrock();
   }
 
-  template<template<class> class MatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy>::~RosenbrockSolver()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::~RosenbrockSolver()
   {
   }
 
-  template<template<class> class MatrixPolicy>
-  inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy>::GetState() const
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::GetState() const
   {
     std::size_t n_params = 0;
     for (const auto& process : processes_)
@@ -254,8 +254,8 @@ namespace micm
                                          .number_of_rate_constants_ = processes_.size() } };
   }
 
-  template<template<class> class MatrixPolicy>
-  inline Solver::SolverResult RosenbrockSolver<MatrixPolicy>::Solve(double time_start, double time_end, State<MatrixPolicy>& state) noexcept
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline Solver::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_start, double time_end, State<MatrixPolicy>& state) noexcept
   {
     /// TODO: Y, Ynew, and forcing will have to be removed before this works with different Matrix classes
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
@@ -430,26 +430,26 @@ namespace micm
     return result;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy>::reaction_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::reaction_names()
   {
     return std::vector<std::string>();
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy>::photolysis_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::photolysis_names()
   {
     return std::vector<std::string>();
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy>::species_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::species_names()
   {
     return std::vector<std::string>();
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy>::force(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::force(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       MatrixPolicy<double>& forcing)
@@ -459,8 +459,8 @@ namespace micm
     stats_.function_calls += 1;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::factored_alpha_minus_jac(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::factored_alpha_minus_jac(
       const std::vector<double>& dforce_dy,
       const double& alpha)
   {
@@ -470,24 +470,24 @@ namespace micm
     return jacobian;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy>::dforce_dy(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
-      SparseMatrix<double>& jacobian)
+      SparseMatrixPolicy<double>& jacobian)
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.AddJacobianTerms(rate_constants, number_densities, jacobian);
     stats_.jacobian_updates += 1;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy>::factor(std::vector<double>& jacobian)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::factor(std::vector<double>& jacobian)
   {
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::dforce_dy_times_vector(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy_times_vector(
       const std::vector<double>& dforce_dy,
       const std::vector<double>& vector)
   {
@@ -496,8 +496,8 @@ namespace micm
     return result;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::backsolve_L_y_eq_b(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_L_y_eq_b(
       const std::vector<double>& jacobian,
       const std::vector<double>& b)
   {
@@ -505,8 +505,8 @@ namespace micm
     return y;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::backsolve_U_x_eq_b(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_U_x_eq_b(
       const std::vector<double>& jacobian,
       const std::vector<double>& y)
   {
@@ -514,8 +514,8 @@ namespace micm
     return x;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy>::three_stage_rosenbrock()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::three_stage_rosenbrock()
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
@@ -580,14 +580,14 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy>::UpdateState(State<MatrixPolicy>& state)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::UpdateState(State<MatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::lin_factor(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_factor(
       double& H,
       const double& gamma,
       bool& singular,
@@ -637,8 +637,8 @@ namespace micm
     return ode_jacobian;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy>::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
   {
     auto y = backsolve_L_y_eq_b(jacobian, K);
     auto x = backsolve_U_x_eq_b(jacobian, y);
@@ -646,8 +646,8 @@ namespace micm
     return x;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline double RosenbrockSolver<MatrixPolicy>::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

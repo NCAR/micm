@@ -27,9 +27,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   micm::SolverParameters& solver_params = *solver_params_ptr;
 
-  micm::RosenbrockSolver<micm::Matrix> solver{ solver_params.system_,
-                                               std::move(solver_params.processes_),
-                                               micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{ solver_params.system_,
+                                                                   std::move(solver_params.processes_),
+                                                                   micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 
@@ -108,9 +108,11 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                               std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-                                               micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
+    micm::RosenbrockSolverParameters{}
+  };
 
   micm::State<micm::Matrix> state = solver.GetState();
 
