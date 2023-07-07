@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <map>
 #include <micm/process/photolysis_rate_constant.hpp>
-#include <micm/solver/conditions.hpp>
+#include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <stdexcept>
@@ -46,9 +46,7 @@ namespace micm
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration
-    void SetConcentrations(
-        const System& system,
-        const std::unordered_map<std::string, double>& species_to_concentration);
+    void SetConcentrations(const System& system, const std::unordered_map<std::string, double>& species_to_concentration);
 
     /// @brief Set photolysis rate constants
     /// @param photolysis rate

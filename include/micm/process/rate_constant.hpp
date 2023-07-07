@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <micm/solver/conditions.hpp>
+#include <micm/system/conditions.hpp>
 #include <vector>
 
 namespace micm

@@ -18,7 +18,7 @@ TEST(SolverConfig, DetectsInvalidConfigFileAndNoThrowDoesntThrow)
 
 TEST(SolverConfig, ReadAndParseSystemObject)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throw-exception policy
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
 
   // Read and parse the configure files
   bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
@@ -51,7 +51,7 @@ TEST(SolverConfig, ReadAndParseSystemObject)
 
 TEST(SolverConfig, ReadAndParseProcessObjects)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;   // Set to throw-exception policy
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
 
   // Read and parse the configure files
   bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
@@ -122,6 +122,42 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   for (it = solver_params.processes_.begin(); it != solver_params.processes_.end(); it++, idx++)
   {
     EXPECT_EQ(it->rate_constant_->SizeCustomParameters(), size_custom_parameters_of_rate_constant_in_each_process[idx]);
+  }
+}
+
+TEST(SolverConfig, GettingSolverParamsThrowsExceptionWithFailedParsing)
+{
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
+  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
+  EXPECT_FALSE(is_parse_success);
+  EXPECT_ANY_THROW(solverConfig.GetSolverParams());
+}
+
+TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing)
+{
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
+  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
+  EXPECT_FALSE(is_parse_success);
+  // EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
+}
+
+TEST(SolverConfig, GetPhotolysisRateConstants)
+{
+  // Read and parse the configure files
+  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
+  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
+  EXPECT_TRUE(is_parse_success);
+
+  std::vector<micm::PhotolysisRateConstant>& photolysis_rate_arr_ = solverConfig.GetPhotolysisRateConstants();
+
+  // Check the name of photolsis rate constants
+  std::array<std::string, 3> photo_names{ "O2_1", "O3_1", "O3_2" };
+
+  short idx = 0;
+  for (auto& rate : photolysis_rate_arr_)
+  {
+    EXPECT_EQ(rate.name_, photo_names[idx]);
+    idx++;
   }
 }
 #endif
