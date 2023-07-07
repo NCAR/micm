@@ -3,13 +3,14 @@
 #include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
 
-template<class T>
+template<typename T, template<class> class SparseMatrixPolicy>
 void check_results(
-    const micm::SparseMatrix<T>& A,
-    const micm::SparseMatrix<T>& L,
-    const micm::SparseMatrix<T>& U,
+    const SparseMatrixPolicy<T>& A,
+    const SparseMatrixPolicy<T>& L,
+    const SparseMatrixPolicy<T>& U,
     const std::function<void(const T, const T)> f)
 {
   EXPECT_EQ(A.size(), L.size());
@@ -44,8 +45,8 @@ void check_results(
   }
 }
 
-template<class T>
-void print_matrix(const micm::SparseMatrix<T>& matrix, std::size_t width)
+template<typename T, template<class> class SparseMatrixPolicy>
+void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 {
   for (std::size_t i_block = 0; i_block < matrix.size(); ++i_block)
   {
@@ -71,9 +72,10 @@ void print_matrix(const micm::SparseMatrix<T>& matrix, std::size_t width)
 }
 
 // tests example from https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
-TEST(LuDecomposition, DenseMatrix)
+template<template<class> class SparseMatrixPolicy>
+void testDenseMatrix()
 {
-  micm::SparseMatrix<int> A = micm::SparseMatrix<int>::create(3)
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3).initial_value(1.0e-30)
                                   .with_element(0, 0)
                                   .with_element(0, 1)
                                   .with_element(0, 2)
@@ -95,23 +97,24 @@ TEST(LuDecomposition, DenseMatrix)
   A[0][2][2] = 8;
 
   micm::LuDecomposition lud(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A);
-  lud.Decompose(A, LU.first, LU.second);
-  check_results<int>(A, LU.first, LU.second, [&](const int a, const int b) -> void { EXPECT_EQ(a, b); });
+  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  lud.Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  check_results<double, SparseMatrixPolicy>(A, LU.first, LU.second, [&](const int a, const int b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
-TEST(LuDecomposition, RandomSparseMatrix)
+template<template<class> class SparseMatrixPolicy>
+void testRandomMatrix()
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = micm::SparseMatrix<double>::create(10).number_of_blocks(5);
+  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(5).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
         builder = builder.with_element(i, j);
 
-  micm::SparseMatrix<double> A(builder);
+  SparseMatrixPolicy<double> A(builder);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
@@ -120,27 +123,78 @@ TEST(LuDecomposition, RandomSparseMatrix)
           A[i_block][i][j] = get_double();
 
   micm::LuDecomposition lud(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A);
-  lud.Decompose(A, LU.first, LU.second);
-  check_results<double>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  lud.Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  check_results<double, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
-TEST(LuDecomposition, DiagonalOnly)
+template<template<class> class SparseMatrixPolicy>
+void testDiagonalMatrix()
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = micm::SparseMatrix<double>::create(6).number_of_blocks(5);
+  auto builder = SparseMatrixPolicy<double>::create(6).number_of_blocks(5).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.with_element(i, i);
 
-  micm::SparseMatrix<double> A(builder);
+  SparseMatrixPolicy<double> A(builder);
 
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < 5; ++i_block)
       A[i_block][i][i] = get_double();
 
   micm::LuDecomposition lud(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A);
-  lud.Decompose(A, LU.first, LU.second);
-  check_results<double>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  lud.Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  check_results<double, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+}
+
+TEST(LuDecomposition, DenseMatrixStandardOrdering)
+{
+  testDenseMatrix<micm::SparseMatrix>();
+}
+
+TEST(LuDecomposition, RandomMatrixStandardOrdering)
+{
+  testRandomMatrix<micm::SparseMatrix>();
+}
+
+TEST(LuDecomposition, DiagonalMatrixStandardOrdering)
+{
+  testDiagonalMatrix<micm::SparseMatrix>();
+}
+
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+
+TEST(LuDecomposition, DenseMatrixVectorOrdering)
+{
+  testDenseMatrix<Group1SparseVectorMatrix>();
+  testDenseMatrix<Group2SparseVectorMatrix>();
+  testDenseMatrix<Group3SparseVectorMatrix>();
+  testDenseMatrix<Group4SparseVectorMatrix>();
+}
+
+TEST(LuDecomposition, RandomMatrixVectorOrdering)
+{
+  testRandomMatrix<Group1SparseVectorMatrix>();
+  testRandomMatrix<Group2SparseVectorMatrix>();
+  testRandomMatrix<Group3SparseVectorMatrix>();
+  testRandomMatrix<Group4SparseVectorMatrix>();
+}
+
+TEST(LuDecomposition, DiagonalMatrixVectorOrdering)
+{
+  testDiagonalMatrix<Group1SparseVectorMatrix>();
+  testDiagonalMatrix<Group2SparseVectorMatrix>();
+  testDiagonalMatrix<Group3SparseVectorMatrix>();
+  testDiagonalMatrix<Group4SparseVectorMatrix>();
 }
