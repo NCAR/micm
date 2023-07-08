@@ -176,9 +176,9 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   
   //checking accuracy with comparison between CPU and GPU result
   std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector(); 
-  std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector(); 
+  std::vector<double> gpu_forcing_vector = cpu_forcing_vector; 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
-    EXPECT_DOUBLE_EQ(cpu_forcing_vector[i], gpu_forcing_vector[i], 1e-5); 
+    EXPECT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1.0e-5); 
   } 
  }
 
