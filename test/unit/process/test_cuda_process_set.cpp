@@ -68,7 +68,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     elem = get_double();
 
   micm::Matrix <double> cpu_forcing{ n_cells, n_species, 1000.0};
-  micm::Matrix <double> gpu_forcing = cpu_forcing; 
+  micm::Matrix <double> gpu_forcing{ };
+  gpu_forcing = cpu_forcing; 
 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
@@ -100,18 +101,18 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     rate_constants, 
     state.variables_, 
     gpu_forcing);
-    auto start = std::chrono::high_resolution_clock::now();
-    double duration = end.count() - start.count(); 
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     t0 = t0 + duration; 
   }
-  std::cout << "time performance: "<<std::t0/100 <<std::endl; 
+  std::cout << "time performance: "<<t0/100 <<std::endl; 
   
   //CPU function call
   set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
 
   //checking accuracy with comparison between CPU and GPU result 
   std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector(); 
-  std::vector<double> gpu_forcing_vector = cpu_forcing_vector; 
+  std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector(); 
 
 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){

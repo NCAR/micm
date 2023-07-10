@@ -46,8 +46,8 @@ namespace micm {
             int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             int state_index = state_forcing_col_index * matrix_rows + tid;
-            rate *= state_variables[state_index]; 
-            //rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+            //rate *= state_variables[state_index]; 
+            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
         }
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
@@ -55,8 +55,9 @@ namespace micm {
             int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             double rate_subtration = 0 - rate; 
             int forcing_index = state_forcing_col_index * matrix_rows + tid; 
-           // atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
-           atomicAdd(&forcing[forcing_index], rate_subtration);
+            //atomicAdd(&forcing[forcing_index], rate_subtration);
+            atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
+           
         }
 
         for (int i_product = 0; i_product < product_num; i_product++){
@@ -64,8 +65,8 @@ namespace micm {
             int product_ids_index  = initial_product_ids_index + i_product; 
             int forcing_col_index = product_ids_[product_ids_index]; 
             int forcing_index = forcing_col_index * matrix_rows + tid; 
-            atomicAdd(&forcing[forcing_index], yields_[yields_index] * rate);
-            //atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
+            //atomicAdd(&forcing[forcing_index], yields_[yields_index] * rate);
+            atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
         } //looping number of product times
     } // checking valid tid value
   } //AddForcingTerms_kernel function
