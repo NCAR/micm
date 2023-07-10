@@ -104,7 +104,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     double duration = end - start; 
     t0 = t0 + duration.count(); 
   }
-  std::cout << "time performance: "<<std::t0 <<std::endl; 
+  std::cout << "time performance: "<<std::t0/100 <<std::endl; 
   
   //CPU function call
   set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
@@ -117,6 +117,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
     EXPECT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1.0e-5); 
  }
+}
 
 TEST(RandomProcessSet, Matrix)
 {
@@ -133,7 +134,7 @@ TEST(RandomProcessSet, Matrix)
   testRandomSystem<micm::Matrix>(1000000, 100, 80);
 }
 
-}
+
   
  
 
