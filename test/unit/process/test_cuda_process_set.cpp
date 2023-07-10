@@ -71,17 +71,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   micm::Matrix <double> gpu_forcing{ };
   gpu_forcing = cpu_forcing; 
 
-  //checking accuracy with comparison between CPU and GPU result before modification
-  std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
-  std::vector<double>gpu_forcing_vector = gpu_forcing.AsVector(); 
-
-
-  for (int i = 0; i < cpu_forcing_vector.size(); i++){
-    EXPECT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1.0e-5); 
- }
-
-  //CPU function call
-  set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
   const size_t* number_of_reactants = set.number_of_reactants_vector().data();
   int number_of_reactants_size = set.number_of_reactants_vector().size();
   const size_t* reactant_ids = set.reactant_ids_vector().data();
@@ -93,11 +82,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   const double* yields = set.yields_vector().data();
   int yields_size = set.yields_vector().size(); 
   
-  double t0 = 0.0; 
-  
-  //kernel function call
-  for (int i = 0; i < 100; i++){
-    auto start = std::chrono::high_resolution_clock::now();
+
+  //kernel function call 
    micm::cuda::AddForcingTerms_kernelSetup(
     number_of_reactants,
     number_of_reactants_size,
@@ -112,22 +98,19 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     rate_constants, 
     state.variables_, 
     gpu_forcing);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    t0 = t0 + duration; 
-  }
-  std::cout << "time performance: "<<t0/100 <<std::endl; 
-  
+    
   //CPU function call
   set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
 
   //checking accuracy with comparison between CPU and GPU result 
-  cpu_forcing_vector = cpu_forcing.AsVector(); 
-  gpu_forcing_vector = gpu_forcing.AsVector(); 
+  std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
+  std::vector<double>gpu_forcing_vector = gpu_forcing.AsVector(); 
 
 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
-    EXPECT_NEAR(cpu_forcing_vector[i], gpu_forcing_vector[i], 1.0e-5); 
+    double a = cpu_forcing_vector[i];
+    double b = gpu_forcing_vector[i];
+    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-5);
  }
 }
 
@@ -135,15 +118,15 @@ TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
   testRandomSystem<micm::Matrix>(1000, 500, 400);
-  // testRandomSystem<micm::Matrix>(10000, 500, 400);
-  // testRandomSystem<micm::Matrix>(100000, 500, 400);
-  // testRandomSystem<micm::Matrix>(1000000, 500, 400);
+  testRandomSystem<micm::Matrix>(10000, 500, 400);
+  testRandomSystem<micm::Matrix>(100000, 500, 400);
+  testRandomSystem<micm::Matrix>(1000000, 500, 400);
   
-  // std::cout << "system with 100 reactions and 80 species"<<std::endl; 
-  // testRandomSystem<micm::Matrix>(1000, 100, 80);
-  // testRandomSystem<micm::Matrix>(10000, 100, 80);
-  // testRandomSystem<micm::Matrix>(100000, 100, 80);
-  // testRandomSystem<micm::Matrix>(1000000, 100, 80);
+  std::cout << "system with 100 reactions and 80 species"<<std::endl; 
+  testRandomSystem<micm::Matrix>(1000, 100, 80);
+  testRandomSystem<micm::Matrix>(10000, 100, 80);
+  testRandomSystem<micm::Matrix>(100000, 100, 80);
+  testRandomSystem<micm::Matrix>(1000000, 100, 80);
 }
 
 
