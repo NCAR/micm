@@ -101,7 +101,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     state.variables_, 
     gpu_forcing);
     auto start = std::chrono::high_resolution_clock::now();
-    double duration = end - start; 
+    double duration = end.count() - start.count(); 
     t0 = t0 + duration.count(); 
   }
   std::cout << "time performance: "<<std::t0/100 <<std::endl; 
