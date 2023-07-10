@@ -9,8 +9,8 @@ namespace micm
   /// @brief Environemental conditions
   struct Conditions
   {
-    double temperature_{ 0.0 };
-    double pressure_{ 0.0 };
-    double air_density_{ 1.0 };
+    double temperature_{ 0.0 }; // K
+    double pressure_{ 0.0 }; // Pa;
+    double air_density_{ 1.0 }; // mol m-3
   };
 }
