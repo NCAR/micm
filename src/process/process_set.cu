@@ -5,8 +5,8 @@
 
 namespace micm {
     namespace cuda {
-    one CUDA thread per grid cell
-    passing all device pointers 
+    //one CUDA thread per grid cell
+    //passing all device pointers 
    __global__ void AddForcingTerms_kernel(
        double* rate_constants, 
        double* state_variables, 
