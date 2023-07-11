@@ -106,7 +106,7 @@ template<template<class> class SparseMatrixPolicy>
 void testRandomMatrix()
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
-  auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
   auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(5).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
