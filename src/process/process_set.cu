@@ -73,9 +73,9 @@ namespace micm {
         Matrix<double>& forcing)
     {
         //data of matrices
-        int n_grids = rate_constants.size(); 
-        int n_reactions = rate_constants[0].size(); 
-        int n_species = state_variables[0].size();
+        int n_grids = rate_constants[0].size();
+        int n_reaction = rate_constants.size(); 
+        int n_species = state_variables.size(); 
 
         const double* rate_constants_data = rate_constants.AsVector().data(); 
         const double* state_variables_data = state_variables.AsVector().data();
