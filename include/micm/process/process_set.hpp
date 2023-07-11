@@ -189,6 +189,7 @@ namespace micm
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
+      
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
@@ -217,28 +218,18 @@ namespace micm
         const Matrix<double>& rate_constants, 
         const Matrix<double>& state_variables, 
         Matrix<double>& forcing) {
-        const size_t* number_of_reactants = number_of_reactants_.data(); 
-        int number_of_reactants_size = number_of_reactants_.size(); 
-        const size_t* reactant_ids = reactant_ids_.data(); 
-        int reactant_ids_size = reactant_ids_.size(); 
-        const size_t* number_of_products = number_of_products_.data(); 
-        int number_of_products_size = number_of_products_.size(); 
-        const size_t* product_ids = product_ids_.data(); 
-        int product_ids_size = product_ids_.size();
-        const double* yields = yields_.data(); 
-        int yields_size = yields_.size(); 
-
-        micm::cuda::AddForcingTerms_kernelSetup(
-            number_of_reactants,
-            number_of_reactants_size,
-            reactant_ids,
-            reactant_ids_size,
-            number_of_products,
-            number_of_products_size,
-            product_ids,
-            product_ids_size,
-            yields,
-            yields_size,
+       
+       micm::cuda::AddForcingTerms_kernelSetup(
+            number_of_reactants_.data(),
+            number_of_reactants_.size(),
+            reactant_ids_.data(),
+            reactant_ids_.size(),
+            number_of_products_.data(),
+            number_of_products_.size(),
+            product_ids_.data(),
+            product_ids_.size(),
+             yields_.data(),
+            yields_.size(),
             rate_constants, 
             state_variables, 
             forcing);

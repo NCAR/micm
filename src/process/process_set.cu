@@ -14,9 +14,9 @@ namespace micm {
         double* rate_constants, 
         double* state_variables, 
         double* forcing, 
-        int matrix_rows, 
-        int rate_constants_columns, 
-        int state_forcing_columns,
+        int n_grids, 
+        int n_reactions, 
+        int n_species,
         size_t* number_of_reactants_, 
         size_t* accumulated_n_reactants, 
         size_t* reactant_ids_, 
@@ -28,38 +28,30 @@ namespace micm {
     //define thread index 
     //one thread per reaction
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-    int rate_constants_size = matrix_rows * rate_constants_columns; 
+    int rate_constants_size = n_grids * n_reactions; 
     
     if (tid < rate_constants_size){
         double rate = rate_constants[tid];
-        int rate_constants_col_index = tid % rate_constants_columns; 
-        int row_index = (tid - rate_constants_col_index)/rate_constants_columns;
+        int reaction_index = tid % n_reactions; 
+        int grid_index = (tid - reaction_index)/n_reactions;
     
-        int reactant_num = number_of_reactants_[rate_constants_col_index]; //number of reactants of the reaction
-        int product_num = number_of_products_[rate_constants_col_index]; //number of products of the reaction 
+        int reactant_num = number_of_reactants_[reaction_index]; //number of reactants of the reaction
+        int product_num = number_of_products_[reaction_index]; //number of products of the reaction 
         
-        int initial_reactant_ids_index = accumulated_n_reactants[rate_constants_col_index];
-        int initial_product_ids_index = accumulated_n_products[rate_constants_col_index];
-        int initial_yields_index = accumulated_n_products[rate_constants_col_index]; 
+        int initial_reactant_ids_index = accumulated_n_reactants[reaction_index];
+        int initial_product_ids_index = accumulated_n_products[reaction_index];
+        int initial_yields_index = accumulated_n_products[reaction_index]; 
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
-            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
-            rate *= state_variables[row_index * state_forcing_columns + state_forcing_col_index];  
+            rate *= state_variables[grid_index * n_species + reactant_ids_[initial_reactant_ids_index + i_reactant]];  
         }
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-            int reactant_ids_index = initial_reactant_ids_index + i_reactant; 
-            int state_forcing_col_index = reactant_ids_[reactant_ids_index]; 
             double rate_subtration = 0 - rate; 
-            atomicAdd(&forcing[row_index * state_forcing_columns + state_forcing_col_index], rate_subtration);
+            atomicAdd(&forcing[grid_index * n_species + reactant_ids_[initial_reactant_ids_index + i_reactant]], rate_subtration);
         }
-
         for (int i_product = 0; i_product < product_num; i_product++){
-            int yields_index = initial_yields_index + i_product; 
-            int product_ids_index  = initial_product_ids_index + i_product; 
-            int forcing_col_index = product_ids_[product_ids_index]; 
-            atomicAdd(&forcing[row_index * state_forcing_columns + forcing_col_index], yields_[yields_index] * rate);
+            atomicAdd(&forcing[grid_index * n_species + product_ids_[initial_product_ids_index + i_product]], yields_[initial_yields_index + i_product] * rate);
         } //looping number of product times
     } // checking valid tid value
   } //AddForcingTerms_kernel function
@@ -80,9 +72,9 @@ namespace micm {
         Matrix<double>& forcing)
     {
         //data of matrices
-        int matrix_rows = rate_constants.size(); 
-        int rate_constants_columns = rate_constants[0].size(); 
-        int state_forcing_columns = state_variables[0].size();
+        int n_grids = rate_constants.size(); 
+        int n_reactions = rate_constants[0].size(); 
+        int n_species = state_variables[0].size();
 
         const double* rate_constants_data = rate_constants.AsVector().data(); 
         const double* state_variables_data = state_variables.AsVector().data();
@@ -121,8 +113,8 @@ namespace micm {
        
     
         //allocate device memory
-        size_t rate_constants_bytes = sizeof(double) * (matrix_rows * rate_constants_columns); 
-        size_t state_forcing_bytes = sizeof(double) * (matrix_rows * state_forcing_columns); 
+        size_t rate_constants_bytes = sizeof(double) * (n_grids * n_reactions); 
+        size_t state_forcing_bytes = sizeof(double) * (n_grids * n_species); 
         size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
         size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size; 
         size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size; 
@@ -153,7 +145,7 @@ namespace micm {
         cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice); 
 
         //total thread count == rate_constants matrix size
-        int N = matrix_rows * rate_constants_columns; 
+        int N = n_grids * n_reactions; 
         int block_size = 320; 
         int num_block = (N + block_size -1)/block_size; 
         
@@ -162,9 +154,9 @@ namespace micm {
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
-            matrix_rows, 
-            rate_constants_columns, 
-            state_forcing_columns, 
+            n_grids, 
+            n_reactions, 
+            n_species, 
             d_number_of_reactants_, 
             d_accumulated_n_reactants, 
             d_reactant_ids_, 
