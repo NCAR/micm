@@ -32,9 +32,9 @@ namespace micm {
     
     if (tid < rate_constants_size){
         double rate = rate_constants[tid];
-        int reaction_index = tid % n_reactions; 
-        int grid_index = (tid - reaction_index)/n_reactions;
-    
+        int grid_index = tid % n_grids; 
+        int reaction_index = (tid - grid_index)/n_grids; 
+
         int reactant_num = number_of_reactants_[reaction_index]; //number of reactants of the reaction
         int product_num = number_of_products_[reaction_index]; //number of products of the reaction 
         
@@ -43,15 +43,16 @@ namespace micm {
         int initial_yields_index = accumulated_n_products[reaction_index]; 
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
-            rate *= state_variables[grid_index * n_species + reactant_ids_[initial_reactant_ids_index + i_reactant]];  
+            rate *= state_variables[reactant_ids_[initial_reactant_ids_index + i_reactant] * n_grids + grid_index];  
         }
         
         for (int i_reactant = 0; i_reactant < reactant_num; i_reactant++){
             double rate_subtration = 0 - rate; 
-            atomicAdd(&forcing[grid_index * n_species + reactant_ids_[initial_reactant_ids_index + i_reactant]], rate_subtration);
+            atomicAdd(&forcing[reactant_ids_[initial_reactant_ids_index + i_reactant] * n_grids + grid_index], rate_subtration); 
         }
         for (int i_product = 0; i_product < product_num; i_product++){
-            atomicAdd(&forcing[grid_index * n_species + product_ids_[initial_product_ids_index + i_product]], yields_[initial_yields_index + i_product] * rate);
+            atomicAdd(&forcing[product_ids_[initial_product_ids_index + i_product] * n_grids + grid_index] , yields_[initial_yields_index + i_product] * rate); 
+        
         } //looping number of product times
     } // checking valid tid value
   } //AddForcingTerms_kernel function
