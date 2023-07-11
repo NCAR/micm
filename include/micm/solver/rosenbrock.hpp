@@ -84,7 +84,7 @@ namespace micm
     ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
     SparseMatrixPolicy<double> jacobian_;
-    LinearSolver linear_solver_;
+    LinearSolver<double, SparseMatrixPolicy> linear_solver_;
 
     static constexpr double delta_min_ = 1.0e-5;
 
@@ -228,7 +228,7 @@ namespace micm
     for (auto& elem : jac_elements)
       builder = builder.with_element(elem.first, elem.second);
     jacobian_ = builder;
-    linear_solver_ = LinearSolver(jacobian_);
+    linear_solver_ = LinearSolver(jacobian_, 1.0e-30);
     process_set_.SetJacobianFlatIds(jacobian_);
 
     // TODO: move three stage rosenbrock to parameter constructor
