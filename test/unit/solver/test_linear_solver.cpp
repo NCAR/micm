@@ -2,8 +2,10 @@
 
 #include <functional>
 #include <micm/solver/linear_solver.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 
 template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -22,7 +24,8 @@ void check_results(
     {
       result = 0.0;
       for (std::size_t j = 0; j < A[i_block].size(); ++j)
-        if (!A.IsZero(i, j)) result += A[i_block][i][j] * x[i_block][j];
+        if (!A.IsZero(i, j))
+          result += A[i_block][i][j] * x[i_block][j];
       f(b[i_block][i], result);
     }
   }
@@ -85,9 +88,9 @@ void testDenseMatrix()
   b[0][1] = 42;
   b[0][2] = 9;
 
-  micm::LinearSolver solver(A, 1.0e-30);
+  micm::LinearSolver<double, SparseMatrixPolicy> solver(A, 1.0e-30);
   solver.Factor(A);
-  solver.Solve(b, x);
+  solver.template Solve<MatrixPolicy>(b, x);
   check_results<double, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -118,9 +121,9 @@ void testRandomMatrix()
     for (std::size_t i_block = 0; i_block < 5; ++i_block)
       b[i_block][i] = get_double();
 
-  micm::LinearSolver solver(A, 1.0e-30);
+  micm::LinearSolver<double, SparseMatrixPolicy> solver(A, 1.0e-30);
   solver.Factor(A);
-  solver.Solve(b, x);
+  solver.template Solve<MatrixPolicy>(b, x);
   check_results<double, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -142,9 +145,9 @@ void testDiagonalMatrix()
     for (std::size_t i_block = 0; i_block < 5; ++i_block)
       A[i_block][i][i] = get_double();
 
-  micm::LinearSolver solver(A, 1.0e-30);
+  micm::LinearSolver<double, SparseMatrixPolicy> solver(A, 1.0e-30);
   solver.Factor(A);
-  solver.Solve(b, x);
+  solver.template Solve<MatrixPolicy>(b, x);
   check_results<double, MatrixPolicy, SparseMatrixPolicy>(
       A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -165,6 +168,15 @@ TEST(LinearSolver, DiagonalMatrixStandardOrdering)
 }
 
 template<class T>
+using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+template<class T>
+using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
+template<class T>
+using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
+template<class T>
+using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+
+template<class T>
 using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
 template<class T>
 using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
@@ -175,24 +187,24 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(LinearSolver, DenseMatrixVectorOrdering)
 {
-  // testDenseMatrix<Group1SparseVectorMatrix>();
-  // testDenseMatrix<Group2SparseVectorMatrix>();
-  // testDenseMatrix<Group3SparseVectorMatrix>();
-  // testDenseMatrix<Group4SparseVectorMatrix>();
+  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testDenseMatrix<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testDenseMatrix<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testDenseMatrix<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }
 
 TEST(LinearSolver, RandomMatrixVectorOrdering)
 {
-  // testRandomMatrix<Group1SparseVectorMatrix>();
-  // testRandomMatrix<Group2SparseVectorMatrix>();
-  // testRandomMatrix<Group3SparseVectorMatrix>();
-  // testRandomMatrix<Group4SparseVectorMatrix>();
+  testRandomMatrix<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testRandomMatrix<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testRandomMatrix<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }
 
 TEST(LinearSolver, DiagonalMatrixVectorOrdering)
 {
-  // testDiagonalMatrix<Group1SparseVectorMatrix>();
-  // testDiagonalMatrix<Group2SparseVectorMatrix>();
-  // testDiagonalMatrix<Group3SparseVectorMatrix>();
-  // testDiagonalMatrix<Group4SparseVectorMatrix>();
+  testDiagonalMatrix<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }

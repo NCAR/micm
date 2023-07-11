@@ -86,7 +86,7 @@ namespace micm
       // There must always be a non-zero element on the diagonal
       nLij_Lii_.push_back(std::make_pair(nLij, lower_matrix_.VectorIndex(0, i, i)));
     }
-    for (std::size_t i = upper_matrix_[0].size() - 1; (i + 1) > i; --i)
+    for (std::size_t i = upper_matrix_[0].size() - 1; i != static_cast<std::size_t>(-1); --i)
     {
       std::size_t nUij = 0;
       for (std::size_t j_id = upper_matrix_.RowStartVector()[i]; j_id < upper_matrix_.RowStartVector()[i + 1]; ++j_id)
@@ -105,7 +105,7 @@ namespace micm
   template<typename T, template<class> class SparseMatrixPolicy>
   inline void LinearSolver<T, SparseMatrixPolicy>::Factor(SparseMatrixPolicy<T>& matrix)
   {
-    lu_decomp_.Decompose(matrix, lower_matrix_, upper_matrix_);
+    lu_decomp_.Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix_, upper_matrix_);
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
@@ -117,8 +117,8 @@ namespace micm
     {
       auto b_cell = b[i_cell];
       auto x_cell = x[i_cell];
-      std::size_t lower_grid_offset = i_cell * lower_matrix_.FlatBlockSize();
-      std::size_t upper_grid_offset = i_cell * upper_matrix_.FlatBlockSize();
+      const std::size_t lower_grid_offset = i_cell * lower_matrix_.FlatBlockSize();
+      const std::size_t upper_grid_offset = i_cell * upper_matrix_.FlatBlockSize();
       auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
       {
         auto b_elem = b_cell.begin();
@@ -158,7 +158,56 @@ namespace micm
     requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LinearSolver<T, SparseMatrixPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)
   {
-    x = 0.0;
+    const std::size_t n_cells = b.GroupVectorSize();
+    // Loop over groups of blocks
+    for(std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
+    {
+      auto b_group = std::next(b.AsVector().begin(), i_group * b.GroupSize());
+      auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
+      auto L_group = std::next(lower_matrix_.AsVector().begin(), i_group * lower_matrix_.GroupSize(lower_matrix_.FlatBlockSize()));
+      auto U_group = std::next(upper_matrix_.AsVector().begin(), i_group * upper_matrix_.GroupSize(upper_matrix_.FlatBlockSize()));
+      auto y_group = x_group; // Alias x for consistency with equations, but to reuse memory
+      {
+        auto b_elem = b_group;
+        auto y_elem = y_group;
+        auto Lij_yj = Lij_yj_.begin();
+        for (auto& nLij_Lii : nLij_Lii_)
+        {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            y_elem[i_cell] = b_elem[i_cell];
+          b_elem += n_cells;          
+          for (std::size_t i = 0; i < nLij_Lii.first; ++i)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              y_elem[i_cell] -= L_group[(*Lij_yj).first + i_cell] * y_group[(*Lij_yj).second * n_cells + i_cell];
+            ++Lij_yj;
+          }
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            y_elem[i_cell] /= L_group[nLij_Lii.second + i_cell];
+          y_elem += n_cells;
+        }
+      }
+      {
+        auto y_elem = std::next(y_group, x.GroupSize() - n_cells);
+        auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
+        auto Uij_xj = Uij_xj_.begin();
+        for (auto& nUij_Uii : nUij_Uii_)
+        {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            x_elem[i_cell] = y_elem[i_cell];
+          y_elem -= n_cells;
+          for (std::size_t i = 0; i < nUij_Uii.first; ++i)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              x_elem[i_cell] -= U_group[(*Uij_xj).first + i_cell] * x_group[(*Uij_xj).second * n_cells + i_cell];
+            ++Uij_xj;
+          }
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            x_elem[i_cell] /= U_group[nUij_Uii.second + i_cell];
+          x_elem -= n_cells;
+        }
+      }
+    }
   }
 
 }  // namespace micm
