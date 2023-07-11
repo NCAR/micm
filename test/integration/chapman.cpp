@@ -34,9 +34,10 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   micm::State state = solver.GetState();
 
   // User gives an input of concentrations
-  std::unordered_map<std::string, double> concentrations = { { "O", 0.1 },  { "O1D", 0.1 }, { "O2", 0.1 },
-                                                             { "O3", 0.2 }, { "M", 0.2 },   { "Ar", 0.2 },
-                                                             { "N2", 0.3 }, { "H2O", 0.3 }, { "CO2", 0.3 } };
+  std::unordered_map<std::string, std::vector<double>> concentrations = {
+    { "O", { 0.1 } },  { "O1D", { 0.1 } }, { "O2", { 0.1 } },  { "O3", { 0.2 } }, { "M", { 0.2 } },
+    { "Ar", { 0.2 } }, { "N2", { 0.3 } },  { "H2O", { 0.3 } }, { "CO2", { 0.3 } }
+  };
 
   state.SetConcentrations(solver_params.system_, concentrations);
 
@@ -44,7 +45,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
 
   // User gives an input of photolysis rate constants
-  std::unordered_map<std::string, double> photo_rates = { { "O2_1", 0.1 }, { "O3_1", 0.2 }, { "O3_2", 0.3 } };
+  std::unordered_map<std::string, double> photo_rates = { { "O2_1", { 0.1 } }, { "O3_1", { 0.2 } }, { "O3_2", { 0.3 } } };
 
   state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
 

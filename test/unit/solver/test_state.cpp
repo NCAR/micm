@@ -30,8 +30,8 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
                                                           .number_of_custom_parameters_ = 5,
                                                           .number_of_rate_constants_ = 10 } };
 
-  std::unordered_map<std::string, double> concentrations = {
-    { "FUU", 0.1 }, { "bar", 0.2 }, { "baz", 0.3 }, { "quz", 0.4 }
+  std::unordered_map<std::string, std::vector<double>> concentrations = {
+    { "FUU", { 0.1 } }, { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "quz", { 0.4 } }
   };
 
   // Build system
@@ -54,8 +54,8 @@ TEST(State, SetConcentrations)
       std::vector<micm::Species>{ micm::Species("foo"), micm::Species("bar"), micm::Species("baz"), micm::Species("quz") });
   micm::System system{ micm::SystemParameters{ gas_phase } };
 
-  std::unordered_map<std::string, double> concentrations = {
-    { "bar", 0.2 }, { "baz", 0.3 }, { "foo", 0.99 }, { "quz", 0.4 }
+  std::unordered_map<std::string, std::vector<double>> concentrations = {
+    { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "foo", { 0.99 } }, { "quz", { 0.4 } }
   };
 
   state.SetConcentrations(system, concentrations);
@@ -88,8 +88,8 @@ TEST(State, SettingPhotolysisRateWithInvalidArguementsThrowsException)
   photolysis_rate_arr.emplace_back("BBB");
 
   // user input for photolysis rate constant (unordered)
-  std::unordered_map<std::string, double> photo_rates = {
-    { "O3", 0.3 }, { "O1", 0.1 }, { "O2", 0.5 }, { "CCC", 0.7 }, { "AAA", 0.5 }
+  std::unordered_map<std::string, std::vector<double>> photo_rates = {
+    { "O3", { 0.3 } }, { "O1", { 0.1 } }, { "O2", { 0.5 } }, { "CCC", { 0.7 } }, { "AAA", { 0.5 } }
   };
 
   std::vector<double> photo_rates_in_order{ 0.1, 0.5, 0.3, 0.5, 0.7 };
@@ -115,8 +115,8 @@ TEST(State, SetPhotolysisRate)
   photolysis_rate_arr.emplace_back("BBB");
 
   // user input for photolysis rate constant (unordered)
-  std::unordered_map<std::string, double> photo_rates = {
-    { "O3", 0.3 }, { "O1", 0.1 }, { "O2", 0.5 }, { "BBB", 0.7 }, { "AAA", 0.5 }
+  std::unordered_map<std::string, std::vector<double>> photo_rates = {
+    { "O3", { 0.3 } }, { "O1", { 0.1 } }, { "O2", { 0.5 } }, { "BBB", { 0.7 } }, { "AAA", { 0.5 } }
   };
 
   std::vector<double> photo_rates_in_order{ 0.1, 0.5, 0.3, 0.5, 0.7 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <map>
 #include <micm/process/photolysis_rate_constant.hpp>
@@ -46,13 +47,15 @@ namespace micm
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration
-    void SetConcentrations(const System& system, const std::unordered_map<std::string, double>& species_to_concentration);
+    void SetConcentrations(
+        const System& system,
+        const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
 
     /// @brief Set photolysis rate constants
     /// @param photolysis rate
     void SetPhotolysisRate(
         const std::vector<PhotolysisRateConstant>& photolysis_rate_arr,
-        const std::unordered_map<std::string, double>& photolysis_rate);
+        const std::unordered_map<std::string, std::vector<double>>& photolysis_rate);
   };
 
   template<template<class> class MatrixPolicy>
@@ -93,44 +96,99 @@ namespace micm
   template<template<class> class MatrixPolicy>
   inline void State<MatrixPolicy>::SetConcentrations(
       const System& system,
-      const std::unordered_map<std::string, double>& species_to_concentration)
+      const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
-    std::vector<double> concentrations;
-    concentrations.reserve(system.gas_phase_.species_.size());
+    int num_set_grid_cells = 0;
+    unsigned num_species = system.gas_phase_.species_.size();
 
+    std::vector<int> num_concentrations_per_species;
+    num_concentrations_per_species.reserve(num_species);
+
+    // Iterate map to store the number of concentration values corresponding to the number of set of grid cells
     for (auto& species : system.gas_phase_.species_)
     {
       auto species_ptr = species_to_concentration.find(species.name_);
       if (species_ptr == species_to_concentration.end())
       {
-        throw std::invalid_argument("Concentration value for '" + species.name_ + "' must be given.");
+        throw std::invalid_argument("Concentration value(s) for '" + species.name_ + "' must be given.");
       }
-      concentrations.push_back(species_ptr->second);
+      num_concentrations_per_species.push_back(species_ptr->second.size());
     }
 
+    // Check if number of concentraiton inputs are the same for all species
+    if (!std::all_of(
+            num_concentrations_per_species.begin(),
+            num_concentrations_per_species.end(),
+            [&](int& i) { return i == num_concentrations_per_species.front(); }))
+    {
+      throw std::invalid_argument(
+          "Concentration value must be given to all sets of grid cells.");  // TODO: jiwon 7/10 - error message
+    }
+
+    num_set_grid_cells = num_concentrations_per_species[0];
+
+    // Find species and iterate through the keys to store concentrations for each set of grid cells
+    std::vector<double> concentrations;
+    concentrations.resize(num_species * num_set_grid_cells);
+
+    for (int i = 0; i < num_species; i++)
+    {
+      auto species_ptr = species_to_concentration.find(system.gas_phase_.species_[i].name_);
+
+      for (int j = 0; j < num_set_grid_cells; j++)
+      {
+        concentrations[i + num_species * j] = species_ptr->second[j];
+      }
+    }
+    // 'concentrations' represents an N-D array same as 'variables_' in contiguous memory (N = num_set_grid_cells)
     variables_[0] = concentrations;
   }
 
   template<template<class> class MatrixPolicy>
   inline void State<MatrixPolicy>::SetPhotolysisRate(
       const std::vector<PhotolysisRateConstant>& photolysis_rate_arr,
-      const std::unordered_map<std::string, double>& photolysis_rate)
+      const std::unordered_map<std::string, std::vector<double>>& photolysis_rate)
   {
-    std::vector<double> photo_rates;
+    int num_set_grid_cells = 0;
+    unsigned num_photo_values = photolysis_rate_arr.size();
 
-    photo_rates.reserve(photolysis_rate_arr.size());
+    std::vector<int> num_values_per_key;
+    num_values_per_key.reserve(num_photo_values);
 
+    // Iterate map to store the number of rate constant values corresponding to the number of set of grid cells
     for (auto& elem : photolysis_rate_arr)
     {
       auto rate_ptr = photolysis_rate.find(elem.name_);
       if (rate_ptr == photolysis_rate.end())
       {
-        throw std::invalid_argument("Photolysis rate constant for '" + elem.name_ + "' must be given.");
+        throw std::invalid_argument("Photolysis rate constant(s) for '" + elem.name_ + "' must be given.");
       }
-
-      photo_rates.push_back(rate_ptr->second);
+      num_values_per_key.push_back(rate_ptr->second.size());
     }
 
+    // Check if number of rate constants inputs are the same for all photolysis rate constant objects.
+    if (!std::all_of(
+            num_values_per_key.begin(), num_values_per_key.end(), [&](int& i) { return i == num_values_per_key.front(); }))
+    {
+      throw std::invalid_argument(
+          "Photolysis rate constant value must be given to all sets of grid cells.");  // TODO: jiwon 7/10 - error message
+    }
+
+    num_set_grid_cells = num_values_per_key[0];
+
+    // Find rate constants and iterate through the keys to store the rate constants for each set of grid cells
+    std::vector<double> photo_rates;
+    photo_rates.resize(num_photo_values * num_set_grid_cells);
+
+    for (int i = 0; i < num_photo_values; i++)
+    {
+      auto rate_ptr = photolysis_rate.find(photolysis_rate_arr[i].name_);
+      for (int j = 0; j < num_set_grid_cells; j++)
+      {
+        photo_rates[i + num_photo_values * j] = rate_ptr->second[j];
+      }
+    }
+    // 'photo_rates' represents an N-D array same as 'custom_rate_parameters_' in contiguous memory (N = num_set_grid_cells)
     custom_rate_parameters_[0] = photo_rates;
   }
 }  // namespace micm
