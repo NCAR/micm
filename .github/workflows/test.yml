@@ -75,3 +75,37 @@ jobs:
       run: docker build -t micm -f Dockerfile.no_json .
     - name: run tests in container
       run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+  multiple-platform-test:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        compiler:
+          - {cpp: g++, c: gcc, fortran: gfortran}
+          - {cpp: clang++, c: clang, fortran: flang}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install CMake
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            brew install cmake
+          fi
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_C_COMPILER=${{ matrix.compiler.c }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }} -DCMAKE_Fortran_COMPILER=${{ matrix.compiler.fortran }}
+          cmake --build .
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure
