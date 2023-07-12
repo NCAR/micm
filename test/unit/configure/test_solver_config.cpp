@@ -138,7 +138,7 @@ TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing
   micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
   bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
   EXPECT_FALSE(is_parse_success);
-  // EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
+  EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
 }
 
 TEST(SolverConfig, GetPhotolysisRateConstants)

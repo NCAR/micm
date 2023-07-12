@@ -128,6 +128,7 @@ namespace micm
     num_set_grid_cells = num_concentrations_per_species[0];
 
     // Find species and iterate through the keys to store concentrations for each set of grid cells
+    // 'concentrations' represents an N-D array in contiguous memory (N = num_set_grid_cells)
     std::vector<double> concentrations;
     concentrations.resize(num_species * num_set_grid_cells);
 
@@ -140,8 +141,18 @@ namespace micm
         concentrations[i + num_species * j] = species_ptr->second[j];
       }
     }
-    // 'concentrations' represents an N-D array same as 'variables_' in contiguous memory (N = num_set_grid_cells)
-    variables_[0] = concentrations;
+
+    // Extract sub vector to assign to the corresponding set of grid cells.
+    // TODO: jiwon 7/12 - I think we want to reduce copy operations here
+    std::vector<double> sub_concentrations;
+    sub_concentrations.reserve(num_species);
+
+    for (int i = 0; i < num_set_grid_cells; i++)
+    {
+      sub_concentrations = { concentrations.begin() + (num_species * i),
+                             concentrations.begin() + (num_species * i) + num_species };
+      variables_[i] = sub_concentrations;
+    }
   }
 
   template<template<class> class MatrixPolicy>
@@ -177,6 +188,7 @@ namespace micm
     num_set_grid_cells = num_values_per_key[0];
 
     // Find rate constants and iterate through the keys to store the rate constants for each set of grid cells
+    // 'photo_rates' represents an N-D array in contiguous memory (N = num_set_grid_cells)
     std::vector<double> photo_rates;
     photo_rates.resize(num_photo_values * num_set_grid_cells);
 
@@ -188,7 +200,17 @@ namespace micm
         photo_rates[i + num_photo_values * j] = rate_ptr->second[j];
       }
     }
-    // 'photo_rates' represents an N-D array same as 'custom_rate_parameters_' in contiguous memory (N = num_set_grid_cells)
-    custom_rate_parameters_[0] = photo_rates;
+
+    // Extract sub vector to assign to the corresponding set of grid cells.
+    // TODO: jiwon 7/12 - I think we want to reduce copy operations here
+    std::vector<double> sub_photo_rates;
+    sub_photo_rates.reserve(num_photo_values);
+
+    for (int i = 0; i < num_set_grid_cells; i++)
+    {
+      sub_photo_rates = { photo_rates.begin() + (num_photo_values * i),
+                          photo_rates.begin() + (num_photo_values * i) + num_photo_values };
+      custom_rate_parameters_[i] = sub_photo_rates;
+    }
   }
 }  // namespace micm
