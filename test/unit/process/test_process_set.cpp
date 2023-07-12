@@ -124,9 +124,11 @@ void testProcessSet()
   EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
 }
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
 TEST(ProcessSet, Matrix)
 {
-  testProcessSet<micm::Matrix, micm::SparseMatrix>();
+  testProcessSet<micm::Matrix, SparseMatrixTest>();
 }
 
 template<class T>

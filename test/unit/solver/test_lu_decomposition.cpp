@@ -151,19 +151,22 @@ void testDiagonalMatrix()
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
+
 TEST(LuDecomposition, DenseMatrixStandardOrdering)
 {
-  testDenseMatrix<micm::SparseMatrix>();
+  testDenseMatrix<SparseMatrixTest>();
 }
 
 TEST(LuDecomposition, RandomMatrixStandardOrdering)
 {
-  testRandomMatrix<micm::SparseMatrix>();
+  testRandomMatrix<SparseMatrixTest>();
 }
 
 TEST(LuDecomposition, DiagonalMatrixStandardOrdering)
 {
-  testDiagonalMatrix<micm::SparseMatrix>();
+  testDiagonalMatrix<SparseMatrixTest>();
 }
 
 template<class T>

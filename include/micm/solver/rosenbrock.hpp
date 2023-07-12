@@ -477,7 +477,7 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian)
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
-    process_set_.AddJacobianTerms(rate_constants, number_densities, jacobian);
+    process_set_.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
     stats_.jacobian_updates += 1;
   }
 
