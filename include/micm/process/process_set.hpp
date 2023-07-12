@@ -348,7 +348,7 @@ namespace micm
             number_of_products_.size(),
             product_ids_.data(),
             product_ids_.size(),
-             yields_.data(),
+            yields_.data(),
             yields_.size(),
             rate_constants, 
             state_variables, 

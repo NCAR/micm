@@ -73,29 +73,32 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
   
   //kernel function call 
-  double t0 = 0.0; 
-  for (int i = 0; i < 100; i++)
-  {
-    auto start = std::chrono::steady_clock::now(); 
-    set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
-    auto end = std::chrono::steady_clock::now(); 
-    std::chrono::duration<double> duration = end - start;
-    t0 = t0 + duration.count(); 
-  }
-  std::cout << "time performance: "<< t0/100 <<std::endl; 
+  // double t0 = 0.0; 
+  // for (int i = 0; i < 100; i++)
+  // {
+  //   auto start = std::chrono::steady_clock::now(); 
+  //   set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
+  //   auto end = std::chrono::steady_clock::now(); 
+  //   std::chrono::duration<double> duration = end - start;
+  //   t0 = t0 + duration.count(); 
+  // }
+  // std::cout << "time performance: "<< t0/100 <<std::endl; 
+
+  //kernel function call 
+  set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
     
-//   //CPU function call
-//   set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
+  //CPU function call
+  set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
 
-//   //checking accuracy with comparison between CPU and GPU result 
-//   std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
-//   std::vector<double>gpu_forcing_vector = gpu_forcing.AsVector(); 
+  //checking accuracy with comparison between CPU and GPU result 
+  std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
+  std::vector<double>gpu_forcing_vector = gpu_forcing.AsVector(); 
 
-//   for (int i = 0; i < cpu_forcing_vector.size(); i++){
-//     double a = cpu_forcing_vector[i];
-//     double b = gpu_forcing_vector[i];
-//     EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-5);
-//  }
+  for (int i = 0; i < cpu_forcing_vector.size(); i++){
+    double a = cpu_forcing_vector[i];
+    double b = gpu_forcing_vector[i];
+    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-5);
+ }
 }
 
 TEST(RandomProcessSet, Matrix)
