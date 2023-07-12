@@ -99,7 +99,7 @@ void testDenseMatrix()
   micm::LuDecomposition lud(A);
   auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
   lud.Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
-  check_results<double, SparseMatrixPolicy>(A, LU.first, LU.second, [&](const int a, const int b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<double, SparseMatrixPolicy>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
 template<template<class> class SparseMatrixPolicy>
