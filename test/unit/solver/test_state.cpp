@@ -4,7 +4,7 @@
 
 TEST(State, Constructor)
 {
-  micm::State state {micm::StateParameters{
+  micm::State<micm::Matrix> state {micm::StateParameters{
     .state_variable_names_{ "foo", "bar", "baz", "quz" },
     .number_of_grid_cells_ = 3,
     .number_of_custom_parameters_ = 5,

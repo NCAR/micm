@@ -25,6 +25,7 @@
 #include <limits>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
@@ -70,10 +71,10 @@ namespace micm
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
   };
 
-  /**
-   * @brief An implementation of the Chapman mechnanism solver
-   *
-   */
+   /// @brief An implementation of the Chapman mechnanism solver
+   ///
+   /// The template parameter is the type of matrix to use
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   class RosenbrockSolver
   {
    public:
@@ -82,7 +83,8 @@ namespace micm
     RosenbrockSolverParameters parameters_;
     ProcessSet process_set_;
     Solver::Rosenbrock_stats stats_;
-    SparseMatrix<double> jacobian_;
+    SparseMatrixPolicy<double> jacobian_;
+    LinearSolver<double, SparseMatrixPolicy> linear_solver_;
 
     static constexpr double delta_min_ = 1.0e-5;
 
@@ -98,13 +100,13 @@ namespace micm
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @return A object that can hold the full state of the chemical system
-    virtual State GetState() const;
+    State<MatrixPolicy> GetState() const;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
     /// @return A struct containing results and a status code
-    virtual Solver::SolverResult Solve(double time_start, double time_end, State& state) noexcept;
+    Solver::SolverResult Solve(double time_start, double time_end, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -124,7 +126,7 @@ namespace micm
     /// @param number_density_air The number density of air
     /// @return A vector of forcings
     virtual void
-    force(const Matrix<double>& rate_constants, const Matrix<double>& number_densities, Matrix<double>& forcing);
+    force(const MatrixPolicy<double>& rate_constants, const MatrixPolicy<double>& number_densities, MatrixPolicy<double>& forcing);
 
     /// @brief compute jacobian decomposition of [alpha * I - dforce_dy]
     /// @param dforce_dy
@@ -142,7 +144,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    virtual void UpdateState(State& state);
+    void UpdateState(State<MatrixPolicy>& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -156,9 +158,9 @@ namespace micm
     /// @param jacobian The matrix of partial derivatives
     /// @return The jacobian
     virtual void dforce_dy(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& number_densities,
-        SparseMatrix<double>& jacobian);
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& number_densities,
+        SparseMatrixPolicy<double>& jacobian);
 
     /// @brief Prepare the rosenbrock ode solver matrix
     /// @param H time step (seconds)
@@ -170,8 +172,8 @@ namespace micm
         double& H,
         const double& gamma,
         bool& singular,
-        const Matrix<double>& number_densities,
-        const Matrix<double>& rate_constants);
+        const MatrixPolicy<double>& number_densities,
+        const MatrixPolicy<double>& rate_constants);
 
     /// @brief Factor
     /// @param jacobian
@@ -195,18 +197,21 @@ namespace micm
         std::vector<double> errors);
   };
 
-  inline RosenbrockSolver::RosenbrockSolver()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
       : system_(),
         processes_(),
         parameters_(),
         process_set_(),
         stats_(),
-        jacobian_()
+        jacobian_(),
+        linear_solver_()
   {
     three_stage_rosenbrock();
   }
 
-  inline RosenbrockSolver::RosenbrockSolver(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver(
       const System& system,
       std::vector<Process>&& processes,
       const RosenbrockSolverParameters parameters)
@@ -215,44 +220,50 @@ namespace micm
         parameters_(parameters),
         process_set_(processes_, GetState()),
         stats_(),
-        jacobian_()
+        jacobian_(),
+        linear_solver_()
   {
-    auto builder = SparseMatrix<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
+    auto builder = SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
     auto jac_elements = process_set_.NonZeroJacobianElements();
     for (auto& elem : jac_elements)
       builder = builder.with_element(elem.first, elem.second);
     jacobian_ = builder;
+    linear_solver_ = LinearSolver(jacobian_, 1.0e-30);
     process_set_.SetJacobianFlatIds(jacobian_);
 
     // TODO: move three stage rosenbrock to parameter constructor
     three_stage_rosenbrock();
   }
 
-  inline RosenbrockSolver::~RosenbrockSolver()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::~RosenbrockSolver()
   {
   }
 
-  inline State RosenbrockSolver::GetState() const
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::GetState() const
   {
     std::size_t n_params = 0;
     for (const auto& process : processes_)
     {
       n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
+    return State<>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
                                          .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
                                          .number_of_custom_parameters_ = n_params,
                                          .number_of_rate_constants_ = processes_.size() } };
   }
 
-  inline Solver::SolverResult RosenbrockSolver::Solve(double time_start, double time_end, State& state) noexcept
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline Solver::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_start, double time_end, State<MatrixPolicy>& state) noexcept
   {
+    /// TODO: Y, Ynew, and forcing will have to be removed before this works with different Matrix classes
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
-    Matrix<double> Y_matrix(state.variables_);
+    MatrixPolicy<double> Y_matrix(state.variables_);
     std::vector<double>& Y = Y_matrix.AsVector();
-    Matrix<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    MatrixPolicy<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
     std::vector<double>& Ynew = Ynew_matrix.AsVector();
-    Matrix<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
+    MatrixPolicy<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
     std::vector<double>& forcing = forcing_matrix.AsVector();
 
     // TODO: update for multiple-grid cell solving
@@ -419,32 +430,37 @@ namespace micm
     return result;
   }
 
-  inline std::vector<std::string> RosenbrockSolver::reaction_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::reaction_names()
   {
     return std::vector<std::string>();
   }
 
-  inline std::vector<std::string> RosenbrockSolver::photolysis_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::photolysis_names()
   {
     return std::vector<std::string>();
   }
 
-  inline std::vector<std::string> RosenbrockSolver::species_names()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::species_names()
   {
     return std::vector<std::string>();
   }
 
-  inline void RosenbrockSolver::force(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& number_densities,
-      Matrix<double>& forcing)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::force(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& number_densities,
+      MatrixPolicy<double>& forcing)
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.AddForcingTerms(rate_constants, number_densities, forcing);
     stats_.function_calls += 1;
   }
 
-  inline std::vector<double> RosenbrockSolver::factored_alpha_minus_jac(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::factored_alpha_minus_jac(
       const std::vector<double>& dforce_dy,
       const double& alpha)
   {
@@ -454,21 +470,24 @@ namespace micm
     return jacobian;
   }
 
-  inline void RosenbrockSolver::dforce_dy(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& number_densities,
-      SparseMatrix<double>& jacobian)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& number_densities,
+      SparseMatrixPolicy<double>& jacobian)
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.AddJacobianTerms(rate_constants, number_densities, jacobian);
     stats_.jacobian_updates += 1;
   }
 
-  inline void RosenbrockSolver::factor(std::vector<double>& jacobian)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::factor(std::vector<double>& jacobian)
   {
   }
 
-  inline std::vector<double> RosenbrockSolver::dforce_dy_times_vector(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy_times_vector(
       const std::vector<double>& dforce_dy,
       const std::vector<double>& vector)
   {
@@ -477,7 +496,8 @@ namespace micm
     return result;
   }
 
-  inline std::vector<double> RosenbrockSolver::backsolve_L_y_eq_b(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_L_y_eq_b(
       const std::vector<double>& jacobian,
       const std::vector<double>& b)
   {
@@ -485,7 +505,8 @@ namespace micm
     return y;
   }
 
-  inline std::vector<double> RosenbrockSolver::backsolve_U_x_eq_b(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_U_x_eq_b(
       const std::vector<double>& jacobian,
       const std::vector<double>& y)
   {
@@ -493,7 +514,8 @@ namespace micm
     return x;
   }
 
-  inline void RosenbrockSolver::three_stage_rosenbrock()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::three_stage_rosenbrock()
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
@@ -558,17 +580,19 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline void RosenbrockSolver::UpdateState(State& state)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::UpdateState(State<MatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
   }
 
-  inline std::vector<double> RosenbrockSolver::lin_factor(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_factor(
       double& H,
       const double& gamma,
       bool& singular,
-      const Matrix<double>& number_densities,
-      const Matrix<double>& rate_constants)
+      const MatrixPolicy<double>& number_densities,
+      const MatrixPolicy<double>& rate_constants)
   {
     /*
     TODO: invesitage this function. The fortran equivalent appears to have a bug.
@@ -613,7 +637,8 @@ namespace micm
     return ode_jacobian;
   }
 
-  inline std::vector<double> RosenbrockSolver::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_solve(const std::vector<double>& K, const std::vector<double>& jacobian)
   {
     auto y = backsolve_L_y_eq_b(jacobian, K);
     auto x = backsolve_U_x_eq_b(jacobian, y);
@@ -621,7 +646,8 @@ namespace micm
     return x;
   }
 
-  inline double RosenbrockSolver::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::error_norm(std::vector<double> Y, std::vector<double> Ynew, std::vector<double> errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

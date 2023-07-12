@@ -2,9 +2,10 @@
 
 #include <micm/util/sparse_matrix.hpp>
 
-TEST(SparseMatrix, ZeroMatrix)
+template<class OrderingPolicy>
+micm::SparseMatrix<double, OrderingPolicy> testZeroMatrix()
 {
-  auto builder = micm::SparseMatrix<double>::create(3);
+  auto builder = micm::SparseMatrix<double, OrderingPolicy>::create(3);
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -16,7 +17,7 @@ TEST(SparseMatrix, ZeroMatrix)
   EXPECT_EQ(row_starts[2], 0);
   EXPECT_EQ(row_starts[3], 0);
 
-  micm::SparseMatrix<double> matrix{ builder };
+  micm::SparseMatrix<double, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
@@ -45,6 +46,24 @@ TEST(SparseMatrix, ZeroMatrix)
       },
       std::invalid_argument);
   EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
       try { matrix[0][0][4] = 2.0; } catch (const std::invalid_argument& e) {
         EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
         throw;
@@ -68,11 +87,77 @@ TEST(SparseMatrix, ZeroMatrix)
         throw;
       },
       std::invalid_argument);
+  return matrix;
 }
 
-TEST(SparseMatrix, SingleBlockMatrix)
+template<class OrderingPolicy>
+micm::SparseMatrix<double, OrderingPolicy> testConstZeroMatrix()
 {
-  auto builder = micm::SparseMatrix<int>::create(4)
+  auto builder = micm::SparseMatrix<double, OrderingPolicy>::create(3);
+  auto row_ids = builder.RowIdsVector();
+  auto row_starts = builder.RowStartVector();
+
+  EXPECT_EQ(builder.NumberOfElements(), 0);
+  EXPECT_EQ(row_ids.size(), 0);
+  EXPECT_EQ(row_starts.size(), 4);
+  EXPECT_EQ(row_starts[0], 0);
+  EXPECT_EQ(row_starts[1], 0);
+  EXPECT_EQ(row_starts[2], 0);
+  EXPECT_EQ(row_starts[3], 0);
+
+  const micm::SparseMatrix<double, OrderingPolicy> matrix{ builder };
+
+  EXPECT_EQ(matrix.FlatBlockSize(), 0);
+
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument); 
+  return matrix;
+}
+
+template<class OrderingPolicy>
+micm::SparseMatrix<int, OrderingPolicy> testSingleBlockMatrix()
+{
+  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
                      .with_element(0, 1)
                      .with_element(3, 2)
                      .with_element(0, 1)
@@ -82,37 +167,50 @@ TEST(SparseMatrix, SingleBlockMatrix)
   // 0 0 0 0
   // 0 X 0 X
   // 0 0 X 0
-  auto row_ids = builder.RowIdsVector();
-  auto row_starts = builder.RowStartVector();
+  {
+    auto row_ids = builder.RowIdsVector();
+    auto row_starts = builder.RowStartVector();
 
-  EXPECT_EQ(builder.NumberOfElements(), 4);
-  EXPECT_EQ(row_ids.size(), 4);
-  EXPECT_EQ(row_ids[0], 1);
-  EXPECT_EQ(row_ids[1], 1);
-  EXPECT_EQ(row_ids[2], 3);
-  EXPECT_EQ(row_ids[3], 2);
-  EXPECT_EQ(row_starts.size(), 5);
-  EXPECT_EQ(row_starts[0], 0);
-  EXPECT_EQ(row_starts[1], 1);
-  EXPECT_EQ(row_starts[2], 1);
-  EXPECT_EQ(row_starts[3], 3);
-  EXPECT_EQ(row_starts[4], 4);
+    EXPECT_EQ(builder.NumberOfElements(), 4);
+    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(row_ids[0], 1);
+    EXPECT_EQ(row_ids[1], 1);
+    EXPECT_EQ(row_ids[2], 3);
+    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_starts.size(), 5);
+    EXPECT_EQ(row_starts[0], 0);
+    EXPECT_EQ(row_starts[1], 1);
+    EXPECT_EQ(row_starts[2], 1);
+    EXPECT_EQ(row_starts[3], 3);
+    EXPECT_EQ(row_starts[4], 4);
+  }
 
-  micm::SparseMatrix<int> matrix{ builder };
+  micm::SparseMatrix<int, OrderingPolicy> matrix{ builder };
+
+  {
+    auto& row_ids = matrix.RowIdsVector();
+    auto& row_starts = matrix.RowStartVector();
+    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(row_ids[0], 1);
+    EXPECT_EQ(row_ids[1], 1);
+    EXPECT_EQ(row_ids[2], 3);
+    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_starts.size(), 5);
+    EXPECT_EQ(row_starts[0], 0);
+    EXPECT_EQ(row_starts[1], 1);
+    EXPECT_EQ(row_starts[2], 1);
+    EXPECT_EQ(row_starts[3], 3);
+    EXPECT_EQ(row_starts[4], 4);
+  }
 
   EXPECT_EQ(matrix.FlatBlockSize(), 4);
-  {
-    std::size_t elem = matrix.VectorIndex(3, 2);
-    EXPECT_EQ(elem, 3);
-    matrix.AsVector()[elem] = 42;
-    EXPECT_EQ(matrix.AsVector()[3], 42);
-  }
-  {
-    std::size_t elem = matrix.VectorIndex(2, 3);
-    EXPECT_EQ(elem, 2);
-    matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[2], 21);
-  }
+
+  EXPECT_EQ(matrix.IsZero(0, 1), false);
+  EXPECT_EQ(matrix.IsZero(3, 2), false);
+  EXPECT_EQ(matrix.IsZero(2, 1), false);
+  EXPECT_EQ(matrix.IsZero(2, 2), true);
+  EXPECT_EQ(matrix.IsZero(0, 0), true);
+  EXPECT_EQ(matrix.IsZero(3, 3), true);
 
   EXPECT_EQ(matrix[0][2][1], 0);
   matrix[0][2][1] = 45;
@@ -172,11 +270,92 @@ TEST(SparseMatrix, SingleBlockMatrix)
         throw;
       },
       std::invalid_argument);
+  return matrix;
 }
 
-TEST(SparseMatrix, MultiBlockMatrix)
+template<class OrderingPolicy>
+micm::SparseMatrix<int, OrderingPolicy> testConstSingleBlockMatrix()
 {
-  auto builder = micm::SparseMatrix<int>::create(4)
+  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
+                     .with_element(0, 1)
+                     .with_element(3, 2)
+                     .with_element(0, 1)
+                     .with_element(2, 3)
+                     .with_element(2, 1);
+  // 0 X 0 0
+  // 0 0 0 0
+  // 0 X 0 X
+  // 0 0 X 0
+  micm::SparseMatrix<int, OrderingPolicy> orig_matrix{ builder };
+  orig_matrix[0][2][1] = 45;
+  orig_matrix[0][3][2] = 42;
+  orig_matrix[0][2][3] = 21;
+  const micm::SparseMatrix<int, OrderingPolicy> matrix = orig_matrix;
+
+  {
+    auto& row_ids = matrix.RowIdsVector();
+    auto& row_starts = matrix.RowStartVector();
+    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(row_ids[0], 1);
+    EXPECT_EQ(row_ids[1], 1);
+    EXPECT_EQ(row_ids[2], 3);
+    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_starts.size(), 5);
+    EXPECT_EQ(row_starts[0], 0);
+    EXPECT_EQ(row_starts[1], 1);
+    EXPECT_EQ(row_starts[2], 1);
+    EXPECT_EQ(row_starts[3], 3);
+    EXPECT_EQ(row_starts[4], 4);
+  }
+
+  EXPECT_EQ(matrix.FlatBlockSize(), 4);
+
+  EXPECT_EQ(matrix.IsZero(0, 1), false);
+  EXPECT_EQ(matrix.IsZero(3, 2), false);
+  EXPECT_EQ(matrix.IsZero(2, 1), false);
+  EXPECT_EQ(matrix.IsZero(2, 2), true);
+  EXPECT_EQ(matrix.IsZero(0, 0), true);
+  EXPECT_EQ(matrix.IsZero(3, 3), true);
+
+  EXPECT_EQ(matrix[0][2][1], 45);
+
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  EXPECT_THROW(
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::invalid_argument& e) {
+        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+        throw;
+      },
+      std::invalid_argument);
+  return matrix;
+}
+
+template<class OrderingPolicy>
+micm::SparseMatrix<int, OrderingPolicy> testMultiBlockMatrix()
+{
+  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
                      .with_element(0, 1)
                      .with_element(3, 2)
                      .with_element(0, 1)
@@ -204,21 +383,9 @@ TEST(SparseMatrix, MultiBlockMatrix)
   EXPECT_EQ(row_starts[3], 3);
   EXPECT_EQ(row_starts[4], 4);
 
-  micm::SparseMatrix<int> matrix{ builder };
+  micm::SparseMatrix<int, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 4);
-  {
-    std::size_t elem = matrix.VectorIndex(0, 2, 3);
-    EXPECT_EQ(elem, 2);
-    matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[2], 21);
-  }
-  {
-    std::size_t elem = matrix.VectorIndex(2, 2, 1);
-    EXPECT_EQ(elem, 9);
-    matrix.AsVector()[elem] = 31;
-    EXPECT_EQ(matrix.AsVector()[9], 31);
-  }
 
   EXPECT_EQ(matrix[0][2][1], 24);
   matrix[0][2][1] = 45;
@@ -287,32 +454,5 @@ TEST(SparseMatrix, MultiBlockMatrix)
         throw;
       },
       std::invalid_argument);
-}
-
-TEST(SparseMatrixBuilder, BadConfiguration)
-{
-  EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(3, 0);
-      } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
-        throw;
-      },
-      std::invalid_argument);
-  EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(2, 4);
-      } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
-        throw;
-      },
-      std::invalid_argument);
-  EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(6, 7);
-      } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
-        throw;
-      },
-      std::invalid_argument);
+  return matrix;
 }

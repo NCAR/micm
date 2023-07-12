@@ -3,7 +3,7 @@ set(CMAKE_CXX_CLANG_TIDY "")
 
 add_subdirectory(unit)
 
-if(ENABLE_REGESSION_TESTS)
+if(ENABLE_REGRESSION_TESTS)
   add_subdirectory(regression)
 endif()
 
