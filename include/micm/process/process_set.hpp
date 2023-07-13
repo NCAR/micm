@@ -80,10 +80,11 @@ namespace micm
         SparseMatrixPolicy<double>& jacobian) const;
     
     #ifdef USE_CUDA
+    template<template<class> class MatrixPolicy>
     void CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing);
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing);
     #endif
   
   };
@@ -344,10 +345,11 @@ namespace micm
   }
 
   #ifdef USE_CUDA
+    template<template<class> class MatrixPolicy>
     inline void ProcessSet::CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing) {
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing) {
         micm::cuda::AddForcingTerms_kernelSetup(
             rate_constants.AsVector().data(),
             state_variables.AsVector().data(),
