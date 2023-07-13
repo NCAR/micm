@@ -1,4 +1,6 @@
-add_subdirectory(configure)
+if(ENABLE_JSON)
+  add_subdirectory(configure)
+endif()
 add_subdirectory(process)
 add_subdirectory(solver)
 add_subdirectory(system)

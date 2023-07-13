@@ -60,7 +60,7 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
-        -D ENABLE_REGESSION_TESTS:BOOL=FALSE \
+        -D ENABLE_REGRESSION_TESTS:BOOL=FALSE \
         -D ENABLE_CUDA=ON \
         -D ENABLE_OPENACC=OFF \
         -D GPU_TYPE="a100" \

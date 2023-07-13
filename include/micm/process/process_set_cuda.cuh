@@ -1,15 +1,15 @@
 #pragma once
 
 
-#include <micm/solver/state.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <vector>
-
 namespace micm {
     namespace cuda {
-
     void AddForcingTerms_kernelSetup(
+        const double* rate_constants_data,
+        const double* state_variables_data,
+        double* forcing_data,
+        int ngrids,
+        int nrxns,
+        int nspecs,
         const size_t* number_of_reactants,
         int number_of_reactants_size,
         const size_t* reactant_ids, 
@@ -19,12 +19,6 @@ namespace micm {
         const size_t* product_ids,
         int product_ids_size,
         const double* yields,
-        int yields_size,
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing);
-
-
-
+        int yields_size);
         } // namespace cuda
 } // namespace micm

@@ -6,7 +6,7 @@
 TEST(ArrheniusRateConstant, CalculateWithSystem)
 {
   micm::ArrheniusRateConstant zero{};
-  micm::State state{ 0, 0, 1 };
+  micm::State<micm::Matrix> state{ 0, 0, 1 };
   state.conditions_[0].temperature_ = 301.24;  // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   auto k = zero.calculate(state.conditions_[0], params);
@@ -42,7 +42,7 @@ TEST(ArrheniusRateConstant, CalculateWithSystem)
 
 TEST(ArrheniusRateConstant, CalculateWithPrescribedArugments)
 {
-  micm::State state{ 0, 0, 1 };
+  micm::State<micm::Matrix> state{ 0, 0, 1 };
   state.conditions_[0].temperature_ = 301.24;  // [K]
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::ArrheniusRateConstant zero{};

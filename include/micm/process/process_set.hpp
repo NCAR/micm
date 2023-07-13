@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <cassert>
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
-#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
@@ -33,7 +33,8 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    ProcessSet(const std::vector<Process>& processes, const State& state);
+    template<template<class> class MatrixPolicy>
+    ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
@@ -41,36 +42,55 @@ namespace micm
 
     /// @brief Sets the indicies for each non-zero Jacobian element in the underlying vector
     /// @param matrix The sparse matrix used for the Jacobian
-    void SetJacobianFlatIds(const SparseMatrix<double>& matrix);
+    template<typename OrderingPolicy>
+    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     /// @brief Add forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
+    template<template<class> typename MatrixPolicy>
+      requires(!VectorizableDense<MatrixPolicy<double>>)
     void AddForcingTerms(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& state_variables,
-        Matrix<double>& forcing) const;
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        MatrixPolicy<double>& forcing) const;
+    template<template<class> typename MatrixPolicy>
+      requires VectorizableDense<MatrixPolicy<double>>
+    void AddForcingTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        MatrixPolicy<double>& forcing) const;
 
     /// @brief Add Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+      requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
     void AddJacobianTerms(
-        const Matrix<double>& rate_constants,
-        const Matrix<double>& state_variables,
-        SparseMatrix<double>& jacobian) const;
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrixPolicy<double>& jacobian) const;
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+      requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    void AddJacobianTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrixPolicy<double>& jacobian) const;
     
     #ifdef USE_CUDA
+    template<template<class> class MatrixPolicy>
     void CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing);
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing);
     #endif
   
   };
 
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State& state)
+  template<template<class> class MatrixPolicy>
+  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),
@@ -117,7 +137,8 @@ namespace micm
     return ids;
   }
 
-  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double>& matrix)
+  template<typename OrderingPolicy>
+  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
@@ -140,10 +161,12 @@ namespace micm
     }
   }
 
+  template<template<class> typename MatrixPolicy>
+    requires(!VectorizableDense<MatrixPolicy<double>>)
   inline void ProcessSet::AddForcingTerms(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& state_variables,
-      Matrix<double>& forcing) const
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      MatrixPolicy<double>& forcing) const
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
@@ -175,26 +198,76 @@ namespace micm
     }
   };
 
-  inline void ProcessSet::AddJacobianTerms(
-      const Matrix<double>& rate_constants,
-      const Matrix<double>& state_variables,
-      SparseMatrix<double>& jacobian) const
+  template<template<class> typename MatrixPolicy>
+    requires VectorizableDense<MatrixPolicy<double>>
+  inline void ProcessSet::AddForcingTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      MatrixPolicy<double>& forcing) const
   {
+    const auto& v_rate_constants = rate_constants.AsVector();
+    const auto& v_state_variables = state_variables.AsVector();
+    auto& v_forcing = forcing.AsVector();
+    const std::size_t L = rate_constants.GroupVectorSize();
+    // loop over all rows
+    for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
+    {
+      auto react_id = reactant_ids_.begin();
+      auto prod_id = product_ids_.begin();
+      auto yield = yields_.begin();
+      std::size_t offset_rc = i_group * rate_constants.GroupSize();
+      std::size_t offset_state = i_group * state_variables.GroupSize();
+      std::size_t offset_forcing = i_group * forcing.GroupSize();
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      {
+        double rate[L];
+        for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+          rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            v_forcing[offset_forcing + react_id[i_react] * L + i_cell] -= rate[i_cell];
+        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            v_forcing[offset_forcing + prod_id[i_prod] * L + i_cell] += yield[i_prod] * rate[i_cell];
+        react_id += number_of_reactants_[i_rxn];
+        prod_id += number_of_products_[i_rxn];
+        yield += number_of_products_[i_rxn];
+      }
+    }
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
+  {
+    //cell_jacobian is an iterator  -> update after each row 
     auto cell_jacobian = jacobian.AsVector().begin();
+    
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];
-      auto cell_state = state_variables[i_cell];
+      auto cell_rate_constants = rate_constants[i_cell]; //rate of every reaction in a grid 
+      auto cell_state = state_variables[i_cell]; //state of every specie in a grid 
+      
+      //every grid starts with every react_id, yield and flat_id 
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
       
+      //loop over reactions
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
+        //loop over number of reactants of a reaction 
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
           double d_rate_d_ind = cell_rate_constants[i_rxn];
+          
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
             if (i_react == i_ind)
@@ -202,24 +275,88 @@ namespace micm
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+            
             cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+            //flat_id (iterator) is not reset from previous loop 
             cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
       }
+      //increment cell_jacobian after each row 
       cell_jacobian += jacobian.FlatBlockSize();
     }
   }
 
-    #ifdef USE_CUDA
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
+  {
+    const auto& v_rate_constants = rate_constants.AsVector();
+    const auto& v_state_variables = state_variables.AsVector();
+    auto& v_jacobian = jacobian.AsVector();
+    assert(rate_constants.GroupVectorSize() == jacobian.GroupVectorSize());
+    const std::size_t L = rate_constants.GroupVectorSize();
+    // loop over all rows
+    for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
+    {
+      auto react_id = reactant_ids_.begin();
+      auto yield = yields_.begin();
+      std::size_t offset_rc = i_group * rate_constants.GroupSize();
+      std::size_t offset_state = i_group * state_variables.GroupSize();
+      std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
+      auto flat_id = jacobian_flat_ids_.begin();
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      {
+        for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
+        {
+          double d_rate_d_ind[L];
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          {
+            if (i_react == i_ind)
+              continue;
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
+          }
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+          {
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
+            ++flat_id;
+          }
+          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+          {
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              v_jacobian[offset_jacobian + *flat_id + i_cell] += yield[i_dep] * d_rate_d_ind[i_cell];
+            ++flat_id;
+          }
+        }
+        react_id += number_of_reactants_[i_rxn];
+        yield += number_of_products_[i_rxn];
+      }
+    }
+  }
+
+  #ifdef USE_CUDA
+    template<template<class> class MatrixPolicy>
     inline void ProcessSet::CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing) {
-       
-       micm::cuda::AddForcingTerms_kernelSetup(
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing) {
+        micm::cuda::AddForcingTerms_kernelSetup(
+            rate_constants.AsVector().data(),
+            state_variables.AsVector().data(),
+            forcing.AsVector().data(),
+            rate_constants.size(),
+            rate_constants[0].size(),
+            state_variables[0].size(),
             number_of_reactants_.data(),
             number_of_reactants_.size(),
             reactant_ids_.data(),
@@ -229,10 +366,8 @@ namespace micm
             product_ids_.data(),
             product_ids_.size(),
             yields_.data(),
-            yields_.size(),
-            rate_constants, 
-            state_variables, 
-            forcing);
+            yields_.size());
         }
     #endif
+
 }  // namespace micm

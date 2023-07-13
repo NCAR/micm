@@ -22,23 +22,32 @@ namespace micm
   };
 
   class ProcessBuilder;
-
+  
   struct Process
   {
-    const std::vector<Species> reactants_;
-    const std::vector<Yield> products_;
-    const std::unique_ptr<RateConstant> rate_constant_;
-    const Phase phase_;
+    std::vector<Species> reactants_;
+    std::vector<Yield> products_;
+    std::unique_ptr<RateConstant> rate_constant_;
+    Phase phase_;
 
     /// @brief Update the solver state rate constants
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
-    static void UpdateState(const std::vector<Process>& processes, State& state);
+    template<template<class> class MatrixPolicy>
+    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
     Process(ProcessBuilder& builder);
     Process(const Process& other);
+
+    Process(const std::vector<Species>& reactants, const std::vector<Yield>& products, std::unique_ptr<RateConstant> rate_constant, const Phase& phase)
+        : reactants_(reactants),
+        products_(products),
+        rate_constant_(std::move(rate_constant)),
+        phase_(phase)
+    {
+    }
   };
 
   class ProcessBuilder
@@ -60,7 +69,8 @@ namespace micm
     ProcessBuilder& phase(const Phase& phase);
   };
 
-  void Process::UpdateState(const std::vector<Process>& processes, State& state)
+  template<template<class> class MatrixPolicy>
+  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
   {
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {

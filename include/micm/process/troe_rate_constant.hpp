@@ -40,21 +40,22 @@ namespace micm
     const TroeRateConstantParameters parameters_;
 
    public:
-    /// @brief Default constructor is not allowed
-    TroeRateConstant() = delete;
+    /// @brief Default constructor
+    TroeRateConstant();
 
     /// @brief An explicit constructor
     /// @param parameters A set of troe rate constants
-    TroeRateConstant(TroeRateConstantParameters parameters);
+    TroeRateConstant(const TroeRateConstantParameters& parameters);
+
+    /// @brief Deep copy
+    std::unique_ptr<RateConstant> clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
-
-    /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+        const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
@@ -63,7 +64,12 @@ namespace micm
     double calculate(const double& temperature, const double& air_number_density) const;
   };
 
-  inline TroeRateConstant::TroeRateConstant(TroeRateConstantParameters parameters)
+  inline TroeRateConstant::TroeRateConstant()
+      : parameters_()
+  {
+  }
+
+  inline TroeRateConstant::TroeRateConstant(const TroeRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }
@@ -73,7 +79,9 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new TroeRateConstant{ *this } };
   }
 
-  inline double TroeRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const
+  inline double TroeRateConstant::calculate(
+      const Conditions& conditions,
+      const std::vector<double>::const_iterator& custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.air_density_);
   }
