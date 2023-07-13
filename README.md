@@ -93,6 +93,6 @@ installation and usage instructions.
 
 # License
 
-- [GPL 2.0](/LICENSE)
+- [Apache 2.0](/LICENSE)
 
 Copyright (C) 2018-2020 National Center for Atmospheric Research
