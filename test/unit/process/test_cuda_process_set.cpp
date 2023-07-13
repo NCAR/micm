@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <micm/process/process_set_cuda.cuh>
 #include <micm/process/process_set.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -101,22 +102,26 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
  }
 }
 
+template<class T>
+using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>
+template<class T>
+using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>
+template<class T>
+using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>
+template<class T>
+using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>
+
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<micm::Matrix>(1000, 500, 400);
-  testRandomSystem<micm::Matrix>(10000, 500, 400);
-  testRandomSystem<micm::Matrix>(100000, 500, 400);
-  testRandomSystem<micm::Matrix>(1000000, 500, 400);
-  
+  testRandomSystem<Group1000VectorMatrix>(1000, 500, 400);
+  testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 500, 400);
+
   std::cout << "system with 100 reactions and 80 species"<<std::endl; 
-  testRandomSystem<micm::Matrix>(1000, 100, 80);
-  testRandomSystem<micm::Matrix>(10000, 100, 80);
-  testRandomSystem<micm::Matrix>(100000, 100, 80);
-  testRandomSystem<micm::Matrix>(1000000, 100, 80);
+  testRandomSystem<Group1000VectorMatrix>(1000, 100, 80);
+  testRandomSystem<Group10000VectorMatrix>(10000, 100, 80);
+  testRandomSystem<Group100000VectorMatrix>(100000, 100, 80);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 100, 80);
 }
-
-
-  
- 
-
