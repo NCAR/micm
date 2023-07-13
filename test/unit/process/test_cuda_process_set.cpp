@@ -7,6 +7,7 @@
 #include <chrono>
 #include <functional>
 #include <vector>
+
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
@@ -103,13 +104,13 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 }
 
 template<class T>
-using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>
+using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>;
 template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>
+using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 template<class T>
-using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>
+using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>;
 template<class T>
-using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>
+using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>;
 
 TEST(RandomProcessSet, Matrix)
 {
