@@ -37,8 +37,6 @@ Inside the container, you can run the MICM tests from the `/build/` folder:
 cd build/
 # to run the tests
 make test
-# to use the standalone tool
-./micm examples/full_config.json
 ```
 
 ## Build and run (local build version)
@@ -51,12 +49,6 @@ cd build
 ccmake ..
 make -j 8
 ```
-
-You will now have a runnable exectubable for `mcim` and the tests in the build directory.
-
-`./mcim examples/full_config.json`.
-
-Inspect the output file `photolysis_rate_constants.nc` to see the results!
 
 ## Install
 
@@ -93,4 +85,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2020 National Center for Atmospheric Research
+Copyright (C) 2018-2023 National Center for Atmospheric Research
