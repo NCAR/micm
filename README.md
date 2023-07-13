@@ -10,7 +10,7 @@ Model Independent Chemical Mechanisms.
 # Building and installing
 To build and install MICM locally, you must have the following libraries installed:
 
-- [json-fortran](https://github.com/jacobwilliams/json-fortran)
+- [json-fortran](https://github.com/jacobwilliams/json-fortran) This is only required for the regression tests.
 
 - [sphinx](https://github.com/sphinx-doc/sphinx)
 - [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
