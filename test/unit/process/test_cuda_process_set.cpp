@@ -99,7 +99,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
     double a = cpu_forcing_vector[i];
     double b = gpu_forcing_vector[i];
-    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-5);
+    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-9);
  }
 }
 
