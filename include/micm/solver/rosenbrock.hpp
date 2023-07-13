@@ -99,34 +99,20 @@ namespace micm
 
     virtual ~RosenbrockSolver();
 
-    /// @brief A virtual function to be defined by any solver baseclass
+    /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
     State<MatrixPolicy> GetState() const;
 
-    /// @brief A virtual function to be defined by any solver baseclass
-    /// @param time_start Time step to start at
-    /// @param time_end Time step to end at
+    /// @brief Advances the given step over the specified time step
+    /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    Solver::SolverResult Solve(double time_start, double time_end, State<MatrixPolicy>& state) noexcept;
-
-    /// @brief Returns a list of reaction names
-    /// @return vector of strings
-    virtual std::vector<std::string> reaction_names();
-
-    /// @brief Returns a list of species that participate in photolysis
-    /// @return vector of strings
-    virtual std::vector<std::string> photolysis_names();
-
-    /// @brief Returns a list of species names
-    /// @return vector of strings
-    virtual std::vector<std::string> species_names();
+    Solver::SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
-    /// @param number_density_air The number density of air
-    /// @return A vector of forcings
-    virtual void force(
+    /// @param forcing Vector of forcings for the current conditions
+    void CalculateForcing(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         MatrixPolicy<double>& forcing);
@@ -134,58 +120,37 @@ namespace micm
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    inline void alpha_minus_jacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+    inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
       requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
-    inline void alpha_minus_jacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+    inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
       requires(VectorizableSparse<SparseMatrixPolicy<double>>);
-
-    /// @brief Computes product of [dforce_dy * vector]
-    /// @param dforce_dy  jacobian of forcing
-    /// @param vector vector ordered as the order of number density in dy
-    /// @return Product of jacobian with vector
-    virtual std::vector<double> dforce_dy_times_vector(
-        const std::vector<double>& dforce_dy,
-        const std::vector<double>& vector);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
     void UpdateState(State<MatrixPolicy>& state);
-
-    /// @brief Solve the system
-    /// @param K idk, something
-    /// @param ode_jacobian the jacobian
-    /// @return the new state?
-    virtual std::vector<double> lin_solve(const std::vector<double>& K, const std::vector<double>& ode_jacobian);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param jacobian The matrix of partial derivatives
     /// @return The jacobian
-    virtual void dforce_dy(
+    void CalculateJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         SparseMatrixPolicy<double>& jacobian);
 
-    /// @brief Prepare the rosenbrock ode solver matrix
+    /// @brief Prepare the linear solver
     /// @param H time step (seconds)
     /// @param gamma time step factor for specific rosenbrock method
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void lin_factor(
+    void LinearFactor(
         double& H,
         const double& gamma,
         bool& singular,
         const MatrixPolicy<double>& number_densities,
         const MatrixPolicy<double>& rate_constants);
-
-    /// @brief Factor
-    /// @param jacobian
-    virtual void factor(std::vector<double>& jacobian);
-
-    virtual std::vector<double> backsolve_L_y_eq_b(const std::vector<double>& jacobian, const std::vector<double>& b);
-    virtual std::vector<double> backsolve_U_x_eq_b(const std::vector<double>& jacobian, const std::vector<double>& y);
 
    protected:
     /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
@@ -196,7 +161,7 @@ namespace micm
     /// @param new_number_densities the new number densities
     /// @param errors The computed errors
     /// @return
-    double error_norm(
+    double NormalizedError(
         std::vector<double> original_number_densities,
         std::vector<double> new_number_densities,
         std::vector<double> errors);
@@ -269,8 +234,7 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline Solver::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
-      double time_start,
-      double time_end,
+      double time_step,
       State<MatrixPolicy>& state) noexcept
   {
     Solver::SolverResult result{};
@@ -330,7 +294,7 @@ namespace micm
         }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        lin_factor(H, parameters_.gamma_[0], is_singular, Y_matrix, state.rate_constants_);
+        linear_factor(H, parameters_.gamma_[0], is_singular, Y_matrix, state.rate_constants_);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -392,7 +356,7 @@ namespace micm
             Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
           }
         }
-        auto error = error_norm(Y, Ynew, Yerror);
+        auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double Hnew = H * std::min(
@@ -447,25 +411,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::reaction_names()
-  {
-    return std::vector<std::string>();
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::photolysis_names()
-  {
-    return std::vector<std::string>();
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<std::string> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::species_names()
-  {
-    return std::vector<std::string>();
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::force(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::CalculateForcing(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       MatrixPolicy<double>& forcing)
@@ -476,7 +422,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::alpha_minus_jacobian(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
@@ -492,7 +438,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::alpha_minus_jacobian(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy<double>>)
@@ -510,7 +456,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::CalculateJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)
@@ -518,39 +464,6 @@ namespace micm
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
     stats_.jacobian_updates += 1;
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::factor(std::vector<double>& jacobian)
-  {
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::dforce_dy_times_vector(
-      const std::vector<double>& dforce_dy,
-      const std::vector<double>& vector)
-  {
-    std::vector<double> result(dforce_dy.size(), 0);
-
-    return result;
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_L_y_eq_b(
-      const std::vector<double>& jacobian,
-      const std::vector<double>& b)
-  {
-    std::vector<double> y(parameters_.N_, 0);
-    return y;
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::backsolve_U_x_eq_b(
-      const std::vector<double>& jacobian,
-      const std::vector<double>& y)
-  {
-    std::vector<double> x(y.size(), 0);
-    return x;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -626,7 +539,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_factor(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::LinearFactor(
       double& H,
       const double& gamma,
       bool& singular,
@@ -676,18 +589,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::vector<double> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::lin_solve(
-      const std::vector<double>& K,
-      const std::vector<double>& jacobian)
-  {
-    auto y = backsolve_L_y_eq_b(jacobian, K);
-    auto x = backsolve_U_x_eq_b(jacobian, y);
-    stats_.solves += 1;
-    return x;
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::error_norm(
+  inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::NormalizedError(
       std::vector<double> Y,
       std::vector<double> Ynew,
       std::vector<double> errors)

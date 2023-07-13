@@ -80,7 +80,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
-  solver.alpha_minus_jacobian(jacobian, 42.042);
+  solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
