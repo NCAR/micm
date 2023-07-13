@@ -61,9 +61,7 @@ Inspect the output file `photolysis_rate_constants.nc` to see the results!
 ## Install
 
 After completing the previous step run `sudo make install`.
-This wll install the tuvx static library, the MCIM configuration
-and runtime data, as well as the standalone `mcim` exectuable, which can be
-added to your system path to make the executable useable from any directory.
+This will install the MICM static library.
 
 If you would later lake to uninstall tuv-x, you can run
 `sudo make uninstall` from the build directory.
