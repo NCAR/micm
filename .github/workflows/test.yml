@@ -81,9 +81,9 @@ jobs:
           cd build
           make test ARGS="--rerun-failed --output-on-failure -j8"
   windows:
-    fail-fast: false
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         compiler:
           - {cpp: g++, c: gcc}
