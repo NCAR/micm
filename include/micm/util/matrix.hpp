@@ -190,6 +190,12 @@ namespace micm
       return Proxy(*this, x * y_dim_, y_dim_);
     }
 
+    void ForEach(const std::function<void(T&, T&)>f, Matrix& a)
+    {
+      auto a_iter = a.AsVector().begin();
+      for (auto& elem : data_) f(elem, *(a_iter++));
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;

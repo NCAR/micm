@@ -203,3 +203,25 @@ MatrixPolicy<double> testAssignmentFromVector()
 
   return matrix;
 }
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testForEach()
+{
+  MatrixPolicy<double> matrix{ 4, 3, 100.0 };
+  MatrixPolicy<double> other{ 4, 3, 200.0 };
+  double sum = 0.0;
+  double result = 0.0;
+
+  for (int i = 0; i < 4; ++i)
+    for (int j = 0; j < 3; ++j)
+    {
+      matrix[i][j] = i * 10.3 + j * 100.5;
+      other[i][j] = i * 1.7 + j * 10.2;
+      sum += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2;
+    }
+  
+  matrix.ForEach([&](double a, double b){ result += a + b; }, other);
+  EXPECT_NEAR(sum, result, 1.0e-5);
+
+  return matrix;
+}
