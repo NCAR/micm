@@ -86,7 +86,7 @@ endif()
 
 if(ENABLE_CUDA)
   find_package(CUDA REQUIRED)
-  enable_languaget(CMAKE_CUDA_STANDARD 11.7.1)
+  enable_language(CUDA)
 endif()
 
 if(ENABLE_OPENACC)
