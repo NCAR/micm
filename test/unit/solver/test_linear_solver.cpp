@@ -60,7 +60,7 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3).template as<SparseMatrixPolicy<double>>()
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3)
                                      .initial_value(1.0e-30)
                                      .with_element(0, 0)
                                      .with_element(0, 1)
