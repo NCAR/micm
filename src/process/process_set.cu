@@ -131,5 +131,87 @@ namespace micm {
         cudaFree(d_product_ids_);
         cudaFree(d_yields_);
     } // end of AddForcingTerms_kernelSetup
+    
+
+      AddJacobianTerms_kernelSetup(
+        const double* rate_constants,
+        const double* state_variables,
+        double* jacobian,
+        size_t n_grids,
+        size_t n_reactions,
+        size_t n_species,
+        size_t jacobian_size,
+        const size_t* number_of_reactants, 
+        const size_t* reactant_ids, 
+        size_t reactants_ids_size, 
+        const size_t* number_of_products, 
+        const size_t* product_ids,
+        size_t product_ids_size, 
+        const double* yields,
+        size_t yields_size,
+        size_t* jacobian_flat_ids,
+        size_t jacobian_flat_ids_size){
+
+        //device pointer
+        double* d_rate_constants; 
+        double* d_state_variable; 
+        double* d_jacobian; 
+        size_t* d_number_of_reactants;    
+        size_t* d_reactant_ids; 
+        size_t* d_number_of_products; 
+        size_t* d_product_ids; 
+        double* d_yields; 
+        size_t* d_jacobian_flat_ids; 
+
+        //allocate device memory 
+        cudaMalloc(&d_rate_constants, sizeof(double)* n_grids * n_reactions); 
+        cudaMalloc(&d_state_variable, sizeof(double)* n_grids * n_species); 
+        cudaMalloc(&d_jacobian, sizeof(double)* jacobian_size);
+        cudaMalloc(&d_number_of_reactants, sizeof(size_t)* n_reactions); 
+        cudaMalloc(&d_reactant_ids, sizeof(size_t) * reactants_ids_size);
+        cudaMalloc(&d_number_of_products, sizeof(size_t)* n_reactions);
+        cudaMalloc(&d_product_ids, sizeof(size_t) * product_ids_size);  
+        cudaMalloc(&yields, sizeof(double) * yields_size); 
+        cudaMalloc(&jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
+
+
+        //transfer data from host to device 
+        cudaMemcpy(d_rate_constants, rate_constants_data, sizeof(double)* n_grids * n_reactions,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_state_variabls, state_variable_data, sizeof(double)* n_grids * n_species, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_jacobian, jacobian_data, sizeof(double)* jacobian_size, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t)* n_reactions,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_reactant_ids, reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_product_ids, product_ids, sizeof(size_t)* product_ids_size, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size, cudaMemcpyHostToDevice); 
+
+        //total thread count == n_grids 
+        int block_size = 320; 
+        int num_blocks = (n_grids + block_size -1)/block_size; 
+        AddJacobianTerms_kernel<<<num_block, block_size>>>(
+          d_rate_constants,
+          d_state_variables,
+          d_jacobian,
+          d_number_of_reactants, 
+          d_reactant_ids, 
+          d_number_of_products, 
+          d_product_ids,
+          d_yields,
+          d_jacobian_flat_ids
+        );
+          cudaDeviceSynchronize(); 
+
+
+
+
+
+
+
+}
+
+
+
+
     } // namespace cuda 
 }     // namespace micm

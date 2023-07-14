@@ -309,6 +309,7 @@ namespace micm
       std::size_t offset_rc = i_group * rate_constants.GroupSize();
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
+      
       auto flat_id = jacobian_flat_ids_.begin();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
@@ -366,6 +367,31 @@ namespace micm
             yields_.data(),
             yields_.size());
         }
+    
+    inline void PorcessSet::CudaAddJacobianTerms(
+      const Matrix<double>&rate_constants, 
+      const Matrix<double>& state_variables, 
+      SparseMatrix<double>& jacobian){
+      AddJacobianTerms_kernelSetup(
+          rate_constants.AsVector().data(),
+          state_variables.AsVector().data(),
+          jacobina.AsVector().data(), 
+          rate_constants.size(),//number of grids 
+          rate_constants[0].size(),//number of reactions
+          state_variables[0].size(),//number of species
+          jacobian.AsVector().size(),//jacobian size
+          number_of_reactants_.data(),
+          reactant_ids_.data(),
+          reactant_ids_.size(),
+          number_of_product_.data(),
+          product_ids_.data(),
+          product_ids_.size(),
+          yields_.data(),
+          yields_.size(),
+          jacobian_flat_ids_.data(),
+          jacobina_flat_ids_.size())
+      }
+    
     #endif
 
 }  // namespace micm
