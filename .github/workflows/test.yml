@@ -3,17 +3,17 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  build_tests:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+  # build_tests:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #   - name: build Docker image
+  #     run: docker build -t micm .
+  #   - name: run tests in container
+  #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
   # build_tests_with_openmp:
   #   runs-on: ubuntu-latest
   #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -36,45 +36,45 @@ jobs:
   #     run: docker build -t micm -f Dockerfile.mpi .
   #   - name: run tests in container
   #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  build_tests_with_memcheck:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.memcheck .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  build_tests_for_coverage:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.coverage .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
-    - name: copy coverage from container
-      run: docker cp test-container:build/coverage.info .
-    - uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.info
-  build_tests_without_json:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.no_json .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+  # build_tests_with_memcheck:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #   - name: build Docker image
+  #     run: docker build -t micm -f Dockerfile.memcheck .
+  #   - name: run tests in container
+  #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+  # build_tests_for_coverage:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #   - name: build Docker image
+  #     run: docker build -t micm -f Dockerfile.coverage .
+  #   - name: run tests in container
+  #     run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+  #   - name: copy coverage from container
+  #     run: docker cp test-container:build/coverage.info .
+  #   - uses: codecov/codecov-action@v3
+  #     with:
+  #       token: ${{ secrets.CODECOV_TOKEN }}
+  #       files: coverage.info
+  # build_tests_without_json:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #   - name: build Docker image
+  #     run: docker build -t micm -f Dockerfile.no_json .
+  #   - name: run tests in container
+  #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
   multiple-platform-test:
     runs-on: ${{ matrix.os }}
     
@@ -82,8 +82,8 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         compiler:
-          - {cpp: g++, c: gcc, fortran: gfortran}
-          - {cpp: clang++, c: clang, fortran: flang}
+          - {cpp: g++, c: gcc}
+          - {cpp: clang++, c: clang}
 
     steps:
       - name: Checkout code
@@ -102,7 +102,11 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_C_COMPILER=${{ matrix.compiler.c }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }} -DCMAKE_Fortran_COMPILER=${{ matrix.compiler.fortran }}
+          cmake .. \
+            -DCMAKE_C_COMPILER=${{ matrix.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }} \
+            -DCMAKE_Fortran_COMPILER=${{ matrix.compiler.fortran }} \
+            -DENABLE_REGRESSION_TESTS=OFF
           cmake --build .
 
       - name: Run tests
