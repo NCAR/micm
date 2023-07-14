@@ -84,6 +84,7 @@ jobs:
         compiler:
           - {cpp: g++, c: gcc}
           - {cpp: clang++, c: clang}
+        fail-fast: false
 
     steps:
       - name: Checkout code
