@@ -196,6 +196,13 @@ namespace micm
       for (auto& elem : data_) f(elem, *(a_iter++));
     }
 
+    void ForEach(const std::function<void(T&, T&, T&)>f, Matrix& a, Matrix& b)
+    {
+      auto a_iter = a.AsVector().begin();
+      auto b_iter = b.AsVector().begin();
+      for (auto& elem : data_) f(elem, *(a_iter++), *(b_iter++));
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;
