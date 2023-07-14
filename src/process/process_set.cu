@@ -27,15 +27,14 @@ namespace micm {
          for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
          {
            double rate = rate_constants[i_rxn*ngrids+tid];
-           size_t index;
-
            for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
              rate *= state_variables[reactant_ids_[react_id_offset+i_react]*ngrids+tid];
            for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react){
              forcing[reactant_ids_[react_id_offset+i_react]*ngrids+tid] -= rate;
 	   }
            for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod){
-             index = product_ids_[prod_id_offset+i_prod]*ngrids+tid;
+             
+             size_t index = product_ids_[prod_id_offset+i_prod]*ngrids+tid;
              forcing[index] += yields_[yield_offset+i_prod] * rate;
            }
            react_id_offset += number_of_reactants_[i_rxn];
