@@ -272,7 +272,7 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
   micm::ArrheniusRateConstant* arrhenius_rate_const = nullptr;
   double A_param[] = { 2.0e-12, 3.8e-12 };
   double B_param[] = { 0.0, 0.0 };
-  double C_param[] = { 500.0, 200.0 };
+  double C_param[] = { -1 * -6.90325e-21 / 1.3806505e-23, -1 * -2.7613e-21 / 1.3806505e-23 };
   double D_param[] = { 300.0, 300.0 };
   double E_param[] = { 0.0, 0.0 };
   
@@ -282,11 +282,11 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
     arrhenius_rate_const = dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[i].rate_constant_.get());
 
     EXPECT_TRUE(arrhenius_rate_const != nullptr);
-    EXPECT_EQ(arrhenius_rate_const->parameters_.A_, A_param[idx]);
-    EXPECT_EQ(arrhenius_rate_const->parameters_.B_, B_param[idx]);
-    EXPECT_EQ(arrhenius_rate_const->parameters_.C_, C_param[idx]);
-    EXPECT_EQ(arrhenius_rate_const->parameters_.D_, D_param[idx]);
-    EXPECT_EQ(arrhenius_rate_const->parameters_.E_, E_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.A_, A_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.B_, B_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.C_, C_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.D_, D_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.E_, E_param[idx]);
 
     idx++;
   }
