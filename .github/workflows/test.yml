@@ -103,8 +103,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. \
-            -DENABLE_REGRESSION_TESTS=OFF
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF
           make VERBOSE=1
 
       - name: Run tests
