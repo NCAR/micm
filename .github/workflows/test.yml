@@ -43,7 +43,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.info
-  multiple-platform-test:
+  linux_and_macos:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -67,6 +67,37 @@ jobs:
           elif [ "${{ matrix.os }}" == "macos-latest" ]; then
             brew install cmake
           fi
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DENABLE_REGRESSION_TESTS=OFF
+          make VERBOSE=1
+
+      - name: Run tests
+        run: |
+          cd build
+          make test ARGS="--rerun-failed --output-on-failure -j8"
+  windows:
+    fail-fast: false
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        compiler:
+          - {cpp: g++, c: gcc}
+          - {cpp: clang++, c: clang}
+          - {cpp: cl, c: cl}
+    env:
+      CC: ${{ matrix.compiler.c }}
+      CXX: ${{ matrix.compiler.cpp }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install CMake
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
       - name: Configure and build
         run: |
