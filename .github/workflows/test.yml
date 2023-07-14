@@ -107,7 +107,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }} \
             -DENABLE_REGRESSION_TESTS=OFF
-          cmake --build .
+          make VERBOSE=1
 
       - name: Run tests
         run: |
