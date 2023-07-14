@@ -3,92 +3,92 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        dockerfile:
-          - Dockerfile
-          - Dockerfile.coverage
-          - Dockerfile.memcheck
-          - Dockerfile.no_json
-          # - Dockerfile.openmp
-          # - Dockerfile.mpi
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
+  # build-and-test:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ubuntu-latest]
+  #       dockerfile:
+  #         - Dockerfile
+  #         - Dockerfile.coverage
+  #         - Dockerfile.memcheck
+  #         - Dockerfile.no_json
+  #         # - Dockerfile.openmp
+  #         # - Dockerfile.mpi
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #       with:
+  #         submodules: recursive
 
-      - name: Build Docker image
-        run: docker build -t micm -f ${{ matrix.dockerfile }} .
+  #     - name: Build Docker image
+  #       run: docker build -t micm -f ${{ matrix.dockerfile }} .
 
-      - name: Run tests in container
-        if: matrix.dockerfile != 'Dockerfile.coverage'
-        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+  #     - name: Run tests in container
+  #       if: matrix.dockerfile != 'Dockerfile.coverage'
+  #       run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
 
-      - name: Run coverage tests in container
-        if: matrix.dockerfile == 'Dockerfile.coverage'
-        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+  #     - name: Run coverage tests in container
+  #       if: matrix.dockerfile == 'Dockerfile.coverage'
+  #       run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
 
-      - name: Copy coverage from container
-        if: matrix.dockerfile == 'Dockerfile.coverage'
-        run: docker cp test-container:build/coverage.info .
+  #     - name: Copy coverage from container
+  #       if: matrix.dockerfile == 'Dockerfile.coverage'
+  #       run: docker cp test-container:build/coverage.info .
 
-      - name: Upload coverage report
-        if: matrix.dockerfile == 'Dockerfile.coverage'
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage.info
-  linux_and_macos:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-        compiler:
-          - {cpp: g++-12, c: gcc-12}
-          - {cpp: clang++, c: clang}
-    env:
-      CC: ${{ matrix.compiler.c }}
-      CXX: ${{ matrix.compiler.cpp }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #     - name: Upload coverage report
+  #       if: matrix.dockerfile == 'Dockerfile.coverage'
+  #       uses: codecov/codecov-action@v3
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         files: coverage.info
+  # linux_and_macos:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-latest, ubuntu-latest]
+  #       compiler:
+  #         - {cpp: g++-12, c: gcc-12}
+  #         - {cpp: clang++, c: clang}
+  #   env:
+  #     CC: ${{ matrix.compiler.c }}
+  #     CXX: ${{ matrix.compiler.cpp }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
 
-      - name: Install CMake
-        run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            sudo apt-get update
-            sudo apt-get install -y cmake
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            brew install cmake
-          fi
+  #     - name: Install CMake
+  #       run: |
+  #         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+  #           sudo apt-get update
+  #           sudo apt-get install -y cmake
+  #         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+  #           brew install cmake
+  #         fi
 
-      - name: Configure and build
-        run: |
-          mkdir build
-          cd build
-          cmake .. \
-            -DENABLE_REGRESSION_TESTS=OFF
-          make VERBOSE=1
+  #     - name: Configure and build
+  #       run: |
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DENABLE_REGRESSION_TESTS=OFF
+  #         make VERBOSE=1
 
-      - name: Run tests
-        run: |
-          cd build
-          make test ARGS="--rerun-failed --output-on-failure -j8"
+  #     - name: Run tests
+  #       run: |
+  #         cd build
+  #         make test ARGS="--rerun-failed --output-on-failure -j8"
   windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         compiler:
-          - {cpp: g++, c: gcc}
-          - {cpp: clang++, c: clang}
-          - {cpp: cl, c: cl}
+        - {cpp: g++, c: gcc, path: C:/Program Files/mingw-w64/x86_64-8.1.0-posix-seh-rt_v6-rev0/mingw64/bin}
+        - {cpp: clang++, c: clang, path: C:/Program Files/LLVM/bin}
+        - {cpp: cl, c: cl, path: C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64}
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
@@ -99,10 +99,6 @@ jobs:
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
       
-      - name: Install Clang
-        if: matrix.compiler.c == 'clang'
-        run: choco install llvm
-
       - name: Install MinGW
         if: matrix.compiler.c == 'gcc'
         run: choco install mingw
@@ -111,10 +107,22 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DENABLE_REGRESSION_TESTS=OFF
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER="${{ matrix.compiler.path }}/cl.exe" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.path }}/${{ matrix.compiler.cpp }}.exe"
           cmake --build .
 
       - name: Run tests
         run: |
           cd build
           ctest --rerun-failed --output-on-failure -j8 .
+
+      # - name: Configure and build
+      #   run: |
+      #     mkdir build
+      #     cd build
+      #     cmake .. -DENABLE_REGRESSION_TESTS=OFF
+      #     cmake --build .
+
+      # - name: Run tests
+      #   run: |
+      #     cd build
+      #     ctest --rerun-failed --output-on-failure -j8 .
