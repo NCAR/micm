@@ -79,12 +79,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
         compiler:
           - {cpp: g++, c: gcc}
           - {cpp: clang++, c: clang}
-        fail-fast: false
 
     steps:
       - name: Checkout code
