@@ -50,7 +50,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         compiler:
-          - {cpp: g++, c: gcc}
+          - {cpp: g++-12, c: gcc-12}
           - {cpp: clang++, c: clang}
     env:
       CC: ${{ matrix.compiler.c }}
