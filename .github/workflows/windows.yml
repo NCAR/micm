@@ -1,39 +1,37 @@
-# name: build
+name: build
 
-# on: [push, pull_request]
+on: [push, pull_request]
 
-# jobs:
-#   multiple-platform-test:
-#     runs-on: ${{ matrix.os }}
+jobs:
+  multiple-platform-test:
+    runs-on: ${{ matrix.os }}
     
-#     strategy:
-#       matrix:
-#         os: [windows-latest]
-#         compiler:
-#           - {cpp: g++, c: gcc, fortran: gfortran}
-#           - {cpp: clang++, c: clang, fortran: flang}
-#           - {cpp: cl, c: cl, fortran: ifort}
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
+    strategy:
+      matrix:
+        os: [windows-latest]
+        compiler:
+          - {cpp: g++, c: gcc}
+          - {cpp: clang++, c: clang}
+          - {cpp: cl, c: cl}
+    env:
+      CC: ${{ matrix.compiler.c }}
+      CXX: ${{ matrix.compiler.cpp }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-#       - name: Install CMake
-#         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+      - name: Install CMake
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
-#       - name: Print compiler values
-#         run: |
-#           echo "C Compiler: ${{ matrix.compiler.c }}"
-#           echo "C++ Compiler: ${{ matrix.compiler.cpp }}"
-#           echo "Fortran Compiler: ${{ matrix.compiler.fortran }}"
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DENABLE_REGRESSION_TESTS=OFF
+          make VERBOSE=1
 
-#       - name: Configure and build
-#         run: |
-#           mkdir build
-#           cd build
-#           cmake .. -DCMAKE_C_COMPILER=${{ matrix.compiler.c }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }} -DCMAKE_Fortran_COMPILER=${{ matrix.compiler.fortran }}
-#           cmake --build .
-
-#       - name: Run tests
-#         run: |
-#           cd build
-#           ctest --output-on-failure
+      - name: Run tests
+        run: |
+          cd build
+          make test ARGS="--rerun-failed --output-on-failure -j8"

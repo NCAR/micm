@@ -53,7 +53,6 @@ jobs:
           - {cpp: g++, c: gcc}
           - {cpp: clang++, c: clang}
     env:
-      # Core variables:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
     steps:
@@ -80,4 +79,4 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest --output-on-failure
+          make test ARGS="--rerun-failed --output-on-failure -j8"
