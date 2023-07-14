@@ -106,7 +106,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    Solver::SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
+    Solver::SolverResult<MatrixPolicy<double>> Solve(double time_step, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -147,7 +147,7 @@ namespace micm
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
     void LinearFactor(
         double& H,
-        const double& gamma,
+        const double gamma,
         bool& singular,
         const MatrixPolicy<double>& number_densities,
         const MatrixPolicy<double>& rate_constants);
@@ -162,9 +162,9 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     double NormalizedError(
-        std::vector<double> original_number_densities,
-        std::vector<double> new_number_densities,
-        std::vector<double> errors);
+        MatrixPolicy<double> original_number_densities,
+        MatrixPolicy<double> new_number_densities,
+        MatrixPolicy<double> errors);
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -224,7 +224,8 @@ namespace micm
     std::size_t n_params = 0;
     for (const auto& process : processes_)
     {
-      if (process.rate_constant_) n_params += process.rate_constant_->SizeCustomParameters();
+      if (process.rate_constant_)
+        n_params += process.rate_constant_->SizeCustomParameters();
     }
     return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
                                                        .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
@@ -233,39 +234,31 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline Solver::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
+  inline Solver::SolverResult<MatrixPolicy<double>> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
       double time_step,
       State<MatrixPolicy>& state) noexcept
   {
-    Solver::SolverResult result{};
+    Solver::SolverResult<MatrixPolicy<double>> result{};
+    MatrixPolicy<double> Y(state.variables_);
+    MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
+    MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
+    MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
+    std::vector<MatrixPolicy<double>> K{};
+
     stats_.reset();
-#if 0
-    /// TODO: Y, Ynew, and forcing will have to be removed before this works with different Matrix classes
-    std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
-    MatrixPolicy<double> Y_matrix(state.variables_);
-    std::vector<double>& Y = Y_matrix.AsVector();
-    MatrixPolicy<double> Ynew_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
-    std::vector<double>& Ynew = Ynew_matrix.AsVector();
-    MatrixPolicy<double> forcing_matrix(Y_matrix.size(), Y_matrix[0].size(), 0.0);
-    std::vector<double>& forcing = forcing_matrix.AsVector();
+    for(std::size_t i = 0; i < parameters_.stages_; ++i) K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
 
-    // TODO: update for multiple-grid cell solving
-    const double number_density_air = 0.0;
-
-    double present_time = time_start;
+    double present_time = 0.0;
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-
     if (std::abs(H) <= 10 * parameters_.round_off_)
-    {
       H = delta_min_;
-    }
 
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while ((present_time - time_end + parameters_.round_off_) <= 0)
+    while ((present_time - time_step + parameters_.round_off_) <= 0)
     {
       if (stats_.number_of_steps > parameters_.max_number_of_steps_)
       {
@@ -279,22 +272,20 @@ namespace micm
         break;
       }
 
-      //  Limit H if necessary to avoid going beyond time_end
-      H = std::min(H, std::abs(time_end - present_time));
+      //  Limit H if necessary to avoid going beyond the specified chemistry time step
+      H = std::min(H, std::abs(time_step - present_time));
 
-      force(state.rate_constants_, Y_matrix, forcing_matrix);
+      CalculateForcing(state.rate_constants_, Y, forcing);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
         if (stats_.number_of_steps > parameters_.max_number_of_steps_)
-        {
           break;
-        }
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        linear_factor(H, parameters_.gamma_[0], is_singular, Y_matrix, state.rate_constants_);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, state.rate_constants_);
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
@@ -313,49 +304,43 @@ namespace micm
             double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
             if (parameters_.new_function_evaluation_[stage])
             {
-              Ynew = Y;
+              Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
               for (uint64_t j = 0; j <= stage; ++j)
               {
                 auto a = parameters_.a_[stage_combinations + j];
-                for (uint64_t idx = 0; idx < Ynew.size(); ++idx)
-                {
-                  Ynew[idx] += a * K[j][idx];
-                }
+                Ynew.ForEach([&](double& iYnew, double& iKj) {
+                  iYnew += a * iKj;
+                }, K[j]);
               }
-              force(state.rate_constants_, Ynew_matrix, forcing_matrix);
+              CalculateForcing(state.rate_constants_, Ynew, forcing);
             }
-            K[stage] = forcing;
+            K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
             for (uint64_t j = 0; j < stage; ++j)
             {
               auto HC = parameters_.c_[stage_combinations + j] / H;
-              for (uint64_t idx = 0; idx < K[stage].size(); ++idx)
-              {
-                K[stage][idx] += HC * K[j][idx];
-              }
+              K[stage].ForEach([&](double& iKstage, double& iKj) {
+                iKstage += HC * iKj;
+              }, K[j]);
             }
-            lin_solve(K[stage], K[stage]); // This probably won't work! FIXME
+            temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
+            linear_solver_.Solve(temp, K[stage]);
           }
         }
 
         // Compute the new solution
-        Ynew = Y;
+        Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-        {
-          for (uint64_t idx = 0; idx < Ynew.size(); ++idx)
-          {
-            Ynew[idx] += parameters_.m_[stage] * K[stage][idx];
-          }
-        }
+          Ynew.ForEach([&](double& iYnew, double& iKstage) {
+            iYnew += parameters_.m_[stage] * iKstage;
+          }, K[stage]);
 
         // Compute the error estimation
-        std::vector<double> Yerror(Y.size(), 0);
+        MatrixPolicy<double> Yerror(Y.AsVector().size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-        {
-          for (uint64_t idx = 0; idx < Yerror.size(); ++idx)
-          {
-            Yerror[idx] += parameters_.e_[stage] * K[stage][idx];
-          }
-        }
+          Yerror.ForEach([&](double& iYerror, double& iKstage) {
+            iYerror += parameters_.e_[stage] * iKstage;
+          }, K[stage]);
+        
         auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -372,7 +357,7 @@ namespace micm
         {
           stats_.accepted += 1;
           present_time = present_time + H;
-          Y = Ynew;
+          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
           if (reject_last_h)
           {
@@ -406,7 +391,6 @@ namespace micm
     result.stats_ = stats_;
     result.result_ = std::move(Y);
     result.state_ = Solver::SolverState::Converged;
-#endif
     return result;
   }
 
@@ -541,79 +525,52 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::LinearFactor(
       double& H,
-      const double& gamma,
+      const double gamma,
       bool& singular,
       const MatrixPolicy<double>& number_densities,
       const MatrixPolicy<double>& rate_constants)
   {
-    /*
-    TODO: invesitage this function. The fortran equivalent appears to have a bug.
-
-    From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
-    */
-
-    // std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true;
-    // };
+    // TODO: invesitage this function. The fortran equivalent appears to have a bug.
+    // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     uint64_t n_consecutive = 0;
     singular = true;
-
     while (true)
     {
       double alpha = 1 / (H * gamma);
-      // compute jacobian decomposition of alpha*I - dforce_dy
-      dforce_dy(rate_constants, number_densities, jacobian_);
-      alpha_minus_jacobian(jacobian_, alpha);
+      CalculateJacobian(rate_constants, number_densities, jacobian_);
+      AlphaMinusJacobian(jacobian_, alpha);
       linear_solver_.Factor(jacobian_);
+      singular = false;  // TODO This should be evaluated in some way
       stats_.decompositions += 1;
-
-      if (true)  // is_successful(ode_jacobian)) // commented out because nvidia can't handle this
-      {
-        singular = false;
+      if (!singular)
         break;
-      }
-      else
-      {
-        stats_.singular += 1;
-        n_consecutive += 1;
-
-        if (n_consecutive <= 5)
-        {
-          H /= 2;
-        }
-        else
-        {
-          break;
-        }
-      }
+      stats_.singular += 1;
+      if (++n_consecutive > 5)
+        break;
+      H /= 2;
     }
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::NormalizedError(
-      std::vector<double> Y,
-      std::vector<double> Ynew,
-      std::vector<double> errors)
+      MatrixPolicy<double> Y,
+      MatrixPolicy<double> Ynew,
+      MatrixPolicy<double> errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-    std::vector<double> maxs(Y.size());
-    std::vector<double> scale(Y.size());
+    MatrixPolicy<double> maxs(Y.size(), Y[0].size(), 0.0);
+    MatrixPolicy<double> scale(Y.size(), Y[0].size(), 0.0);
 
-    for (uint64_t idx = 0; idx < Y.size(); ++idx)
-    {
-      maxs[idx] = std::max(std::abs(Y[idx]), std::abs(Ynew[idx]));
-    }
+    maxs.ForEach([&](double& imax, double& iY, double& iYnew) { imax = std::max(std::abs(iY), std::abs(iYnew)); }, Y, Ynew);
 
-    for (uint64_t idx = 0; idx < Y.size(); ++idx)
-    {
-      scale[idx] = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * maxs[idx];
-    }
+    scale.ForEach(
+        [&](double& iscale, double& imax)
+        { iscale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * imax; },
+        maxs);
 
     double sum = 0;
-    for (uint64_t idx = 0; idx < Y.size(); ++idx)
-    {
-      sum += std::pow(errors[idx] / scale[idx], 2);
-    }
+    errors.ForEach([&](double& ierror, double& iscale) { sum += std::pow(ierror / iscale, 2); }, scale);
 
     double error_min_ = 1.0e-10;
     return std::max(std::sqrt(sum / parameters_.N_), error_min_);
