@@ -80,33 +80,33 @@ jobs:
         run: |
           cd build
           make test ARGS="--rerun-failed --output-on-failure -j8"
-  # windows:
-  #   runs-on: windows-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       compiler:
-  #         - {cpp: g++, c: gcc}
-  #         - {cpp: clang++, c: clang}
-  #         - {cpp: cl, c: cl}
-  #   env:
-  #     CC: ${{ matrix.compiler.c }}
-  #     CXX: ${{ matrix.compiler.cpp }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+  windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - {cpp: g++, c: gcc}
+          - {cpp: clang++, c: clang}
+          - {cpp: cl, c: cl}
+    env:
+      CC: ${{ matrix.compiler.c }}
+      CXX: ${{ matrix.compiler.cpp }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Install CMake
-  #       run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+      - name: Install CMake
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
 
-  #     - name: Configure and build
-  #       run: |
-  #         mkdir build
-  #         cd build
-  #         cmake .. -DENABLE_REGRESSION_TESTS=OFF
-  #         cmake --build .
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF
+          cmake --build .
 
-  #     - name: Run tests
-  #       run: |
-  #         cd build
-  #         ctest --rerun-failed --output-on-failure -j8 .
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure -j8 .
