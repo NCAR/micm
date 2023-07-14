@@ -99,8 +99,13 @@ jobs:
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
       
-      - name: Add mingw binaries to search path
-        run: echo "::add-path::C:\msys64\mingw64\bin"
+      - name: Install Clang
+        if: matrix.compiler.c == 'clang'
+        run: choco install llvm
+
+      - name: Install MinGW
+        if: matrix.compiler.c == 'gcc'
+        run: choco install mingw
 
       - name: Configure and build
         run: |
