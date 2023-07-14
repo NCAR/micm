@@ -289,10 +289,10 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy<T>>)
   void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
   {
+    const std::size_t n_cells = A.GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
     {
-      const std::size_t n_cells = A.GroupVectorSize();
       auto A_vector = std::next(A.AsVector().begin(), i_group * A.GroupSize(A.FlatBlockSize()));
       auto L_vector = std::next(L.AsVector().begin(), i_group * L.GroupSize(L.FlatBlockSize()));
       auto U_vector = std::next(U.AsVector().begin(), i_group * U.GroupSize(U.FlatBlockSize()));
