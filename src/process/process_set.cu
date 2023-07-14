@@ -1,6 +1,3 @@
-#include <micm/solver/state.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
 #include <iostream>
 
 namespace micm {
@@ -20,7 +17,6 @@ namespace micm {
         double* yields_)
     {
       //define thread index 
-      
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x; 
       size_t react_id_offset, prod_id_offset, yield_offset;
 
@@ -50,6 +46,12 @@ namespace micm {
     }      // end of AddForcingTerms_kernel
 
     void AddForcingTerms_kernelSetup(
+        const double* rate_constants_data,
+        const double* state_variables_data,
+        double* forcing_data,
+        int ngrids,
+        int nrxns,
+        int nspecs,
         const size_t* number_of_reactants,
         int number_of_reactants_size,
         const size_t* reactant_ids, 
@@ -59,20 +61,8 @@ namespace micm {
         const size_t* product_ids,
         int product_ids_size,
         const double* yields,
-        int yields_size,
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing)
-    {
-        //data of matrices
-        int ngrids = rate_constants[0].size(); 
-        int nrxns = rate_constants.size(); 
-        int nspecs = state_variables.size();
-
-        const double* rate_constants_data = rate_constants.AsVector().data(); 
-        const double* state_variables_data = state_variables.AsVector().data();
-        double* forcing_data = forcing.AsVector().data(); 
-       
+        int yields_size){
+        
         // device pointer to vectorss
         double* d_rate_constants; 
         double* d_state_variables; 

@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 #include <micm/process/process_set_cuda.cuh>
 #include <micm/process/process_set.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <iostream>
 #include <random>
 #include <chrono>
 #include <functional>
 #include <vector>
+
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
@@ -35,7 +37,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State state{ micm::StateParameters{ .state_variable_names_{ species_names },
+  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
                                                           .number_of_grid_cells_ = n_cells,
                                                           .number_of_custom_parameters_ = 0,
                                                           .number_of_rate_constants_ = n_reactions } };
@@ -63,12 +65,12 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
 
-  micm::Matrix <double> rate_constants{ n_cells, n_reactions };
+  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
 
-  micm::Matrix <double> cpu_forcing{ n_cells, n_species, 1000.0};
-  micm::Matrix <double> gpu_forcing{ };
+  MatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0};
+  MatrixPolicy<double> gpu_forcing{ };
   gpu_forcing = cpu_forcing; 
 
   
@@ -85,10 +87,10 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   // std::cout << "time performance: "<< t0/100 <<std::endl; 
 
   //kernel function call 
-  set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
+  set.CudaAddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing); 
     
   //CPU function call
-  set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
+  set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, cpu_forcing); 
 
   //checking accuracy with comparison between CPU and GPU result 
   std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
@@ -97,26 +99,30 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (int i = 0; i < cpu_forcing_vector.size(); i++){
     double a = cpu_forcing_vector[i];
     double b = gpu_forcing_vector[i];
-    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-5);
+    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
  }
 }
+
+template<class T>
+using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>;
+template<class T>
+using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
+template<class T>
+using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>;
+template<class T>
+using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>;
 
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<micm::Matrix>(1000, 500, 400);
-  testRandomSystem<micm::Matrix>(10000, 500, 400);
-  testRandomSystem<micm::Matrix>(100000, 500, 400);
-  testRandomSystem<micm::Matrix>(1000000, 500, 400);
-  
+  testRandomSystem<Group1000VectorMatrix>(1000, 500, 400);
+  testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 500, 400);
+
   std::cout << "system with 100 reactions and 80 species"<<std::endl; 
-  testRandomSystem<micm::Matrix>(1000, 100, 80);
-  testRandomSystem<micm::Matrix>(10000, 100, 80);
-  testRandomSystem<micm::Matrix>(100000, 100, 80);
-  testRandomSystem<micm::Matrix>(1000000, 100, 80);
+  testRandomSystem<Group1000VectorMatrix>(1000, 100, 80);
+  testRandomSystem<Group10000VectorMatrix>(10000, 100, 80);
+  testRandomSystem<Group100000VectorMatrix>(100000, 100, 80);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 100, 80);
 }
-
-
-  
- 
-

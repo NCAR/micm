@@ -17,7 +17,7 @@ namespace micm
   class PhotolysisRateConstant : public RateConstant
   {
    public:
-    const std::string name_;
+    std::string name_;
 
    public:
     /// @brief Default constructor.
@@ -25,7 +25,7 @@ namespace micm
 
     /// @brief
     /// @param name A name for this reaction
-    PhotolysisRateConstant(const std::string name);
+    PhotolysisRateConstant(const std::string& name);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
@@ -42,7 +42,8 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+        const override;
   };
 
   inline PhotolysisRateConstant::PhotolysisRateConstant()
@@ -50,7 +51,7 @@ namespace micm
   {
   }
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant(const std::string name)
+  inline PhotolysisRateConstant::PhotolysisRateConstant(const std::string& name)
       : name_(name)
   {
   }
@@ -60,8 +61,9 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new PhotolysisRateConstant{ *this } };
   }
 
-  inline double PhotolysisRateConstant::calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
-      const
+  inline double PhotolysisRateConstant::calculate(
+      const Conditions& conditions,
+      const std::vector<double>::const_iterator& custom_parameters) const
   {
     return (double)*custom_parameters;
   }

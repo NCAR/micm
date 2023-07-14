@@ -7,19 +7,19 @@
 
 static const double absolute_tolerance = 1e-4;
 
-void TestDefaultConstructor(micm::RosenbrockSolver& solver)
+void TestDefaultConstructor(micm::ChapmanODESolver& solver)
 {
   EXPECT_EQ(solver.parameters_.stages_, 3);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, DefaultConstructor)
 {
   micm::ChapmanODESolver hard_coded{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestDefaultConstructor(hard_coded);
   // TestDefaultConstructor(general);
 }
 
-void TestLinSolve(micm::RosenbrockSolver& solver)
+void TestLinSolve(micm::ChapmanODESolver& solver)
 {
   std::vector<double> jacobian(23, 1), b(9, 0.5);
   auto solved = solver.lin_solve(b, jacobian);
@@ -37,12 +37,12 @@ void TestLinSolve(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, lin_solve)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestLinSolve(solver);
   // TestLinSolve(general);
 }
 
-void TestReactionNames(micm::RosenbrockSolver& solver)
+void TestReactionNames(micm::ChapmanODESolver& solver)
 {
   auto names = solver.reaction_names();
   ASSERT_EQ(names.size(), 7);
@@ -50,11 +50,11 @@ void TestReactionNames(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, ReactionNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestReactionNames(solver);
 }
 
-void TestPhotolysisNames(micm::RosenbrockSolver& solver)
+void TestPhotolysisNames(micm::ChapmanODESolver& solver)
 {
   auto names = solver.photolysis_names();
   ASSERT_EQ(names.size(), 3);
@@ -62,11 +62,11 @@ void TestPhotolysisNames(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, PhotolysisNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestPhotolysisNames(solver);
 }
 
-void TestSpeciesNames(micm::RosenbrockSolver& solver)
+void TestSpeciesNames(micm::ChapmanODESolver& solver)
 {
   auto names = solver.species_names();
   ASSERT_EQ(names.size(), 9);
@@ -74,7 +74,7 @@ void TestSpeciesNames(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, SpeciesNames)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSpeciesNames(solver);
 }
 
@@ -100,7 +100,7 @@ void TestSimpleForce(micm::ChapmanODESolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, simple_force)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSimpleForce(solver);
 }
 
@@ -126,11 +126,11 @@ void TestSmallerForce(micm::ChapmanODESolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, smaller_force)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSmallerForce(solver);
 }
 
-void TestFactoredAlphaMinusJac(micm::RosenbrockSolver& solver)
+void TestFactoredAlphaMinusJac(micm::ChapmanODESolver& solver)
 {
   std::vector<double> dforce_dy(23, 1);
   double alpha{ 2 };
@@ -165,11 +165,11 @@ void TestFactoredAlphaMinusJac(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, factored_alpha_minus_jac)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestFactoredAlphaMinusJac(solver);
 }
 
-void TestDforceDyTimesVector(micm::RosenbrockSolver& solver)
+void TestDforceDyTimesVector(micm::ChapmanODESolver& solver)
 {
   std::vector<double> dforce_dy(23, 1);
   std::vector<double> vector(23, 0.5);
@@ -204,13 +204,13 @@ void TestDforceDyTimesVector(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, dforce_dy_times_vector)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestDforceDyTimesVector(solver);
 }
 
-void TestSolve(micm::RosenbrockSolver& solver)
+void TestSolve(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -239,13 +239,13 @@ void TestSolve(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, Solve)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSolve(solver);
 }
 
-void TestSolve10TimesLarger(micm::RosenbrockSolver& solver)
+void TestSolve10TimesLarger(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -277,13 +277,13 @@ void TestSolve10TimesLarger(micm::RosenbrockSolver& solver)
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_10_times_larger)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSolve10TimesLarger(solver);
 }
 
-void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver)
+void TestSolve10TimesSmaller(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.variables_[0] = { 1, 3.92e-1, 1.69e-2, 0, 3.29e1, 0, 0, 8.84, 0 };
   //"M"   "Ar"     "CO2",   "H2O", "N2",   "O1D", "O", "O2", "O3",
   state.conditions_[0].temperature_ = 273.15;
@@ -315,13 +315,13 @@ void TestSolve10TimesSmaller(micm::RosenbrockSolver& solver)
 TEST(RegressionChapmanODESolver, solve_10_times_smaller)
 {
   micm::ChapmanODESolver solver{};
-  // micm::RosenbrockSolver general{};
+  // micm::ChapmanODESolver general{};
   TestSolve10TimesSmaller(solver);
 }
 
-void TestSolveWithRandomNumberDensities(micm::RosenbrockSolver& solver)
+void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
 {
-  micm::State state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
   state.conditions_[0].temperature_ = 273.15;
   state.conditions_[0].pressure_ = 1000 * 100;  // 1000 hPa
   state.conditions_[0].air_density_ = 2.7e19;
