@@ -75,16 +75,18 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class SparseMatrixPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3).initial_value(1.0e-30)
-                                  .with_element(0, 0)
-                                  .with_element(0, 1)
-                                  .with_element(0, 2)
-                                  .with_element(1, 0)
-                                  .with_element(1, 1)
-                                  .with_element(1, 2)
-                                  .with_element(2, 0)
-                                  .with_element(2, 1)
-                                  .with_element(2, 2);
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(
+                                      SparseMatrixPolicy<double>::create(3)
+                                     .initial_value(1.0e-30)
+                                     .with_element(0, 0)
+                                     .with_element(0, 1)
+                                     .with_element(0, 2)
+                                     .with_element(1, 0)
+                                     .with_element(1, 1)
+                                     .with_element(1, 2)
+                                     .with_element(2, 0)
+                                     .with_element(2, 1)
+                                     .with_element(2, 2));
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
