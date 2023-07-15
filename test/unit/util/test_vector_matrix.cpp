@@ -64,6 +64,7 @@ TEST(VectorMatrix, LoopOverConstVectorMatrix)
 
 TEST(VectorMatrix, ConversionToVector)
 {
+  std::cout << "here\n";
   testConversionToVector<Group3MatrixAlias>();
 }
 
