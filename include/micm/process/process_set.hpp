@@ -80,12 +80,19 @@ namespace micm
         SparseMatrixPolicy<double>& jacobian) const;
     
     #ifdef USE_CUDA
+    
+    template<template<class> class MatrixPolicy>
     void CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing);
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing);
+   
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    void CudaAddJacobianTerms(
+       const MatrixPolicy<double>&rate_constants, 
+       const MatrixPolicy<double>& state_variables, 
+       SparseMatrixPolicy<double>& jacobian);
     #endif
-  
   };
 
   template<template<class> class MatrixPolicy>
@@ -195,7 +202,7 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
-  };
+  }
 
   template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>
@@ -345,10 +352,12 @@ namespace micm
   }
 
   #ifdef USE_CUDA
+    
+    template<template<class> typename MatrixPolicy>
     inline void ProcessSet::CudaAddForcingTerms(
-        const Matrix<double>& rate_constants, 
-        const Matrix<double>& state_variables, 
-        Matrix<double>& forcing) {
+        const MatrixPolicy<double>& rate_constants, 
+        const MatrixPolicy<double>& state_variables, 
+        MatrixPolicy<double>& forcing) {
         micm::cuda::AddForcingTerms_kernelSetup(
             rate_constants.AsVector().data(),
             state_variables.AsVector().data(),
@@ -366,16 +375,18 @@ namespace micm
             product_ids_.size(),
             yields_.data(),
             yields_.size());
-        }
-    
-    inline void PorcessSet::CudaAddJacobianTerms(
-      const Matrix<double>&rate_constants, 
-      const Matrix<double>& state_variables, 
-      SparseMatrix<double>& jacobian){
-      AddJacobianTerms_kernelSetup(
+        };
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    inline void ProcessSet::CudaAddJacobianTerms(
+      const MatrixPolicy<double>&rate_constants, 
+      const MatrixPolicy<double>& state_variables, 
+      SparseMatrixPolicy<double>& jacobian){
+      
+      //function call
+      micm::cuda::AddJacobianTerms_kernelSetup(
           rate_constants.AsVector().data(),
           state_variables.AsVector().data(),
-          jacobina.AsVector().data(), 
+          jacobian.AsVector().data(), 
           rate_constants.size(),//number of grids 
           rate_constants[0].size(),//number of reactions
           state_variables[0].size(),//number of species
@@ -383,15 +394,13 @@ namespace micm
           number_of_reactants_.data(),
           reactant_ids_.data(),
           reactant_ids_.size(),
-          number_of_product_.data(),
+          number_of_products_.data(),
           product_ids_.data(),
           product_ids_.size(),
           yields_.data(),
           yields_.size(),
           jacobian_flat_ids_.data(),
-          jacobina_flat_ids_.size())
+          jacobian_flat_ids_.size());
       }
-    
     #endif
-
 }  // namespace micm
