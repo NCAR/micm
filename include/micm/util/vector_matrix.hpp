@@ -7,6 +7,7 @@
 #include <cmath>
 #include <micm/util/exit_codes.hpp>
 #include <vector>
+#include <algorithm>
 
 namespace micm
 {
