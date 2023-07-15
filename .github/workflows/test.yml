@@ -108,7 +108,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER="${{ matrix.compiler.path }}/cl.exe" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.path }}/${{ matrix.compiler.cpp }}.exe"
-          cmake --verbose --build .
+          cmake --build . --verbose 
 
       - name: Run tests
         run: |
