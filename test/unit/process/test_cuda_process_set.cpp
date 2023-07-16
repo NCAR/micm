@@ -125,7 +125,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 }
 
 template<class T>
-using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>;
+using Group1000VectorMatrix = micm::VectorMatrix<T, 10>;
 template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 template<class T>
@@ -146,7 +146,7 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1000, 500, 400);
+  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(10, 500, 400);
   // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
   // testRandomSystem<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);

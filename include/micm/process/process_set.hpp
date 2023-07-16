@@ -391,7 +391,7 @@ namespace micm
           rate_constants[0].size(),//number of reactions
           state_variables[0].size(),//number of species
           jacobian.AsVector().size(),//jacobian size
-          jacobian.RowsIdVector().size(),
+          jacobian.RowIdsVector().size(),
           number_of_reactants_.data(),
           reactant_ids_.data(),
           reactant_ids_.size(),
