@@ -195,6 +195,7 @@ __global__ void AddJacobianTerms_kernel(
         size_t n_reactions,
         size_t n_species,
         size_t jacobian_size,
+        size_t row_ids_size,
         const size_t* number_of_reactants, 
         const size_t* reactant_ids, 
         size_t reactant_ids_size, 
@@ -256,7 +257,8 @@ __global__ void AddJacobianTerms_kernel(
           d_number_of_products, 
           d_product_ids,
           d_yields,
-          d_jacobian_flat_ids
+          d_jacobian_flat_ids,
+          row_ids_size
         );
           cudaDeviceSynchronize(); 
           cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost);

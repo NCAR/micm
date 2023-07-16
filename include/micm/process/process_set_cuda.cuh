@@ -29,6 +29,7 @@ namespace micm {
         size_t n_reactions,
         size_t n_species,
         size_t jacobian_size,
+        size_t row_ids_size,
         const size_t* number_of_reactants, 
         const size_t* reactant_ids, 
         size_t reactants_ids_size, 
