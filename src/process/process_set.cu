@@ -112,7 +112,7 @@ __global__ void AddJacobianTerms_kernel(
         const double* state_variables_data,
         double* forcing_data,
         int ngrids,
-        int nxns,
+        int nrxns,
         int nspecs,
         const size_t* number_of_reactants,
         int number_of_reactants_size,
