@@ -58,17 +58,19 @@ __global__ void AddJacobianTerms_kernel(
   size_t* number_of_products,
   size_t* product_ids,
   double* yields,
-  size_t* jacobian_flat_ids){
+  size_t* jacobian_flat_ids
+  size_t rows_ids_size){
   
   int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-  size_t react_id_offset, prod_id_offset, yield_offset, jacobian_id_idx; 
+  size_t react_id_offset, prod_id_offset, yield_offset, jacobian_id_idx, initial_jacobian_idx; 
    
     //paralle grids -> one thread per grid cell
     //how to get jacobian initial index for each grid
     if (tid < n_grids){
+      printf("running in kernel\n"); 
       react_id_offset = 0, prod_id_offset = 0, yield_offset = 0, jacobian_id_idx = -1; 
       size_t* jacobian_flat_ids_ptr = jacobian_flat_ids; 
-
+      initial_jacobian_idx = tid * rows_ids_size; 
       //loop over every reaction
       for (int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
        //loop over reactant_number of every reaction 
@@ -82,11 +84,11 @@ __global__ void AddJacobianTerms_kernel(
               }//first inner for-loop
             
             for(int i_dep = 0; i_dep < number_of_reactants[i_rxn]; i_dep++){
-                int jacobian_idx = jacobian_flat_ids_ptr[jacobian_id_idx++] + tid;
+                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++]; 
                 jacobian[jacobian_idx] -= d_rate_d_int; } //second inner for_loop
             
             for (int i_dep = 0; i_dep < number_of_products[i_rxn]; i_dep++){
-                int jacobian_idx = jacobian_flat_ids_ptr[jacobian_id_idx++] + tid;
+                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++]; 
                 jacobian[jacobian_idx] += yields[yield_offset + i_dep] * d_rate_d_int; 
             } //third innder for_loop
           } //loop over number of reactants in a reaction
