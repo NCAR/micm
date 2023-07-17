@@ -54,50 +54,53 @@ __global__ void AddJacobianTerms_kernel(
   int n_reactions,
   int n_species,
   size_t*  number_of_reactants,
+  size_t* acc_n_reactants,
   size_t* reactant_ids,
   size_t* number_of_products,
+  size_t* acc_n_products,
   size_t* product_ids,
   double* yields,
   size_t* jacobian_flat_ids,
-  size_t rows_ids_size){
+  size_t* acc_n_jacobian_flat_ids,
+  size_t row_ids_size){
   
-  int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-  size_t react_id_offset, prod_id_offset, yield_offset, jacobian_id_idx, initial_jacobian_idx; 
-   
-    //paralle grids -> one thread per grid cell
-    //how to get jacobian initial index for each grid
-    if (tid < n_grids){
-      printf("running in kernel\n"); 
-      react_id_offset = 0, prod_id_offset = 0, yield_offset = 0, jacobian_id_idx = -1; 
-      size_t* jacobian_flat_ids_ptr = jacobian_flat_ids; 
-      initial_jacobian_idx = tid * rows_ids_size; 
-      
-      for(int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
-          printf ("reaction index %d\n",i_rxn); 
-          
-          for(int i_ind = 0; i_ind < number_of_reactants[i_rxn]; i_ind++){
-             double d_rate_d_int = rate_constants[i_rxn * n_grids + tid]; 
-             
-             for(int i_react = 0; i_react < number_of_reactants[i_rxn]; i_react++){
-              if (i_react != i_ind){
-                d_rate_d_int *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
-              }
-             }
-             for(int i_dep = 0; i_dep < number_of_reactants[i_rxn]; i_dep++){
-                printf("inside first jacobian loop\n");
-                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++];
-                jacobian[jacobian_idx] -= d_rate_d_int; 
-             } 
-             for (int i_dep = 0; i_dep < number_of_products[i_rxn]; i_dep++){
-                printf("inside second jacobian loop\n"); 
-                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++];
-                jacobian[jacobian_idx] += yields[yield_offset + i_dep] * d_rate_d_int;  
-             }
-       } // loop over num_reactants of every reaction
-       react_id_offset += number_of_reactants[i_rxn]; 
-      yield_offset += number_of_products[i_rxn];  
-      }//loop over num_reactions
-    }//check for valid tid 
+    
+    int tid = blockIdx.x * blockDim.x + threadIdx.x; 
+    if (tid < n_grids * n_reactions){
+    double d_rate_d_ind = rate_constants[tid]; 
+    int grid_idx = tid % n_grids; 
+    int reaction_idx = (tid = grid_idx)/n_grids; 
+    int num_reactants = number_of_reactants[reaction_idx]; 
+    int num_products = number_of_products[reaction_idx];
+    int initial_reactant_ids_idx = acc_n_reactants[reaction_idx]; 
+    int initial_yields_idx = acc_n_products[reaction_idx]; 
+    int initial_jacobian_flat_ids_idx = acc_n_jacobian_flat_ids[reaction_idx]; 
+    int acc_jacobian_flat_ids_idx = 0; 
+    int initial_jacobian_idx = grid_idx * row_ids_size; 
+    printf("tid: %d\n", tid); 
+    //loop over over num_reactants of every reaction
+    for (int i_ind = 0; i_ind < num_reactants; i_ind++){
+         printf("tid: %d\n, reactant_count %d\n", tid, i_ind); 
+        for (int i_react = 0; i_react < num_reactants; i_react){
+          printf("inside first inner loop\n"); 
+          if (i_ind != i_react){
+            d_rate_d_ind *= state_variables[reactant_ids[initial_reactant_ids_idx+ i_react] * n_grids + tid]; 
+          }
+        }
+        for(int i_dep = 0; i_dep < num_reactants;i_dep++){
+          printf("inside second inner loop\n"); 
+          int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids[initial_jacobian_flat_ids_idx+i_dep];
+          acc_jacobian_flat_ids_idx = initial_jacobian_flat_ids_idx+i_dep;
+          jacobian[jacobian_idx] -= d_rate_d_ind; 
+        }
+        for (int i_dep = 0; i_dep < num_products; i_dep++){
+          printf("inside third inner loop\n"); 
+          int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids[acc_jacobian_flat_ids_idx + i_dep]; 
+          jacobian[jacobian_idx] += yields[initial_yields_idx + i_dep] * d_rate_d_ind;
+        }
+      }
+    }
+
   }// end of AddJacobianTerms_kernel
     
 
@@ -206,47 +209,69 @@ __global__ void AddJacobianTerms_kernel(
         size_t product_ids_size, 
         const double* yields,
         size_t yields_size,
-        size_t* jacobian_flat_ids,
+        const size_t* jacobian_flat_ids,
         size_t jacobian_flat_ids_size){
         std::cout << "grid size: "<< n_grids<<std::endl; 
         std::cout << "reaction size: "<< n_reactions<<std::endl; 
         std::cout << "species size: "<<n_species<<std::endl; 
+        
+        size_t* acc_n_reactants = (size_t*)malloc(sizeof(size_t) * n_reactions); 
+        size_t* acc_n_products = (size_t*)malloc(sizeof(size_t) * n_reactions); 
+        size_t* acc_n_jacobian_flat_ids = (size_t*)malloc(sizeof(size_t)*jacobian_flat_ids_size); 
+        acc_n_reactants[0] = 0; 
+        acc_n_products[0] = 0; 
+        acc_n_jacobian_flat_ids[0] = 0; 
+        for (int i = 0; i < n_reactions-1; i++){
+          acc_n_reactants[i+1] = acc_n_reactants[i] + number_of_reactants[i]; 
+          acc_n_products[i+1] = acc_n_products[i] + number_of_products[i]; 
+          acc_n_jacobian_flat_ids[i+1]= acc_n_jacobian_flat_ids[i] + number_of_reactants[i]+number_of_products[i];
+          }
+
+   
         //device pointer
         double* d_rate_constants; 
         double* d_state_variables; 
         double* d_jacobian; 
-        size_t* d_number_of_reactants;    
+        size_t* d_number_of_reactants; 
+        size_t* d_acc_n_reactants; 
         size_t* d_reactant_ids; 
         size_t* d_number_of_products; 
+        size_t* d_acc_n_products;
         size_t* d_product_ids; 
         double* d_yields; 
         size_t* d_jacobian_flat_ids; 
+        size_t* d_acc_jacobian_flat_ids; 
 
         //allocate device memory 
         cudaMalloc(&d_rate_constants, sizeof(double)* n_grids * n_reactions); 
         cudaMalloc(&d_state_variables, sizeof(double)* n_grids * n_species); 
         cudaMalloc(&d_jacobian, sizeof(double)* jacobian_size);
         cudaMalloc(&d_number_of_reactants, sizeof(size_t)* n_reactions); 
+        cudaMalloc(&d_acc_n_reactants, sizeof(size_t)* n_reactions); 
         cudaMalloc(&d_reactant_ids, sizeof(size_t) * reactant_ids_size);
         cudaMalloc(&d_number_of_products, sizeof(size_t)* n_reactions);
+        cudaMalloc(&d_acc_n_products, sizeof(size_t)* n_reactions); 
         cudaMalloc(&d_product_ids, sizeof(size_t) * product_ids_size);  
         cudaMalloc(&yields, sizeof(double) * yields_size); 
         cudaMalloc(&jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
-
+        cudaMalloc(&d_acc_jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
 
         //transfer data from host to device 
         cudaMemcpy(d_rate_constants, rate_constants, sizeof(double)* n_grids * n_reactions,cudaMemcpyHostToDevice); 
         cudaMemcpy(d_state_variables, state_variables, sizeof(double)* n_grids * n_species, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_jacobian, jacobian, sizeof(double)* jacobian_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t)* n_reactions,cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t)* n_reactions,cudaMemcpyHostToDevice);
+        cudaMemcpy(d_acc_n_reactants, acc_n_reactants, sizeof(size_t)*n_reactions, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_reactant_ids, reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_acc_n_products, acc_n_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice);
         cudaMemcpy(d_product_ids, product_ids, sizeof(size_t)* product_ids_size, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_acc_jacobian_flat_ids, acc_n_jacobian_flat_ids, sizeof(size_t)*jacobian_flat_ids_size, cudaMemcpyHostToDevice);
 
         //total thread count == n_grids 
-        int block_size = 32; 
+        int block_size = 320; 
         int num_blocks = (n_grids + block_size -1)/block_size; 
         //kernel function call
         AddJacobianTerms_kernel<<<num_blocks, block_size>>>(
@@ -257,13 +282,15 @@ __global__ void AddJacobianTerms_kernel(
           n_reactions,
           n_species,
           d_number_of_reactants, 
+          d_acc_n_reactants,
           d_reactant_ids, 
-          d_number_of_products, 
+          d_number_of_products,
+          d_acc_n_products, 
           d_product_ids,
           d_yields,
           d_jacobian_flat_ids,
-          row_ids_size
-        );
+          d_acc_jacobian_flat_ids,
+          row_ids_size);
           cudaDeviceSynchronize(); 
           cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost);
         

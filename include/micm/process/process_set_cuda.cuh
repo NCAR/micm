@@ -38,7 +38,7 @@ namespace micm {
         size_t product_ids_size, 
         const double* yields,
         size_t yields_size,
-        size_t* jacobian_flat_ids,
+        const size_t* jacobian_flat_ids,
         size_t jacobian_flat_ids_size);
         } // namespace cuda
 } // namespace micm
