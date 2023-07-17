@@ -72,7 +72,10 @@ __global__ void AddJacobianTerms_kernel(
       size_t* jacobian_flat_ids_ptr = jacobian_flat_ids; 
       initial_jacobian_idx = tid * rows_ids_size; 
       for (int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
-       printf ("reaction index %d\n",i_rxn); 
+          printf ("reaction index %d\n",i_rxn); 
+          for(int i_ind = 0; i_ind < number_of_reactants[i_rxn]; i_ind++){
+             double d_rate_d_int = rate_constants[i_rxn * n_grids + tid]; 
+       }//first inner loop
       }
     }//check for valid tid 
   }// end of AddJacobianTerms_kernel
