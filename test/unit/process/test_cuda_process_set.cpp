@@ -124,29 +124,29 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   }
 }
 
-template<class T>
-using Group1000VectorMatrix = micm::VectorMatrix<T, 10>;
-template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
-template<class T>
-using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>;
-template<class T>
-using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>;
+// template<class T>
+// using Group1000Matrix = micm::Matrix<10>;
+// template<class T>
+// using Group10000Matrix = micm::Matrix<10000>;
+// template<class T>
+// using Group100000Matrix = micm::Matrix<100000>;
+// template<class T>
+// using Group1000000Matrix = micm::Matrix<1000000>;
 
-template<class T>
-using Group1000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
-template<class T>
-using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
-template<class T>
-using Group100000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
-template<class T>
-using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000000>>;
+// template<class T>
+// using Group1000SparseStandardMatrix = micm::SparseMatrix<10>;
+// template<class T>
+// using Group10000SparseStandardMatrix = micm::SparseMatrix<T,micm::SparseMatrixStanderdOrdering<10000>>;
+// template<class T>
+// using Group100000SparseStandardMatrix = micm::SparseMatrix<T, micm::SparseMatrixStanderdOrdering<100000>>;
+// template<class T>
+// using Group1000000SparseStandardMatrix= micm::SparseMatrix<T, micm::SparseMatrixStanderdOrdering<1000000>>;
 
 
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(3, 5, 2);
+  testRandomSystem<micm::Matrix, micm::SparseMatrix>(3, 5, 2);
   // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
   // testRandomSystem<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);
