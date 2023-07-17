@@ -71,16 +71,31 @@ __global__ void AddJacobianTerms_kernel(
       react_id_offset = 0, prod_id_offset = 0, yield_offset = 0, jacobian_id_idx = -1; 
       size_t* jacobian_flat_ids_ptr = jacobian_flat_ids; 
       initial_jacobian_idx = tid * rows_ids_size; 
-      for (int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
+      
+      for(int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
           printf ("reaction index %d\n",i_rxn); 
+          
           for(int i_ind = 0; i_ind < number_of_reactants[i_rxn]; i_ind++){
              double d_rate_d_int = rate_constants[i_rxn * n_grids + tid]; 
-             for (int i_react = 0; i_react < number_of_reactants[i_rxn]; i_react++){
+             
+             for(int i_react = 0; i_react < number_of_reactants[i_rxn]; i_react++){
               if (i_react != i_ind){
                 d_rate_d_int *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
               }
-             }//second inner loop
-       }//first inner loop
+             }
+             for(int i_dep = 0; i_dep < number_of_reactants[i_rxn]; i_dep++){
+                printf("inside first jacobian loop\n");
+                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++];
+                jacobian[jacobian_idx] -= d_rate_d_int; 
+             } 
+             for (int i_dep = 0; i_dep < number_of_products[i_rxn]; i_dep++){
+                printf("inside second jacobian loop\n"); 
+                int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++];
+                jacobian[jacobian_idx] += yields[yield_offset + i_dep] * d_rate_d_int;  
+             }
+       } // loop over num_reactants of every reaction
+       react_id_offset += number_of_reactants[i_rxn]; 
+      yield_offset += number_of_products[i_rxn];  
       }//loop over num_reactions
     }//check for valid tid 
   }// end of AddJacobianTerms_kernel
