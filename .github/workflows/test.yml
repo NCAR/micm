@@ -15,6 +15,7 @@ jobs:
           - Dockerfile.memcheck
           - Dockerfile.no_json
           - Dockerfile.nvhpc
+          - Dockerfile.intel
           # - Dockerfile.openmp
           # - Dockerfile.mpi
     steps:
