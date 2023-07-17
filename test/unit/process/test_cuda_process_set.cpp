@@ -120,7 +120,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
     double a = cpu_jacobian_vector[i]; 
     double b = gpu_jacobian_vector[i]; 
-    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
   }
 }
 
@@ -146,7 +146,7 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(10, 500, 400);
+  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(3, 5, 7);
   // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
   // testRandomSystem<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);

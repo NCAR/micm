@@ -104,12 +104,12 @@ __global__ void AddJacobianTerms_kernel(
       //           printf("inside the third loop\n"); 
       //         } //third innder for_loop
           } //loop over number of reactants in a reaction
-          react_id_offset += number_of_reactants[i_rxn]; 
-          yield_offset += number_of_products[i_rxn];  
+          // react_id_offset += number_of_reactants[i_rxn]; 
+          // yield_offset += number_of_products[i_rxn];  
          } //loop over every reaction in a grid 
       
        } //check valid tid 
-      }//end of kernel function
+      
     
 
     void AddForcingTerms_kernelSetup(
@@ -290,8 +290,5 @@ __global__ void AddJacobianTerms_kernel(
         cudaFree(d_jacobian_flat_ids); 
 }//end of AddJacobianTerms_kernelSetup function 
 
-
-
-
-    } // namespace cuda 
+  } // namespace cuda 
 }     // namespace micm
