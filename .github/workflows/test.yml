@@ -88,31 +88,32 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-        - {cpp: g++, c: gcc}
-        - {cpp: clang++, c: clang}
-        - {cpp: cl, c: cl}
+          - { cpp: g++, c: gcc, tool: mingw }
+          - { cpp: clang++, c: clang, tool: msys2 }
+          - { cpp: cl, c: cl, tool: vsdevcmd }
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+  
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
       
-      - name: Install MinGW
-        if: matrix.compiler.c == 'gcc'
-        run: choco install mingw
-
+      - name: Install Build Tools
+        run: |
+          choco install ${{ matrix.compiler.tool }}
+  
       - name: Configure and build
         run: |
           mkdir build
           cd build
           cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER="${{ matrix.compiler.c }}" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.cpp }}"
           cmake --build . --verbose 
-
+  
       - name: Run tests
         run: |
           cd build
           ctest -C Debug --rerun-failed --output-on-failure .
+  
