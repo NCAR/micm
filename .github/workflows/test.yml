@@ -62,6 +62,10 @@ jobs:
             compiler: { cpp: clang++, c: clang }
           - os: windows-latest
             compiler: { cpp: g++, c: gcc }
+          - os: ubuntu-latest
+            compiler: { cpp: cl, c: cl }
+          - os: macos-latest
+            compiler: { cpp: cl, c: cl }
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
