@@ -118,19 +118,19 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     micm::RosenbrockSolverParameters{}
   };
 
-  // micm::State<micm::Matrix> state = solver.GetState();
+  micm::State<micm::Matrix> state = solver.GetState();
 
-  // std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  // state.variables_[0] = concentrations;
-  // std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-  // state.custom_rate_parameters_[0] = photo_rates;
-  // state.conditions_[0].temperature_ = 2;
-  // state.conditions_[0].pressure_ = 3;
+  std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
+  state.variables_[0] = concentrations;
+  std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
+  state.custom_rate_parameters_[0] = photo_rates;
+  state.conditions_[0].temperature_ = 2;
+  state.conditions_[0].pressure_ = 3;
 
-  // for (double t{}; t < 100; ++t)
-  // {
-  //   state.custom_rate_parameters_[0] = photo_rates;
-  //   auto result = solver.Solve(t, t + 0.5, state);
-  //   // output state
-  // }
+  for (double t{}; t < 100; ++t)
+  {
+    state.custom_rate_parameters_[0] = photo_rates;
+    auto result = solver.Solve(t, t + 0.5, state);
+    // output state
+  }
 }
