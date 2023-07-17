@@ -71,45 +71,11 @@ __global__ void AddJacobianTerms_kernel(
       react_id_offset = 0, prod_id_offset = 0, yield_offset = 0, jacobian_id_idx = -1; 
       size_t* jacobian_flat_ids_ptr = jacobian_flat_ids; 
       initial_jacobian_idx = tid * rows_ids_size; 
-     
-     //loop over every reaction
       for (int i_rxn = 0; i_rxn < n_reactions; i_rxn++){
        printf ("reaction index %d\n",i_rxn); 
-       
-      //  //loop over reactant_number of every reaction 
-      //   for(int i_ind = 0; i_ind < number_of_reactants[i_rxn]; i_ind++){
-      //       double d_rate_d_int = rate_constants[i_rxn * n_grids + tid]; 
-      //       //loop over reactant_number of every reaction 
-            
-      //       for(int i_react = 0; i_react < number_of_reactants[i_rxn]; i_react++){
-      //          if(i_react == i_ind){
-      //             continue;}
-      //          d_rate_d_int *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
-      //          printf ("inside the first inner loop\n");
-      //         }//first inner for-loop
-            
-      //       printf ("about to get into the second inner loop\n");
-      
-            
-      //       for(int i_dep = 0; i_dep < number_of_reactants[i_rxn]; i_dep++){
-      //           printf ("inside the second inner loop\n");
-      //           int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++]; 
-      //           jacobian[jacobian_idx] -= d_rate_d_int; } //second inner for_loop
-            
-      //       printf ("about to get into the third inner loop\n"); 
-            
-      //       for (int i_dep = 0; i_dep < number_of_products[i_rxn]; i_dep++){
-      //           int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids_ptr[jacobian_id_idx++]; 
-      //           jacobian[jacobian_idx] += yields[yield_offset + i_dep] * d_rate_d_int; 
-      //           printf("inside the third loop\n"); 
-      //         } //third innder for_loop
-          } //loop over number of reactants in a reaction
-          // react_id_offset += number_of_reactants[i_rxn]; 
-          // yield_offset += number_of_products[i_rxn];  
-         } //loop over every reaction in a grid 
-      
-       } //check valid tid 
-      
+      }
+    }//check for valid tid 
+  }// end of AddJacobianTerms_kernel
     
 
     void AddForcingTerms_kernelSetup(
@@ -173,7 +139,7 @@ __global__ void AddJacobianTerms_kernel(
         int num_block = (ngrids + block_size - 1)/block_size; 
         
         //kernel function call
-        AddForcingTerms_kernel<<num_block, block_size >>(
+        AddForcingTerms_kernel<<<num_block, block_size>>>(
             d_rate_constants, 
             d_state_variables, 
             d_forcing, 
@@ -257,7 +223,7 @@ __global__ void AddJacobianTerms_kernel(
         cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size, cudaMemcpyHostToDevice); 
 
         //total thread count == n_grids 
-        int block_size = 320; 
+        int block_size = 32; 
         int num_blocks = (n_grids + block_size -1)/block_size; 
         //kernel function call
         AddJacobianTerms_kernel<<<num_blocks, block_size>>>(
@@ -288,7 +254,6 @@ __global__ void AddJacobianTerms_kernel(
         cudaFree(d_product_ids);
         cudaFree(d_yields);
         cudaFree(d_jacobian_flat_ids); 
-}//end of AddJacobianTerms_kernelSetup function 
-
+    }//end of AddJacobianTerms_kernelSetup function 
   } // namespace cuda 
 }     // namespace micm
