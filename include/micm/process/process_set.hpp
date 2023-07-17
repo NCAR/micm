@@ -201,9 +201,7 @@ namespace micm
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_forcing = i_group * forcing.GroupSize();
 
-      std::vector<double> rate;
-      rate.reserve(L);
-
+      std::vector<double> rate(L, 0.0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
