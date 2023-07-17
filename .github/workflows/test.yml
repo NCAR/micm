@@ -88,9 +88,9 @@ jobs:
       fail-fast: false
       matrix:
         compiler:
-          - { cpp: g++, c: gcc, tool: mingw }
-          - { cpp: clang++, c: clang, tool: msys2 }
-          - { cpp: cl, c: cl, tool: vsdevcmd }
+          - { cpp: g++, c: gcc, tool: mingw, cmake_generator: "MinGW Makefiles" }
+          - { cpp: clang++, c: clang, tool: msys2, cmake_generator: "MSYS Makefiles" }
+          - { cpp: cl, c: cl, tool: vsdevcmd, cmake_generator: "Visual Studio 16 2019" }
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
@@ -100,7 +100,7 @@ jobs:
   
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-      
+  
       - name: Install Build Tools
         run: |
           choco install ${{ matrix.compiler.tool }}
@@ -109,11 +109,12 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER="${{ matrix.compiler.c }}" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.cpp }}"
-          cmake --build . --verbose 
+          cmake .. -G "${{ matrix.compiler.cmake_generator }}" -DENABLE_REGRESSION_TESTS=OFF
+          cmake --build . --verbose
   
       - name: Run tests
         run: |
           cd build
           ctest -C Debug --rerun-failed --output-on-failure .
+  
   
