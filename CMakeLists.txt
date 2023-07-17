@@ -45,6 +45,13 @@ option(BUILD_DOCS "Build the documentation" OFF)
 
 include(cmake/dependencies.cmake)
 
+# if(MSVC)
+#     # Enable additional warnings
+#     add_compile_options(/W4)
+#     # Treat warnings as errors
+#     add_compile_options(/WX)
+# endif()
+
 ################################################################################
 # micm targets and documentation
 

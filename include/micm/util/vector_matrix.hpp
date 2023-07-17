@@ -58,7 +58,9 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              iter += L;
+              if ((iter - matrix_.data_.begin() + L) < matrix_.data_.size()){
+                iter += L;
+              }
             });
         return *this;
       }
