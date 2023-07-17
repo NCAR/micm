@@ -66,7 +66,8 @@ __global__ void AddJacobianTerms_kernel(
   
     
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
-    if (tid < n_grids * n_reactions){
+    int rate_constants_size = n_grids*n_reactions; 
+    if (tid < rate_constants_size){
     double d_rate_d_ind = rate_constants[tid]; 
     int grid_idx = tid % n_grids; 
     int reaction_idx = (tid = grid_idx)/n_grids; 
@@ -272,7 +273,8 @@ __global__ void AddJacobianTerms_kernel(
 
         //total thread count == n_grids 
         int block_size = 320; 
-        int num_blocks = ((n_grids*n_reactions) + block_size -1)/block_size; 
+        int N = n_grids * n_reactions; 
+        int num_blocks = (N + block_size -1)/block_size; 
         //kernel function call
         AddJacobianTerms_kernel<<<num_blocks, block_size>>>(
           d_rate_constants,
