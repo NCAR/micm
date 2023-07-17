@@ -16,8 +16,8 @@ RUN apt update \
     && apt clean 
 
 # set compilers
+ENV CC=icx
 ENV CXX=icx
-ENV CC=icc
 ENV FC=ifort
 
 # Netcdf-C
