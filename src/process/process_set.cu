@@ -272,7 +272,7 @@ __global__ void AddJacobianTerms_kernel(
 
         //total thread count == n_grids 
         int block_size = 320; 
-        int num_blocks = (n_grids + block_size -1)/block_size; 
+        int num_blocks = ((n_grids*n_reactions) + block_size -1)/block_size; 
         //kernel function call
         AddJacobianTerms_kernel<<<num_blocks, block_size>>>(
           d_rate_constants,
