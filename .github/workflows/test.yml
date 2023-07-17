@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   docker-build-and-test:
+    name: Build and Test - ${{ matrix.dockerfile }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -45,6 +46,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.info
+          
   multiplatform:
     runs-on: ${{ matrix.os }}
     strategy:
