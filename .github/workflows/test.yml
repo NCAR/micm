@@ -109,7 +109,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER=${{ matrix.compiler.c }}" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.cpp }}"
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF -DCMAKE_C_COMPILER="${{ matrix.compiler.c }}" -DCMAKE_CXX_COMPILER="${{ matrix.compiler.cpp }}"
           cmake --build . --verbose 
 
       - name: Run tests
