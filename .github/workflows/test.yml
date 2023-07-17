@@ -45,15 +45,23 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.info
-  linux_and_macos:
+  multiplatform:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
         compiler:
-          - {cpp: g++-12, c: gcc-12}
-          - {cpp: clang++, c: clang}
+          - { cpp: g++, c: gcc}
+          - { cpp: clang++, c: clang}
+          - { cpp: cl, c: cl }
+        exclude:
+          - os: windows-latest
+            compiler: { cpp: clang++, c: clang }
+          - os: windows-latest
+            compiler: { cpp: g++, c: gcc }
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
@@ -62,11 +70,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install CMake
+        if: matrix.os == 'windows-latest'
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+
+      - name: Install CMake
+        if: matrix.os != 'windows-latest'
         run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             sudo apt-get update
             sudo apt-get install -y cmake
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             brew install cmake
           fi
 
@@ -74,34 +87,10 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. \
-            -DENABLE_REGRESSION_TESTS=OFF
-          make VERBOSE=1
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF
+          cmake --build . --verbose
 
       - name: Run tests
         run: |
           cd build
-          make test ARGS="--rerun-failed --output-on-failure -j8"
-  windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-  
-      - name: Install CMake
-        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-  
-      - name: Configure and build
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DENABLE_REGRESSION_TESTS=OFF
-          cmake --build . --verbose
-  
-      - name: Run tests
-        run: |
-          cd build
           ctest -C Debug --rerun-failed --output-on-failure . --verbose
-  
-  
-  
