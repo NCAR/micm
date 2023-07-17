@@ -82,19 +82,16 @@ __global__ void AddJacobianTerms_kernel(
     //loop over over num_reactants of every reaction
     for (int i_ind = 0; i_ind < num_reactants; i_ind++){
         for (int i_react = 0; i_react < num_reactants; i_react){
-          printf("inside first inner loop\n"); 
           if (i_ind != i_react){
             d_rate_d_ind *= state_variables[reactant_ids[initial_reactant_ids_idx+ i_react] * n_grids + tid]; 
           }
         }
         for(int i_dep = 0; i_dep < num_reactants;i_dep++){
-          printf("inside second inner loop\n"); 
           int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids[initial_jacobian_flat_ids_idx+i_dep];
           acc_jacobian_flat_ids_idx = initial_jacobian_flat_ids_idx+i_dep;
           jacobian[jacobian_idx] -= d_rate_d_ind; 
         }
         for (int i_dep = 0; i_dep < num_products; i_dep++){
-          printf("inside third inner loop\n"); 
           int jacobian_idx = initial_jacobian_idx + jacobian_flat_ids[acc_jacobian_flat_ids_idx + i_dep]; 
           jacobian[jacobian_idx] += yields[initial_yields_idx + i_dep] * d_rate_d_ind;
         }
