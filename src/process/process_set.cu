@@ -75,8 +75,13 @@ __global__ void AddJacobianTerms_kernel(
           printf ("reaction index %d\n",i_rxn); 
           for(int i_ind = 0; i_ind < number_of_reactants[i_rxn]; i_ind++){
              double d_rate_d_int = rate_constants[i_rxn * n_grids + tid]; 
+             for (int i_react = 0; i_react < number_of_reactants[i_rxn]; i_react++){
+              if (i_react != i_ind){
+                d_rate_d_int *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
+              }
+             }//second inner loop
        }//first inner loop
-      }
+      }//loop over num_reactions
     }//check for valid tid 
   }// end of AddJacobianTerms_kernel
     
