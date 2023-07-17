@@ -63,14 +63,14 @@ __global__ void AddJacobianTerms_kernel(
   size_t* jacobian_flat_ids,
   size_t* acc_n_jacobian_flat_ids,
   size_t row_ids_size){
-  
     
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
     int rate_constants_size = n_grids*n_reactions; 
+    printf(rate_constants_size)
     if (tid < rate_constants_size){
     double d_rate_d_ind = rate_constants[tid]; 
     int grid_idx = tid % n_grids; 
-    int reaction_idx = (tid = grid_idx)/n_grids; 
+    int reaction_idx = (tid - grid_idx)/n_grids; 
     int num_reactants = number_of_reactants[reaction_idx]; 
     int num_products = number_of_products[reaction_idx];
     int initial_reactant_ids_idx = acc_n_reactants[reaction_idx]; 
