@@ -58,9 +58,8 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              if ((iter - matrix_.data_.begin() + L) < matrix_.data_.size()){
-                iter += L;
-              }
+              // don't iterate passed the end of the vector
+              iter += std::min(L, static_cast<std::size_t>(matrix_.data_.end() - iter));
             });
         return *this;
       }
