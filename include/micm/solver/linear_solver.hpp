@@ -141,13 +141,24 @@ namespace micm
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
-          *x_elem = *(y_elem--);
+          *x_elem = *(y_elem);
+          // don't iterate before the beginning of the vector
+          if (y_elem != y_cell.begin())
+          {
+            --y_elem;
+          }
+          
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             *x_elem -= upper_matrix_.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
             ++Uij_xj;
           }
-          *(x_elem--) /= upper_matrix_.AsVector()[upper_grid_offset + nUij_Uii.second];
+          
+          // don't iterate before the beginning of the vector
+          *(x_elem) /= upper_matrix_.AsVector()[upper_grid_offset + nUij_Uii.second];
+          if (x_elem != x_cell.begin()){
+            --x_elem;
+          }
         }
       }
     }
