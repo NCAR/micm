@@ -206,8 +206,11 @@ namespace micm
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             x_elem[i_cell] = y_elem[i_cell];
+            
           // don't iterate before the beginning of the vector
-          y_elem -= std::min(n_cells, static_cast<std::size_t>(y_elem - x.AsVector().begin()));
+          std::size_t y_elem_distance = std::distance(x.AsVector().begin(), y_elem);
+          y_elem -= std::min(n_cells, y_elem_distance);
+
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
@@ -216,8 +219,10 @@ namespace micm
           }
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             x_elem[i_cell] /= U_group[nUij_Uii.second + i_cell];
+
           // don't iterate before the beginning of the vector
-          x_elem -= std::min(n_cells, static_cast<std::size_t>(x_elem - x.AsVector().begin()));
+          std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
+          x_elem -= std::min(n_cells, x_elem_distance);
         }
       }
     }

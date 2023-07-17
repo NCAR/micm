@@ -59,7 +59,8 @@ namespace micm
             {
               *iter = elem;
               // don't iterate passed the end of the vector
-              iter += std::min(L, static_cast<std::size_t>(matrix_.data_.end() - iter));
+              std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+              iter += std::min(L, remaining_elements);
             });
         return *this;
       }
@@ -71,7 +72,8 @@ namespace micm
         {
           elem = *iter;
           // don't iterate passed the end of the vector
-          iter += std::min(L, static_cast<std::size_t>(matrix_.data_.end() - iter));
+          std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+          iter += std::min(L, remaining_elements);
         }
         return vec;
       }
@@ -167,7 +169,8 @@ namespace micm
                   {
                     *iter = elem;
                     // don't iterate passed the end of the vector
-                    iter += std::min(L, static_cast<std::size_t>(data.end() - iter));
+                    std::size_t remaining_elements = std::distance(iter, data.end());
+                    iter += std::min(L, remaining_elements);
                   }
                   ++i_row;
                 }
