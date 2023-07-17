@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   docker-build-and-test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     name: Build and Test - ${{ matrix.dockerfile }}
     runs-on: ubuntu-latest
     strategy:
@@ -46,8 +47,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.info
-          
+
   multiplatform:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
