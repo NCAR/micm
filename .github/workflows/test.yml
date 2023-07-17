@@ -3,97 +3,87 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  # docker-build-and-test:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest]
-  #       dockerfile:
-  #         - Dockerfile
-  #         - Dockerfile.coverage
-  #         - Dockerfile.memcheck
-  #         - Dockerfile.no_json
-  #         - Dockerfile.nvhpc
-  #         - Dockerfile.intel
-  #         # - Dockerfile.openmp
-  #         # - Dockerfile.mpi
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #       with:
-  #         submodules: recursive
-
-  #     - name: Build Docker image
-  #       run: docker build -t micm -f ${{ matrix.dockerfile }} .
-
-  #     - name: Run tests in container
-  #       if: matrix.dockerfile != 'Dockerfile.coverage'
-  #       run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-
-  #     - name: Run coverage tests in container
-  #       if: matrix.dockerfile == 'Dockerfile.coverage'
-  #       run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
-
-  #     - name: Copy coverage from container
-  #       if: matrix.dockerfile == 'Dockerfile.coverage'
-  #       run: docker cp test-container:build/coverage.info .
-
-  #     - name: Upload coverage report
-  #       if: matrix.dockerfile == 'Dockerfile.coverage'
-  #       uses: codecov/codecov-action@v3
-  #       with:
-  #         token: ${{ secrets.CODECOV_TOKEN }}
-  #         files: coverage.info
-  # linux_and_macos:
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [macos-latest, ubuntu-latest]
-  #       compiler:
-  #         - {cpp: g++-12, c: gcc-12}
-  #         - {cpp: clang++, c: clang}
-  #   env:
-  #     CC: ${{ matrix.compiler.c }}
-  #     CXX: ${{ matrix.compiler.cpp }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-
-  #     - name: Install CMake
-  #       run: |
-  #         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-  #           sudo apt-get update
-  #           sudo apt-get install -y cmake
-  #         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-  #           brew install cmake
-  #         fi
-
-  #     - name: Configure and build
-  #       run: |
-  #         mkdir build
-  #         cd build
-  #         cmake .. \
-  #           -DENABLE_REGRESSION_TESTS=OFF
-  #         make VERBOSE=1
-
-  #     - name: Run tests
-  #       run: |
-  #         cd build
-  #         make test ARGS="--rerun-failed --output-on-failure -j8"
-  windows:
-    runs-on: windows-latest
+  docker-build-and-test:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
+        dockerfile:
+          - Dockerfile
+          - Dockerfile.coverage
+          - Dockerfile.memcheck
+          - Dockerfile.no_json
+          - Dockerfile.nvhpc
+          - Dockerfile.intel
+          # - Dockerfile.openmp
+          # - Dockerfile.mpi
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build Docker image
+        run: docker build -t micm -f ${{ matrix.dockerfile }} .
+
+      - name: Run tests in container
+        if: matrix.dockerfile != 'Dockerfile.coverage'
+        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Run coverage tests in container
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Copy coverage from container
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        run: docker cp test-container:build/coverage.info .
+
+      - name: Upload coverage report
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.info
+  linux_and_macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
         compiler:
-          - { cpp: g++, c: gcc, tool: mingw, cmake_generator: "MinGW Makefiles" }
-          - { cpp: clang++, c: clang, tool: msys2, cmake_generator: "MSYS Makefiles" }
-          - { cpp: cl, c: cl, cmake_generator: "Visual Studio 17 2022" }
+          - {cpp: g++-12, c: gcc-12}
+          - {cpp: clang++, c: clang}
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install CMake
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            brew install cmake
+          fi
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. \
+            -DENABLE_REGRESSION_TESTS=OFF
+          make VERBOSE=1
+
+      - name: Run tests
+        run: |
+          cd build
+          make test ARGS="--rerun-failed --output-on-failure -j8"
+  windows:
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -101,21 +91,17 @@ jobs:
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
   
-      - name: Install Build Tools
-        if: matrix.compiler.c != 'cl'
-        run: |
-          choco install ${{ matrix.compiler.tool }}
-  
       - name: Configure and build
         run: |
           mkdir build
           cd build
-          cmake .. -G "${{ matrix.compiler.cmake_generator }}" -DENABLE_REGRESSION_TESTS=OFF
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF
           cmake --build . --verbose
   
       - name: Run tests
         run: |
           cd build
           ctest -C Debug --rerun-failed --output-on-failure . --verbose
+  
   
   
