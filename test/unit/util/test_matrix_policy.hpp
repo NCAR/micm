@@ -112,7 +112,6 @@ const MatrixPolicy<int> testLoopOverConstMatrix()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<double> testConversionToVector()
 {
-   std::cout << "here\n";
   MatrixPolicy<double> matrix{ 2, 3, 0.0 };
 
   matrix[1][0] = 13.2;

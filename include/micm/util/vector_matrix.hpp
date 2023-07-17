@@ -70,7 +70,8 @@ namespace micm
         for (auto &elem : vec)
         {
           elem = *iter;
-          iter += L;
+          // don't iterate passed the end of the vector
+          iter += std::min(L, static_cast<std::size_t>(matrix_.data_.end() - iter));
         }
         return vec;
       }
@@ -165,7 +166,8 @@ namespace micm
                   for (auto &elem : other_row)
                   {
                     *iter = elem;
-                    iter += L;
+                    // don't iterate passed the end of the vector
+                    iter += std::min(L, static_cast<std::size_t>(data.end() - iter));
                   }
                   ++i_row;
                 }
