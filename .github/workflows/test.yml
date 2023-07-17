@@ -90,7 +90,7 @@ jobs:
         compiler:
           - { cpp: g++, c: gcc, tool: mingw, cmake_generator: "MinGW Makefiles" }
           - { cpp: clang++, c: clang, tool: msys2, cmake_generator: "MSYS Makefiles" }
-          - { cpp: cl, c: cl, cmake_generator: "Visual Studio 16 2019" }
+          - { cpp: cl, c: cl, cmake_generator: "Visual Studio" }
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
