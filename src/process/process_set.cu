@@ -66,7 +66,7 @@ __global__ void AddJacobianTerms_kernel(
     
     int tid = blockIdx.x * blockDim.x + threadIdx.x; 
     int rate_constants_size = n_grids*n_reactions; 
-    printf(rate_constants_size)
+    printf(rate_constants_size);
     if (tid < rate_constants_size){
     double d_rate_d_ind = rate_constants[tid]; 
     int grid_idx = tid % n_grids; 
@@ -81,7 +81,6 @@ __global__ void AddJacobianTerms_kernel(
     printf("tid: %d\n", tid); 
     //loop over over num_reactants of every reaction
     for (int i_ind = 0; i_ind < num_reactants; i_ind++){
-         printf("tid: %d\n, reactant_count %d\n", tid, i_ind); 
         for (int i_react = 0; i_react < num_reactants; i_react){
           printf("inside first inner loop\n"); 
           if (i_ind != i_react){

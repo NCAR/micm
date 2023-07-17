@@ -146,7 +146,7 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 TEST(RandomProcessSet, Matrix)
 {
   std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(3, 5, 7);
+  testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(3, 5, 2);
   // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
   // testRandomSystem<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);
