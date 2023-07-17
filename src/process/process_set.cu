@@ -78,7 +78,8 @@ __global__ void AddJacobianTerms_kernel(
     int initial_jacobian_flat_ids_idx = acc_n_jacobian_flat_ids[reaction_idx]; 
     int acc_jacobian_flat_ids_idx = 0; 
     int initial_jacobian_idx = grid_idx * row_ids_size; 
-    printf("tid: %d\n", tid); 
+    printf("tid: %d\n, num_reactants: %d\n", tid, num_reactants); 
+
     //loop over over num_reactants of every reaction
     for (int i_ind = 0; i_ind < num_reactants; i_ind++){
         for (int i_react = 0; i_react < num_reactants; i_react){
