@@ -68,9 +68,10 @@ __global__ void AddJacobianTerms_kernel(
     int rate_constants_size = n_grids*n_reactions; 
     
     if (tid < rate_constants_size){
+    
     double d_rate_d_ind = rate_constants[tid]; 
-    int grid_idx = tid % n_grids; 
-    int reaction_idx = (tid - grid_idx)/n_grids; 
+    int grid_idx = tid % n_reactions; 
+    int reaction_idx = (tid - grid_idx)/n_reactions; 
     int num_reactants = number_of_reactants[reaction_idx]; 
     int num_products = number_of_products[reaction_idx];
     int initial_reactant_ids_idx = acc_n_reactants[reaction_idx]; 
@@ -82,6 +83,7 @@ __global__ void AddJacobianTerms_kernel(
 
     //loop over over num_reactants of every reaction
     for (int i_ind = 0; i_ind < num_reactants; i_ind++){
+        
         for (int i_react = 0; i_react < num_reactants; i_react){
           if (i_ind != i_react){
             d_rate_d_ind *= state_variables[reactant_ids[initial_reactant_ids_idx+ i_react] * n_grids + tid]; 
