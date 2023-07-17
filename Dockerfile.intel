@@ -39,7 +39,7 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_REGRESSION_TESTS=OFF \
-        ../micm 
-      # && make -j 8 install
+        ../micm \
+      && make -j 8 install
 
 WORKDIR /build
