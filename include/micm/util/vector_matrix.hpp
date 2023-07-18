@@ -7,6 +7,7 @@
 #include <cmath>
 #include <micm/util/exit_codes.hpp>
 #include <vector>
+#include <algorithm>
 
 namespace micm
 {
@@ -57,7 +58,9 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              iter += L;
+              // don't iterate passed the end of the vector
+              std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+              iter += std::min(L, remaining_elements);
             });
         return *this;
       }
@@ -68,7 +71,9 @@ namespace micm
         for (auto &elem : vec)
         {
           elem = *iter;
-          iter += L;
+          // don't iterate passed the end of the vector
+          std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+          iter += std::min(L, remaining_elements);
         }
         return vec;
       }
@@ -163,7 +168,9 @@ namespace micm
                   for (auto &elem : other_row)
                   {
                     *iter = elem;
-                    iter += L;
+                    // don't iterate passed the end of the vector
+                    std::size_t remaining_elements = std::distance(iter, data.end());
+                    iter += std::min(L, remaining_elements);
                   }
                   ++i_row;
                 }

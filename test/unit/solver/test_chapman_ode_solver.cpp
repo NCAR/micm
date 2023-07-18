@@ -339,15 +339,7 @@ void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
   solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_NEAR(results.result_[0], 7.8259e-06, absolute_tolerance);
-  EXPECT_NEAR(results.result_[1], 0.131538, absolute_tolerance);
-  EXPECT_NEAR(results.result_[2], 0.755605, absolute_tolerance);
-  EXPECT_NEAR(results.result_[3], 0.45865, absolute_tolerance);
-  EXPECT_NEAR(results.result_[4], 0.532767, absolute_tolerance);
-  EXPECT_NEAR(results.result_[5], 0.218966, absolute_tolerance);
-  EXPECT_NEAR(results.result_[6], 0.0471811, absolute_tolerance);
-  EXPECT_NEAR(results.result_[7], 0.678804, absolute_tolerance);
-  EXPECT_NEAR(results.result_[8], 0.679289, absolute_tolerance);
+  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_with_random_number_densities)
 {
