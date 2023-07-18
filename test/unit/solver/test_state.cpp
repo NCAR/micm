@@ -44,8 +44,8 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 
 TEST(State, SetConcentrations)
 {
-  short num_grid_cells = 3;
-  short num_species = 4;
+  uint32_t num_grid_cells = 3;
+  uint32_t num_species = 4;
 
   micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
                                                           .number_of_grid_cells_ = num_grid_cells,
@@ -108,8 +108,8 @@ TEST(State, SettingPhotolysisRateWithInvalidArguementsThrowsException)
 
 TEST(State, SetPhotolysisRate)
 {
-  short num_grid_cells = 3;
-  short num_custom_params = 5;
+  uint32_t num_grid_cells = 3;
+  uint32_t num_custom_params = 5;
 
   micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
                                                           .number_of_grid_cells_ = num_grid_cells,

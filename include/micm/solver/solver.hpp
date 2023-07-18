@@ -53,10 +53,11 @@ namespace micm
       }
     };
 
+    template<typename R>
     struct [[nodiscard]] SolverResult
     {
       /// @brief The new state computed by the solver
-      std::vector<double> result_{};
+      R result_{};
       /// @brief The finals state the solver was in
       SolverState state_ = SolverState::NotYetCalled;
       /// @brief A collection of runtime state for this call of the solver

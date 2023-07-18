@@ -13,8 +13,12 @@
 
 using yields = std::pair<micm::Species, double>;
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
+
 #ifdef USE_JSON
 #  include <micm/configure/solver_config.hpp>
+
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
@@ -27,7 +31,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{ solver_params.system_,
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
                                                                    std::move(solver_params.processes_),
                                                                    micm::RosenbrockSolverParameters{} };
 
@@ -57,7 +61,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   for (double t{}; t < 100; ++t)
   {
     state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
-    auto result = solver.Solve(t, t + 0.5, state);
+    auto result = solver.Solve(30.0, state);
     // output state
   }
 }
@@ -122,7 +126,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
     micm::RosenbrockSolverParameters{}
@@ -140,7 +144,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   for (double t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
-    auto result = solver.Solve(t, t + 0.5, state);
+    auto result = solver.Solve(30.0, state);
     // output state
   }
 }

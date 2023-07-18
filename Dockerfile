@@ -38,6 +38,6 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
-      && make 
+      && make install -j 8
 
 WORKDIR /build
