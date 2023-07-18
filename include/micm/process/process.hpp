@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <micm/process/rate_constant.hpp>
+#include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <utility>
@@ -22,7 +23,7 @@ namespace micm
   };
 
   class ProcessBuilder;
-  
+
   struct Process
   {
     std::vector<Species> reactants_;
@@ -41,11 +42,15 @@ namespace micm
     Process(ProcessBuilder& builder);
     Process(const Process& other);
 
-    Process(const std::vector<Species>& reactants, const std::vector<Yield>& products, std::unique_ptr<RateConstant> rate_constant, const Phase& phase)
+    Process(
+        const std::vector<Species>& reactants,
+        const std::vector<Yield>& products,
+        std::unique_ptr<RateConstant> rate_constant,
+        const Phase& phase)
         : reactants_(reactants),
-        products_(products),
-        rate_constant_(std::move(rate_constant)),
-        phase_(phase)
+          products_(products),
+          rate_constant_(std::move(rate_constant)),
+          phase_(phase)
     {
     }
   };

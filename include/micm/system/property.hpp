@@ -17,16 +17,13 @@ namespace micm
   {
    public:
     /// @brief The name of this property
-    const std::string name_;
+    std::string name_;
     /// @brief The units
-    const std::string units_;
+    std::string units_;
     /// @brief The value of this property
-    const double value_;
+    double value_;
 
    public:
-    /// @brief Default constructor is not allowed
-    Property() = delete;
-
     /// @brief Constructs a property
     /// @param name The name of this property
     /// @param units The units of the value
@@ -35,6 +32,14 @@ namespace micm
         : name_(name),
           units_(units),
           value_(value)
+    {
+    }
+
+    /// @brief Copy constructor
+    Property(const Property& other)
+        : name_(other.name_),
+          units_(other.units_),
+          value_(other.value_)
     {
     }
   };

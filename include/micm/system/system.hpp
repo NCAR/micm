@@ -7,8 +7,8 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace micm
 {
@@ -26,17 +26,47 @@ namespace micm
   {
    public:
     /// @brief The gas phase is a micm::Phase and determines what species are present.
-    const Phase gas_phase_;
+    Phase gas_phase_;
     /// @brief This is a catchall for anything that is not the gas phase.
-    const std::unordered_map<std::string, Phase> phases_;
+    std::unordered_map<std::string, Phase> phases_;
 
    public:
     /// @brief Default constructor
-    System();
+    System()
+        : gas_phase_(),
+          phases_()
+    {
+    }
 
-    /// @brief
-    /// @param gas_phase
-    System(const SystemParameters& parameters);
+    System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
+        : gas_phase_(gas_phase),
+          phases_(phases)
+    {
+    }
+
+    System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
+        : gas_phase_(std::move(gas_phase)),
+          phases_(std::move(phases))
+    {
+    }
+
+    System(const System& other)
+        : gas_phase_(other.gas_phase_),
+          phases_(other.phases_)
+    {
+    }
+
+    System(System&& other)
+        : gas_phase_(std::move(other.gas_phase_)),
+          phases_(std::move(other.phases_))
+    {
+    }
+
+    System(const SystemParameters& parameters)
+        : gas_phase_(parameters.gas_phase_),
+          phases_(parameters.phases_)
+    {
+    }
 
     /// @brief Returns the number of doubles required to store the system state
     size_t StateSize() const;
@@ -44,18 +74,6 @@ namespace micm
     /// @brief Returns a set of unique species names
     std::vector<std::string> UniqueNames() const;
   };
-
-  inline micm::System::System()
-      : gas_phase_(),
-        phases_()
-  {
-  }
-
-  inline System::System(const SystemParameters& parameters)
-      : gas_phase_(parameters.gas_phase_),
-        phases_(parameters.phases_)
-  {
-  }
 
   inline size_t System::StateSize() const
   {
@@ -67,13 +85,17 @@ namespace micm
     return state_size;
   }
 
-  inline std::vector<std::string> System::UniqueNames() const {
+  inline std::vector<std::string> System::UniqueNames() const
+  {
     std::vector<std::string> names{};
-    for (auto& species: gas_phase_.species_) {
+    for (auto& species : gas_phase_.species_)
+    {
       names.push_back(species.name_);
     }
-    for (auto& phase: phases_) {
-      for (auto &species: phase.second.species_) {
+    for (auto& phase : phases_)
+    {
+      for (auto& species : phase.second.species_)
+      {
         names.push_back(phase.first + "." + species.name_);
       }
     }

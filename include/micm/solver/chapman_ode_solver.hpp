@@ -12,6 +12,7 @@
 #include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/solver.hpp>
+#include <micm/solver/state.hpp>
 #include <string>
 #include <vector>
 
