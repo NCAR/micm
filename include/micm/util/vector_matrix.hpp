@@ -208,6 +208,29 @@ namespace micm
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
+    void ForEach(const std::function<void(T&, T&)>f, VectorMatrix& a)
+    {
+      auto this_iter = data_.begin();
+      auto a_iter = a.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i) f(*(this_iter++), *(a_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t y = 0; y < y_dim_; ++y)
+        for (std::size_t x = 0; x < l; ++x) f(this_iter[y * L + x], a_iter[y * L + x]);
+    }
+
+    void ForEach(const std::function<void(T&, T&, T&)>f, VectorMatrix& a, VectorMatrix& b)
+    {
+      auto this_iter = data_.begin();
+      auto a_iter = a.AsVector().begin();
+      auto b_iter = b.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i) f(*(this_iter++), *(a_iter++), *(b_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t y = 0; y < y_dim_; ++y)
+        for (std::size_t x = 0; x < l; ++x) f(this_iter[y * L + x], a_iter[y * L + x], b_iter[y * L + x]);
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;

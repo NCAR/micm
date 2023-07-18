@@ -79,7 +79,7 @@ namespace micm
     /// @param time_end Time step to end at
     /// @param state The system state to solve for
     /// @return A struct containing results and a status code
-    Solver::SolverResult Solve(double time_start, double time_end, State<>& state) noexcept;
+    Solver::SolverResult<std::vector<double>> Solve(double time_start, double time_end, State<>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -245,7 +245,7 @@ namespace micm
     return State<Matrix>{ 9, 3, 7 };
   }
 
-  inline Solver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
+  inline Solver::SolverResult<std::vector<double>> ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(state.variables_[0]);
@@ -257,7 +257,7 @@ namespace micm
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    Solver::SolverResult result{};
+    Solver::SolverResult<std::vector<double>> result{};
     stats_.reset();
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
