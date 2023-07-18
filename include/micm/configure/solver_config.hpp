@@ -108,11 +108,13 @@ namespace micm
     bool is_parse_success_ = false;
 
     // Constants
+    // Configure files 
     static const inline std::string SPECIES_CONFIG = "species.json";
     static const inline std::string MECHANISM_CONFIG = "mechanism.json";
     static const inline std::string REACTIONS_CONFIG = "reactions.json";
     static const inline std::string TOLERANCE_CONFIG = "tolerance.json";
 
+    // Common JSON 
     static const inline std::string CAMP_DATA = "camp-data";
     static const inline std::string TYPE = "type";
 
@@ -285,12 +287,12 @@ namespace micm
     bool ParseChemicalSpecies(const json& object)
     {
       // required keys
-      static const std::string NAME = "name";
+      const std::string NAME = "name";
 
       // optional keys
-      static const std::string ABS_TOL = "absolute tolerance";
-      static const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
-      static const std::string MOL_WEIGHT_UNIT = "kg mol-1";
+      const std::string ABS_TOL = "absolute tolerance";
+      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
+      const std::string MOL_WEIGHT_UNIT = "kg mol-1";
 
       std::array<std::string, 1> required_keys = { NAME };
 
@@ -347,12 +349,12 @@ namespace micm
 
     bool ParsePhotolysis(const json& object)
     {
-      static const std::string REACTANTS = "reactants";
-      static const std::string PRODUCTS = "products";
-      static const std::string MUSICA_NAME = "MUSICA name";
-      static const std::string YIELD = "yield";
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string MUSICA_NAME = "MUSICA name";
+      const std::string YIELD = "yield";
 
-      const static double DEFAULT_YEILD = 1.0;
+      constexpr double DEFAULT_YEILD = 1.0;
 
       for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
       {
@@ -391,11 +393,11 @@ namespace micm
 
     bool ParseArrhenius(const json& object)
     {
-      static const std::string REACTANTS = "reactants";
-      static const std::string PRODUCTS = "products";
-      static const std::string YIELD = "yield";
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string YIELD = "yield";
 
-      const double DEFAULT_YEILD = 1.0;
+      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -462,11 +464,11 @@ namespace micm
 
     bool ParseTroe(const json& object)
     {
-      static const std::string REACTANTS = "reactants";
-      static const std::string PRODUCTS = "products";
-      static const std::string YIELD = "yield";
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string YIELD = "yield";
 
-      const double DEFAULT_YEILD = 1.0;
+      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
