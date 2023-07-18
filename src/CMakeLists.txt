@@ -14,8 +14,6 @@ target_include_directories(micm
     $<INSTALL_INTERFACE:include>
 )
 
-set(CMAKE_CUDA_ARCHITECTURES 80)
-
 if(ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
