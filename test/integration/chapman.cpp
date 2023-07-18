@@ -13,8 +13,12 @@
 
 using yields = std::pair<micm::Species, double>;
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
+
 #ifdef USE_JSON
 #  include <micm/configure/solver_config.hpp>
+
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
   micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
@@ -27,7 +31,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   micm::SolverParameters& solver_params = *solver_params_ptr;
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{ solver_params.system_,
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
                                                                    std::move(solver_params.processes_),
                                                                    micm::RosenbrockSolverParameters{} };
 
@@ -108,7 +112,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
     micm::RosenbrockSolverParameters{}
