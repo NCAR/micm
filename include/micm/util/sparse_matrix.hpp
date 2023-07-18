@@ -152,7 +152,7 @@ namespace micm
 
     SparseMatrix() = default;
 
-    SparseMatrix(SparseMatrixBuilder<T, OrderingPolicy>& builder)
+    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : number_of_blocks_(builder.number_of_blocks_),
           row_ids_(builder.RowIdsVector()),
           row_start_(builder.RowStartVector()),
@@ -160,7 +160,7 @@ namespace micm
    {
     }
 
-    SparseMatrix<T, OrderingPolicy>& operator=(SparseMatrixBuilder<T, OrderingPolicy>& builder)
+    SparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       number_of_blocks_ = builder.number_of_blocks_;
       row_ids_ = builder.RowIdsVector();
