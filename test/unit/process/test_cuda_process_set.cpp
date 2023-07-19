@@ -74,19 +74,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   MatrixPolicy<double> gpu_forcing{ };
   gpu_forcing = cpu_forcing; 
 
-  
-  //kernel function call 
-  // double t0 = 0.0; 
-  // for (int i = 0; i < 100; i++)
-  // {
-  //   auto start = std::chrono::steady_clock::now(); 
-  //   gpu_set.AddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
-  //   auto end = std::chrono::steady_clock::now(); 
-  //   std::chrono::duration<double> duration = end - start;
-  //   t0 = t0 + duration.count(); 
-  // }
-  // std::cout << "time performance: "<< t0/100 <<std::endl; 
-
   //kernel function call 
   gpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing); 
     
