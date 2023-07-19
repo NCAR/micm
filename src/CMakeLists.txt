@@ -7,7 +7,7 @@ configure_file(version.hpp.in ${PROJECT_SOURCE_DIR}/include/micm/version.hpp @ON
 add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 
-# target_compile_features(micm INTERFACE cxx_std_20)
+target_compile_features(micm INTERFACE cxx_std_20)
 
 # for some reason intel doesn't link a standard library
 if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
