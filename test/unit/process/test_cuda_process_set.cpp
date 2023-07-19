@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <micm/process/process_set_cuda.cuh>
+#include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <iostream>
@@ -60,7 +60,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet set{ processes, state };
+  micm::ProcessSet cpu_set{ processes, state };
+  micm::CudaProcessSet gpu_set{ processes, state };
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
@@ -79,7 +80,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   // for (int i = 0; i < 100; i++)
   // {
   //   auto start = std::chrono::steady_clock::now(); 
-  //   set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
+  //   gpu_set.AddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
   //   auto end = std::chrono::steady_clock::now(); 
   //   std::chrono::duration<double> duration = end - start;
   //   t0 = t0 + duration.count(); 
@@ -87,10 +88,10 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   // std::cout << "time performance: "<< t0/100 <<std::endl; 
 
   //kernel function call 
-  set.CudaAddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing); 
+  gpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing); 
     
   //CPU function call
-  set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, cpu_forcing); 
+  cpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, cpu_forcing); 
 
   //checking accuracy with comparison between CPU and GPU result 
   std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
