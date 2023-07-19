@@ -299,7 +299,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
+  inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
       double time_step,
       State<MatrixPolicy>& state) noexcept
   {
