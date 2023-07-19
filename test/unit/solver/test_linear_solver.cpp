@@ -60,7 +60,8 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3)
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(
+                                      SparseMatrixPolicy<double>::create(3)
                                      .initial_value(1.0e-30)
                                      .with_element(0, 0)
                                      .with_element(0, 1)
@@ -70,7 +71,7 @@ void testDenseMatrix()
                                      .with_element(1, 2)
                                      .with_element(2, 0)
                                      .with_element(2, 1)
-                                     .with_element(2, 2);
+                                     .with_element(2, 2));
   MatrixPolicy<double> b(1, 3, 0.0);
   MatrixPolicy<double> x(1, 3, 100.0);
 
@@ -152,19 +153,21 @@ void testDiagonalMatrix()
       A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
+template<class T>
+using SparseMatrix = micm::SparseMatrix<T>;
 TEST(LinearSolver, DenseMatrixStandardOrdering)
 {
-  testDenseMatrix<micm::Matrix, micm::SparseMatrix>();
+  testDenseMatrix<micm::Matrix, SparseMatrix>();
 }
 
 TEST(LinearSolver, RandomMatrixStandardOrdering)
 {
-  testRandomMatrix<micm::Matrix, micm::SparseMatrix>();
+  testRandomMatrix<micm::Matrix, SparseMatrix>();
 }
 
 TEST(LinearSolver, DiagonalMatrixStandardOrdering)
 {
-  testDiagonalMatrix<micm::Matrix, micm::SparseMatrix>();
+  testDiagonalMatrix<micm::Matrix, SparseMatrix>();
 }
 
 template<class T>

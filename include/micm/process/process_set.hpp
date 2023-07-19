@@ -205,9 +205,9 @@ namespace micm
       std::size_t offset_rc = i_group * rate_constants.GroupSize();
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_forcing = i_group * forcing.GroupSize();
+      std::vector<double> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        double rate[L];
         for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
@@ -301,7 +301,7 @@ namespace micm
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
-          double d_rate_d_ind[L];
+          std::vector<double> d_rate_d_ind(L, 0);
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)

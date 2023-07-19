@@ -47,9 +47,12 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
 // quz   -    8    -    9    -
 // quuz 10    -   11    -    12
 
+template<class T>
+using SparseMatrix = micm::SparseMatrix<T>;
+
 TEST(ChapmanODESolver, DefaultConstructor)
 {
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{};
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrix> solver{};
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -80,7 +83,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
-  solver.alpha_minus_jacobian(jacobian, 42.042);
+  solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
@@ -101,10 +104,10 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<micm::Matrix, micm::SparseMatrix>(1);
-  testAlphaMinusJacobian<micm::Matrix, micm::SparseMatrix>(2);
-  testAlphaMinusJacobian<micm::Matrix, micm::SparseMatrix>(3);
-  testAlphaMinusJacobian<micm::Matrix, micm::SparseMatrix>(4);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(1);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(2);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(3);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(4);
 }
 
 template<class T>

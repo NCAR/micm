@@ -6,7 +6,7 @@
 
 #include "util.hpp"
 
-TEST(RegressionRosenbrock, dforce_dy)
+TEST(RegressionRosenbrock, CalculateJacobian)
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };
@@ -23,7 +23,7 @@ TEST(RegressionRosenbrock, dforce_dy)
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
 
   auto& jacobian = solver.jacobian_;
-  solver.dforce_dy(state.rate_constants_, state.variables_, jacobian);
+  solver.CalculateJacobian(state.rate_constants_, state.variables_, jacobian);
 
   for (std::size_t i{}; i < 3; ++i)
   {

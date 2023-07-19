@@ -3,75 +3,103 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  build_tests:
-    runs-on: ubuntu-latest
+  docker-build-and-test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  # build_tests_with_openmp:
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: recursive
-  #   - name: build Docker image
-  #     run: docker build -t micm -f Dockerfile.openmp .
-  #   - name: run tests in container
-  #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  # build_tests_with_mpi:
-  #   runs-on: ubuntu-latest
-  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: recursive
-  #   - name: build Docker image
-  #     run: docker build -t micm -f Dockerfile.mpi .
-  #   - name: run tests in container
-  #     run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  build_tests_with_memcheck:
+    name: Build and Test - ${{ matrix.dockerfile }}
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        dockerfile:
+          - Dockerfile
+          - Dockerfile.coverage
+          - Dockerfile.memcheck
+          - Dockerfile.no_json
+          - Dockerfile.nvhpc
+          - Dockerfile.intel
+          # - Dockerfile.openmp
+          # - Dockerfile.mpi
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.memcheck .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
-  build_tests_for_coverage:
-    runs-on: ubuntu-latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build Docker image
+        run: docker build -t micm -f ${{ matrix.dockerfile }} .
+
+      - name: Run tests in container
+        if: matrix.dockerfile != 'Dockerfile.coverage'
+        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Run coverage tests in container
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Copy coverage from container
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        run: docker cp test-container:build/coverage.info .
+
+      - name: Upload coverage report
+        if: matrix.dockerfile == 'Dockerfile.coverage'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.info
+
+  multiplatform:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        compiler:
+          - { cpp: g++, c: gcc}
+          - { cpp: clang++, c: clang}
+          - { cpp: cl, c: cl }
+        exclude:
+          - os: windows-latest
+            compiler: { cpp: clang++, c: clang }
+          - os: windows-latest
+            compiler: { cpp: g++, c: gcc }
+          - os: ubuntu-latest
+            compiler: { cpp: cl, c: cl }
+          - os: macos-latest
+            compiler: { cpp: cl, c: cl }
+    env:
+      CC: ${{ matrix.compiler.c }}
+      CXX: ${{ matrix.compiler.cpp }}
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.coverage .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make coverage ARGS="--rerun-failed --output-on-failure -j8"'
-    - name: copy coverage from container
-      run: docker cp test-container:build/coverage.info .
-    - uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.info
-  build_tests_without_json:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: build Docker image
-      run: docker build -t micm -f Dockerfile.no_json .
-    - name: run tests in container
-      run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install CMake
+        if: matrix.os == 'windows-latest'
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+
+      - name: Install CMake
+        if: matrix.os != 'windows-latest'
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew install cmake
+          fi
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DENABLE_REGRESSION_TESTS=OFF
+          cmake --build . --verbose
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest -C Debug --rerun-failed --output-on-failure . --verbose

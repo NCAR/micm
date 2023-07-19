@@ -58,7 +58,7 @@ TEST(RegressionRosenbrock, forcing)
   std::generate(begin(rate_const_vec), end(rate_const_vec), [&]() { return dist(engine); });
 
   micm::Matrix<double> forcing(3, 9);
-  solver.force(state.rate_constants_, state.variables_, forcing);
+  solver.CalculateForcing(state.rate_constants_, state.variables_, forcing);
 
   for (std::size_t i{}; i < 3; ++i)
   {

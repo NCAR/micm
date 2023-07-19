@@ -34,12 +34,20 @@ namespace micm
         : species_(species)
     {
     }
+    Phase(const Phase& other)
+        : species_(other.species_)
+    {
+    }
 
-    Phase operator=(const Phase& other);
+    Phase(Phase&& phase) noexcept
+        : species_(std::move(phase.species_))
+    {
+    }
+
+    Phase& operator=(const Phase& other)
+    {
+      species_ = other.species_;
+      return *this;
+    }
   };
-
-  Phase Phase::operator=(const Phase& other)
-  {
-    return Phase{ other.species_ };
-  }
 }  // namespace micm
