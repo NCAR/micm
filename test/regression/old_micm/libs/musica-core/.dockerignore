@@ -1,9 +1,0 @@
-# ignore all
-*
-
-# add things to copy
-!CMakeLists.txt
-!SetDefaults.cmake
-!cmake-modules/
-!src/
-!test/

@@ -79,12 +79,13 @@ namespace micm
   {
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {
-      std::vector<double>::const_iterator custom_parameters = state.custom_rate_parameters_[i].begin();
-      std::vector<double>::iterator rate_constant = state.rate_constants_[i].begin();
+      std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
+      std::vector<double>::const_iterator custom_parameters_iter = custom_parameters.begin();
+      std::size_t i_rate_constant = 0;
       for (auto& process : processes)
       {
-        *(rate_constant++) = process.rate_constant_->calculate(state.conditions_[i], custom_parameters);
-        custom_parameters += process.rate_constant_->SizeCustomParameters();
+        state.rate_constants_[i][(i_rate_constant++)] = process.rate_constant_->calculate(state.conditions_[i], custom_parameters_iter);
+        custom_parameters_iter += process.rate_constant_->SizeCustomParameters();
       }
     }
   }
