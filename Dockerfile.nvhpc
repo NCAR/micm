@@ -14,7 +14,6 @@ RUN apt update \
       cmake-curses-gui \
       curl \
       libcurl4-openssl-dev \
-      libhdf5-dev \
       m4 \
       vim \
       zlib1g-dev \
@@ -25,16 +24,6 @@ ENV CXX=nvc++
 ENV CC=nvc
 ENV FC=nvfortran
 
-# Netcdf-C
-RUN curl -LO https://github.com/Unidata/netcdf-c/archive/v4.8.0.tar.gz \
-    && tar -zxvf v4.8.0.tar.gz \
-    && cd netcdf-c-4.8.0 \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make -j$(nproc) \
-    && make install
-
 # Micm
 COPY . /micm/
 
@@ -43,9 +32,8 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
-        -D ENABLE_REGRESSION_TESTS:BOOL=FALSE \
+        -D ENABLE_REGRESSION_TESTS=OFF \
         -D ENABLE_CUDA=ON \
-        -D ENABLE_OPENACC=OFF \
         -D GPU_TYPE="a100" \
         ../micm \
       && make -j 8 install
