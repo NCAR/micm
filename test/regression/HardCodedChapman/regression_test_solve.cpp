@@ -89,7 +89,7 @@ TEST(RegressionChapmanODESolver, solve)
       state.conditions_[0].temperature_, state.conditions_[0].pressure_, state.conditions_[0].air_density_, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, state);
 
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
   EXPECT_NEAR(results.result_[0], f_results[0], absolute_tolerance);
   EXPECT_NEAR(results.result_[1], f_results[1], absolute_tolerance);
@@ -127,7 +127,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_larger)
       state.conditions_[0].temperature_, state.conditions_[0].pressure_, state.conditions_[0].air_density_, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, state);
 
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
   EXPECT_NEAR(results.result_[0], f_results[0], absolute_tolerance);
   EXPECT_NEAR(results.result_[1], f_results[1], absolute_tolerance);
@@ -165,7 +165,7 @@ TEST(RegressionChapmanODESolver, solve_10_times_smaller)
       state.conditions_[0].temperature_, state.conditions_[0].pressure_, state.conditions_[0].air_density_, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, state);
 
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
   EXPECT_NEAR(results.result_[0], f_results[0], absolute_tolerance);
   EXPECT_NEAR(results.result_[1], f_results[1], absolute_tolerance);
@@ -202,7 +202,7 @@ TEST(RegressionChapmanODESolver, solve_with_random_number_densities)
       state.conditions_[0].temperature_, state.conditions_[0].pressure_, state.conditions_[0].air_density_, time_start, time_end, solver, state, number_densities);
   auto results = solver.Solve(time_start, time_end, state);
 
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
   EXPECT_EQ(results.result_.size(), f_results.size());
   EXPECT_NEAR(results.result_[0], f_results[0], absolute_tolerance);
   EXPECT_NEAR(results.result_[1], f_results[1], absolute_tolerance);

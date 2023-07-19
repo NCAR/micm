@@ -11,7 +11,6 @@
 #include <iostream>
 #include <limits>
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <string>
 #include <vector>
@@ -58,8 +57,45 @@ namespace micm
   class ChapmanODESolver
   {
    public:
+    enum class SolverState
+    {
+      NotYetCalled,
+      Converged,
+      ConvergenceExceededMaxSteps,
+      StepSizeTooSmall,
+      RepeatedlySingularMatrix
+    };
+
+    struct SolverStats
+    {
+      uint64_t function_calls{};    // Nfun
+      uint64_t jacobian_updates{};  // Njac
+      uint64_t number_of_steps{};   // Nstp
+      uint64_t accepted{};          // Nacc
+      uint64_t rejected{};          // Nrej
+      uint64_t decompositions{};    // Ndec
+      uint64_t solves{};            // Nsol
+      uint64_t singular{};          // Nsng
+      uint64_t total_steps{};       // Ntotstp
+
+      void Reset();
+      std::string State(const ChapmanODESolver::SolverState& state) const;
+    };
+
+    struct [[nodiscard]] SolverResult
+    {
+      /// @brief The new state computed by the solver
+      std::vector<double> result_{};
+      /// @brief The finals state the solver was in
+      SolverState state_ = SolverState::NotYetCalled;
+      /// @brief A collection of runtime state for this call of the solver
+      SolverStats stats_{};
+      /// @brief The final time the solver iterated to
+      double final_time_{};
+    };
+    
     ChapmanParameters parameters_;
-    Solver::Rosenbrock_stats stats_;
+    SolverStats stats_;
     std::size_t number_sparse_factor_elements_ = 23;
 
     static constexpr double delta_min_ = 1.0e-5;
@@ -80,7 +116,7 @@ namespace micm
     /// @param time_end Time step to end at
     /// @param state The system state to solve for
     /// @return A struct containing results and a status code
-    Solver::SolverResult<std::vector<double>> Solve(double time_start, double time_end, State<>& state) noexcept;
+    SolverResult Solve(double time_start, double time_end, State<>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -167,6 +203,33 @@ namespace micm
         std::vector<double> errors);
   };
 
+  void ChapmanODESolver::SolverStats::Reset()
+  {
+        function_calls = 0;
+        jacobian_updates = 0;
+        number_of_steps = 0;
+        accepted = 0;
+        rejected = 0;
+        decompositions = 0;
+        solves = 0;
+        singular = 0;
+        total_steps = 0;
+  }
+
+  std::string ChapmanODESolver::SolverStats::State(const ChapmanODESolver::SolverState& state) const
+  {
+    switch (state)
+    {
+      case ChapmanODESolver::SolverState::NotYetCalled: return "Not Yet Called";
+      case ChapmanODESolver::SolverState::Converged: return "Converged";
+      case ChapmanODESolver::SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
+      case ChapmanODESolver::SolverState::StepSizeTooSmall: return "Step Size Too Small";
+      case ChapmanODESolver::SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
+      default: return "Unknown";
+    }
+    return "";
+  }
+
   inline ChapmanODESolver::ChapmanODESolver()
   {
     three_stage_rosenbrock();
@@ -246,7 +309,7 @@ namespace micm
     return State<Matrix>{ 9, 3, 7 };
   }
 
-  inline Solver::SolverResult<std::vector<double>> ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
+  inline ChapmanODESolver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(state.variables_[0]);
@@ -258,8 +321,8 @@ namespace micm
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    Solver::SolverResult<std::vector<double>> result{};
-    stats_.reset();
+    ChapmanODESolver::SolverResult result{};
+    stats_.Reset();
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
     {
@@ -273,13 +336,13 @@ namespace micm
     {
       if (stats_.number_of_steps > parameters_.max_number_of_steps_)
       {
-        result.state_ = Solver::SolverState::ConvergenceExceededMaxSteps;
+        result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
       }
 
       if (((present_time + 0.1 * H) == present_time) || (H <= parameters_.round_off_))
       {
-        result.state_ = Solver::SolverState::StepSizeTooSmall;
+        result.state_ = SolverState::StepSizeTooSmall;
         break;
       }
 
@@ -302,7 +365,7 @@ namespace micm
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
-          result.state_ = Solver::SolverState::RepeatedlySingularMatrix;
+          result.state_ = SolverState::RepeatedlySingularMatrix;
           break;
         }
 
@@ -410,10 +473,10 @@ namespace micm
       }
     }
 
-    result.T = present_time;
+    result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
-    result.state_ = Solver::SolverState::Converged;
+    result.state_ = SolverState::Converged;
 
     return result;
   }

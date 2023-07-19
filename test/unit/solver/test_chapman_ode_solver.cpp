@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <micm/solver/chapman_ode_solver.hpp>
-#include <micm/solver/solver.hpp>
 #include <random>
 
 static const double absolute_tolerance = 1e-4;
@@ -225,7 +224,7 @@ void TestSolve(micm::ChapmanODESolver& solver)
   solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
   EXPECT_NEAR(results.result_[0], 1, absolute_tolerance);
   EXPECT_NEAR(results.result_[1], 0.392, absolute_tolerance);
   EXPECT_NEAR(results.result_[2], 0.0169, absolute_tolerance);
@@ -339,7 +338,7 @@ void TestSolveWithRandomNumberDensities(micm::ChapmanODESolver& solver)
   solver.UpdateState(state);
 
   auto results = solver.Solve(time_start, time_end, state);
-  EXPECT_EQ(results.state_, micm::Solver::SolverState::Converged);
+  EXPECT_EQ(results.state_, micm::ChapmanODESolver::SolverState::Converged);
 }
 TEST(ChapmanMechanismHardCodedAndGeneral, solve_with_random_number_densities)
 {
