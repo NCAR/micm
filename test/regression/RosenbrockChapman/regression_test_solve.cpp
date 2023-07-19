@@ -1,16 +1,21 @@
 #include <gtest/gtest.h>
 
-#include <micm/solver/chapman_ode_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
 
+#include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-TEST(RegressionRosenbrock, Solve)
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+void testSolve()
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getMultiCellChapmanSolver(3);
+  auto solver = getMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
 
   auto state = solver.GetState();
   auto fixed_state = fixed_solver.GetState();
@@ -61,4 +66,40 @@ TEST(RegressionRosenbrock, Solve)
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + abs_tol);
     }
+}
+
+template <class T>
+using DenseMatrix = micm::Matrix<T>;
+template <class T>
+using SparseMatrix = micm::SparseMatrix<T>;
+
+template<class T>
+using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+template<class T>
+using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
+template<class T>
+using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
+template<class T>
+using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+
+TEST(RegressionRosenbrock, Solve)
+{
+  testSolve<DenseMatrix, SparseMatrix>();
+}
+
+TEST(RegressionRosenbrock, VectorSolve)
+{
+  testSolve<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testSolve<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testSolve<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testSolve<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }

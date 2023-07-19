@@ -1,2 +1,0 @@
-Preprocessed output from this commit:
-https://github.com/NCAR/micm/commit/225f58db19d5323fca54a5a9fdca94a708309855#diff-7faad6bea7bc1a8b191d2908703506fe169fc3b9cc2822e911c34731f2fe31ed

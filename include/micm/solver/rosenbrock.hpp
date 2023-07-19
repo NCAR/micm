@@ -361,7 +361,7 @@ namespace micm
         // Compute the stages
         {
           // the first stage (stage 0), inlined to remove a branch in the following for loop
-          linear_solver_.Solve(forcing, K[0]);
+          linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
 
           // stages (1-# of stages)
           for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
@@ -388,7 +388,7 @@ namespace micm
               }, K[j]);
             }
             temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-            linear_solver_.Solve(temp, K[stage]);
+            linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
           }
         }
 

@@ -13,7 +13,8 @@
 
 using yields = std::pair<micm::Species, double>;
 
-micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> getMultiCellChapmanSolver(const size_t number_of_grid_cells)
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getMultiCellChapmanSolver(const size_t number_of_grid_cells)
 {
   auto o = micm::Species("O");
   auto o1d = micm::Species("O1D");
@@ -73,7 +74,7 @@ micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> getMultiCellChapmanSolv
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  return micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix>(
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(std::vector<micm::Process>{ photo_1, photo_2, photo_3, r1, r2, r3, r4 }),
       micm::RosenbrockSolverParameters{ .number_of_grid_cells_ = number_of_grid_cells });

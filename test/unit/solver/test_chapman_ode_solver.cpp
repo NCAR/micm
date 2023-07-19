@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <micm/solver/chapman_ode_solver.hpp>
 #include <random>
+
+#include "../../regression/RosenbrockChapman/chapman_ode_solver.hpp"
 
 static const double absolute_tolerance = 1e-4;
 
