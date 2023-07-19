@@ -303,7 +303,7 @@ namespace micm
       double time_step,
       State<MatrixPolicy>& state) noexcept
   {
-    RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
+    typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
