@@ -6,16 +6,19 @@
 
 #pragma once
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/troe_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/constants.hpp>
 #include <nlohmann/json.hpp>
 #include <variant>
 
@@ -92,6 +95,7 @@ namespace micm
     // Read from reaction configure
     std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
+    std::vector<TroeRateConstant> troe_rate_arr_;
     std::vector<Species> emission_arr_;
     std::vector<Species> first_order_loss_arr_;
 
@@ -104,9 +108,13 @@ namespace micm
     bool is_parse_success_ = false;
 
     // Constants
+    // Configure files 
     static const inline std::string SPECIES_CONFIG = "species.json";
-    static const inline std::string REACTIONS_CONFIG = "mechanism.json";
+    static const inline std::string MECHANISM_CONFIG = "mechanism.json";
+    static const inline std::string REACTIONS_CONFIG = "reactions.json";
+    static const inline std::string TOLERANCE_CONFIG = "tolerance.json";
 
+    // Common JSON 
     static const inline std::string CAMP_DATA = "camp-data";
     static const inline std::string TYPE = "type";
 
@@ -116,19 +124,41 @@ namespace micm
     /// @return True for successful parsing
     bool Parse(const std::filesystem::path& config_dir)
     {
+      // Create configure paths
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
+      std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
+      std::filesystem::path tolerance_config(
+          config_dir / TOLERANCE_CONFIG);  // TODO: jiwon 7/13 - we don't need to worry about this now
 
-      // Check all the configure files exist
-      for (const auto& config : { species_config, reactions_config })
+      // Current reaction configs should be either mechanism_config or reactions config
+      std::filesystem::path cur_reactions_config;
+
+      // Check if species config exists
+      if (!std::filesystem::exists(species_config))
       {
-        if (!std::filesystem::exists(config))
-        {
-          std::string err_msg = "Configuration file at path " + config.string() + " does not exist\n";
-          this->OnError(err_msg);
+        std::string err_msg = "Species configuration file at path " + species_config.string() + " does not exist\n";
+        this->OnError(err_msg);
 
-          return false;
-        }
+        return false;
+      }
+
+      // Check if a reaction configure exists and decide which one
+      if (std::filesystem::exists(mechanism_config))
+      {
+        cur_reactions_config = mechanism_config;
+      }
+      else if (std::filesystem::exists(reactions_config))
+      {
+        cur_reactions_config = reactions_config;
+      }
+      else
+      {
+        std::string err_msg = "Reaction configuration file at path " + mechanism_config.string() + " or " +
+                              reactions_config.string() + " does not exist\n";
+        this->OnError(err_msg);
+
+        return false;
       }
 
       // Read species file to create Species and Phase that needs to be known to System and Process
@@ -139,7 +169,7 @@ namespace micm
       gas_phase_ = Phase(species_arr_);
 
       // Read reactions file
-      json reaction_data = json::parse(std::ifstream(reactions_config));
+      json reaction_data = json::parse(std::ifstream(cur_reactions_config));
 
       if (!ValidateJsonWithKey(reaction_data, CAMP_DATA))
         return false;
@@ -230,6 +260,11 @@ namespace micm
           if (!ParseArrhenius(object))
             return false;
         }
+        else if (type == "TROE")
+        {
+          if (!ParseTroe(object))
+            return false;
+        }
         else if (type == "EMISSION")
         {
           if (!ParseEmission(object))
@@ -251,23 +286,34 @@ namespace micm
 
     bool ParseChemicalSpecies(const json& object)
     {
-      std::vector<std::string> required_keys = { "name" };
-      std::vector<std::string> optional_keys = { "absolute tolerance" };
+      // required keys
+      const std::string NAME = "name";
 
+      // optional keys
+      const std::string ABS_TOL = "absolute tolerance";
+      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
+      const std::string MOL_WEIGHT_UNIT = "kg mol-1";
+
+      std::array<std::string, 1> required_keys = { NAME };
+
+      // Check if it contains the required key(s)
       for (const auto& key : required_keys)
       {
         if (!ValidateJsonWithKey(object, key))
           return false;
       }
 
-      std::string name = object["name"].get<std::string>();
+      // Check if it contains optional key(s)
+      std::string name = object[NAME].get<std::string>();
 
-      std::string key = "absolute tolerance";
-
-      if (object.contains(key))
+      if (object.contains(ABS_TOL))
       {
-        double abs_tol = object[key].get<double>();
-        auto species = Species(name, Property(key, "", abs_tol));
+        auto species = Species(name, Property(ABS_TOL, "", object[ABS_TOL].get<double>()));
+        species_arr_.push_back(species);
+      }
+      else if (object.contains(MOL_WEIGHT))
+      {
+        auto species = Species(name, Property(MOL_WEIGHT, MOL_WEIGHT_UNIT, object[MOL_WEIGHT].get<double>()));
         species_arr_.push_back(species);
       }
       else
@@ -308,7 +354,7 @@ namespace micm
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string YIELD = "yield";
 
-      const static double DEFAULT_YEILD = 1.0;
+      constexpr double DEFAULT_YEILD = 1.0;
 
       for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
       {
@@ -337,7 +383,7 @@ namespace micm
 
       std::string name = object[MUSICA_NAME].get<std::string>();
 
-      photolysis_rate_arr_.push_back(name);
+      photolysis_rate_arr_.push_back(PhotolysisRateConstant(name));
 
       std::unique_ptr<PhotolysisRateConstant> rate_ptr = std::make_unique<PhotolysisRateConstant>(name);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
@@ -351,7 +397,7 @@ namespace micm
       const std::string PRODUCTS = "products";
       const std::string YIELD = "yield";
 
-      const double DEFAULT_YEILD = 1.0;
+      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -401,11 +447,93 @@ namespace micm
       {
         parameters.E_ = object["E"].get<double>();
       }
+      if (object.contains("Ea"))
+      {
+        // Calculate 'C' using 'Ea'
+        parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
+      }
 
-      arrhenius_rate_arr_.push_back(parameters);
+      arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
 
-      std::unique_ptr<ArrheniusRateConstant> rate_ptr =
-          std::make_unique<ArrheniusRateConstant>(ArrheniusRateConstantParameters(parameters));
+      std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return true;
+    }
+
+    bool ParseTroe(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string YIELD = "yield";
+
+      constexpr double DEFAULT_YEILD = 1.0;
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, PRODUCTS })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return false;
+      }
+
+      // Create process
+      std::vector<Species> reactants;
+      for (auto& [key, value] : object[REACTANTS].items())
+      {
+        reactants.push_back(Species(key));
+      }
+
+      std::vector<std::pair<Species, double>> products;
+      for (auto& [key, value] : object[PRODUCTS].items())
+      {
+        if (value.contains(YIELD))
+        {
+          products.push_back(std::make_pair(Species(key), value[YIELD]));
+        }
+        else
+        {
+          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
+        }
+      }
+
+      TroeRateConstantParameters parameters;
+      if (object.contains("k0_A"))
+      {
+        parameters.k0_A_ = object["k0_A"].get<double>();
+      }
+      if (object.contains("k0_B"))
+      {
+        parameters.k0_B_ = object["k0_B"].get<double>();
+      }
+      if (object.contains("k0_C"))
+      {
+        parameters.k0_C_ = object["k0_C"].get<double>();
+      }
+      if (object.contains("kinf_A"))
+      {
+        parameters.kinf_A_ = object["kinf_A"].get<double>();
+      }
+      if (object.contains("kinf_B"))
+      {
+        parameters.kinf_B_ = object["kinf_B"].get<double>();
+      }
+      if (object.contains("kinf_C"))
+      {
+        parameters.kinf_C_ = object["kinf_C"].get<double>();
+      }
+      if (object.contains("Fc"))
+      {
+        parameters.Fc_ = object["Fc"].get<double>();
+      }
+      if (object.contains("N"))
+      {
+        parameters.N_ = object["N"].get<double>();
+      }
+
+      troe_rate_arr_.push_back(TroeRateConstant(parameters));
+
+      std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
