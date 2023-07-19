@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <micm/solver/chapman_ode_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <random>
 
+#include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
 TEST(RegressionRosenbrock, rate_constants)
