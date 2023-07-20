@@ -23,6 +23,6 @@ RUN mkdir /build \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D ENABLE_MPI:BOOL=TRUE \
         ../micm \
-      && make -j 8
+      && make install -j 8
 
 WORKDIR /build

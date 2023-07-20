@@ -51,6 +51,12 @@ namespace micm
         const System& system,
         const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
 
+    /// @brief Set a single species concentration
+    /// @param species the species to set the concentration for
+    /// @param concentration concentration(s) [mol m-3]
+    void SetConcentration(const Species& species, double concentration);
+    void SetConcentration(const Species& species, std::vector<double> concentration);
+
     /// @brief Set photolysis rate constants
     /// @param photolysis rate
     void SetPhotolysisRate(
@@ -153,6 +159,24 @@ namespace micm
                              concentrations.begin() + (num_species * i) + num_species };
       variables_[i] = sub_concentrations;
     }
+  }
+
+  template<template<class> class MatrixPolicy>
+  void State<MatrixPolicy>::SetConcentration(const Species& species, double concentration)
+  {
+    if (variables_.size() != 1)
+      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+    variables_[0][variable_map_[species.name_]] = concentration;
+  }
+
+  template<template<class> class MatrixPolicy>
+  void State<MatrixPolicy>::SetConcentration(const Species& species, std::vector<double> concentration)
+  {
+    if (variables_.size() != concentration.size())
+      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+    std::size_t i_species = variable_map_[species.name_];
+    for (std::size_t i = 0; i < variables_.size(); ++i)
+      variables_[i][i_species] = concentration[i];
   }
 
   template<template<class> class MatrixPolicy>

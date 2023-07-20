@@ -5,6 +5,7 @@ Model Independent Chemical Mechanisms.
 
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 
 Copyright (C) 2018-2020 National Center for Atmospheric Research
 
@@ -44,8 +45,6 @@ make test
 # Building and installing
 To build and install MICM locally, you must have the following libraries installed:
 
-- [json-fortran](https://github.com/jacobwilliams/json-fortran) This is only required for the regression tests.
-
 - [sphinx](https://github.com/sphinx-doc/sphinx)
 - [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
 - [sphinx-design](https://github.com/executablebooks/sphinx-design)
@@ -62,7 +61,7 @@ and run the following commands:
 To build and run the stand-alone version of MICM, you must have [Docker Desktop](https://www.docker.com/get-started) installed and running. With Docker Desktop running, open a terminal window and run the following command to start the MICM container:
 
 ```
-docker run -it ghcr.io/ncar/mcim:release bash
+docker run -it ghcr.io/ncar/micm:release bash
 ```
 
 Inside the container, you can run the MICM tests from the `/build/` folder:
@@ -73,15 +72,17 @@ cd build/
 make test
 ```
 
-## Build and run (local build version)
+## Local installation
 
 ```
 git clone https://github.com/NCAR/micm.git
-cd mcim
+cd micm
 mkdir build
 cd build
 ccmake ..
-make -j 8
+make install -j 8
+# to run the tests
+make test
 ```
 
 ## Install

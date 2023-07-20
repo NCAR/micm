@@ -28,6 +28,7 @@
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <string>
 #include <vector>
@@ -73,7 +74,7 @@ namespace micm
   /// @brief An implementation of the Chapman mechnanism solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
   class RosenbrockSolver
   {
    public:
@@ -131,7 +132,7 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    RosenbrockSolver(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters parameters);
+    RosenbrockSolver(const System& system, const std::vector<Process>& processes, const RosenbrockSolverParameters parameters);
 
     virtual ~RosenbrockSolver();
 
@@ -249,10 +250,10 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver(
       const System& system,
-      std::vector<Process>&& processes,
+      const std::vector<Process>& processes,
       const RosenbrockSolverParameters parameters)
       : system_(system),
-        processes_(std::move(processes)),
+        processes_(processes),
         parameters_(parameters),
         process_set_(processes_, GetState()),
         stats_(),
