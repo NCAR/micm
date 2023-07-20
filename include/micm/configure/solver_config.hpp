@@ -539,9 +539,8 @@ namespace micm
   };
 
   /// @brief Public interface to read and parse config
-  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, template<class> class ErrorPolicy = ThrowPolicy>
-  class SolverConfig : public ConfigTypePolicy<ErrorPolicy<std::exception>>  // TODO jiwon 7/3 : what should be the template
-                                                                             // speciailization for this?
+  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, class ErrorPolicy = ThrowPolicy>
+  class SolverConfig : public ConfigTypePolicy<ErrorPolicy>
   {
    public:
     /// @brief Reads and parses configures

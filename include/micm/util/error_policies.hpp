@@ -8,7 +8,6 @@
 namespace micm
 {
   // JSON-Parsing error policies
-  template<class Object>
   class ThrowPolicy
   {
     class Exception : public std::exception
@@ -29,20 +28,26 @@ namespace micm
     };
 
    public:
-    Object OnError(std::string message)
+    void OnError(std::string message)
     {
       throw Exception(message.c_str());
     }
   };
 
-  template<class Object>
-  class NoThrowPolicy
+  class LogToStandardErrorPolicy
   {
    public:
-    Object OnError(std::string message)
+    void OnError(std::string message)
     {
       std::cerr << message << std::endl;
-      return Object();
+    }
+  };
+
+  class IgnoreErrorsPolicy
+  {
+   public:
+    void OnError(std::string message)
+    {
     }
   };
 
