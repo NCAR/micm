@@ -5,7 +5,7 @@
 
 #include <cassert>
 #include <vector>
-
+#include <iostream>
 #include <micm/util/exit_codes.hpp>
 
 namespace micm

@@ -15,6 +15,7 @@ namespace micm
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
+    protected:
     std::vector<std::size_t> number_of_reactants_;
     std::vector<std::size_t> reactant_ids_;
     std::vector<std::size_t> number_of_products_;
@@ -100,7 +101,7 @@ namespace micm
     }
   };
 
-  std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
+  inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
@@ -125,7 +126,7 @@ namespace micm
   }
 
   template<typename OrderingPolicy>
-  void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
@@ -164,15 +165,20 @@ namespace micm
       auto react_id = reactant_ids_.begin();
       auto prod_id = product_ids_.begin();
       auto yield = yields_.begin();
+
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         double rate = cell_rate_constants[i_rxn];
+
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           rate *= cell_state[react_id[i_react]];
+
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           cell_forcing[react_id[i_react]] -= rate;
+
         for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
           cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
+
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
@@ -228,20 +234,28 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
+    // cell_jacobian is an iterator  -> update after each row
     auto cell_jacobian = jacobian.AsVector().begin();
+
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];
-      auto cell_state = state_variables[i_cell];
+      auto cell_rate_constants = rate_constants[i_cell];  // rate of every reaction in a grid
+      auto cell_state = state_variables[i_cell];          // state of every specie in a grid
+
+      // every grid starts with every react_id, yield and flat_id
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
+
+      // loop over reactions
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
+        // loop over number of reactants of a reaction
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
           double d_rate_d_ind = cell_rate_constants[i_rxn];
+
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
             if (i_react == i_ind)
@@ -249,13 +263,16 @@ namespace micm
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+
             cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+            // flat_id (iterator) is not reset from previous loop
             cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
       }
+      // increment cell_jacobian after each row
       cell_jacobian += jacobian.FlatBlockSize();
     }
   }

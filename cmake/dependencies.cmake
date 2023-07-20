@@ -80,3 +80,15 @@ if(BUILD_DOCS)
   find_package(Doxygen REQUIRED)
   find_package(Sphinx REQUIRED)
 endif()
+
+################################################################################
+# GPU Support
+
+if(ENABLE_CUDA)
+  find_package(CUDA REQUIRED)
+  enable_language(CUDA)
+endif()
+
+if(ENABLE_OPENACC)
+  find_package(OpenACC REQUIRED)
+endif()

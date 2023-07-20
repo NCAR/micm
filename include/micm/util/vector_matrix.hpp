@@ -23,8 +23,8 @@ namespace micm
   class VectorMatrix
   {
     std::vector<T> data_;
-    std::size_t x_dim_;
-    std::size_t y_dim_;
+    std::size_t x_dim_; //number of rows 
+    std::size_t y_dim_; //number of columns
 
     friend class Proxy;
     friend class ConstProxy;
@@ -32,7 +32,7 @@ namespace micm
     class Proxy
     {
       VectorMatrix &matrix_;
-      std::size_t group_index_;
+      std::size_t group_index_; 
       std::size_t row_index_;
       std::size_t y_dim_;
 
