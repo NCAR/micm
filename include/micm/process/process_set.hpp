@@ -15,6 +15,7 @@ namespace micm
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
+    protected:
     std::vector<std::size_t> number_of_reactants_;
     std::vector<std::size_t> reactant_ids_;
     std::vector<std::size_t> number_of_products_;

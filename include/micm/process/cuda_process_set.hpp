@@ -16,23 +16,36 @@ namespace micm
   /// @brief A GPU-based implementation of ProcessSet
   class CudaProcessSet : public ProcessSet
   {
+    public:
+    /// @brief Create a process set calculator for a given set of processes
+    /// @param processes Processes to create calculator for
+    /// @param state Solver state
+    template<template<class> class MatrixPolicy>
+    CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
+
 #ifdef USE_CUDA
     template<template<class> typename MatrixPolicy>
       requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const override;
+        MatrixPolicy<double>& forcing) const;
 #endif
   };
+
+  template<template<class> class MatrixPolicy>
+  inline CudaProcessSet::CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
+      : ProcessSet(processes, state)
+  {
+  }
 
 #ifdef USE_CUDA
   template<template<class> class MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>
-  inline void ProcessSet::AddForcingTerms(
+  inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing)
+      MatrixPolicy<double>& forcing) const
   {
     micm::cuda::AddForcingTerms_kernelSetup(
         rate_constants.AsVector().data(),
