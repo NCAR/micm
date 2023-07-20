@@ -26,7 +26,6 @@
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/linear_solver.hpp>
-#include <micm/solver/solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -78,11 +77,48 @@ namespace micm
   class RosenbrockSolver
   {
    public:
+    enum class SolverState
+    {
+      NotYetCalled,
+      Converged,
+      ConvergenceExceededMaxSteps,
+      StepSizeTooSmall,
+      RepeatedlySingularMatrix
+    };
+
+    struct SolverStats
+    {
+      uint64_t function_calls{};    // Nfun
+      uint64_t jacobian_updates{};  // Njac
+      uint64_t number_of_steps{};   // Nstp
+      uint64_t accepted{};          // Nacc
+      uint64_t rejected{};          // Nrej
+      uint64_t decompositions{};    // Ndec
+      uint64_t solves{};            // Nsol
+      uint64_t singular{};          // Nsng
+      uint64_t total_steps{};       // Ntotstp
+
+      void Reset();
+      std::string State(const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const;
+    };
+
+    struct [[nodiscard]] SolverResult
+    {
+      /// @brief The new state computed by the solver
+      MatrixPolicy<double> result_{};
+      /// @brief The finals state the solver was in
+      SolverState state_ = SolverState::NotYetCalled;
+      /// @brief A collection of runtime state for this call of the solver
+      SolverStats stats_{};
+      /// @brief The final time the solver iterated to
+      double final_time_{};
+    };
+
     const System system_;
     const std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     ProcessSet process_set_;
-    Solver::Rosenbrock_stats stats_;
+    SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
     LinearSolver<double, SparseMatrixPolicy> linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
@@ -106,7 +142,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    Solver::SolverResult<MatrixPolicy<double>> Solve(double time_step, State<MatrixPolicy>& state) noexcept;
+    SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -166,6 +202,35 @@ namespace micm
         MatrixPolicy<double> new_number_densities,
         MatrixPolicy<double> errors);
   };
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::Reset()
+  {
+        function_calls = 0;
+        jacobian_updates = 0;
+        number_of_steps = 0;
+        accepted = 0;
+        rejected = 0;
+        decompositions = 0;
+        solves = 0;
+        singular = 0;
+        total_steps = 0;
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const
+  {
+    switch (state)
+    {
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NotYetCalled: return "Not Yet Called";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Converged: return "Converged";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::StepSizeTooSmall: return "Step Size Too Small";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
+      default: return "Unknown";
+    }
+    return "";
+  }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
@@ -234,18 +299,18 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline Solver::SolverResult<MatrixPolicy<double>> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
+  inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
       double time_step,
       State<MatrixPolicy>& state) noexcept
   {
-    Solver::SolverResult<MatrixPolicy<double>> result{};
+    typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
-    stats_.reset();
+    stats_.Reset();
     for(std::size_t i = 0; i < parameters_.stages_; ++i) K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
 
     double present_time = 0.0;
@@ -262,13 +327,13 @@ namespace micm
     {
       if (stats_.number_of_steps > parameters_.max_number_of_steps_)
       {
-        result.state_ = Solver::SolverState::ConvergenceExceededMaxSteps;
+        result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
       }
 
       if (((present_time + 0.1 * H) == present_time) || (H <= parameters_.round_off_))
       {
-        result.state_ = Solver::SolverState::StepSizeTooSmall;
+        result.state_ = SolverState::StepSizeTooSmall;
         break;
       }
 
@@ -289,7 +354,7 @@ namespace micm
         stats_.jacobian_updates += 1;
         if (is_singular)
         {
-          result.state_ = Solver::SolverState::RepeatedlySingularMatrix;
+          result.state_ = SolverState::RepeatedlySingularMatrix;
           break;
         }
 
@@ -387,10 +452,10 @@ namespace micm
       }
     }
 
-    result.T = present_time;
+    result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
-    result.state_ = Solver::SolverState::Converged;
+    result.state_ = SolverState::Converged;
     return result;
   }
 

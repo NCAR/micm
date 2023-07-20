@@ -45,7 +45,7 @@ void testSolve()
   // run solvers
   solver.UpdateState(state);
   auto results = solver.Solve(500.0, state);
-  micm::Solver::SolverResult<std::vector<double>> fixed_results[3];
+  micm::ChapmanODESolver::SolverResult fixed_results[3];
   for (int i = 0; i < 3; ++i)
   {
     for (int j = 0; j < 3; ++j)
