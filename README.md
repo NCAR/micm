@@ -1,7 +1,7 @@
 MICM Chemistry
 ==============
 
-Model Independent Chemical Mechanisms.
+Model Independent Chemical Module.
 
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
@@ -9,40 +9,9 @@ Model Independent Chemical Mechanisms.
 
 Copyright (C) 2018-2020 National Center for Atmospheric Research
 
+# Getting Started
 
-## Build and run
-
-### CPU
-
-### GPU
-
-#### Checking that it compiles on your local machine
-
-1. Build the image
-```
-docker build -t micm -f Dockerfile.nvhpc .
-```
-2. Run the container
-```
-docker run --rm -it micm
-```
-3. Compile micm. After running the previous command, you can run `make` and see your compile errors.
-```
-make
-```
-4. If you'd like, you can ssh into a running docker container and edit the files there.
-
-#### On Gust
-```
-qinteractive -A NTDD0005 --ngpus=1
-module load cmake/3.25.2 nvhpc/23.1 cuda/11.7.1
-mkdir build && cd build
-cmake -DENABLE_OPENACC=OFF -DENABLE_CUDA=ON -D GPU_TYPE="a100" ..
-make
-make test
-```
-
-# Building and installing
+## Installing MICM locally
 To build and install MICM locally, you must have the following libraries installed:
 
 - [sphinx](https://github.com/sphinx-doc/sphinx)
@@ -52,13 +21,30 @@ To build and install MICM locally, you must have the following libraries install
 
 You must also have CMake installed on your machine. 
 
-To install MICM locally,
-open a terminal window, navigate to a folder where you would like the MICM files to exist,
+Open a terminal window, navigate to a folder where you would like the MICM files to exist,
 and run the following commands:
 
-## Build and run (Docker version)
+```
+git clone https://github.com/NCAR/micm.git
+cd micm
+mkdir build
+cd build
+ccmake ..
+sudo make install -j 8
+```
 
-To build and run the stand-alone version of MICM, you must have [Docker Desktop](https://www.docker.com/get-started) installed and running. With Docker Desktop running, open a terminal window and run the following command to start the MICM container:
+To run the tests:
+
+```
+make test
+```
+
+If you would later like to uninstall MICM, you can run
+`sudo make uninstall` from the `build/` directory.
+
+## Running a MICM Docker container
+
+You must have [Docker Desktop](https://www.docker.com/get-started) installed and running. With Docker Desktop running, open a terminal window and run the following command to start the MICM container:
 
 ```
 docker run -it ghcr.io/ncar/micm:release bash
@@ -67,31 +53,10 @@ docker run -it ghcr.io/ncar/micm:release bash
 Inside the container, you can run the MICM tests from the `/build/` folder:
 
 ```
-cd build/
-# to run the tests
+cd /build/
 make test
 ```
 
-## Local installation
-
-```
-git clone https://github.com/NCAR/micm.git
-cd micm
-mkdir build
-cd build
-ccmake ..
-make install -j 8
-# to run the tests
-make test
-```
-
-## Install
-
-After completing the previous step run `sudo make install`.
-This will install the MICM static library.
-
-If you would later like to uninstall MICM, you can run
-`sudo make uninstall` from the build directory.
 
 # Citation
 
