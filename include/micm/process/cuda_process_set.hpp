@@ -16,7 +16,7 @@ namespace micm
   /// @brief A GPU-based implementation of ProcessSet
   class CudaProcessSet : public ProcessSet
   {
-    public:
+   public:
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param state Solver state

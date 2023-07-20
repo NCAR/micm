@@ -5,12 +5,11 @@
 
 #include <algorithm>
 #include <cassert>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
 
 namespace micm
 {
@@ -41,7 +40,7 @@ namespace micm
     std::vector<std::size_t> row_ids_;    // Row indices of each non-zero element in a block
     std::vector<std::size_t> row_start_;  // Index in data_ and row_ids_ of the start of each row in a block
     std::vector<T> data_;                 // Value of each non-zero matrix element
-    
+
     friend class SparseMatrixBuilder<T, OrderingPolicy>;
     friend class ProxyRow;
     friend class ConstProxyRow;
@@ -157,7 +156,7 @@ namespace micm
           row_ids_(builder.RowIdsVector()),
           row_start_(builder.RowStartVector()),
           data_(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_)
-   {
+    {
     }
 
     SparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
@@ -175,7 +174,8 @@ namespace micm
       return data_;
     }
 
-    const std::vector<T>& AsVector() const{
+    const std::vector<T>& AsVector() const
+    {
       return data_;
     }
 

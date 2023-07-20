@@ -32,8 +32,8 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
-                                                                   std::move(solver_params.processes_),
-                                                                   micm::RosenbrockSolverParameters{} };
+                                                                 std::move(solver_params.processes_),
+                                                                 micm::RosenbrockSolverParameters{} };
 
   micm::State state = solver.GetState();
 

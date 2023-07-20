@@ -71,13 +71,13 @@ namespace micm
     bool is_parse_success_ = false;
 
     // Constants
-    // Configure files 
+    // Configure files
     static const inline std::string SPECIES_CONFIG = "species.json";
     static const inline std::string MECHANISM_CONFIG = "mechanism.json";
     static const inline std::string REACTIONS_CONFIG = "reactions.json";
     static const inline std::string TOLERANCE_CONFIG = "tolerance.json";
 
-    // Common JSON 
+    // Common JSON
     static const inline std::string CAMP_DATA = "camp-data";
     static const inline std::string TYPE = "type";
 
