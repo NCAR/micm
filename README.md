@@ -60,6 +60,23 @@ make test
 
 # Citation
 
+MICM is part of the MUSICA project and can be cited by reference to the MUSICA vision paper. The BibTeX entry below can be used to generate a citation for this.
+
+```
+@Article { acom.software.musica-vision,
+    author = "Gabriele G. Pfister and Sebastian D. Eastham and Avelino F. Arellano and Bernard Aumont and Kelley C. Barsanti and Mary C. Barth and Andrew Conley and Nicholas A. Davis and Louisa K. Emmons and Jerome D. Fast and Arlene M. Fiore and Benjamin Gaubert and Steve Goldhaber and Claire Granier and Georg A. Grell and Marc Guevara and Daven K. Henze and Alma Hodzic and Xiaohong Liu and Daniel R. Marsh and John J. Orlando and John M. C. Plane and Lorenzo M. Polvani and Karen H. Rosenlof and Allison L. Steiner and Daniel J. Jacob and Guy P. Brasseur",
+    title = "The Multi-Scale Infrastructure for Chemistry and Aerosols (MUSICA)",
+    journal = "Bulletin of the American Meteorological Society",
+    year = "2020",
+    publisher = "American Meteorological Society",
+    address = "Boston MA, USA",
+    volume = "101",
+    number = "10",
+    doi = "10.1175/BAMS-D-19-0331.1",
+    pages= "E1743 - E1760",
+    url = "https://journals.ametsoc.org/view/journals/bams/101/10/bamsD190331.xml"
+}
+```
 
 # Community and contributions
 We welcome contributions and feedback from anyone, everything from updating
