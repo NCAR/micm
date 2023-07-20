@@ -47,9 +47,12 @@ namespace micm
 
   // JSON Configure paser
   template<class ErrorPolicy>
-  class JsonReaderPolicy : public ErrorPolicy
+  class JsonReaderPolicy
   {
     using json = nlohmann::json;
+
+   protected:
+    ErrorPolicy error_policy_;
 
    public:
     // Read from species configure
@@ -68,7 +71,7 @@ namespace micm
     std::vector<Process> processes_;
 
     // Status of parsing
-    bool is_parse_success_ = false;
+    bool successful_parse = false;
 
     // Constants
     // Configure files
@@ -101,7 +104,7 @@ namespace micm
       if (!std::filesystem::exists(species_config))
       {
         std::string err_msg = "Species configuration file at path " + species_config.string() + " does not exist\n";
-        this->OnError(err_msg);
+        error_policy_.OnError(err_msg);
 
         return false;
       }
@@ -119,7 +122,7 @@ namespace micm
       {
         std::string err_msg = "Reaction configuration file at path " + mechanism_config.string() + " or " +
                               reactions_config.string() + " does not exist\n";
-        this->OnError(err_msg);
+        error_policy_.OnError(err_msg);
 
         return false;
       }
@@ -146,9 +149,9 @@ namespace micm
       if (!ParseObjectArray(reaction_objects))
         return false;
 
-      is_parse_success_ = true;
+      successful_parse = true;
 
-      return is_parse_success_;
+      return successful_parse;
     }
 
    private:
@@ -192,7 +195,7 @@ namespace micm
     {
       if (!object.contains(key))
       {
-        this->OnError("Key " + key + " was not found in the config file");
+        error_policy_.OnError("Key " + key + " was not found in the config file");
 
         return false;
       }
@@ -240,7 +243,7 @@ namespace micm
         }
         else
         {
-          this->OnError("Unknown key in config file: " + type);
+          error_policy_.OnError("Unknown key in config file: " + type);
           return false;
         }
       }
@@ -554,9 +557,9 @@ namespace micm
     /// @return SolverParameters that contains 'System' and a collection of 'Process'
     SolverParameters GetSolverParams()
     {
-      if (!this->is_parse_success_)
+      if (!this->successful_parse)
       {
-        throw std::runtime_error("Parsing configure files hasn't been completed");
+        this->error_policy_.OnError("Parsing configure files hasn't been completed");
       }
 
       return SolverParameters(
@@ -567,9 +570,9 @@ namespace micm
     /// @return a collection of 'PhotolysisRateConstant'
     std::vector<PhotolysisRateConstant>& GetPhotolysisRateConstants()
     {
-      if (!this->is_parse_success_)
+      if (!this->successful_parse)
       {
-        throw std::runtime_error("Parsing configure files hasn't been completed");
+        this->error_policy_.OnError("Parsing configure files hasn't been completed");
       }
 
       return this->photolysis_rate_arr_;

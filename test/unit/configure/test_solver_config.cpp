@@ -144,17 +144,15 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
 
 TEST(SolverConfig, GettingSolverParamsThrowsExceptionWithFailedParsing)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::IgnoreErrorsPolicy> solverConfig;
-  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_FALSE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  EXPECT_ANY_THROW(solverConfig.ReadAndParse("not_a_config_file_directory"));
   EXPECT_ANY_THROW(solverConfig.GetSolverParams());
 }
 
 TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::IgnoreErrorsPolicy> solverConfig;
-  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_FALSE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  EXPECT_ANY_THROW(solverConfig.ReadAndParse("not_a_config_file_directory"));
   EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
 }
 
