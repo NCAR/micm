@@ -147,16 +147,17 @@ namespace micm
           {
             --y_elem;
           }
-          
+
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             *x_elem -= upper_matrix_.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
             ++Uij_xj;
           }
-          
+
           // don't iterate before the beginning of the vector
           *(x_elem) /= upper_matrix_.AsVector()[upper_grid_offset + nUij_Uii.second];
-          if (x_elem != x_cell.begin()){
+          if (x_elem != x_cell.begin())
+          {
             --x_elem;
           }
         }
@@ -171,13 +172,15 @@ namespace micm
   {
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks
-    for(std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
+    for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
     {
       auto b_group = std::next(b.AsVector().begin(), i_group * b.GroupSize());
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group = std::next(lower_matrix_.AsVector().begin(), i_group * lower_matrix_.GroupSize(lower_matrix_.FlatBlockSize()));
-      auto U_group = std::next(upper_matrix_.AsVector().begin(), i_group * upper_matrix_.GroupSize(upper_matrix_.FlatBlockSize()));
-      auto y_group = x_group; // Alias x for consistency with equations, but to reuse memory
+      auto L_group =
+          std::next(lower_matrix_.AsVector().begin(), i_group * lower_matrix_.GroupSize(lower_matrix_.FlatBlockSize()));
+      auto U_group =
+          std::next(upper_matrix_.AsVector().begin(), i_group * upper_matrix_.GroupSize(upper_matrix_.FlatBlockSize()));
+      auto y_group = x_group;  // Alias x for consistency with equations, but to reuse memory
       {
         auto b_elem = b_group;
         auto y_elem = y_group;
@@ -186,7 +189,7 @@ namespace micm
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             y_elem[i_cell] = b_elem[i_cell];
-          b_elem += n_cells;          
+          b_elem += n_cells;
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
@@ -206,7 +209,7 @@ namespace micm
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             x_elem[i_cell] = y_elem[i_cell];
-            
+
           // don't iterate before the beginning of the vector
           std::size_t y_elem_distance = std::distance(x.AsVector().begin(), y_elem);
           y_elem -= std::min(n_cells, y_elem_distance);

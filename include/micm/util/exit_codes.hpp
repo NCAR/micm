@@ -5,7 +5,8 @@
 
 namespace micm
 {
-  enum ExitCodes {
-    InvalidMatrixDimension=1,
+  enum ExitCodes
+  {
+    InvalidMatrixDimension = 1,
   };
 }
