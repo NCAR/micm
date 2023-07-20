@@ -17,7 +17,7 @@ RUN apt update \
 
 # set compilers
 ENV CC=icx
-ENV CXX=icx
+ENV CXX=icpx
 ENV FC=ifort
 
 # Micm

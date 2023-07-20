@@ -8,11 +8,6 @@ add_library(micm INTERFACE)
 add_library(musica::micm ALIAS micm)
 target_compile_features(micm INTERFACE cxx_std_20)
 
-# for some reason intel doesn't link a standard library
-if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  target_link_libraries(micm INTERFACE stdc++)
-endif()
-
 target_include_directories(micm
   INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
