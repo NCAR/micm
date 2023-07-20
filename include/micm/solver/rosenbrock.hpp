@@ -207,27 +207,30 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::Reset()
   {
-        function_calls = 0;
-        jacobian_updates = 0;
-        number_of_steps = 0;
-        accepted = 0;
-        rejected = 0;
-        decompositions = 0;
-        solves = 0;
-        singular = 0;
-        total_steps = 0;
+    function_calls = 0;
+    jacobian_updates = 0;
+    number_of_steps = 0;
+    accepted = 0;
+    rejected = 0;
+    decompositions = 0;
+    solves = 0;
+    singular = 0;
+    total_steps = 0;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const
+  std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(
+      const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const
   {
     switch (state)
     {
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NotYetCalled: return "Not Yet Called";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Converged: return "Converged";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::ConvergenceExceededMaxSteps:
+        return "Convergence Exceeded Max Steps";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::StepSizeTooSmall: return "Step Size Too Small";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::RepeatedlySingularMatrix:
+        return "Repeatedly Singular Matrix";
       default: return "Unknown";
     }
     return "";
@@ -300,9 +303,8 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(
-      double time_step,
-      State<MatrixPolicy>& state) noexcept
+  inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult
+  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
@@ -314,7 +316,8 @@ namespace micm
     stats_.Reset();
     UpdateState(state);
 
-    for(std::size_t i = 0; i < parameters_.stages_; ++i) K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
+    for (std::size_t i = 0; i < parameters_.stages_; ++i)
+      K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
 
     double present_time = 0.0;
     double H =
@@ -376,9 +379,7 @@ namespace micm
               for (uint64_t j = 0; j <= stage; ++j)
               {
                 auto a = parameters_.a_[stage_combinations + j];
-                Ynew.ForEach([&](double& iYnew, double& iKj) {
-                  iYnew += a * iKj;
-                }, K[j]);
+                Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
               }
               CalculateForcing(state.rate_constants_, Ynew, forcing);
             }
@@ -386,9 +387,7 @@ namespace micm
             for (uint64_t j = 0; j < stage; ++j)
             {
               auto HC = parameters_.c_[stage_combinations + j] / H;
-              K[stage].ForEach([&](double& iKstage, double& iKj) {
-                iKstage += HC * iKj;
-              }, K[j]);
+              K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
             }
             temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
             linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
@@ -398,17 +397,13 @@ namespace micm
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach([&](double& iYnew, double& iKstage) {
-            iYnew += parameters_.m_[stage] * iKstage;
-          }, K[stage]);
+          Ynew.ForEach([&](double& iYnew, double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
 
         // Compute the error estimation
         MatrixPolicy<double> Yerror(Y.AsVector().size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach([&](double& iYerror, double& iKstage) {
-            iYerror += parameters_.e_[stage] * iKstage;
-          }, K[stage]);
-        
+          Yerror.ForEach([&](double& iYerror, double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
+
         auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax

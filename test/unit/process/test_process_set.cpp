@@ -3,10 +3,10 @@
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;
@@ -188,7 +188,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     {
       products.push_back(yields(std::to_string(get_species_id()), 1.2));
     }
-    auto proc =  micm::Process(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    auto proc = micm::Process(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
     processes.push_back(proc);
   }
   micm::ProcessSet set{ processes, state };

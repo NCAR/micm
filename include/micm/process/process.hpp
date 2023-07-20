@@ -84,7 +84,8 @@ namespace micm
       std::size_t i_rate_constant = 0;
       for (auto& process : processes)
       {
-        state.rate_constants_[i][(i_rate_constant++)] = process.rate_constant_->calculate(state.conditions_[i], custom_parameters_iter);
+        state.rate_constants_[i][(i_rate_constant++)] =
+            process.rate_constant_->calculate(state.conditions_[i], custom_parameters_iter);
         custom_parameters_iter += process.rate_constant_->SizeCustomParameters();
       }
     }

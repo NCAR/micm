@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <micm/util/vector_matrix.hpp>
+
 #include "test_matrix_policy.hpp"
 
 template<class T>

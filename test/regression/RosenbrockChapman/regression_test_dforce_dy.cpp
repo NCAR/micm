@@ -2,9 +2,9 @@
 
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 
 #include "chapman_ode_solver.hpp"
@@ -40,17 +40,17 @@ void testJacobian()
     // TODO: The sparse matrix data ordering in the hard-coded solver is different (maybe because of pivoting?)
     //       As the remaining linear solver functions are generalized, use the logic in the preprocessor to
     //       decipher the data elements in the hard-coded solver sparse matrix to finish this test.
-    //EXPECT_EQ(jacobian.FlatBlockSize(), fixed_jacobian.size());
+    // EXPECT_EQ(jacobian.FlatBlockSize(), fixed_jacobian.size());
     for (std::size_t j{}; j < fixed_jacobian.size(); ++j)
     {
-      //EXPECT_NEAR(jacobian.AsVector()[i * jacobian.FlatBlockSize() + j], fixed_jacobian[j], 1.0e-10);
+      // EXPECT_NEAR(jacobian.AsVector()[i * jacobian.FlatBlockSize() + j], fixed_jacobian[j], 1.0e-10);
     }
   }
 }
 
-template <class T>
+template<class T>
 using DenseMatrix = micm::Matrix<T>;
-template <class T>
+template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
 
 template<class T>

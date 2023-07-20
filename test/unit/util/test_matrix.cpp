@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <micm/util/matrix.hpp>
+
 #include "test_matrix_policy.hpp"
 
 TEST(Matrix, SmallMatrix)
@@ -49,17 +50,19 @@ TEST(Matrix, LoopOverConstMatrix)
 
 TEST(Matrix, IterateOverMatrix)
 {
-  micm::Matrix<int> matrix{3, 4, 0};
+  micm::Matrix<int> matrix{ 3, 4, 0 };
   int i = 42;
 
-  for (auto& elem : matrix[1]) {
+  for (auto& elem : matrix[1])
+  {
     elem = i++;
   }
 
   const micm::Matrix<int> copy = matrix;
-  
+
   i = 42;
-  for (auto& elem : matrix[1]) {
+  for (auto& elem : matrix[1])
+  {
     EXPECT_EQ(elem, i++);
   }
 

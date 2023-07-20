@@ -7,7 +7,7 @@
 .. ~ for subsubsubsections
 .. " for paragraphs
 
-Welcome to micm's documentation!
+Welcome to MICM's documentation!
 ================================
 
 .. grid:: 1 1 2 2

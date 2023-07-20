@@ -65,7 +65,7 @@ The following example solves the fictitous chemical system:
 foo       --k1--> 0.8 bar + 0.2 baz
 foo + bar --k2--> baz
 ```
-The `k1` and `k2` rate constants are for Arrhenius reactions. See the MICM documentation for details on the types of reactions available in MICM and how to configure them.
+The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM documentation](https://ncar.github.io/micm/) for details on the types of reactions available in MICM and how to configure them.
 
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
