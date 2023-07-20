@@ -75,18 +75,17 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class SparseMatrixPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(
-                                      SparseMatrixPolicy<double>::create(3)
-                                     .initial_value(1.0e-30)
-                                     .with_element(0, 0)
-                                     .with_element(0, 1)
-                                     .with_element(0, 2)
-                                     .with_element(1, 0)
-                                     .with_element(1, 1)
-                                     .with_element(1, 2)
-                                     .with_element(2, 0)
-                                     .with_element(2, 1)
-                                     .with_element(2, 2));
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(3)
+                                                                .initial_value(1.0e-30)
+                                                                .with_element(0, 0)
+                                                                .with_element(0, 1)
+                                                                .with_element(0, 2)
+                                                                .with_element(1, 0)
+                                                                .with_element(1, 1)
+                                                                .with_element(1, 2)
+                                                                .with_element(2, 0)
+                                                                .with_element(2, 1)
+                                                                .with_element(2, 2));
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
@@ -101,7 +100,8 @@ void testDenseMatrix()
   micm::LuDecomposition lud(A);
   auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
   lud.Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
-  check_results<double, SparseMatrixPolicy>(A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<double, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
 template<template<class> class SparseMatrixPolicy>

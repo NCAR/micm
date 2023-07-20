@@ -2,9 +2,9 @@
 
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 
 #include "chapman_ode_solver.hpp"
@@ -68,9 +68,9 @@ void testSolve()
     }
 }
 
-template <class T>
+template<class T>
 using DenseMatrix = micm::Matrix<T>;
-template <class T>
+template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
 
 template<class T>

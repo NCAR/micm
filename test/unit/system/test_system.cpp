@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 
@@ -11,10 +10,7 @@ TEST(System, ConstructorWithAllParameters)
   std::vector<micm::Species> speciesB = { micm::Species("species3"), micm::Species("species4") };
 
   micm::Phase phase = speciesA;
-  std::unordered_map<std::string, micm::Phase> phases = {
-    { "phase1", speciesA },
-    { "phase2", speciesB }
-  };
+  std::unordered_map<std::string, micm::Phase> phases = { { "phase1", speciesA }, { "phase2", speciesB } };
 
   micm::System system = { micm::SystemParameters{ .gas_phase_ = phase, .phases_ = phases } };
 

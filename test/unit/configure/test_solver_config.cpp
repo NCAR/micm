@@ -275,7 +275,7 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
   double C_param[] = { -1 * -6.90325e-21 / 1.3806505e-23, -1 * -2.7613e-21 / 1.3806505e-23 };
   double D_param[] = { 300.0, 300.0 };
   double E_param[] = { 0.0, 0.0 };
-  
+
   idx = 0;
   for (short i : { 1, 2 })
   {
