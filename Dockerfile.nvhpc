@@ -32,7 +32,6 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
-        -D ENABLE_REGRESSION_TESTS=OFF \
         -D ENABLE_CUDA=ON \
         -D GPU_TYPE="a100" \
         ../micm \
