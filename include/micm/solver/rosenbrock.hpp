@@ -312,6 +312,8 @@ namespace micm
     std::vector<MatrixPolicy<double>> K{};
 
     stats_.Reset();
+    UpdateState(state);
+
     for(std::size_t i = 0; i < parameters_.stages_; ++i) K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
 
     double present_time = 0.0;
