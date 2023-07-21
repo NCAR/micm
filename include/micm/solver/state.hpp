@@ -55,7 +55,7 @@ namespace micm
     /// @param species the species to set the concentration for
     /// @param concentration concentration(s) [mol m-3]
     void SetConcentration(const Species& species, double concentration);
-    void SetConcentration(const Species& species, std::vector<double> concentration);
+    void SetConcentration(const Species& species, const std::vector<double>& concentration);
 
     /// @brief Set photolysis rate constants
     /// @param photolysis rate
@@ -170,7 +170,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetConcentration(const Species& species, std::vector<double> concentration)
+  void State<MatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
   {
     if (variables_.size() != concentration.size())
       throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
