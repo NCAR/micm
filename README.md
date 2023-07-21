@@ -59,7 +59,7 @@ make test
 
 # Using MICM
 
-The following example solves the fictitous chemical system:
+The following example solves the fictitious chemical system:
 
 ```
 foo       --k1--> 0.8 bar + 0.2 baz
