@@ -23,6 +23,40 @@ TEST(State, Constructor)
   EXPECT_EQ(state.rate_constants_[0].size(), 10);
 }
 
+TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
+{
+  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                                          .number_of_grid_cells_ = 3,
+                                                          .number_of_custom_parameters_ = 5,
+                                                          .number_of_rate_constants_ = 10 } };
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, 1.0));
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, std::vector<double>{ 1.0, 2.0 }));
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, 1.0));
+  EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, std::vector<double>{ 1.0, 2.0, 3.0, 4.0 }));
+}
+
+TEST(State, SetSingleConcentration)
+{
+  {
+    micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                                            .number_of_grid_cells_ = 3,
+                                                            .number_of_custom_parameters_ = 5,
+                                                            .number_of_rate_constants_ = 10 } };
+    std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
+    state.SetConcentration(micm::Species{ "bar" }, concentrations);
+    for (std::size_t i = 0; i < concentrations.size(); ++i)
+      EXPECT_EQ(state.variables_[i][state.variable_map_["bar"]], concentrations[i]);
+  }
+  {
+    micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
+                                                            .number_of_grid_cells_ = 1,
+                                                            .number_of_custom_parameters_ = 5,
+                                                            .number_of_rate_constants_ = 10 } };
+    state.SetConcentration(micm::Species{ "bar" }, 324.2);
+    EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 324.2);
+  }
+}
+
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 {
   micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },

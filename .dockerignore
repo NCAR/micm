@@ -1,9 +1,10 @@
-# blacklist all
+# ignore all
 *
 
-# whitelist things to copy
+# include things to copy
 !CMakeLists.txt
 !src/
+!docs/
 !libs/
 !test/
 !etc/
