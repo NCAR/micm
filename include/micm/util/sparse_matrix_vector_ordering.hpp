@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <micm/util/error_policies.hpp>
 
 namespace micm
 {
@@ -16,9 +17,10 @@ namespace micm
   ///
   /// The template argument is the number of blocks per set of blocks and should be
   /// approximately the size of the vector register.
-  template<std::size_t L>
+  template<std::size_t L, class ErrorPolicy = InvalidArgumentPolicy>
   class SparseMatrixVectorOrdering
   {
+    ErrorPolicy error_policy_{};
    protected:
     static std::size_t VectorSize(
         std::size_t number_of_blocks,
@@ -37,12 +39,12 @@ namespace micm
         std::size_t column) const
     {
       if (row >= row_start.size() - 1 || column >= row_start.size() - 1 || block >= number_of_blocks)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        error_policy_.OnError("SparseMatrix element out of range");
       auto begin = std::next(row_ids.begin(), row_start[row]);
       auto end = std::next(row_ids.begin(), row_start[row + 1]);
       auto elem = std::find(begin, end, column);
       if (elem == end)
-        throw std::invalid_argument("SparseMatrix zero element access not allowed");
+        error_policy_.OnError("SparseMatrix zero element access not allowed");
       return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * L * row_ids.size() };
     };
 

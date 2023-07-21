@@ -2,10 +2,10 @@
 
 #include <micm/util/sparse_matrix.hpp>
 
-template<class OrderingPolicy>
-micm::SparseMatrix<double, OrderingPolicy> testZeroMatrix()
+template<class ErrorPolicy, class OrderingPolicy>
+micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy> testZeroMatrix()
 {
-  auto builder = micm::SparseMatrix<double, OrderingPolicy>::create(3);
+  auto builder = micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy>::create(3);
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -17,7 +17,7 @@ micm::SparseMatrix<double, OrderingPolicy> testZeroMatrix()
   EXPECT_EQ(row_starts[2], 0);
   EXPECT_EQ(row_starts[3], 0);
 
-  micm::SparseMatrix<double, OrderingPolicy> matrix{ builder };
+  micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
@@ -90,10 +90,10 @@ micm::SparseMatrix<double, OrderingPolicy> testZeroMatrix()
   return matrix;
 }
 
-template<class OrderingPolicy>
-micm::SparseMatrix<double, OrderingPolicy> testConstZeroMatrix()
+template<class ErrorPolicy, class OrderingPolicy>
+micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy> testConstZeroMatrix()
 {
-  auto builder = micm::SparseMatrix<double, OrderingPolicy>::create(3);
+  auto builder = micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy>::create(3);
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -105,7 +105,7 @@ micm::SparseMatrix<double, OrderingPolicy> testConstZeroMatrix()
   EXPECT_EQ(row_starts[2], 0);
   EXPECT_EQ(row_starts[3], 0);
 
-  const micm::SparseMatrix<double, OrderingPolicy> matrix{ builder };
+  const micm::SparseMatrix<double, ErrorPolicy, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
@@ -154,10 +154,10 @@ micm::SparseMatrix<double, OrderingPolicy> testConstZeroMatrix()
   return matrix;
 }
 
-template<class OrderingPolicy>
-micm::SparseMatrix<int, OrderingPolicy> testSingleBlockMatrix()
+template<class ErrorPolicy, class OrderingPolicy>
+micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> testSingleBlockMatrix()
 {
-  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
+  auto builder = micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy>::create(4)
                      .with_element(0, 1)
                      .with_element(3, 2)
                      .with_element(0, 1)
@@ -185,7 +185,7 @@ micm::SparseMatrix<int, OrderingPolicy> testSingleBlockMatrix()
     EXPECT_EQ(row_starts[4], 4);
   }
 
-  micm::SparseMatrix<int, OrderingPolicy> matrix{ builder };
+  micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> matrix{ builder };
 
   {
     auto& row_ids = matrix.RowIdsVector();
@@ -273,10 +273,10 @@ micm::SparseMatrix<int, OrderingPolicy> testSingleBlockMatrix()
   return matrix;
 }
 
-template<class OrderingPolicy>
-micm::SparseMatrix<int, OrderingPolicy> testConstSingleBlockMatrix()
+template<class ErrorPolicy, class OrderingPolicy>
+micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> testConstSingleBlockMatrix()
 {
-  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
+  auto builder = micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy>::create(4)
                      .with_element(0, 1)
                      .with_element(3, 2)
                      .with_element(0, 1)
@@ -286,11 +286,11 @@ micm::SparseMatrix<int, OrderingPolicy> testConstSingleBlockMatrix()
   // 0 0 0 0
   // 0 X 0 X
   // 0 0 X 0
-  micm::SparseMatrix<int, OrderingPolicy> orig_matrix{ builder };
+  micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> orig_matrix{ builder };
   orig_matrix[0][2][1] = 45;
   orig_matrix[0][3][2] = 42;
   orig_matrix[0][2][3] = 21;
-  const micm::SparseMatrix<int, OrderingPolicy> matrix = orig_matrix;
+  const micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> matrix = orig_matrix;
 
   {
     auto& row_ids = matrix.RowIdsVector();
@@ -352,10 +352,10 @@ micm::SparseMatrix<int, OrderingPolicy> testConstSingleBlockMatrix()
   return matrix;
 }
 
-template<class OrderingPolicy>
-micm::SparseMatrix<int, OrderingPolicy> testMultiBlockMatrix()
+template<class ErrorPolicy, class OrderingPolicy>
+micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> testMultiBlockMatrix()
 {
-  auto builder = micm::SparseMatrix<int, OrderingPolicy>::create(4)
+  auto builder = micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy>::create(4)
                      .with_element(0, 1)
                      .with_element(3, 2)
                      .with_element(0, 1)
@@ -383,7 +383,7 @@ micm::SparseMatrix<int, OrderingPolicy> testMultiBlockMatrix()
   EXPECT_EQ(row_starts[3], 3);
   EXPECT_EQ(row_starts[4], 4);
 
-  micm::SparseMatrix<int, OrderingPolicy> matrix{ builder };
+  micm::SparseMatrix<int, ErrorPolicy, OrderingPolicy> matrix{ builder };
 
   EXPECT_EQ(matrix.FlatBlockSize(), 4);
 

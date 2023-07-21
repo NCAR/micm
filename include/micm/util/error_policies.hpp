@@ -7,7 +7,15 @@
 
 namespace micm
 {
-  // JSON-Parsing error policies
+  class InvalidArgumentPolicy
+  {
+   public:
+    void OnError(std::string message) const
+    {
+      throw std::invalid_argument(message.c_str());
+    }
+  };
+
   class ThrowPolicy
   {
     class Exception : public std::exception
@@ -28,7 +36,7 @@ namespace micm
     };
 
    public:
-    void OnError(std::string message)
+    void OnError(std::string message) const
     {
       throw Exception(message.c_str());
     }
@@ -37,7 +45,7 @@ namespace micm
   class LogToStandardErrorPolicy
   {
    public:
-    void OnError(std::string message)
+    void OnError(std::string message) const
     {
       std::cerr << message << std::endl;
     }
@@ -46,7 +54,7 @@ namespace micm
   class IgnoreErrorsPolicy
   {
    public:
-    void OnError(std::string message)
+    void OnError(std::string message) const
     {
     }
   };

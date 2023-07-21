@@ -83,13 +83,13 @@ template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<1>>;
 template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<2>>;
 template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<3>>;
 template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<4>>;
 
 TEST(RegressionRosenbrock, Solve)
 {

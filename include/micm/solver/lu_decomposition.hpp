@@ -73,15 +73,15 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<typename T, typename OrderingPolicy>
-    LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix);
+    template<typename T, typename ErrorPolicy, typename OrderingPolicy>
+    LuDecomposition(const SparseMatrix<T, ErrorPolicy, OrderingPolicy>& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix the will be decomposed
     /// @return L and U Sparse matrices
-    template<typename T, typename OrderingPolicy>
-    static std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> GetLUMatrices(
-        const SparseMatrix<T, OrderingPolicy>& A,
+    template<typename T, typename ErrorPolicy, typename OrderingPolicy>
+    static std::pair<SparseMatrix<T, ErrorPolicy, OrderingPolicy>, SparseMatrix<T, ErrorPolicy, OrderingPolicy>> GetLUMatrices(
+        const SparseMatrix<T, ErrorPolicy, OrderingPolicy>& A,
         T initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
@@ -101,8 +101,8 @@ namespace micm
   {
   }
 
-  template<typename T, typename OrderingPolicy>
-  inline LuDecomposition::LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
+  template<typename T, typename ErrorPolicy, typename OrderingPolicy>
+  inline LuDecomposition::LuDecomposition(const SparseMatrix<T, ErrorPolicy, OrderingPolicy>& matrix)
   {
     std::size_t n = matrix[0].size();
     auto LU = GetLUMatrices(matrix, T{});
@@ -175,9 +175,9 @@ namespace micm
     }
   }
 
-  template<typename T, typename OrderingPolicy>
-  inline std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> LuDecomposition::GetLUMatrices(
-      const SparseMatrix<T, OrderingPolicy>& A,
+  template<typename T, typename ErrorPolicy, typename OrderingPolicy>
+  inline std::pair<SparseMatrix<T, ErrorPolicy, OrderingPolicy>, SparseMatrix<T, ErrorPolicy, OrderingPolicy>> LuDecomposition::GetLUMatrices(
+      const SparseMatrix<T, ErrorPolicy, OrderingPolicy>& A,
       T initial_value)
   {
     std::size_t n = A[0].size();
@@ -222,18 +222,18 @@ namespace micm
       }
     }
     auto L_builder =
-        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
+        micm::SparseMatrix<T, ErrorPolicy, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.with_element(pair.first, pair.second);
     }
     auto U_builder =
-        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
+        micm::SparseMatrix<T, ErrorPolicy, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.with_element(pair.first, pair.second);
     }
-    std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> LU(L_builder, U_builder);
+    std::pair<SparseMatrix<T, ErrorPolicy, OrderingPolicy>, SparseMatrix<T, ErrorPolicy, OrderingPolicy>> LU(L_builder, U_builder);
     return LU;
   }
 

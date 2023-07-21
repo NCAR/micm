@@ -39,8 +39,8 @@ namespace micm
 
     /// @brief Sets the indicies for each non-zero Jacobian element in the underlying vector
     /// @param matrix The sparse matrix used for the Jacobian
-    template<typename OrderingPolicy>
-    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
+    template<typename ErrorPolicy, typename OrderingPolicy>
+    void SetJacobianFlatIds(const SparseMatrix<double, ErrorPolicy, OrderingPolicy>& matrix);
 
     /// @brief Add forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
@@ -125,8 +125,8 @@ namespace micm
     return ids;
   }
 
-  template<typename OrderingPolicy>
-  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+  template<typename ErrorPolicy, typename OrderingPolicy>
+  inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, ErrorPolicy, OrderingPolicy>& matrix)
   {
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
