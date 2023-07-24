@@ -225,9 +225,8 @@ namespace micm
       case ChapmanODESolver::SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
       case ChapmanODESolver::SolverState::StepSizeTooSmall: return "Step Size Too Small";
       case ChapmanODESolver::SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
-      default: return "Unknown";
     }
-    return "";
+    return "Unknown";
   }
 
   inline ChapmanODESolver::ChapmanODESolver()

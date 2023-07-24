@@ -96,8 +96,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DENABLE_REGRESSION_TESTS=OFF
-          cmake --build . --verbose
+          cmake ..
+          cmake --build .
 
       - name: Run tests
         run: |
