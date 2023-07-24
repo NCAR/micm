@@ -7,7 +7,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 
-Copyright (C) 2018-2020 National Center for Atmospheric Research
+Copyright (C) 2018-2023 National Center for Atmospheric Research
 
 # Getting Started
 
