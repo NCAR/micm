@@ -39,7 +39,7 @@ namespace micm
       {
       }
 
-      virtual const char* what() const noexcept override
+      virtual const char* what() const noexcept
       {
         return msg_;
       }
