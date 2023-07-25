@@ -3,9 +3,11 @@
 Getting Started
 ===============
 
-## Build and run
+Build and Run
+-------------
 
-### CPU
+CPU
+~~~
 To build and install MICM locally, you must have the following libraries installed:
 
 - [sphinx](https://github.com/sphinx-doc/sphinx)
@@ -27,9 +29,10 @@ ccmake ..
 sudo make install -j 8
 ```
 
-### GPU
+GPU
+~~~
 
-#### Checking that it compiles on your local machine
+Checking that it compiles on your local machine
 
 1. Build the image
 ```
@@ -46,9 +49,11 @@ make
 4. If you'd like, you can ssh into a running docker container and edit the files there.
 
 
-## NCAR Hardware
+NCAR Hardware
+-------------
 
-#### On Gust
+On Gust
+~~~~~~~
 ```
 qinteractive -A NTDD0005 --ngpus=1
 module load cmake/3.25.2 nvhpc/23.1 cuda/11.7.1
