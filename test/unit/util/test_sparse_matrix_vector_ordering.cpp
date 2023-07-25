@@ -8,17 +8,17 @@
 
 TEST(SparseVectorMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<2, micm::InvalidArgumentPolicy>>();
+  testZeroMatrix<micm::SparseMatrixVectorOrdering<2>>();
 }
 
 TEST(SparseVectorMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<3, micm::InvalidArgumentPolicy>>();
+  testConstZeroMatrix<micm::SparseMatrixVectorOrdering<3>>();
 }
 
 TEST(SparseVectorMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<4, micm::InvalidArgumentPolicy>>();
+  auto matrix = testSingleBlockMatrix<micm::SparseMatrixVectorOrdering<4>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -39,7 +39,7 @@ TEST(SparseVectorMatrix, SingleBlockMatrix)
 
 TEST(SparseVectorMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<2, micm::InvalidArgumentPolicy>>();
+  auto matrix = testConstSingleBlockMatrix<micm::SparseMatrixVectorOrdering<2>>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -58,7 +58,7 @@ TEST(SparseVectorMatrix, ConstSingleBlockMatrix)
 
 TEST(SparseVectorMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<micm::InvalidArgumentPolicy, micm::SparseMatrixVectorOrdering<2, micm::InvalidArgumentPolicy>>();
+  auto matrix = testMultiBlockMatrix<micm::SparseMatrixVectorOrdering<2>>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);

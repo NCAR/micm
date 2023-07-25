@@ -6,21 +6,21 @@
 
 #include "test_sparse_matrix_policy.hpp"
 
-using StandardOrdering = micm::SparseMatrixStandardOrdering<micm::InvalidArgumentPolicy>;
+using StandardOrdering = micm::SparseMatrixStandardOrdering;
 
 TEST(SparseMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::InvalidArgumentPolicy, StandardOrdering>();
+  testZeroMatrix<StandardOrdering>();
 }
 
 TEST(SparseMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::InvalidArgumentPolicy, StandardOrdering>();
+  testConstZeroMatrix<StandardOrdering>();
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<micm::InvalidArgumentPolicy, StandardOrdering>();
+  auto matrix = testSingleBlockMatrix<StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -38,7 +38,7 @@ TEST(SparseMatrix, SingleBlockMatrix)
 
 TEST(SparseMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<micm::InvalidArgumentPolicy, StandardOrdering>();
+  auto matrix = testConstSingleBlockMatrix<StandardOrdering>();
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 3);
@@ -53,7 +53,7 @@ TEST(SparseMatrix, ConstSingleBlockMatrix)
 
 TEST(SparseMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<micm::InvalidArgumentPolicy, StandardOrdering>();
+  auto matrix = testMultiBlockMatrix<StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);

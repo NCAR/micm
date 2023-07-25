@@ -19,12 +19,24 @@
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
-#include <micm/util/error_policies.hpp>
 #include <nlohmann/json.hpp>
 #include <variant>
 
 namespace micm
 {
+  enum class ConfigParseStatus {
+    Success,
+    None,
+    InvalidSpeciesFilePath,
+    InvalidReactionsFilePath,
+    InvalidKey,
+    UnknownKey,
+    InvalidSpecies,
+    CAMPDataSectionNotFound,
+    InvalidMechanism,
+    ObjectTypeNotFound,
+    RequiredKeyNotFound
+  };
 
   // Solver parameters
   struct SolverParameters
@@ -46,13 +58,9 @@ namespace micm
   };
 
   // JSON Configure paser
-  template<class ErrorPolicy>
   class JsonReaderPolicy
   {
     using json = nlohmann::json;
-
-   protected:
-    ErrorPolicy error_policy_;
 
    public:
     // Read from species configure
@@ -70,9 +78,6 @@ namespace micm
     std::unordered_map<std::string, Phase> phases_;
     std::vector<Process> processes_;
 
-    // Status of parsing
-    bool successful_parse = false;
-
     // Constants
     // Configure files
     static const inline std::string SPECIES_CONFIG = "species.json";
@@ -88,14 +93,13 @@ namespace micm
 
     /// @brief Parse configures
     /// @return True for successful parsing
-    bool Parse(const std::filesystem::path& config_dir)
+    ConfigParseStatus Parse(const std::filesystem::path& config_dir)
     {
       // Create configure paths
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
-      std::filesystem::path tolerance_config(
-          config_dir / TOLERANCE_CONFIG);  // TODO: jiwon 7/13 - we don't need to worry about this now
+      std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
 
       // Current reaction configs should be either mechanism_config or reactions config
       std::filesystem::path cur_reactions_config;
@@ -104,9 +108,8 @@ namespace micm
       if (!std::filesystem::exists(species_config))
       {
         std::string err_msg = "Species configuration file at path " + species_config.string() + " does not exist\n";
-        error_policy_.OnError(err_msg);
-
-        return false;
+        std::cerr << err_msg << std::endl;
+        return ConfigParseStatus::InvalidSpeciesFilePath;
       }
 
       // Check if a reaction configure exists and decide which one
@@ -122,14 +125,15 @@ namespace micm
       {
         std::string err_msg = "Reaction configuration file at path " + mechanism_config.string() + " or " +
                               reactions_config.string() + " does not exist\n";
-        error_policy_.OnError(err_msg);
-
-        return false;
+        std::cerr << err_msg << std::endl;
+        return ConfigParseStatus::InvalidReactionsFilePath;
       }
 
       // Read species file to create Species and Phase that needs to be known to System and Process
-      if (!ConfigureSpecies(species_config))
-        return false;
+
+      auto species_status = ConfigureSpecies(species_config);
+      if (species_status != ConfigParseStatus::Success)
+        return species_status;
 
       // Assign the parsed 'Species' to 'Phase'
       gas_phase_ = Phase(species_arr_);
@@ -137,8 +141,8 @@ namespace micm
       // Read reactions file
       json reaction_data = json::parse(std::ifstream(cur_reactions_config));
 
-      if (!ValidateJsonWithKey(reaction_data, CAMP_DATA))
-        return false;
+      if (!reaction_data.contains(CAMP_DATA))
+        return ConfigParseStatus::CAMPDataSectionNotFound;
 
       std::vector<json> reaction_objects;
       for (const auto& element : reaction_data[CAMP_DATA])
@@ -146,24 +150,20 @@ namespace micm
         reaction_objects.push_back(element);
       }
 
-      if (!ParseObjectArray(reaction_objects))
-        return false;
-
-      successful_parse = true;
-
-      return successful_parse;
+      return ParseObjectArray(reaction_objects);
     }
 
    private:
     /// @brief Create 'Species' and 'Phase'
     /// @param path to 'Species' file
     /// @return True at success
-    bool ConfigureSpecies(const std::filesystem::path& file)
+    ConfigParseStatus ConfigureSpecies(const std::filesystem::path& file)
     {
+      ConfigParseStatus status = ConfigParseStatus::None;
       json file_data = json::parse(std::ifstream(file));
 
-      if (!ValidateJsonWithKey(file_data, CAMP_DATA))
-        return false;
+      if(!file_data.contains(CAMP_DATA))
+        return ConfigParseStatus::CAMPDataSectionNotFound;
 
       std::vector<json> objects;
       for (const auto& element : file_data[CAMP_DATA])
@@ -172,85 +172,88 @@ namespace micm
       for (const auto& object : objects)
       {
         if (!ValidateJsonWithKey(object, TYPE))
-          return false;
+        {
+          status = ConfigParseStatus::ObjectTypeNotFound;
+          break;
+        }
 
         std::string type = object[TYPE].get<std::string>();
 
         if (type == "CHEM_SPEC")
         {
-          if (!ParseChemicalSpecies(object))
-            return false;
+          status = ParseChemicalSpecies(object);
         }
         else if (type == "RELATIVE_TOLERANCE")
         {
-          if (!ParseRelativeTolerance(object))
-            return false;
+          status = ParseRelativeTolerance(object);
         }
+
+        if (status != ConfigParseStatus::Success) break;
       }
 
-      return true;
+      return status;
     }
 
     bool ValidateJsonWithKey(const json& object, const std::string& key)
     {
       if (!object.contains(key))
       {
-        error_policy_.OnError("Key " + key + " was not found in the config file");
-
+        std::string msg = "Key " + key + " was not found in the config file";
+        std::cerr << msg << std::endl;
         return false;
       }
       return true;
     }
 
-    bool ParseObjectArray(const std::vector<json>& objects)
+    ConfigParseStatus ParseObjectArray(const std::vector<json>& objects)
     {
+      ConfigParseStatus status = ConfigParseStatus::None;
+
       for (const auto& object : objects)
       {
         if (!ValidateJsonWithKey(object, TYPE))
-          return false;
+        {
+          status = ConfigParseStatus::ObjectTypeNotFound;
+          break;
+        }
 
         std::string type = object[TYPE].get<std::string>();
 
         if (type == "MECHANISM")
         {
-          if (!ParseMechanism(object))
-            return false;
+          status = ParseMechanism(object);
         }
         else if (type == "PHOTOLYSIS")
         {
-          if (!ParsePhotolysis(object))
-            return false;
+          status = ParsePhotolysis(object);
         }
         else if (type == "ARRHENIUS")
         {
-          if (!ParseArrhenius(object))
-            return false;
+          status = ParseArrhenius(object);
         }
         else if (type == "TROE")
         {
-          if (!ParseTroe(object))
-            return false;
+          status = ParseTroe(object);
         }
         else if (type == "EMISSION")
         {
-          if (!ParseEmission(object))
-            return false;
+          status = ParseEmission(object);
         }
         else if (type == "FIRST_ORDER_LOSS")
         {
-          if (!ParseFirstOrderLoss(object))
-            return false;
+          status = ParseFirstOrderLoss(object);
         }
         else
         {
-          error_policy_.OnError("Unknown key in config file: " + type);
-          return false;
+          status = ConfigParseStatus::UnknownKey;
         }
+        if (status != ConfigParseStatus::Success) break;
       }
-      return true;
+
+      return status;
     }
 
-    bool ParseChemicalSpecies(const json& object)
+    ConfigParseStatus ParseChemicalSpecies(const json& object)
     {
       // required keys
       const std::string NAME = "name";
@@ -266,7 +269,7 @@ namespace micm
       for (const auto& key : required_keys)
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       // Check if it contains optional key(s)
@@ -287,22 +290,21 @@ namespace micm
         species_arr_.push_back(Species(name));
       }
 
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseRelativeTolerance(const json& object)
+    ConfigParseStatus ParseRelativeTolerance(const json& object)
     {
-      // TODO: what is this?
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseMechanism(const json& object)
+    ConfigParseStatus ParseMechanism(const json& object)
     {
       std::vector<std::string> required_keys = { "name", "reactions" };
       for (const auto& key : required_keys)
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
       std::vector<json> objects;
       for (const auto& element : object["reactions"])
@@ -313,7 +315,7 @@ namespace micm
       return ParseObjectArray(objects);
     }
 
-    bool ParsePhotolysis(const json& object)
+    ConfigParseStatus ParsePhotolysis(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -325,7 +327,7 @@ namespace micm
       for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       std::vector<Species> reactants;
@@ -354,10 +356,10 @@ namespace micm
       std::unique_ptr<PhotolysisRateConstant> rate_ptr = std::make_unique<PhotolysisRateConstant>(name);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseArrhenius(const json& object)
+    ConfigParseStatus ParseArrhenius(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -369,7 +371,7 @@ namespace micm
       for (const auto& key : { REACTANTS, PRODUCTS })
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       // Create process
@@ -425,10 +427,10 @@ namespace micm
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseTroe(const json& object)
+    ConfigParseStatus ParseTroe(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -440,7 +442,7 @@ namespace micm
       for (const auto& key : { REACTANTS, PRODUCTS })
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       // Create process
@@ -503,63 +505,69 @@ namespace micm
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseEmission(const json& object)
+    ConfigParseStatus ParseEmission(const json& object)
     {
       std::vector<std::string> required_keys = { "species" };
       std::vector<std::string> optional_keys = { "MUSICA name" };
       for (const auto& key : required_keys)
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       std::string name = object["species"].get<std::string>();
 
       emission_arr_.push_back(Species(name));
 
-      return true;
+      return ConfigParseStatus::Success;
     }
 
-    bool ParseFirstOrderLoss(const json& object)
+    ConfigParseStatus ParseFirstOrderLoss(const json& object)
     {
       std::vector<std::string> required_keys = { "species" };
       std::vector<std::string> optional_keys = { "MUSICA name" };
       for (const auto& key : required_keys)
       {
         if (!ValidateJsonWithKey(object, key))
-          return false;
+          return ConfigParseStatus::RequiredKeyNotFound;
       }
 
       std::string name = object["species"].get<std::string>();
 
       first_order_loss_arr_.push_back(Species(name));
 
-      return true;
+      return ConfigParseStatus::Success;
     }
   };
 
   /// @brief Public interface to read and parse config
-  template<template<class> class ConfigTypePolicy = JsonReaderPolicy, class ErrorPolicy = ThrowPolicy>
-  class SolverConfig : public ConfigTypePolicy<ErrorPolicy>
+  template<class ConfigTypePolicy = JsonReaderPolicy>
+  class SolverConfig : public ConfigTypePolicy
   {
+   private:
+    ConfigParseStatus last_parse_status_ = ConfigParseStatus::None;
+
    public:
+
     /// @brief Reads and parses configures
-    /// @return TRUE if parsing is success
-    bool ReadAndParse(const std::filesystem::path& config_dir)
+    /// @param config_dir A path to a configuration file
+    /// @return an enum indicating the success or failure of the parse
+    [[nodiscard]] ConfigParseStatus ReadAndParse(const std::filesystem::path& config_dir)
     {
-      return this->Parse(config_dir);
+      last_parse_status_ = this->Parse(config_dir);
+      return last_parse_status_;
     }
 
     /// @brief Creates and returns SolverParameters
     /// @return SolverParameters that contains 'System' and a collection of 'Process'
     SolverParameters GetSolverParams()
     {
-      if (!this->successful_parse)
+      if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        this->error_policy_.OnError("Parsing configure files hasn't been completed");
+        throw std::runtime_error("Parsing configuration files failed");
       }
 
       return SolverParameters(
@@ -570,9 +578,9 @@ namespace micm
     /// @return a collection of 'PhotolysisRateConstant'
     std::vector<PhotolysisRateConstant>& GetPhotolysisRateConstants()
     {
-      if (!this->successful_parse)
+      if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        this->error_policy_.OnError("Parsing configure files hasn't been completed");
+        throw std::runtime_error("Parsing configuration files failed");
       }
 
       return this->photolysis_rate_arr_;

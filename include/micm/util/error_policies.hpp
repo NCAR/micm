@@ -7,15 +7,8 @@
 
 namespace micm
 {
-  class InvalidArgumentPolicy
-  {
-   public:
-    void OnError(std::string message) const
-    {
-      throw std::invalid_argument(message.c_str());
-    }
-  };
-
+  // JSON-Parsing error policies
+  template<class Object>
   class ThrowPolicy
   {
     class Exception : public std::exception
@@ -36,26 +29,20 @@ namespace micm
     };
 
    public:
-    void OnError(std::string message) const
+    Object OnError(std::string message)
     {
       throw Exception(message.c_str());
     }
   };
 
-  class LogToStandardErrorPolicy
+  template<class Object>
+  class NoThrowPolicy
   {
    public:
-    void OnError(std::string message) const
+    Object OnError(std::string message)
     {
       std::cerr << message << std::endl;
-    }
-  };
-
-  class IgnoreErrorsPolicy
-  {
-   public:
-    void OnError(std::string message) const
-    {
+      return Object();
     }
   };
 

@@ -24,11 +24,9 @@ namespace micm
     std::size_t number_of_rate_constants_{ 0 };
   };
 
-  template<template<class> class MatrixPolicy = Matrix, class ErrorPolicy = InvalidArgumentPolicy>
+  template<template<class> class MatrixPolicy = Matrix>
   struct State
   {
-    private:
-    ErrorPolicy error_policy_{};
 
     public:
     std::vector<Conditions> conditions_;
@@ -63,18 +61,17 @@ namespace micm
         const std::unordered_map<std::string, std::vector<double>>& photolysis_rate);
   };
 
-  template<template<class> class MatrixPolicy, class ErrorPolicy>
-  inline State<MatrixPolicy, ErrorPolicy>::State()
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State()
       : conditions_(),
         variable_map_(),
         variables_(),
         custom_rate_parameters_(),
-        rate_constants_(),
-        error_policy_()
+        rate_constants_()
   {
   }
-  template<template<class> class MatrixPolicy, class ErrorPolicy>
-  inline State<MatrixPolicy, ErrorPolicy>::State(
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(
       const std::size_t state_size,
       const std::size_t custom_parameters_size,
       const std::size_t process_size)
@@ -86,8 +83,8 @@ namespace micm
   {
   }
 
-  template<template<class> class MatrixPolicy, class ErrorPolicy>
-  inline State<MatrixPolicy, ErrorPolicy>::State(const StateParameters parameters)
+  template<template<class> class MatrixPolicy>
+  inline State<MatrixPolicy>::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variable_map_(),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
@@ -99,8 +96,8 @@ namespace micm
       variable_map_[name] = index++;
   }
 
-  template<template<class> class MatrixPolicy, class ErrorPolicy>
-  inline void State<MatrixPolicy, ErrorPolicy>::SetConcentrations(
+  template<template<class> class MatrixPolicy>
+  inline void State<MatrixPolicy>::SetConcentrations(
       const System& system,
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
@@ -116,7 +113,7 @@ namespace micm
       auto species_ptr = species_to_concentration.find(species.name_);
       if (species_ptr == species_to_concentration.end())
       {
-        error_policy_.OnError("Concentration value(s) for '" + species.name_ + "' must be given.");
+        throw std::runtime_error("Concentration value(s) for '" + species.name_ + "' must be given.");
       }
       num_concentrations_per_species.push_back(species_ptr->second.size());
     }
@@ -127,7 +124,7 @@ namespace micm
             num_concentrations_per_species.end(),
             [&](int& i) { return i == num_concentrations_per_species.front(); }))
     {
-      error_policy_.OnError("Concentration value must be given to all sets of grid cells.");
+      throw std::runtime_error("Concentration value must be given to all sets of grid cells.");
     }
 
     num_set_grid_cells = num_concentrations_per_species[0];
@@ -160,8 +157,8 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, class ErrorPolicy>
-  inline void State<MatrixPolicy, ErrorPolicy>::SetPhotolysisRate(
+  template<template<class> class MatrixPolicy>
+  inline void State<MatrixPolicy>::SetPhotolysisRate(
       const std::vector<PhotolysisRateConstant>& photolysis_rate_arr,
       const std::unordered_map<std::string, std::vector<double>>& photolysis_rate)
   {
@@ -177,7 +174,7 @@ namespace micm
       auto rate_ptr = photolysis_rate.find(elem.name_);
       if (rate_ptr == photolysis_rate.end())
       {
-        error_policy_.OnError("Photolysis rate constant(s) for '" + elem.name_ + "' must be given.");
+        throw std::runtime_error("Photolysis rate constant(s) for '" + elem.name_ + "' must be given.");
       }
       num_values_per_key.push_back(rate_ptr->second.size());
     }
@@ -186,7 +183,7 @@ namespace micm
     if (!std::all_of(
             num_values_per_key.begin(), num_values_per_key.end(), [&](int& i) { return i == num_values_per_key.front(); }))
     {
-      error_policy_.OnError("Photolysis rate constant value must be given to all sets of grid cells.");
+      throw std::runtime_error("Photolysis rate constant value must be given to all sets of grid cells.");
     }
 
     num_set_grid_cells = num_values_per_key[0];

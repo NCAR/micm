@@ -22,7 +22,7 @@ namespace micm
     t.NumberOfGroups(0);
   };
 
-  template<class T, class ErrorPolicy, class OrderingPolicy>
+  template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
@@ -33,11 +33,10 @@ namespace micm
   ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T, class ErrorPolicy = InvalidArgumentPolicy, class OrderingPolicy = SparseMatrixStandardOrdering<ErrorPolicy>>
+  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrix : public OrderingPolicy
   {
     protected:
-    ErrorPolicy error_policy_;
 
     private:
     std::size_t number_of_blocks_;        // Number of block sub-matrices in the overall matrix
@@ -45,7 +44,7 @@ namespace micm
     std::vector<std::size_t> row_start_;  // Index in data_ and row_ids_ of the start of each row in a block
     std::vector<T> data_;                 // Value of each non-zero matrix element
 
-    friend class SparseMatrixBuilder<T, ErrorPolicy, OrderingPolicy>;
+    friend class SparseMatrixBuilder<T, OrderingPolicy>;
     friend class ProxyRow;
     friend class ConstProxyRow;
     friend class Proxy;
@@ -148,23 +147,22 @@ namespace micm
     };
 
    public:
-    static SparseMatrixBuilder<T, ErrorPolicy, OrderingPolicy> create(std::size_t block_size)
+    static SparseMatrixBuilder<T, OrderingPolicy> create(std::size_t block_size)
     {
-      return SparseMatrixBuilder<T, ErrorPolicy, OrderingPolicy>{ block_size };
+      return SparseMatrixBuilder<T, OrderingPolicy>{ block_size };
     }
 
     SparseMatrix() = default;
 
-    SparseMatrix(const SparseMatrixBuilder<T, ErrorPolicy, OrderingPolicy>& builder)
+    SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : number_of_blocks_(builder.number_of_blocks_),
           row_ids_(builder.RowIdsVector()),
           row_start_(builder.RowStartVector()),
-          data_(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_),
-          error_policy_()
+          data_(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_)
     {
     }
 
-    SparseMatrix<T, ErrorPolicy, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, ErrorPolicy, OrderingPolicy>& builder)
+    SparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       number_of_blocks_ = builder.number_of_blocks_;
       row_ids_ = builder.RowIdsVector();
@@ -192,14 +190,14 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        this->error_policy_.OnError("Multi-block SparseMatrix access must specify block index");
+        throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
       return VectorIndex(0, row, column);
     }
 
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-        this->error_policy_.OnError("SparseMatrix element out of range");
+        throw std::invalid_argument("SparseMatrix element out of range");
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
@@ -239,15 +237,14 @@ namespace micm
     }
   };
 
-  template<class T, class ErrorPolicy = InvalidArgumentPolicy, class OrderingPolicy = SparseMatrixStandardOrdering<ErrorPolicy>>
+  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrixBuilder
   {
-    ErrorPolicy error_policy_{};
     std::size_t number_of_blocks_{ 1 };
     std::size_t block_size_;
     std::set<std::pair<std::size_t, std::size_t>> non_zero_elements_{};
     T initial_value_{};
-    friend class SparseMatrix<T, ErrorPolicy, OrderingPolicy>;
+    friend class SparseMatrix<T, OrderingPolicy>;
 
    public:
     SparseMatrixBuilder() = delete;
@@ -257,9 +254,9 @@ namespace micm
     {
     }
 
-    operator SparseMatrix<T, ErrorPolicy, OrderingPolicy>() const
+    operator SparseMatrix<T, OrderingPolicy>() const
     {
-      return SparseMatrix<T, ErrorPolicy, OrderingPolicy>(*this);
+      return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
     SparseMatrixBuilder& number_of_blocks(std::size_t n)
@@ -271,7 +268,7 @@ namespace micm
     SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        this->error_policy_.OnError("SparseMatrix element out of range");
+        throw std::invalid_argument("SparseMatrix element out of range");
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }
