@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'micm'
+project = 'MICM'
 copyright = '2023, NCAR'
 author = 'NCAR'
 
@@ -35,7 +35,7 @@ extensions = [
   'sphinx_design',
 ]
 
-breathe_default_project = "micm"
+breathe_default_project = "MICM"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

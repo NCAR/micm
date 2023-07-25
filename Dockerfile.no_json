@@ -20,6 +20,6 @@ RUN mkdir /build \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D ENABLE_JSON:BOOL=FALSE \
         ../micm \
-      && make 
+      && make install -j 8 
 
 WORKDIR /build

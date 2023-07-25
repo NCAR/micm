@@ -27,6 +27,6 @@ RUN mkdir /build \
         # -D ENABLE_MPI:BOOL=TRUE \
         # -D ENABLE_OPENMP:BOOL=TRUE \
         ../micm \
-      && make -j 8
+      && make install -j 8
 
 WORKDIR /build
