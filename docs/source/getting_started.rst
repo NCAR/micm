@@ -6,6 +6,26 @@ Getting Started
 ## Build and run
 
 ### CPU
+To build and install MICM locally, you must have the following libraries installed:
+
+- [sphinx](https://github.com/sphinx-doc/sphinx)
+- [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
+- [sphinx-design](https://github.com/executablebooks/sphinx-design)
+- [breathe](https://github.com/breathe-doc/breathe)
+
+You must also have CMake installed on your machine.
+
+Open a terminal window, navigate to a folder where you would like the MICM files to exist,
+and run the following commands:
+
+```
+git clone https://github.com/NCAR/micm.git
+cd micm
+mkdir build
+cd build
+ccmake ..
+sudo make install -j 8
+```
 
 ### GPU
 
