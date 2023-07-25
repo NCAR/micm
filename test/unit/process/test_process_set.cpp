@@ -7,7 +7,6 @@
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <micm/util/error_policies.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;

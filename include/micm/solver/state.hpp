@@ -7,7 +7,6 @@
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/error_policies.hpp>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>

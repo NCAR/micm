@@ -4,8 +4,6 @@
 #pragma once
 
 #include <cmath>
-#include <micm/util/error_policies.hpp>
-
 namespace micm
 {
 

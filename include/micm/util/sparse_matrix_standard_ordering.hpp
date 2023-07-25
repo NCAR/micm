@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/error_policies.hpp>
-
 namespace micm
 {
 

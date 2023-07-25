@@ -2,7 +2,6 @@
 
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
-#include <micm/util/error_policies.hpp>
 
 #include "test_sparse_matrix_policy.hpp"
 

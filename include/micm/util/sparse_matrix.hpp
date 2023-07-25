@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
-#include <micm/util/error_policies.hpp>
 #include <set>
 #include <stdexcept>
 #include <utility>

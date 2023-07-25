@@ -3,7 +3,6 @@
 #include <functional>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/error_policies.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>

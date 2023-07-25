@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <micm/util/error_policies.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
