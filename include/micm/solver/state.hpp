@@ -26,8 +26,6 @@ namespace micm
   template<template<class> class MatrixPolicy = Matrix>
   struct State
   {
-
-    public:
     std::vector<Conditions> conditions_;
     std::map<std::string, std::size_t> variable_map_;
     MatrixPolicy<double> variables_;
