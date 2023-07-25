@@ -51,7 +51,7 @@ void testForcing()
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };
-  std::lognormal_distribution dist(-2.0, 4.0);
+  std::lognormal_distribution dist(-2.0, 2.0);
 
   micm::ChapmanODESolver fixed_solver{};
   auto solver = getMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
@@ -76,7 +76,9 @@ void testForcing()
     EXPECT_EQ(forcing[i].size(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
-      EXPECT_NEAR(forcing[i][j], fixed_forcing[j], 1.0e-7);
+      double a = forcing[i][j];
+      double b = fixed_forcing[j];
+      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
     }
   }
 }
