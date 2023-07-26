@@ -150,7 +150,7 @@ micm::SparseMatrix<double, OrderingPolicy> testConstZeroMatrix()
         EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
         throw;
       },
-      std::invalid_argument); 
+      std::invalid_argument);
   return matrix;
 }
 
