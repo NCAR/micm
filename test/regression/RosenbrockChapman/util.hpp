@@ -77,5 +77,5 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getMultiCellChapmanSolv
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(std::vector<micm::Process>{ photo_1, photo_2, photo_3, r1, r2, r3, r4 }),
-      micm::RosenbrockSolverParameters{ .number_of_grid_cells_ = number_of_grid_cells });
+      micm::three_stage_rosenbrock_parameters(number_of_grid_cells));
 }

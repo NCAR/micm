@@ -68,9 +68,56 @@ namespace micm
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
+
+    void print() const
+    {
+        std::cout << "stages_: " << stages_ << std::endl;
+        std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
+        std::cout << "max_number_of_steps_: " << max_number_of_steps_ << std::endl;
+        std::cout << "round_off_: " << round_off_ << std::endl;
+        std::cout << "factor_min_: " << factor_min_ << std::endl;
+        std::cout << "factor_max_: " << factor_max_ << std::endl;
+        std::cout << "rejection_factor_decrease_: " << rejection_factor_decrease_ << std::endl;
+        std::cout << "safety_factor_: " << safety_factor_ << std::endl;
+        std::cout << "h_min_: " << h_min_ << std::endl;
+        std::cout << "h_max_: " << h_max_ << std::endl;
+        std::cout << "h_start_: " << h_start_ << std::endl;
+        std::cout << "new_function_evaluation_: ";
+        for (bool val : new_function_evaluation_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "estimator_of_local_order_: " << estimator_of_local_order_ << std::endl;
+        std::cout << "a_: ";
+        for (double val : a_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "c_: ";
+        for (double val : c_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "m_: ";
+        for (double val : m_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "e_: ";
+        for (double val : e_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "alpha_: ";
+        for (double val : alpha_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "gamma_: ";
+        for (double val : gamma_)
+            std::cout << val << " ";
+        std::cout << std::endl;
+        std::cout << "absolute_tolerance_: " << absolute_tolerance_ << std::endl;
+        std::cout << "relative_tolerance_: " << relative_tolerance_ << std::endl;
+        std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
+    }
   };
 
-  static RosenbrockSolverParameters three_stage_rosenbrock(size_t number_of_grid_cells = 1)
+  static RosenbrockSolverParameters three_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1)
   {
     RosenbrockSolverParameters parameters_;
     // an L-stable method, 3 stages, order 3, 2 function evaluations
@@ -306,7 +353,7 @@ namespace micm
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
       : system_(),
         processes_(),
-        parameters_(three_stage_rosenbrock()),
+        parameters_(three_stage_rosenbrock_parameters()),
         process_set_(),
         stats_(),
         jacobian_(),
@@ -370,6 +417,7 @@ namespace micm
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
   {
+    std::cout << "N_ " << N_ << std::endl;
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
