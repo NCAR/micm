@@ -1,7 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/rate_constant.hpp>
@@ -11,9 +10,7 @@ namespace micm
 {
   class System;
 
-  /**
-   * @brief A photolysis rate constant
-   */
+  /// @brief A photolysis rate constant
   class PhotolysisRateConstant : public RateConstant
   {
    public:

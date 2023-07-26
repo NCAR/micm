@@ -24,8 +24,6 @@ namespace micm
   };
 
   /// @brief An arrhenius rate constant dependent on temperature and pressure
-  ///
-  /// More information can be found here: https://open-atmos.github.io/camp/html/camp_rxn_arrhenius.html
   class ArrheniusRateConstant : public RateConstant
   {
    public:

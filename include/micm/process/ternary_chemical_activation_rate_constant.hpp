@@ -29,10 +29,7 @@ namespace micm
     double N_ = 1.0;
   };
 
-  /**
-   * @brief A TernaryChemicalActivation rate constant
-   *
-   */
+  /// @brief A TernaryChemicalActivation rate constant
   class TernaryChemicalActivationRateConstant : public RateConstant
   {
    public:

@@ -29,10 +29,7 @@ namespace micm
     double N_ = 1.0;
   };
 
-  /**
-   * @brief A Troe rate constant
-   *
-   */
+  /// @brief A Troe rate constant
   class TroeRateConstant : public RateConstant
   {
    public:
