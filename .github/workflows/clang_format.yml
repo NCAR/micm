@@ -18,8 +18,8 @@ jobs:
       - name: Run Clang-Format
         run: |
           clang-format -i --style=file include/**/*.hpp
-          clang-format -i --style=file src/**/*.hpp src/**/*.cpp src/**/*.cu
-          clang-format -i --style=file test/**/*.hpp src/**/*.cpp
+          clang-format -i --style=file src/**/*.cu
+          clang-format -i --style=file test/**/*.hpp test/**/*.cpp
 
       - name: Commit changes
         run: |
