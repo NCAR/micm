@@ -132,7 +132,10 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    RosenbrockSolver(const System& system, const std::vector<Process>& processes, const RosenbrockSolverParameters& parameters);
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters);
 
     virtual ~RosenbrockSolver();
 

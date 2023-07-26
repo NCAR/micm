@@ -17,9 +17,10 @@ jobs:
 
       - name: Run Clang-Format
         run: |
-          clang-format -i --style=file include/**/*.hpp
-          clang-format -i --style=file src/**/*.cu
-          clang-format -i --style=file test/**/*.hpp test/**/*.cpp
+          # Format all relevant files in the repository
+          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
+          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
+          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
 
       - name: Commit changes
         run: |
