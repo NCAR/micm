@@ -36,7 +36,8 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters{ .number_of_grid_cells_ = number_of_grid_cells });
+      micm::RosenbrockSolverParameters{ .number_of_grid_cells_ = number_of_grid_cells,
+                                        .reorder_state_ = false });
 }
 
 // ---- foo  bar  baz  quz  quuz
