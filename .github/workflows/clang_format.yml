@@ -2,8 +2,6 @@ name: Clang-Format
 
 on:
   pull_request:
-    paths:
-      - '**/*.{cpp,h,c,hpp}'   # Specify the file types you want Clang-Format to run on
 
 jobs:
   format:
