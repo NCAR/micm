@@ -16,7 +16,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install clang-format
 
       - name: Run Clang-Format
-        run: 
+        run: |
           clang-format -i --style=file include/**/*.hpp include/**/*.h
           clang-format -i --style=file src/**/*.hpp src/**/*.h src/**/*.cpp src/**/*.cu
           clang-format -i --style=file test/**/*.hpp src/**/*.h src/**/*.cpp
