@@ -1,10 +1,9 @@
 
-
 Getting Started
 ===============
 
-Build and Run
--------------
+Build and Test
+--------------
 
 CPU
 ~~~
@@ -25,8 +24,11 @@ and run the following commands::
     $ mkdir build
     $ cd build
     $ ccmake ..
-    $ sudo make install -j 8
+    $ make install -j 8
     $ make test
+
+CMake will allow for setting options such as the installation directory
+with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
 
 Docker Container
 ~~~~~~~~~~~~~~~~
@@ -64,3 +66,5 @@ To compile and test on gust::
 NOAA Hardware
 -------------
 
+Run an Example
+--------------
