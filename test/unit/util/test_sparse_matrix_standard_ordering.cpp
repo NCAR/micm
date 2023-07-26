@@ -5,19 +5,21 @@
 
 #include "test_sparse_matrix_policy.hpp"
 
+using StandardOrdering = micm::SparseMatrixStandardOrdering;
+
 TEST(SparseMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::SparseMatrixStandardOrdering>();
+  testZeroMatrix<StandardOrdering>();
 }
 
 TEST(SparseMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::SparseMatrixStandardOrdering>();
+  testConstZeroMatrix<StandardOrdering>();
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<micm::SparseMatrixStandardOrdering>();
+  auto matrix = testSingleBlockMatrix<StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -35,7 +37,7 @@ TEST(SparseMatrix, SingleBlockMatrix)
 
 TEST(SparseMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<micm::SparseMatrixStandardOrdering>();
+  auto matrix = testConstSingleBlockMatrix<StandardOrdering>();
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 3);
@@ -50,7 +52,7 @@ TEST(SparseMatrix, ConstSingleBlockMatrix)
 
 TEST(SparseMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<micm::SparseMatrixStandardOrdering>();
+  auto matrix = testMultiBlockMatrix<StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
