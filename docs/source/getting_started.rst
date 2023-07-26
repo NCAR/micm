@@ -26,6 +26,7 @@ and run the following commands::
     $ cd build
     $ ccmake ..
     $ sudo make install -j 8
+    $ make test
 
 Docker Container
 ~~~~~~~~~~~~~~~~
@@ -35,7 +36,7 @@ Build and run the image::
     $ docker build -t micm -f Dockerfile.nvhpc .
     $ docker run --rm -it micm
 
-If you'd like, you can ssh into a running docker container and edit the files there.
+If you would like, you can ssh into a running docker container and edit the files there.
 
 GPU
 ~~~
@@ -43,8 +44,14 @@ GPU
 NCAR Hardware
 -------------
 
-On Gust
-~~~~~~~
+On Cheyenne
+~~~~~~~~~~~
+
+On Casper
+~~~~~~~~~
+
+On Gust and Derecho
+~~~~~~~~~~~~~~~~~~~
 To compile and test on gust::
 
     $ qinteractive -A NTDD0005 --ngpus=1
@@ -53,4 +60,7 @@ To compile and test on gust::
     $ cmake -DENABLE_OPENACC=OFF -DENABLE_CUDA=ON -D GPU_TYPE="a100" ..
     $ make
     $ make test
+
+NOAA Hardware
+-------------
 
