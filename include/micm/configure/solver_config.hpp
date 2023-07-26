@@ -38,6 +38,35 @@ namespace micm
     RequiredKeyNotFound
   };
 
+  std::string configParseStatusToString(ConfigParseStatus status) {
+    switch (status) {
+        case ConfigParseStatus::Success:
+            return "Success";
+        case ConfigParseStatus::None:
+            return "None";
+        case ConfigParseStatus::InvalidSpeciesFilePath:
+            return "InvalidSpeciesFilePath";
+        case ConfigParseStatus::InvalidReactionsFilePath:
+            return "InvalidReactionsFilePath";
+        case ConfigParseStatus::InvalidKey:
+            return "InvalidKey";
+        case ConfigParseStatus::UnknownKey:
+            return "UnknownKey";
+        case ConfigParseStatus::InvalidSpecies:
+            return "InvalidSpecies";
+        case ConfigParseStatus::CAMPDataSectionNotFound:
+            return "CAMPDataSectionNotFound";
+        case ConfigParseStatus::InvalidMechanism:
+            return "InvalidMechanism";
+        case ConfigParseStatus::ObjectTypeNotFound:
+            return "ObjectTypeNotFound";
+        case ConfigParseStatus::RequiredKeyNotFound:
+            return "RequiredKeyNotFound";
+        default:
+            return "Unknown";
+    }
+}
+
   // Solver parameters
   struct SolverParameters
   {
@@ -567,7 +596,8 @@ namespace micm
     {
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        throw std::runtime_error("Parsing configuration files failed");
+        std::string msg = "Parsing configuration files failed. The parsing failed with error: " + configParseStatusToString(last_parse_status_);
+        throw std::runtime_error(msg);
       }
 
       return SolverParameters(
@@ -580,7 +610,8 @@ namespace micm
     {
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        throw std::runtime_error("Parsing configuration files failed");
+        std::string msg = "Parsing configuration files failed. The parsing failed with error: " + configParseStatusToString(last_parse_status_);
+        throw std::runtime_error(msg);
       }
 
       return this->photolysis_rate_arr_;
