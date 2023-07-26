@@ -39,7 +39,6 @@ namespace micm
   /// @brief Rosenbrock solver parameters
   struct RosenbrockSolverParameters
   {
-    size_t N_{};
     size_t stages_{};
     size_t upper_limit_tolerance_{};
     size_t max_number_of_steps_{ 100 };
@@ -70,6 +69,75 @@ namespace micm
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
   };
+
+  static RosenbrockSolverParameters three_stage_rosenbrock(size_t number_of_grid_cells = 1)
+  {
+    RosenbrockSolverParameters parameters_;
+    // an L-stable method, 3 stages, order 3, 2 function evaluations
+    //
+    // original formaulation for three stages:
+    // Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997.
+    // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers.
+    // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
+
+    parameters_.stages_ = 3;
+
+    //  The coefficient matrices A and C are strictly lower triangular.
+    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
+    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+    //  The general mapping formula is:
+    //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+    //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+
+    parameters_.a_.fill(0);
+    parameters_.a_[0] = 1;
+    parameters_.a_[1] = 1;
+    parameters_.a_[2] = 0;
+
+    parameters_.c_.fill(0);
+    parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
+    parameters_.c_[1] = 0.40759956452537699824805835358067e+01;
+    parameters_.c_[2] = 0.92076794298330791242156818474003e+01;
+
+    // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+    // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+    parameters_.new_function_evaluation_.fill(false);
+    parameters_.new_function_evaluation_[0] = true;
+    parameters_.new_function_evaluation_[1] = true;
+    parameters_.new_function_evaluation_[2] = false;
+
+    // Coefficients for new step solution
+    parameters_.m_.fill(0);
+    parameters_.m_[0] = 0.1e+01;
+    parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
+    parameters_.m_[2] = -0.42772256543218573326238373806514;
+
+    // Coefficients for error estimator
+    parameters_.e_.fill(0);
+    parameters_.e_[0] = 0.5;
+    parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
+    parameters_.e_[2] = 0.22354069897811569627360909276199;
+
+    // ros_ELO = estimator of local order - the minimum between the
+    // main and the embedded scheme orders plus 1
+    parameters_.estimator_of_local_order_ = 3;
+
+    // Y_stage_i ~ Y( T + H*Alpha_i )
+    parameters_.alpha_.fill(0);
+    parameters_.alpha_[0] = 0;
+    parameters_.alpha_[1] = 0.43586652150845899941601945119356;
+    parameters_.alpha_[2] = 0.43586652150845899941601945119356;
+
+    // Gamma_i = \sum_j  gamma_{i,j}
+    parameters_.gamma_.fill(0);
+    parameters_.gamma_[0] = 0.43586652150845899941601945119356;
+    parameters_.gamma_[1] = 0.24291996454816804366592249683314;
+    parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
+
+    parameters_.number_of_grid_cells_ = number_of_grid_cells;
+
+    return parameters_;
+  }
 
   /// @brief An implementation of the Chapman mechnanism solver
   ///
@@ -123,6 +191,7 @@ namespace micm
     SparseMatrixPolicy<double> jacobian_;
     LinearSolver<double, SparseMatrixPolicy> linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
+    size_t N_{};
 
     static constexpr double delta_min_ = 1.0e-5;
 
@@ -190,9 +259,6 @@ namespace micm
         const MatrixPolicy<double>& rate_constants);
 
    protected:
-    /// @brief Initializes the solving parameters for a three-stage rosenbrock solver
-    void three_stage_rosenbrock();
-
     /// @brief Computes the scaled norm of the vector errors
     /// @param original_number_densities the original number densities
     /// @param new_number_densities the new number densities
@@ -240,14 +306,14 @@ namespace micm
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
       : system_(),
         processes_(),
-        parameters_(),
+        parameters_(three_stage_rosenbrock()),
         process_set_(),
         stats_(),
         jacobian_(),
         linear_solver_(),
-        jacobian_diagonal_elements_()
+        jacobian_diagonal_elements_(),
+        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
-    three_stage_rosenbrock();
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -262,7 +328,8 @@ namespace micm
         stats_(),
         jacobian_(),
         linear_solver_(),
-        jacobian_diagonal_elements_()
+        jacobian_diagonal_elements_(),
+        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
     auto builder =
         SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
@@ -277,9 +344,6 @@ namespace micm
     process_set_.SetJacobianFlatIds(jacobian_);
     for (std::size_t i = 0; i < jacobian_[0].size(); ++i)
       jacobian_diagonal_elements_.push_back(jacobian_.VectorIndex(0, i, i));
-
-    // TODO: move three stage rosenbrock to parameter constructor
-    three_stage_rosenbrock();
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -514,72 +578,6 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::three_stage_rosenbrock()
-  {
-    // an L-stable method, 3 stages, order 3, 2 function evaluations
-    //
-    // original formaulation for three stages:
-    // Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997.
-    // Benchmarking stiff ode solvers for atmospheric chemistry problems II: Rosenbrock solvers.
-    // Atmospheric Environment 31, 3459–3472. https://doi.org/10.1016/S1352-2310(97)83212-8
-
-    parameters_.stages_ = 3;
-    parameters_.N_ = system_.StateSize() * parameters_.number_of_grid_cells_;
-
-    //  The coefficient matrices A and C are strictly lower triangular.
-    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
-    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-    //  The general mapping formula is:
-    //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-    //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-
-    parameters_.a_.fill(0);
-    parameters_.a_[0] = 1;
-    parameters_.a_[1] = 1;
-    parameters_.a_[2] = 0;
-
-    parameters_.c_.fill(0);
-    parameters_.c_[0] = -0.10156171083877702091975600115545e+01;
-    parameters_.c_[1] = 0.40759956452537699824805835358067e+01;
-    parameters_.c_[2] = 0.92076794298330791242156818474003e+01;
-
-    // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-    // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-    parameters_.new_function_evaluation_.fill(false);
-    parameters_.new_function_evaluation_[0] = true;
-    parameters_.new_function_evaluation_[1] = true;
-    parameters_.new_function_evaluation_[2] = false;
-
-    // Coefficients for new step solution
-    parameters_.m_.fill(0);
-    parameters_.m_[0] = 0.1e+01;
-    parameters_.m_[1] = 0.61697947043828245592553615689730e+01;
-    parameters_.m_[2] = -0.42772256543218573326238373806514;
-
-    // Coefficients for error estimator
-    parameters_.e_.fill(0);
-    parameters_.e_[0] = 0.5;
-    parameters_.e_[1] = -0.29079558716805469821718236208017e+01;
-    parameters_.e_[2] = 0.22354069897811569627360909276199;
-
-    // ros_ELO = estimator of local order - the minimum between the
-    // main and the embedded scheme orders plus 1
-    parameters_.estimator_of_local_order_ = 3;
-
-    // Y_stage_i ~ Y( T + H*Alpha_i )
-    parameters_.alpha_.fill(0);
-    parameters_.alpha_[0] = 0;
-    parameters_.alpha_[1] = 0.43586652150845899941601945119356;
-    parameters_.alpha_[2] = 0.43586652150845899941601945119356;
-
-    // Gamma_i = \sum_j  gamma_{i,j}
-    parameters_.gamma_.fill(0);
-    parameters_.gamma_[0] = 0.43586652150845899941601945119356;
-    parameters_.gamma_[1] = 0.24291996454816804366592249683314;
-    parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::UpdateState(State<MatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
@@ -636,6 +634,6 @@ namespace micm
     errors.ForEach([&](double& ierror, double& iscale) { sum += std::pow(ierror / iscale, 2); }, scale);
 
     double error_min_ = 1.0e-10;
-    return std::max(std::sqrt(sum / parameters_.N_), error_min_);
+    return std::max(std::sqrt(sum / N_), error_min_);
   }
 }  // namespace micm
