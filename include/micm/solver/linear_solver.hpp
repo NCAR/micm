@@ -15,7 +15,7 @@ namespace micm
   /// @param matrix Original matrix non-zero elements
   /// @result Reordered mapping vector (reordered[i] = original[map[i]])
   template<template<class> class MatrixPolicy>
-  std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<bool>& matrix);
+  std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
 
   /// @brief A general-use sparse-matrix linear solver
   template<typename T, template<class> class SparseMatrixPolicy>
@@ -72,7 +72,7 @@ namespace micm
   std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {
     const std::size_t order = matrix.size();
-    std::vector<std::size_t> perm( order );
+    std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
       perm[i] = i;
     MatrixPolicy<int> pattern = matrix;

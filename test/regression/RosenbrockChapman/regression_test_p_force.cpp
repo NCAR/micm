@@ -70,13 +70,15 @@ void testForcing()
   {
     double number_density_air = 1.0;
     std::vector<double> rate_constants = state.rate_constants_[i];
-    std::vector<double> variables = state.variables_[i];
+    std::vector<double> variables(state.variables_[i].size());
+    for (std::size_t j{}; j < state.variables_[i].size(); ++j)
+      variables[j] = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
     std::vector<double> fixed_forcing = fixed_solver.force(rate_constants, variables, number_density_air);
 
     EXPECT_EQ(forcing[i].size(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
-      double a = forcing[i][j];
+      double a = forcing[i][state.variable_map_[fixed_solver.species_names()[j]]];
       double b = fixed_forcing[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + 1.0e-12);
     }

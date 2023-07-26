@@ -72,7 +72,14 @@ namespace micm
     size_t StateSize() const;
 
     /// @brief Returns a set of unique species names
+    /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames() const;
+
+    /// @brief Returns a set of unique species names
+    /// @param reordering Function used to apply specific order to unique names
+    /// @return vector of unique state variable names
+    std::vector<std::string> UniqueNames(
+        const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const;
   };
 
   inline size_t System::StateSize() const
@@ -85,7 +92,12 @@ namespace micm
     return state_size;
   }
 
-  inline std::vector<std::string> System::UniqueNames() const
+  inline std::vector<std::string> System::UniqueNames() const{
+    return UniqueNames(nullptr);
+  }
+
+  inline std::vector<std::string> System::UniqueNames(
+      const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
     std::vector<std::string> names{};
     for (auto& species : gas_phase_.species_)
@@ -98,6 +110,12 @@ namespace micm
       {
         names.push_back(phase.first + "." + species.name_);
       }
+    }
+    if (f)
+    {
+      const auto orig_names = names;
+      for (std::size_t i = 0; i < orig_names.size(); ++i)
+        names[i] = f(orig_names, i);
     }
     return names;
   }

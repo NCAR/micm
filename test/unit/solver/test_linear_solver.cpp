@@ -175,7 +175,7 @@ void testMarkowitzReordering()
   builder = SparseMatrixPolicy<double>::create(50);
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
-      if (orig[reorder_map[i]][reorder_map[j] != 0])
+      if (orig[reorder_map[i]][reorder_map[j]] != 0)
         builder = builder.with_element(i, j);
   SparseMatrixPolicy<double> reordered_jac{ builder };
 

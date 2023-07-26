@@ -69,6 +69,7 @@ namespace micm
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
+    bool reorder_state_{ true };       // Reorder state during solver construction to minimize LU fill-in
   };
 
   /// @brief An implementation of the Chapman mechnanism solver
@@ -118,6 +119,7 @@ namespace micm
     const System system_;
     const std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
+    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
     SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
@@ -132,7 +134,10 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    RosenbrockSolver(const System& system, const std::vector<Process>& processes, const RosenbrockSolverParameters& parameters);
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters);
 
     virtual ~RosenbrockSolver();
 
@@ -258,12 +263,27 @@ namespace micm
       : system_(system),
         processes_(processes),
         parameters_(parameters),
-        process_set_(processes_, GetState()),
+        state_reordering_(),
+        process_set_(),
         stats_(),
         jacobian_(),
         linear_solver_(),
         jacobian_diagonal_elements_()
   {
+    // generate a state-vector reordering function to reduce fill-in in linear solver
+    if (parameters_.reorder_state_)
+    {
+      // get unsorted Jacobian non-zero elements
+      auto unsorted_process_set = ProcessSet(processes, GetState());
+      auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
+      MatrixPolicy<int> unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
+      for (auto& elem : unsorted_jac_elements)
+        unsorted_jac_non_zeros[elem.first][elem.second] = 1;
+      auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
+      state_reordering_ = [=](const std::vector<std::string>& variables, const std::size_t i)
+      { return variables[reorder_map[i]]; };
+    }
+    process_set_ = ProcessSet(processes, GetState());
     auto builder =
         SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
     auto jac_elements = process_set_.NonZeroJacobianElements();
@@ -272,6 +292,7 @@ namespace micm
     // Always include diagonal elements
     for (std::size_t i = 0; i < system_.StateSize(); ++i)
       builder = builder.with_element(i, i);
+
     jacobian_ = builder;
     linear_solver_ = LinearSolver<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
     process_set_.SetJacobianFlatIds(jacobian_);
@@ -296,7 +317,7 @@ namespace micm
       if (process.rate_constant_)
         n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
+    return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(state_reordering_),
                                                        .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
                                                        .number_of_custom_parameters_ = n_params,
                                                        .number_of_rate_constants_ = processes_.size() } };
