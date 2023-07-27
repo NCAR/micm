@@ -12,6 +12,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Pull latest changes
+        run: |
+          git checkout ${{ github.head_ref }}
+          git pull
+
       - name: Install Clang-Format
         run: sudo apt-get update && sudo apt-get install clang-format
 
