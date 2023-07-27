@@ -343,14 +343,43 @@ namespace micm
       return ParseObjectArray(objects);
     }
 
+    std::vector<Species> ParseReactants(const json& object)
+    {
+      const std::string QTY = "qty";
+      std::vector<Species> reactants;
+      for (auto& [key, value]: object.items())
+      {
+        std::size_t qty = 1;
+        if (value.contains(QTY))
+          qty = value[QTY];
+        for (std::size_t i = 0; i < qty; ++i)
+          reactants.push_back(Species(key));
+      }
+      return reactants;
+    }
+
+    std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+    {
+      const std::string YIELD = "yield";
+      constexpr double DEFAULT_YEILD = 1.0;
+      std::vector<std::pair<Species, double>> products;
+      for (auto& [key, value] : object.items())
+      {
+        if (value.contains(YIELD))
+        {
+          products.push_back(std::make_pair(Species(key), value[YIELD]));
+        } else {
+          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
+        }
+      }
+      return products;
+    }
+
     ConfigParseStatus ParsePhotolysis(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
       {
@@ -358,24 +387,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       std::string name = object[MUSICA_NAME].get<std::string>();
 
@@ -391,9 +404,6 @@ namespace micm
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -402,25 +412,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      // Create process
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       ArrheniusRateConstantParameters parameters;
       if (object.contains("A"))
@@ -462,9 +455,6 @@ namespace micm
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -473,25 +463,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      // Create process
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       TroeRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -540,9 +513,6 @@ namespace micm
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -551,25 +521,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      // Create process
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       TernaryChemicalActivationRateConstantParameters parameters;
       if (object.contains("k0_A"))

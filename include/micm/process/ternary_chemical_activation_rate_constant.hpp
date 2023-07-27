@@ -12,13 +12,13 @@ namespace micm
   struct TernaryChemicalActivationRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
-    double k0_A_;
+    double k0_A_ = 1.0;
     /// @brief low-pressure temperature-scaling parameter
     double k0_B_ = 0.0;
     /// @brief low-pressure exponential factor
     double k0_C_ = 0.0;
     /// @brief high-pressure pre-exponential factor
-    double kinf_A_;
+    double kinf_A_ = 1.0;
     /// @brief high-pressure temperature-scaling parameter
     double kinf_B_ = 0.0;
     /// @brief high-pressure exponential factor

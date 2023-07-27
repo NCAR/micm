@@ -1,0 +1,17 @@
+{
+  "camp-data": [
+    {
+      "name": "Ternary missing reactants",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "reactants": {
+            "bar": { },
+            "baz": { "qty": 2 }
+          }
+        }
+      ]
+    }
+  ]
+}
