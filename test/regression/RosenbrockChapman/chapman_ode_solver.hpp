@@ -382,7 +382,7 @@ namespace micm
             if (parameters_.new_function_evaluation_[stage])
             {
               auto new_Y(Y);
-              for (uint64_t j = 0; j <= stage; ++j)
+              for (uint64_t j = 0; j < stage; ++j)
               {
                 assert((stage_combinations + j) < parameters_.a_.size());
                 auto a = parameters_.a_[stage_combinations + j];

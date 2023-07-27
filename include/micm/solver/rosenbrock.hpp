@@ -781,7 +781,7 @@ namespace micm
             if (parameters_.new_function_evaluation_[stage])
             {
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
-              for (uint64_t j = 0; j <= stage; ++j)
+              for (uint64_t j = 0; j < stage; ++j)
               {
                 auto a = parameters_.a_[stage_combinations + j];
                 Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
