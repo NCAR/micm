@@ -15,6 +15,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
+#include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
@@ -92,6 +93,7 @@ namespace micm
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
     std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
+    std::vector<TunnelingRateConstant> tunneling_rate_arr_;
     std::vector<Species> emission_arr_;
     std::vector<Species> first_order_loss_arr_;
 
@@ -261,6 +263,10 @@ namespace micm
         else if (type == "TROE")
         {
           status = ParseTroe(object);
+        }
+        else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
+        {
+          status = ParseTunneling(object);
         }
         else if (type == "EMISSION")
         {
@@ -564,6 +570,44 @@ namespace micm
 
       std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
           std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseTunneling(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, PRODUCTS })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      TunnelingRateConstantParameters parameters;
+      if (object.contains("A"))
+      {
+        parameters.A_ = object["A"].get<double>();
+      }
+      if (object.contains("B"))
+      {
+        parameters.B_ = object["B"].get<double>();
+      }
+      if (object.contains("C"))
+      {
+        parameters.C_ = object["C"].get<double>();
+      }
+
+      tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
+
+      std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
