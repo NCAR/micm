@@ -69,7 +69,7 @@ namespace micm
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
-    bool reorder_state_{ true };       // Reorder state during solver construction to minimize LU fill-in
+    bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
   };
 
   /// @brief An implementation of the Chapman mechnanism solver
@@ -163,9 +163,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -492,8 +492,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
@@ -508,8 +507,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())

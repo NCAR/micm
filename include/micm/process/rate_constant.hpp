@@ -12,10 +12,7 @@
 
 namespace micm
 {
-  /**
-   * @brief A base class for any type of rate constant
-   *
-   */
+  /// @brief A base class for any type of rate constant
   class RateConstant
   {
    public:
