@@ -13,7 +13,6 @@
 
 namespace micm
 {
-
   /// Concept for vectorizable matrices
   template<typename T>
   concept VectorizableSparse = requires(T t) {
@@ -256,13 +255,13 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
-    SparseMatrixBuilder<T, OrderingPolicy>& number_of_blocks(std::size_t n)
+    SparseMatrixBuilder& number_of_blocks(std::size_t n)
     {
       number_of_blocks_ = n;
       return *this;
     }
 
-    SparseMatrixBuilder<T, OrderingPolicy>& with_element(std::size_t x, std::size_t y)
+    SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
         throw std::invalid_argument("SparseMatrix element out of range");
@@ -270,7 +269,7 @@ namespace micm
       return *this;
     }
 
-    SparseMatrixBuilder<T, OrderingPolicy>& initial_value(T inital_value)
+    SparseMatrixBuilder& initial_value(T inital_value)
     {
       initial_value_ = inital_value;
       return *this;
@@ -292,6 +291,7 @@ namespace micm
           [](const std::pair<std::size_t, std::size_t>& elem) { return elem.second; });
       return ids;
     }
+
     std::vector<std::size_t> RowStartVector() const
     {
       std::vector<std::size_t> starts(block_size_ + 1, 0);

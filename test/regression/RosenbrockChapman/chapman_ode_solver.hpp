@@ -93,7 +93,7 @@ namespace micm
       /// @brief The final time the solver iterated to
       double final_time_{};
     };
-    
+
     ChapmanParameters parameters_;
     SolverStats stats_;
     std::size_t number_sparse_factor_elements_ = 23;
@@ -205,15 +205,15 @@ namespace micm
 
   void ChapmanODESolver::SolverStats::Reset()
   {
-        function_calls = 0;
-        jacobian_updates = 0;
-        number_of_steps = 0;
-        accepted = 0;
-        rejected = 0;
-        decompositions = 0;
-        solves = 0;
-        singular = 0;
-        total_steps = 0;
+    function_calls = 0;
+    jacobian_updates = 0;
+    number_of_steps = 0;
+    accepted = 0;
+    rejected = 0;
+    decompositions = 0;
+    solves = 0;
+    singular = 0;
+    total_steps = 0;
   }
 
   std::string ChapmanODESolver::SolverStats::State(const ChapmanODESolver::SolverState& state) const

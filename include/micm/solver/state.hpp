@@ -116,7 +116,7 @@ namespace micm
       auto species_ptr = species_to_concentration.find(species.name_);
       if (species_ptr == species_to_concentration.end())
       {
-        throw std::invalid_argument("Concentration value(s) for '" + species.name_ + "' must be given.");
+        throw std::runtime_error("Concentration value(s) for '" + species.name_ + "' must be given.");
       }
       num_concentrations_per_species.push_back(species_ptr->second.size());
     }
@@ -127,8 +127,7 @@ namespace micm
             num_concentrations_per_species.end(),
             [&](int& i) { return i == num_concentrations_per_species.front(); }))
     {
-      throw std::invalid_argument(
-          "Concentration value must be given to all sets of grid cells.");  // TODO: jiwon 7/10 - error message
+      throw std::runtime_error("Concentration value must be given to all sets of grid cells.");
     }
 
     num_set_grid_cells = num_concentrations_per_species[0];
@@ -196,7 +195,7 @@ namespace micm
       auto rate_ptr = photolysis_rate.find(elem.name_);
       if (rate_ptr == photolysis_rate.end())
       {
-        throw std::invalid_argument("Photolysis rate constant(s) for '" + elem.name_ + "' must be given.");
+        throw std::runtime_error("Photolysis rate constant(s) for '" + elem.name_ + "' must be given.");
       }
       num_values_per_key.push_back(rate_ptr->second.size());
     }
@@ -205,8 +204,7 @@ namespace micm
     if (!std::all_of(
             num_values_per_key.begin(), num_values_per_key.end(), [&](int& i) { return i == num_values_per_key.front(); }))
     {
-      throw std::invalid_argument(
-          "Photolysis rate constant value must be given to all sets of grid cells.");  // TODO: jiwon 7/10 - error message
+      throw std::runtime_error("Photolysis rate constant value must be given to all sets of grid cells.");
     }
 
     num_set_grid_cells = num_values_per_key[0];

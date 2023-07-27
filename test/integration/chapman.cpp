@@ -21,12 +21,13 @@ using SparseMatrixTest = micm::SparseMatrix<T>;
 
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
+  micm::SolverConfig solverConfig;  // Set to throw-exception policy
 
   // Read and parse the configure files
   // If parsing fails, it could throw exceptions - we probably want to catch them.
   std::string config_path = "./unit_configs/chapman";
-  solverConfig.ReadAndParse(config_path);
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
+  EXPECT_EQ(status, micm::ConfigParseStatus::Success);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();

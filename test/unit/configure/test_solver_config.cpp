@@ -1,28 +1,21 @@
 #include <gtest/gtest.h>
 
-#ifdef USE_JSON
-#  include <micm/configure/solver_config.hpp>
+#include <micm/configure/solver_config.hpp>
 
-TEST(SolverConfig, DetectsInvalidConfigFileAndThrow)
+TEST(SolverConfig, DetectsInvalidConfigFile)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};
-  EXPECT_ANY_THROW(solverConfig.ReadAndParse("not_a_config_file_directory"));
-}
-
-TEST(SolverConfig, DetectsInvalidConfigFileAndNoThrowDoesntThrow)
-{
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig{};
-  EXPECT_NO_THROW(solverConfig.ReadAndParse("not_a_config_file_directory"));
-  EXPECT_FALSE(solverConfig.ReadAndParse("not_a_config_file_directory"));
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("not_a_config_file_directory");
+  EXPECT_EQ(micm::ConfigParseStatus::InvalidSpeciesFilePath, status);
 }
 
 TEST(SolverConfig, ReadAndParseSystemObject)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
+  micm::SolverConfig solverConfig;
 
   // Read and parse the configure files
-  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
-  EXPECT_TRUE(is_parse_success);
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -51,11 +44,11 @@ TEST(SolverConfig, ReadAndParseSystemObject)
 
 TEST(SolverConfig, ReadAndParseProcessObjects)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
+  micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
 
   // Read and parse the configure files
-  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
-  EXPECT_TRUE(is_parse_success);
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -127,26 +120,26 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
 
 TEST(SolverConfig, GettingSolverParamsThrowsExceptionWithFailedParsing)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
-  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_FALSE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
+  EXPECT_NE(micm::ConfigParseStatus::Success, status);
   EXPECT_ANY_THROW(solverConfig.GetSolverParams());
 }
 
 TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
-  bool is_parse_success = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_FALSE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
+  EXPECT_NE(micm::ConfigParseStatus::Success, status);
   EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
 }
 
 TEST(SolverConfig, GetPhotolysisRateConstants)
 {
   // Read and parse the configure files
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::NoThrowPolicy> solverConfig;
-  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/chapman");
-  EXPECT_TRUE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   std::vector<micm::PhotolysisRateConstant>& photolysis_rate_arr_ = solverConfig.GetPhotolysisRateConstants();
 
@@ -166,11 +159,9 @@ TEST(SolverConfig, GetPhotolysisRateConstants)
 //
 TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
-
-  // Read and parse the configure files
-  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/MZ326");
-  EXPECT_TRUE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -198,11 +189,9 @@ TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
 
 TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig;  // Set to throw-exception policy
-
-  // Read and parse the configure files
-  bool is_parse_success = solverConfig.ReadAndParse("./unit_configs/MZ326");
-  EXPECT_TRUE(is_parse_success);
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -291,4 +280,3 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
     idx++;
   }
 }
-#endif
