@@ -607,8 +607,7 @@ namespace micm
 
       tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
 
-      std::unique_ptr<TunnelingRateConstant> rate_ptr =
-          std::make_unique<TunnelingRateConstant>(parameters);
+      std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 

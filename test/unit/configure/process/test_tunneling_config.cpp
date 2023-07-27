@@ -7,8 +7,7 @@ TEST(TunnelingConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status =
-      solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_reactants");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_reactants");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
   status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_products");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
