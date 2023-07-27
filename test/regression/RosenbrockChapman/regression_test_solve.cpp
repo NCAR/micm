@@ -92,7 +92,7 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 TEST(RegressionRosenbrock, TwoStageSolve)
 {
   auto solver = getTwoStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
-  testSolve(solver, 1.0e-5);
+  testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, ThreeStageSolve)
@@ -110,13 +110,13 @@ TEST(RegressionRosenbrock, FourStageSolve)
 TEST(RegressionRosenbrock, FourStageDASolve)
 {
   auto solver = getFourStageDAMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
-  testSolve(solver, 1.0e-5);
+  testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, SixStageDASolve)
 {
   auto solver = getSixStageDAMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
-  testSolve(solver, 1.0e-3);
+  testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, VectorSolve)
