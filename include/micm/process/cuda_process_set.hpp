@@ -25,7 +25,7 @@ namespace micm
 
 #ifdef USE_CUDA
     template<template<class> typename MatrixPolicy>
-      requires VectorizableDense<MatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -41,7 +41,7 @@ namespace micm
 
 #ifdef USE_CUDA
   template<template<class> class MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+  requires VectorizableDense<MatrixPolicy<double>>
   inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,

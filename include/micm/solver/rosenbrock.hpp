@@ -66,10 +66,10 @@ namespace micm
     //  The general mapping formula is:
     //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
     //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-    std::array<double, 15> a_{};         // coefficient matrix a
-    std::array<double, 15> c_{};         // coefficient matrix c
-    std::array<double, 6> m_{};          // coefficients for new step evaluation
-    std::array<double, 6> e_{};          // error estimation coefficients
+    std::array<double, 15> a_{};  // coefficient matrix a
+    std::array<double, 15> c_{};  // coefficient matrix c
+    std::array<double, 6> m_{};   // coefficients for new step evaluation
+    std::array<double, 6> e_{};   // error estimation coefficients
 
     // Y_stage_i ~ Y( T + H*Alpha_i )
     std::array<double, 6> alpha_{};
@@ -80,72 +80,84 @@ namespace micm
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
-    bool reorder_state_{ true };       // Reorder state during solver construction to minimize LU fill-in
+    bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
 
     void print() const
     {
-        std::cout << "stages_: " << stages_ << std::endl;
-        std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
-        std::cout << "max_number_of_steps_: " << max_number_of_steps_ << std::endl;
-        std::cout << "round_off_: " << round_off_ << std::endl;
-        std::cout << "factor_min_: " << factor_min_ << std::endl;
-        std::cout << "factor_max_: " << factor_max_ << std::endl;
-        std::cout << "rejection_factor_decrease_: " << rejection_factor_decrease_ << std::endl;
-        std::cout << "safety_factor_: " << safety_factor_ << std::endl;
-        std::cout << "h_min_: " << h_min_ << std::endl;
-        std::cout << "h_max_: " << h_max_ << std::endl;
-        std::cout << "h_start_: " << h_start_ << std::endl;
-        std::cout << "new_function_evaluation_: ";
-        for (bool val : new_function_evaluation_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "estimator_of_local_order_: " << estimator_of_local_order_ << std::endl;
-        std::cout << "a_: ";
-        for (double val : a_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "c_: ";
-        for (double val : c_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "m_: ";
-        for (double val : m_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "e_: ";
-        for (double val : e_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "alpha_: ";
-        for (double val : alpha_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "gamma_: ";
-        for (double val : gamma_)
-            std::cout << val << " ";
-        std::cout << std::endl;
-        std::cout << "absolute_tolerance_: " << absolute_tolerance_ << std::endl;
-        std::cout << "relative_tolerance_: " << relative_tolerance_ << std::endl;
-        std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
+      std::cout << "stages_: " << stages_ << std::endl;
+      std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
+      std::cout << "max_number_of_steps_: " << max_number_of_steps_ << std::endl;
+      std::cout << "round_off_: " << round_off_ << std::endl;
+      std::cout << "factor_min_: " << factor_min_ << std::endl;
+      std::cout << "factor_max_: " << factor_max_ << std::endl;
+      std::cout << "rejection_factor_decrease_: " << rejection_factor_decrease_ << std::endl;
+      std::cout << "safety_factor_: " << safety_factor_ << std::endl;
+      std::cout << "h_min_: " << h_min_ << std::endl;
+      std::cout << "h_max_: " << h_max_ << std::endl;
+      std::cout << "h_start_: " << h_start_ << std::endl;
+      std::cout << "new_function_evaluation_: ";
+      for (bool val : new_function_evaluation_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "estimator_of_local_order_: " << estimator_of_local_order_ << std::endl;
+      std::cout << "a_: ";
+      for (double val : a_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "c_: ";
+      for (double val : c_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "m_: ";
+      for (double val : m_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "e_: ";
+      for (double val : e_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "alpha_: ";
+      for (double val : alpha_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "gamma_: ";
+      for (double val : gamma_)
+        std::cout << val << " ";
+      std::cout << std::endl;
+      std::cout << "absolute_tolerance_: " << absolute_tolerance_ << std::endl;
+      std::cout << "relative_tolerance_: " << relative_tolerance_ << std::endl;
+      std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
     }
 
-    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
-    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
-    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
+    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(
+        size_t number_of_grid_cells = 1,
+        bool reorder_state = true);
+    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(
+        size_t number_of_grid_cells = 1,
+        bool reorder_state = true);
+    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(
+        size_t number_of_grid_cells = 1,
+        bool reorder_state = true);
 
-    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
-    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
+    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(
+        size_t number_of_grid_cells = 1,
+        bool reorder_state = true);
+    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(
+        size_t number_of_grid_cells = 1,
+        bool reorder_state = true);
 
-    private:
-      RosenbrockSolverParameters() = default;
+   private:
+    RosenbrockSolverParameters() = default;
   };
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
+  RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(
+      size_t number_of_grid_cells,
+      bool reorder_state)
   {
     // an L-stable method, 2 stages, order 2
 
     RosenbrockSolverParameters parameters;
-    double g = 1.0 + 1.0/std::sqrt(2.0);
+    double g = 1.0 + 1.0 / std::sqrt(2.0);
 
     parameters.stages_ = 2;
 
@@ -180,9 +192,11 @@ namespace micm
     parameters.reorder_state_ = reorder_state;
 
     return parameters;
-}
+  }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
+  RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
+      size_t number_of_grid_cells,
+      bool reorder_state)
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
@@ -236,7 +250,9 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
+  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(
+      size_t number_of_grid_cells,
+      bool reorder_state)
   {
     // L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
     // L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
@@ -303,9 +319,11 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
-{
-  // A STIFFLY-STABLE METHOD, 4 stages, order 3
+  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(
+      size_t number_of_grid_cells,
+      bool reorder_state)
+  {
+    // A STIFFLY-STABLE METHOD, 4 stages, order 3
     RosenbrockSolverParameters parameters;
 
     // Set the number of stages
@@ -354,9 +372,12 @@ namespace micm
     parameters.reorder_state_ = reorder_state;
 
     return parameters;
-}
+  }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state){
+  RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(
+      size_t number_of_grid_cells,
+      bool reorder_state)
+  {
     // STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
     //
     // E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
@@ -531,9 +552,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -855,8 +876,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
@@ -871,8 +891,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())

@@ -15,126 +15,130 @@ using yields = std::pair<micm::Species, double>;
 
 micm::Phase createGasPhase()
 {
-    auto o = micm::Species("O");
-    auto o1d = micm::Species("O1D");
-    auto o2 = micm::Species("O2");
-    auto o3 = micm::Species("O3");
-    auto m = micm::Species("M");
-    auto ar = micm::Species("Ar");
-    auto n2 = micm::Species("N2");
-    auto h2o = micm::Species("H2O");
-    auto co2 = micm::Species("CO2");
+  auto o = micm::Species("O");
+  auto o1d = micm::Species("O1D");
+  auto o2 = micm::Species("O2");
+  auto o3 = micm::Species("O3");
+  auto m = micm::Species("M");
+  auto ar = micm::Species("Ar");
+  auto n2 = micm::Species("N2");
+  auto h2o = micm::Species("H2O");
+  auto co2 = micm::Species("CO2");
 
-    return micm::Phase{ std::vector<micm::Species>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
+  return micm::Phase{ std::vector<micm::Species>{ m, ar, co2, h2o, n2, o1d, o, o2, o3 } };
 }
 
 std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 {
-    micm::Process r1 =
-        micm::Process::create()
-            .reactants({ micm::Species("O1D"), micm::Species("N2") })
-            .products({ yields(micm::Species("O"), 1), yields(micm::Species("N2"), 1) })
-            .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
-            .phase(gas_phase);
+  micm::Process r1 =
+      micm::Process::create()
+          .reactants({ micm::Species("O1D"), micm::Species("N2") })
+          .products({ yields(micm::Species("O"), 1), yields(micm::Species("N2"), 1) })
+          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
+          .phase(gas_phase);
 
-    micm::Process r2 =
-        micm::Process::create()
-            .reactants({ micm::Species("O1D"), micm::Species("O2") })
-            .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
-            .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
-            .phase(gas_phase);
+  micm::Process r2 =
+      micm::Process::create()
+          .reactants({ micm::Species("O1D"), micm::Species("O2") })
+          .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
+          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
+          .phase(gas_phase);
 
-    micm::Process r3 =
-        micm::Process::create()
-            .reactants({ micm::Species("O"), micm::Species("O3") })
-            .products({ yields(micm::Species("O2"), 2) })
-            .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
-            .phase(gas_phase);
+  micm::Process r3 =
+      micm::Process::create()
+          .reactants({ micm::Species("O"), micm::Species("O3") })
+          .products({ yields(micm::Species("O2"), 2) })
+          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
+          .phase(gas_phase);
 
-    micm::Process r4 =
-        micm::Process::create()
-            .reactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
-            .products({ yields(micm::Species("O3"), 1), yields(micm::Species("M"), 1) })
-            .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
-            .phase(gas_phase);
+  micm::Process r4 =
+      micm::Process::create()
+          .reactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
+          .products({ yields(micm::Species("O3"), 1), yields(micm::Species("M"), 1) })
+          .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
+          .phase(gas_phase);
 
-    micm::Process photo_1 = micm::Process::create()
-                                .reactants({ micm::Species("O2") })
-                                .products({ yields(micm::Species("O"), 2) })
-                                .rate_constant(micm::PhotolysisRateConstant())
-                                .phase(gas_phase);
+  micm::Process photo_1 = micm::Process::create()
+                              .reactants({ micm::Species("O2") })
+                              .products({ yields(micm::Species("O"), 2) })
+                              .rate_constant(micm::PhotolysisRateConstant())
+                              .phase(gas_phase);
 
-    micm::Process photo_2 = micm::Process::create()
-                                .reactants({ micm::Species("O3") })
-                                .products({ yields(micm::Species("O1D"), 1), yields(micm::Species("O2"), 1) })
-                                .rate_constant(micm::PhotolysisRateConstant())
-                                .phase(gas_phase);
+  micm::Process photo_2 = micm::Process::create()
+                              .reactants({ micm::Species("O3") })
+                              .products({ yields(micm::Species("O1D"), 1), yields(micm::Species("O2"), 1) })
+                              .rate_constant(micm::PhotolysisRateConstant())
+                              .phase(gas_phase);
 
-    micm::Process photo_3 = micm::Process::create()
-                                .reactants({ micm::Species("O3") })
-                                .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
-                                .rate_constant(micm::PhotolysisRateConstant())
-                                .phase(gas_phase);
+  micm::Process photo_3 = micm::Process::create()
+                              .reactants({ micm::Species("O3") })
+                              .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
+                              .rate_constant(micm::PhotolysisRateConstant())
+                              .phase(gas_phase);
 
-    return { photo_1, photo_2, photo_3, r1, r2, r3, r4 };
+  return { photo_1, photo_2, photo_3, r1, r2, r3, r4 };
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getTwoStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
 {
-    micm::Phase gas_phase = createGasPhase();
-    std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = createGasPhase();
+  std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-    return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::move(processes),
-        micm::RosenbrockSolverParameters::two_stage_rosenbrock_parameters(number_of_grid_cells));
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::move(processes),
+      micm::RosenbrockSolverParameters::two_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getThreeStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getThreeStageMultiCellChapmanSolver(
+    const size_t number_of_grid_cells)
 {
-    micm::Phase gas_phase = createGasPhase();
-    std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = createGasPhase();
+  std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-    return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::move(processes),
-        micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells));
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::move(processes),
+      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getFourStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getFourStageMultiCellChapmanSolver(
+    const size_t number_of_grid_cells)
 {
-    micm::Phase gas_phase = createGasPhase();
-    std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = createGasPhase();
+  std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-    return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::move(processes),
-        micm::RosenbrockSolverParameters::four_stage_rosenbrock_parameters(number_of_grid_cells));
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::move(processes),
+      micm::RosenbrockSolverParameters::four_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getFourStageDAMultiCellChapmanSolver(const size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getFourStageDAMultiCellChapmanSolver(
+    const size_t number_of_grid_cells)
 {
-    micm::Phase gas_phase = createGasPhase();
-    std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = createGasPhase();
+  std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-    return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::move(processes),
-        micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::move(processes),
+      micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSixStageDAMultiCellChapmanSolver(const size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSixStageDAMultiCellChapmanSolver(
+    const size_t number_of_grid_cells)
 {
-    micm::Phase gas_phase = createGasPhase();
-    std::vector<micm::Process> processes = createProcesses(gas_phase);
+  micm::Phase gas_phase = createGasPhase();
+  std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-    return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::move(processes),
-        micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::move(processes),
+      micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));
 }
