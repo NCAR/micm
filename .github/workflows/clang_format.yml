@@ -14,8 +14,8 @@ jobs:
 
       - name: Check out code, run clang format, push changes
         uses: actions/checkout@v3
-        
-        run: |
+
+      - run: |
           # Format all relevant files in the repository
           find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
           find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
