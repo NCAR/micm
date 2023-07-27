@@ -51,7 +51,7 @@ void testSolve(micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> solver, 
     fixed_state.conditions_[0].temperature_ = state.conditions_[i].temperature_;
     fixed_state.conditions_[0].pressure_ = state.conditions_[i].pressure_;
     for (int j = 0; j < fixed_state.variables_[0].size(); ++j)
-      fixed_state.variables_[0][j] = variables[i][j];
+      fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.species_names()[j]]];
     fixed_solver.UpdateState(fixed_state);
     fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state);
   }
@@ -60,7 +60,7 @@ void testSolve(micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> solver, 
   for (int i = 0; i < 3; ++i)
     for (int j = 0; j < fixed_results[i].result_.size(); ++j)
     {
-      double a = results.result_[i][j];
+      double a = results.result_[i][state.variable_map_[fixed_solver.species_names()[j]]];
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }

@@ -80,6 +80,7 @@ namespace micm
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
+    bool reorder_state_{ true };       // Reorder state during solver construction to minimize LU fill-in
 
     void print() const
     {
@@ -128,18 +129,18 @@ namespace micm
         std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
     }
 
-    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1);
-    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1);
-    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1);
+    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
+    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
+    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
 
-    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1);
-    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1);
+    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
+    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells = 1, bool reorder_state = true);
 
     private:
       RosenbrockSolverParameters() = default;
   };
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(size_t number_of_grid_cells)
+  RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
   {
     // an L-stable method, 2 stages, order 2
 
@@ -176,11 +177,12 @@ namespace micm
     parameters.gamma_[1] = -g;
 
     parameters.number_of_grid_cells_ = number_of_grid_cells;
+    parameters.reorder_state_ = reorder_state;
 
     return parameters;
 }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(size_t number_of_grid_cells)
+  RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
     //
@@ -229,11 +231,12 @@ namespace micm
     parameters.gamma_[2] = 0.21851380027664058511513169485832e+01;
 
     parameters.number_of_grid_cells_ = number_of_grid_cells;
+    parameters.reorder_state_ = reorder_state;
 
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(size_t number_of_grid_cells)
+  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
   {
     // L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
     // L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
@@ -295,11 +298,12 @@ namespace micm
     parameters.gamma_[3] = -0.1049021087100450;
 
     parameters.number_of_grid_cells_ = number_of_grid_cells;
+    parameters.reorder_state_ = reorder_state;
 
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells)
+  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state)
 {
   // A STIFFLY-STABLE METHOD, 4 stages, order 3
     RosenbrockSolverParameters parameters;
@@ -347,11 +351,12 @@ namespace micm
     parameters.gamma_[1] = 1.5;
 
     parameters.number_of_grid_cells_ = number_of_grid_cells;
+    parameters.reorder_state_ = reorder_state;
 
     return parameters;
 }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells){
+  RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(size_t number_of_grid_cells, bool reorder_state){
     // STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
     //
     // E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
@@ -429,6 +434,7 @@ namespace micm
     parameters.estimator_of_local_order_ = 4.0;
 
     parameters.number_of_grid_cells_ = number_of_grid_cells;
+    parameters.reorder_state_ = reorder_state;
 
     return parameters;
   }
@@ -480,6 +486,7 @@ namespace micm
     const System system_;
     const std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
+    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
     SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
@@ -495,7 +502,10 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    RosenbrockSolver(const System& system, const std::vector<Process>& processes, const RosenbrockSolverParameters& parameters);
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters);
 
     virtual ~RosenbrockSolver();
 
@@ -618,13 +628,28 @@ namespace micm
       : system_(system),
         processes_(processes),
         parameters_(parameters),
-        process_set_(processes_, GetState()),
+        state_reordering_(),
+        process_set_(),
         stats_(),
         jacobian_(),
         linear_solver_(),
         jacobian_diagonal_elements_(),
         N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
+    // generate a state-vector reordering function to reduce fill-in in linear solver
+    if (parameters_.reorder_state_)
+    {
+      // get unsorted Jacobian non-zero elements
+      auto unsorted_process_set = ProcessSet(processes, GetState());
+      auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
+      MatrixPolicy<int> unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
+      for (auto& elem : unsorted_jac_elements)
+        unsorted_jac_non_zeros[elem.first][elem.second] = 1;
+      auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
+      state_reordering_ = [=](const std::vector<std::string>& variables, const std::size_t i)
+      { return variables[reorder_map[i]]; };
+    }
+    process_set_ = ProcessSet(processes, GetState());
     auto builder =
         SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
     auto jac_elements = process_set_.NonZeroJacobianElements();
@@ -633,6 +658,7 @@ namespace micm
     // Always include diagonal elements
     for (std::size_t i = 0; i < system_.StateSize(); ++i)
       builder = builder.with_element(i, i);
+
     jacobian_ = builder;
     linear_solver_ = LinearSolver<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
     process_set_.SetJacobianFlatIds(jacobian_);
@@ -654,7 +680,7 @@ namespace micm
       if (process.rate_constant_)
         n_params += process.rate_constant_->SizeCustomParameters();
     }
-    return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(),
+    return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(state_reordering_),
                                                        .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
                                                        .number_of_custom_parameters_ = n_params,
                                                        .number_of_rate_constants_ = processes_.size() } };

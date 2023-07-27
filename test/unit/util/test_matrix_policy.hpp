@@ -223,11 +223,11 @@ MatrixPolicy<double> testForEach()
       other2[i][j] = i * 19.5 + j * 32.2;
       sum2 += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2 - i * 19.5 - j * 32.2;
     }
-  
-  matrix.ForEach([&](double a, double b){ result += a + b; }, other);
+
+  matrix.ForEach([&](double a, double b) { result += a + b; }, other);
   EXPECT_NEAR(sum, result, 1.0e-5);
   result = 0.0;
-  matrix.ForEach([&](double a, double b, double c){ result += a + b - c; }, other, other2);
+  matrix.ForEach([&](double a, double b, double c) { result += a + b - c; }, other, other2);
   EXPECT_NEAR(sum2, result, 1.0e-5);
 
   return matrix;

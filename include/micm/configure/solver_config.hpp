@@ -24,7 +24,8 @@
 
 namespace micm
 {
-  enum class ConfigParseStatus {
+  enum class ConfigParseStatus
+  {
     Success,
     None,
     InvalidSpeciesFilePath,
@@ -38,34 +39,24 @@ namespace micm
     RequiredKeyNotFound
   };
 
-  std::string configParseStatusToString(ConfigParseStatus status) {
-    switch (status) {
-        case ConfigParseStatus::Success:
-            return "Success";
-        case ConfigParseStatus::None:
-            return "None";
-        case ConfigParseStatus::InvalidSpeciesFilePath:
-            return "InvalidSpeciesFilePath";
-        case ConfigParseStatus::InvalidReactionsFilePath:
-            return "InvalidReactionsFilePath";
-        case ConfigParseStatus::InvalidKey:
-            return "InvalidKey";
-        case ConfigParseStatus::UnknownKey:
-            return "UnknownKey";
-        case ConfigParseStatus::InvalidSpecies:
-            return "InvalidSpecies";
-        case ConfigParseStatus::CAMPDataSectionNotFound:
-            return "CAMPDataSectionNotFound";
-        case ConfigParseStatus::InvalidMechanism:
-            return "InvalidMechanism";
-        case ConfigParseStatus::ObjectTypeNotFound:
-            return "ObjectTypeNotFound";
-        case ConfigParseStatus::RequiredKeyNotFound:
-            return "RequiredKeyNotFound";
-        default:
-            return "Unknown";
+  std::string configParseStatusToString(ConfigParseStatus status)
+  {
+    switch (status)
+    {
+      case ConfigParseStatus::Success: return "Success";
+      case ConfigParseStatus::None: return "None";
+      case ConfigParseStatus::InvalidSpeciesFilePath: return "InvalidSpeciesFilePath";
+      case ConfigParseStatus::InvalidReactionsFilePath: return "InvalidReactionsFilePath";
+      case ConfigParseStatus::InvalidKey: return "InvalidKey";
+      case ConfigParseStatus::UnknownKey: return "UnknownKey";
+      case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
+      case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
+      case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
+      case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
+      case ConfigParseStatus::RequiredKeyNotFound: return "RequiredKeyNotFound";
+      default: return "Unknown";
     }
-}
+  }
 
   // Solver parameters
   struct SolverParameters
@@ -191,7 +182,7 @@ namespace micm
       ConfigParseStatus status = ConfigParseStatus::None;
       json file_data = json::parse(std::ifstream(file));
 
-      if(!file_data.contains(CAMP_DATA))
+      if (!file_data.contains(CAMP_DATA))
         return ConfigParseStatus::CAMPDataSectionNotFound;
 
       std::vector<json> objects;
@@ -217,7 +208,8 @@ namespace micm
           status = ParseRelativeTolerance(object);
         }
 
-        if (status != ConfigParseStatus::Success) break;
+        if (status != ConfigParseStatus::Success)
+          break;
       }
 
       return status;
@@ -276,7 +268,8 @@ namespace micm
         {
           status = ConfigParseStatus::UnknownKey;
         }
-        if (status != ConfigParseStatus::Success) break;
+        if (status != ConfigParseStatus::Success)
+          break;
       }
 
       return status;
@@ -580,7 +573,6 @@ namespace micm
     ConfigParseStatus last_parse_status_ = ConfigParseStatus::None;
 
    public:
-
     /// @brief Reads and parses configures
     /// @param config_dir A path to a configuration file
     /// @return an enum indicating the success or failure of the parse
@@ -596,7 +588,8 @@ namespace micm
     {
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        std::string msg = "Parsing configuration files failed. The parsing failed with error: " + configParseStatusToString(last_parse_status_);
+        std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
+                          configParseStatusToString(last_parse_status_);
         throw std::runtime_error(msg);
       }
 
@@ -610,7 +603,8 @@ namespace micm
     {
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
-        std::string msg = "Parsing configuration files failed. The parsing failed with error: " + configParseStatusToString(last_parse_status_);
+        std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
+                          configParseStatusToString(last_parse_status_);
         throw std::runtime_error(msg);
       }
 
