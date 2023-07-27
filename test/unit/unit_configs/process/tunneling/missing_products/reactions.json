@@ -1,11 +1,11 @@
 {
   "camp-data": [
     {
-      "name": "Ternary missing products",
+      "name": "Tunneling missing products",
       "type": "MECHANISM",
       "reactions": [
         {
-          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "type": "TUNNELING",
           "reactants": {
             "bar": { },
             "baz": { "qty": 2 }
