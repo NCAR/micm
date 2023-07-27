@@ -15,12 +15,12 @@ jobs:
       - name: Check out code, run clang format, push changes
         uses: actions/checkout@v3
 
-      - run: |
-          # Format all relevant files in the repository
+      - name: Format and push changes
+        run: |
           find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
           find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
           find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git commit -am "Auto-format code using Clang-Format" || echo "No changes to commit"
-          git push
+          git push origin HEAD:${{ github.head_ref }}
