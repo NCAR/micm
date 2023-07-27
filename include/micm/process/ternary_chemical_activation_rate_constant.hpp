@@ -65,7 +65,8 @@ namespace micm
   {
   }
 
-  inline TernaryChemicalActivationRateConstant::TernaryChemicalActivationRateConstant(const TernaryChemicalActivationRateConstantParameters& parameters)
+  inline TernaryChemicalActivationRateConstant::TernaryChemicalActivationRateConstant(
+      const TernaryChemicalActivationRateConstantParameters& parameters)
       : parameters_(parameters)
   {
   }
@@ -82,7 +83,8 @@ namespace micm
     return calculate(conditions.temperature_, conditions.air_density_);
   }
 
-  inline double TernaryChemicalActivationRateConstant::calculate(const double& temperature, const double& air_number_density) const
+  inline double TernaryChemicalActivationRateConstant::calculate(const double& temperature, const double& air_number_density)
+      const
   {
     double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * pow(temperature / 300.0, parameters_.k0_B_);
     double kinf =

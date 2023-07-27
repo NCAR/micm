@@ -347,7 +347,7 @@ namespace micm
     {
       const std::string QTY = "qty";
       std::vector<Species> reactants;
-      for (auto& [key, value]: object.items())
+      for (auto& [key, value] : object.items())
       {
         std::size_t qty = 1;
         if (value.contains(QTY))
@@ -368,7 +368,9 @@ namespace micm
         if (value.contains(YIELD))
         {
           products.push_back(std::make_pair(Species(key), value[YIELD]));
-        } else {
+        }
+        else
+        {
           products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
         }
       }
@@ -560,7 +562,8 @@ namespace micm
 
       ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
 
-      std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr = std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
+      std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
+          std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
