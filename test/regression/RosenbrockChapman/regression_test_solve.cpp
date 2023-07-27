@@ -11,11 +11,10 @@
 #include "util.hpp"
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testSolve()
+void testSolve(micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> solver, double relative_tolerance = 1.0e-8)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
 
   auto state = solver.GetState();
   auto fixed_state = fixed_solver.GetState();
@@ -63,7 +62,7 @@ void testSolve()
     {
       double a = results.result_[i][j];
       double b = fixed_results[i].result_[j];
-      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * 1.0e-8 + abs_tol);
+      EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }
 }
 
@@ -90,15 +89,47 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
-TEST(RegressionRosenbrock, Solve)
+TEST(RegressionRosenbrock, TwoStageSolve)
 {
-  testSolve<DenseMatrix, SparseMatrix>();
+  auto solver = getTwoStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
+  testSolve(solver, 1.0e-5);
+}
+
+TEST(RegressionRosenbrock, ThreeStageSolve)
+{
+  auto solver = getThreeStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
+  testSolve(solver);
+}
+
+TEST(RegressionRosenbrock, FourStageSolve)
+{
+  auto solver = getFourStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
+  testSolve(solver, 1.0e-5);
+}
+
+TEST(RegressionRosenbrock, FourStageDASolve)
+{
+  auto solver = getFourStageDAMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
+  testSolve(solver, 1.0e-5);
+}
+
+TEST(RegressionRosenbrock, SixStageDASolve)
+{
+  auto solver = getSixStageDAMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
+  testSolve(solver, 1.0e-5);
 }
 
 TEST(RegressionRosenbrock, VectorSolve)
 {
-  testSolve<Group1VectorMatrix, Group1SparseVectorMatrix>();
-  testSolve<Group2VectorMatrix, Group2SparseVectorMatrix>();
-  testSolve<Group3VectorMatrix, Group3SparseVectorMatrix>();
-  testSolve<Group4VectorMatrix, Group4SparseVectorMatrix>();
+  auto solver1 = getThreeStageMultiCellChapmanSolver<Group1VectorMatrix, Group1SparseVectorMatrix>(3);
+  testSolve(solver1);
+
+  auto solver2 = getThreeStageMultiCellChapmanSolver<Group2VectorMatrix, Group2SparseVectorMatrix>(3);
+  testSolve(solver2);
+
+  auto solver3 = getThreeStageMultiCellChapmanSolver<Group3VectorMatrix, Group3SparseVectorMatrix>(3);
+  testSolve(solver3);
+
+  auto solver4 = getThreeStageMultiCellChapmanSolver<Group4VectorMatrix, Group4SparseVectorMatrix>(3);
+  testSolve(solver4);
 }

@@ -14,7 +14,7 @@ template<template<class> class MatrixPolicy, template<class> class SparseMatrixP
 void testRateConstants()
 {
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
 
   auto state = solver.GetState();
   auto fixed_state = fixed_solver.GetState();
@@ -54,7 +54,7 @@ void testForcing()
   std::lognormal_distribution dist(-2.0, 2.0);
 
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
 
   auto state = solver.GetState();
 
