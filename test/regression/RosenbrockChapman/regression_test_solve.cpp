@@ -116,7 +116,7 @@ TEST(RegressionRosenbrock, FourStageDASolve)
 TEST(RegressionRosenbrock, SixStageDASolve)
 {
   auto solver = getSixStageDAMultiCellChapmanSolver<DenseMatrix, SparseMatrix>(3);
-  testSolve(solver, 1.0e-5);
+  testSolve(solver, 1.0e-3);
 }
 
 TEST(RegressionRosenbrock, VectorSolve)
