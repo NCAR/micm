@@ -13,6 +13,7 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
@@ -90,6 +91,7 @@ namespace micm
     std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
+    std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
     std::vector<Species> emission_arr_;
     std::vector<Species> first_order_loss_arr_;
 
@@ -251,6 +253,10 @@ namespace micm
         else if (type == "ARRHENIUS")
         {
           status = ParseArrhenius(object);
+        }
+        else if (type == "TERNARY_CHEMICAL_ACTIVATION")
+        {
+          status = ParseTernaryChemicalActivation(object);
         }
         else if (type == "TROE")
         {
@@ -524,6 +530,84 @@ namespace micm
       troe_rate_arr_.push_back(TroeRateConstant(parameters));
 
       std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string YIELD = "yield";
+
+      constexpr double DEFAULT_YEILD = 1.0;
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, PRODUCTS })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      // Create process
+      std::vector<Species> reactants;
+      for (auto& [key, value] : object[REACTANTS].items())
+      {
+        reactants.push_back(Species(key));
+      }
+
+      std::vector<std::pair<Species, double>> products;
+      for (auto& [key, value] : object[PRODUCTS].items())
+      {
+        if (value.contains(YIELD))
+        {
+          products.push_back(std::make_pair(Species(key), value[YIELD]));
+        }
+        else
+        {
+          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
+        }
+      }
+
+      TernaryChemicalActivationRateConstantParameters parameters;
+      if (object.contains("k0_A"))
+      {
+        parameters.k0_A_ = object["k0_A"].get<double>();
+      }
+      if (object.contains("k0_B"))
+      {
+        parameters.k0_B_ = object["k0_B"].get<double>();
+      }
+      if (object.contains("k0_C"))
+      {
+        parameters.k0_C_ = object["k0_C"].get<double>();
+      }
+      if (object.contains("kinf_A"))
+      {
+        parameters.kinf_A_ = object["kinf_A"].get<double>();
+      }
+      if (object.contains("kinf_B"))
+      {
+        parameters.kinf_B_ = object["kinf_B"].get<double>();
+      }
+      if (object.contains("kinf_C"))
+      {
+        parameters.kinf_C_ = object["kinf_C"].get<double>();
+      }
+      if (object.contains("Fc"))
+      {
+        parameters.Fc_ = object["Fc"].get<double>();
+      }
+      if (object.contains("N"))
+      {
+        parameters.N_ = object["N"].get<double>();
+      }
+
+      ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
+
+      std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr = std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 

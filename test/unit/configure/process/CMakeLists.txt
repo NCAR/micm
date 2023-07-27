@@ -6,9 +6,4 @@ include(test_util)
 ################################################################################
 # Tests
 
-create_standard_test(NAME solver_config SOURCES test_solver_config.cpp)
-
-################################################################################
-# Tests
-
-add_subdirectory(process)
+create_standard_test(NAME ternary_chemical_activation_config SOURCES test_ternary_chemical_activation_config.cpp)
