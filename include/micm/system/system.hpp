@@ -92,7 +92,8 @@ namespace micm
     return state_size;
   }
 
-  inline std::vector<std::string> System::UniqueNames() const{
+  inline std::vector<std::string> System::UniqueNames() const
+  {
     return UniqueNames(nullptr);
   }
 

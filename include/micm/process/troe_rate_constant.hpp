@@ -1,7 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <cmath>
@@ -30,10 +29,7 @@ namespace micm
     double N_ = 1.0;
   };
 
-  /**
-   * @brief A Troe rate constant
-   *
-   */
+  /// @brief A Troe rate constant
   class TroeRateConstant : public RateConstant
   {
    public:
@@ -59,7 +55,7 @@ namespace micm
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
-    /// @param air_number_density Number density in [# cm-3]
+    /// @param air_number_density Number density in [mol m-3]
     /// @return
     double calculate(const double& temperature, const double& air_number_density) const;
   };

@@ -32,9 +32,11 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
-                                                                 std::move(solver_params.processes_),
-                                                                 micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    solver_params.system_,
+    std::move(solver_params.processes_),
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
 
   micm::State state = solver.GetState();
 
@@ -130,7 +132,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-    micm::RosenbrockSolverParameters{}
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
 
   micm::State<micm::Matrix> state = solver.GetState();

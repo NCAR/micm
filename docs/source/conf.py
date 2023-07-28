@@ -10,16 +10,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
+import os
+import sys
+import datetime
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
 project = 'MICM'
-copyright = '2023, NCAR'
-author = 'NCAR'
+copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
+author = 'NCAR/UCAR'
 
 # The full version, including alpha/beta/rc tags
 release = '3.0.0'
@@ -35,7 +35,7 @@ extensions = [
   'sphinx_design',
 ]
 
-breathe_default_project = "MICM"
+breathe_default_project = "micm"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

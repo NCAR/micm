@@ -11,9 +11,12 @@
 #include <fstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
+#include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
@@ -89,7 +92,10 @@ namespace micm
     // Read from reaction configure
     std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
+    std::vector<BranchedRateConstant> branched_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
+    std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
+    std::vector<TunnelingRateConstant> tunneling_rate_arr_;
     std::vector<Species> emission_arr_;
     std::vector<Species> first_order_loss_arr_;
 
@@ -252,9 +258,21 @@ namespace micm
         {
           status = ParseArrhenius(object);
         }
+        else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
+        {
+          status = ParseBranched(object);
+        }
+        else if (type == "TERNARY_CHEMICAL_ACTIVATION")
+        {
+          status = ParseTernaryChemicalActivation(object);
+        }
         else if (type == "TROE")
         {
           status = ParseTroe(object);
+        }
+        else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
+        {
+          status = ParseTunneling(object);
         }
         else if (type == "EMISSION")
         {
@@ -337,29 +355,27 @@ namespace micm
       return ParseObjectArray(objects);
     }
 
-    ConfigParseStatus ParsePhotolysis(const json& object)
+    std::vector<Species> ParseReactants(const json& object)
     {
-      const std::string REACTANTS = "reactants";
-      const std::string PRODUCTS = "products";
-      const std::string MUSICA_NAME = "MUSICA name";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
-
-      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
-      {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
-      }
-
+      const std::string QTY = "qty";
       std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
+      for (auto& [key, value] : object.items())
       {
-        reactants.push_back(Species(key));
+        std::size_t qty = 1;
+        if (value.contains(QTY))
+          qty = value[QTY];
+        for (std::size_t i = 0; i < qty; ++i)
+          reactants.push_back(Species(key));
       }
+      return reactants;
+    }
 
+    std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+    {
+      const std::string YIELD = "yield";
+      constexpr double DEFAULT_YEILD = 1.0;
       std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
+      for (auto& [key, value] : object.items())
       {
         if (value.contains(YIELD))
         {
@@ -370,6 +386,23 @@ namespace micm
           products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
         }
       }
+      return products;
+    }
+
+    ConfigParseStatus ParsePhotolysis(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string MUSICA_NAME = "MUSICA name";
+
+      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       std::string name = object[MUSICA_NAME].get<std::string>();
 
@@ -385,9 +418,6 @@ namespace micm
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -396,25 +426,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      // Create process
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       ArrheniusRateConstantParameters parameters;
       if (object.contains("A"))
@@ -452,13 +465,52 @@ namespace micm
       return ConfigParseStatus::Success;
     }
 
+    ConfigParseStatus ParseBranched(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string ALKOXY_PRODUCTS = "alkoxy products";
+      const std::string NITRATE_PRODUCTS = "nitrate products";
+      const std::string X = "X";
+      const std::string Y = "Y";
+      const std::string A0 = "a0";
+      const std::string N = "n";
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
+      auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
+
+      BranchedRateConstantParameters parameters;
+      parameters.X_ = object[X].get<double>();
+      parameters.Y_ = object[Y].get<double>();
+      parameters.a0_ = object[A0].get<double>();
+      parameters.n_ = object[N].get<int>();
+
+      // Alkoxy branch
+      parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+      branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+      std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+      processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+
+      // Nitrate branch
+      parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
+      branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+      rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+      processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
     ConfigParseStatus ParseTroe(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
-      const std::string YIELD = "yield";
-
-      constexpr double DEFAULT_YEILD = 1.0;
 
       // Check required json objects exist
       for (const auto& key : { REACTANTS, PRODUCTS })
@@ -467,25 +519,8 @@ namespace micm
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      // Create process
-      std::vector<Species> reactants;
-      for (auto& [key, value] : object[REACTANTS].items())
-      {
-        reactants.push_back(Species(key));
-      }
-
-      std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object[PRODUCTS].items())
-      {
-        if (value.contains(YIELD))
-        {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
-        }
-        else
-        {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
-        }
-      }
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
 
       TroeRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -524,6 +559,103 @@ namespace micm
       troe_rate_arr_.push_back(TroeRateConstant(parameters));
 
       std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, PRODUCTS })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      TernaryChemicalActivationRateConstantParameters parameters;
+      if (object.contains("k0_A"))
+      {
+        parameters.k0_A_ = object["k0_A"].get<double>();
+      }
+      if (object.contains("k0_B"))
+      {
+        parameters.k0_B_ = object["k0_B"].get<double>();
+      }
+      if (object.contains("k0_C"))
+      {
+        parameters.k0_C_ = object["k0_C"].get<double>();
+      }
+      if (object.contains("kinf_A"))
+      {
+        parameters.kinf_A_ = object["kinf_A"].get<double>();
+      }
+      if (object.contains("kinf_B"))
+      {
+        parameters.kinf_B_ = object["kinf_B"].get<double>();
+      }
+      if (object.contains("kinf_C"))
+      {
+        parameters.kinf_C_ = object["kinf_C"].get<double>();
+      }
+      if (object.contains("Fc"))
+      {
+        parameters.Fc_ = object["Fc"].get<double>();
+      }
+      if (object.contains("N"))
+      {
+        parameters.N_ = object["N"].get<double>();
+      }
+
+      ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
+
+      std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
+          std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
+
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseTunneling(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, PRODUCTS })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      TunnelingRateConstantParameters parameters;
+      if (object.contains("A"))
+      {
+        parameters.A_ = object["A"].get<double>();
+      }
+      if (object.contains("B"))
+      {
+        parameters.B_ = object["B"].get<double>();
+      }
+      if (object.contains("C"))
+      {
+        parameters.C_ = object["C"].get<double>();
+      }
+
+      tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
+
+      std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 

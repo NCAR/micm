@@ -28,9 +28,8 @@ TEST(System, ConstructorWithAllParameters)
   EXPECT_NE(std::find(names.begin(), names.end(), "phase2.species4"), names.end());
 
   std::vector<int> reorder{ 3, 2, 1, 0, 5, 4 };
-  auto reordered_names = system.UniqueNames([&](const std::vector<std::string> variables, const std::size_t i) {
-    return variables[reorder[i]];
-  });
+  auto reordered_names = system.UniqueNames([&](const std::vector<std::string> variables, const std::size_t i)
+                                            { return variables[reorder[i]]; });
   EXPECT_EQ(reordered_names.size(), 6);
   EXPECT_EQ(reordered_names[0], names[3]);
   EXPECT_EQ(reordered_names[1], names[2]);
