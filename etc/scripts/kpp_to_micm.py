@@ -11,9 +11,10 @@ def read_kpp_config(kpp_dir):
     Read all KPP config files in a directory
 
     Parameters
-        kpp_dir (str): KPP directory
+        (str) kpp_dir: KPP directory
 
     Returns
+        (list of str): all lines from all config files
     """
 
     suffixes = ['.kpp', '.spc', '.eqn', '.def']
@@ -29,6 +30,8 @@ def read_kpp_config(kpp_dir):
 
     for line in lines:
         logging.debug(line.strip())
+
+    return lines
 
 
 if __name__ == '__main__':
@@ -53,5 +56,8 @@ if __name__ == '__main__':
     logging_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(stream=args.logfile, level=logging_level)
 
-    read_kpp_config(args.kpp_dir)
+    """
+    Read KPP config files
+    """
+    lines = read_kpp_config(args.kpp_dir)
 
