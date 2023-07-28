@@ -33,7 +33,7 @@ int main(const int argc, const char *argv[])
   std::vector<Process> reactions{ r1, r2 };
 
   RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{
-    chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+    chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
   solver.parameters_.print();
 
