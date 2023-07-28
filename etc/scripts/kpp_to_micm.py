@@ -16,11 +16,19 @@ def read_kpp_config(kpp_dir):
     Returns
     """
 
-    kpp_suffixes = ['.kpp', '.spc', '.eqn', '.def']
+    suffixes = ['.kpp', '.spc', '.eqn', '.def']
 
-    for suffix in kpp_suffixes:
+    lines = list()
+
+    for suffix in suffixes:
         files = glob(os.path.join(kpp_dir, '*' + suffix))
         logging.debug(files)
+        for filename in files:
+            f = open(filename, 'r')
+            lines.extend(f.readlines())
+
+    for line in lines:
+        logging.debug(line.strip())
 
 
 if __name__ == '__main__':
