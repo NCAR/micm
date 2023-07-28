@@ -146,8 +146,8 @@ micm::State<micm::Matrix> state = solver.GetState();
 
   for (double t{}; t < 100; ++t)
   {
-    state.custom_rate_parameters_[0] = photo_rates;
-    auto result = solver.Solve(30.0, state);
-    // output state
+state.custom_rate_parameters_[0] = photo_rates;
+auto result = solver.Solve(30.0, state);
+  // output state
   }
 }
