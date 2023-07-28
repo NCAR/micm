@@ -28,10 +28,10 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          BRANCH_NAME="${{ github.head_ref }}"
-          git checkout -b "${BRANCH_NAME}-formatting"
+          BRANCH_NAME=""
+          git checkout -b "${{ github.head_ref }}-formatting"
           git commit -am "Auto-format code using Clang-Format" || echo "No changes to commit"
-          git push origin "${BRANCH_NAME}-formatting"
+          git push origin "${{ github.head_ref }}-formatting"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
@@ -40,5 +40,5 @@ jobs:
           commit-message: "Apply Clang-Format"
           title: "Apply Clang-Format"
           body: "This pull request contains code formatting changes using Clang-Format."
-          branch: "${BRANCH_NAME}-formatting"
-          base: "${BRANCH_NAME}"
+          branch: "${{ github.head_ref }}-formatting"
+          base: "${{ github.head_ref }}"
