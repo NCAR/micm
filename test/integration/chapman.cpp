@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
@@ -48,22 +47,19 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   state.SetConcentrations(solver_params.system_, concentrations);
 
-  // Get photolysis rate constants
-  std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
-
   // User gives an input of photolysis rate constants
-  std::unordered_map<std::string, std::vector<double>> photo_rates = { { "O2_1", { 0.1 } },
-                                                                       { "O3_1", { 0.2 } },
-                                                                       { "O3_2", { 0.3 } } };
+  std::unordered_map<std::string, std::vector<double>> photo_rates = { { "PHOTO.O2_1", { 0.1 } },
+                                                                       { "PHOTO.O3_1", { 0.2 } },
+                                                                       { "PHOTO.O3_2", { 0.3 } } };
 
-  state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
+  state.SetCustomRateParameters(photo_rates);
 
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
 
   for (double t{}; t < 100; ++t)
   {
-    state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
+    state.SetCustomRateParameters(photo_rates);
     auto result = solver.Solve(30.0, state);
     // output state
   }
@@ -114,19 +110,19 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Process photo_1 = micm::Process::create()
                               .reactants({ o2 })
                               .products({ yields(o, 2) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant("jO2"))
                               .phase(gas_phase);
 
   micm::Process photo_2 = micm::Process::create()
                               .reactants({ o3 })
                               .products({ yields(o1d, 1), yields(o2, 1) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant("jO3a"))
                               .phase(gas_phase);
 
   micm::Process photo_3 = micm::Process::create()
                               .reactants({ o3 })
                               .products({ yields(o, 1), yields(o2, 1) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant("jO3b"))
                               .phase(gas_phase);
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{

@@ -31,7 +31,6 @@ void testProcessSet()
 
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
                                                           .number_of_grid_cells_ = 2,
-                                                          .number_of_custom_parameters_ = 0,
                                                           .number_of_rate_constants_ = 3 } };
 
   micm::Process r1 =
@@ -171,7 +170,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   micm::Phase gas_phase{ species };
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
                                                           .number_of_grid_cells_ = n_cells,
-                                                          .number_of_custom_parameters_ = 0,
                                                           .number_of_rate_constants_ = n_reactions } };
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)

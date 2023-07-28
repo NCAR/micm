@@ -75,16 +75,16 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
     idx++;
   }
 
-  // Check the name for 'PhotolysisRateConstant'
-  micm::PhotolysisRateConstant* photolysis_rate_const = nullptr;
-  std::string photolysis_name[] = { "O2_1", "O3_1", "O3_2" };
+  // Check the name for photolysis rate constants
+  micm::UserDefinedRateConstant* photolysis_rate_const = nullptr;
+  std::string photolysis_name[] = { "PHOTO.O2_1", "PHOTO.O3_1", "PHOTO.O3_2" };
 
   for (short i = 0; i < 3; i++)
   {
-    photolysis_rate_const = dynamic_cast<micm::PhotolysisRateConstant*>(process_vector[i].rate_constant_.get());
+    photolysis_rate_const = dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[i].rate_constant_.get());
 
     EXPECT_TRUE(photolysis_rate_const != nullptr);
-    EXPECT_EQ(photolysis_rate_const->name_, photolysis_name[i]);
+    EXPECT_EQ(photolysis_rate_const->CustomParameters()[0], photolysis_name[i]);
   }
 
   // Check the parameters for 'ArrheniusRateConstant'
@@ -124,34 +124,6 @@ TEST(SolverConfig, GettingSolverParamsThrowsExceptionWithFailedParsing)
   micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
   EXPECT_NE(micm::ConfigParseStatus::Success, status);
   EXPECT_ANY_THROW(solverConfig.GetSolverParams());
-}
-
-TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing)
-{
-  micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_NE(micm::ConfigParseStatus::Success, status);
-  EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
-}
-
-TEST(SolverConfig, GetPhotolysisRateConstants)
-{
-  // Read and parse the configure files
-  micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
-
-  std::vector<micm::PhotolysisRateConstant>& photolysis_rate_arr_ = solverConfig.GetPhotolysisRateConstants();
-
-  // Check the name of photolsis rate constants
-  std::array<std::string, 3> photo_names{ "O2_1", "O3_1", "O3_2" };
-
-  short idx = 0;
-  for (auto& rate : photolysis_rate_arr_)
-  {
-    EXPECT_EQ(rate.name_, photo_names[idx]);
-    idx++;
-  }
 }
 
 //
@@ -245,16 +217,16 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
     idx++;
   }
 
-  // Check the name for 'PhotolysisRateConstant'
-  micm::PhotolysisRateConstant* photolysis_rate_const = nullptr;
-  std::string photolysis_name = "jterpnit";
+  // Check the name for 'UserDefinedRateConstant'
+  micm::UserDefinedRateConstant* photolysis_rate_const = nullptr;
+  std::string photolysis_name = "PHOTO.jterpnit";
 
   for (short i : { 3 })
   {
-    photolysis_rate_const = dynamic_cast<micm::PhotolysisRateConstant*>(process_vector[i].rate_constant_.get());
+    photolysis_rate_const = dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[i].rate_constant_.get());
 
     EXPECT_TRUE(photolysis_rate_const != nullptr);
-    EXPECT_EQ(photolysis_rate_const->name_, photolysis_name);
+    EXPECT_EQ(photolysis_rate_const->CustomParameters()[0], photolysis_name);
   }
 
   // Check the parameters for 'ArrheniusRateConstant'

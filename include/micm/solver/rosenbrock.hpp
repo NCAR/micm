@@ -695,15 +695,14 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::GetState() const
   {
-    std::size_t n_params = 0;
+    std::vector<std::string> param_labels{};
     for (const auto& process : processes_)
-    {
       if (process.rate_constant_)
-        n_params += process.rate_constant_->SizeCustomParameters();
-    }
+        for (auto& label : process.rate_constant_->CustomParameters())
+          param_labels.push_back(label);
     return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(state_reordering_),
+                                                       .custom_rate_parameter_labels_ = param_labels,
                                                        .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-                                                       .number_of_custom_parameters_ = n_params,
                                                        .number_of_rate_constants_ = processes_.size() } };
   }
 
