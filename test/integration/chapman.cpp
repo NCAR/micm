@@ -13,37 +13,58 @@
 
 using yields = std::pair<micm::Species, double>;
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
+
 #ifdef USE_JSON
 #  include <micm/configure/solver_config.hpp>
+
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy, micm::ThrowPolicy> solverConfig{};  // Throw policy
-  std::variant<micm::SolverParameters, micm::ConfigErrorCode> configs =
-      solverConfig.Configure("./unit_configs/chapman/config.json");
+  micm::SolverConfig solverConfig;  // Set to throw-exception policy
 
-  // Check if parsing is successful and returns 'Solverparameters'
-  auto* solver_params_ptr = std::get_if<micm::SolverParameters>(&configs);
-  EXPECT_TRUE(solver_params_ptr != nullptr);
+  // Read and parse the configure files
+  // If parsing fails, it could throw exceptions - we probably want to catch them.
+  std::string config_path = "./unit_configs/chapman";
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
+  EXPECT_EQ(status, micm::ConfigParseStatus::Success);
 
-  micm::SolverParameters& solver_params = *solver_params_ptr;
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{ solver_params.system_,
-                                                                   std::move(solver_params.processes_),
-                                                                   micm::RosenbrockSolverParameters{} };
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    solver_params.system_,
+    std::move(solver_params.processes_),
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
 
   micm::State state = solver.GetState();
 
-  std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
-  state.variables_[0] = concentrations;
-  std::vector<double> photo_rates{ 0.1, 0.2, 0.3 };
-  state.custom_rate_parameters_[0] = photo_rates;
+  // User gives an input of concentrations
+  std::unordered_map<std::string, std::vector<double>> concentrations = {
+    { "O", { 0.1 } },  { "O1D", { 0.1 } }, { "O2", { 0.1 } },  { "O3", { 0.2 } }, { "M", { 0.2 } },
+    { "Ar", { 0.2 } }, { "N2", { 0.3 } },  { "H2O", { 0.3 } }, { "CO2", { 0.3 } }
+  };
+
+  state.SetConcentrations(solver_params.system_, concentrations);
+
+  // Get photolysis rate constants
+  std::vector<micm::PhotolysisRateConstant>& photo_rate_const_arr = solverConfig.GetPhotolysisRateConstants();
+
+  // User gives an input of photolysis rate constants
+  std::unordered_map<std::string, std::vector<double>> photo_rates = { { "O2_1", { 0.1 } },
+                                                                       { "O3_1", { 0.2 } },
+                                                                       { "O3_2", { 0.3 } } };
+
+  state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
+
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
 
   for (double t{}; t < 100; ++t)
   {
-    state.custom_rate_parameters_[0] = photo_rates;
-    auto result = solver.Solve(t, t + 0.5, state);
+    state.SetPhotolysisRate(photo_rate_const_arr, photo_rates);
+    auto result = solver.Solve(30.0, state);
     // output state
   }
 }
@@ -108,10 +129,10 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .rate_constant(micm::PhotolysisRateConstant())
                               .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, micm::SparseMatrix> solver{
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-    micm::RosenbrockSolverParameters{}
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
 
   micm::State<micm::Matrix> state = solver.GetState();
@@ -126,7 +147,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   for (double t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
-    auto result = solver.Solve(t, t + 0.5, state);
+    auto result = solver.Solve(30.0, state);
     // output state
   }
 }

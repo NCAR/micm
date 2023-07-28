@@ -1,0 +1,35 @@
+# versions and sizes from here: https://hub.docker.com/r/intel/oneapi-hpckit/tags
+FROM intel/oneapi-hpckit:latest
+
+RUN apt update \
+    && apt -y install \
+      build-essential \
+      ca-certificates \
+      cmake \
+      cmake-curses-gui \
+      curl \
+      libcurl4-openssl-dev \
+      libhdf5-dev \
+      m4 \
+      vim \
+      zlib1g-dev \
+    && apt clean 
+
+# set compilers
+ENV CC=icx
+ENV CXX=icpx
+ENV FC=ifort
+
+# Micm
+COPY . /micm/
+
+# build the library and run the tests
+RUN mkdir /build \
+      && cd /build \ 
+      && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
+        -D CMAKE_CXX_FLAGS_DEBUG="-g -Rno-debug-disables-optimization" \
+        ../micm \
+      && make -j 8 install
+
+WORKDIR /build

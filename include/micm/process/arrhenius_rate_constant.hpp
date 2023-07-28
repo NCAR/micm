@@ -1,7 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <cmath>
@@ -11,24 +10,20 @@ namespace micm
 {
   struct ArrheniusRateConstantParameters
   {
-    /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
+    /// @brief Pre-exponential factor [(mol m−3)^(−(𝑛−1)) s−1]
     double A_{ 1 };
     /// @brief Unitless exponential factor
     double B_{ 0 };
-    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
-    /// k_b), K
+    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant
+    ///        [-E_a / k_b), K]
     double C_{ 0 };
-    /// @brief A factor that determines temperature dependence, (K)
+    /// @brief A factor that determines temperature dependence [K]
     double D_{ 300 };
-    /// @brief A factor that determines pressure dependence (Pa-1)
+    /// @brief A factor that determines pressure dependence [Pa-1]
     double E_{ 0 };
   };
 
-  /**
-   * @brief An arrhenius rate constant dependent on temperature and pressure
-   *
-   * More information can be found here: https://open-atmos.github.io/camp/html/camp_rxn_arrhenius.html
-   */
+  /// @brief An arrhenius rate constant dependent on temperature and pressure
   class ArrheniusRateConstant : public RateConstant
   {
    public:

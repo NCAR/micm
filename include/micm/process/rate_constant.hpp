@@ -3,18 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
+
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <micm/solver/state.hpp>
+#include <micm/system/conditions.hpp>
 #include <vector>
 
 namespace micm
 {
-  /**
-   * @brief A base class for any type of rate constant
-   *
-   */
+  /// @brief A base class for any type of rate constant
   class RateConstant
   {
    public:

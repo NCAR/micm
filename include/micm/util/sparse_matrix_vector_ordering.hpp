@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cmath>
-
 namespace micm
 {
 

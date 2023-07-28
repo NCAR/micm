@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <micm/util/vector_matrix.hpp>
+
 #include "test_matrix_policy.hpp"
 
 template<class T>
@@ -80,4 +81,12 @@ TEST(VectorMatrix, ConversionFromVector)
 TEST(VectorMatrix, AssignmentFromVector)
 {
   testAssignmentFromVector<Group2MatrixAlias>();
+}
+
+TEST(VectorMatrix, ForEach)
+{
+  testForEach<Group1MatrixAlias>();
+  testForEach<Group2MatrixAlias>();
+  testForEach<Group3MatrixAlias>();
+  testForEach<Group4MatrixAlias>();
 }

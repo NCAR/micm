@@ -3,10 +3,10 @@
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;
@@ -48,7 +48,6 @@ void testProcessSet()
   EXPECT_EQ(state.variables_[0].size(), 5);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5 };
-
   MatrixPolicy<double> rate_constants{ 2, 3 };
   rate_constants[0] = { 10.0, 20.0, 30.0 };
   rate_constants[1] = { 110.0, 120.0, 130.0 };
@@ -56,7 +55,6 @@ void testProcessSet()
   MatrixPolicy<double> forcing{ 2, 5, 1000.0 };
 
   set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
-
   EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
   EXPECT_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
   EXPECT_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
@@ -69,7 +67,6 @@ void testProcessSet()
   EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
-
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
   // bar   3    4    5    -    -
@@ -97,7 +94,6 @@ void testProcessSet()
   SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
-
   EXPECT_EQ(jacobian[0][0][0], 100.0 - 10.0 * 0.3);  // foo -> foo
   EXPECT_EQ(jacobian[1][0][0], 100.0 - 110.0 * 1.3);
   EXPECT_EQ(jacobian[0][0][1], 100.0 + 20.0);  // foo -> bar
@@ -124,9 +120,11 @@ void testProcessSet()
   EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
 }
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
 TEST(ProcessSet, Matrix)
 {
-  testProcessSet<micm::Matrix, micm::SparseMatrix>();
+  testProcessSet<micm::Matrix, SparseMatrixTest>();
 }
 
 template<class T>
@@ -175,7 +173,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
                                                           .number_of_grid_cells_ = n_cells,
                                                           .number_of_custom_parameters_ = 0,
                                                           .number_of_rate_constants_ = n_reactions } };
-
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {
@@ -191,9 +188,9 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     {
       products.push_back(yields(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    auto proc = micm::Process(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    processes.push_back(proc);
   }
-
   micm::ProcessSet set{ processes, state };
 
   for (auto& elem : state.variables_.AsVector())
@@ -202,7 +199,6 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
-
   MatrixPolicy<double> forcing{ n_cells, n_species, 1000.0 };
 
   set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);

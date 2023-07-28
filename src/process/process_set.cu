@@ -1,47 +1,50 @@
 #include <iostream>
 
-namespace micm {
-    namespace cuda {
-      // flipped memory layout
+namespace micm
+{
+  namespace cuda
+  {
+    // flipped memory layout
     __global__ void AddForcingTerms_kernel(
-        double* rate_constants, 
-        double* state_variables, 
-        double* forcing, 
+        double* rate_constants,
+        double* state_variables,
+        double* forcing,
         int ngrids,
-        int nrxns, 
-        int nspecs, 
-        size_t* number_of_reactants_, 
-        size_t* reactant_ids_, 
-        size_t* number_of_products_, 
-        size_t* product_ids_, 
+        int nrxns,
+        int nspecs,
+        size_t* number_of_reactants_,
+        size_t* reactant_ids_,
+        size_t* number_of_products_,
+        size_t* product_ids_,
         double* yields_)
     {
-      //define thread index 
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x; 
+      // define thread index
+      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_id_offset, prod_id_offset, yield_offset;
 
-      if (tid < ngrids){
-         react_id_offset = 0;
-	 prod_id_offset = 0;
-	 yield_offset = 0;
-         for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
-         {
-           double rate = rate_constants[i_rxn*ngrids+tid];
-           size_t index;
-
-           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-             rate *= state_variables[reactant_ids_[react_id_offset+i_react]*ngrids+tid];
-           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react){
-             forcing[reactant_ids_[react_id_offset+i_react]*ngrids+tid] -= rate;
-	   }
-           for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod){
-             index = product_ids_[prod_id_offset+i_prod]*ngrids+tid;
-             forcing[index] += yields_[yield_offset+i_prod] * rate;
-           }
-           react_id_offset += number_of_reactants_[i_rxn];
-           prod_id_offset += number_of_products_[i_rxn];
-           yield_offset += number_of_products_[i_rxn];
-         } // for loop over number of reactions
+      if (tid < ngrids)
+      {
+        react_id_offset = 0;
+        prod_id_offset = 0;
+        yield_offset = 0;
+        for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
+        {
+          double rate = rate_constants[i_rxn * ngrids + tid];
+          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+            rate *= state_variables[reactant_ids_[react_id_offset + i_react] * ngrids + tid];
+          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          {
+            forcing[reactant_ids_[react_id_offset + i_react] * ngrids + tid] -= rate;
+          }
+          for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+          {
+            size_t index = product_ids_[prod_id_offset + i_prod] * ngrids + tid;
+            forcing[index] += yields_[yield_offset + i_prod] * rate;
+          }
+          react_id_offset += number_of_reactants_[i_rxn];
+          prod_id_offset += number_of_products_[i_rxn];
+          yield_offset += number_of_products_[i_rxn];
+        }  // for loop over number of reactions
       }    // if check for valid CUDA threads
     }      // end of AddForcingTerms_kernel
 
@@ -112,198 +115,84 @@ __global__ void AddJacobianTerms_kernel(
         int nspecs,
         const size_t* number_of_reactants,
         int number_of_reactants_size,
-        const size_t* reactant_ids, 
+        const size_t* reactant_ids,
         int reactant_ids_size,
-        const size_t* number_of_products, 
+        const size_t* number_of_products,
         int number_of_products_size,
         const size_t* product_ids,
         int product_ids_size,
         const double* yields,
-        int yields_size){
-       
-        // device pointer to vectorss
-        double* d_rate_constants; 
-        double* d_state_variables; 
-        double* d_forcing; 
-        double* d_yields_; 
-        size_t* d_number_of_reactants_; 
-        size_t* d_reactant_ids_; 
-        size_t* d_number_of_products_; 
-        size_t* d_product_ids_; 
-       
-        //allocate device memory
-        size_t rate_constants_bytes = sizeof(double) * (ngrids * nrxns); 
-        size_t state_forcing_bytes = sizeof(double) * (ngrids * nspecs); 
-        size_t yields_bytes = sizeof(double) * yields_size;
-        size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
-        size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size; 
-        size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size; 
-        size_t product_ids_bytes = sizeof(size_t) * product_ids_size;
-        
-        cudaMalloc(&d_rate_constants, rate_constants_bytes); 
-        cudaMalloc(&d_state_variables, state_forcing_bytes); 
-        cudaMalloc(&d_forcing, state_forcing_bytes); 
-        cudaMalloc(&d_number_of_reactants_, number_of_reactants_bytes);
-        cudaMalloc(&d_reactant_ids_, reactant_ids_bytes);  
-        cudaMalloc(&d_number_of_products_, number_of_products_bytes);
-        cudaMalloc(&d_product_ids_, product_ids_bytes);  
-        cudaMalloc(&d_yields_, yields_bytes); 
+        int yields_size)
+    {
+      // device pointer to vectorss
+      double* d_rate_constants;
+      double* d_state_variables;
+      double* d_forcing;
+      double* d_yields_;
+      size_t* d_number_of_reactants_;
+      size_t* d_reactant_ids_;
+      size_t* d_number_of_products_;
+      size_t* d_product_ids_;
 
-        //copy data from host memory to device memory    
-        cudaMemcpy(d_rate_constants, rate_constants_data, rate_constants_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_state_variables, state_variables_data, state_forcing_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_reactants_, number_of_reactants, number_of_reactants_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_reactant_ids_, reactant_ids, reactant_ids_bytes,cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_products_, number_of_products, number_of_products_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_product_ids_, product_ids, product_ids_bytes, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice); 
+      // allocate device memory
+      size_t rate_constants_bytes = sizeof(double) * (ngrids * nrxns);
+      size_t state_forcing_bytes = sizeof(double) * (ngrids * nspecs);
+      size_t yields_bytes = sizeof(double) * yields_size;
+      size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
+      size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size;
+      size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size;
+      size_t product_ids_bytes = sizeof(size_t) * product_ids_size;
 
-        //total thread count == number of grid cells
-        int block_size = 32; 
-        int num_block = (ngrids + block_size - 1)/block_size; 
-        
-        //kernel function call
-        AddForcingTerms_kernel<<<num_block, block_size>>>(
-            d_rate_constants, 
-            d_state_variables, 
-            d_forcing, 
-            ngrids, nrxns, nspecs,
-            d_number_of_reactants_, 
-            d_reactant_ids_, 
-            d_number_of_products_, 
-            d_product_ids_, 
-            d_yields_);
-        cudaDeviceSynchronize(); 
-        
-        // copy data from device memory to host memory
-        cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
-   
-        // clean up	
-        cudaFree(d_rate_constants); 
-        cudaFree(d_state_variables); 
-        cudaFree(d_forcing);
-        cudaFree(d_number_of_reactants_);
-        cudaFree(d_reactant_ids_);
-        cudaFree(d_number_of_products_);
-        cudaFree(d_product_ids_);
-        cudaFree(d_yields_);
-    } // end of AddForcingTerms_kernelSetup
-    
+      cudaMalloc(&d_rate_constants, rate_constants_bytes);
+      cudaMalloc(&d_state_variables, state_forcing_bytes);
+      cudaMalloc(&d_forcing, state_forcing_bytes);
+      cudaMalloc(&d_number_of_reactants_, number_of_reactants_bytes);
+      cudaMalloc(&d_reactant_ids_, reactant_ids_bytes);
+      cudaMalloc(&d_number_of_products_, number_of_products_bytes);
+      cudaMalloc(&d_product_ids_, product_ids_bytes);
+      cudaMalloc(&d_yields_, yields_bytes);
 
-    void AddJacobianTerms_kernelSetup(
-        const double* rate_constants,
-        const double* state_variables,
-        double* jacobian,
-        size_t n_grids,
-        size_t n_reactions,
-        size_t n_species,
-        size_t jacobian_size,
-        size_t row_ids_size,
-        const size_t* number_of_reactants, 
-        const size_t* reactant_ids, 
-        size_t reactant_ids_size, 
-        const size_t* number_of_products, 
-        const size_t* product_ids,
-        size_t product_ids_size, 
-        const double* yields,
-        size_t yields_size,
-        const size_t* jacobian_flat_ids,
-        size_t jacobian_flat_ids_size){
-        std::cout << "grid size: "<< n_grids<<std::endl; 
-        std::cout << "reaction size: "<< n_reactions<<std::endl; 
-        std::cout << "species size: "<<n_species<<std::endl; 
-        
-        size_t* acc_n_reactants = (size_t*)malloc(sizeof(size_t) * n_reactions); 
-        size_t* acc_n_products = (size_t*)malloc(sizeof(size_t) * n_reactions); 
-        size_t* acc_n_jacobian_flat_ids = (size_t*)malloc(sizeof(size_t)*jacobian_flat_ids_size); 
-        acc_n_reactants[0] = 0; 
-        acc_n_products[0] = 0; 
-        acc_n_jacobian_flat_ids[0] = 0; 
-        for (int i = 0; i < n_reactions-1; i++){
-          acc_n_reactants[i+1] = acc_n_reactants[i] + number_of_reactants[i]; 
-          acc_n_products[i+1] = acc_n_products[i] + number_of_products[i]; 
-          acc_n_jacobian_flat_ids[i+1]= acc_n_jacobian_flat_ids[i] + number_of_reactants[i]+number_of_products[i];
-          }
+      // copy data from host memory to device memory
+      cudaMemcpy(d_rate_constants, rate_constants_data, rate_constants_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_state_variables, state_variables_data, state_forcing_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants_, number_of_reactants, number_of_reactants_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids_, reactant_ids, reactant_ids_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products_, number_of_products, number_of_products_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_product_ids_, product_ids, product_ids_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice);
 
-   
-        //device pointer
-        double* d_rate_constants; 
-        double* d_state_variables; 
-        double* d_jacobian; 
-        size_t* d_number_of_reactants; 
-        size_t* d_acc_n_reactants; 
-        size_t* d_reactant_ids; 
-        size_t* d_number_of_products; 
-        size_t* d_acc_n_products;
-        size_t* d_product_ids; 
-        double* d_yields; 
-        size_t* d_jacobian_flat_ids; 
-        size_t* d_acc_jacobian_flat_ids; 
+      // total thread count == number of grid cells
+      int block_size = 32;
+      int num_block = (ngrids + block_size - 1) / block_size;
 
-        //allocate device memory 
-        cudaMalloc(&d_rate_constants, sizeof(double)* n_grids * n_reactions); 
-        cudaMalloc(&d_state_variables, sizeof(double)* n_grids * n_species); 
-        cudaMalloc(&d_jacobian, sizeof(double)* jacobian_size);
-        cudaMalloc(&d_number_of_reactants, sizeof(size_t)* n_reactions); 
-        cudaMalloc(&d_acc_n_reactants, sizeof(size_t)* n_reactions); 
-        cudaMalloc(&d_reactant_ids, sizeof(size_t) * reactant_ids_size);
-        cudaMalloc(&d_number_of_products, sizeof(size_t)* n_reactions);
-        cudaMalloc(&d_acc_n_products, sizeof(size_t)* n_reactions); 
-        cudaMalloc(&d_product_ids, sizeof(size_t) * product_ids_size);  
-        cudaMalloc(&yields, sizeof(double) * yields_size); 
-        cudaMalloc(&jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
-        cudaMalloc(&d_acc_jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
-
-        //transfer data from host to device 
-        cudaMemcpy(d_rate_constants, rate_constants, sizeof(double)* n_grids * n_reactions,cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_state_variables, state_variables, sizeof(double)* n_grids * n_species, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_jacobian, jacobian, sizeof(double)* jacobian_size, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t)* n_reactions,cudaMemcpyHostToDevice);
-        cudaMemcpy(d_acc_n_reactants, acc_n_reactants, sizeof(size_t)*n_reactions, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_reactant_ids, reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_acc_n_products, acc_n_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_product_ids, product_ids, sizeof(size_t)* product_ids_size, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_acc_jacobian_flat_ids, acc_n_jacobian_flat_ids, sizeof(size_t)*jacobian_flat_ids_size, cudaMemcpyHostToDevice);
-
-        //total thread count == n_grids 
-        int block_size = 320; 
-        int N = n_grids * n_reactions; 
-        int num_blocks = (N + block_size -1)/block_size; 
-        //kernel function call
-        AddJacobianTerms_kernel<<<num_blocks, block_size>>>(
+      // kernel function call
+      AddForcingTerms_kernel<<<num_block, block_size>>>(
           d_rate_constants,
           d_state_variables,
-          d_jacobian,
-          n_grids,
-          n_reactions,
-          n_species,
-          d_number_of_reactants, 
-          d_acc_n_reactants,
-          d_reactant_ids, 
-          d_number_of_products,
-          d_acc_n_products, 
-          d_product_ids,
-          d_yields,
-          d_jacobian_flat_ids,
-          d_acc_jacobian_flat_ids,
-          row_ids_size);
-          cudaDeviceSynchronize(); 
-          cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost);
-        
-        // clean up	
-        cudaFree(d_rate_constants); 
-        cudaFree(d_state_variables); 
-        cudaFree(d_jacobian);
-        cudaFree(d_number_of_reactants);
-        cudaFree(d_reactant_ids);
-        cudaFree(d_number_of_products);
-        cudaFree(d_product_ids);
-        cudaFree(d_yields);
-        cudaFree(d_jacobian_flat_ids); 
-    }//end of AddJacobianTerms_kernelSetup function 
-  } // namespace cuda 
-}     // namespace micm
+          d_forcing,
+          ngrids,
+          nrxns,
+          nspecs,
+          d_number_of_reactants_,
+          d_reactant_ids_,
+          d_number_of_products_,
+          d_product_ids_,
+          d_yields_);
+      cudaDeviceSynchronize();
+
+      // copy data from device memory to host memory
+      cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
+
+      // clean up
+      cudaFree(d_rate_constants);
+      cudaFree(d_state_variables);
+      cudaFree(d_forcing);
+      cudaFree(d_number_of_reactants_);
+      cudaFree(d_reactant_ids_);
+      cudaFree(d_number_of_products_);
+      cudaFree(d_product_ids_);
+      cudaFree(d_yields_);
+    }  // end of AddForcingTerms_kernelSetup
+  }    // namespace cuda
+}  // namespace micm

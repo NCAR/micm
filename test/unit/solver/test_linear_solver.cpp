@@ -60,17 +60,17 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>::create(3)
-                                     .initial_value(1.0e-30)
-                                     .with_element(0, 0)
-                                     .with_element(0, 1)
-                                     .with_element(0, 2)
-                                     .with_element(1, 0)
-                                     .with_element(1, 1)
-                                     .with_element(1, 2)
-                                     .with_element(2, 0)
-                                     .with_element(2, 1)
-                                     .with_element(2, 2);
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(3)
+                                                                .initial_value(1.0e-30)
+                                                                .with_element(0, 0)
+                                                                .with_element(0, 1)
+                                                                .with_element(0, 2)
+                                                                .with_element(1, 0)
+                                                                .with_element(1, 1)
+                                                                .with_element(1, 2)
+                                                                .with_element(2, 0)
+                                                                .with_element(2, 1)
+                                                                .with_element(2, 2));
   MatrixPolicy<double> b(1, 3, 0.0);
   MatrixPolicy<double> x(1, 3, 100.0);
 
@@ -152,19 +152,74 @@ void testDiagonalMatrix()
       A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+void testMarkowitzReordering()
+{
+  const std::size_t order = 50;
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+  MatrixPolicy<int> orig(order, order, 0);
+
+  for (std::size_t i = 0; i < order; ++i)
+    for (std::size_t j = 0; j < order; ++j)
+      orig[i][j] = (i == j || gen_bool()) ? 1 : 0;
+
+  auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(orig);
+
+  auto builder = SparseMatrixPolicy<double>::create(50);
+  for (std::size_t i = 0; i < order; ++i)
+    for (std::size_t j = 0; j < order; ++j)
+      if (orig[i][j] != 0)
+        builder = builder.with_element(i, j);
+  SparseMatrixPolicy<double> orig_jac{ builder };
+
+  builder = SparseMatrixPolicy<double>::create(50);
+  for (std::size_t i = 0; i < order; ++i)
+    for (std::size_t j = 0; j < order; ++j)
+      if (orig[reorder_map[i]][reorder_map[j]] != 0)
+        builder = builder.with_element(i, j);
+  SparseMatrixPolicy<double> reordered_jac{ builder };
+
+  auto orig_LU_calc = micm::LuDecomposition{ orig_jac };
+  auto reordered_LU_calc = micm::LuDecomposition{ reordered_jac };
+
+  auto orig_LU = orig_LU_calc.GetLUMatrices(orig_jac, 0.0);
+  auto reordered_LU = reordered_LU_calc.GetLUMatrices(reordered_jac, 0.0);
+
+  std::size_t sum_orig = 0;
+  std::size_t sum_reordered = 0;
+  for (std::size_t i = 0; i < reorder_map.size(); ++i)
+  {
+    sum_orig += i;
+    sum_reordered += reorder_map[i];
+  }
+
+  EXPECT_EQ(sum_orig, sum_reordered);
+  EXPECT_GT(
+      orig_LU.first.RowIdsVector().size() + orig_LU.second.RowIdsVector().size(),
+      reordered_LU.first.RowIdsVector().size() + reordered_LU.second.RowIdsVector().size());
+}
+
+template<class T>
+using SparseMatrix = micm::SparseMatrix<T>;
+
 TEST(LinearSolver, DenseMatrixStandardOrdering)
 {
-  testDenseMatrix<micm::Matrix, micm::SparseMatrix>();
+  testDenseMatrix<micm::Matrix, SparseMatrix>();
 }
 
 TEST(LinearSolver, RandomMatrixStandardOrdering)
 {
-  testRandomMatrix<micm::Matrix, micm::SparseMatrix>();
+  testRandomMatrix<micm::Matrix, SparseMatrix>();
 }
 
 TEST(LinearSolver, DiagonalMatrixStandardOrdering)
 {
-  testDiagonalMatrix<micm::Matrix, micm::SparseMatrix>();
+  testDiagonalMatrix<micm::Matrix, SparseMatrix>();
+}
+
+TEST(LinearSolver, DiagonalMarkowitzReorder)
+{
+  testMarkowitzReordering<micm::Matrix, SparseMatrix>();
 }
 
 template<class T>
@@ -207,4 +262,12 @@ TEST(LinearSolver, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix>();
   testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix>();
   testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix>();
+}
+
+TEST(LinearSolver, VectorDiagonalMarkowitzReordering)
+{
+  testMarkowitzReordering<Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testMarkowitzReordering<Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testMarkowitzReordering<Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testMarkowitzReordering<Group4VectorMatrix, Group4SparseVectorMatrix>();
 }

@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
-#include <micm/process/process_set_cuda.cuh>
-#include <micm/process/process_set.hpp>
-#include <micm/util/vector_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <iostream>
-#include <random>
+
 #include <chrono>
 #include <functional>
+#include <iostream>
+#include <micm/process/cuda_process_set.hpp>
+#include <micm/process/process_set.hpp>
+#include <micm/util/vector_matrix.hpp>
+#include <random>
 #include <vector>
 
 using yields = std::pair<micm::Species, double>;
@@ -18,12 +18,9 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-
-
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy>
 void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
-
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
   auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
@@ -61,66 +58,35 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet set{ processes, state };
+  micm::ProcessSet cpu_set{ processes, state };
+  micm::CudaProcessSet gpu_set{ processes, state };
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
 
-  MatrixPolicy <double> rate_constants{ n_cells, n_reactions };
+  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
 
-  MatrixPolicy <double> cpu_forcing{ n_cells, n_species, 1000.0};
-  MatrixPolicy <double> gpu_forcing{ };
-  gpu_forcing = cpu_forcing; 
+  MatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
+  MatrixPolicy<double> gpu_forcing{};
+  gpu_forcing = cpu_forcing;
 
-  
-  //kernel function call 
-  // double t0 = 0.0; 
-  // for (int i = 0; i < 100; i++)
-  // {
-  //   auto start = std::chrono::steady_clock::now(); 
-  //   set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
-  //   auto end = std::chrono::steady_clock::now(); 
-  //   std::chrono::duration<double> duration = end - start;
-  //   t0 = t0 + duration.count(); 
-  // }
-  // std::cout << "time performance: "<< t0/100 <<std::endl; 
+  // kernel function call
+  gpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing);
 
-//   //kernel function call 
-//   set.CudaAddForcingTerms(rate_constants, state.variables_, gpu_forcing); 
-    
-//   //CPU function call
-//   set.AddForcingTerms(rate_constants, state.variables_, cpu_forcing); 
+  // CPU function call
+  cpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, cpu_forcing);
 
-//   //checking accuracy with comparison between CPU and GPU result 
-//   std::vector<double>cpu_forcing_vector = cpu_forcing.AsVector(); 
-//   std::vector<double>gpu_forcing_vector = gpu_forcing.AsVector(); 
+  // checking accuracy with comparison between CPU and GPU result
+  std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector();
+  std::vector<double> gpu_forcing_vector = gpu_forcing.AsVector();
 
-//   for (int i = 0; i < cpu_forcing_vector.size(); i++){
-//     double a = cpu_forcing_vector[i];
-//     double b = gpu_forcing_vector[i];
-//     EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-9);
-//  }
-  auto non_zero_elements = set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
-  for (auto& elem : non_zero_elements)
-    builder = builder.with_element(elem.first, elem.second);
-  SparseMatrixPolicy<double> cpu_jacobian{ builder };
-  SparseMatrixPolicy<double> gpu_jacobian{builder};
-
-  set.SetJacobianFlatIds(cpu_jacobian);
-  set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
-  set.CudaAddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
-
-  //checking accuracy of jacobian between CPU and GPU
-  std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector(); 
-  std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector(); 
-
-  for (int i = 0; i < cpu_jacobian_vector.size(); i++){
-    double a = cpu_jacobian_vector[i]; 
-    double b = gpu_jacobian_vector[i]; 
-    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+  for (int i = 0; i < cpu_forcing_vector.size(); i++)
+  {
+    double a = cpu_forcing_vector[i];
+    double b = gpu_forcing_vector[i];
+    EXPECT_EQ(a, b);
   }
 }
 
@@ -145,15 +111,15 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
 
 TEST(RandomProcessSet, Matrix)
 {
-  std::cout << "system with 500 reactions and 400 species"<<std::endl; 
-  testRandomSystem<micm::Matrix, micm::SparseMatrix>(3, 5, 2);
-  // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
-  // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
-  // testRandomSystem<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);
+  std::cout << "system with 500 reactions and 400 species" << std::endl;
+  testRandomSystem<Group1000VectorMatrix>(1000, 500, 400);
+  testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 500, 400);
 
-  // std::cout << "system with 100 reactions and 80 species"<<std::endl; 
-  // testRandomSystem<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1000, 100, 80);
-  // testRandomSystem<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 100, 80);
-  // testRandomSystem<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 100, 80);
-  // testRandomSystem<Group1000000VectorMatrix, Group100000SparseVectorMatrix>(1000000, 100, 80);
+  std::cout << "system with 100 reactions and 80 species" << std::endl;
+  testRandomSystem<Group1000VectorMatrix>(1000, 100, 80);
+  testRandomSystem<Group10000VectorMatrix>(10000, 100, 80);
+  testRandomSystem<Group100000VectorMatrix>(100000, 100, 80);
+  testRandomSystem<Group1000000VectorMatrix>(1000000, 100, 80);
 }

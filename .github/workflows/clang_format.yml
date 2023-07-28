@@ -1,0 +1,32 @@
+name: Clang-Format
+
+on:
+  pull_request:
+
+jobs:
+  format:
+    name: Run Clang-Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Clang-Format
+        run: sudo apt-get update && sudo apt-get install clang-format
+
+      - name: Check out code, run clang format, push changes
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Format code
+        run: |
+          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
+          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
+          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file {} +
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git commit -am "Auto-format code using Clang-Format" || echo "No changes to commit"
+          git push

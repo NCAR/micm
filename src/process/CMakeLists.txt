@@ -7,6 +7,5 @@ endif()
 if(ENABLE_OPENACC)
   target_sources(micm_openacc
     PRIVATE
-      process_set.cpp
   )
 endif()

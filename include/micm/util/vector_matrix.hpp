@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <micm/util/exit_codes.hpp>
@@ -22,8 +23,8 @@ namespace micm
   class VectorMatrix
   {
     std::vector<T> data_;
-    std::size_t x_dim_; //number of rows 
-    std::size_t y_dim_; //number of columns
+    std::size_t x_dim_;  // number of rows
+    std::size_t y_dim_;  // number of columns
 
     friend class Proxy;
     friend class ConstProxy;
@@ -31,7 +32,7 @@ namespace micm
     class Proxy
     {
       VectorMatrix &matrix_;
-      std::size_t group_index_; 
+      std::size_t group_index_;
       std::size_t row_index_;
       std::size_t y_dim_;
 
@@ -57,7 +58,9 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              iter += L;
+              // don't iterate passed the end of the vector
+              std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+              iter += std::min(L, remaining_elements);
             });
         return *this;
       }
@@ -68,7 +71,9 @@ namespace micm
         for (auto &elem : vec)
         {
           elem = *iter;
-          iter += L;
+          // don't iterate passed the end of the vector
+          std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
+          iter += std::min(L, remaining_elements);
         }
         return vec;
       }
@@ -163,7 +168,9 @@ namespace micm
                   for (auto &elem : other_row)
                   {
                     *iter = elem;
-                    iter += L;
+                    // don't iterate passed the end of the vector
+                    std::size_t remaining_elements = std::distance(iter, data.end());
+                    iter += std::min(L, remaining_elements);
                   }
                   ++i_row;
                 }
@@ -199,6 +206,33 @@ namespace micm
     Proxy operator[](std::size_t x)
     {
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
+    }
+
+    void ForEach(const std::function<void(T &, T &)> f, VectorMatrix &a)
+    {
+      auto this_iter = data_.begin();
+      auto a_iter = a.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i)
+        f(*(this_iter++), *(a_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t y = 0; y < y_dim_; ++y)
+        for (std::size_t x = 0; x < l; ++x)
+          f(this_iter[y * L + x], a_iter[y * L + x]);
+    }
+
+    void ForEach(const std::function<void(T &, T &, T &)> f, VectorMatrix &a, VectorMatrix &b)
+    {
+      auto this_iter = data_.begin();
+      auto a_iter = a.AsVector().begin();
+      auto b_iter = b.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i)
+        f(*(this_iter++), *(a_iter++), *(b_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t y = 0; y < y_dim_; ++y)
+        for (std::size_t x = 0; x < l; ++x)
+          f(this_iter[y * L + x], a_iter[y * L + x], b_iter[y * L + x]);
     }
 
     std::vector<T> &AsVector()

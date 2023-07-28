@@ -37,18 +37,17 @@ option(ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(ENABLE_JSON "Enable json configureation file reading" ON)
-option(ENABLE_REGRESSION_TESTS "Enable regression tests against the old pre-processed version of micm" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
-cmake_dependent_option(ENABLE_GPU_TYPE "Enable custom OpenACC flags" OFF
+cmake_dependent_option(ENABLE_GPU_TYPE "Enable custom CUDA flags" OFF
   "ENABLE_OPENACC OR ENABLE_CUDA" ON)
 
 if(ENABLE_GPU_TYPE)
-  set(GPU_TYPE "" CACHE STRING "Custom OpenACC flags")
+  set(GPU_TYPE "" CACHE STRING "The GPU type being targeted")
 endif()
 
 ################################################################################

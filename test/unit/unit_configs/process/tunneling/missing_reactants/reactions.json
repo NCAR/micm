@@ -1,0 +1,17 @@
+{
+  "camp-data": [
+    {
+      "name": "Tunneling missing reactants",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "TUNNELING",
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          }
+        }
+      ]
+    }
+  ]
+}

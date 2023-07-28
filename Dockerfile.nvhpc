@@ -2,7 +2,9 @@
 # some reason you have to build this image many times
 # https://stackoverflow.com/a/75757516/5217293
 #
-FROM nvcr.io/nvidia/nvhpc:23.1-devel-cuda_multi-ubuntu22.04
+# Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
+#
+FROM nvcr.io/nvidia/nvhpc:23.5-devel-cuda12.1-ubuntu22.04
 
 RUN apt update \
     && apt -y install \
@@ -12,8 +14,8 @@ RUN apt update \
       cmake-curses-gui \
       curl \
       libcurl4-openssl-dev \
-      libhdf5-dev \
       m4 \
+      vim \
       zlib1g-dev \
     && apt clean 
 
@@ -21,36 +23,6 @@ RUN apt update \
 ENV CXX=nvc++
 ENV CC=nvc
 ENV FC=nvfortran
-
-# Netcdf-C
-RUN curl -LO https://github.com/Unidata/netcdf-c/archive/v4.8.0.tar.gz \
-    && tar -zxvf v4.8.0.tar.gz \
-    && cd netcdf-c-4.8.0 \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make -j$(nproc) \
-    && make install
-
-# Netcdf-Fortran
-RUN curl -LO https://github.com/Unidata/netcdf-fortran/archive/v4.5.3.tar.gz \
-    && tar -zxvf v4.5.3.tar.gz \
-    && cd netcdf-fortran-4.5.3 \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make -j$(nproc) \
-    && make install
-
-# Json-fortran
-ENV JSON_FORTRAN_HOME="/usr/local/jsonfortran-nvhpc-8.3.0"
-RUN curl -LO https://github.com/jacobwilliams/json-fortran/archive/8.3.0.tar.gz \
-    && tar -zxvf 8.3.0.tar.gz \
-    && cd json-fortran-8.3.0 \
-    && mkdir build \
-    && cd build \
-    && cmake -D SKIP_DOC_GEN:BOOL=TRUE .. \
-    && make install
 
 # Micm
 COPY . /micm/
@@ -60,11 +32,9 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
-        -D ENABLE_REGRESSION_TESTS:BOOL=FALSE \
         -D ENABLE_CUDA=ON \
-        -D ENABLE_OPENACC=OFF \
         -D GPU_TYPE="a100" \
-        ../micm 
-      # && make -j 8 install
+        ../micm \
+      && make -j 8 install
 
 WORKDIR /build

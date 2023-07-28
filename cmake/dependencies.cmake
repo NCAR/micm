@@ -87,8 +87,11 @@ endif()
 if(ENABLE_CUDA)
   find_package(CUDA REQUIRED)
   enable_language(CUDA)
+<<<<<<< HEAD
 
   
+=======
+>>>>>>> main
 endif()
 
 if(ENABLE_OPENACC)
