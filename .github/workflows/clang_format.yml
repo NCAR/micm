@@ -2,6 +2,11 @@ name: Clang-Format
 
 on:
   pull_request:
+    # Trigger the workflow on pull requests from any repository
+    branches:
+      - '*'
+    types:
+      - synchronize
 
 jobs:
   format:

@@ -1,13 +1,12 @@
 name: build
 
 on:
-  pull_request:
-    # Trigger the workflow on pull requests from any repository
+  workflow_run:
+    workflows: ["Clang-Format"]
     branches:
       - '*'
     types:
-      - opened
-      - synchronize
+      - completed
 
 jobs:
   docker-build-and-test:
