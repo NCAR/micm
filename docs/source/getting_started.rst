@@ -111,7 +111,7 @@ To solve this system save the following code in a file named `foo_chem.cpp`
 
     std::vector<Process> reactions{ r1, r2 };
 
-    RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters{} };
+    RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
     State state = solver.GetState();
 
