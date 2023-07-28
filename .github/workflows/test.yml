@@ -1,12 +1,6 @@
 name: build
 
-on:
-  workflow_run:
-    workflows: ["Clang-Format"]
-    branches:
-      - '*'
-    types:
-      - completed
+on: [push, pull_request]
 
 jobs:
   docker-build-and-test:
