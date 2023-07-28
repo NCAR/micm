@@ -2,11 +2,6 @@ name: Clang-Format
 
 on:
   pull_request:
-    # Trigger the workflow on pull requests from any repository
-    branches:
-      - '*'
-    types:
-      - synchronize
 
 jobs:
   format:
@@ -35,16 +30,3 @@ jobs:
           git config --global user.email "actions@github.com"
           git commit -am "Auto-format code using Clang-Format" || echo "No changes to commit"
           git push
-
-      - name: Trigger tests
-        if: github.event.inputs.manual-trigger == 'true' || github.event_name == 'pull_request'
-        uses: actions/github-script@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data } = await github.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'test.yml',
-            });
-            console.log(data);
