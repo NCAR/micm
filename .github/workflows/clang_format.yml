@@ -28,7 +28,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          BRANCH_NAME="${{ github.head_ref }}"
           git checkout -b "${BRANCH_NAME}-formatting"
           git commit -am "Auto-format code using Clang-Format" || echo "No changes to commit"
           git push origin "${BRANCH_NAME}-formatting"
