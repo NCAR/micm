@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
@@ -91,6 +92,7 @@ namespace micm
     // Read from reaction configure
     std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
+    std::vector<BranchedRateConstant> branched_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
     std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
     std::vector<TunnelingRateConstant> tunneling_rate_arr_;
@@ -255,6 +257,10 @@ namespace micm
         else if (type == "ARRHENIUS")
         {
           status = ParseArrhenius(object);
+        }
+        else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
+        {
+          status = ParseBranched(object);
         }
         else if (type == "TERNARY_CHEMICAL_ACTIVATION")
         {
@@ -455,6 +461,48 @@ namespace micm
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
 
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseBranched(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string ALKOXY_PRODUCTS = "alkoxy products";
+      const std::string NITRATE_PRODUCTS = "nitrate products";
+      const std::string X = "X";
+      const std::string Y = "Y";
+      const std::string A0 = "a0";
+      const std::string N = "n";
+
+      // Check required json objects exist
+      for (const auto& key : { REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
+      auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
+
+      BranchedRateConstantParameters parameters;
+      parameters.X_ = object[X].get<double>();
+      parameters.Y_ = object[Y].get<double>();
+      parameters.a0_ = object[A0].get<double>();
+      parameters.n_ = object[N].get<int>();
+
+      // Alkoxy branch
+      parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+      branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+      std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+      processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+
+      // Nitrate branch
+      parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
+      branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+      rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+      processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
