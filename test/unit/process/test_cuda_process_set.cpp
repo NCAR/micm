@@ -36,8 +36,8 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   }
   micm::Phase gas_phase{ species };
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
+                                                          .custom_rate_parameter_labels_{ },
                                                           .number_of_grid_cells_ = n_cells,
-                                                          .number_of_custom_parameters_ = 0,
                                                           .number_of_rate_constants_ = n_reactions } };
 
   std::vector<micm::Process> processes{};
