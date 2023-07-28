@@ -46,7 +46,7 @@ TEST(BranchedConfig, ParseConfig)
     EXPECT_EQ(params.a0_, 1.0e-5);
     EXPECT_EQ(params.n_, 3);
     EXPECT_EQ(params.branch_, micm::BranchedRateConstantParameters::Branch::Alkoxy);
-  } 
+  }
   {
     EXPECT_EQ(process_vector[1].reactants_.size(), 3);
     EXPECT_EQ(process_vector[1].reactants_[0].name_, "foo");
