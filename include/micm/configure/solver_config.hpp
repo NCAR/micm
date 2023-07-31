@@ -664,35 +664,55 @@ namespace micm
 
     ConfigParseStatus ParseEmission(const json& object)
     {
-      std::vector<std::string> required_keys = { "species" };
-      std::vector<std::string> optional_keys = { "MUSICA name" };
-      for (const auto& key : required_keys)
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+      for (const auto& key : { SPECIES, MUSICA_NAME })
       {
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      std::string name = object["species"].get<std::string>();
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      products_object[species] = { { "YIELD", 1.0 } };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
 
-      emission_arr_.push_back(Species(name));
+      std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
+
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
 
     ConfigParseStatus ParseFirstOrderLoss(const json& object)
     {
-      std::vector<std::string> required_keys = { "species" };
-      std::vector<std::string> optional_keys = { "MUSICA name" };
-      for (const auto& key : required_keys)
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+      for (const auto& key : { SPECIES, MUSICA_NAME })
       {
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      std::string name = object["species"].get<std::string>();
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      reactants_object[species] = { { } };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
 
-      first_order_loss_arr_.push_back(Species(name));
+      std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      
       return ConfigParseStatus::Success;
     }
   };
