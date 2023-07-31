@@ -11,28 +11,27 @@ namespace micm
   class System;
 
   /// @brief A photolysis rate constant
-  class PhotolysisRateConstant : public RateConstant
+  class UserDefinedRateConstant : public RateConstant
   {
-   public:
     std::string name_;
 
    public:
     /// @brief Default constructor.
-    PhotolysisRateConstant();
+    UserDefinedRateConstant();
 
     /// @brief
     /// @param name A name for this reaction
-    PhotolysisRateConstant(const std::string& name);
+    UserDefinedRateConstant(const std::string& name);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
 
-    /// @brief Returns the number of parameters (1) that can be set at runtime
-    ///        for photolysis reactions
-    ///
-    ///        The single editable parameter is the unscaled rate constant for
-    ///        the photolysis reaction
-    /// @return Number of custom rate constant parameters
+    /// @brief Returns a label for the user-defined rate constant parameter
+    /// @return Rate constant label
+    std::vector<std::string> CustomParameters() const override;
+
+    /// @brief Returns the number of custom parameters
+    /// @return Number of custom parameters
     std::size_t SizeCustomParameters() const override;
 
     /// @brief Calculate the rate constant
@@ -43,29 +42,34 @@ namespace micm
         const override;
   };
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant()
+  inline UserDefinedRateConstant::UserDefinedRateConstant()
       : name_()
   {
   }
 
-  inline PhotolysisRateConstant::PhotolysisRateConstant(const std::string& name)
+  inline UserDefinedRateConstant::UserDefinedRateConstant(const std::string& name)
       : name_(name)
   {
   }
 
-  inline std::unique_ptr<RateConstant> PhotolysisRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> UserDefinedRateConstant::clone() const
   {
-    return std::unique_ptr<RateConstant>{ new PhotolysisRateConstant{ *this } };
+    return std::unique_ptr<RateConstant>{ new UserDefinedRateConstant{ *this } };
   }
 
-  inline double PhotolysisRateConstant::calculate(
+  inline double UserDefinedRateConstant::calculate(
       const Conditions& conditions,
       const std::vector<double>::const_iterator& custom_parameters) const
   {
     return (double)*custom_parameters;
   }
 
-  inline std::size_t PhotolysisRateConstant::SizeCustomParameters() const
+  inline std::vector<std::string> UserDefinedRateConstant::CustomParameters() const
+  {
+    return std::vector<std::string>{ name_ };
+  }
+
+  inline std::size_t UserDefinedRateConstant::SizeCustomParameters() const
   {
     return 1;
   }

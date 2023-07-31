@@ -1,0 +1,17 @@
+{
+  "camp-data": [
+    {
+      "name": "Photolysis missing products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "foo": { }
+          },
+          "MUSICA name" : "jfoo"
+        }
+      ]
+    }
+  ]
+}

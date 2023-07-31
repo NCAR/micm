@@ -12,7 +12,7 @@
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
@@ -90,7 +90,7 @@ namespace micm
     std::vector<Species> species_arr_;
 
     // Read from reaction configure
-    std::vector<PhotolysisRateConstant> photolysis_rate_arr_;
+    std::vector<UserDefinedRateConstant> user_defined_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
     std::vector<BranchedRateConstant> branched_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
@@ -404,11 +404,11 @@ namespace micm
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
 
-      std::string name = object[MUSICA_NAME].get<std::string>();
+      std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
-      photolysis_rate_arr_.push_back(PhotolysisRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
 
-      std::unique_ptr<PhotolysisRateConstant> rate_ptr = std::make_unique<PhotolysisRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -664,35 +664,55 @@ namespace micm
 
     ConfigParseStatus ParseEmission(const json& object)
     {
-      std::vector<std::string> required_keys = { "species" };
-      std::vector<std::string> optional_keys = { "MUSICA name" };
-      for (const auto& key : required_keys)
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+      for (const auto& key : { SPECIES, MUSICA_NAME })
       {
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      std::string name = object["species"].get<std::string>();
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      products_object[species] = { { "YIELD", 1.0 } };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
 
-      emission_arr_.push_back(Species(name));
+      std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
+
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
 
     ConfigParseStatus ParseFirstOrderLoss(const json& object)
     {
-      std::vector<std::string> required_keys = { "species" };
-      std::vector<std::string> optional_keys = { "MUSICA name" };
-      for (const auto& key : required_keys)
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+      for (const auto& key : { SPECIES, MUSICA_NAME })
       {
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
 
-      std::string name = object["species"].get<std::string>();
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      reactants_object[species] = { { } };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
 
-      first_order_loss_arr_.push_back(Species(name));
+      std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      
       return ConfigParseStatus::Success;
     }
   };
@@ -729,19 +749,6 @@ namespace micm
           std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
     }
 
-    /// @brief Get a collection of 'PhotolysisRateConstant'
-    /// @return a collection of 'PhotolysisRateConstant'
-    std::vector<PhotolysisRateConstant>& GetPhotolysisRateConstants()
-    {
-      if (last_parse_status_ != ConfigParseStatus::Success)
-      {
-        std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
-                          configParseStatusToString(last_parse_status_);
-        throw std::runtime_error(msg);
-      }
-
-      return this->photolysis_rate_arr_;
-    }
   };
 
 }  // namespace micm

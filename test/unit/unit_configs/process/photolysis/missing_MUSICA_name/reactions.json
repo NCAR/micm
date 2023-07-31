@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "Photolysis missing MUSICA name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "PHOTOLYSIS",
+          "reactants":
+          {
+            "foo": {}
+          },
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          }
+        }
+      ]
+    }
+  ]
+}

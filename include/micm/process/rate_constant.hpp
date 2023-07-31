@@ -18,10 +18,19 @@ namespace micm
    public:
     /// @brief Virtual destructor
     virtual ~RateConstant(){};
+    
     /// @brief Deep copy
     virtual std::unique_ptr<RateConstant> clone() const = 0;
-    /// @brief Returns the number of doubles needed to hold user-defined rate constant parameters
-    /// @return Number of user-defined rate constant parameters
+
+    /// @brief Returns a set of labels for user-defined rate constant parameters
+    /// @return Vector of custom parameter labels
+    virtual std::vector<std::string> CustomParameters() const
+    {
+      return std::vector<std::string>{};
+    }
+
+    /// @brief Returns the number of custom parameters
+    /// @return Number of custom parameters
     virtual std::size_t SizeCustomParameters() const
     {
       return 0;

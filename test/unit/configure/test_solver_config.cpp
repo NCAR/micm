@@ -56,13 +56,14 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   auto& process_vector = solver_params.processes_;
 
   // Check the number of 'Process' created
-  EXPECT_EQ(process_vector.size(), 7);
+  EXPECT_EQ(process_vector.size(), 15);
 
   // Check the number of 'reactants' and 'products' in each 'Process'
   // Check 'yield' value for the first product and the number of 'spieces in 'phase' in each 'Process'
-  int num_reactants_in_each_process[] = { 1, 1, 1, 2, 2, 2, 3 };
-  int num_products_in_each_process[] = { 1, 2, 2, 2, 2, 1, 2 };
-  double yield_value_of_first_product_in_each_process[] = { 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0 };
+  int num_reactants_in_each_process[] = { 1, 1, 1, 2, 2, 2, 3, 0, 0, 0, 1, 1, 1, 1, 1 };
+  int num_products_in_each_process[] = { 1, 2, 2, 2, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0 };
+  double yield_value_of_first_product_in_each_process[] = { 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0,
+                                                            1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   int num_phase_in_each_process = 9;
 
   short idx = 0;
@@ -70,21 +71,10 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   {
     EXPECT_EQ(p.reactants_.size(), num_reactants_in_each_process[idx]);
     EXPECT_EQ(p.products_.size(), num_products_in_each_process[idx]);
-    EXPECT_EQ(p.products_[0].second, yield_value_of_first_product_in_each_process[idx]);
+    if (num_products_in_each_process[idx] > 0)
+      EXPECT_EQ(p.products_[0].second, yield_value_of_first_product_in_each_process[idx]);
     EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
     idx++;
-  }
-
-  // Check the name for 'PhotolysisRateConstant'
-  micm::PhotolysisRateConstant* photolysis_rate_const = nullptr;
-  std::string photolysis_name[] = { "O2_1", "O3_1", "O3_2" };
-
-  for (short i = 0; i < 3; i++)
-  {
-    photolysis_rate_const = dynamic_cast<micm::PhotolysisRateConstant*>(process_vector[i].rate_constant_.get());
-
-    EXPECT_TRUE(photolysis_rate_const != nullptr);
-    EXPECT_EQ(photolysis_rate_const->name_, photolysis_name[i]);
   }
 
   // Check the parameters for 'ArrheniusRateConstant'
@@ -108,13 +98,30 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   }
 
   // Check the number of custom parameters of 'rate constant' in each 'Process'
-  std::size_t size_custom_parameters_of_rate_constant_in_each_process[] = { 1, 1, 1, 0, 0, 0, 0 };
+  std::vector<std::vector<std::string>> custom_rate_labels = { { "PHOTO.O2_1" },
+                                                               { "PHOTO.O3_1" },
+                                                               { "PHOTO.O3_2" },
+                                                               {},
+                                                               {},
+                                                               {},
+                                                               {},
+                                                               { "EMIS.O1D" },
+                                                               { "EMIS.O" },
+                                                               { "EMIS.O3" },
+                                                               { "LOSS.N2" },
+                                                               { "LOSS.O2" },
+                                                               { "LOSS.CO2" },
+                                                               { "LOSS.Ar" },
+                                                               { "LOSS.H2O" } };
 
+  // check photlysis, emissions, and loss reaction labels
   idx = 0;
   std::vector<micm::Process>::iterator it;
   for (it = solver_params.processes_.begin(); it != solver_params.processes_.end(); it++, idx++)
   {
-    EXPECT_EQ(it->rate_constant_->SizeCustomParameters(), size_custom_parameters_of_rate_constant_in_each_process[idx]);
+    EXPECT_EQ(it->rate_constant_->SizeCustomParameters(), custom_rate_labels[idx].size());
+    for (std::size_t i = 0; i < custom_rate_labels[idx].size(); ++i)
+      EXPECT_EQ(it->rate_constant_->CustomParameters()[i], custom_rate_labels[idx][i]);
   }
 }
 
@@ -124,34 +131,6 @@ TEST(SolverConfig, GettingSolverParamsThrowsExceptionWithFailedParsing)
   micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
   EXPECT_NE(micm::ConfigParseStatus::Success, status);
   EXPECT_ANY_THROW(solverConfig.GetSolverParams());
-}
-
-TEST(SolverConfig, GettingPhotolysisRateConstantThrowsExceptionWithFailedParsing)
-{
-  micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("not_a_config_file_directory");
-  EXPECT_NE(micm::ConfigParseStatus::Success, status);
-  EXPECT_ANY_THROW(solverConfig.GetPhotolysisRateConstants());
-}
-
-TEST(SolverConfig, GetPhotolysisRateConstants)
-{
-  // Read and parse the configure files
-  micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
-
-  std::vector<micm::PhotolysisRateConstant>& photolysis_rate_arr_ = solverConfig.GetPhotolysisRateConstants();
-
-  // Check the name of photolsis rate constants
-  std::array<std::string, 3> photo_names{ "O2_1", "O3_1", "O3_2" };
-
-  short idx = 0;
-  for (auto& rate : photolysis_rate_arr_)
-  {
-    EXPECT_EQ(rate.name_, photo_names[idx]);
-    idx++;
-  }
 }
 
 //
@@ -245,16 +224,16 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
     idx++;
   }
 
-  // Check the name for 'PhotolysisRateConstant'
-  micm::PhotolysisRateConstant* photolysis_rate_const = nullptr;
-  std::string photolysis_name = "jterpnit";
+  // Check the name for 'UserDefinedRateConstant'
+  micm::UserDefinedRateConstant* photolysis_rate_const = nullptr;
+  std::string photolysis_name = "PHOTO.jterpnit";
 
   for (short i : { 3 })
   {
-    photolysis_rate_const = dynamic_cast<micm::PhotolysisRateConstant*>(process_vector[i].rate_constant_.get());
+    photolysis_rate_const = dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[i].rate_constant_.get());
 
     EXPECT_TRUE(photolysis_rate_const != nullptr);
-    EXPECT_EQ(photolysis_rate_const->name_, photolysis_name);
+    EXPECT_EQ(photolysis_rate_const->CustomParameters()[0], photolysis_name);
   }
 
   // Check the parameters for 'ArrheniusRateConstant'
