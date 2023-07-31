@@ -1,0 +1,14 @@
+{
+  "camp-data": [
+    {
+      "name": "Emission missing MUSICA name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "EMISSION",
+          "species": "bar"
+        }
+      ]
+    }
+  ]
+}
