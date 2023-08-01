@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include <cmath>
