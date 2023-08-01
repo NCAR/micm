@@ -5,6 +5,7 @@
 
 #include <math.h>
 
+#include <cmath>
 #include <micm/process/rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/constants.hpp>
