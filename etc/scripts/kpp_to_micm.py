@@ -28,10 +28,39 @@ def read_kpp_config(kpp_dir):
             f = open(filename, 'r')
             lines.extend(f.readlines())
 
+    lines = [line.replace('\t', '') for line in lines]
+
     for line in lines:
         logging.debug(line.strip())
 
     return lines
+
+
+def split_by_section(lines):
+    """
+    Split KPP config lines by section
+
+    Parameters
+        (list of str) lines: all lines config files
+
+    Returns
+        (dict of list of str): lines in each section
+    """
+
+    sections = {'#ATOMS': [],
+                '#DEFVAR': [],
+                '#DEFFIX': [],
+                '#EQUATIONS': []}
+
+    joined_lines = ' '.join(lines)
+    section_blocks = joined_lines.split('#')
+
+    for section in sections:
+        for section_block in section_blocks:
+            if section.replace('#', '') in section_block:
+                sections[section].extend(section_block.split('\n'))
+
+    return sections
 
 
 if __name__ == '__main__':
@@ -60,4 +89,10 @@ if __name__ == '__main__':
     Read KPP config files
     """
     lines = read_kpp_config(args.kpp_dir)
+
+    """
+    Split KPP config by section
+    """
+    sections = split_by_section(lines)
+    logging.info(sections)
 
