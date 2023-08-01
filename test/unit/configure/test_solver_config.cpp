@@ -161,7 +161,7 @@ TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
   for (const auto& s : solver_params.system_.gas_phase_.species_)
   {
     EXPECT_EQ(s.name_, species_name_and_molecular_weight[idx].first);
-    EXPECT_EQ(s.properties_[0].value_, species_name_and_molecular_weight[idx].second);
+    EXPECT_EQ(s.properties_.at("molecular weight [kg mol-1]"), species_name_and_molecular_weight[idx].second);
     idx++;
   }
 }

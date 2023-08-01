@@ -1,8 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -18,7 +16,6 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/system/phase.hpp>
-#include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
@@ -298,11 +295,6 @@ namespace micm
       // required keys
       const std::string NAME = "name";
 
-      // optional keys
-      const std::string ABS_TOL = "absolute tolerance";
-      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
-      const std::string MOL_WEIGHT_UNIT = "kg mol-1";
-
       std::array<std::string, 1> required_keys = { NAME };
 
       // Check if it contains the required key(s)
@@ -311,24 +303,15 @@ namespace micm
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
-
-      // Check if it contains optional key(s)
       std::string name = object[NAME].get<std::string>();
 
-      if (object.contains(ABS_TOL))
+      // Load remaining keys as properties
+      std::map<std::string, double> properties{};
+      for (auto& [key, value] : object.items())
       {
-        auto species = Species(name, Property(ABS_TOL, "", object[ABS_TOL].get<double>()));
-        species_arr_.push_back(species);
+        if (value.is_number_float()) properties[key] = value;
       }
-      else if (object.contains(MOL_WEIGHT))
-      {
-        auto species = Species(name, Property(MOL_WEIGHT, MOL_WEIGHT_UNIT, object[MOL_WEIGHT].get<double>()));
-        species_arr_.push_back(species);
-      }
-      else
-      {
-        species_arr_.push_back(Species(name));
-      }
+      species_arr_.push_back(Species(name, properties));
 
       return ConfigParseStatus::Success;
     }

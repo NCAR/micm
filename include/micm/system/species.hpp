@@ -1,27 +1,23 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/system/property.hpp>
 #include <string>
 #include <vector>
 
 namespace micm
 {
 
-  /**
-   * @brief A representation of a chemcial species
-   *
-   */
+  /// @brief A representation of a chemcial species
   class Species
   {
    public:
     /// @brief The name of this species
     std::string name_;
+
     /// @brief A list of properties of this species
-    std::vector<Property> properties_;
+    std::map<std::string, double> properties_;
 
     /// @brief Copy assignment
     /// @param other species to copy
@@ -38,12 +34,7 @@ namespace micm
     /// @brief Construct a species by name and properties
     /// @param name The name of the species
     /// @param properties The properties of the species
-    Species(const std::string& name, const std::vector<Property>& properties);
-
-    /// @brief Construct a species by name and property
-    /// @param name The name of the species
-    /// @param property A property of the species
-    Species(const std::string& name, const Property& property);
+    Species(const std::string& name, const std::map<std::string, double>& properties);
   };
 
   inline Species Species::operator=(const Species& other)
@@ -58,12 +49,8 @@ namespace micm
   inline Species::Species(const std::string& name)
       : name_(name){};
 
-  inline Species::Species(const std::string& name, const std::vector<Property>& properties)
+  inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
       : name_(name),
         properties_(properties){};
-
-  inline Species::Species(const std::string& name, const Property& property)
-      : name_(name),
-        properties_({ property }){};
 
 }  // namespace micm
