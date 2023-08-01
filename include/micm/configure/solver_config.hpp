@@ -10,11 +10,11 @@
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
@@ -309,7 +309,8 @@ namespace micm
       std::map<std::string, double> properties{};
       for (auto& [key, value] : object.items())
       {
-        if (value.is_number_float()) properties[key] = value;
+        if (value.is_number_float())
+          properties[key] = value;
       }
       species_arr_.push_back(Species(name, properties));
 
@@ -389,9 +390,10 @@ namespace micm
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -664,9 +666,10 @@ namespace micm
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -685,17 +688,18 @@ namespace micm
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
-      reactants_object[species] = { { } };
+      reactants_object[species] = { {} };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
 
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
-      
+
       return ConfigParseStatus::Success;
     }
   };
@@ -731,7 +735,6 @@ namespace micm
       return SolverParameters(
           std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
     }
-
   };
 
 }  // namespace micm
