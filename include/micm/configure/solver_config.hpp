@@ -734,10 +734,8 @@ namespace micm
           break;
         }
       }
-      SurfaceRateConstantParameters parameters{
-        .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
-        .species_ = reactant_species
-      };
+      SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+                                                .species_ = reactant_species };
 
       if (object.contains(PROBABILITY))
       {

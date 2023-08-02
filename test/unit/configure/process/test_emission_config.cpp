@@ -2,7 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(EmissionConfig, DetectsInvalidConfig)\
+TEST(EmissionConfig, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -47,5 +47,4 @@ TEST(EmissionConfig, ParseConfig)
     EXPECT_EQ(emission_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(emission_rate_constant->CustomParameters()[0], "EMIS.bar");
   }
-
 }

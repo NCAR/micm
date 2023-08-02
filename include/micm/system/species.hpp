@@ -39,14 +39,15 @@ namespace micm
 
   inline Species& Species::operator=(const Species& other)
   {
-      if (this == &other) {
-       return *this; // Handle self-assignment
-     }
+    if (this == &other)
+    {
+      return *this;  // Handle self-assignment
+    }
 
-     name_ = other.name_;
-     properties_ = other.properties_; // This performs a shallow copy
+    name_ = other.name_;
+    properties_ = other.properties_;  // This performs a shallow copy
 
-     return *this;
+    return *this;
   }
 
   inline Species::Species(const Species& other)

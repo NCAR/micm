@@ -28,7 +28,7 @@ namespace micm
   /// @brief A rate constant for surface reactions
   class SurfaceRateConstant : public RateConstant
   {
-  public:
+   public:
     SurfaceRateConstantParameters parameters_;
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
