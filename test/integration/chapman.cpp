@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>

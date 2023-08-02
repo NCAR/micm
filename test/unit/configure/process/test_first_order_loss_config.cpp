@@ -2,7 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(FirstOrderLossConfig, DetectsInvalidConfig)\
+TEST(FirstOrderLossConfig, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -45,5 +45,4 @@ TEST(FirstOrderLossConfig, ParseConfig)
     EXPECT_EQ(first_order_loss_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(first_order_loss_rate_constant->CustomParameters()[0], "LOSS.bar");
   }
-
 }

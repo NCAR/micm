@@ -40,7 +40,7 @@ TEST(State, SetSingleConcentration)
 {
   {
     micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "quux", "corge" },
+                                                            .custom_rate_parameter_labels_{ "quux", "corge" },
                                                             .number_of_grid_cells_ = 3,
                                                             .number_of_rate_constants_ = 10 } };
     std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
@@ -166,13 +166,13 @@ TEST(State, SetCustomRateParameters)
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },
-                                                                       { "O1", { 0.1, 0.11, 0.111 } },
-                                                                       { "O2", { 0.5, 0.55, 0.555 } },
-                                                                       { "BBB", { 0.7, 0.77, 0.777 } },
-                                                                       { "AAA", { 0.5, 0.55, 0.555 } } };
+                                                                         { "O1", { 0.1, 0.11, 0.111 } },
+                                                                         { "O2", { 0.5, 0.55, 0.555 } },
+                                                                         { "BBB", { 0.7, 0.77, 0.777 } },
+                                                                         { "AAA", { 0.5, 0.55, 0.555 } } };
 
   std::vector<double> custom_params_in_order{ 0.1,  0.5,  0.3,   0.5,   0.7,   0.11,  0.55, 0.33,
-                                            0.55, 0.77, 0.111, 0.555, 0.333, 0.555, 0.777 };
+                                              0.55, 0.77, 0.111, 0.555, 0.333, 0.555, 0.777 };
 
   state.SetCustomRateParameters(custom_params);
 

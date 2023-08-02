@@ -2,7 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(PhotolysisConfig, DetectsInvalidConfig)\
+TEST(PhotolysisConfig, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -55,5 +55,4 @@ TEST(PhotolysisConfig, ParseConfig)
     EXPECT_EQ(photo_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(photo_rate_constant->CustomParameters()[0], "PHOTO.jbar");
   }
-
 }
