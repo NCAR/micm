@@ -1,0 +1,18 @@
+{
+  "camp-data": [
+    {
+      "name": "Surface missing MUSICA name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "SURFACE",
+          "gas-phase reactant": "foo",
+          "gas-phase products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          }
+        }
+      ]
+    }
+  ]
+}

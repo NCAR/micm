@@ -29,7 +29,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
   micm::State<micm::Matrix> state{ 0, 1, 1 };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  micm::UserDefinedRateConstant photo("a name");
+  micm::UserDefinedRateConstant photo( { .label_ = "a name" } );
   auto k = photo.calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 1.1);
   EXPECT_EQ(photo.CustomParameters()[0], "a name");

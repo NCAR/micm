@@ -8,12 +8,16 @@
 
 namespace micm
 {
-  class System;
+  struct UserDefinedRateConstantParameters
+  {
+    /// @brief Label for the reaction used to identify user-defined parameters
+    std::string label_;
+  };
 
   /// @brief A photolysis rate constant
   class UserDefinedRateConstant : public RateConstant
   {
-    std::string name_;
+    UserDefinedRateConstantParameters parameters_;
 
    public:
     /// @brief Default constructor.
@@ -21,7 +25,7 @@ namespace micm
 
     /// @brief
     /// @param name A name for this reaction
-    UserDefinedRateConstant(const std::string& name);
+    UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters);
 
     /// @brief Deep copy
     std::unique_ptr<RateConstant> clone() const override;
@@ -38,17 +42,16 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
-        const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
   };
 
   inline UserDefinedRateConstant::UserDefinedRateConstant()
-      : name_()
+      : parameters_()
   {
   }
 
-  inline UserDefinedRateConstant::UserDefinedRateConstant(const std::string& name)
-      : name_(name)
+  inline UserDefinedRateConstant::UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters)
+      : parameters_(parameters)
   {
   }
 
@@ -59,14 +62,14 @@ namespace micm
 
   inline double UserDefinedRateConstant::calculate(
       const Conditions& conditions,
-      const std::vector<double>::const_iterator& custom_parameters) const
+      std::vector<double>::const_iterator custom_parameters) const
   {
     return (double)*custom_parameters;
   }
 
   inline std::vector<std::string> UserDefinedRateConstant::CustomParameters() const
   {
-    return std::vector<std::string>{ name_ };
+    return std::vector<std::string>{ parameters_.label_ };
   }
 
   inline std::size_t UserDefinedRateConstant::SizeCustomParameters() const

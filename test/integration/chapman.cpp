@@ -111,19 +111,19 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Process photo_1 = micm::Process::create()
                               .reactants({ o2 })
                               .products({ yields(o, 2) })
-                              .rate_constant(micm::UserDefinedRateConstant("jO2"))
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
                               .phase(gas_phase);
 
   micm::Process photo_2 = micm::Process::create()
                               .reactants({ o3 })
                               .products({ yields(o1d, 1), yields(o2, 1) })
-                              .rate_constant(micm::UserDefinedRateConstant("jO3a"))
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
                               .phase(gas_phase);
 
   micm::Process photo_3 = micm::Process::create()
                               .reactants({ o3 })
                               .products({ yields(o, 1), yields(o2, 1) })
-                              .rate_constant(micm::UserDefinedRateConstant("jO3b"))
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
                               .phase(gas_phase);
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{

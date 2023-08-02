@@ -1,8 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
@@ -12,13 +10,13 @@
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/system/phase.hpp>
-#include <micm/system/property.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
@@ -93,11 +91,10 @@ namespace micm
     std::vector<UserDefinedRateConstant> user_defined_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
     std::vector<BranchedRateConstant> branched_rate_arr_;
+    std::vector<SurfaceRateConstant> surface_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
     std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
     std::vector<TunnelingRateConstant> tunneling_rate_arr_;
-    std::vector<Species> emission_arr_;
-    std::vector<Species> first_order_loss_arr_;
 
     // Specific for solver parameters
     Phase gas_phase_;
@@ -282,6 +279,10 @@ namespace micm
         {
           status = ParseFirstOrderLoss(object);
         }
+        else if (type == "SURFACE")
+        {
+          status = ParseSurface(object);
+        }
         else
         {
           status = ConfigParseStatus::UnknownKey;
@@ -298,11 +299,6 @@ namespace micm
       // required keys
       const std::string NAME = "name";
 
-      // optional keys
-      const std::string ABS_TOL = "absolute tolerance";
-      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
-      const std::string MOL_WEIGHT_UNIT = "kg mol-1";
-
       std::array<std::string, 1> required_keys = { NAME };
 
       // Check if it contains the required key(s)
@@ -311,24 +307,16 @@ namespace micm
         if (!ValidateJsonWithKey(object, key))
           return ConfigParseStatus::RequiredKeyNotFound;
       }
-
-      // Check if it contains optional key(s)
       std::string name = object[NAME].get<std::string>();
 
-      if (object.contains(ABS_TOL))
+      // Load remaining keys as properties
+      std::map<std::string, double> properties{};
+      for (auto& [key, value] : object.items())
       {
-        auto species = Species(name, Property(ABS_TOL, "", object[ABS_TOL].get<double>()));
-        species_arr_.push_back(species);
+        if (value.is_number_float())
+          properties[key] = value;
       }
-      else if (object.contains(MOL_WEIGHT))
-      {
-        auto species = Species(name, Property(MOL_WEIGHT, MOL_WEIGHT_UNIT, object[MOL_WEIGHT].get<double>()));
-        species_arr_.push_back(species);
-      }
-      else
-      {
-        species_arr_.push_back(Species(name));
-      }
+      species_arr_.push_back(Species(name, properties));
 
       return ConfigParseStatus::Success;
     }
@@ -406,9 +394,10 @@ namespace micm
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -681,9 +670,10 @@ namespace micm
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -702,17 +692,63 @@ namespace micm
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
-      reactants_object[species] = { { } };
+      reactants_object[species] = { {} };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
 
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant(name));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(name);
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
-      
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseSurface(const json& object)
+    {
+      const std::string REACTANTS = "gas-phase reactant";
+      const std::string PRODUCTS = "gas-phase products";
+      const std::string MUSICA_NAME = "MUSICA name";
+      const std::string PROBABILITY = "reaction probability";
+      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      std::string species_name = object[REACTANTS].get<std::string>();
+      json reactants_object{};
+      reactants_object[species_name] = { {} };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      Species reactant_species = Species("");
+      for (auto& species : species_arr_)
+      {
+        if (species.name_ == species_name)
+        {
+          reactant_species = species;
+          break;
+        }
+      }
+      SurfaceRateConstantParameters parameters{
+        .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+        .species_ = reactant_species
+      };
+
+      if (object.contains(PROBABILITY))
+      {
+        parameters.reaction_probability_ = object[PROBABILITY].get<double>();
+      }
+
+      surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
+
+      std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
       return ConfigParseStatus::Success;
     }
   };
@@ -748,7 +784,6 @@ namespace micm
       return SolverParameters(
           std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
     }
-
   };
 
 }  // namespace micm

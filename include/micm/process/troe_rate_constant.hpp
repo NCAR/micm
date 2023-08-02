@@ -50,7 +50,7 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
         const override;
 
     /// @brief Calculate the rate constant
@@ -77,7 +77,7 @@ namespace micm
 
   inline double TroeRateConstant::calculate(
       const Conditions& conditions,
-      const std::vector<double>::const_iterator& custom_parameters) const
+      std::vector<double>::const_iterator custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.air_density_);
   }

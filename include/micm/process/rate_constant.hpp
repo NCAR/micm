@@ -40,7 +40,7 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User defined rate constant parameters
     /// @return The reaction rate constant
-    virtual double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
+    virtual double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters)
         const
     {
       return 0;
