@@ -47,13 +47,13 @@ TEST(SurfaceConfig, ParseConfig)
 
   // second reaction
   {
-    EXPECT_EQ(process_vector[0].reactants_.size(), 1);
-    EXPECT_EQ(process_vector[0].reactants_[0].name_, "bar");
-    EXPECT_EQ(process_vector[0].products_.size(), 2);
-    EXPECT_EQ(process_vector[0].products_[0].first.name_, "bar");
-    EXPECT_EQ(process_vector[0].products_[0].second, 0.5);
-    EXPECT_EQ(process_vector[0].products_[1].first.name_, "foo");
-    EXPECT_EQ(process_vector[0].products_[1].second, 1.0);
+    EXPECT_EQ(process_vector[1].reactants_.size(), 1);
+    EXPECT_EQ(process_vector[1].reactants_[0].name_, "bar");
+    EXPECT_EQ(process_vector[1].products_.size(), 2);
+    EXPECT_EQ(process_vector[1].products_[0].first.name_, "bar");
+    EXPECT_EQ(process_vector[1].products_[0].second, 0.5);
+    EXPECT_EQ(process_vector[1].products_[1].first.name_, "foo");
+    EXPECT_EQ(process_vector[1].products_[1].second, 1.0);
     micm::SurfaceRateConstant* surface_rate_constant =
         dynamic_cast<micm::SurfaceRateConstant*>(process_vector[0].rate_constant_.get());
     EXPECT_EQ(surface_rate_constant->SizeCustomParameters(), 2);
