@@ -63,7 +63,7 @@ def split_by_section(lines):
     return sections
 
 
-def micm_species_json(lines):
+def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     """
     Generate MICM species JSON
 
@@ -80,7 +80,11 @@ def micm_species_json(lines):
         lhs, rhs = tuple(line.split('='))
         logging.debug((lhs, rhs))
         species_dict = {'name': lhs.strip(), 'type': 'CHEM_SPEC'}
-        species_json.extend(species_dict)
+        if fixed:
+            species_dict['tracer type'] = 'CONSTANT'
+        else:
+            species_dict['absolute tolerance'] = tolerance
+        species_json.append(species_dict)
 
     return species_json
 
@@ -122,11 +126,20 @@ if __name__ == '__main__':
             logging.info(line)
         print('\n')
 
-
     """
     Generate MICM species JSON from KPP #DEFFIX section
     """
-    deffix_json = micm_species_json(sections['#DEFFIX'])
+    deffix_json = micm_species_json(sections['#DEFFIX'], fixed=True)
 
-    # micm_json_str = json.dumps(micm_json)
+    """
+    Generate MICM species JSON from KPP #DEFVAR section
+    """
+    defvar_json = micm_species_json(sections['#DEFVAR'])
+
+    """
+    Assemble MICM JSON
+    """
+    micm_json = {'camp-data': deffix_json + defvar_json}
+    micm_json_str = json.dumps(micm_json, indent=4)
+    logging.info(micm_json_str)
 
