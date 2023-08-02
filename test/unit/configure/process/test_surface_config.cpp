@@ -55,7 +55,7 @@ TEST(SurfaceConfig, ParseConfig)
     EXPECT_EQ(process_vector[1].products_[1].first.name_, "foo");
     EXPECT_EQ(process_vector[1].products_[1].second, 1.0);
     micm::SurfaceRateConstant* surface_rate_constant =
-        dynamic_cast<micm::SurfaceRateConstant*>(process_vector[0].rate_constant_.get());
+        dynamic_cast<micm::SurfaceRateConstant*>(process_vector[1].rate_constant_.get());
     EXPECT_EQ(surface_rate_constant->SizeCustomParameters(), 2);
     EXPECT_EQ(surface_rate_constant->CustomParameters()[0], "SURF.kbar.effective radius [m]");
     EXPECT_EQ(surface_rate_constant->CustomParameters()[1], "SURF.kbar.particle number concentration [# m-3]");
