@@ -11,6 +11,7 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
@@ -90,11 +91,10 @@ namespace micm
     std::vector<UserDefinedRateConstant> user_defined_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
     std::vector<BranchedRateConstant> branched_rate_arr_;
+    std::vector<SurfaceRateConstant> surface_rate_arr_;
     std::vector<TroeRateConstant> troe_rate_arr_;
     std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
     std::vector<TunnelingRateConstant> tunneling_rate_arr_;
-    std::vector<Species> emission_arr_;
-    std::vector<Species> first_order_loss_arr_;
 
     // Specific for solver parameters
     Phase gas_phase_;
@@ -278,6 +278,10 @@ namespace micm
         else if (type == "FIRST_ORDER_LOSS")
         {
           status = ParseFirstOrderLoss(object);
+        }
+        else if (type == "SURFACE")
+        {
+          status = ParseSurface(object);
         }
         else
         {
@@ -698,6 +702,51 @@ namespace micm
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseSurface(const json& object)
+    {
+      const std::string REACTANTS = "gas-phase reactant";
+      const std::string PRODUCTS = "gas-phase products";
+      const std::string MUSICA_NAME = "MUSICA name";
+      const std::string PROBABILITY = "reaction probability";
+      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+      {
+        if (!ValidateJsonWithKey(object, key))
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      std::string species_name = object[REACTANTS].get<std::string>();
+      json reactants_object{};
+      reactants_object[species_name] = { {} };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      Species reactant_species = Species("");
+      for (auto& species : species_arr_)
+      {
+        if (species.name_ == species_name)
+        {
+          reactant_species = species;
+          break;
+        }
+      }
+      SurfaceRateConstantParameters parameters{
+        .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+        .species_ = reactant_species
+      };
+
+      if (object.contains(PROBABILITY))
+      {
+        parameters.reaction_probability_ = object[PROBABILITY].get<double>();
+      }
+
+      surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
+
+      std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;

@@ -28,6 +28,7 @@ namespace micm
   /// @brief A rate constant for surface reactions
   class SurfaceRateConstant : public RateConstant
   {
+  public:
     SurfaceRateConstantParameters parameters_;
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
@@ -82,8 +83,8 @@ namespace micm
 
   inline std::vector<std::string> SurfaceRateConstant::CustomParameters() const
   {
-    return std::vector<std::string>{ "SURF." + parameters_.label_ + ".effective radius [m]",
-                                     "SURF." + parameters_.label_ + ".particle number concentration [# m-3]" };
+    return std::vector<std::string>{ parameters_.label_ + ".effective radius [m]",
+                                     parameters_.label_ + ".particle number concentration [# m-3]" };
   }
 
   inline std::size_t SurfaceRateConstant::SizeCustomParameters() const
