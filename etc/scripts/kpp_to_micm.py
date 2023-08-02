@@ -28,8 +28,8 @@ def read_kpp_config(kpp_dir):
             f = open(filename, 'r')
             lines.extend(f.readlines())
 
-    # remove tabs
-    lines = [line.replace('\t', '') for line in lines]
+    # remove empty lines and tabs
+    lines = [line.replace('\t', '') for line in lines if line.strip()] 
 
     for line in lines:
         logging.debug(line.strip())
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     """
     sections = split_by_section(lines)
     for section in sections:
-        logging.info(section)
+        logging.info('KPP section %s' % section)
         for line in sections[section]:
             logging.info(line)
 
