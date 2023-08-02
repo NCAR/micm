@@ -16,7 +16,6 @@ def read_kpp_config(kpp_dir):
     Returns
         (list of str): all lines from all config files
     """
-
     suffixes = ['.kpp', '.spc', '.eqn', '.def']
 
     lines = list()
@@ -25,8 +24,8 @@ def read_kpp_config(kpp_dir):
         files = glob(os.path.join(kpp_dir, '*' + suffix))
         logging.debug(files)
         for filename in files:
-            f = open(filename, 'r')
-            lines.extend(f.readlines())
+            with open(filename, 'r') as f:
+                lines.extend(f.readlines())
 
     # remove empty lines and tabs
     lines = [line.replace('\t', '') for line in lines if line.strip()] 
@@ -64,11 +63,26 @@ def split_by_section(lines):
     return sections
 
 
-def read_species_template(template_file):
+def micm_species_json(lines):
+    """
+    Generate MICM species JSON
 
-    with open(template_file, 'r') as f:
-        species_template = json.load(f)
-    logging.debug(species_template)
+    Parameters
+        (list of str) lines: lines of species section
+
+    Returns
+        (list of dict): list of MICM species entries
+    """
+
+    species_json = list() # list of dict
+
+    for line in lines:
+        lhs, rhs = tuple(line.split('='))
+        logging.debug((lhs, rhs))
+        species_dict = {'name': lhs.strip(), 'type': 'CHEM_SPEC'}
+        species_json.extend(species_dict)
+
+    return species_json
 
 
 if __name__ == '__main__':
@@ -83,9 +97,6 @@ if __name__ == '__main__':
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
         help='KPP config directory')
-    parser.add_argument('--species_template', type=str,
-        default='species_template.json',
-        help='MICM JSON species template file')
     parser.add_argument('--debug', action='store_true',
         help='set logging level to debug')
     args = parser.parse_args()
@@ -101,7 +112,6 @@ if __name__ == '__main__':
     """
     lines = read_kpp_config(args.kpp_dir)
 
-
     """
     Split KPP config by section
     """
@@ -112,8 +122,11 @@ if __name__ == '__main__':
             logging.info(line)
         print('\n')
 
+
     """
-    Read species template file
+    Generate MICM species JSON from KPP #DEFFIX section
     """
-    read_species_template(args.species_template) 
+    deffix_json = micm_species_json(sections['#DEFFIX'])
+
+    # micm_json_str = json.dumps(micm_json)
 
