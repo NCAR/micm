@@ -89,6 +89,62 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     return species_json
 
 
+def micm_equation_json(lines):
+    """
+    Generate MICM equation JSON
+
+    Parameters
+        (list of str) lines: lines of equation section
+
+    Returns
+        (list of dict): list of MICM equation entries
+
+    Examples
+
+    Arrhenius k = A exp(- B / T)
+
+    Seinfeld and Pandis section 5.1
+    (1)  O2 + hv    --> O + O
+    (2)  O + O2 + M --> O3 + M
+    k2 = 6 10^-34 (T / 300)^-2.4 cm^6 molecule^-2 s^-1
+    d/dt [O3] = k2 [O] [O2] [M] - ...
+
+    KPP
+    <R1>  O2 + hv = 2O : (2.643E-10) * SUN*SUN*SUN;
+    <R2>  O  + O2 = O3 : (8.018E-17);
+
+    MICM
+    {
+        "type" : "PHOTOLYSIS",
+        "reactants" : {
+            "O2" : { }
+        },
+        "products" : {
+            "O" : { "yield" : 2.0 }
+        }
+    }
+
+    {
+        "type" : "ARRHENIUS",
+        "reactants" : {
+            "O" : { },
+            "O2" : { },
+            "M" : { }
+        },
+        "products" : {
+            "O3" : { },
+            "M" : { }
+        },
+        "A" : 6.0e-34,
+        "B" : 2.4
+    }
+    """
+
+    equations_json = list() # list of dict
+
+    print(lines)
+
+
 if __name__ == '__main__':
 
     """
@@ -135,6 +191,11 @@ if __name__ == '__main__':
     Generate MICM species JSON from KPP #DEFVAR section
     """
     defvar_json = micm_species_json(sections['#DEFVAR'])
+
+    """
+    Generate MICM equations JSON from KPP #EQUATIONS section
+    """
+    equations_json = micm_equation_json(sections['#EQUATIONS'])
 
     """
     Assemble MICM JSON
