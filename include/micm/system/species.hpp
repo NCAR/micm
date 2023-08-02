@@ -21,7 +21,7 @@ namespace micm
 
     /// @brief Copy assignment
     /// @param other species to copy
-    Species operator=(const Species& other);
+    Species& operator=(const Species& other);
 
     /// @brief Copy Constructor
     /// @param other
@@ -37,9 +37,16 @@ namespace micm
     Species(const std::string& name, const std::map<std::string, double>& properties);
   };
 
-  inline Species Species::operator=(const Species& other)
+  inline Species& Species::operator=(const Species& other)
   {
-    return Species{ other };
+      if (this == &other) {
+       return *this; // Handle self-assignment
+     }
+
+     name_ = other.name_;
+     properties_ = other.properties_; // This performs a shallow copy
+
+     return *this;
   }
 
   inline Species::Species(const Species& other)
