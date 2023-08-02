@@ -53,13 +53,13 @@ def split_by_section(lines):
                 '#DEFFIX': [],
                 '#EQUATIONS': []}
 
-    joined_lines = ' '.join(lines)
+    joined_lines = ''.join(lines)
     section_blocks = joined_lines.split('#')
 
     for section in sections:
         for section_block in section_blocks:
             if section.replace('#', '') in section_block:
-                sections[section].extend(section_block.split('\n'))
+                sections[section].extend(section_block.split('\n')[1:-1])
 
     return sections
 
@@ -101,14 +101,16 @@ if __name__ == '__main__':
     """
     lines = read_kpp_config(args.kpp_dir)
 
+
     """
     Split KPP config by section
     """
     sections = split_by_section(lines)
     for section in sections:
-        logging.info('KPP section %s' % section)
+        logging.info('____ KPP section %s ____' % section)
         for line in sections[section]:
             logging.info(line)
+        print('\n')
 
     """
     Read species template file
