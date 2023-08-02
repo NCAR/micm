@@ -64,6 +64,13 @@ def split_by_section(lines):
     return sections
 
 
+def read_species_template(template_file):
+
+    with open(template_file, 'r') as f:
+        species_template = json.load(f)
+    logging.debug(species_template)
+
+
 if __name__ == '__main__':
 
     """
@@ -76,6 +83,9 @@ if __name__ == '__main__':
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
         help='KPP config directory')
+    parser.add_argument('--species_template', type=str,
+        default='species_template.json',
+        help='MICM JSON species template file')
     parser.add_argument('--debug', action='store_true',
         help='set logging level to debug')
     args = parser.parse_args()
@@ -99,4 +109,9 @@ if __name__ == '__main__':
         logging.info(section)
         for line in sections[section]:
             logging.info(line)
+
+    """
+    Read species template file
+    """
+    read_species_template(args.species_template) 
 

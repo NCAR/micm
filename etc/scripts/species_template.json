@@ -1,0 +1,18 @@
+{
+  "camp-data" : [
+    {
+      "type" : "RELATIVE_TOLERANCE",
+      "value" : "_value"
+    },
+    {
+      "name" : "M",
+      "type" : "CHEM_SPEC",
+      "tracer type" : "CONSTANT"
+    },
+    {
+      "name" : "_name",
+      "type" : "CHEM_SPEC",
+      "absolute tolerance" : "_tolerance"
+    }
+  ]
+}
