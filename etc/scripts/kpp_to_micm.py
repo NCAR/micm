@@ -101,7 +101,10 @@ def micm_equation_json(lines):
 
     Examples
 
-    Arrhenius k = A exp(- B / T)
+    Arrhenius k = A exp(- B / T + B / T_0)
+    T_0 = 300 K
+    note
+    a^x = exp(x log a)
 
     Seinfeld and Pandis section 5.1
     (1)  O2 + hv    --> O + O
@@ -142,7 +145,9 @@ def micm_equation_json(lines):
 
     equations_json = list() # list of dict
 
-    print(lines)
+    for line in lines:
+        if 'SUN' in line:
+            reaction_type = 'PHOTOLYSIS' 
 
 
 if __name__ == '__main__':
