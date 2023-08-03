@@ -40,6 +40,7 @@ option(ENABLE_JSON "Enable json configureation file reading" ON)
 option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
+option(ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
