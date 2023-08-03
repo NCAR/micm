@@ -79,7 +79,7 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     for line in lines:
         lhs, rhs = tuple(line.split('='))
         logging.debug((lhs, rhs))
-        species_dict = {'name': lhs.strip(), 'type': 'CHEM_SPEC'}
+        species_dict = {'name': lhs.strip().lstrip(), 'type': 'CHEM_SPEC'}
         if fixed:
             species_dict['tracer type'] = 'CONSTANT'
         else:
@@ -143,11 +143,31 @@ def micm_equation_json(lines):
     }
     """
 
-    equations_json = list() # list of dict
+    equations = list() # list of dict
 
     for line in lines:
+        lhs, rhs = tuple(line.split('='))
+        reactants = lhs.split('+')
+        products = rhs.split('+')
+
+        # drop equation label delimited by < >
+        reactants[0] = reactants[0].split('>')[1]
+
+        # remove trailing and leading whitespace
+        reactants = [reactant.strip().lstrip() for reactant in reactants]
+        products = [product.strip().lstrip() for product in products]
+
+        reactants_dict = dict()
+
+        for reactant in reactants:
+            reactants_dict[reactant] = dict()
+
         if 'SUN' in line:
             reaction_type = 'PHOTOLYSIS' 
+
+        equations.append(reactants_dict)
+
+    return equations
 
 
 if __name__ == '__main__':
@@ -205,7 +225,11 @@ if __name__ == '__main__':
     """
     Assemble MICM JSON
     """
-    micm_json = {'camp-data': deffix_json + defvar_json}
-    micm_json_str = json.dumps(micm_json, indent=4)
-    logging.info(micm_json_str)
+    micm_species_json = {'camp-data': deffix_json + defvar_json}
+    micm_species_json_str = json.dumps(micm_species_json, indent=4)
+    logging.info(micm_species_json_str)
+
+    micm_mechanism_json = {'camp-data': {'reactions': equations_json}}
+    micm_mechanism_json_str = json.dumps(micm_mechanism_json, indent=4)
+    logging.info(micm_mechanism_json_str)
 
