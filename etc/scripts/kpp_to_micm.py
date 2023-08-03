@@ -98,49 +98,6 @@ def micm_equation_json(lines):
 
     Returns
         (list of dict): list of MICM equation entries
-
-    Examples
-
-    Arrhenius k = A exp(- B / T + B / T_0)
-    T_0 = 300 K
-    note
-    a^x = exp(x log a)
-
-    Seinfeld and Pandis section 5.1
-    (1)  O2 + hv    --> O + O
-    (2)  O + O2 + M --> O3 + M
-    k2 = 6 10^-34 (T / 300)^-2.4 cm^6 molecule^-2 s^-1
-    d/dt [O3] = k2 [O] [O2] [M] - ...
-
-    KPP
-    <R1>  O2 + hv = 2O : (2.643E-10) * SUN*SUN*SUN;
-    <R2>  O  + O2 = O3 : (8.018E-17);
-
-    MICM
-    {
-        "type" : "PHOTOLYSIS",
-        "reactants" : {
-            "O2" : { }
-        },
-        "products" : {
-            "O" : { "yield" : 2.0 }
-        }
-    }
-
-    {
-        "type" : "ARRHENIUS",
-        "reactants" : {
-            "O" : { },
-            "O2" : { },
-            "M" : { }
-        },
-        "products" : {
-            "O3" : { },
-            "M" : { }
-        },
-        "A" : 6.0e-34,
-        "B" : 2.4
-    }
     """
 
     equations = list() # list of dict
@@ -155,6 +112,7 @@ def micm_equation_json(lines):
 
         # extract equation coefficients delimited by :
         products[-1], coeffs = tuple(products[-1].split(':'))
+        coeffs = coeffs.replace('(', '').replace(')', '').replace(';', '')
 
         # remove trailing and leading whitespace
         reactants = [reactant.strip().lstrip() for reactant in reactants]
@@ -163,7 +121,11 @@ def micm_equation_json(lines):
         equation_dict = dict()
 
         if 'SUN' in coeffs:
-            equation_dict['reaction_type'] = 'PHOTOLYSIS' 
+            equation_dict['type'] = 'PHOTOLYSIS' 
+        else:
+            equation_dict['type'] = 'ARRHENIUS' 
+            equation_dict['A'] = float(coeffs)
+            equation_dict['B'] = 0.0
 
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
