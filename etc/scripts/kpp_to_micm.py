@@ -1,7 +1,6 @@
 """
 Copyright (C) 2023
 National Center for Atmospheric Research,
-National Oceanic Atmospheric Administration,
 SPDX-License-Identifier: Apache-2.0
 
 File:
@@ -17,7 +16,7 @@ Description:
     from a single directory specified by the --kpp_dir argument.
 
     In the initial implementation,
-    the KPP sections #ATOMS (not yet used), #DEFFIX (not yet used),
+    the KPP sections #ATOMS (not yet used), #DEFFIX,
     #DEFVAR, and #EQUATIONS are read and parsed.
     Equations with the hv reactant are MICM PHOTOLYSIS reactions,
     all others are assumed to be ARRHENIUS reactions.
