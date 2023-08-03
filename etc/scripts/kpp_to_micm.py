@@ -161,25 +161,28 @@ def micm_equation_json(lines):
         products = [product.strip().lstrip() for product in products]
 
         equation_dict = dict()
+
+        if 'SUN' in coeffs:
+            equation_dict['reaction_type'] = 'PHOTOLYSIS' 
+
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
 
         for reactant in reactants:
             if reactant[0].isdigit():
                 equation_dict['reactants'][reactant[1:]] \
-                    = {'yield': int(reactant[0])}
+                    = {'yield': float(reactant[0])}
+            elif 'hv' in reactant:
+                pass
             else:
                 equation_dict['reactants'][reactant] = dict()
 
         for product in products:
             if product[0].isdigit():
                 equation_dict['products'][product[1:]] \
-                    = {'yield': int(product[0])}
+                    = {'yield': float(product[0])}
             else:
                 equation_dict['products'][product] = dict()
-
-        if 'SUN' in line:
-            reaction_type = 'PHOTOLYSIS' 
 
         equations.append(equation_dict)
 
