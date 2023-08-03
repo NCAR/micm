@@ -246,9 +246,13 @@ if __name__ == '__main__':
     """
     micm_species_json = {'camp-data': deffix_json + defvar_json}
     micm_species_json_str = json.dumps(micm_species_json, indent=4)
+    logging.info('____ MICM species ____')
     logging.info(micm_species_json_str)
+    print('\n')
 
     micm_mechanism_json = {'camp-data': {'reactions': equations_json}}
     micm_mechanism_json_str = json.dumps(micm_mechanism_json, indent=4)
+    logging.info('____ MICM reactions ____')
     logging.info(micm_mechanism_json_str)
+    print('\n')
 
