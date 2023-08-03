@@ -1,8 +1,37 @@
 """
-file: kpp_to_micm.py
+Copyright (C) 2023
+National Center for Atmospheric Research,
+National Oceanic Atmospheric Administration,
+SPDX-License-Identifier: Apache-2.0
 
-usage: python kpp_to_micm.py
-       python kpp_to_micm.py --help
+File:
+    kpp_to_micm.py
+
+Usage:
+    python kpp_to_micm.py
+    python kpp_to_micm.py --help
+
+Description:
+    kpp_to_micm.py translates KPP config files to MICM JSON config files
+    (desginated by the suffixes .kpp, .spc, .eqn, .def)
+    from a single directory specified by the --kpp_dir argument.
+
+    In the initial implementation,
+    the KPP sections #ATOMS (not yet used), #DEFFIX (not yet used),
+    #DEFVAR, and #EQUATIONS are read and parsed.
+    Equations with the hv reactant are MICM PHOTOLYSIS reactions,
+    all others are assumed to be ARRHENIUS reactions.
+
+TODO:
+    (1) Parse both A and B Arrhenius coefficients from KPP equations
+    Currently a single rate coeffient is assigned to A and B is set to 0.
+    (2) Translate stoichiometric coefficients in the equation string
+    with more than one digit.
+    (3) Add method unit tests with pytest.
+    (4) Add support for many more reaction types ...
+
+Revision History:
+    2023/08/03 Initial implementation
 """
 
 import os
@@ -11,6 +40,8 @@ import argparse
 import logging
 import json
 from glob import glob
+
+__version__ = 1.0
 
 
 def read_kpp_config(kpp_dir):
