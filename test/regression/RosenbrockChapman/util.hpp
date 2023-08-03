@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/photolysis_rate_constant.hpp>
 #include <micm/process/process.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
@@ -61,19 +61,19 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
   micm::Process photo_1 = micm::Process::create()
                               .reactants({ micm::Species("O2") })
                               .products({ yields(micm::Species("O"), 2) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
                               .phase(gas_phase);
 
   micm::Process photo_2 = micm::Process::create()
                               .reactants({ micm::Species("O3") })
                               .products({ yields(micm::Species("O1D"), 1), yields(micm::Species("O2"), 1) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
                               .phase(gas_phase);
 
   micm::Process photo_3 = micm::Process::create()
                               .reactants({ micm::Species("O3") })
                               .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
-                              .rate_constant(micm::PhotolysisRateConstant())
+                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
                               .phase(gas_phase);
 
   return { photo_1, photo_2, photo_3, r1, r2, r3, r4 };

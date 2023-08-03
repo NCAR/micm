@@ -22,19 +22,19 @@
         "name": "COF2",
         "type": "CHEM_SPEC",
         "description": "",
-        "molecular weight [kg mol-1]": 0
+        "molecular weight [kg mol-1]": 0.0
       },
       {
         "name": "O2",
         "type": "CHEM_SPEC",
         "description": "",
-        "molecular weight [kg mol-1]": 0
+        "molecular weight [kg mol-1]": 0.0
       },
       {
         "name": "FUR2O2",
         "type": "CHEM_SPEC",
         "description": "peroxy radical from furanone",
-        "molecular weight [kg mol-1]": 0
+        "molecular weight [kg mol-1]": 0.0
       }
     ]
 }
