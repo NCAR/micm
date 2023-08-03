@@ -1,3 +1,10 @@
+"""
+file: kpp_to_micm.py
+
+usage: python kpp_to_micm.py
+       python kpp_to_micm.py --help
+"""
+
 import os
 import sys
 import argparse
@@ -16,6 +23,7 @@ def read_kpp_config(kpp_dir):
     Returns
         (list of str): all lines from all config files
     """
+
     suffixes = ['.kpp', '.spc', '.eqn', '.def']
 
     lines = list()
@@ -162,7 +170,13 @@ if __name__ == '__main__':
         help='log file (default stdout)')
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
-        help='KPP config directory')
+        help='KPP input config directory')
+    parser.add_argument('--micm_species', type=str,
+        default=os.path.join('..', 'configs', 'micm', 'species.json'),
+        help='MICM output species config file')
+    parser.add_argument('--micm_reactions', type=str,
+        default=os.path.join('..', 'configs', 'micm', 'reactions.json'),
+        help='MICM output reactions config file')
     parser.add_argument('--debug', action='store_true',
         help='set logging level to debug')
     args = parser.parse_args()
@@ -204,7 +218,7 @@ if __name__ == '__main__':
     equations_json = micm_equation_json(sections['#EQUATIONS'])
 
     """
-    Assemble MICM JSON
+    Assemble MICM species JSON
     """
     micm_species_json = {'camp-data': deffix_json + defvar_json}
     micm_species_json_str = json.dumps(micm_species_json, indent=4)
@@ -212,9 +226,20 @@ if __name__ == '__main__':
     logging.info(micm_species_json_str)
     print('\n')
 
-    micm_mechanism_json = {'camp-data': {'reactions': equations_json}}
-    micm_mechanism_json_str = json.dumps(micm_mechanism_json, indent=4)
+    """
+    Assemble MICM reactions JSON
+    """
+    micm_reactions_json = {'camp-data': {'reactions': equations_json}}
+    micm_reactions_json_str = json.dumps(micm_reactions_json, indent=4)
     logging.info('____ MICM reactions ____')
-    logging.info(micm_mechanism_json_str)
+    logging.info(micm_reactions_json_str)
     print('\n')
+
+    """
+    Write MICM JSON
+    """
+    with open(args.micm_species, 'w') as f:
+        json.dump(micm_species_json, f, indent=4)
+    with open(args.micm_reactions, 'w') as f:
+        json.dump(micm_reactions_json, f, indent=4)
 
