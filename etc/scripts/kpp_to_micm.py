@@ -157,15 +157,20 @@ def micm_equation_json(lines):
         reactants = [reactant.strip().lstrip() for reactant in reactants]
         products = [product.strip().lstrip() for product in products]
 
-        reactants_dict = dict()
+        equation_dict = dict()
+        equation_dict['reactants'] = dict()
+        equation_dict['products'] = dict()
 
         for reactant in reactants:
-            reactants_dict[reactant] = dict()
+            equation_dict['reactants'][reactant] = dict()
+
+        for product in products:
+            equation_dict['products'][product] = dict()
 
         if 'SUN' in line:
             reaction_type = 'PHOTOLYSIS' 
 
-        equations.append(reactants_dict)
+        equations.append(equation_dict)
 
     return equations
 
