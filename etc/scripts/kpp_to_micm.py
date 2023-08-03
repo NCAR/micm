@@ -150,8 +150,11 @@ def micm_equation_json(lines):
         reactants = lhs.split('+')
         products = rhs.split('+')
 
-        # drop equation label delimited by < >
-        reactants[0] = reactants[0].split('>')[1]
+        # extract equation label delimited by < >
+        label, reactants[0] = tuple(reactants[0].split('>'))
+
+        # extract equation coefficients delimited by :
+        products[-1], coeffs = tuple(products[-1].split(':'))
 
         # remove trailing and leading whitespace
         reactants = [reactant.strip().lstrip() for reactant in reactants]
