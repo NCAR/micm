@@ -108,6 +108,8 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
 
     Parameters
         (list of str) lines: lines of species section
+        (bool) fixed: set constant tracer
+        (float) tolerance: absolute tolerance
 
     Returns
         (list of dict): list of MICM species entries
@@ -163,7 +165,9 @@ def micm_equation_json(lines):
             equation_dict['type'] = 'PHOTOLYSIS' 
         else:
             equation_dict['type'] = 'ARRHENIUS' 
+            # assuming a single coefficient here
             equation_dict['A'] = float(coeffs)
+            # need to generalize to parse both A and B from KPP
             equation_dict['B'] = 0.0
 
         equation_dict['reactants'] = dict()
