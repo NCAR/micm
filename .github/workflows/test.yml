@@ -18,7 +18,7 @@ jobs:
           - Dockerfile.memcheck
           - Dockerfile.no_json
           - Dockerfile.nvhpc
-          - Dockerfile.intel
+          # - Dockerfile.intel # intel image is too large for GH action
           # - Dockerfile.openmp
           # - Dockerfile.mpi
     steps:
