@@ -717,7 +717,7 @@ namespace micm
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
-    Y.ForEach([&](double& elem_1, double& _elem_2) { std::cout << elem_1 << " "; }, K[j]);
+    Y.ForEach([&](double& elem_1, double& _elem_2) { std::cout << elem_1 << " "; }, Ynew);
 
     stats_.Reset();
     UpdateState(state);
