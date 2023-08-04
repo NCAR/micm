@@ -214,6 +214,9 @@ if __name__ == '__main__':
     parser.add_argument('--micm_reactions', type=str,
         default=os.path.join('..', 'configs', 'micm', 'reactions.json'),
         help='MICM output reactions config file')
+    parser.add_argument('--name', type=str,
+        default='Chapman',
+        help='mechanism name')
     parser.add_argument('--debug', action='store_true',
         help='set logging level to debug')
     args = parser.parse_args()
@@ -267,7 +270,7 @@ if __name__ == '__main__':
     Assemble MICM reactions JSON
     """
     micm_reactions_json = {'camp-data':
-        [{'name': 'Chapman', 'type': 'MECHANISM', 'reactions': equations_json}]}
+        [{'name': args.name, 'type': 'MECHANISM', 'reactions': equations_json}]}
     micm_reactions_json_str = json.dumps(micm_reactions_json, indent=4)
     logging.info('____ MICM reactions ____')
     logging.info(micm_reactions_json_str)
