@@ -3,7 +3,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 
-TEST(JitFunction, SimpleIntFunction)
+TEST(JitFunction, SimpleInt32Function)
 {
   auto jit{ micm::JitCompiler::create() };
   if (auto err = jit.takeError())
@@ -12,16 +12,38 @@ TEST(JitFunction, SimpleIntFunction)
     EXPECT_TRUE(false);
   }
   micm::JitFunction func = micm::JitFunction::create(jit.get())
-                               .name("foo")
-                               .arguments({ { "foo", micm::JitType::Int }, { "bar", micm::JitType::Int } })
-                               .return_type(micm::JitType::Int);
+                               .name("foo_int32")
+                               .arguments({ { "foo", micm::JitType::Int32 }, { "bar", micm::JitType::Int32 } })
+                               .return_type(micm::JitType::Int32);
   llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
-  int (*func_ptr)(int, int) = (int (*)(int, int))(intptr_t)func_target.second;
+  int32_t (*func_ptr)(int32_t, int32_t) = (int32_t (*)(int32_t, int32_t))(intptr_t)func_target.second;
   EXPECT_EQ(12, func_ptr(8, 4));
   EXPECT_EQ(-4, func_ptr(-8, 4));
   EXPECT_EQ(92, func_ptr(80, 12));
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleInt64Function)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo_int64")
+                               .arguments({ { "foo", micm::JitType::Int64 }, { "bar", micm::JitType::Int64 } })
+                               .return_type(micm::JitType::Int64);
+  llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
+  func.builder_->CreateRet(ret_val);
+  auto func_target = func.Generate();
+  int64_t (*func_ptr)(int64_t, int64_t) = (int64_t (*)(int64_t, int64_t))(intptr_t)func_target.second;
+  EXPECT_EQ(12l, func_ptr(8l, 4l));
+  EXPECT_EQ(-4l, func_ptr(-8l, 4l));
+  EXPECT_EQ(92l, func_ptr(80l, 12l));
   func.exit_on_error_(func_target.first->remove());
 }
 
@@ -88,5 +110,145 @@ TEST(JitFunction, SimpleBoolFunction)
   EXPECT_EQ(true, func_ptr(true, false));
   EXPECT_EQ(true, func_ptr(true, true));
   EXPECT_EQ(false, func_ptr(false, false));
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleInt32PtrFunction)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo_int32_ptr")
+                               .arguments({ { "foo", micm::JitType::Int32Ptr }, { "bar", micm::JitType::Int32Ptr } })
+                               .return_type(micm::JitType::Int32);
+  llvm::Value *index_list[1];
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 2));
+  llvm::Value *foo_val = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Int32);
+  llvm::Value *bar_val = func.GetArrayElement(func.arguments_[1], index_list, micm::JitType::Int32);
+  llvm::Value *sum = func.builder_->CreateNSWAdd(foo_val, bar_val, "sum foo bar");
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1));
+  func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int32, sum);
+  func.builder_->CreateRet(sum);
+  auto func_target = func.Generate();
+  int32_t (*func_ptr)(int32_t *, int32_t *) = (int32_t (*)(int32_t *, int32_t *))(intptr_t)func_target.second;
+  int32_t a[] = { 9, 4, 33 };
+  int32_t b[] = { 4, 21, 2, 42 };
+  EXPECT_EQ(35, func_ptr(a, b));
+  EXPECT_EQ(9, a[0]);
+  EXPECT_EQ(4, a[1]);
+  EXPECT_EQ(33, a[2]);
+  EXPECT_EQ(4, b[0]);
+  EXPECT_EQ(35, b[1]);
+  EXPECT_EQ(2, b[2]);
+  EXPECT_EQ(42, b[3]);
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleInt64PtrFunction)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo_int64_ptr")
+                               .arguments({ { "foo", micm::JitType::Int64Ptr }, { "bar", micm::JitType::Int64Ptr } })
+                               .return_type(micm::JitType::Int64);
+  llvm::Value *index_list[1];
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 2));
+  llvm::Value *foo_val = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Int64);
+  llvm::Value *bar_val = func.GetArrayElement(func.arguments_[1], index_list, micm::JitType::Int64);
+  llvm::Value *sum = func.builder_->CreateNSWAdd(foo_val, bar_val, "sum foo bar");
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1));
+  func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int64, sum);
+  func.builder_->CreateRet(sum);
+  auto func_target = func.Generate();
+  int64_t (*func_ptr)(int64_t *, int64_t *) = (int64_t (*)(int64_t *, int64_t *))(intptr_t)func_target.second;
+  int64_t a[] = { 9l, 4l, 33l };
+  int64_t b[] = { 4l, 21l, 2l, 42l };
+  EXPECT_EQ(35l, func_ptr(a, b));
+  EXPECT_EQ(9l, a[0]);
+  EXPECT_EQ(4l, a[1]);
+  EXPECT_EQ(33l, a[2]);
+  EXPECT_EQ(4l, b[0]);
+  EXPECT_EQ(35l, b[1]);
+  EXPECT_EQ(2l, b[2]);
+  EXPECT_EQ(42l, b[3]);
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleFloatPtrFunction)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo_float_ptr")
+                               .arguments({ { "foo", micm::JitType::FloatPtr }, { "bar", micm::JitType::FloatPtr } })
+                               .return_type(micm::JitType::Float);
+  llvm::Value *index_list[1];
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 2));
+  llvm::Value *foo_val = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Float);
+  llvm::Value *bar_val = func.GetArrayElement(func.arguments_[1], index_list, micm::JitType::Float);
+  llvm::Value *sum = func.builder_->CreateFAdd(foo_val, bar_val, "sum foo bar");
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1));
+  func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Float, sum);
+  func.builder_->CreateRet(sum);
+  auto func_target = func.Generate();
+  float (*func_ptr)(float *, float *) = (float (*)(float *, float *))(intptr_t)func_target.second;
+  float a[] = { 9.3f, 4.4f, 33.3f };
+  float b[] = { 4.53f, 21.02f, 2.0f, 42.23f };
+  EXPECT_EQ(35.3f, func_ptr(a, b));
+  EXPECT_EQ(9.3f, a[0]);
+  EXPECT_EQ(4.4f, a[1]);
+  EXPECT_EQ(33.3f, a[2]);
+  EXPECT_EQ(4.53f, b[0]);
+  EXPECT_EQ(35.3f, b[1]);
+  EXPECT_EQ(2.0f, b[2]);
+  EXPECT_EQ(42.23f, b[3]);
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleDoublePtrFunction)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo_double_ptr")
+                               .arguments({ { "foo", micm::JitType::DoublePtr }, { "bar", micm::JitType::DoublePtr } })
+                               .return_type(micm::JitType::Double);
+  llvm::Value *index_list[1];
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 2));
+  llvm::Value *foo_val = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Double);
+  llvm::Value *bar_val = func.GetArrayElement(func.arguments_[1], index_list, micm::JitType::Double);
+  llvm::Value *sum = func.builder_->CreateFAdd(foo_val, bar_val, "sum foo bar");
+  index_list[0] = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1));
+  func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Double, sum);
+  func.builder_->CreateRet(sum);
+  auto func_target = func.Generate();
+  double (*func_ptr)(double *, double *) = (double (*)(double *, double *))(intptr_t)func_target.second;
+  double a[] = { 9.3, 4.4, 33.3 };
+  double b[] = { 4.53, 21.02, 2.0, 42.23 };
+  EXPECT_EQ(35.3, func_ptr(a, b));
+  EXPECT_EQ(9.3, a[0]);
+  EXPECT_EQ(4.4, a[1]);
+  EXPECT_EQ(33.3, a[2]);
+  EXPECT_EQ(4.53, b[0]);
+  EXPECT_EQ(35.3, b[1]);
+  EXPECT_EQ(2.0, b[2]);
+  EXPECT_EQ(42.23, b[3]);
   func.exit_on_error_(func_target.first->remove());
 }

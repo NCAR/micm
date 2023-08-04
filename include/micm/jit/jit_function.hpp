@@ -29,8 +29,10 @@ namespace micm
   /// @brief Types used in JIT functions
   enum class JitType
   {
-    Int,
-    IntPtr,
+    Int32,
+    Int32Ptr,
+    Int64,
+    Int64Ptr,
     Float,
     FloatPtr,
     Double,
@@ -78,8 +80,26 @@ namespace micm
     /// This can only be called once.
     std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> Generate();
 
-   private:
+    /// @brief Get an LLVM type variable
+    /// @param type Type to get
+    /// @return LLVM type
     llvm::Type* GetType(JitType type);
+
+    /// @brief Get a value from an array
+    /// @param array_ptr Array pointer
+    /// @param index Index in array to return value for
+    /// @param type Data type of element
+    /// @return Value of array element
+    llvm::Value* GetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type);
+
+    /// @brief Set the value in an array
+    /// @param array_ptr Array pointer
+    /// @param index Index in array to return value for
+    /// @param type Data type of element
+    /// @param value Value to set array element to
+    void SetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type, llvm::Value* value);
+
+   private:
     llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name);
   };
 
@@ -170,8 +190,10 @@ namespace micm
   {
     switch (type)
     {
-      case JitType::Int: return llvm::Type::getInt64Ty(*context_);
-      case JitType::IntPtr: return llvm::Type::getInt64Ty(*context_)->getPointerTo();
+      case JitType::Int32: return llvm::Type::getInt32Ty(*context_);
+      case JitType::Int32Ptr: return llvm::Type::getInt32Ty(*context_)->getPointerTo();
+      case JitType::Int64: return llvm::Type::getInt64Ty(*context_);
+      case JitType::Int64Ptr: return llvm::Type::getInt64Ty(*context_)->getPointerTo();
       case JitType::Float: return llvm::Type::getFloatTy(*context_);
       case JitType::FloatPtr: return llvm::Type::getFloatTy(*context_)->getPointerTo();
       case JitType::Double: return llvm::Type::getDoubleTy(*context_);
@@ -180,6 +202,19 @@ namespace micm
       case JitType::Void: return llvm::Type::getVoidTy(*context_);
     }
     return llvm::Type::getVoidTy(*context_);
+  }
+
+  llvm::Value* JitFunction::GetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type)
+  {
+    llvm::Value* elem = builder_->CreateGEP(GetType(type), array_ptr.ptr_, index, array_ptr.name_ + " get elem");
+    return builder_->CreateLoad(GetType(type), elem, array_ptr.name_ + " load elem");
+  }
+
+  void
+  JitFunction::SetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type, llvm::Value* value)
+  {
+    llvm::Value* elem = builder_->CreateGEP(GetType(type), array_ptr.ptr_, index, array_ptr.name_ + " set elem");
+    builder_->CreateStore(value, elem);
   }
 
   inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name)
