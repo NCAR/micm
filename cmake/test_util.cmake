@@ -30,6 +30,11 @@ function(create_standard_test)
     target_compile_definitions(test_${TEST_NAME} PUBLIC USE_JSON)
   endif()
 
+  if(ENABLE_LLVM)
+    target_link_libraries(test_${TEST_NAME} PRIVATE ${llvm_libs})
+    target_compile_definitions(test_${TEST_NAME} PUBLIC USE_LLVM)
+  endif()
+
   if(NOT DEFINED TEST_WORKING_DIRECTORY)
     set(TEST_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
   endif()

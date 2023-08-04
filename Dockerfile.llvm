@@ -7,7 +7,9 @@ RUN dnf -y update \
         gdb \
         git \
         make \
+        zlib-devel \
         llvm-devel \
+        valgrind \
     && dnf clean all
 
 # copy the MICM code
@@ -20,6 +22,7 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D ENABLE_LLVM:BOOL=TRUE \
+        -D ENABLE_MEMCHECK:BOOL=TRUE \
         ../micm \
       && make install -j 8
 
