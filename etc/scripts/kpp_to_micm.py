@@ -23,7 +23,7 @@ Description:
 
 TODO:
     (1) Parse both A and C Arrhenius coefficients from KPP equations
-    Currently a single rate coeffient is assigned to A and B is set to 0.
+    Currently a single rate coeffient is assigned to A and C is set to 0.
     (2) Translate stoichiometric coefficients in the equation string
     with more than one digit.
     (3) Add method unit tests with pytest.
@@ -167,7 +167,7 @@ def micm_equation_json(lines):
             equation_dict['type'] = 'ARRHENIUS' 
             # assuming a single coefficient here
             equation_dict['A'] = float(coeffs)
-            # need to generalize to parse both A and B from KPP
+            # need to generalize to parse both A and C from KPP
             equation_dict['C'] = 0.0
 
         equation_dict['reactants'] = dict()
@@ -176,7 +176,7 @@ def micm_equation_json(lines):
         for reactant in reactants:
             if reactant[0].isdigit():
                 equation_dict['reactants'][reactant[1:]] \
-                    = {'yield': float(reactant[0])}
+                    = {'qty': float(reactant[0])}
             elif 'hv' in reactant:
                 pass
             else:
@@ -208,13 +208,10 @@ if __name__ == '__main__':
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
         help='KPP input config directory')
-    parser.add_argument('--micm_species', type=str,
-        default=os.path.join('..', 'configs', 'micm', 'species.json'),
+    parser.add_argument('--micm_dir', type=str,
+        default=os.path.join('..', 'configs', 'micm'),
         help='MICM output species config file')
-    parser.add_argument('--micm_reactions', type=str,
-        default=os.path.join('..', 'configs', 'micm', 'reactions.json'),
-        help='MICM output reactions config file')
-    parser.add_argument('--name', type=str,
+    parser.add_argument('--mechanism', type=str,
         default='Chapman',
         help='mechanism name')
     parser.add_argument('--debug', action='store_true',
@@ -270,7 +267,7 @@ if __name__ == '__main__':
     Assemble MICM reactions JSON
     """
     micm_reactions_json = {'camp-data':
-        [{'name': args.name, 'type': 'MECHANISM', 'reactions': equations_json}]}
+        [{'name': args.mechanism, 'type': 'MECHANISM', 'reactions': equations_json}]}
     micm_reactions_json_str = json.dumps(micm_reactions_json, indent=4)
     logging.info('____ MICM reactions ____')
     logging.info(micm_reactions_json_str)
@@ -279,8 +276,11 @@ if __name__ == '__main__':
     """
     Write MICM JSON
     """
-    with open(args.micm_species, 'w') as f:
+    micm_mechanism_dir = os.path.join(args.micm_dir, args.mechanism)
+    if not os.path.exists(micm_mechanism_dir):
+        os.mkdir(micm_mechanism_dir)
+    with open(os.path.join(micm_mechanism_dir, 'species.json'), 'w') as f:
         json.dump(micm_species_json, f, indent=4)
-    with open(args.micm_reactions, 'w') as f:
+    with open(os.path.join(micm_mechanism_dir, 'reactions.json'), 'w') as f:
         json.dump(micm_reactions_json, f, indent=4)
 
