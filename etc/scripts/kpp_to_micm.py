@@ -22,7 +22,7 @@ Description:
     all others are assumed to be ARRHENIUS reactions.
 
 TODO:
-    (1) Parse both A and B Arrhenius coefficients from KPP equations
+    (1) Parse both A and C Arrhenius coefficients from KPP equations
     Currently a single rate coeffient is assigned to A and B is set to 0.
     (2) Translate stoichiometric coefficients in the equation string
     with more than one digit.
@@ -149,6 +149,7 @@ def micm_equation_json(lines):
 
         # extract equation label delimited by < >
         label, reactants[0] = tuple(reactants[0].split('>'))
+        label += '>'
 
         # extract equation coefficients delimited by :
         products[-1], coeffs = tuple(products[-1].split(':'))
@@ -167,7 +168,7 @@ def micm_equation_json(lines):
             # assuming a single coefficient here
             equation_dict['A'] = float(coeffs)
             # need to generalize to parse both A and B from KPP
-            equation_dict['B'] = 0.0
+            equation_dict['C'] = 0.0
 
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
@@ -187,6 +188,8 @@ def micm_equation_json(lines):
                     = {'yield': float(product[0])}
             else:
                 equation_dict['products'][product] = dict()
+
+        equation_dict['MUSICA name'] = label
 
         equations.append(equation_dict)
 
@@ -263,7 +266,8 @@ if __name__ == '__main__':
     """
     Assemble MICM reactions JSON
     """
-    micm_reactions_json = {'camp-data': {'reactions': equations_json}}
+    micm_reactions_json = {'camp-data':
+        [{'name': 'Chapman', 'type': 'MECHANISM', 'reactions': equations_json}]}
     micm_reactions_json_str = json.dumps(micm_reactions_json, indent=4)
     logging.info('____ MICM reactions ____')
     logging.info(micm_reactions_json_str)
