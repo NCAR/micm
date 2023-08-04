@@ -149,7 +149,7 @@ def micm_equation_json(lines):
 
         # extract equation label delimited by < >
         label, reactants[0] = tuple(reactants[0].split('>'))
-        label += '>'
+        label = label.lstrip('<')
 
         # extract equation coefficients delimited by :
         products[-1], coeffs = tuple(products[-1].split(':'))
