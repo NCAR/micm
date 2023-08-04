@@ -717,6 +717,8 @@ namespace micm
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
+    Y.ForEach([&](double& elem_1, double& _elem_2) { std::cout << elem_1 << " "; }, K[j]);
+
     stats_.Reset();
     UpdateState(state);
 
@@ -772,6 +774,7 @@ namespace micm
         {
           // the first stage (stage 0), inlined to remove a branch in the following for loop
           linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
+          stats_.solves += 1;
 
           // stages (1-# of stages)
           for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
@@ -795,6 +798,7 @@ namespace micm
             }
             temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
             linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
+            stats_.solves += 1;
           }
         }
 
