@@ -51,6 +51,18 @@ namespace micm
     llvm::Value* ptr_;
   };
 
+  /// @brief JIT function loop
+  struct JitLoop
+  {
+    std::string name_;
+    llvm::BasicBlock *block_;
+    llvm::PHINode *index_;
+    llvm::Value *step_;
+    llvm::Value *end_;
+    llvm::BasicBlock* end_block_;
+    llvm::BasicBlock* after_block_;
+  };
+
   class JitFunctionBuilder;
 
   /// @brief A JIT-compiled function generator
@@ -98,6 +110,18 @@ namespace micm
     /// @param type Data type of element
     /// @param value Value to set array element to
     void SetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type, llvm::Value* value);
+
+    /// @brief Start a for loop
+    /// @param name Label for the loop
+    /// @param start Starting index
+    /// @param end Ending index
+    /// @param step Step size
+    /// @return Loop reference
+    JitLoop StartLoop(std::string name, int start, int end, int step);
+
+    /// @brief End a loop block
+    /// @param loop Loop reference
+    void EndLoop(JitLoop& loop);
 
    private:
     llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name);
@@ -215,6 +239,31 @@ namespace micm
   {
     llvm::Value* elem = builder_->CreateGEP(GetType(type), array_ptr.ptr_, index, array_ptr.name_ + " set elem");
     builder_->CreateStore(value, elem);
+  }
+    
+  JitLoop JitFunction::StartLoop(std::string name, int start, int end, int step = 1)
+  {
+    JitLoop loop;
+    loop.name_ = name;
+    loop.block_ = llvm::BasicBlock::Create(*context_, name, function_);
+    builder_->CreateBr(loop.block_);
+    builder_->SetInsertPoint(loop.block_);
+    loop.index_ = builder_->CreatePHI(GetType(JitType::Int64), 2, "i_" + name);
+    loop.index_->addIncoming(llvm::ConstantInt::get(*context_, llvm::APInt(64, start)), entry_block_);
+    loop.step_ = llvm::ConstantInt::get(*context_, llvm::APInt(64, step));
+    loop.end_ = llvm::ConstantInt::get(*context_, llvm::APInt(64, end));
+    return loop;
+  }
+
+  void JitFunction::EndLoop(JitLoop& loop)
+  {
+    llvm::Value *nextIter = builder_->CreateNSWAdd(loop.index_, loop.step_, "next " + loop.name_);
+    llvm::Value *atEnd = builder_->CreateICmpSGE(nextIter, loop.end_, "at end " + loop.name_);
+    loop.end_block_ = builder_->GetInsertBlock();
+    loop.after_block_ = llvm::BasicBlock::Create(*context_, "after " + loop.name_, function_);
+    builder_->CreateCondBr(atEnd, loop.after_block_, loop.block_);
+    builder_->SetInsertPoint(loop.after_block_);
+    loop.index_->addIncoming(nextIter, loop.end_block_);
   }
 
   inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name)

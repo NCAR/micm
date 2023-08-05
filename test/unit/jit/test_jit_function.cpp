@@ -18,7 +18,7 @@ TEST(JitFunction, SimpleInt32Function)
   llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
-  int32_t (*func_ptr)(int32_t, int32_t) = (int32_t (*)(int32_t, int32_t))(intptr_t)func_target.second;
+  int32_t (*func_ptr)(int32_t, int32_t) = (int32_t(*)(int32_t, int32_t))(intptr_t)func_target.second;
   EXPECT_EQ(12, func_ptr(8, 4));
   EXPECT_EQ(-4, func_ptr(-8, 4));
   EXPECT_EQ(92, func_ptr(80, 12));
@@ -40,7 +40,7 @@ TEST(JitFunction, SimpleInt64Function)
   llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
-  int64_t (*func_ptr)(int64_t, int64_t) = (int64_t (*)(int64_t, int64_t))(intptr_t)func_target.second;
+  int64_t (*func_ptr)(int64_t, int64_t) = (int64_t(*)(int64_t, int64_t))(intptr_t)func_target.second;
   EXPECT_EQ(12l, func_ptr(8l, 4l));
   EXPECT_EQ(-4l, func_ptr(-8l, 4l));
   EXPECT_EQ(92l, func_ptr(80l, 12l));
@@ -134,7 +134,7 @@ TEST(JitFunction, SimpleInt32PtrFunction)
   func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int32, sum);
   func.builder_->CreateRet(sum);
   auto func_target = func.Generate();
-  int32_t (*func_ptr)(int32_t *, int32_t *) = (int32_t (*)(int32_t *, int32_t *))(intptr_t)func_target.second;
+  int32_t (*func_ptr)(int32_t *, int32_t *) = (int32_t(*)(int32_t *, int32_t *))(intptr_t)func_target.second;
   int32_t a[] = { 9, 4, 33 };
   int32_t b[] = { 4, 21, 2, 42 };
   EXPECT_EQ(35, func_ptr(a, b));
@@ -169,7 +169,7 @@ TEST(JitFunction, SimpleInt64PtrFunction)
   func.SetArrayElement(func.arguments_[1], index_list, micm::JitType::Int64, sum);
   func.builder_->CreateRet(sum);
   auto func_target = func.Generate();
-  int64_t (*func_ptr)(int64_t *, int64_t *) = (int64_t (*)(int64_t *, int64_t *))(intptr_t)func_target.second;
+  int64_t (*func_ptr)(int64_t *, int64_t *) = (int64_t(*)(int64_t *, int64_t *))(intptr_t)func_target.second;
   int64_t a[] = { 9l, 4l, 33l };
   int64_t b[] = { 4l, 21l, 2l, 42l };
   EXPECT_EQ(35l, func_ptr(a, b));
@@ -250,5 +250,29 @@ TEST(JitFunction, SimpleDoublePtrFunction)
   EXPECT_EQ(35.3, b[1]);
   EXPECT_EQ(2.0, b[2]);
   EXPECT_EQ(42.23, b[3]);
+  func.exit_on_error_(func_target.first->remove());
+}
+
+TEST(JitFunction, SimpleLoop)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func =
+      micm::JitFunction::create(jit.get()).name("foo_loop").arguments({}).return_type(micm::JitType::Int32);
+  auto loop = func.StartLoop("foo loop", 0, 10);
+  llvm::PHINode *ret_val = func.builder_->CreatePHI(func.GetType(micm::JitType::Int32), 2, "ret val");
+  ret_val->addIncoming(llvm::ConstantInt::get(*(func.context_), llvm::APInt(32, 1)), func.entry_block_);
+  llvm::Value *incr = llvm::ConstantInt::get(*(func.context_), llvm::APInt(32, 1));
+  llvm::Value *next_val = func.builder_->CreateNSWAdd(ret_val, incr, "add incr");
+  func.EndLoop(loop);
+  ret_val->addIncoming(next_val, loop.end_block_);
+  func.builder_->CreateRet(ret_val);
+  auto func_target = func.Generate();
+  int32_t (*func_ptr)() = (int32_t(*)())(intptr_t)func_target.second;
+  EXPECT_EQ(10, func_ptr());
   func.exit_on_error_(func_target.first->remove());
 }
