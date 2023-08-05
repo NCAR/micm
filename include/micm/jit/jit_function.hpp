@@ -59,13 +59,15 @@ namespace micm
     llvm::PHINode *index_;
     llvm::Value *step_;
     llvm::Value *end_;
-    llvm::BasicBlock* end_block_;
     llvm::BasicBlock* after_block_;
   };
 
   class JitFunctionBuilder;
 
   /// @brief A JIT-compiled function generator
+  ///
+  /// An instance of this class can be used to build a single JIT function and includes
+  /// some convenience functions for creating loops and operating on array elements
   class JitFunction
   {
     std::string name_;
@@ -259,11 +261,10 @@ namespace micm
   {
     llvm::Value *nextIter = builder_->CreateNSWAdd(loop.index_, loop.step_, "next " + loop.name_);
     llvm::Value *atEnd = builder_->CreateICmpSGE(nextIter, loop.end_, "at end " + loop.name_);
-    loop.end_block_ = builder_->GetInsertBlock();
     loop.after_block_ = llvm::BasicBlock::Create(*context_, "after " + loop.name_, function_);
     builder_->CreateCondBr(atEnd, loop.after_block_, loop.block_);
     builder_->SetInsertPoint(loop.after_block_);
-    loop.index_->addIncoming(nextIter, loop.end_block_);
+    loop.index_->addIncoming(nextIter, loop.block_);
   }
 
   inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name)

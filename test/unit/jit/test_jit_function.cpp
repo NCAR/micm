@@ -3,6 +3,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 
+// This test creates a function that adds two integers and returns the sum
 TEST(JitFunction, SimpleInt32Function)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -25,6 +26,7 @@ TEST(JitFunction, SimpleInt32Function)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds two integers and returns the sum
 TEST(JitFunction, SimpleInt64Function)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -47,6 +49,7 @@ TEST(JitFunction, SimpleInt64Function)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds two floats and returns the sum
 TEST(JitFunction, SimpleFloatFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -69,6 +72,7 @@ TEST(JitFunction, SimpleFloatFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds two doubles and returns the sum
 TEST(JitFunction, SimpleDoubleFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -91,6 +95,7 @@ TEST(JitFunction, SimpleDoubleFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that returns an OR of two booleans
 TEST(JitFunction, SimpleBoolFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -113,6 +118,8 @@ TEST(JitFunction, SimpleBoolFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds the third elements in two integer arrays, sets the
+// second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleInt32PtrFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -148,6 +155,8 @@ TEST(JitFunction, SimpleInt32PtrFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds the third elements in two integer arrays, sets the
+// second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleInt64PtrFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -183,6 +192,8 @@ TEST(JitFunction, SimpleInt64PtrFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds the third elements in two float arrays, sets the
+// second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleFloatPtrFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -218,6 +229,8 @@ TEST(JitFunction, SimpleFloatPtrFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that adds the third elements in two double arrays, sets the
+// second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleDoublePtrFunction)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -253,6 +266,8 @@ TEST(JitFunction, SimpleDoublePtrFunction)
   func.exit_on_error_(func_target.first->remove());
 }
 
+// This test creates a function that includes a loop that adds 1 to a variable that starts at 0
+// and iterates 10 times and returns the summed value
 TEST(JitFunction, SimpleLoop)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -269,10 +284,45 @@ TEST(JitFunction, SimpleLoop)
   llvm::Value *incr = llvm::ConstantInt::get(*(func.context_), llvm::APInt(32, 1));
   llvm::Value *next_val = func.builder_->CreateNSWAdd(ret_val, incr, "add incr");
   func.EndLoop(loop);
-  ret_val->addIncoming(next_val, loop.end_block_);
+  ret_val->addIncoming(next_val, loop.block_);
   func.builder_->CreateRet(ret_val);
   auto func_target = func.Generate();
   int32_t (*func_ptr)() = (int32_t(*)())(intptr_t)func_target.second;
   EXPECT_EQ(10, func_ptr());
   func.exit_on_error_(func_target.first->remove());
+}
+
+// This test creates two functions, foo and bar, that return the sum of their single integer
+// arguments and 10 and 100, respectively
+TEST(JitFunction, MultipleFunctions)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction foo_func = micm::JitFunction::create(jit.get())
+                                   .name("foo")
+                                   .arguments({ { "arg", micm::JitType::Int32 } })
+                                   .return_type(micm::JitType::Int32);
+  llvm::Value *foo_ret_val = foo_func.builder_->CreateNSWAdd(
+      foo_func.arguments_[0].ptr_, llvm::ConstantInt::get(*(foo_func.context_), llvm::APInt(32, 10)), "add args");
+  foo_func.builder_->CreateRet(foo_ret_val);
+  auto foo_target = foo_func.Generate();
+  int32_t (*foo_func_ptr)(int) = (int32_t(*)(int))(intptr_t)foo_target.second;
+  micm::JitFunction bar_func = micm::JitFunction::create(jit.get())
+                                   .name("bar")
+                                   .arguments({ { "arg", micm::JitType::Int32 } })
+                                   .return_type(micm::JitType::Int32);
+  llvm::Value *bar_ret_val = bar_func.builder_->CreateNSWAdd(
+      bar_func.arguments_[0].ptr_, llvm::ConstantInt::get(*(bar_func.context_), llvm::APInt(32, 100)), "add args");
+  bar_func.builder_->CreateRet(bar_ret_val);
+  auto bar_target = bar_func.Generate();
+  int32_t (*bar_func_ptr)(int) = (int32_t(*)(int))(intptr_t)bar_target.second;
+  EXPECT_EQ(32, foo_func_ptr(22));
+  EXPECT_EQ(102, bar_func_ptr(2));
+  EXPECT_EQ(254, bar_func_ptr(foo_func_ptr(144)));
+  foo_func.exit_on_error_(foo_target.first->remove());
+  bar_func.exit_on_error_(bar_target.first->remove());
 }
