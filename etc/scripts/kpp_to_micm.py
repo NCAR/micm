@@ -277,6 +277,8 @@ if __name__ == '__main__':
     Write MICM JSON
     """
     micm_mechanism_dir = os.path.join(args.micm_dir, args.mechanism)
+    if not os.path.exists(args.micm_dir):
+        os.mkdir(args.micm_dir)
     if not os.path.exists(micm_mechanism_dir):
         os.mkdir(micm_mechanism_dir)
     with open(os.path.join(micm_mechanism_dir, 'species.json'), 'w') as f:
