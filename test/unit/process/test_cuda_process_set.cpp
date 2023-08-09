@@ -150,8 +150,8 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   gpu_set.SetJacobianFlatIds(gpu_jacobian); 
 
   for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){
-    size_t a = cpu_jacobian.jacobian_flat_ids_[i]; 
-    size_t b = gpu_jacobian.jacobian_flat_ids_[i]; 
+    size_t a = cpu_set.jacobian_flat_ids_[i]; 
+    size_t b = gpu_set.jacobian_flat_ids_[i]; 
     ASSERT_EQ(a, b); 
   }
   // //checking accuracy of jacobian between CPU and GPU before AddJacobianTerms function 
