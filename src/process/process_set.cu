@@ -66,7 +66,7 @@ namespace micm
     size_t react_ids_offset = 0; 
     size_t product_ids_offset = 0; 
     size_t yields_offset = 0; 
-    size_t flat_id_offset = -1; 
+    size_t flat_id_offset = 0; 
     size_t first_loop = 0; //debugging 
     if (tid < n_grids){
     //loop over reactions in a grid
