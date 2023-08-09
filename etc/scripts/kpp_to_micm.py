@@ -129,6 +129,30 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     return species_json
 
 
+def parse_kpp_arrhenius():
+    """
+    KPP_REAL ARR_abc( float A0, float B0, float C0 )
+    {
+      double ARR_RES;
+
+      ARR_RES = (double)A0
+        * exp( -(double)B0/TEMP )
+        * pow( (TEMP/300.0), (double)C0 );
+
+    return (KPP_REAL)ARR_RES;
+    }
+
+    inline double ArrheniusRateConstant::calculate(
+      const double& temperature, const double& pressure) const
+    {
+    return parameters_.A_ * std::exp(parameters_.C_ / temperature)
+      * pow(temperature / parameters_.D_, parameters_.B_) *
+      (1.0 + parameters_.E_ * pressure);
+    }
+    """
+    pass
+
+
 def micm_equation_json(lines):
     """
     Generate MICM equation JSON
