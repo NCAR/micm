@@ -326,3 +326,56 @@ TEST(JitFunction, MultipleFunctions)
   foo_func.exit_on_error_(foo_target.first->remove());
   bar_func.exit_on_error_(bar_target.first->remove());
 }
+
+// This test creates a local array of ints, populates it with a specified value,
+// and returns the sum
+TEST(JitFunction, LocalArray)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func = micm::JitFunction::create(jit.get())
+                               .name("foo")
+                               .arguments({ { "arg", micm::JitType::Int64 } })
+                               .return_type(micm::JitType::Int64);
+
+  auto int_type = func.GetType(micm::JitType::Int64);
+  llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
+  llvm::Type *foo_array_type = llvm::ArrayType::get(int_type, 10);
+  llvm::AllocaInst *foo_array =
+      func.builder_->CreateAlloca(foo_array_type, llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1)), "foo_array");
+
+  // loop to set array elements
+  auto loop = func.StartLoop("set_loop", 0, 10);
+  llvm::Value *index_list[2];
+  index_list[0] = zero;
+  index_list[1] = loop.index_;
+  llvm::Value *set_elem = func.builder_->CreateInBoundsGEP(foo_array_type, foo_array, index_list, "set_elem_ptr");
+  func.builder_->CreateStore(func.arguments_[0].ptr_, set_elem);
+  func.EndLoop(loop);
+
+  // loop to sum array elements
+  index_list[1] = zero;
+  llvm::Value *get_elem = func.builder_->CreateInBoundsGEP(foo_array_type, foo_array, index_list, "get_first_elem_ptr");
+  llvm::Value *first_elem = func.builder_->CreateLoad(int_type, get_elem, "load_first_elem");
+  loop = func.StartLoop("sum_loop", 0, 10, 2);
+  llvm::PHINode *ret_val = func.builder_->CreatePHI(int_type, 2, "ret_val");
+  ret_val->addIncoming(first_elem, loop.prior_block_);
+  index_list[1] = loop.index_;
+  get_elem = func.builder_->CreateInBoundsGEP(foo_array_type, foo_array, index_list, "get_curr_elem_ptr");
+  llvm::Value *curr_elem = func.builder_->CreateLoad(int_type, get_elem, "load_curr_elem");
+  llvm::Value *next_val = func.builder_->CreateNSWAdd(ret_val, curr_elem, "add_curr_elem");
+  func.EndLoop(loop);
+  ret_val->addIncoming(next_val, loop.block_);
+
+  func.builder_->CreateRet(ret_val);
+
+  auto foo_target = func.Generate();
+  int64_t (*func_ptr)(int) = (int64_t(*)(int))(intptr_t)foo_target.second;
+  EXPECT_EQ(20, func_ptr(4));
+  EXPECT_EQ(5, func_ptr(1));
+  func.exit_on_error_(foo_target.first->remove());
+}

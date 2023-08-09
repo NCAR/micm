@@ -59,6 +59,7 @@ namespace micm
     llvm::PHINode *index_;
     llvm::Value *step_;
     llvm::Value *end_;
+    llvm::BasicBlock* prior_block_;
     llvm::BasicBlock* after_block_;
   };
 
@@ -120,6 +121,7 @@ namespace micm
     /// @param step Step size
     /// @return Loop reference
     JitLoop StartLoop(std::string name, int start, int end, int step);
+    JitLoop StartLoop(std::string name, llvm::Value *start, llvm::Value *end, llvm::Value *step);
 
     /// @brief End a loop block
     /// @param loop Loop reference
@@ -245,15 +247,24 @@ namespace micm
     
   JitLoop JitFunction::StartLoop(std::string name, int start, int end, int step = 1)
   {
+    llvm::Value *start_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, start));
+    llvm::Value *step_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, step));
+    llvm::Value *end_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, end));
+    return StartLoop(name, start_val, end_val, step_val);
+  }
+
+  JitLoop JitFunction::StartLoop(std::string name, llvm::Value *start, llvm::Value *end, llvm::Value *step)
+  {
     JitLoop loop;
     loop.name_ = name;
+    loop.prior_block_ = builder_->GetInsertBlock();
     loop.block_ = llvm::BasicBlock::Create(*context_, name, function_);
     builder_->CreateBr(loop.block_);
     builder_->SetInsertPoint(loop.block_);
     loop.index_ = builder_->CreatePHI(GetType(JitType::Int64), 2, "i_" + name);
-    loop.index_->addIncoming(llvm::ConstantInt::get(*context_, llvm::APInt(64, start)), entry_block_);
-    loop.step_ = llvm::ConstantInt::get(*context_, llvm::APInt(64, step));
-    loop.end_ = llvm::ConstantInt::get(*context_, llvm::APInt(64, end));
+    loop.index_->addIncoming(start, loop.prior_block_);
+    loop.step_ = step;
+    loop.end_ = end;
     return loop;
   }
 
