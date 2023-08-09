@@ -731,11 +731,9 @@ namespace micm
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
 
-    std::cout << "H: " << H << " Hmin: " << parameters_.h_min_ << " hstart: " << parameters_.h_start_ << " hmax: " << parameters_.h_max_ << std::endl;
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
       H = delta_min_;
-    std::cout << "H_: " << H << std::endl;
 
     bool reject_last_h = false;
     bool reject_more_h = false;
