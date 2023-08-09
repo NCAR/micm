@@ -719,6 +719,7 @@ namespace micm
 
     Y.ForEach([&](double& elem_1, double& _elem_2) { std::cout << elem_1 << " "; }, Ynew);
     parameters_.h_max_ = time_step;
+    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
     stats_.Reset();
     UpdateState(state);
