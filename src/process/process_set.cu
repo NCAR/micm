@@ -83,8 +83,12 @@ namespace micm
           }
         }
         for(size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep){
-          size_t jacobian_idx = jacobian_flat_ids[flat_id_offset++] * n_grids + tid; 
+          size_t jacobian_index = jacobian_flat_ids[flat_id_offset++];
+          size_t jacobian_idx = flat_id_idx * n_grids + tid; 
+          printf("jacobian index : %d\n ", jacobian_index); 
+          printf("jacobian value before subtraction: %f\n",jacobian[jacobian_idx]); 
           jacobian[jacobian_idx] -= d_rate_d_ind; 
+          printf("jacobian value after subtraction: %f\n", jacobian[jacobian_idx]);
         }
         for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
           size_t jacobian_idx = jacobian_flat_ids[flat_id_offset++] * n_grids + tid; 

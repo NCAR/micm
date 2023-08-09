@@ -236,10 +236,9 @@ namespace micm
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];  // rate of every reaction in a grid
-      auto cell_state = state_variables[i_cell];          // state of every specie in a grid
+      auto cell_rate_constants = rate_constants[i_cell];  
+      auto cell_state = state_variables[i_cell];       
 
-      // every grid starts with every react_id, yield and flat_id
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
@@ -258,11 +257,14 @@ namespace micm
               continue;
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-
-            cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep){
+            size_t cell_jacobian_idx = *(flat_id++); 
+            std::cout << "cell_jacobian index: "<<cell_jacobian_idx<<std::endl; 
+            std::cout << "cell_jacobian value before subtraction: "<<cell_jacobian[cell_jacobian_idx]<<std::endl; 
+            cell_jacobian[cell_jacobian_idx] -= d_rate_d_ind; 
+            std::cout << "cell_jacobian value after subtraction: "<<cell_jacobian[cell_jacobian_idx]<<std::endl; }
+           // cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-            // flat_id (iterator) is not reset from previous loop
             cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
         }
         react_id += number_of_reactants_[i_rxn];
