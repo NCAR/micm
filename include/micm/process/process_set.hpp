@@ -63,12 +63,12 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>> || VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>&& !VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+    requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
@@ -225,7 +225,7 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires(
-      VectorizableDense<MatrixPolicy<double>> || VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
+      !VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
       AddJacobianTerms(
           const MatrixPolicy<double>& rate_constants,
           const MatrixPolicy<double>& state_variables,
@@ -257,14 +257,8 @@ namespace micm
               continue;
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep){
-            size_t cell_jacobian_idx = *(flat_id++); 
-            std::cout << "cell_jacobian index: "<<cell_jacobian_idx<<std::endl; 
-            std::cout << "cell_jacobian value before subtraction: "<<cell_jacobian[cell_jacobian_idx]<<std::endl; 
-            cell_jacobian[cell_jacobian_idx] -= d_rate_d_ind; 
-            std::cout << "cell_jacobian value after subtraction: "<<cell_jacobian[cell_jacobian_idx]<<std::endl; }
-          }
-            //cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+            cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
             cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
         }
@@ -277,7 +271,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>&& !VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
+  requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
       AddJacobianTerms(
           const MatrixPolicy<double>& rate_constants,
           const MatrixPolicy<double>& state_variables,
