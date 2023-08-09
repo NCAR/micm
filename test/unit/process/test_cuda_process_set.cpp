@@ -148,19 +148,29 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
 
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian); 
+
+  //checking accuracy of jacobian between CPU and GPU before AddJacobianTerms function 
+  std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector(); 
+  std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector(); 
+
+   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
+    double a = cpu_jacobian_vector[i]; 
+    double b = gpu_jacobian_vector[i]; 
+    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+  }
+
   cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
   gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
   //checking accuracy of jacobian between CPU and GPU
-  std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector(); 
-  std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector(); 
+   cpu_jacobian_vector = cpu_jacobian.AsVector(); 
+   gpu_jacobian_vector = gpu_jacobian.AsVector(); 
 
   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
     double a = cpu_jacobian_vector[i]; 
     double b = gpu_jacobian_vector[i]; 
     ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
   }
-
 }
 
 template<class T>
