@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 
+#include <cassert>
 #include <iostream>
 #include <memory>
 
@@ -55,10 +56,10 @@ namespace micm
   struct JitLoop
   {
     std::string name_;
-    llvm::BasicBlock *block_;
-    llvm::PHINode *index_;
-    llvm::Value *step_;
-    llvm::Value *end_;
+    llvm::BasicBlock* block_;
+    llvm::PHINode* index_;
+    llvm::Value* step_;
+    llvm::Value* end_;
     llvm::BasicBlock* prior_block_;
     llvm::BasicBlock* after_block_;
   };
@@ -71,6 +72,7 @@ namespace micm
   /// some convenience functions for creating loops and operating on array elements
   class JitFunction
   {
+    bool generated_ = false;
     std::string name_;
     std::shared_ptr<JitCompiler> compiler_;
 
@@ -121,7 +123,7 @@ namespace micm
     /// @param step Step size
     /// @return Loop reference
     JitLoop StartLoop(std::string name, int start, int end, int step);
-    JitLoop StartLoop(std::string name, llvm::Value *start, llvm::Value *end, llvm::Value *step);
+    JitLoop StartLoop(std::string name, llvm::Value* start, llvm::Value* end, llvm::Value* step);
 
     /// @brief End a loop block
     /// @param loop Loop reference
@@ -153,7 +155,8 @@ namespace micm
   }
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
-      : name_(function_builder.name_),
+      : generated_(false),
+        name_(function_builder.name_),
         compiler_(function_builder.compiler_),
         context_(std::make_unique<llvm::LLVMContext>()),
         module_(std::make_unique<llvm::Module>(name_ + " module", *context_)),
@@ -199,6 +202,7 @@ namespace micm
 
   std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> JitFunction::Generate()
   {
+    assert((!generated_) && "JIT Function already generated");
     std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> ret_val;
     verifyFunction(*function_);
     ret_val.first = compiler_->GetMainJITDylib().createResourceTracker();
@@ -211,6 +215,7 @@ namespace micm
     auto expr_symbol = exit_on_error_(compiler_->Lookup(name_));
     ret_val.second = expr_symbol.getAddress();
 
+    generated_ = true;
     return ret_val;
   }
 
@@ -244,16 +249,16 @@ namespace micm
     llvm::Value* elem = builder_->CreateGEP(GetType(type), array_ptr.ptr_, index, array_ptr.name_ + " set elem");
     builder_->CreateStore(value, elem);
   }
-    
+
   JitLoop JitFunction::StartLoop(std::string name, int start, int end, int step = 1)
   {
-    llvm::Value *start_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, start));
-    llvm::Value *step_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, step));
-    llvm::Value *end_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, end));
+    llvm::Value* start_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, start));
+    llvm::Value* step_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, step));
+    llvm::Value* end_val = llvm::ConstantInt::get(*context_, llvm::APInt(64, end));
     return StartLoop(name, start_val, end_val, step_val);
   }
 
-  JitLoop JitFunction::StartLoop(std::string name, llvm::Value *start, llvm::Value *end, llvm::Value *step)
+  JitLoop JitFunction::StartLoop(std::string name, llvm::Value* start, llvm::Value* end, llvm::Value* step)
   {
     JitLoop loop;
     loop.name_ = name;
@@ -270,8 +275,8 @@ namespace micm
 
   void JitFunction::EndLoop(JitLoop& loop)
   {
-    llvm::Value *nextIter = builder_->CreateNSWAdd(loop.index_, loop.step_, "next " + loop.name_);
-    llvm::Value *atEnd = builder_->CreateICmpSGE(nextIter, loop.end_, "at end " + loop.name_);
+    llvm::Value* nextIter = builder_->CreateNSWAdd(loop.index_, loop.step_, "next " + loop.name_);
+    llvm::Value* atEnd = builder_->CreateICmpSGE(nextIter, loop.end_, "at end " + loop.name_);
     loop.after_block_ = llvm::BasicBlock::Create(*context_, "after " + loop.name_, function_);
     builder_->CreateCondBr(atEnd, loop.after_block_, loop.block_);
     builder_->SetInsertPoint(loop.after_block_);
