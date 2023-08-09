@@ -63,8 +63,7 @@ namespace micm
     size_t* jacobian_flat_ids){
     
     size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t react_ids_offset = 0; 
-    size_t product_ids_offset = 0; 
+    size_t react_ids_offset = 0;
     size_t yields_offset = 0; 
     size_t flat_id_offset = 0; 
     size_t first_loop = 0; //debugging 

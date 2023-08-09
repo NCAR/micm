@@ -183,7 +183,7 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 
 TEST(RandomProcessSet, Matrix)
 {
-   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1, 8, 6);
+   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1, 100, 60);
    
   // testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
