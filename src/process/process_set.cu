@@ -167,7 +167,7 @@ namespace micm
             d_yields, 
             d_jacobian_flat_ids); 
         cudaDeviceSynchronize(); 
-        cudaMemcpy(jacobian, d_jacobian, sizeof(size_t)* jacobian_size, cudaMemcpyDeviceToHost); 
+        cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost); 
         //clean up
         cudaFree(d_rate_constants); 
         cudaFree(d_state_variables); 
