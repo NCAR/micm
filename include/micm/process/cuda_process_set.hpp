@@ -30,6 +30,13 @@ namespace micm
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
+    
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
+    void AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants, 
+      const MatrixPolicy<double>& state_variables, 
+      SparseMatrixPolicy<double>& jacobian)const; 
 #endif
   };
 
@@ -65,5 +72,32 @@ namespace micm
         yields_.data(),
         yields_.size());
   }
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
+  inline void CudaProcessSet::AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants, 
+      const MatrixPolicy<double>& state_variables, 
+      SparseMatrixPolicy<double>& jacobian)const
+  {
+    micm::cuda::AddJacobianTerms_kernelSetup(
+      rate_constants.AsVector().data(), 
+      state_variables.AsVector().data(),
+      rate_constants.size(), //n_grids
+      rate_constants[0].size(), //n_reactions
+      state_variables[0].size(), //n_species
+      jacobian.AsVector().data(), 
+      jacobian.AsVector().size(), 
+      number_of_reactants_.data(),
+      reactant_ids_.data(), 
+      reactant_ids_.size(),
+      number_of_products_.data(),
+      product_ids_.data(), 
+      product_ids_.size(),
+      yields_.data(), 
+      yields_.size(),
+      jacobian_flat_ids_.data(), 
+      jacobian_flat_ids_.size()); 
+  }
+  
 #endif
 }  // namespace micm

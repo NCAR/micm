@@ -231,7 +231,6 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
-    // cell_jacobian is an iterator  -> update after each row
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
