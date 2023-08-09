@@ -12,7 +12,6 @@
 
 namespace micm
 {
-
   /// @brief A GPU-based implementation of ProcessSet
   class CudaProcessSet : public ProcessSet
   {
