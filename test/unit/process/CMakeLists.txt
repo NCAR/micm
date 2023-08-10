@@ -23,3 +23,7 @@ endif()
 if(ENABLE_OPENACC)
   create_standard_test(NAME openacc_process_set SOURCES test_openacc_process_set.cpp LIBRARIES musica::micm_openacc)
 endif()
+
+if(ENABLE_LLVM)
+  create_standard_test(NAME jit_process_set SOURCES test_jit_process_set.cpp)
+endif()
