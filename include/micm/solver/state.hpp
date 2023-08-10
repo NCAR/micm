@@ -28,6 +28,7 @@ namespace micm
     std::vector<Conditions> conditions_;
     std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
+    std::vector<std::string> variable_names_{};
     MatrixPolicy<double> variables_;
     MatrixPolicy<double> custom_rate_parameters_;
     MatrixPolicy<double> rate_constants_;
@@ -85,6 +86,7 @@ namespace micm
       const std::size_t process_size)
       : conditions_(1),
         variable_map_(),
+        variable_names_(),
         custom_rate_parameter_map_(),
         variables_(1, state_size, 0.0),
         custom_rate_parameters_(1, custom_parameters_size, 0.0),
@@ -96,6 +98,7 @@ namespace micm
   inline State<MatrixPolicy>::State(const StateParameters parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variable_map_(),
+        variable_names_(parameters.state_variable_names_),
         custom_rate_parameter_map_(),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
         custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
