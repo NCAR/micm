@@ -132,7 +132,7 @@ namespace micm
         cudaMalloc(&d_rate_constants, sizeof(double)* n_grids*n_reactions); 
         cudaMalloc(&d_state_variables, sizeof(double)* n_grids*n_species); 
         cudaMalloc(&d_jacobian, sizeof(double)* jacobian_size); 
-        cudaMalloc(&d_number_of_reactants, sizeof(double)* n_reactions); 
+        cudaMalloc(&d_number_of_reactants, sizeof(size_t)* n_reactions); 
         cudaMalloc(&d_reactant_ids, sizeof(size_t)* reactant_ids_size); 
         cudaMalloc(&d_number_of_products, sizeof(size_t)* n_reactions); 
         cudaMalloc(&d_product_ids, sizeof(size_t)* product_ids_size); 
