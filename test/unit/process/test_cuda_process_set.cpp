@@ -161,7 +161,7 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
     double b = gpu_jacobian_vector[i]; 
     ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
   }
-
+}
 
 template<class T>
 using Group1000VectorMatrix = micm::VectorMatrix<T, 1>;
