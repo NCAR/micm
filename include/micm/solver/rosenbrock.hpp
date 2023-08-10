@@ -717,9 +717,8 @@ namespace micm
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
-    Y.ForEach([&](double& elem_1, double& _elem_2) { std::cout << elem_1 << " "; }, Ynew);
-    parameters_.h_max_ = time_step;
-    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    // parameters_.h_max_ = time_step;
+    // parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
     stats_.Reset();
     UpdateState(state);

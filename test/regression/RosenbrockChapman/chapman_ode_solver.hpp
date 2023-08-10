@@ -316,6 +316,9 @@ namespace micm
     const double number_density_air = state.conditions_[0].air_density_;
     std::vector<double> forcing{};
 
+    // parameters_.h_max_ = time_end - time_start;
+    // parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+
     double present_time = time_start;
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));

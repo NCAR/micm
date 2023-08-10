@@ -12,13 +12,13 @@ namespace micm
   struct TroeRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
-    double k0_A_;
+    double k0_A_ = 1.0;
     /// @brief low-pressure temperature-scaling parameter
     double k0_B_ = 0.0;
     /// @brief low-pressure exponential factor
     double k0_C_ = 0.0;
     /// @brief high-pressure pre-exponential factor
-    double kinf_A_;
+    double kinf_A_ = 1.0;
     /// @brief high-pressure temperature-scaling parameter
     double kinf_B_ = 0.0;
     /// @brief high-pressure exponential factor
@@ -88,7 +88,7 @@ namespace micm
         parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) * pow(temperature / 300.0, parameters_.kinf_B_);
 
     return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
-           pow(parameters_.Fc_, 1.0 / (1.0 + 1.0 / parameters_.N_ * pow(log10(k0 * air_number_density / kinf), 2)));
+           pow(parameters_.Fc_, 1.0 / (1.0 + (1.0 / parameters_.N_) * pow(log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm
