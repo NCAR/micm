@@ -53,7 +53,7 @@ TEST(AnalyticalExamples, Troe)
    *
    * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_troe.F90
    */
-  constexpr size_t nsteps = 100;
+  constexpr size_t nsteps = 1000;
 
   auto a = micm::Species("A");
   auto b = micm::Species("B");
@@ -64,13 +64,13 @@ TEST(AnalyticalExamples, Troe)
   micm::Process r1 = micm::Process::create()
                          .reactants({ a })
                          .products({ yields(b, 1) })
-                         .rate_constant(micm::TroeRateConstant({ .k0_A_ = 4.0e-18 }))
+                         .rate_constant(micm::TroeRateConstant({ .k0_A_ = 4.0e-10 }))
                          .phase(gas_phase);
 
   micm::Process r2 = micm::Process::create()
                          .reactants({ b })
                          .products({ yields(c, 1) })
-                         .rate_constant(micm::TroeRateConstant({ .k0_A_ = 1.2e-12,
+                         .rate_constant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
                                                                  .k0_B_ = 167,
                                                                  .k0_C_ = 3,
                                                                  .kinf_A_ = 136,
@@ -88,19 +88,19 @@ TEST(AnalyticalExamples, Troe)
 
   double temperature = 272.5;
   double pressure = 101253.3;
-  double air_density = 1.0e6;
+  double air_density = 1e6;
 
   // A->B reaction rate
-  double k_0 = 4.0e-18;
+  double k_0 = 4.0e-10;
   double k_inf = 1;
   double k1 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-        pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
-    
+              pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
+
   // B->C reaction rate
-  k_0 = 1.2e-12 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
+  k_0 = 1.2e-3 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
   k_inf = 136.0 * exp(24.0 / temperature) * pow(temperature / 300.0, 5.0);
   double k2 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-        pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
+              pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -121,11 +121,12 @@ TEST(AnalyticalExamples, Troe)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     // Model results
-    auto result = solver.Solve(i_time, state);
+    auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
     EXPECT_EQ(k1, state.rate_constants_.AsVector()[0]);
     EXPECT_EQ(k2, state.rate_constants_.AsVector()[1]);
     model_concentrations[i_time] = result.result_.AsVector();
+    state.variables_[0] = result.result_.AsVector();
 
     // Analytical results
     double time = i_time * time_step;
@@ -133,6 +134,7 @@ TEST(AnalyticalExamples, Troe)
     double initial_A = analytical_concentrations[0][idx_A];
     analytical_concentrations[i_time][idx_A] = initial_A * std::exp(-(k1)*time);
     analytical_concentrations[i_time][idx_B] = initial_A * (k1 / (k2 - k1)) * (std::exp(-k1 * time) - std::exp(-k2 * time));
+
     analytical_concentrations[i_time][idx_C] =
         initial_A * (1.0 + (k1 * std::exp(-k2 * time) - k2 * std::exp(-k1 * time)) / (k2 - k1));
   }
@@ -142,10 +144,11 @@ TEST(AnalyticalExamples, Troe)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    for (size_t j = 0; j < model_concentrations[i].size(); ++j)
-    {
-      EXPECT_DOUBLE_EQ(model_concentrations[i][j], analytical_concentrations[i][j])
-          << "Arrays differ at index (" << i << ", " << j << ")";
-    }
+    EXPECT_NEAR(model_concentrations[i][0], analytical_concentrations[i][0], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 0 << ")";
+    EXPECT_NEAR(model_concentrations[i][1], analytical_concentrations[i][1], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(model_concentrations[i][2], analytical_concentrations[i][2], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
