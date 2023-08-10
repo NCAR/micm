@@ -140,12 +140,12 @@ TEST(AnalyticalExamples, Troe)
   writeCSV("analytical_concentrations.csv", analytical_concentrations);
   writeCSV("model_concentrations.csv", model_concentrations);
 
-  // for (size_t i = 0; i < model_concentrations.size(); ++i)
-  // {
-  //   for (size_t j = 0; j < model_concentrations[i].size(); ++j)
-  //   {
-  //     EXPECT_DOUBLE_EQ(model_concentrations[i][j], analytical_concentrations[i][j])
-  //         << "Arrays differ at index (" << i << ", " << j << ")";
-  //   }
-  // }
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    for (size_t j = 0; j < model_concentrations[i].size(); ++j)
+    {
+      EXPECT_DOUBLE_EQ(model_concentrations[i][j], analytical_concentrations[i][j])
+          << "Arrays differ at index (" << i << ", " << j << ")";
+    }
+  }
 }
