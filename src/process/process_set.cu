@@ -94,11 +94,11 @@ namespace micm
           printf("jacobian value after subtraction: %f\n", jacobian[jacobian_idx]);
           flat_id_offset++; 
         }
-        // for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
-        //   size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
-        //   jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind; 
-        //   flat_id_offset++;
-        // }
+        for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
+          size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
+          jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind; 
+          flat_id_offset++;
+        }
         react_ids_offset += number_of_reactants[i_rxn]; 
         yields_offset += number_of_products[i_rxn]; 
       }//loop over reactants in a reaction

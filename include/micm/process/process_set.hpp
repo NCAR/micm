@@ -324,12 +324,12 @@ namespace micm
             }
             ++flat_id;
           }
-          // for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-          // {
-          //   for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-          //     v_jacobian[offset_jacobian + *flat_id + i_cell] += yield[i_dep] * d_rate_d_ind[i_cell];
-          //   ++flat_id;
-          // }
+          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+          {
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              v_jacobian[offset_jacobian + *flat_id + i_cell] += yield[i_dep] * d_rate_d_ind[i_cell];
+            ++flat_id;
+          }
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
