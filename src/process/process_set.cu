@@ -72,6 +72,7 @@ namespace micm
        //loop over reactants in a reaction
       for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind){
         double d_rate_d_ind = rate_constants[i_rxn * n_grids + tid]; 
+        printf("d_rate_d_ind: %f\n"); 
         for(size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react){
           if(i_react != i_ind){
             d_rate_d_ind *= state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]; 
