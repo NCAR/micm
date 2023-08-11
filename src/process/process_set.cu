@@ -66,13 +66,9 @@ namespace micm
     size_t react_ids_offset = 0;
     size_t yields_offset = 0; 
     size_t flat_id_offset = 0; 
-    size_t first_loop = 0; //debugging 
     if (tid < n_grids){
     //loop over reactions in a grid
     for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn){
-      //debugging
-      printf("inside first loop, loop count: %d\n", first_loop); 
-      first_loop++; 
        //loop over reactants in a reaction
       for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind){
         double d_rate_d_ind = rate_constants[i_rxn * n_grids + tid]; 
@@ -83,6 +79,7 @@ namespace micm
         }
         for(size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep){
           size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;   
+          printf("jacobian value before subtraction: %f\n", jacobian[jacobian_idx]);
           jacobian[jacobian_idx] -= d_rate_d_ind; 
           printf("tid: %d\n", tid); 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
@@ -91,11 +88,11 @@ namespace micm
           
           flat_id_offset++; 
         }
-        for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
-          size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
-          jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind; 
-          flat_id_offset++;
-        }
+        // for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
+        //   size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
+        //   jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind; 
+        //   flat_id_offset++;
+        // }
         react_ids_offset += number_of_reactants[i_rxn]; 
         yields_offset += number_of_products[i_rxn]; 
       }//loop over reactants in a reaction
