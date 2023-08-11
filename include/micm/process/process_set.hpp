@@ -319,6 +319,7 @@ namespace micm
               if (i_rxn == 0){
               std::cout << "jacobian value after subtraction: "<<v_jacobian[offset_jacobian + *flat_id + i_cell]<<std::endl; 
               }
+            }
             ++flat_id;
           }
           // for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
