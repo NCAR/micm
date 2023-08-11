@@ -75,6 +75,8 @@ namespace micm
         printf("d_rate_d_ind before modification: %f\n", d_rate_d_ind); 
         for(size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react){
           if(i_react != i_ind){
+            printf("state variable index: %d\n", reactant_ids[react_ids_offset + i_react] * n_grids + tid);
+            printf("state variable value: %f\n", state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]); 
             d_rate_d_ind *= state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]; 
           }
         }
