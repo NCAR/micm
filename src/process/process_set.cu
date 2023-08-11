@@ -84,7 +84,7 @@ namespace micm
           printf("tid: %d\n", tid); 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
           printf("jaocbian index %d\n",jacobian_idx );
-       
+          printf("d_rate_d_ind: %f\n", d_rate_d_ind);
           printf("jacobian value before subtraction: %f\n", jacobian[jacobian_idx]);
           jacobian[jacobian_idx] -= d_rate_d_ind; 
           

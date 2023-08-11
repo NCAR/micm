@@ -314,9 +314,9 @@ namespace micm
               
               std::cout << "flat id: "<< *flat_id <<std::endl; 
               std::cout << "jacobian index: "<< offset_jacobian + *flat_id + i_cell<<std::endl; 
+              std::cout << "d_rate_d_int: "<<d_rate_d_ind[i_cell]<<std::endl; 
               std::cout << "jacobian value before subtraction: "<<v_jacobian[offset_jacobian + *flat_id + i_cell]<<std::endl; 
               v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
-             
               std::cout << "jacobian value after subtraction: "<<v_jacobian[offset_jacobian + *flat_id + i_cell]<<std::endl; 
               
             }
