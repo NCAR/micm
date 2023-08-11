@@ -27,7 +27,10 @@ function(create_standard_test)
 
   if(ENABLE_JSON)
     target_link_libraries(test_${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
-    target_compile_definitions(test_${TEST_NAME} PUBLIC USE_JSON)
+  endif()
+
+  if(ENABLE_LLVM)
+    target_link_libraries(test_${TEST_NAME} PRIVATE ${llvm_libs})
   endif()
 
   if(NOT DEFINED TEST_WORKING_DIRECTORY)

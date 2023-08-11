@@ -1,0 +1,13 @@
+##############################################################
+#
+# LLVM suppressions
+#
+##############################################################
+
+{
+   <ASM_parser_conditional_jump>
+   Memcheck:Cond
+   fun:_ZN4llvm10AsmPrinter28emitPatchableFunctionEntriesEv
+   fun:_ZN4llvm10AsmPrinter16emitFunctionBodyEv
+   ...
+}
