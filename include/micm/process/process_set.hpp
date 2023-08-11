@@ -304,8 +304,8 @@ namespace micm
             std::cout << "d_rate_d_ind before modification: " << d_rate_d_ind[i_cell] << std::endl; }
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            if (i_react == i_ind)
-              continue;
+            // if (i_react == i_ind)
+            //   continue;
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
           }
