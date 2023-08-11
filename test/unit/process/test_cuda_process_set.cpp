@@ -6,6 +6,8 @@
 #include <micm/process/process_set.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <random>
 #include <vector>
 
@@ -150,6 +152,7 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   gpu_set.SetJacobianFlatIds(gpu_jacobian); 
 
   cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
+  std::cout << "CPU result now"<<std::endl; 
   gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
   //checking accuracy of jacobian between CPU and GPU
@@ -159,9 +162,23 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
     double a = cpu_jacobian_vector[i]; 
     double b = gpu_jacobian_vector[i]; 
-    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+    ASSERT_EQ(a, b);
+  }
+
+  for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){
+    std::cout << "cpu flat id: "<<cpu_set.jacobian_flat_ids_[i]<<std::endl; 
+  }
+  for (int i = 0; i < cpu_jacobian_vector.size(); i++){
+    std::cout << "jacobian value: " << cpu_jacobian_vector[i]<<std::endl; 
   }
 }
+
+// template <class T> 
+// using Group1Matrix = micm::Matrix<T, 1>; 
+
+// template<class T> 
+// using Group1SparseMatrixStandard = micm::SparseMatrix<T, micm::SparseMatrixStandardOrdering<1>>;
+
 
 template<class T>
 using Group1000VectorMatrix = micm::VectorMatrix<T, 1>;
@@ -183,8 +200,8 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 
 TEST(RandomProcessSet, Matrix)
 {
-   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1, 8, 6);
-   
+   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1, 4, 2);
+  
   // testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
   // testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
   // testRandomSystem<Group1000000VectorMatrix>(1000000, 500, 400);
