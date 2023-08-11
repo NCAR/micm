@@ -6,6 +6,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
+#include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
@@ -559,7 +560,8 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
    * A -> B, k1
    * B -> C, k2
    *
-   * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_ternary_chemical_activation.F90
+   * Copying the CAMP example:
+   * https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_ternary_chemical_activation.F90
    */
 
   auto a = micm::Species("A");
@@ -800,5 +802,233 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
     EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4);
     EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4);
     EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4);
+  }
+}
+
+TEST(AnalyticalExamples, TunnelingRateConstant)
+{
+  /*
+   * A -> B, k1
+   * B -> C, k2
+   *
+   * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_wennberg_tunneling.F90
+   */
+
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ a })
+                         .products({ yields(b, 1) })
+                         .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ b })
+                         .products({ yields(c, 1) })
+                         .rate_constant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
+                         .phase(gas_phase);
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2 },
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
+
+  double temperature = 272.5;
+  double pressure = 101253.3;
+  double air_density = 1e6;
+
+  // A->B reaction rate
+  double k1 = 4.0e-3;
+
+  // B->C reaction rate
+  double k2 = 1.2e-4 * exp( -167 / temperature + 1.0e8 / pow(temperature, 3) );
+
+  double time_step = 1.0;
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  std::vector<std::vector<double>> model_concentrations(nsteps, std::vector<double>(3));
+  std::vector<std::vector<double>> analytical_concentrations(nsteps, std::vector<double>(3));
+
+  model_concentrations[0] = { 1, 0, 0 };
+  analytical_concentrations[0] = { 1, 0, 0 };
+
+  state.variables_[0] = model_concentrations[0];
+  state.conditions_[0].temperature_ = temperature;
+  state.conditions_[0].pressure_ = pressure;
+  state.conditions_[0].air_density_ = air_density;
+
+  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+
+  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  {
+    // Model results
+    auto result = solver.Solve(time_step, state);
+    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(k1, state.rate_constants_.AsVector()[0]);
+    EXPECT_EQ(k2, state.rate_constants_.AsVector()[1]);
+    model_concentrations[i_time] = result.result_.AsVector();
+    state.variables_[0] = result.result_.AsVector();
+
+    // Analytical results
+    double time = i_time * time_step;
+
+    double initial_A = analytical_concentrations[0][idx_A];
+    analytical_concentrations[i_time][idx_A] = initial_A * std::exp(-(k1)*time);
+    analytical_concentrations[i_time][idx_B] = initial_A * (k1 / (k2 - k1)) * (std::exp(-k1 * time) - std::exp(-k2 * time));
+
+    analytical_concentrations[i_time][idx_C] =
+        initial_A * (1.0 + (k1 * std::exp(-k2 * time) - k2 * std::exp(-k1 * time)) / (k2 - k1));
+  }
+
+  std::vector<std::string> header = { "time", "A", "B", "C" };
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
+  writeCSV("model_concentrations.csv", header, model_concentrations);
+
+  auto map = state.variable_map_;
+
+  size_t _a = map.at("A");
+  size_t _b = map.at("B");
+  size_t _c = map.at("C");
+
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 0 << ")";
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
+  }
+}
+
+TEST(AnalyticalExamples, TunnelingRateConstantSuperStiffButAnalytical)
+{
+  /*
+   * A1 -> B, k1
+   * A2 -> B, k1
+   * A1 -> A2, k3 >>> k1
+   * A2 -> A1, k4 >>> k1
+   * B -> C, k2
+   *
+   */
+
+  auto a1 = micm::Species("A1");
+  auto a2 = micm::Species("A2");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ a1 })
+                         .products({ yields(b, 1) })
+                         .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ a2 })
+                         .products({ yields(b, 1) })
+                         .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
+                         .phase(gas_phase);
+
+
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ b })
+                         .products({ yields(c, 1) })
+                         .rate_constant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
+                         .phase(gas_phase);
+
+  micm::Process r4 = micm::Process::create()
+                         .reactants({ a1 })
+                         .products({ yields(a2, 1) })
+                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
+                         .phase(gas_phase);
+
+  micm::Process r5 = micm::Process::create()
+                         .reactants({ a2 })
+                         .products({ yields(a1, 1) })
+                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
+                         .phase(gas_phase);
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
+
+  double temperature = 272.5;
+  double pressure = 101253.3;
+  double air_density = 1e6;
+
+  // A->B reaction rate
+  double k1 = 4.0e-3;
+
+  // B->C reaction rate
+  double k2 = 1.2e-4 * exp( -167 / temperature + 1.0e8 / pow(temperature, 3) );
+
+  double time_step = 1.0;
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  std::vector<std::vector<double>> model_concentrations(nsteps, std::vector<double>(4));
+  std::vector<std::vector<double>> analytical_concentrations(nsteps, std::vector<double>(3));
+
+  state.SetConcentration(a1, 0.5);
+  state.SetConcentration(a2, 0.5);
+  state.SetConcentration(b, 0.0);
+  state.SetConcentration(c, 0.0);
+
+  model_concentrations[0] = state.variables_[0];
+  analytical_concentrations[0] = { 1, 0, 0 };
+
+  state.variables_[0] = model_concentrations[0];
+  state.conditions_[0].temperature_ = temperature;
+  state.conditions_[0].pressure_ = pressure;
+  state.conditions_[0].air_density_ = air_density;
+
+  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+
+  for (size_t i_time = 1; i_time < nsteps; ++i_time)
+  {
+    // Model results
+    auto result = solver.Solve(time_step, state);
+    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    model_concentrations[i_time] = result.result_.AsVector();
+    state.variables_[0] = result.result_.AsVector();
+
+    // Analytical results
+    double time = i_time * time_step;
+
+    double initial_A = analytical_concentrations[0][idx_A];
+    analytical_concentrations[i_time][idx_A] = initial_A * std::exp(-(k1)*time);
+    analytical_concentrations[i_time][idx_B] = initial_A * (k1 / (k2 - k1)) * (std::exp(-k1 * time) - std::exp(-k2 * time));
+
+    analytical_concentrations[i_time][idx_C] =
+        initial_A * (1.0 + (k1 * std::exp(-k2 * time) - k2 * std::exp(-k1 * time)) / (k2 - k1));
+  }
+
+  auto header = state.variable_names_;
+  header.insert(header.begin(), "time");
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+
+  auto map = state.variable_map_;
+
+  size_t _a1 = map.at("A1");
+  size_t _a2 = map.at("A2");
+  size_t _b = map.at("B");
+  size_t _c = map.at("C");
+
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4)
+        << "Arrays differ at index (" << i << ", " << 0 << ")";
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
