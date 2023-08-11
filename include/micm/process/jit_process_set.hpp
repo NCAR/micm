@@ -35,7 +35,6 @@ namespace micm
         const VectorMatrix<double>& rate_constants,
         const VectorMatrix<double>& state_variables,
         VectorMatrix<double>& forcing) const;
-
   };
 
   inline JitProcessSet::JitProcessSet(
@@ -46,18 +45,18 @@ namespace micm
         compiler_(compiler)
   {
     JitFunction func = JitFunction::create(compiler.get())
-                         .name("add_forcing_terms")
-                         .arguments({ { "rate constants", JitType::Double },
-                                      { "state variables", JitType::Double },
-                                      { "forcing", JitType::Double }}),
-                         .return_type(JitType::Void);
+                           .name("add_forcing_terms")
+                           .arguments({ { "rate constants", JitType::Double },
+                                        { "state variables", JitType::Double },
+                                        { "forcing", JitType::Double } }),
+                .return_type(JitType::Void);
     for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
     {
-      llvm::Value *rc_start = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_rxn * L));
-      llvm::Value *rc_end = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_rxn * L + L));
-      llvm::ArrayType *rate_arr = llvm::ArrayType::get(func.GetType(JitType::Int32), )
-      auto loop = func.StartLoop("rate constant loop", rc_start, rc_end);
-        llvm::Value *rate = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Double);
+      llvm::Value* rc_start = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_rxn * L));
+      llvm::Value* rc_end = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_rxn * L + L));
+      llvm::ArrayType* rate_arr = llvm::ArrayType::get(func.GetType(JitType::Int32), ) auto loop =
+          func.StartLoop("rate constant loop", rc_start, rc_end);
+      llvm::Value* rate = func.GetArrayElement(func.arguments_[0], index_list, micm::JitType::Double);
     }
   }
 }  // namespace micm
