@@ -84,6 +84,7 @@ namespace micm
         for(size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep){
           size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;   
           jacobian[jacobian_idx] -= d_rate_d_ind; 
+          printf("tid: %d\n", tid); 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
           printf("jaocbian index %d\n",jacobian_idx );
           printf("jacobian value after subtraction: %f\n", jacobian[jacobian_idx]);
