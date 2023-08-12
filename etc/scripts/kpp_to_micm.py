@@ -129,7 +129,7 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     return species_json
 
 
-def parse_kpp_arrhenius():
+def parse_kpp_arrhenius(kpp_str):
     """
     KPP_REAL ARR_abc( float A0, float B0, float C0 )
     {
@@ -150,7 +150,7 @@ def parse_kpp_arrhenius():
       (1.0 + parameters_.E_ * pressure);
     }
     """
-    pass
+    logging.debug(kpp_str)
 
 
 def micm_equation_json(lines):
