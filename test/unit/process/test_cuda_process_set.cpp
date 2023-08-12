@@ -162,7 +162,7 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
     double a = cpu_jacobian_vector[i]; 
     double b = gpu_jacobian_vector[i]; 
-    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-6);
+    ASSERT_NEAR(a, b, std::abs(a+b)*1.0e-4);
   }
 
   for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){

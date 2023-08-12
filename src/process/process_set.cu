@@ -72,11 +72,11 @@ namespace micm
        //loop over reactants in a reaction
       for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind){
         double d_rate_d_ind = rate_constants[i_rxn * n_grids + tid]; 
-        printf("d_rate_d_ind before modification: %f\n", d_rate_d_ind); 
+        printf("d_rate_d_ind before modification: %lf\n", d_rate_d_ind); 
         for(size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react){
           if(i_react != i_ind){
             printf("state variable index: %d\n", reactant_ids[react_ids_offset + i_react] * n_grids + tid);
-            printf("state variable value: %f\n", state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]); 
+            printf("state variable value: %lf\n", state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]); 
             d_rate_d_ind *= state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid]; 
           }
         }
@@ -87,11 +87,11 @@ namespace micm
           printf("tid: %d\n", tid); 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
           printf("jaocbian index %d\n",jacobian_idx );
-          printf("d_rate_d_ind: %f\n", d_rate_d_ind);
-          printf("jacobian value before subtraction: %f\n", jacobian[jacobian_idx]);
+          printf("d_rate_d_ind: %lf\n", d_rate_d_ind);
+          printf("jacobian value before subtraction: %lf\n", jacobian[jacobian_idx]);
           jacobian[jacobian_idx] -= d_rate_d_ind; 
           
-          printf("jacobian value after subtraction: %f\n", jacobian[jacobian_idx]);
+          printf("jacobian value after subtraction: %lf\n", jacobian[jacobian_idx]);
           flat_id_offset++; 
         }
         for(size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep){
