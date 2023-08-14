@@ -299,29 +299,19 @@ namespace micm
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
           std::vector<double> d_rate_d_ind(L, 0);
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell){
-            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];}
-            //std::cout << "d_rate_d_ind before modification: " << d_rate_d_ind[i_cell] << std::endl; }
-          
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
              if (i_react == i_ind)
               continue;
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell){
-              //std::cout << "state variable index: " << offset_state + react_id[i_react] * L + i_cell<<std::endl;
-              //std::cout << "state variable value: "<< v_state_variables[offset_state + react_id[i_react] * L + i_cell]<<std::endl; 
-              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];}
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell){
-              // std::cout << "flat id: "<< *flat_id <<std::endl; 
-              // std::cout << "jacobian index: "<< offset_jacobian + *flat_id + i_cell<<std::endl; 
-              // std::cout << "d_rate_d_int: "<<d_rate_d_ind[i_cell]<<std::endl; 
-              // std::cout << "jacobian value before subtraction: "<<v_jacobian[offset_jacobian + *flat_id + i_cell]<<std::endl; 
-              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
-              //std::cout << "jacobian value after subtraction: "<<v_jacobian[offset_jacobian + *flat_id + i_cell]<<std::endl;           
-            }
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];             
             ++flat_id;
           }
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)

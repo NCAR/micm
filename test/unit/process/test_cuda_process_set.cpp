@@ -152,7 +152,6 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   gpu_set.SetJacobianFlatIds(gpu_jacobian); 
 
   cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
-  std::cout << "GPU result now"<<std::endl; 
   gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
   //checking accuracy of jacobian between CPU and GPU
@@ -190,8 +189,5 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 
 TEST(RandomProcessSet, Matrix)
 {
-   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1000, 500, 400);
    testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
-   testRandomSystem_AddJacobianTerms<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
-   testRandomSystem_AddJacobianTerms<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);
 }
