@@ -166,12 +166,6 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
     ASSERT_EQ(a, b); 
   }
 
-  // for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){
-  //   std::cout << "cpu flat id: "<<cpu_set.jacobian_flat_ids_[i]<<std::endl; 
-  // }
-  // for (int i = 0; i < cpu_jacobian_vector.size(); i++){
-  //   std::cout << "jacobian value: " << cpu_jacobian_vector[i]<<std::endl; 
-  // }
 }
 
 
