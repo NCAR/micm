@@ -4,20 +4,16 @@ RUN dnf -y update \
     && dnf -y install \
         cmake \
         gcc-c++ \
+        gdb \
         git \
-        lcov \
         make \
         zlib-devel \
         llvm-devel \
-        openmpi-devel \
+        valgrind \
     && dnf clean all
 
 # copy the MICM code
 COPY . /micm/
-
-ENV PATH="${PATH}:/lib64/openmpi/bin"
-ENV OMPI_ALLOW_RUN_AS_ROOT=1
-ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
 # build the library and run the tests
 RUN mkdir /build \
@@ -25,10 +21,8 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
-        -D ENABLE_COVERAGE:BOOL=TRUE \
         -D ENABLE_LLVM:BOOL=TRUE \
-        # -D ENABLE_MPI:BOOL=TRUE \
-        # -D ENABLE_OPENMP:BOOL=TRUE \
+        -D ENABLE_MEMCHECK:BOOL=TRUE \
         ../micm \
       && make install -j 8
 
