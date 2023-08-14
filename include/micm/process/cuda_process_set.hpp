@@ -90,8 +90,6 @@ namespace micm
       reactant_ids_.data(), 
       reactant_ids_.size(),
       number_of_products_.data(),
-      product_ids_.data(), 
-      product_ids_.size(),
       yields_.data(), 
       yields_.size(),
       jacobian_flat_ids_.data(), 

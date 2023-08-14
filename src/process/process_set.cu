@@ -58,7 +58,6 @@ namespace micm
     size_t* number_of_reactants,
     size_t* reactant_ids,
     size_t* number_of_products,
-    size_t* product_ids,
     double* yields,
     size_t* jacobian_flat_ids){
     
@@ -106,8 +105,6 @@ namespace micm
         const size_t* reactant_ids, 
         size_t reactant_ids_size, 
         const size_t* number_of_products, 
-        const size_t* product_ids, 
-        size_t product_ids_size, 
         const double* yields, 
         size_t yields_size, 
         const size_t* jacobian_flat_ids, 
@@ -120,7 +117,6 @@ namespace micm
         size_t* d_number_of_reactants; 
         size_t* d_reactant_ids;
         size_t* d_number_of_products;
-        size_t* d_product_ids;
         double* d_yields;
         size_t* d_jacobian_flat_ids;
 
@@ -131,7 +127,6 @@ namespace micm
         cudaMalloc(&d_number_of_reactants, sizeof(size_t)* n_reactions); 
         cudaMalloc(&d_reactant_ids, sizeof(size_t)* reactant_ids_size); 
         cudaMalloc(&d_number_of_products, sizeof(size_t)* n_reactions); 
-        cudaMalloc(&d_product_ids, sizeof(size_t)* product_ids_size); 
         cudaMalloc(&d_yields, sizeof(double)* yields_size); 
         cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size); 
 
@@ -142,7 +137,6 @@ namespace micm
         cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_reactant_ids, reactant_ids, sizeof(size_t)* reactant_ids_size, cudaMemcpyHostToDevice);
         cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t)* n_reactions, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_product_ids, product_ids, sizeof(size_t) * product_ids_size, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_yields, yields, sizeof(double)* yields_size, cudaMemcpyHostToDevice); 
         cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t)* jacobian_flat_ids_size, cudaMemcpyHostToDevice); 
 
@@ -159,7 +153,6 @@ namespace micm
             d_number_of_reactants, 
             d_reactant_ids,
             d_number_of_products,
-            d_product_ids,
             d_yields, 
             d_jacobian_flat_ids); 
         cudaDeviceSynchronize(); 
@@ -171,7 +164,6 @@ namespace micm
         cudaFree(d_number_of_reactants); 
         cudaFree(d_reactant_ids); 
         cudaFree(d_number_of_products); 
-        cudaFree(d_product_ids); 
         cudaFree(d_yields); 
         cudaFree(d_jacobian_flat_ids); 
     } //end of AddJacobian_kernelSetup
