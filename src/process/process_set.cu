@@ -67,6 +67,7 @@ namespace micm
     size_t yields_offset = 0; 
     size_t flat_id_offset = 0; 
     if (tid < n_grids){
+      printf("tid: %d\n", tid); 
     //loop over reactions in a grid
     for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn){
        //loop over reactants in a reaction
@@ -83,8 +84,6 @@ namespace micm
         for(size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep){
           
           size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
-          
-          printf("tid: %d\n", tid); 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
           printf("jaocbian index %d\n",jacobian_idx );
           printf("d_rate_d_ind: %g\n", d_rate_d_ind);
