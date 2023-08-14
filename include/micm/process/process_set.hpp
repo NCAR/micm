@@ -306,7 +306,7 @@ namespace micm
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
              if (i_react == i_ind)
-               continue;
+              continue;
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell){
               std::cout << "state variable index: " << offset_state + react_id[i_react] * L + i_cell<<std::endl;
               std::cout << "state variable value: "<< v_state_variables[offset_state + react_id[i_react] * L + i_cell]<<std::endl; 

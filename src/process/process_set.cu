@@ -82,14 +82,12 @@ namespace micm
           }
         }
         for(size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep){
-          
           size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid; 
           printf("flat id: %d\n",jacobian_flat_ids[flat_id_offset] ); 
           printf("jaocbian index %d\n",jacobian_idx );
           printf("d_rate_d_ind: %g\n", d_rate_d_ind);
           printf("jacobian value before subtraction: %g\n", jacobian[jacobian_idx]);
           jacobian[jacobian_idx] -= d_rate_d_ind; 
-          
           printf("jacobian value after subtraction: %g\n", jacobian[jacobian_idx]);
           flat_id_offset++; 
         }
@@ -98,12 +96,12 @@ namespace micm
           jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind; 
           flat_id_offset++;
         }
-        react_ids_offset += number_of_reactants[i_rxn]; 
-        yields_offset += number_of_products[i_rxn]; 
       }//loop over reactants in a reaction
+      react_ids_offset += number_of_reactants[i_rxn]; 
+      yields_offset += number_of_products[i_rxn]; 
     }//loop over reactions in a grid
-    }//check valid tid 
-  }// end of AddJacobianTerms_kernel
+  }//check valid tid 
+}// end of AddJacobianTerms_kernel
     
     void AddJacobianTerms_kernelSetup(
         const double* rate_constants, 
