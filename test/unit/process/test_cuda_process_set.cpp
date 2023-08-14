@@ -162,26 +162,22 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   for (int i = 0; i < cpu_jacobian_vector.size(); i++){
     double a = cpu_jacobian_vector[i]; 
     double b = gpu_jacobian_vector[i]; 
-    EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+    //EXPECT_NEAR(a, b, std::abs(a+b)*1.0e-9);
+    ASSERT_EQ(a, b); 
   }
 
-  for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){
-    std::cout << "cpu flat id: "<<cpu_set.jacobian_flat_ids_[i]<<std::endl; 
-  }
-  for (int i = 0; i < cpu_jacobian_vector.size(); i++){
-    std::cout << "jacobian value: " << cpu_jacobian_vector[i]<<std::endl; 
-  }
+  // for (int i = 0; i < cpu_set.jacobian_flat_ids_.size(); i++){
+  //   std::cout << "cpu flat id: "<<cpu_set.jacobian_flat_ids_[i]<<std::endl; 
+  // }
+  // for (int i = 0; i < cpu_jacobian_vector.size(); i++){
+  //   std::cout << "jacobian value: " << cpu_jacobian_vector[i]<<std::endl; 
+  // }
 }
 
-// template <class T> 
-// using Group1Matrix = micm::Matrix<T, 1>; 
-
-// template<class T> 
-// using Group1SparseMatrixStandard = micm::SparseMatrix<T, micm::SparseMatrixStandardOrdering<1>>;
 
 
 template<class T>
-using Group1000VectorMatrix = micm::VectorMatrix<T, 1>;
+using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>;
 template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 template<class T>
@@ -190,7 +186,7 @@ template<class T>
 using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>;
 
 template<class T>
-using Group1000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 template<class T>
@@ -200,16 +196,8 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 
 TEST(RandomProcessSet, Matrix)
 {
-   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1, 4, 2);
-  
-  // testRandomSystem<Group10000VectorMatrix>(10000, 500, 400);
-  // testRandomSystem<Group100000VectorMatrix>(100000, 500, 400);
-  // testRandomSystem<Group1000000VectorMatrix>(1000000, 500, 400);
-
-  // std::cout << "system with 100 reactions and 80 species" << std::endl;
-  // testRandomSystem<Group1000VectorMatrix>(1000, 100, 80);
-  // testRandomSystem<Group10000VectorMatrix>(10000, 100, 80);
-  // testRandomSystem<Group100000VectorMatrix>(100000, 100, 80);
-  // testRandomSystem<Group1000000VectorMatrix>(1000000, 100, 80);
-  //
+   testRandomSystem_AddJacobianTerms<Group1000VectorMatrix, Group1000SparseVectorMatrix>(1000, 500, 400);
+   testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+   testRandomSystem_AddJacobianTerms<Group100000VectorMatrix, Group100000SparseVectorMatrix>(100000, 500, 400);
+   testRandomSystem_AddJacobianTerms<Group1000000VectorMatrix, Group1000000SparseVectorMatrix>(1000000, 500, 400);
 }
