@@ -234,7 +234,7 @@ namespace micm
       cudaDeviceSynchronize();
 
       // copy data from device memory to host memory
-      cudaMemcpy(forcing_data, d_forcing, state_forcing_bytes, cudaMemcpyDeviceToHost);
+      cudaMemcpy(forcing_data, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
 
       // clean up
       cudaFree(d_rate_constants);
