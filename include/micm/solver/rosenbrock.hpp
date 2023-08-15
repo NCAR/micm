@@ -717,6 +717,9 @@ namespace micm
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
+    // parameters_.h_max_ = time_step;
+    // parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+
     stats_.Reset();
     UpdateState(state);
 
@@ -726,6 +729,7 @@ namespace micm
     double present_time = 0.0;
     double H =
         std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
+
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
       H = delta_min_;
@@ -772,6 +776,7 @@ namespace micm
         {
           // the first stage (stage 0), inlined to remove a branch in the following for loop
           linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
+          stats_.solves += 1;
 
           // stages (1-# of stages)
           for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
@@ -795,6 +800,7 @@ namespace micm
             }
             temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
             linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
+            stats_.solves += 1;
           }
         }
 
