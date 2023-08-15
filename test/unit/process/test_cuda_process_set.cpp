@@ -183,9 +183,12 @@ using Group100000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVe
 template<class T>
 using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000000>>;
 
-TEST(RandomProcessSet, Matrix)
+TEST(RandomCudaProcessSet, Forcing)
 {
    testRandomSystem_AddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
-   testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+}
+TEST(RandomCudaProcessSet, Jacobian)
+{
+  testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }
 
