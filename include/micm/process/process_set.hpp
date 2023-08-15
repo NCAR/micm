@@ -21,10 +21,8 @@ namespace micm
     std::vector<std::size_t> number_of_products_;
     std::vector<std::size_t> product_ids_;
     std::vector<double> yields_;
-    //std::vector<std::size_t> jacobian_flat_ids_;
-   public:
-   std::vector<std::size_t> jacobian_flat_ids_; 
-
+    std::vector<std::size_t> jacobian_flat_ids_;
+  
    public:
     /// @brief Default constructor
     ProcessSet() = default;
@@ -326,5 +324,4 @@ namespace micm
       }
     }
   }
-
 }  // namespace micm

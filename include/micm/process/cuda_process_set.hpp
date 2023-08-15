@@ -61,11 +61,9 @@ namespace micm
         rate_constants[0].size(),
         state_variables[0].size(),
         number_of_reactants_.data(),
-        number_of_reactants_.size(),
         reactant_ids_.data(),
         reactant_ids_.size(),
-        number_of_products_.data(),
-        number_of_products_.size(),
+        number_of_products_.data(), 
         product_ids_.data(),
         product_ids_.size(),
         yields_.data(),
@@ -95,6 +93,5 @@ namespace micm
       jacobian_flat_ids_.data(), 
       jacobian_flat_ids_.size()); 
   }
-  
 #endif
 }  // namespace micm

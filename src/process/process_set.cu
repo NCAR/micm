@@ -9,9 +9,9 @@ namespace micm
         double* rate_constants,
         double* state_variables, 
         double* forcing,
-        int ngrids,
-        int nrxns,
-        int nspecs,
+        size_t n_grids,
+        size_t n_reactions,
+        size_t n_species,
         size_t* number_of_reactants_,
         size_t* reactant_ids_,
         size_t* number_of_products_,
@@ -22,23 +22,23 @@ namespace micm
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_id_offset, prod_id_offset, yield_offset;
 
-      if (tid < ngrids)
+      if (tid < n_grids)
       {
         react_id_offset = 0;
         prod_id_offset = 0;
         yield_offset = 0;
-        for (std::size_t i_rxn = 0; i_rxn < nrxns; ++i_rxn)
+        for (std::size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
-          double rate = rate_constants[i_rxn * ngrids + tid];
+          double rate = rate_constants[i_rxn * n_grids + tid];
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-            rate *= state_variables[reactant_ids_[react_id_offset + i_react] * ngrids + tid];
+            rate *= state_variables[reactant_ids_[react_id_offset + i_react] * n_grids + tid];
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            forcing[reactant_ids_[react_id_offset + i_react] * ngrids + tid] -= rate;
+            forcing[reactant_ids_[react_id_offset + i_react] * n_grids + tid] -= rate;
           }
           for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
           {
-            size_t index = product_ids_[prod_id_offset + i_prod] * ngrids + tid;
+            size_t index = product_ids_[prod_id_offset + i_prod] * n_grids + tid;
             forcing[index] += yields_[yield_offset + i_prod] * rate;
           }
           react_id_offset += number_of_reactants_[i_rxn];
@@ -172,19 +172,17 @@ namespace micm
         const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
-        int ngrids,
-        int nrxns,
-        int nspecs,
+        size_t n_grids,
+        size_t n_reactions,
+        size_t n_species,
         const size_t* number_of_reactants,
-        int number_of_reactants_size,
         const size_t* reactant_ids,
-        int reactant_ids_size,
+        size_t reactant_ids_size,
         const size_t* number_of_products,
-        int number_of_products_size,
         const size_t* product_ids,
-        int product_ids_size,
+        size_t product_ids_size,
         const double* yields,
-        int yields_size)
+        size_t yields_size)
     {
       // device pointer to vectorss
       double* d_rate_constants;
@@ -197,45 +195,37 @@ namespace micm
       size_t* d_product_ids_;
 
       // allocate device memory
-      size_t rate_constants_bytes = sizeof(double) * (ngrids * nrxns);
-      size_t state_forcing_bytes = sizeof(double) * (ngrids * nspecs);
-      size_t yields_bytes = sizeof(double) * yields_size;
-      size_t number_of_reactants_bytes = sizeof(size_t) * number_of_reactants_size;
-      size_t reactant_ids_bytes = sizeof(size_t) * reactant_ids_size;
-      size_t number_of_products_bytes = sizeof(size_t) * number_of_products_size;
-      size_t product_ids_bytes = sizeof(size_t) * product_ids_size;
-
-      cudaMalloc(&d_rate_constants, rate_constants_bytes);
-      cudaMalloc(&d_state_variables, state_forcing_bytes);
-      cudaMalloc(&d_forcing, state_forcing_bytes);
-      cudaMalloc(&d_number_of_reactants_, number_of_reactants_bytes);
-      cudaMalloc(&d_reactant_ids_, reactant_ids_bytes);
-      cudaMalloc(&d_number_of_products_, number_of_products_bytes);
-      cudaMalloc(&d_product_ids_, product_ids_bytes);
-      cudaMalloc(&d_yields_, yields_bytes);
+      cudaMalloc(&d_rate_constants, sizeof(double) * (n_grids * n_reactions));
+      cudaMalloc(&d_state_variables, sizeof(double) * (n_grids * n_species));
+      cudaMalloc(&d_forcing, sizeof(double) * (n_grids * n_species));
+      cudaMalloc(&d_number_of_reactants_, sizeof(size_t) * n_reactions);
+      cudaMalloc(&d_reactant_ids_, sizeof(size_t) * reactant_ids_size);
+      cudaMalloc(&d_number_of_products_, sizeof(size_t) * n_reactions);
+      cudaMalloc(&d_product_ids_, sizeof(size_t) * product_ids_size);
+      cudaMalloc(&d_yields_, sizeof(double) * yields_size);
 
       // copy data from host memory to device memory
-      cudaMemcpy(d_rate_constants, rate_constants_data, rate_constants_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_state_variables, state_variables_data, state_forcing_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_forcing, forcing_data, state_forcing_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants_, number_of_reactants, number_of_reactants_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_reactant_ids_, reactant_ids, reactant_ids_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products_, number_of_products, number_of_products_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_product_ids_, product_ids, product_ids_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_yields_, yields, yields_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_rate_constants, rate_constants_data, sizeof(double) * (n_grids * n_reactions), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_state_variables, state_variables_data, sizeof(double) * (n_grids * n_species), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_forcing, forcing_data, sizeof(double) * (n_grids * n_species), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants_, number_of_reactants, sizeof(size_t) * n_reactions, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids_, reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products_, number_of_products, sizeof(size_t) * n_reactions, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_product_ids_, product_ids, sizeof(size_t) * product_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_yields_, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
 
       // total thread count == number of grid cells
-      int block_size = 32;
-      int num_block = (ngrids + block_size - 1) / block_size;
+      int block_size = 320;
+      int num_block = (n_grids + block_size - 1) / block_size;
 
       // kernel function call
       AddForcingTerms_kernel<<<num_block, block_size>>>(
           d_rate_constants,
           d_state_variables,
           d_forcing,
-          ngrids,
-          nrxns,
-          nspecs,
+          n_grids,
+          n_reactions,
+          n_species,
           d_number_of_reactants_,
           d_reactant_ids_,
           d_number_of_products_,
