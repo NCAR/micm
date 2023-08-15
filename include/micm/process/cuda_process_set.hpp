@@ -90,8 +90,8 @@ namespace micm
       number_of_products_.data(),
       yields_.data(), 
       yields_.size(),
-      jacobian_flat_ids_.data(), 
-      jacobian_flat_ids_.size()); 
+      jacobian_flat_ids_.data(),
+      jacobian_flat_ids_.size());
   }
 #endif
 }  // namespace micm
