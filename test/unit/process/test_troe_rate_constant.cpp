@@ -38,8 +38,7 @@ TEST(TroeRateConstant, CalculateWithAllArugments)
   auto k = troe.calculate(state.conditions_[0], params);
   double k0 = 1.2 * exp(302.3 / temperature) * pow(temperature / 300.0, 2.3);
   double kinf = 2.6 * exp(402.1 / temperature) * pow(temperature / 300.0, -3.1);
-  EXPECT_EQ(
-      k, 42.2 * k0 / (1.0 + 42.2 * k0 / kinf) * pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * pow(log10(42.2 * k0 / kinf), 2))));
+  EXPECT_EQ(k, 42.2 * k0 / (1.0 + 42.2 * k0 / kinf) * pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * pow(log10(42.2 * k0 / kinf), 2))));
 }
 
 TEST(TroeRateConstant, AnalyticalTroeExampleAB)
@@ -83,8 +82,8 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
 
   double k_0 = 1.2e-12 * exp(3.0 / 301.24) * pow(301.24 / 300.0, 167.0);
   double k_inf = 136.0 * exp(24.0 / 301.24) * pow(301.24 / 300.0, 5.0);
-  double k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
-        pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * 42.2 / k_inf), 2)));
+  double k1 =
+      k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) * pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * 42.2 / k_inf), 2)));
 
   EXPECT_EQ(k, k1);
 }

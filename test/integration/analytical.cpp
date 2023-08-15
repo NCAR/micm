@@ -1509,8 +1509,7 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 
     double initial_A = analytical_concentrations[0][idx_A];
     analytical_concentrations[i_time][idx_A] = initial_A * std::exp(-(k1)*time);
-    analytical_concentrations[i_time][idx_B] = initial_A * (k1 / (k2 - k1)) * (std::exp(-k1 * time) - std::exp(-k2 *
-    time));
+    analytical_concentrations[i_time][idx_B] = initial_A * (k1 / (k2 - k1)) * (std::exp(-k1 * time) - std::exp(-k2 * time));
 
     analytical_concentrations[i_time][idx_C] =
         initial_A * (1.0 + (k1 * std::exp(-k2 * time) - k2 * std::exp(-k1 * time)) / (k2 - k1));
