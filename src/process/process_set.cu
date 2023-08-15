@@ -232,10 +232,10 @@ namespace micm
           d_product_ids_,
           d_yields_);
       cudaDeviceSynchronize();
-
+     
       // copy data from device memory to host memory
       cudaMemcpy(forcing_data, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
-
+     
       // clean up
       cudaFree(d_rate_constants);
       cudaFree(d_state_variables);

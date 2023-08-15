@@ -301,7 +301,7 @@ namespace micm
             d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-             if (i_react == i_ind)
+            if (i_react == i_ind)
               continue;
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
@@ -309,7 +309,7 @@ namespace micm
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];             
+              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
             ++flat_id;
           }
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
