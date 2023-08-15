@@ -180,7 +180,7 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
-  }
+  };
 
   template<template<class> typename MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
