@@ -185,5 +185,6 @@ using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixV
 
 TEST(RandomProcessSet, Matrix)
 {
+   testRandomSystem_AddForcingTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
    testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }
