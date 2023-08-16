@@ -155,13 +155,13 @@ def parse_kpp_arrhenius(kpp_str):
         coeffs = [float(coeff) for coeff in
             kpp_str.split('(')[1].split(')')[0].split(',')]
         logging.debug(coeffs)
-        if ('_ab' in kpp_str):
-            arr_dict = {'A': coeffs[0], 'B': coeffs[1]}
-        elif ('_ac' in kpp_str):
-            arr_dict = {'A': coeffs[0], 'C': coeffs[1]}
-        elif ('_abc' in kpp_str):
+        if ('_abc(' in kpp_str):
             arr_dict \
                 = {'A': coeffs[0], 'B': coeffs[1], 'C': coeffs[2]}
+        elif ('_ab(' in kpp_str):
+            arr_dict = {'A': coeffs[0], 'B': coeffs[1]}
+        elif ('_ac(' in kpp_str):
+            arr_dict = {'A': coeffs[0], 'C': coeffs[1]}
         else:
             arr_dict = {}
     logging.debug(arr_dict)
