@@ -53,7 +53,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    double duration = 
+    double kernel_duration = 
     micm::cuda::AddForcingTerms_kernelSetup(
         rate_constants.AsVector().data(),
         state_variables.AsVector().data(),
@@ -69,7 +69,7 @@ namespace micm
         product_ids_.size(),
         yields_.data(),
         yields_.size());
-    return douration //time performance of kernel function 
+    return kernel_douration; //time performance of kernel function 
   }
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
@@ -78,7 +78,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables, 
       SparseMatrixPolicy<double>& jacobian)const
   {  
-      double duration = 
+      double kernel_duration = 
       micm::cuda::AddJacobianTerms_kernelSetup(
       rate_constants.AsVector().data(), 
       state_variables.AsVector().data(),
@@ -95,7 +95,7 @@ namespace micm
       yields_.size(),
       jacobian_flat_ids_.data(),
       jacobian_flat_ids_.size());
-      return duration; //time performance of kernel function 
+      return kernel_duration; //time performance of kernel function 
   }
 #endif
 }  // namespace micm
