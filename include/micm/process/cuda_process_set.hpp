@@ -69,7 +69,7 @@ namespace micm
         product_ids_.size(),
         yields_.data(),
         yields_.size());
-    return kernel_douration; //time performance of kernel function 
+    return kernel_duration; //time performance of kernel function 
   }
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
