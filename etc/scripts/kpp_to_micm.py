@@ -19,14 +19,12 @@ Description:
     the KPP sections #ATOMS (not yet used), #DEFFIX,
     #DEFVAR, and #EQUATIONS are read and parsed.
     Equations with the hv reactant are MICM PHOTOLYSIS reactions,
-    all others are assumed to be ARRHENIUS reactions.
+    equations with a single coefficient are assumed to be ARRHENIUS reactions.
 
 TODO:
-    (1) Parse both A and C Arrhenius coefficients from KPP equations
-    Currently a single rate coeffient is assigned to A and C is set to 0.
-    (2) Translate stoichiometric coefficients in the equation string
+    (1) Translate stoichiometric coefficients in the equation string
     with more than one digit.
-    (3) Add method unit tests with pytest.
+    (3) Add more method unit tests with pytest.
     (4) Add support for many more reaction types ...
 
 Revision History:
@@ -152,7 +150,7 @@ def parse_kpp_arrhenius(kpp_str):
     }
     """
     logging.debug(kpp_str)
-    coeffs = [float(coeff) for coeff in
+    coeffs = [float(coeff.replace(' ', '')) for coeff in
         kpp_str.split('(')[1].split(')')[0].split(',')]
     logging.debug(coeffs)
     arr_dict = dict()
@@ -187,9 +185,11 @@ def micm_equation_json(lines):
     equations = list() # list of dict
 
     for line in lines:
+        logging.debug(line)
         lhs, rhs = tuple(line.split('='))
-        reactants = lhs.split('+')
-        products = rhs.split('+')
+        # temporary assumption of leading and trailing spaces
+        reactants = lhs.split(' + ')
+        products = rhs.split(' + ')
 
         # extract equation label delimited by < >
         label, reactants[0] = tuple(reactants[0].split('>'))
@@ -197,7 +197,7 @@ def micm_equation_json(lines):
 
         # extract equation coefficients delimited by :
         products[-1], coeffs = tuple(products[-1].split(':'))
-        coeffs = coeffs.replace('(', '').replace(')', '').replace(';', '')
+        coeffs = coeffs.replace(';', '')
 
         # remove trailing and leading whitespace
         reactants = [reactant.strip().lstrip() for reactant in reactants]
@@ -211,6 +211,7 @@ def micm_equation_json(lines):
             equation_dict = parse_kpp_arrhenius(coeffs)
         else:
             # default to Arrhenius with a single coefficient
+            coeffs = coeffs.replace('(', '').replace(')', '')
             equation_dict['type'] = 'ARRHENIUS' 
             equation_dict['A'] = float(coeffs)
 
