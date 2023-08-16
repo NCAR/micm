@@ -30,7 +30,7 @@ TODO:
     (4) Add support for many more reaction types ...
 
 Revision History:
-    2023/08/03 Initial implementation
+    v1.00 2023/08/03 Initial implementation
 """
 
 import os
@@ -40,7 +40,7 @@ import logging
 import json
 from glob import glob
 
-__version__ = 1.0
+__version__ = 'v1.00'
 
 
 def read_kpp_config(kpp_dir):
@@ -151,6 +151,21 @@ def parse_kpp_arrhenius(kpp_str):
     }
     """
     logging.debug(kpp_str)
+    if 'ARR' in kpp_str:
+        coeffs = [float(coeff) for coeff in
+            kpp_str.split('(')[1].split(')')[0].split(',')]
+        logging.debug(coeffs)
+        if ('_ab' in kpp_str):
+            arr_dict = {'A': coeffs[0], 'B': coeffs[1]}
+        elif ('_ac' in kpp_str):
+            arr_dict = {'A': coeffs[0], 'C': coeffs[1]}
+        elif ('_abc' in kpp_str):
+            arr_dict \
+                = {'A': coeffs[0], 'B': coeffs[1], 'C': coeffs[2]}
+        else:
+            arr_dict = {}
+    logging.debug(arr_dict)
+    return arr_dict
 
 
 def micm_equation_json(lines):

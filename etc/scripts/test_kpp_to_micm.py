@@ -23,7 +23,7 @@ def test_parse_kpp_arrhenius():
     kpp_A, kpp_B, kpp_C = 1.0e-12, 2000.0, -3.0
 
     kpp_to_micm.parse_kpp_arrhenius('ARR_ab(%.2e, %.2f)' % (kpp_A, kpp_B))
-    assert True
+    assert True 
 
     kpp_to_micm.parse_kpp_arrhenius('ARR_ac(%.2e, %.2f)' % (kpp_A, kpp_C))
     assert True
