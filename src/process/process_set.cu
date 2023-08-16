@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono> 
 
 namespace micm
 {
@@ -93,7 +94,7 @@ namespace micm
   }//check valid tid 
 }// end of AddJacobianTerms_kernel
     
-    void AddJacobianTerms_kernelSetup(
+    double AddJacobianTerms_kernelSetup(
         const double* rate_constants, 
         const double* state_variables, 
         size_t n_grids, 
@@ -143,7 +144,9 @@ namespace micm
         //setup kernel
         size_t threads_per_block = 320; 
         size_t total_blocks = (n_grids + threads_per_block -1)/threads_per_block; 
-        //launch kernel
+        
+        //launch kernel and measure time performance
+        auto start = std::chrono::high_resolution_clock::now();
         AddJacobianTerms_kernel<<<total_blocks, threads_per_block>>>(
             d_rate_constants,
             d_state_variables,
@@ -156,6 +159,9 @@ namespace micm
             d_yields, 
             d_jacobian_flat_ids); 
         cudaDeviceSynchronize(); 
+        auto end = std::chrono::high_resolution_clock::now();
+        double duration = end.count() - start.count(); 
+        
         cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost); 
         //clean up
         cudaFree(d_rate_constants); 
@@ -166,9 +172,11 @@ namespace micm
         cudaFree(d_number_of_products); 
         cudaFree(d_yields); 
         cudaFree(d_jacobian_flat_ids); 
+
+        return duration; 
     } //end of AddJacobian_kernelSetup
     
-    void AddForcingTerms_kernelSetup(
+    double AddForcingTerms_kernelSetup(
         const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
@@ -218,7 +226,8 @@ namespace micm
       int block_size = 320;
       int num_block = (n_grids + block_size - 1) / block_size;
 
-      // kernel function call
+      //launch kernel and measure time performance
+      auto start = std::chrono::high_resolution_clock::now();
       AddForcingTerms_kernel<<<num_block, block_size>>>(
           d_rate_constants,
           d_state_variables,
@@ -232,7 +241,9 @@ namespace micm
           d_product_ids_,
           d_yields_);
       cudaDeviceSynchronize();
-     
+      auto end = std::chrono::high_resolution_clock::now();
+      double duration = end.count() - start.count(); 
+      
       // copy data from device memory to host memory
       cudaMemcpy(forcing_data, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
      
@@ -245,6 +256,8 @@ namespace micm
       cudaFree(d_number_of_products_);
       cudaFree(d_product_ids_);
       cudaFree(d_yields_);
+
+      return duration; 
     }  // end of AddForcingTerms_kernelSetup
   }    // namespace cuda
 }  // namespace micm
