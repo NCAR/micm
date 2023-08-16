@@ -31,6 +31,7 @@ TODO:
 
 Revision History:
     v1.00 2023/08/03 Initial implementation
+    v1.01 2023/08/16 Added method parse_kpp_arrhenius
 """
 
 import os
@@ -40,7 +41,7 @@ import logging
 import json
 from glob import glob
 
-__version__ = 'v1.00'
+__version__ = 'v1.01'
 
 
 def read_kpp_config(kpp_dir):
@@ -151,19 +152,23 @@ def parse_kpp_arrhenius(kpp_str):
     }
     """
     logging.debug(kpp_str)
-    if 'ARR' in kpp_str:
-        coeffs = [float(coeff) for coeff in
-            kpp_str.split('(')[1].split(')')[0].split(',')]
-        logging.debug(coeffs)
-        if ('_abc(' in kpp_str):
-            arr_dict \
-                = {'A': coeffs[0], 'B': coeffs[1], 'C': coeffs[2]}
-        elif ('_ab(' in kpp_str):
-            arr_dict = {'A': coeffs[0], 'B': coeffs[1]}
-        elif ('_ac(' in kpp_str):
-            arr_dict = {'A': coeffs[0], 'C': coeffs[1]}
-        else:
-            arr_dict = {}
+    coeffs = [float(coeff) for coeff in
+        kpp_str.split('(')[1].split(')')[0].split(',')]
+    logging.debug(coeffs)
+    arr_dict = dict()
+    arr_dict['type'] = 'ARRHENIUS' 
+    if ('_abc(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['B'] = coeffs[1]
+        arr_dict['C'] = coeffs[2]
+    elif ('_ab(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['B'] = coeffs[1]
+    elif ('_ac(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['C'] = coeffs[1]
+    else:
+        logging.error('unrecognized KPP Arrhenius syntax')
     logging.debug(arr_dict)
     return arr_dict
 
@@ -202,12 +207,12 @@ def micm_equation_json(lines):
 
         if 'SUN' in coeffs:
             equation_dict['type'] = 'PHOTOLYSIS' 
+        elif 'ARR' in coeffs:
+            equation_dict = parse_kpp_arrhenius(coeffs)
         else:
+            # default to Arrhenius with a single coefficient
             equation_dict['type'] = 'ARRHENIUS' 
-            # assuming a single coefficient here
             equation_dict['A'] = float(coeffs)
-            # need to generalize to parse both A and C from KPP
-            equation_dict['C'] = 0.0
 
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
