@@ -552,9 +552,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -717,8 +717,8 @@ namespace micm
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
 
-    // parameters_.h_max_ = time_step;
-    // parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    parameters_.h_max_ = time_step;
+    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
     stats_.Reset();
     UpdateState(state);
@@ -773,23 +773,28 @@ namespace micm
 
         // Compute the stages
         {
-          // the first stage (stage 0), inlined to remove a branch in the following for loop
-          linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
-          stats_.solves += 1;
-
           // stages (1-# of stages)
-          for (uint64_t stage = 1; stage < parameters_.stages_; ++stage)
+          for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           {
             double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
-            if (parameters_.new_function_evaluation_[stage])
+            if (stage == 0)
             {
-              Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
-              for (uint64_t j = 0; j < stage; ++j)
+              // the first stage (stage 0), inlined to remove a branch in the following for loop
+              linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
+              stats_.solves += 1;
+            }
+            else
+            {
+              if (parameters_.new_function_evaluation_[stage])
               {
-                auto a = parameters_.a_[stage_combinations + j];
-                Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
+                Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+                for (uint64_t j = 0; j < stage; ++j)
+                {
+                  auto a = parameters_.a_[stage_combinations + j];
+                  Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
+                }
+                CalculateForcing(state.rate_constants_, Ynew, forcing);
               }
-              CalculateForcing(state.rate_constants_, Ynew, forcing);
             }
             K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
             for (uint64_t j = 0; j < stage; ++j)
@@ -880,7 +885,8 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
@@ -895,7 +901,8 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const
+    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())
