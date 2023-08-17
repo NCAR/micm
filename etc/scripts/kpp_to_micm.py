@@ -24,8 +24,8 @@ Description:
 TODO:
     (1) Translate stoichiometric coefficients in the equation string
     with more than one digit.
-    (3) Add more method unit tests with pytest.
-    (4) Add support for many more reaction types ...
+    (2) Add pytest unit test for method micm_equation_json.
+    (3+) Add support for many more reaction types ...
 
 Revision History:
     v1.00 2023/08/03 Initial implementation
@@ -186,18 +186,21 @@ def micm_equation_json(lines):
 
     for line in lines:
         logging.debug(line)
+
+        # split on equal sign into left hand and right hand sides 
         lhs, rhs = tuple(line.split('='))
-        # temporary assumption of leading and trailing spaces
-        reactants = lhs.split(' + ')
-        products = rhs.split(' + ')
+
+        # extract reaction coefficients
+        rhs, coeffs = tuple(rhs.split(':'))
+        coeffs = coeffs.replace(';', '')
+
+        # get reactants and products
+        reactants = lhs.split('+')
+        products = rhs.split('+')
 
         # extract equation label delimited by < >
         label, reactants[0] = tuple(reactants[0].split('>'))
         label = label.lstrip('<')
-
-        # extract equation coefficients delimited by :
-        products[-1], coeffs = tuple(products[-1].split(':'))
-        coeffs = coeffs.replace(';', '')
 
         # remove trailing and leading whitespace
         reactants = [reactant.strip().lstrip() for reactant in reactants]
