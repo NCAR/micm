@@ -794,12 +794,13 @@ namespace micm
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
-          for (uint64_t j = 0; j <= stage; ++j)
+          for (uint64_t j = 0; j < stage; ++j)
           {
             auto HC = parameters_.c_[stage_combinations + j] / H;
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
+          // linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
           stats_.solves += 1;
         }
