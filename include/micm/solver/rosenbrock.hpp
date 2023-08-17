@@ -794,7 +794,7 @@ namespace micm
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
-          for (uint64_t j = 0; j < stage; ++j)
+          for (uint64_t j = 0; j <= stage; ++j)
           {
             auto HC = parameters_.c_[stage_combinations + j] / H;
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
