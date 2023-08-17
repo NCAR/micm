@@ -772,40 +772,36 @@ namespace micm
         }
 
         // Compute the stages
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
-          // stages (1-# of stages)
-          for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+          double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+          if (stage == 0)
           {
-            double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
-            if (stage == 0)
-            {
-              // the first stage (stage 0), inlined to remove a branch in the following for loop
-              linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
-              stats_.solves += 1;
-            }
-            else
-            {
-              if (parameters_.new_function_evaluation_[stage])
-              {
-                Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
-                for (uint64_t j = 0; j < stage; ++j)
-                {
-                  auto a = parameters_.a_[stage_combinations + j];
-                  Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
-                }
-                CalculateForcing(state.rate_constants_, Ynew, forcing);
-              }
-            }
-            K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
-            for (uint64_t j = 0; j < stage; ++j)
-            {
-              auto HC = parameters_.c_[stage_combinations + j] / H;
-              K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
-            }
-            temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-            linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
-            stats_.solves += 1;
+            // the first stage simply uses the initial forcing
+            // nothing to do
           }
+          else
+          {
+            if (parameters_.new_function_evaluation_[stage])
+            {
+              Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+              for (uint64_t j = 0; j < stage; ++j)
+              {
+                auto a = parameters_.a_[stage_combinations + j];
+                Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
+              }
+              CalculateForcing(state.rate_constants_, Ynew, forcing);
+            }
+          }
+          K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
+          for (uint64_t j = 0; j < stage; ++j)
+          {
+            auto HC = parameters_.c_[stage_combinations + j] / H;
+            K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
+          }
+          temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
+          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
+          stats_.solves += 1;
         }
 
         // Compute the new solution
