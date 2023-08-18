@@ -13,7 +13,8 @@ Usage:
 Description:
     kpp_to_micm.py translates KPP config files to MICM JSON config files
     (desginated by the suffixes .kpp, .spc, .eqn, .def)
-    from a single directory specified by the --kpp_dir argument.
+    from a single directory specified by the
+    --kpp_dir and --kpp_name arguments.
 
     In the initial implementation,
     the KPP sections #ATOMS (not yet used), #DEFFIX,
@@ -42,7 +43,7 @@ from glob import glob
 __version__ = 'v1.01'
 
 
-def read_kpp_config(kpp_dir):
+def read_kpp_config(kpp_dir, kpp_name):
     """
     Read all KPP config files in a directory
 
@@ -58,7 +59,7 @@ def read_kpp_config(kpp_dir):
     lines = list()
 
     for suffix in suffixes:
-        files = glob(os.path.join(kpp_dir, '*' + suffix))
+        files = glob(os.path.join(kpp_dir, kpp_name + '*' + suffix))
         logging.debug(files)
         for filename in files:
             with open(filename, 'r') as f:
@@ -130,6 +131,18 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
 
 def parse_kpp_arrhenius(kpp_str):
     """
+    Parse KPP Arrhenius reaction
+
+    Parameters
+        (str) kpp_str: Arrhenius reaction string
+
+    Returns
+        (dict): MICM Arrhenius reaction coefficients
+
+
+    Arrhenius formula from KPP
+    --------------------------
+
     KPP_REAL ARR_abc( float A0, float B0, float C0 )
     {
       double ARR_RES;
@@ -140,6 +153,9 @@ def parse_kpp_arrhenius(kpp_str):
 
     return (KPP_REAL)ARR_RES;
     }
+
+    Arrhenius formula from MICM
+    ---------------------------
 
     inline double ArrheniusRateConstant::calculate(
       const double& temperature, const double& pressure) const
@@ -256,6 +272,9 @@ if __name__ == '__main__':
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
         help='KPP input config directory')
+    parser.add_argument('--kpp_name', type=str,
+        default='small_strato',
+        help='KPP config name')
     parser.add_argument('--micm_dir', type=str,
         default=os.path.join('..', 'configs', 'micm'),
         help='MICM output species config file')
@@ -275,7 +294,7 @@ if __name__ == '__main__':
     """
     Read KPP config files
     """
-    lines = read_kpp_config(args.kpp_dir)
+    lines = read_kpp_config(args.kpp_dir, args.kpp_name)
 
     """
     Split KPP config by section

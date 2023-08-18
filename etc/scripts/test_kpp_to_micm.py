@@ -37,3 +37,4 @@ def test_parse_kpp_arrhenius():
     assert arr_dict['A'] == kpp_A
     assert arr_dict['B'] == kpp_B
     assert arr_dict['C'] == kpp_C
+
