@@ -1,4 +1,3 @@
-
 // Copyright (C) 2023 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
@@ -10,6 +9,7 @@
 #  include <micm/process/cuda_process_set.cuh>
 #endif
 
+#ifdef USE_CUDA
 namespace micm
 {
   /// @brief A GPU-based implementation of ProcessSet
@@ -22,7 +22,6 @@ namespace micm
     template<template<class> class MatrixPolicy>
     CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
 
-#ifdef USE_CUDA
     template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>
     std::chrono::nanoseconds AddForcingTerms(
@@ -36,7 +35,6 @@ namespace micm
       const MatrixPolicy<double>& rate_constants, 
       const MatrixPolicy<double>& state_variables, 
       SparseMatrixPolicy<double>& jacobian)const; 
-#endif
   };
 
   template<template<class> class MatrixPolicy>
@@ -45,7 +43,7 @@ namespace micm
   {
   }
 
-#ifdef USE_CUDA
+
   template<template<class> class MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
   inline std::chrono::nanoseconds CudaProcessSet::AddForcingTerms(
@@ -97,5 +95,5 @@ namespace micm
       jacobian_flat_ids_.size());
       return kernel_duration; //time performance of kernel function 
   }
-#endif
 }  // namespace micm
+#endif
