@@ -76,7 +76,7 @@ namespace micm
     // Gamma_i = \sum_j  gamma_{i,j}
     std::array<double, 6> gamma_{};
 
-    double absolute_tolerance_{ 1e-12 };
+    double absolute_tolerance_{ 1e-3 };
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
