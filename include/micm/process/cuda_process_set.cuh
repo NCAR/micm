@@ -4,7 +4,7 @@ namespace micm
 {
   namespace cuda
   {
-   double AddForcingTerms_kernelSetup(
+   std::chrono::nanoseconds AddForcingTerms_kernelSetup(
         const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
@@ -20,7 +20,7 @@ namespace micm
         const double* yields,
         size_t yields_size);
 
-    double AddJacobianTerms_kernelSetup(
+    std::chrono::nanoseconds AddJacobianTerms_kernelSetup(
         const double* rate_constants,
         const double* state_variables,
         size_t n_grids,

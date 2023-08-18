@@ -94,7 +94,7 @@ namespace micm
   }//check valid tid 
 }// end of AddJacobianTerms_kernel
     
-    double AddJacobianTerms_kernelSetup(
+    std::chrono::nanoseconds AddJacobianTerms_kernelSetup(
         const double* rate_constants, 
         const double* state_variables, 
         size_t n_grids, 
@@ -160,8 +160,7 @@ namespace micm
             d_jacobian_flat_ids); 
         cudaDeviceSynchronize(); 
         auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-        double kernel_duration = duration.count(); 
+        auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
         
         cudaMemcpy(jacobian, d_jacobian, sizeof(double)* jacobian_size, cudaMemcpyDeviceToHost); 
         //clean up
@@ -176,7 +175,7 @@ namespace micm
         return kernel_duration; 
     } //end of AddJacobian_kernelSetup
     
-    double AddForcingTerms_kernelSetup(
+    std::chrono::nanoseconds AddForcingTerms_kernelSetup(
         const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
@@ -242,8 +241,8 @@ namespace micm
           d_yields_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-      double kernel_duration = duration.count(); 
+      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+      
       
       // copy data from device memory to host memory
       cudaMemcpy(forcing_data, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);

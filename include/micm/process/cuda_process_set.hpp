@@ -25,14 +25,14 @@ namespace micm
 #ifdef USE_CUDA
     template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>
-    double AddForcingTerms(
+    std::chrono::nanoseconds AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
     
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
-    double AddJacobianTerms(
+    std::chrono::nanoseconds AddJacobianTerms(
       const MatrixPolicy<double>& rate_constants, 
       const MatrixPolicy<double>& state_variables, 
       SparseMatrixPolicy<double>& jacobian)const; 
@@ -48,12 +48,12 @@ namespace micm
 #ifdef USE_CUDA
   template<template<class> class MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
-  inline double CudaProcessSet::AddForcingTerms(
+  inline std::chrono::nanoseconds CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    double kernel_duration = 
+    std::chrono::nanoseconds kernel_duration = 
     micm::cuda::AddForcingTerms_kernelSetup(
         rate_constants.AsVector().data(),
         state_variables.AsVector().data(),
@@ -73,12 +73,12 @@ namespace micm
   }
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
-  inline double CudaProcessSet::AddJacobianTerms(
+  inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
       const MatrixPolicy<double>& rate_constants, 
       const MatrixPolicy<double>& state_variables, 
       SparseMatrixPolicy<double>& jacobian)const
   {  
-      double kernel_duration = 
+      std::chrono::nanoseconds kernel_duration = 
       micm::cuda::AddJacobianTerms_kernelSetup(
       rate_constants.AsVector().data(), 
       state_variables.AsVector().data(),
