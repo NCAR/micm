@@ -811,7 +811,7 @@ namespace micm
           Ynew.ForEach([&](double& iYnew, double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
 
         // Compute the error estimation
-        MatrixPolicy<double> Yerror(Y.AsVector().size(), 0);
+        MatrixPolicy<double> Yerror(Y.size(), Y[0].size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.ForEach([&](double& iYerror, double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
 
