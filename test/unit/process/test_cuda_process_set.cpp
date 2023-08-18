@@ -21,7 +21,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
 }
 
 template<template<class> class MatrixPolicy>
-void testRandomSystem_AddForcingTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -93,7 +93,7 @@ void testRandomSystem_AddForcingTerms(std::size_t n_cells, std::size_t n_reactio
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species){
+void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species){
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
   auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
@@ -165,30 +165,20 @@ void testRandomSystem_AddJacobianTerms(std::size_t n_cells, std::size_t n_reacti
   }
 }
 
-template<class T>
-using Group1000VectorMatrix = micm::VectorMatrix<T, 1000>;
-template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
-template<class T>
-using Group100000VectorMatrix = micm::VectorMatrix<T, 100000>;
-template<class T>
-using Group1000000VectorMatrix = micm::VectorMatrix<T, 1000000>;
 
 template<class T>
-using Group1000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
+using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
+
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
-template<class T>
-using Group100000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
-template<class T>
-using Group1000000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000000>>;
+
 
 TEST(RandomCudaProcessSet, Forcing)
 {
-   testRandomSystem_AddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
+   testRandomSystemAddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystem_AddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+  testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }
 

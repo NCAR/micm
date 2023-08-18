@@ -10,7 +10,7 @@ namespace micm
   namespace cuda
   {
     // flipped memory layout
-    __global__ void AddForcingTerms_kernel(
+    __global__ void AddForcingTermsKernel(
         double* rate_constants,
         double* state_variables, 
         double* forcing,
@@ -54,7 +54,7 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
 
-  __global__ void AddJacobianTerms_kernel(
+  __global__ void AddJacobianTermsKernel(
     double* rate_constants,
     double* state_variables,
     size_t n_grids,
@@ -98,7 +98,7 @@ namespace micm
   }//check valid tid 
 }// end of AddJacobianTerms_kernel
     
-    std::chrono::nanoseconds AddJacobianTerms_kernelSetup(
+    std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         const double* rate_constants, 
         const double* state_variables, 
         size_t n_grids, 
@@ -151,7 +151,7 @@ namespace micm
         
         //launch kernel and measure time performance
         auto startTime = std::chrono::high_resolution_clock::now();
-        AddJacobianTerms_kernel<<<total_blocks, threads_per_block>>>(
+        AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
             d_rate_constants,
             d_state_variables,
             n_grids, 
@@ -179,7 +179,7 @@ namespace micm
         return kernel_duration; 
     } //end of AddJacobian_kernelSetup
     
-    std::chrono::nanoseconds AddForcingTerms_kernelSetup(
+    std::chrono::nanoseconds AddForcingTermsKernelDriver(
         const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
@@ -231,7 +231,7 @@ namespace micm
 
       //launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
-      AddForcingTerms_kernel<<<num_block, block_size>>>(
+      AddForcingTermsKernel<<<num_block, block_size>>>(
           d_rate_constants,
           d_state_variables,
           d_forcing,

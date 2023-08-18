@@ -52,7 +52,7 @@ namespace micm
       MatrixPolicy<double>& forcing) const
   {
     std::chrono::nanoseconds kernel_duration = 
-    micm::cuda::AddForcingTerms_kernelSetup(
+    micm::cuda::AddForcingTermsKernelDriver(
         rate_constants.AsVector().data(),
         state_variables.AsVector().data(),
         forcing.AsVector().data(),
@@ -77,7 +77,7 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian)const
   {  
       std::chrono::nanoseconds kernel_duration = 
-      micm::cuda::AddJacobianTerms_kernelSetup(
+      micm::cuda::AddJacobianTermsKernelDriver(
       rate_constants.AsVector().data(), 
       state_variables.AsVector().data(),
       rate_constants.size(), //n_grids
