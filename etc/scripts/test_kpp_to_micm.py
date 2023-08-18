@@ -25,16 +25,16 @@ def test_parse_kpp_arrhenius():
     arr_dict = kpp_to_micm.parse_kpp_arrhenius(
         'ARR_ab(%.2e, %.2f)' % (kpp_A, kpp_B))
     assert arr_dict['A'] == kpp_A
-    assert arr_dict['B'] == kpp_B
+    assert arr_dict['C'] == - kpp_B
 
     arr_dict = kpp_to_micm.parse_kpp_arrhenius(
         'ARR_ac(%.2e, %.2f)' % (kpp_A, kpp_C))
     assert arr_dict['A'] == kpp_A
-    assert arr_dict['C'] == kpp_C
+    assert arr_dict['B'] == kpp_C
 
     arr_dict = kpp_to_micm.parse_kpp_arrhenius(
         'ARR_abc(%.2e, %.2f, %.2f)' % (kpp_A, kpp_B, kpp_C))
     assert arr_dict['A'] == kpp_A
-    assert arr_dict['B'] == kpp_B
-    assert arr_dict['C'] == kpp_C
+    assert arr_dict['C'] == - kpp_B
+    assert arr_dict['B'] == kpp_C
 
