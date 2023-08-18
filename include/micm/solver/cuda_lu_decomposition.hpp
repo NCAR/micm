@@ -1,5 +1,6 @@
 #pragma once
 #include<micm/solver/lu_decomposition.hpp>
+#include<thrust/device_vector.h> 
 #ifdef USE_CUDA
 #include <micm/solver/cuda_de_composition.cuh>
 #endif 
@@ -104,7 +105,14 @@ namespace micm{
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const
     {
+        thrust::device_vector d_niLU<std::pair<size_t,size_t>> = niLU_; 
+        thrust::device_vector d_uik_nkj<std::pair<size_t,size_t>> = uik_nkj_;
+        thrust::device_vector d_lij_ujk<std::pair<size_t, size_t>> = lij_ujk_; 
+        thrust::device_vector d_lki_nkj<std::pair<size_t, size_t>> = lki_nkj_; 
+        thrust::device_vector d_lkj_uji<std::pair<size_t, size_t>> = lkj_uji_;
+        
         //calling kernelSetup function
+        
     }
 
 
