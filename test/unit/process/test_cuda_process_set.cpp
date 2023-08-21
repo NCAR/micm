@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <functional>
 #include <iostream>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
-#include <micm/util/vector_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 #include <random>
 #include <vector>
 
@@ -93,7 +94,8 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species){
+void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+{
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
   auto get_species_id = std::bind(std::uniform_int_distribution<>(0, n_species - 1), std::default_random_engine());
@@ -146,25 +148,25 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   for (auto& elem : non_zero_elements)
     builder = builder.with_element(elem.first, elem.second);
   SparseMatrixPolicy<double> cpu_jacobian{ builder };
-  SparseMatrixPolicy<double> gpu_jacobian{builder};
+  SparseMatrixPolicy<double> gpu_jacobian{ builder };
 
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
-  gpu_set.SetJacobianFlatIds(gpu_jacobian); 
+  gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
   cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
   gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
-  //checking accuracy of jacobian between CPU and GPU
-   std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector(); 
-   std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector(); 
+  // checking accuracy of jacobian between CPU and GPU
+  std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector();
+  std::vector<double> gpu_jacobian_vector = gpu_jacobian.AsVector();
 
-  for (int i = 0; i < cpu_jacobian_vector.size(); i++){
-    double a = cpu_jacobian_vector[i]; 
-    double b = gpu_jacobian_vector[i]; 
-    ASSERT_EQ(a, b); 
+  for (int i = 0; i < cpu_jacobian_vector.size(); i++)
+  {
+    double a = cpu_jacobian_vector[i];
+    double b = gpu_jacobian_vector[i];
+    ASSERT_EQ(a, b);
   }
 }
-
 
 template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
@@ -172,13 +174,11 @@ using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
-
 TEST(RandomCudaProcessSet, Forcing)
 {
-   testRandomSystemAddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystemAddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
   testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }
-

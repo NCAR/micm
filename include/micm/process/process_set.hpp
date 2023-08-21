@@ -22,7 +22,7 @@ namespace micm
     std::vector<std::size_t> product_ids_;
     std::vector<double> yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
-  
+
    public:
     /// @brief Default constructor
     ProcessSet() = default;
@@ -236,8 +236,8 @@ namespace micm
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];  
-      auto cell_state = state_variables[i_cell];       
+      auto cell_rate_constants = rate_constants[i_cell];
+      auto cell_state = state_variables[i_cell];
 
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
@@ -290,7 +290,7 @@ namespace micm
       std::size_t offset_rc = i_group * rate_constants.GroupSize();
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
-      
+
       auto flat_id = jacobian_flat_ids_.begin();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
