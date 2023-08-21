@@ -713,6 +713,7 @@ namespace micm
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
+    MatrixPolicy<double> intial_forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
@@ -753,7 +754,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
-      CalculateForcing(state.rate_constants_, Y, forcing);
+      CalculateForcing(state.rate_constants_, Y, intial_forcing);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -777,8 +778,7 @@ namespace micm
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
-            // the first stage simply uses the initial forcing
-            // nothing to do
+            forcing = intial_forcing;
           }
           else
           {
