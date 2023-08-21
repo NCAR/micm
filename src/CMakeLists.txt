@@ -71,7 +71,7 @@ if(ENABLE_CUDA)
 
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-  
+  set(CMAKE_CUDA_ARCHITECTURES 80)
   target_link_libraries(micm_cuda 
     PRIVATE micm
   )

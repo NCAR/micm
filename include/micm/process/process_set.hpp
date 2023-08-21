@@ -22,7 +22,7 @@ namespace micm
     std::vector<std::size_t> product_ids_;
     std::vector<double> yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
-
+  
    public:
     /// @brief Default constructor
     ProcessSet() = default;
@@ -231,16 +231,14 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
-    // cell_jacobian is an iterator  -> update after each row
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
-      auto cell_rate_constants = rate_constants[i_cell];  // rate of every reaction in a grid
-      auto cell_state = state_variables[i_cell];          // state of every specie in a grid
+      auto cell_rate_constants = rate_constants[i_cell];  
+      auto cell_state = state_variables[i_cell];       
 
-      // every grid starts with every react_id, yield and flat_id
       auto react_id = reactant_ids_.begin();
       auto yield = yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
@@ -260,10 +258,8 @@ namespace micm
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-
             cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-            // flat_id (iterator) is not reset from previous loop
             cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
         }
         react_id += number_of_reactants_[i_rxn];
@@ -294,6 +290,7 @@ namespace micm
       std::size_t offset_rc = i_group * rate_constants.GroupSize();
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
+      
       auto flat_id = jacobian_flat_ids_.begin();
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
@@ -327,5 +324,4 @@ namespace micm
       }
     }
   }
-
 }  // namespace micm
