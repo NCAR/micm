@@ -713,7 +713,7 @@ namespace micm
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> intial_forcing(Y.size(), Y[0].size(), 0.0);
+    MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
@@ -754,7 +754,7 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
-      CalculateForcing(state.rate_constants_, Y, intial_forcing);
+      CalculateForcing(state.rate_constants_, Y, initial_forcing);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -778,7 +778,7 @@ namespace micm
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
-            forcing = intial_forcing;
+            forcing = initial_forcing;
           }
           else
           {
@@ -817,11 +817,12 @@ namespace micm
         auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
-        double Hnew = H * std::min(
+        double fac = std::min(
                               parameters_.factor_max_,
                               std::max(
                                   parameters_.factor_min_,
                                   parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
+        double Hnew = H * fac;
 
         // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
