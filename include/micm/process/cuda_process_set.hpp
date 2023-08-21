@@ -23,18 +23,19 @@ namespace micm
     CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
-    std::chrono::nanoseconds AddForcingTerms(
+    requires VectorizableDense<MatrixPolicy<double>> std::chrono::nanoseconds AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
-    
+        MatrixPolicy<double>& forcing)
+    const;
+
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
-    std::chrono::nanoseconds AddJacobianTerms(
-      const MatrixPolicy<double>& rate_constants, 
-      const MatrixPolicy<double>& state_variables, 
-      SparseMatrixPolicy<double>& jacobian)const; 
+    requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+        std::chrono::nanoseconds AddJacobianTerms(
+            const MatrixPolicy<double>& rate_constants,
+            const MatrixPolicy<double>& state_variables,
+            SparseMatrixPolicy<double>& jacobian)
+    const;
   };
 
   template<template<class> class MatrixPolicy>
@@ -43,7 +44,6 @@ namespace micm
   {
   }
 
-
   template<template<class> class MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
   inline std::chrono::nanoseconds CudaProcessSet::AddForcingTerms(
@@ -51,8 +51,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    std::chrono::nanoseconds kernel_duration = 
-    micm::cuda::AddForcingTermsKernelDriver(
+    std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
         rate_constants.AsVector().data(),
         state_variables.AsVector().data(),
         forcing.AsVector().data(),
@@ -62,38 +61,37 @@ namespace micm
         number_of_reactants_.data(),
         reactant_ids_.data(),
         reactant_ids_.size(),
-        number_of_products_.data(), 
+        number_of_products_.data(),
         product_ids_.data(),
         product_ids_.size(),
         yields_.data(),
         yields_.size());
-    return kernel_duration; //time performance of kernel function 
+    return kernel_duration;  // time performance of kernel function
   }
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>
+  requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
   inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
-      const MatrixPolicy<double>& rate_constants, 
-      const MatrixPolicy<double>& state_variables, 
-      SparseMatrixPolicy<double>& jacobian)const
-  {  
-      std::chrono::nanoseconds kernel_duration = 
-      micm::cuda::AddJacobianTermsKernelDriver(
-      rate_constants.AsVector().data(), 
-      state_variables.AsVector().data(),
-      rate_constants.size(), //n_grids
-      rate_constants[0].size(), //n_reactions
-      state_variables[0].size(), //n_species
-      jacobian.AsVector().data(), 
-      jacobian.AsVector().size(), 
-      number_of_reactants_.data(),
-      reactant_ids_.data(), 
-      reactant_ids_.size(),
-      number_of_products_.data(),
-      yields_.data(), 
-      yields_.size(),
-      jacobian_flat_ids_.data(),
-      jacobian_flat_ids_.size());
-      return kernel_duration; //time performance of kernel function 
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
+  {
+    std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
+        rate_constants.AsVector().data(),
+        state_variables.AsVector().data(),
+        rate_constants.size(),      // n_grids
+        rate_constants[0].size(),   // n_reactions
+        state_variables[0].size(),  // n_species
+        jacobian.AsVector().data(),
+        jacobian.AsVector().size(),
+        number_of_reactants_.data(),
+        reactant_ids_.data(),
+        reactant_ids_.size(),
+        number_of_products_.data(),
+        yields_.data(),
+        yields_.size(),
+        jacobian_flat_ids_.data(),
+        jacobian_flat_ids_.size());
+    return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
 #endif
