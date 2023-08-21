@@ -800,7 +800,6 @@ namespace micm
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          // linear_solver_.template Solve<MatrixPolicy>(forcing, K[0]);
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
           stats_.solves += 1;
         }
