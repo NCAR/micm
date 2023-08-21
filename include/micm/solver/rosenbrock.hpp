@@ -711,6 +711,7 @@ namespace micm
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
+    result.state_ = SolverState::Converged;
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
@@ -864,7 +865,6 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
-    result.state_ = SolverState::Converged;
     return result;
   }
 
