@@ -41,7 +41,7 @@ namespace micm
   {
     size_t stages_{};
     size_t upper_limit_tolerance_{};
-    size_t max_number_of_steps_{ 100 };
+    size_t max_number_of_steps_{ 200000 };
 
     double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
     double factor_min_{ 0.2 };                                    // solver step size minimum boundary
