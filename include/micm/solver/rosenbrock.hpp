@@ -755,7 +755,11 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
+      // compute the concentrations at the current time
       CalculateForcing(state.rate_constants_, Y, initial_forcing);
+
+      // compute the jacobian at the current time
+      CalculateJacobian(state.rate_constants_, Y, jacobian_);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -944,7 +948,6 @@ namespace micm
     while (true)
     {
       double alpha = 1 / (H * gamma);
-      CalculateJacobian(rate_constants, number_densities, jacobian_);
       AlphaMinusJacobian(jacobian_, alpha);
       linear_solver_.Factor(jacobian_);
       singular = false;  // TODO This should be evaluated in some way
