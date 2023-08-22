@@ -473,7 +473,8 @@ namespace micm
       Converged,
       ConvergenceExceededMaxSteps,
       StepSizeTooSmall,
-      RepeatedlySingularMatrix
+      RepeatedlySingularMatrix,
+      NaNDetected
     };
 
     struct SolverStats
@@ -738,7 +739,7 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while ((present_time - time_step + parameters_.round_off_) <= 0)
+    while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Converged))
     {
       if (stats_.number_of_steps > parameters_.max_number_of_steps_)
       {
@@ -829,7 +830,12 @@ namespace micm
         // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
         stats_.total_steps += 1;
-        if ((error < 1) || (H < parameters_.h_min_))
+
+        if (std::isnan(error)) {
+          result.state_ = SolverState::NaNDetected;
+          break;
+        }
+        else if ((error < 1) || (H < parameters_.h_min_))
         {
           stats_.accepted += 1;
           present_time = present_time + H;
