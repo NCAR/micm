@@ -832,6 +832,7 @@ namespace micm
         stats_.total_steps += 1;
 
         if (std::isnan(error)) {
+          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           result.state_ = SolverState::NaNDetected;
           break;
         }
