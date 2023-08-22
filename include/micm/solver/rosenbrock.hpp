@@ -943,13 +943,14 @@ namespace micm
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
+    SparseMatrixPolicy<double> jacobian = jacobian_;
     uint64_t n_consecutive = 0;
     singular = true;
     while (true)
     {
       double alpha = 1 / (H * gamma);
-      AlphaMinusJacobian(jacobian_, alpha);
-      linear_solver_.Factor(jacobian_);
+      AlphaMinusJacobian(jacobian, alpha);
+      linear_solver_.Factor(jacobian);
       singular = false;  // TODO This should be evaluated in some way
       stats_.decompositions += 1;
       if (!singular)
