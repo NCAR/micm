@@ -766,7 +766,6 @@ namespace micm
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(H, parameters_.gamma_[0], is_singular, Y, state.rate_constants_);
-        stats_.jacobian_updates += 1;
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
