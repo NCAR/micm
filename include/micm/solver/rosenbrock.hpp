@@ -763,7 +763,7 @@ namespace micm
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
-      while (!accepted & (stats_.number_of_steps < parameters_.max_number_of_steps_))
+      while (!accepted)
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
