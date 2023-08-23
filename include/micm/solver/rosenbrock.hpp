@@ -586,14 +586,14 @@ namespace micm
 
    protected:
     /// @brief Computes the scaled norm of the vector errors
-    /// @param original_number_densities the original number densities
-    /// @param new_number_densities the new number densities
+    /// @param Y the original vector
+    /// @param new_number_densities the new vector
     /// @param errors The computed errors
     /// @return
     double NormalizedError(
-        MatrixPolicy<double> original_number_densities,
-        MatrixPolicy<double> new_number_densities,
-        MatrixPolicy<double> errors);
+      const MatrixPolicy<double>& Y,
+      const MatrixPolicy<double>& Ynew,
+      const MatrixPolicy<double>& errors)
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -969,9 +969,9 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::NormalizedError(
-      MatrixPolicy<double> Y,
-      MatrixPolicy<double> Ynew,
-      MatrixPolicy<double> errors)
+      const MatrixPolicy<double>& Y,
+      const MatrixPolicy<double>& Ynew,
+      const MatrixPolicy<double>& errors)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
