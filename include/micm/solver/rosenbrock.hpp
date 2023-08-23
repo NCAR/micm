@@ -470,6 +470,7 @@ namespace micm
     enum class SolverState
     {
       NotYetCalled,
+      Running,
       Converged,
       ConvergenceExceededMaxSteps,
       StepSizeTooSmall,
@@ -617,12 +618,14 @@ namespace micm
     switch (state)
     {
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NotYetCalled: return "Not Yet Called";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Running: return "Running";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Converged: return "Converged";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::ConvergenceExceededMaxSteps:
         return "Convergence Exceeded Max Steps";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::StepSizeTooSmall: return "Step Size Too Small";
       case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::RepeatedlySingularMatrix:
         return "Repeatedly Singular Matrix";
+      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NaNDetected: return "NaNDetected";
       default: return "Unknown";
     }
     return "";
@@ -712,7 +715,7 @@ namespace micm
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult result{};
-    result.state_ = SolverState::Converged;
+    result.state_ = SolverState::Running;
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
@@ -739,7 +742,7 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Converged))
+    while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
       if (stats_.number_of_steps > parameters_.max_number_of_steps_)
       {
@@ -870,6 +873,7 @@ namespace micm
       }
     }
 
+    result.state_ = SolverState::Converged;
     result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
