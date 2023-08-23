@@ -593,7 +593,7 @@ namespace micm
     double NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors)
+      const MatrixPolicy<double>& errors);
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -975,20 +975,20 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
-    MatrixPolicy<double> maxs(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> scale(Y.size(), Y[0].size(), 0.0);
 
-    maxs.ForEach([&](double& imax, double& iY, double& iYnew) { imax = std::max(std::abs(iY), std::abs(iYnew)); }, Y, Ynew);
+    auto _y = Y.AsVector();
+    auto _ynew = Ynew.AsVector();
+    auto _errors = errors.AsVector();
 
-    scale.ForEach(
-        [&](double& iscale, double& imax)
-        { iscale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * imax; },
-        maxs);
+    double error = 0;
 
-    double sum = 0;
-    errors.ForEach([&](double& ierror, double& iscale) { sum += std::pow(ierror / iscale, 2); }, scale);
+    for(size_t i = 0; i < Y.size(); ++i) {
+      double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
+      double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
+      error += std::pow(_errors[i] / scale, 2);
+    }
 
     double error_min_ = 1.0e-10;
-    return std::max(std::sqrt(sum / N_), error_min_);
+    return std::max(std::sqrt(error / N_), error_min_);
   }
 }  // namespace micm
