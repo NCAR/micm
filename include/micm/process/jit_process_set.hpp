@@ -17,7 +17,7 @@ namespace micm
   class JitProcessSet : public ProcessSet
   {
     std::shared_ptr<JitCompiler> compiler_;
-    llvm::orc::ResourceTrackerSP resource_tracker_;
+    llvm::orc::ResourceTrackerSP forcing_function_resource_tracker_;
     void (*forcing_function_)(const double *, const double *, double *);
 
    public:
@@ -42,6 +42,10 @@ namespace micm
         const MatrixPolicy<double> &rate_constants,
         const MatrixPolicy<double> &state_variables,
         MatrixPolicy<double> &forcing) const;
+
+   private:
+    /// @brief Generate a function to calculate forcing terms
+    void GenerateForcingFunction();
   };
 
   template<std::size_t L>
@@ -59,7 +63,13 @@ namespace micm
       std::cerr << "Vector matrix group size invalid for JitProcessSet";
       std::exit(micm::ExitCodes::InvalidMatrixDimension);
     }
-    JitFunction func = JitFunction::create(compiler)
+    this->GenerateForcingFunction();
+  }
+
+  template<std::size_t L>
+  void JitProcessSet<L>::GenerateForcingFunction()
+  {
+    JitFunction func = JitFunction::create(compiler_)
                            .name("add_forcing_terms")
                            .arguments({ { "rate constants", JitType::DoublePtr },
                                         { "state variables", JitType::DoublePtr },
@@ -146,16 +156,16 @@ namespace micm
 
     auto target = func.Generate();
     forcing_function_ = (void (*)(const double *, const double *, double *))(intptr_t)target.second;
-    resource_tracker_ = target.first;
+    forcing_function_resource_tracker_ = target.first;
   }
 
   template<std::size_t L>
   JitProcessSet<L>::~JitProcessSet()
   {
-    if (resource_tracker_)
+    if (forcing_function_resource_tracker_)
     {
       llvm::ExitOnError exit_on_error;
-      exit_on_error(resource_tracker_->remove());
+      exit_on_error(forcing_function_resource_tracker_->remove());
     }
   }
 
