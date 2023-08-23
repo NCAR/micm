@@ -982,7 +982,7 @@ namespace micm
 
     double error = 0;
 
-    for(size_t i = 0; i < Y.size(); ++i) {
+    for(size_t i = 0; i < N_; ++i) {
       double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
       error += std::pow(_errors[i] / scale, 2);
