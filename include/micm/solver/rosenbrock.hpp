@@ -554,9 +554,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     inline void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -591,10 +591,8 @@ namespace micm
     /// @param Ynew the new vector
     /// @param errors The computed errors
     /// @return
-    double NormalizedError(
-      const MatrixPolicy<double>& y,
-      const MatrixPolicy<double>& y_new,
-      const MatrixPolicy<double>& errors);
+    double
+    NormalizedError(const MatrixPolicy<double>& y, const MatrixPolicy<double>& y_new, const MatrixPolicy<double>& errors);
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -824,17 +822,18 @@ namespace micm
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
-                              parameters_.factor_max_,
-                              std::max(
-                                  parameters_.factor_min_,
-                                  parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
+            parameters_.factor_max_,
+            std::max(
+                parameters_.factor_min_,
+                parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
         double Hnew = H * fac;
 
         // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
         stats_.total_steps += 1;
 
-        if (std::isnan(error)) {
+        if (std::isnan(error))
+        {
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           result.state_ = SolverState::NaNDetected;
           break;
@@ -894,8 +893,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
@@ -910,8 +908,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())
@@ -986,7 +983,8 @@ namespace micm
 
     double error = 0;
 
-    for(size_t i = 0; i < N_; ++i) {
+    for (size_t i = 0; i < N_; ++i)
+    {
       double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
       error += std::pow(_errors[i] / scale, 2);
