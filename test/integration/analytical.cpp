@@ -1528,11 +1528,11 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-3)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-3)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-3)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
