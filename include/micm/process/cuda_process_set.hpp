@@ -53,8 +53,8 @@ namespace micm
   {
     micm::CUDAMatrixParam matrixParam(rate_constants); 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
-        matrixParam,
-        //rate_constants.AsVector().data(),
+        //matrixParam,
+        rate_constants.AsVector().data(),
         state_variables.AsVector().data(),
         forcing.AsVector().data(),
         rate_constants.size(),
