@@ -588,7 +588,7 @@ namespace micm
    protected:
     /// @brief Computes the scaled norm of the vector errors
     /// @param Y the original vector
-    /// @param new_number_densities the new vector
+    /// @param Ynew the new vector
     /// @param errors The computed errors
     /// @return
     double NormalizedError(
