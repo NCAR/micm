@@ -1,6 +1,5 @@
 #pragma once
 #include <micm/util/vector_matrix.hpp>
-
 namespace micm{
     class CUDAMatrixParam{
         public: 
