@@ -4,7 +4,7 @@
 
 #include <chrono>
 #include <iostream>
-#include <micm/util/cuda_matrix_param.hpp>
+#include <cuda_process_set.cuh>
 namespace micm
 {
   namespace cuda
