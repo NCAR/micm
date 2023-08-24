@@ -6,7 +6,7 @@ namespace micm{
         double* rate_constants; 
         template<size_t L>
         CUDAMatrixParam(const VectorMatrix<double, L>& rateConstants){
-            rate_constants = rateConstants; 
+            rate_constants = rateConstants.AsVector().data(); 
         }
     }; 
 }
