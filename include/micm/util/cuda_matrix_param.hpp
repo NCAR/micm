@@ -5,7 +5,7 @@ namespace micm{
         public: 
         const double* rate_constants_; 
         CUDAMatrixParam(const std::vector<double> rate_constants){
-            rate_constants_ = rate_constants.AsVector().data(); 
+            rate_constants_ = rate_constants.data(); 
         }
     }; 
 }
