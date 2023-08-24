@@ -4,7 +4,7 @@
 #pragma once
 
 #include <micm/process/process_set.hpp>
-#include <micm/util/cuda_matrix_paran.hpp>
+#include <micm/util/cuda_matrix_param.hpp>
 #ifdef USE_CUDA
 #  include <micm/process/cuda_process_set.cuh>
 #endif
