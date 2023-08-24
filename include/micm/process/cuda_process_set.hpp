@@ -51,9 +51,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-   
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
-        matrixParam,
         rate_constants,
         state_variables.AsVector().data(),
         forcing.AsVector().data(),
