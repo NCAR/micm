@@ -5,8 +5,8 @@ namespace micm
   namespace cuda
   {
    std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        micm::CUDAMatrixParam matrixParam, 
-        //const double* rate_constants_data,
+        //micm::CUDAMatrixParam matrixParam, 
+        const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,
         size_t n_grids,

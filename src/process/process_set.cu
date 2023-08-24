@@ -4,7 +4,6 @@
 
 #include <chrono>
 #include <iostream>
-#include <micm/process/cuda_process_set.cuh>
 namespace micm
 {
   namespace cuda
@@ -186,8 +185,8 @@ namespace micm
     }  // end of AddJacobian_kernelSetup
 
     std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        micm::CUDAMatrixParam matrixParam, 
-        //const double* rate_constants_data,  
+        //micm::CUDAMatrixParam matrixParam, 
+        const double* rate_constants_data,  
         const double* state_variables_data,
         double* forcing_data,
         size_t n_grids,
@@ -223,7 +222,7 @@ namespace micm
       cudaMalloc(&d_yields_, sizeof(double) * yields_size);
 
       // copy data from host memory to device memory
-      cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * (n_grids * n_reactions), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_rate_constants, rate_constants_data, sizeof(double) * (n_grids * n_reactions), cudaMemcpyHostToDevice);
       cudaMemcpy(d_state_variables, state_variables_data, sizeof(double) * (n_grids * n_species), cudaMemcpyHostToDevice);
       cudaMemcpy(d_forcing, forcing_data, sizeof(double) * (n_grids * n_species), cudaMemcpyHostToDevice);
       cudaMemcpy(d_number_of_reactants_, number_of_reactants, sizeof(size_t) * n_reactions, cudaMemcpyHostToDevice);
