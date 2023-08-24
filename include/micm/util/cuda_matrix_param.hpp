@@ -3,10 +3,10 @@
 namespace micm{
     class CUDAMatrixParam{
         public: 
-        const double* rate_constants; 
+        const double* rate_constants_; 
         template<size_t L>
         CUDAMatrixParam(const VectorMatrix<double, L>& rateConstants){
-            rate_constants = rateConstants.AsVector().data(); 
+            rate_constants_ = rateConstants.AsVector().data(); 
         }
     }; 
 }
