@@ -184,7 +184,7 @@ namespace micm
       cudaFree(d_jacobian_flat_ids);
       return kernel_duration;
     }  // end of AddJacobian_kernelSetup
-    template <size_t L>
+
     std::chrono::nanoseconds AddForcingTermsKernelDriver(
         micm::CUDAMatrixParam& matrixParam,
         //const double* rate_constants_data,  
