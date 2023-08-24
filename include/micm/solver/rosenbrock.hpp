@@ -592,8 +592,8 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     double NormalizedError(
-      const MatrixPolicy<double>& Y,
-      const MatrixPolicy<double>& Ynew,
+      const MatrixPolicy<double>& y,
+      const MatrixPolicy<double>& y_new,
       const MatrixPolicy<double>& errors);
   };
 
