@@ -5,7 +5,7 @@ namespace micm{
         public: 
         double* rate_constants; 
         template<size_t L>
-        CUDAMatrixParam(const VectorMatrix&<double, L> rateConstants){
+        CUDAMatrixParam(const VectorMatrix<double, L>& rateConstants){
             rate_constants = rateConstants; 
         }
     }; 
