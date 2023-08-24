@@ -1,12 +1,12 @@
 #pragma once
-#include <micm/util/vector_matrix.hpp>
+#include <micm/util/cuda_matrix_param.hpp>
 namespace micm
 {
   namespace cuda
   {
   template<size_t L> 
    std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        const VectorMatrix<double,L>& rate_constants, 
+        micm::CUDAMatrixParam& matrixParam, 
       //const double* rate_constants_data,
         const double* state_variables_data,
         double* forcing_data,

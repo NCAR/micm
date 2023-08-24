@@ -4,6 +4,7 @@
 #pragma once
 
 #include <micm/process/process_set.hpp>
+#include <micm/util/cuda_matrix_param.hpp>
 
 #ifdef USE_CUDA
 #  include <micm/process/cuda_process_set.cuh>
@@ -51,8 +52,9 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
+    micm::CUDAMatrixParam matrixParam(rate_constants.AsVector()); 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
-        rate_constants,
+        matrixParam,
         state_variables.AsVector().data(),
         forcing.AsVector().data(),
         rate_constants.size(),
