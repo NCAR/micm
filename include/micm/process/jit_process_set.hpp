@@ -283,12 +283,12 @@ namespace micm
   template<std::size_t L>
   JitProcessSet<L>::~JitProcessSet()
   {
-    if (forcing_function_resource_tracker_)
+    if (forcing_function_resource_tracker_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(forcing_function_resource_tracker_->remove());
     }
-    if (jacobian_function_resource_tracker_)
+    if (jacobian_function_resource_tracker_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(jacobian_function_resource_tracker_->remove());
