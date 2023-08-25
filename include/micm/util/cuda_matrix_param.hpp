@@ -18,11 +18,11 @@ namespace micm{
         inline void setGrids(size_t n_grids){
             n_grids_ = n_grids; 
         }
-        inline void setRateConstants(std::vector<double>& rate_constants, size_t n_reactions){
+        inline void setRateConstants(const std::vector<double>& rate_constants, size_t n_reactions){
             rate_constants_ = rate_constants.data(); 
             n_reactions_ = n_reactions; 
         }; 
-        inline void setStateVariables(std::vector<double>& state_variables, size_t n_species){
+        inline void setStateVariables(const std::vector<double>& state_variables, size_t n_species){
             state_variables_ = state_variables.data(); 
             n_species_ = n_species; 
         }; 
