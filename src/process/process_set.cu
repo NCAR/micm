@@ -105,7 +105,7 @@ namespace micm
     }      // end of AddJacobianTerms_kernel
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
-        micm::CUDAMatrixParam matrixParam,
+        micm::CUDAMatrixParam& matrixParam,
         // const double* rate_constants,
         // const double* state_variables,
         // size_t n_grids,
