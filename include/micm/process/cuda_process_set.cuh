@@ -16,13 +16,15 @@ namespace micm
         size_t yields_size); 
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
-        const double* rate_constants,
-        const double* state_variables,
-        size_t n_grids,
-        size_t n_reactions,
-        size_t n_species,
-        double* jacobian,
-        size_t jacobian_size,
+        micm::CUDAMatrixParam& matrixParam, 
+        
+        // const double* rate_constants,
+        // const double* state_variables,
+        // size_t n_grids,
+        // size_t n_reactions,
+        // size_t n_species,
+        // double* jacobian,
+        // size_t jacobian_size,
         const size_t* number_of_reactants, 
         const size_t* reactant_ids,
         size_t reactant_ids_size,

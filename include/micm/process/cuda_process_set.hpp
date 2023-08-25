@@ -76,14 +76,20 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
+    micm::CUDAMatrixParam matrixParam; 
+    matrixParam.setGrids(rate_constants.size()); 
+    matrixParam.setRateConstants(rate_constants.AsVector(), rate_constants[0].size()); 
+    matrixParam.setStateVariables(state_variables.AsVector(), state_variables[0].size()); 
+    matrixParam.setJacobian(jacobian.AsVector(), jacobian.AsVector().size()); 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
-        rate_constants.AsVector().data(),
-        state_variables.AsVector().data(),
-        rate_constants.size(),      // n_grids
-        rate_constants[0].size(),   // n_reactions
-        state_variables[0].size(),  // n_species
-        jacobian.AsVector().data(),
-        jacobian.AsVector().size(),
+        matrixParam, 
+        // rate_constants.AsVector().data(),
+        // state_variables.AsVector().data(),
+        // rate_constants.size(),      // n_grids
+        // rate_constants[0].size(),   // n_reactions
+        // state_variables[0].size(),  // n_species
+        // jacobian.AsVector().data(),
+        // jacobian.AsVector().size(),
         number_of_reactants_.data(),
         reactant_ids_.data(),
         reactant_ids_.size(),
