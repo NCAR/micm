@@ -52,7 +52,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    micm::CUDAMatrixParam matrixParam();
+    micm::CUDAMatrixParam matrixParam;
     matrixParam.setGrids(rate_constants.size()); 
     matrixParam.setRateConstants(rate_constants.AsVector(), rate_constants[0].size()) 
     matrixParam.setStateVariables(state_variables.AsVector(), state_variable[0].size()); 
