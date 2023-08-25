@@ -52,14 +52,13 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    micm::CUDAMatrixParam matrixParam(rate_constants.AsVector()); 
+    micm::CUDAMatrixParam matrixParam();
+    matrixParam.setGrids(rate_constants.size()); 
+    matrixParam.setRateConstants(rate_constants.AsVector(), rate_constants[0].size()) 
+    matrixParam.setStateVariables(state_variables.AsVector(), state_variable[0].size()); 
+    matrixParam.setForcing(forcing.AsVector(), forcing[0].size()); 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
         matrixParam,
-        state_variables.AsVector().data(),
-        forcing.AsVector().data(),
-        rate_constants.size(),
-        rate_constants[0].size(),
-        state_variables[0].size(),
         number_of_reactants_.data(),
         reactant_ids_.data(),
         reactant_ids_.size(),

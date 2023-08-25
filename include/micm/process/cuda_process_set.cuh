@@ -4,14 +4,8 @@ namespace micm
 {
   namespace cuda
   {
-  std::chrono::nanoseconds AddForcingTermsKernelDriver(
+    std::chrono::nanoseconds AddForcingTermsKernelDriver(
         micm::CUDAMatrixParam& matrixParam,
-        //const double* rate_constants_data,  
-        const double* state_variables_data,
-        double* forcing_data,
-        size_t n_grids,
-        size_t n_reactions,
-        size_t n_species,
         const size_t* number_of_reactants,
         const size_t* reactant_ids,
         size_t reactant_ids_size,
@@ -19,7 +13,7 @@ namespace micm
         const size_t* product_ids,
         size_t product_ids_size,
         const double* yields,
-        size_t yields_size);
+        size_t yields_size)
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         const double* rate_constants,
