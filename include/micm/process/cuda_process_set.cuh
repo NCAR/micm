@@ -13,7 +13,7 @@ namespace micm
         const size_t* product_ids,
         size_t product_ids_size,
         const double* yields,
-        size_t yields_size)
+        size_t yields_size); 
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         const double* rate_constants,
