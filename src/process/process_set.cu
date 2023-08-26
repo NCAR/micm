@@ -5,7 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <micm/util/cuda_matrix_param.hpp>
-#include <micm/process/cuda_process_set.hpp>
+
 typedef struct jacobianDevice{
   double* rate_constants; 
   double* state_variables; 

@@ -1,6 +1,6 @@
 #pragma once
 #include <micm/util/cuda_matrix_param.hpp>
-#include <micm/process/cuda_process_set.hpp>
+
 namespace micm
 {
   namespace cuda
