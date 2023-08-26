@@ -11,9 +11,6 @@
 #endif
 
 #ifdef USE_CUDA
-struct CUDAProcessSetParam{
-  const size_t* number_of_reactants; 
-};
 namespace micm
 {
   /// @brief A GPU-based implementation of ProcessSet
@@ -87,12 +84,10 @@ namespace micm
     matrixParam.n_reactions_ = rate_constants[0].size(); 
     matrixParam.n_species_ = state_variables[0].size(); 
     matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
-    CUDAProcessSetParam processSetParam; 
-    processSetParam.number_of_reactants = number_of_reactants_.data(); 
+    
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
-        processSetParam, 
-        //number_of_reactants_.data(),
+        number_of_reactants_.data(),
         reactant_ids_.data(),
         reactant_ids_.size(),
         number_of_products_.data(),
