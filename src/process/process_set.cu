@@ -111,14 +111,16 @@ namespace micm
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         micm::CUDAMatrixParam& matrixParam,
-        const size_t* number_of_reactants,
-        const size_t* reactant_ids,
-        size_t reactant_ids_size,
-        const size_t* number_of_products,
-        const double* yields,
-        size_t yields_size,
-        const size_t* jacobian_flat_ids,
-        size_t jacobian_flat_ids_size)
+        micm::CUDAProcessSetParam& processSet
+        // const size_t* number_of_reactants,
+        // const size_t* reactant_ids,
+        // size_t reactant_ids_size,
+        // const size_t* number_of_products,
+        // const double* yields,
+        // size_t yields_size,
+        // const size_t* jacobian_flat_ids,
+        // size_t jacobian_flat_ids_size
+        )
     {
       // create device pointers
       double* d_rate_constants;
@@ -147,11 +149,11 @@ namespace micm
       cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_state_variables, matrixParam.state_variables_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian, matrixParam.jacobian_, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_reactant_ids, reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size, cudaMemcpyHostToDevice);
       
       cudaMemcpy(&(device->rate_constants), &d_rate_constants, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->state_variables), &d_state_variables, sizeof(double*), cudaMemcpyHostToDevice); 
@@ -174,8 +176,7 @@ namespace micm
       AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
           device,
           n_grids,
-          n_reactions
-          );
+          n_reactions);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
@@ -190,6 +191,7 @@ namespace micm
       cudaFree(d_number_of_products);
       cudaFree(d_yields);
       cudaFree(d_jacobian_flat_ids);
+      cudaFree(device); 
       return kernel_duration;
     }  // end of AddJacobian_kernelSetup
 

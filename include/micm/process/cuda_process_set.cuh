@@ -18,13 +18,15 @@ namespace micm
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         micm::CUDAMatrixParam& matrixParam, 
-        const size_t* number_of_reactants, 
-        const size_t* reactant_ids,
-        size_t reactant_ids_size,
-        const size_t* number_of_products,
-        const double* yields,
-        size_t yields_size,
-        const size_t* jacobian_flat_ids,
-        size_t jacobian_flat_ids_size);
+        micm::CUDAProcessSetParam& processSet
+        // const size_t* number_of_reactants, 
+        // const size_t* reactant_ids,
+        // size_t reactant_ids_size,
+        // const size_t* number_of_products,
+        // const double* yields,
+        // size_t yields_size,
+        // const size_t* jacobian_flat_ids,
+        // size_t jacobian_flat_ids_size
+        );
   }  // namespace cuda
 }  // namespace micm

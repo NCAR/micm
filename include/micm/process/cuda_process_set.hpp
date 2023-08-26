@@ -84,17 +84,28 @@ namespace micm
     matrixParam.n_reactions_ = rate_constants[0].size(); 
     matrixParam.n_species_ = state_variables[0].size(); 
     matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
+    micm::CUDAProcessSetParam processSet; 
+    processSet.number_of_reactants = number_of_reactants_.data(); 
+    processSet.reactant_ids = reactant_ids_.data(); 
+    processSet.reactant_ids_size = reactant_ids_.size(); 
+    processSet.number_of_products = number_of_products_.data(); 
+    processSet.yields = yields_.data(); 
+    processSet.yields_size = yields_.size(); 
+    processSet.jacobian_flat_ids = jacobian_flat_ids_.data(); 
+    processSet.jacobian_flat_ids_size = jacobian_flat_ids_.size(); 
     
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
-        number_of_reactants_.data(),
-        reactant_ids_.data(),
-        reactant_ids_.size(),
-        number_of_products_.data(),
-        yields_.data(),
-        yields_.size(),
-        jacobian_flat_ids_.data(),
-        jacobian_flat_ids_.size());
+        processSet, 
+        // number_of_reactants_.data(),
+        // reactant_ids_.data(),
+        // reactant_ids_.size(),
+        // number_of_products_.data(),
+        // yields_.data(),
+        // yields_.size(),
+        // jacobian_flat_ids_.data(),
+        // jacobian_flat_ids_.size()
+        );
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
