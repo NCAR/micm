@@ -69,7 +69,7 @@ namespace micm
         //double* rate_constants,
         //double* state_variables,
         size_t n_grids,
-        size_t n_reactions,
+        size_t n_reactions
         //double* jacobian,
         //size_t* number_of_reactants,
         //size_t* reactant_ids,
@@ -189,7 +189,7 @@ namespace micm
           device,
           // d_state_variables,
            n_grids,
-           n_reactions,
+           n_reactions
           // d_jacobian,
           // d_number_of_reactants,
           // d_reactant_ids,
