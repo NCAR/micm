@@ -11,6 +11,9 @@
 #endif
 
 #ifdef USE_CUDA
+struct CUDAProcessSetParam{
+  const size_t* number_of_reactants; 
+};
 namespace micm
 {
   /// @brief A GPU-based implementation of ProcessSet
@@ -77,20 +80,19 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian) const
   {
     micm::CUDAMatrixParam matrixParam; 
-    matrixParam.setGrids(rate_constants.size()); 
-    matrixParam.setRateConstants(rate_constants.AsVector(), rate_constants[0].size()); 
-    matrixParam.setStateVariables(state_variables.AsVector(), state_variables[0].size()); 
-    matrixParam.setJacobian(jacobian.AsVector(), jacobian.AsVector().size()); 
+    matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
+    matrixParam.state_variables_ = state_variables.AsVector().data(); 
+    matrixParam.jacobian_= jacobian.AsVector().data(); 
+    matrixParam.n_grids_ = rate_constants.size(); 
+    matrixParam.n_reactions_ = rate_constants[0].size(); 
+    matrixParam.n_species_ = state_variables[0].size(); 
+    matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
+    CUDAProcessSetParam processSetParam; 
+    processSetParam.number_of_reactants = number_of_reactants_.data(); 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
-        // rate_constants.AsVector().data(),
-        // state_variables.AsVector().data(),
-        // rate_constants.size(),      // n_grids
-        // rate_constants[0].size(),   // n_reactions
-        // state_variables[0].size(),  // n_species
-        // jacobian.AsVector().data(),
-        // jacobian.AsVector().size(),
-        number_of_reactants_.data(),
+        processSetParam, 
+        //number_of_reactants_.data(),
         reactant_ids_.data(),
         reactant_ids_.size(),
         number_of_products_.data(),

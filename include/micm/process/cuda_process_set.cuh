@@ -1,5 +1,6 @@
 #pragma once
 #include <micm/util/cuda_matrix_param.hpp>
+#include <micm/process/cuda_process_set.hpp>
 namespace micm
 {
   namespace cuda
@@ -17,14 +18,7 @@ namespace micm
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         micm::CUDAMatrixParam& matrixParam, 
-        
-        // const double* rate_constants,
-        // const double* state_variables,
-        // size_t n_grids,
-        // size_t n_reactions,
-        // size_t n_species,
-        // double* jacobian,
-        // size_t jacobian_size,
+        CUDAProcessSetParam& processSetParam, 
         const size_t* number_of_reactants, 
         const size_t* reactant_ids,
         size_t reactant_ids_size,
