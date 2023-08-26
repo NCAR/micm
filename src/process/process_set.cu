@@ -7,7 +7,15 @@
 #include <micm/util/cuda_matrix_param.hpp>
 typedef struct jacobianDevice{
   double* rate_constants; 
+  double* state_variables; 
+  double* jacobian;
+  size_t* number_of_reactants; 
+  size_t* reactant_ids; 
+  size_t* number_of_products; 
+  double* yields; 
+  size_t* jacobian_flat_ids; 
 };
+
 namespace micm
 {
   namespace cuda
@@ -59,15 +67,16 @@ namespace micm
     __global__ void AddJacobianTermsKernel(
         jacobianDevice* device,
         //double* rate_constants,
-        double* state_variables,
+        //double* state_variables,
         size_t n_grids,
         size_t n_reactions,
-        double* jacobian,
-        size_t* number_of_reactants,
-        size_t* reactant_ids,
-        size_t* number_of_products,
-        double* yields,
-        size_t* jacobian_flat_ids)
+        //double* jacobian,
+        //size_t* number_of_reactants,
+        //size_t* reactant_ids,
+        //size_t* number_of_products,
+        //double* yields,
+        //size_t* jacobian_flat_ids
+        )
     {
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_ids_offset = 0;
@@ -79,31 +88,31 @@ namespace micm
         for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
           // loop over reactants in a reaction
-          for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind)
+          for (size_t i_ind = 0; i_ind < device->number_of_reactants[i_rxn]; ++i_ind)
           {
             double d_rate_d_ind = device->rate_constants[i_rxn * n_grids + tid];
-            for (size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
+            for (size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
               {
-                d_rate_d_ind *= state_variables[reactant_ids[react_ids_offset + i_react] * n_grids + tid];
+                d_rate_d_ind *= device->state_variables[device->reactant_ids[react_ids_offset + i_react] * n_grids + tid];
               }
             }
-            for (size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep)
+            for (size_t i_dep = 0; i_dep < device->number_of_reactants[i_rxn]; ++i_dep)
             {
-              size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;
-              jacobian[jacobian_idx] -= d_rate_d_ind;
+              size_t jacobian_idx = device->jacobian_flat_ids[flat_id_offset] + tid;
+              device->jacobian[jacobian_idx] -= d_rate_d_ind;
               flat_id_offset++;
             }
-            for (size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep)
+            for (size_t i_dep = 0; i_dep < device->number_of_products[i_rxn]; ++i_dep)
             {
-              size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;
-              jacobian[jacobian_idx] += yields[yields_offset + i_dep] * d_rate_d_ind;
+              size_t jacobian_idx = device->jacobian_flat_ids[flat_id_offset] + tid;
+              device->jacobian[jacobian_idx] += device->yields[yields_offset + i_dep] * d_rate_d_ind;
               flat_id_offset++;
             }
           }  // loop over reactants in a reaction
-          react_ids_offset += number_of_reactants[i_rxn];
-          yields_offset += number_of_products[i_rxn];
+          react_ids_offset += device->number_of_reactants[i_rxn];
+          yields_offset += device->number_of_products[i_rxn];
         }  // loop over reactions in a grid
       }    // check valid tid
     }      // end of AddJacobianTerms_kernel
@@ -158,7 +167,15 @@ namespace micm
       cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy((device->rate_constants), d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->rate_constants), &d_rate_constants, sizeof(double), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->state_variables), &d_state_variables, sizeof(double), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->jacobian), &d_jacobian, sizeof(double), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->number_of_reactants), &d_number_of_reactants, sizeof(size_t), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->reactant_ids), &d_reactant_ids, sizeof(size_t), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->number_of_products), &d_number_of_products, sizeof(size_t), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->yields), &d_yields, sizeof(double), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->jacobian_flat_ids), &d_jacobian_flat_ids, sizeof(size_t), cudaMemcpyHostToDevice); 
+
       
       // setup kernel
       size_t threads_per_block = 320;
@@ -170,20 +187,21 @@ namespace micm
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
           device,
-          d_state_variables,
-          n_grids,
-          n_reactions,
-          d_jacobian,
-          d_number_of_reactants,
-          d_reactant_ids,
-          d_number_of_products,
-          d_yields,
-          d_jacobian_flat_ids);
+          // d_state_variables,
+           n_grids,
+           n_reactions,
+          // d_jacobian,
+          // d_number_of_reactants,
+          // d_reactant_ids,
+          // d_number_of_products,
+          // d_yields,
+          // d_jacobian_flat_ids
+          );
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
-      cudaMemcpy(matrixParam.jacobian_, d_jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
+      cudaMemcpy(matrixParam.jacobian_, device->jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
       // clean up
       cudaFree(d_rate_constants);
       cudaFree(d_state_variables);
@@ -237,6 +255,7 @@ namespace micm
       cudaMemcpy(d_number_of_products_, number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_product_ids_, product_ids, sizeof(size_t) * product_ids_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields_, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
+
 
       // total thread count == number of grid cells
       int block_size = 320;
