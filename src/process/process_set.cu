@@ -5,6 +5,9 @@
 #include <chrono>
 #include <iostream>
 #include <micm/util/cuda_matrix_param.hpp>
+typedef struct jacobianDevice{
+  double* rate_constants; 
+};
 namespace micm
 {
   namespace cuda
@@ -54,7 +57,8 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
     __global__ void AddJacobianTermsKernel(
-        double* rate_constants,
+        jacobianDevice& device, 
+        //double* rate_constants,
         double* state_variables,
         size_t n_grids,
         size_t n_reactions,
@@ -77,7 +81,7 @@ namespace micm
           // loop over reactants in a reaction
           for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind)
           {
-            double d_rate_d_ind = rate_constants[i_rxn * n_grids + tid];
+            double d_rate_d_ind = device.rate_constants[i_rxn * n_grids + tid];
             for (size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
@@ -131,6 +135,7 @@ namespace micm
       size_t* d_number_of_products;
       double* d_yields;
       size_t* d_jacobian_flat_ids;
+      jacobianDevice device; 
 
       // allocate device memory
       cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
@@ -152,6 +157,7 @@ namespace micm
       cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size, cudaMemcpyHostToDevice);
 
+      device.rate_constants = d_rate_constants; 
       // setup kernel
       size_t threads_per_block = 320;
       size_t total_blocks = (matrixParam.n_grids_ + threads_per_block - 1) / threads_per_block;
@@ -161,7 +167,8 @@ namespace micm
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
-          d_rate_constants,
+          device, 
+          //d_rate_constants,
           d_state_variables,
           n_grids,
           n_reactions,
