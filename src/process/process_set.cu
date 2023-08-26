@@ -202,7 +202,7 @@ namespace micm
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
-      cudaMemcpy(matrixParam.jacobian_, device->jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
+      cudaMemcpy(matrixParam.jacobian_, d_jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
       // clean up
       cudaFree(d_rate_constants);
       cudaFree(d_state_variables);
