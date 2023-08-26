@@ -57,7 +57,8 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
     __global__ void AddJacobianTermsKernel(
-        const double* rate_constants,
+        jacobianDevice* device,
+        //double* rate_constants,
         double* state_variables,
         size_t n_grids,
         size_t n_reactions,
@@ -80,7 +81,7 @@ namespace micm
           // loop over reactants in a reaction
           for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind)
           {
-            double d_rate_d_ind = rate_constants[i_rxn * n_grids + tid];
+            double d_rate_d_ind = device->rate_constants[i_rxn * n_grids + tid];
             for (size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
@@ -126,7 +127,7 @@ namespace micm
         size_t jacobian_flat_ids_size)
     {
       // create device pointers
-      const double* d_rate_constants = matrixParam.rate_constants_;  
+      double* d_rate_constants;
       double* d_state_variables;
       double* d_jacobian;
       size_t* d_number_of_reactants;
@@ -134,10 +135,10 @@ namespace micm
       size_t* d_number_of_products;
       double* d_yields;
       size_t* d_jacobian_flat_ids;
-      
+      jacobianDevice* device; 
 
       // allocate device memory
-     // cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
+      cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
       cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
       cudaMalloc(&d_jacobian, sizeof(double) * matrixParam.jacobian_size_);
       cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_);
@@ -145,11 +146,11 @@ namespace micm
       cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions_);
       cudaMalloc(&d_yields, sizeof(double) * yields_size);
       cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size);
+      cudaMalloc(&device, sizeof(jacobianDevice)); 
       
 
       // transfer data from host to device
-      cudaMallocManaged(&d_rate_constants, sizeof(double)* matrixParam.n_grids_ * matrixParam.n_reactions_);
-      //cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_state_variables, matrixParam.state_variables_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian, matrixParam.jacobian_, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_number_of_reactants, number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
@@ -157,7 +158,7 @@ namespace micm
       cudaMemcpy(d_number_of_products, number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, yields, sizeof(double) * yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size, cudaMemcpyHostToDevice);
-
+      cudaMemcpy((device->rate_constants), d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice); 
       
       // setup kernel
       size_t threads_per_block = 320;
@@ -168,7 +169,7 @@ namespace micm
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
-          d_rate_constants,
+          device,
           d_state_variables,
           n_grids,
           n_reactions,
@@ -184,7 +185,7 @@ namespace micm
 
       cudaMemcpy(matrixParam.jacobian_, d_jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
       // clean up
-      cudaFree((void*)d_rate_constants);
+      cudaFree(d_rate_constants);
       cudaFree(d_state_variables);
       cudaFree(d_jacobian);
       cudaFree(d_number_of_reactants);
