@@ -134,7 +134,7 @@ namespace micm
       size_t* d_number_of_products;
       double* d_yields;
       size_t* d_jacobian_flat_ids;
-      jacobianDevice device; 
+      
 
       // allocate device memory
      // cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
@@ -145,7 +145,7 @@ namespace micm
       cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions_);
       cudaMalloc(&d_yields, sizeof(double) * yields_size);
       cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size);
-      cudaMalloc(&)
+      
 
       // transfer data from host to device
       cudaMallocManaged(&d_rate_constants, sizeof(double)* matrixParam.n_grids_ * matrixParam.n_reactions_);
@@ -184,7 +184,7 @@ namespace micm
 
       cudaMemcpy(matrixParam.jacobian_, d_jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
       // clean up
-      cudaFree(d_rate_constants);
+      cudaFree((void*)d_rate_constants);
       cudaFree(d_state_variables);
       cudaFree(d_jacobian);
       cudaFree(d_number_of_reactants);

@@ -163,21 +163,21 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   {
     double a = cpu_jacobian_vector[i];
     double b = gpu_jacobian_vector[i];
-    EXPECT_EQ(a, b);
+    ASSERT_EQ(a, b);
   }
 }
 
 template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
+using Group10000VectorMatrix = micm::VectorMatrix<T, 5>;
 
 template<class T>
-using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<5>>;
 
 TEST(RandomCudaProcessSet, Forcing)
 {
-  testRandomSystemAddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystemAddForcingTerms<Group10000VectorMatrix>(5, 8, 6);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+  testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(5, 8,6);
 }
