@@ -57,7 +57,7 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
     __global__ void AddJacobianTermsKernel(
-        double* rate_constants,
+        const double* rate_constants,
         double* state_variables,
         size_t n_grids,
         size_t n_reactions,
@@ -126,7 +126,7 @@ namespace micm
         size_t jacobian_flat_ids_size)
     {
       // create device pointers
-      double* d_rate_constants = matrixParam.rate_constants_; 
+      const double* d_rate_constants = matrixParam.rate_constants_;  
       double* d_state_variables;
       double* d_jacobian;
       size_t* d_number_of_reactants;
