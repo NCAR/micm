@@ -8,7 +8,7 @@
     const size_t* number_of_products; 
     const size_t* product_ids; 
     size_t product_ids_size; 
-    double* yields; 
+    const double* yields; 
     size_t yields_size; 
     const size_t* jacobian_flat_ids; 
     size_t jacobian_flat_ids_size; 
