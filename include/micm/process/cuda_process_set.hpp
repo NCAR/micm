@@ -96,7 +96,7 @@ namespace micm
     
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
-        processSet, 
+        processSet 
         // number_of_reactants_.data(),
         // reactant_ids_.data(),
         // reactant_ids_.size(),
