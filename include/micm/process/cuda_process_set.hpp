@@ -84,7 +84,7 @@ namespace micm
     matrixParam.n_reactions_ = rate_constants[0].size(); 
     matrixParam.n_species_ = state_variables[0].size(); 
     matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
-    micm::CUDAProcessSetParam processSet; 
+    CUDAProcessSetParam processSet; 
     processSet.number_of_reactants = number_of_reactants_.data(); 
     processSet.reactant_ids = reactant_ids_.data(); 
     processSet.reactant_ids_size = reactant_ids_.size(); 

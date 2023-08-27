@@ -1,7 +1,7 @@
 #pragma once
 #include <vector> 
 
-  struct CUDAprocessSetParam{
+  struct CUDAProcessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
     size_t reactant_ids_size; 
@@ -13,8 +13,6 @@
     const size_t jacobian_flat_ids; 
     size_t jacobian_flat_ids_size; 
 }; 
-
-
 namespace micm{
     class CUDAMatrixParam{
         public: 
@@ -26,7 +24,6 @@ namespace micm{
         size_t n_reactions_; 
         size_t n_species_; 
         size_t jacobian_size_; 
-        
         CUDAMatrixParam(){};
     }; //end class
 }//end micm
