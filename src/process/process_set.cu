@@ -138,10 +138,10 @@ namespace micm
       cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
       cudaMalloc(&d_jacobian, sizeof(double) * matrixParam.jacobian_size_);
       cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_);
-      cudaMalloc(&d_reactant_ids, sizeof(size_t) * reactant_ids_size);
+      cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size);
       cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions_);
-      cudaMalloc(&d_yields, sizeof(double) * yields_size);
-      cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * jacobian_flat_ids_size);
+      cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size);
+      cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size);
       cudaMalloc(&device, sizeof(jacobianDevice)); 
       
 

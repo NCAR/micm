@@ -3,7 +3,7 @@
 
 namespace micm{
     
-    struct processSetParam{
+    struct CUDAprocessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
     size_t reactant_ids_size; 
