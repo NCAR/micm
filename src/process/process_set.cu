@@ -150,7 +150,7 @@ namespace micm
       cudaMemcpy(d_state_variables, matrixParam.state_variables_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian, matrixParam.jacobian_, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * reactant_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * processSet.reactant_ids_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size, cudaMemcpyHostToDevice);
