@@ -1,9 +1,7 @@
 #pragma once
 #include <vector> 
 
-namespace micm{
-    
-    struct CUDAprocessSetParam{
+  struct CUDAprocessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
     size_t reactant_ids_size; 
@@ -15,7 +13,9 @@ namespace micm{
     const size_t jacobian_flat_ids; 
     size_t jacobian_flat_ids_size; 
 }; 
-    
+
+
+namespace micm{
     class CUDAMatrixParam{
         public: 
         const double* rate_constants_; 
