@@ -53,10 +53,14 @@ namespace micm
       MatrixPolicy<double>& forcing) const
   {
     micm::CUDAMatrixParam matrixParam;
-    matrixParam.setGrids(rate_constants.size()); 
-    matrixParam.setRateConstants(rate_constants.AsVector(), rate_constants[0].size()); 
-    matrixParam.setStateVariables(state_variables.AsVector(), state_variables[0].size()); 
-    matrixParam.setForcing(forcing.AsVector(), forcing[0].size()); 
+   
+    matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
+    matrixParam.state_variables_ = state_variables.AsVector().data(); 
+    matrixParam.forcing_ = forcing.AsVector().data(); 
+    matrixParam.n_grids_ = rate_constants.size(); 
+    matrixParam.n_reactions_ = rate_constants[0].size(); 
+    matrixParam.n_species_ = state_variables[0].size(); 
+
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
         matrixParam,
         number_of_reactants_.data(),
