@@ -1,4 +1,5 @@
-
+#ifndef CUDA_MATRIX_PARAM_HPP
+#define CUDA_MATRIX_PARAM_HPP
   struct CUDAProcessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
@@ -22,4 +23,4 @@
      size_t n_species_; 
      size_t jacobian_size_; 
 }; 
-       
+#endif
