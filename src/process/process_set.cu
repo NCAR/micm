@@ -110,18 +110,8 @@ namespace micm
     }      // end of AddJacobianTerms_kernel
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
-        micm::CUDAMatrixParam& matrixParam,
-        CUDAProcessSetParam& processSet
-
-        // const size_t* number_of_reactants,
-        // const size_t* reactant_ids,
-        // size_t reactant_ids_size,
-        // const size_t* number_of_products,
-        // const double* yields,
-        // size_t yields_size,
-        // const size_t* jacobian_flat_ids,
-        // size_t jacobian_flat_ids_size
-        )
+        CUDAMatrixParam& matrixParam,
+        CUDAProcessSetParam& processSet)
     {
       // create device pointers
       double* d_rate_constants;
@@ -197,7 +187,7 @@ namespace micm
     }  // end of AddJacobian_kernelSetup
 
     std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        micm::CUDAMatrixParam& matrixParam,
+        CUDAMatrixParam& matrixParam,
         const size_t* number_of_reactants,
         const size_t* reactant_ids,
         size_t reactant_ids_size,
@@ -218,7 +208,6 @@ namespace micm
       size_t* d_product_ids_;
 
       // allocate device memory
-      
       cudaMalloc(&d_rate_constants, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_reactions_));
       cudaMalloc(&d_state_variables, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));
       cudaMalloc(&d_forcing, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));

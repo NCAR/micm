@@ -6,7 +6,7 @@ namespace micm
   namespace cuda
   {
     std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        micm::CUDAMatrixParam& matrixParam,
+        CUDAMatrixParam& matrixParam,
         const size_t* number_of_reactants,
         const size_t* reactant_ids,
         size_t reactant_ids_size,
@@ -17,16 +17,7 @@ namespace micm
         size_t yields_size); 
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
-        micm::CUDAMatrixParam& matrixParam, 
-        CUDAProcessSetParam& processSet
-        // const size_t* number_of_reactants, 
-        // const size_t* reactant_ids,
-        // size_t reactant_ids_size,
-        // const size_t* number_of_products,
-        // const double* yields,
-        // size_t yields_size,
-        // const size_t* jacobian_flat_ids,
-        // size_t jacobian_flat_ids_size
-        );
+        CUDAMatrixParam& matrixParam, 
+        CUDAProcessSetParam& processSet);
   }  // namespace cuda
 }  // namespace micm

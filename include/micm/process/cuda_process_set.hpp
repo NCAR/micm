@@ -52,8 +52,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    micm::CUDAMatrixParam matrixParam;
-   
+    CUDAMatrixParam matrixParam;
     matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
     matrixParam.state_variables_ = state_variables.AsVector().data(); 
     matrixParam.forcing_ = forcing.AsVector().data(); 
@@ -80,7 +79,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
-    micm::CUDAMatrixParam matrixParam; 
+    CUDAMatrixParam matrixParam; 
     matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
     matrixParam.state_variables_ = state_variables.AsVector().data(); 
     matrixParam.jacobian_= jacobian.AsVector().data(); 
@@ -88,6 +87,7 @@ namespace micm
     matrixParam.n_reactions_ = rate_constants[0].size(); 
     matrixParam.n_species_ = state_variables[0].size(); 
     matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
+    
     CUDAProcessSetParam processSet; 
     processSet.number_of_reactants = number_of_reactants_.data(); 
     processSet.reactant_ids = reactant_ids_.data(); 
@@ -100,16 +100,7 @@ namespace micm
     
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
-        processSet 
-        // number_of_reactants_.data(),
-        // reactant_ids_.data(),
-        // reactant_ids_.size(),
-        // number_of_products_.data(),
-        // yields_.data(),
-        // yields_.size(),
-        // jacobian_flat_ids_.data(),
-        // jacobian_flat_ids_.size()
-        );
+        processSet);
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
