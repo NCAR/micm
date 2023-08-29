@@ -47,7 +47,7 @@ namespace micm
     std::array<double, 6> alpha_{};
     std::array<double, 6> gamma_{};
 
-    double absolute_tolerance_{ 1e-12 };
+    double absolute_tolerance_{ 1e-3 };
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
@@ -316,8 +316,8 @@ namespace micm
     const double number_density_air = state.conditions_[0].air_density_;
     std::vector<double> forcing{};
 
-    // parameters_.h_max_ = time_end - time_start;
-    // parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    parameters_.h_max_ = time_end - time_start;
+    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
     double present_time = time_start;
     double H =
