@@ -150,7 +150,6 @@ namespace micm
       cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size, cudaMemcpyHostToDevice);
-      
       cudaMemcpy(&(device->rate_constants), &d_rate_constants, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->state_variables), &d_state_variables, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->jacobian), &d_jacobian, sizeof(double*), cudaMemcpyHostToDevice); 
@@ -231,7 +230,7 @@ namespace micm
       cudaMemcpy(&(device->forcing), &d_forcing, sizeof(double*), cudaMemcpyHostToDevice);   
       cudaMemcpy(&(device->number_of_reactants), &d_number_of_reactants, sizeof(size_t*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->reactant_ids), &d_reactant_ids, sizeof(size_t*), cudaMemcpyHostToDevice); 
-      cudaMemcpy(&(devide->number_of_products), &d_number_of_products, sizeof(size_t*), cudaMemcpyHostToDevice); 
+      cudaMemcpy(&(device->number_of_products), &d_number_of_products, sizeof(size_t*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->product_ids), &d_product_ids, sizeof(size_t*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->yields), &d_yields, sizeof(double*), cudaMemcpyHostToDevice); 
 
