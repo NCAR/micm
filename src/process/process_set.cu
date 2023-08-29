@@ -11,7 +11,7 @@ typedef struct forcingDevice{
   double* forcing; 
   size_t* number_of_reactants; 
   size_t* reactant_ids; 
-  size_t* numbr_of_products; 
+  size_t* number_of_products; 
   size_t* product_ids; 
   double* yields; 
 };
