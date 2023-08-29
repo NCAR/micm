@@ -52,20 +52,20 @@ namespace micm
         for (std::size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
           double rate = device->rate_constants[i_rxn * n_grids + tid];
-          for (std::size_t i_react = 0; i_react < device->number_of_reactants_[i_rxn]; ++i_react)
-            rate *= device->state_variables[device->reactant_ids_[react_id_offset + i_react] * n_grids + tid];
-          for (std::size_t i_react = 0; i_react < device->number_of_reactants_[i_rxn]; ++i_react)
+          for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
+            rate *= device->state_variables[device->reactant_ids[react_id_offset + i_react] * n_grids + tid];
+          for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
           {
-            device->forcing[device->reactant_ids_[react_id_offset + i_react] * n_grids + tid] -= rate;
+            device->forcing[device->reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
           }
-          for (std::size_t i_prod = 0; i_prod < device->number_of_products_[i_rxn]; ++i_prod)
+          for (std::size_t i_prod = 0; i_prod < device->number_of_products[i_rxn]; ++i_prod)
           {
-            size_t index = product_ids_[prod_id_offset + i_prod] * n_grids + tid;
-            device->forcing[index] += yields_[yield_offset + i_prod] * rate;
+            size_t index = device->product_ids[prod_id_offset + i_prod] * n_grids + tid;
+            device->forcing[index] += device->yields[yield_offset + i_prod] * rate;
           }
-          react_id_offset += device->number_of_reactants_[i_rxn];
-          prod_id_offset += device->number_of_products_[i_rxn];
-          yield_offset += device->number_of_products_[i_rxn];
+          react_id_offset += device->number_of_reactants[i_rxn];
+          prod_id_offset += device->number_of_products[i_rxn];
+          yield_offset += device->number_of_products[i_rxn];
         }  // for loop over number of reactions
       }    // if check for valid CUDA threads
     }      // end of AddForcingTerms_kernel
