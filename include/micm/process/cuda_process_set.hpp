@@ -4,7 +4,7 @@
 #pragma once
 
 #include <micm/process/process_set.hpp>
-#include <micm/util/cuda_matrix_param.hpp>
+#include <micm/util/cuda_param.hpp>
 
 #ifdef USE_CUDA
 #  include <micm/process/cuda_process_set.cuh>
@@ -58,18 +58,21 @@ namespace micm
     matrixParam.forcing_ = forcing.AsVector().data(); 
     matrixParam.n_grids_ = rate_constants.size(); 
     matrixParam.n_reactions_ = rate_constants[0].size(); 
-    matrixParam.n_species_ = state_variables[0].size(); 
+    matrixParam.n_species_ = state_variables[0].size();
+
+    CUDAProcessSetParam processSet; 
+    processSet.number_of_reactants = number_of_reactants_.data(); 
+    processSet.reactant_ids = reactant_ids_.data(); 
+    processSet.reactant_ids_size = reactant_ids_.size(); 
+    processSet.number_of_product = number_of_products_.data(); 
+    processSet.product_ids = product_ids_.data(); 
+    processSet.product_ids_size = product_ids_.size(); 
+    processSet.yields = yields_.data(); 
+    processSet.yields = yields_.size(); 
 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
         matrixParam,
-        number_of_reactants_.data(),
-        reactant_ids_.data(),
-        reactant_ids_.size(),
-        number_of_products_.data(),
-        product_ids_.data(),
-        product_ids_.size(),
-        yields_.data(),
-        yields_.size());
+        processSet);
     return kernel_duration;  // time performance of kernel function
   }
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>

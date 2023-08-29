@@ -1,5 +1,5 @@
-#ifndef CUDA_MATRIX_PARAM_HPP
-#define CUDA_MATRIX_PARAM_HPP
+#ifndef CUDA_PARAM_HPP
+#define CUDA_PARAM_HPP
   struct CUDAProcessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
