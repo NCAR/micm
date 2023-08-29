@@ -64,11 +64,11 @@ namespace micm
     processSet.number_of_reactants = number_of_reactants_.data(); 
     processSet.reactant_ids = reactant_ids_.data(); 
     processSet.reactant_ids_size = reactant_ids_.size(); 
-    processSet.number_of_product = number_of_products_.data(); 
+    processSet.number_of_products = number_of_products_.data(); 
     processSet.product_ids = product_ids_.data(); 
     processSet.product_ids_size = product_ids_.size(); 
     processSet.yields = yields_.data(); 
-    processSet.yields = yields_.size(); 
+    processSet.yields_size = yields_.size(); 
 
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(
         matrixParam,
