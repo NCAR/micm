@@ -43,7 +43,7 @@ namespace micm
       // define thread index
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_id_offset, prod_id_offset, yield_offset;
-
+      double* rate_constants = device->rate_constants; //testing
       if (tid < n_grids)
       {
         react_id_offset = 0;
@@ -51,7 +51,7 @@ namespace micm
         yield_offset = 0;
         for (std::size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
-          double rate = device->rate_constants[i_rxn * n_grids + tid];
+          double rate = rate_constants[i_rxn * n_grids + tid];
           for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
             rate *= device->state_variables[device->reactant_ids[react_id_offset + i_react] * n_grids + tid];
           for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
