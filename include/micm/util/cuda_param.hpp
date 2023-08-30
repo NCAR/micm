@@ -1,5 +1,7 @@
 #ifndef CUDA_PARAM_HPP
 #define CUDA_PARAM_HPP
+  
+  //member data of class CUDAProcessSet grouped in struct passing to kernel driver function 
   struct CUDAProcessSetParam{
     const size_t* number_of_reactants; 
     const size_t* reactant_ids; 
@@ -12,7 +14,7 @@
     const size_t* jacobian_flat_ids; 
     size_t jacobian_flat_ids_size; 
 }; 
-
+//different matrix data grouped in struct passing to kernel driver function 
     struct CUDAMatrixParam{
      const double* rate_constants_; 
      const double* state_variables_; 

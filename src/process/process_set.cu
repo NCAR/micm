@@ -5,6 +5,8 @@
 #include <chrono>
 #include <iostream>
 #include <micm/util/cuda_param.hpp>
+
+//device pointers passing to AddForcingTermsKernel()
 typedef struct forcingDevice{
   double* rate_constants; 
   double* state_variables; 
@@ -15,7 +17,7 @@ typedef struct forcingDevice{
   size_t* product_ids; 
   double* yields; 
 };
-
+//device pointers passing to AddJacobianTermsKernel() 
 typedef struct jacobianDevice{
   double* rate_constants; 
   double* state_variables; 
@@ -26,7 +28,7 @@ typedef struct jacobianDevice{
   double* yields; 
   size_t* jacobian_flat_ids; 
 };
-
+const size_t BLOCK_SIZE = 320;
 
 namespace micm
 {
@@ -43,7 +45,10 @@ namespace micm
       // define thread index
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_id_offset, prod_id_offset, yield_offset;
-      double* rate_constants = device->rate_constants; //testing
+      double* forcing = device->forcing; 
+      size_t* number_of_reactants = device->number_of_reactants; 
+      size_t* reactant_ids = device->reactant_ids; 
+      size_t* number_of_products = device->number_of_products; 
       if (tid < n_grids)
       {
         react_id_offset = 0;
@@ -51,21 +56,21 @@ namespace micm
         yield_offset = 0;
         for (std::size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
-          double rate = rate_constants[i_rxn * n_grids + tid];
-          for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
-            rate *= device->state_variables[device->reactant_ids[react_id_offset + i_react] * n_grids + tid];
-          for (std::size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
+          double rate = device->rate_constants[i_rxn * n_grids + tid];
+          for (std::size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
+            rate *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
+          for (std::size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
           {
-            device->forcing[device->reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
+            forcing[reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
           }
-          for (std::size_t i_prod = 0; i_prod < device->number_of_products[i_rxn]; ++i_prod)
+          for (std::size_t i_prod = 0; i_prod < number_of_products[i_rxn]; ++i_prod)
           {
             size_t index = device->product_ids[prod_id_offset + i_prod] * n_grids + tid;
-            device->forcing[index] += device->yields[yield_offset + i_prod] * rate;
+            forcing[index] += device->yields[yield_offset + i_prod] * rate;
           }
-          react_id_offset += device->number_of_reactants[i_rxn];
-          prod_id_offset += device->number_of_products[i_rxn];
-          yield_offset += device->number_of_products[i_rxn];
+          react_id_offset += number_of_reactants[i_rxn];
+          prod_id_offset += number_of_products[i_rxn];
+          yield_offset += number_of_products[i_rxn];
         }  // for loop over number of reactions
       }    // if check for valid CUDA threads
     }      // end of AddForcingTerms_kernel
@@ -79,37 +84,42 @@ namespace micm
       size_t react_ids_offset = 0;
       size_t yields_offset = 0;
       size_t flat_id_offset = 0;
+      size_t* number_of_reactants = device->number_of_reactants; 
+      size_t* jacobian_flat_ids = device->jacobian_flat_ids; 
+      size_t* number_of_products = device->number_of_products; 
+      double* jacobian = device->jacobian; 
+      
       if (tid < n_grids)
       {
         // loop over reactions in a grid
         for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
         {
           // loop over reactants in a reaction
-          for (size_t i_ind = 0; i_ind < device->number_of_reactants[i_rxn]; ++i_ind)
+          for (size_t i_ind = 0; i_ind < number_of_reactants[i_rxn]; ++i_ind)
           {
             double d_rate_d_ind = device->rate_constants[i_rxn * n_grids + tid];
-            for (size_t i_react = 0; i_react < device->number_of_reactants[i_rxn]; ++i_react)
+            for (size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
               {
                 d_rate_d_ind *= device->state_variables[device->reactant_ids[react_ids_offset + i_react] * n_grids + tid];
               }
             }
-            for (size_t i_dep = 0; i_dep < device->number_of_reactants[i_rxn]; ++i_dep)
+            for (size_t i_dep = 0; i_dep < number_of_reactants[i_rxn]; ++i_dep)
             {
-              size_t jacobian_idx = device->jacobian_flat_ids[flat_id_offset] + tid;
-              device->jacobian[jacobian_idx] -= d_rate_d_ind;
+              size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;
+              jacobian[jacobian_idx] -= d_rate_d_ind;
               flat_id_offset++;
             }
-            for (size_t i_dep = 0; i_dep < device->number_of_products[i_rxn]; ++i_dep)
+            for (size_t i_dep = 0; i_dep < number_of_products[i_rxn]; ++i_dep)
             {
-              size_t jacobian_idx = device->jacobian_flat_ids[flat_id_offset] + tid;
-              device->jacobian[jacobian_idx] += device->yields[yields_offset + i_dep] * d_rate_d_ind;
+              size_t jacobian_idx = jacobian_flat_ids[flat_id_offset] + tid;
+              jacobian[jacobian_idx] += device->yields[yields_offset + i_dep] * d_rate_d_ind;
               flat_id_offset++;
             }
           }  // loop over reactants in a reaction
-          react_ids_offset += device->number_of_reactants[i_rxn];
-          yields_offset += device->number_of_products[i_rxn];
+          react_ids_offset += number_of_reactants[i_rxn];
+          yields_offset += number_of_products[i_rxn];
         }  // loop over reactions in a grid
       }    // check valid tid
     }      // end of AddJacobianTerms_kernel
@@ -161,14 +171,13 @@ namespace micm
 
       
       // setup kernel
-      size_t threads_per_block = 320;
-      size_t total_blocks = (matrixParam.n_grids_ + threads_per_block - 1) / threads_per_block;
+      size_t total_blocks = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
       size_t n_reactions = matrixParam.n_reactions_; 
       size_t n_grids = matrixParam.n_grids_; 
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
-      AddJacobianTermsKernel<<<total_blocks, threads_per_block>>>(
+      AddJacobianTermsKernel<<<total_blocks, BLOCK_SIZE>>>(
           device,
           n_grids,
           n_reactions);
@@ -235,8 +244,8 @@ namespace micm
       cudaMemcpy(&(device->yields), &d_yields, sizeof(double*), cudaMemcpyHostToDevice); 
 
       // total thread count == number of grid cells
-      int block_size = 320;
-      int num_block = (matrixParam.n_grids_ + block_size - 1) / block_size;
+     
+      int num_block = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
       size_t n_grids = matrixParam.n_grids_; 
       size_t n_reactions = matrixParam.n_reactions_; 
@@ -244,7 +253,7 @@ namespace micm
       
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
-      AddForcingTermsKernel<<<num_block, block_size>>>(
+      AddForcingTermsKernel<<<num_block, BLOCK_SIZE>>>(
           device,
           n_grids,
           n_reactions,
