@@ -58,7 +58,7 @@ namespace micm
         {
           double rate = device->rate_constants[i_rxn * n_grids + tid];
           for (std::size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
-            rate *= state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
+            rate *= device->state_variables[reactant_ids[react_id_offset + i_react] * n_grids + tid];
           for (std::size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
           {
             forcing[reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
