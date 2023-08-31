@@ -13,24 +13,24 @@ Usage:
 Description:
     kpp_to_micm.py translates KPP config files to MICM JSON config files
     (desginated by the suffixes .kpp, .spc, .eqn, .def)
-    from a single directory specified by the --kpp_dir argument.
+    from a single directory specified by the
+    --kpp_dir and --kpp_name arguments.
 
     In the initial implementation,
     the KPP sections #ATOMS (not yet used), #DEFFIX,
     #DEFVAR, and #EQUATIONS are read and parsed.
     Equations with the hv reactant are MICM PHOTOLYSIS reactions,
-    all others are assumed to be ARRHENIUS reactions.
+    equations with a single coefficient are assumed to be ARRHENIUS reactions.
 
 TODO:
-    (1) Parse both A and C Arrhenius coefficients from KPP equations
-    Currently a single rate coeffient is assigned to A and C is set to 0.
-    (2) Translate stoichiometric coefficients in the equation string
+    (1) Translate stoichiometric coefficients in the equation string
     with more than one digit.
-    (3) Add method unit tests with pytest.
-    (4) Add support for many more reaction types ...
+    (2) Add pytest unit test for method micm_equation_json.
+    (3+) Add support for many more reaction types ...
 
 Revision History:
-    2023/08/03 Initial implementation
+    v1.00 2023/08/03 Initial implementation
+    v1.01 2023/08/16 Added method parse_kpp_arrhenius
 """
 
 import os
@@ -40,10 +40,10 @@ import logging
 import json
 from glob import glob
 
-__version__ = 1.0
+__version__ = 'v1.01'
 
 
-def read_kpp_config(kpp_dir):
+def read_kpp_config(kpp_dir, kpp_name):
     """
     Read all KPP config files in a directory
 
@@ -59,7 +59,7 @@ def read_kpp_config(kpp_dir):
     lines = list()
 
     for suffix in suffixes:
-        files = glob(os.path.join(kpp_dir, '*' + suffix))
+        files = glob(os.path.join(kpp_dir, kpp_name + '*' + suffix))
         logging.debug(files)
         for filename in files:
             with open(filename, 'r') as f:
@@ -129,6 +129,69 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     return species_json
 
 
+def parse_kpp_arrhenius(kpp_str):
+    """
+    Parse KPP Arrhenius reaction
+
+    Parameters
+        (str) kpp_str: Arrhenius reaction string
+
+    Returns
+        (dict): MICM Arrhenius reaction coefficients
+
+
+    Arrhenius formula from KPP
+    --------------------------
+
+    KPP_REAL ARR_abc( float A0, float B0, float C0 )
+    {
+      double ARR_RES;
+
+      ARR_RES = (double)A0
+        * exp( -(double)B0/TEMP )
+        * pow( (TEMP/300.0), (double)C0 );
+
+    return (KPP_REAL)ARR_RES;
+    }
+
+    Arrhenius formula from MICM
+    ---------------------------
+
+    inline double ArrheniusRateConstant::calculate(
+      const double& temperature, const double& pressure) const
+    {
+    return parameters_.A_ * std::exp(parameters_.C_ / temperature)
+      * pow(temperature / parameters_.D_, parameters_.B_) *
+      (1.0 + parameters_.E_ * pressure);
+    }
+    """
+    logging.debug(kpp_str)
+    coeffs = [float(coeff.replace(' ', '')) for coeff in
+        kpp_str.split('(')[1].split(')')[0].split(',')]
+    logging.debug(coeffs)
+    arr_dict = dict()
+    arr_dict['type'] = 'ARRHENIUS' 
+    # note the interchange of B and C, and change of sign
+    # in the KPP and MICM conventions
+    if ('_abc(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['B'] = coeffs[2]
+        arr_dict['C'] = - coeffs[1]
+        arr_dict['D'] = 300.0
+    elif ('_ab(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['C'] = - coeffs[1]
+        arr_dict['D'] = 300.0
+    elif ('_ac(' in kpp_str):
+        arr_dict['A'] = coeffs[0]
+        arr_dict['B'] = coeffs[1]
+        arr_dict['D'] = 300.0
+    else:
+        logging.error('unrecognized KPP Arrhenius syntax')
+    logging.debug(arr_dict)
+    return arr_dict
+
+
 def micm_equation_json(lines):
     """
     Generate MICM equation JSON
@@ -143,17 +206,22 @@ def micm_equation_json(lines):
     equations = list() # list of dict
 
     for line in lines:
+        logging.debug(line)
+
+        # split on equal sign into left hand and right hand sides 
         lhs, rhs = tuple(line.split('='))
+
+        # extract reaction coefficients
+        rhs, coeffs = tuple(rhs.split(':'))
+        coeffs = coeffs.replace(';', '')
+
+        # get reactants and products
         reactants = lhs.split('+')
         products = rhs.split('+')
 
         # extract equation label delimited by < >
         label, reactants[0] = tuple(reactants[0].split('>'))
         label = label.lstrip('<')
-
-        # extract equation coefficients delimited by :
-        products[-1], coeffs = tuple(products[-1].split(':'))
-        coeffs = coeffs.replace('(', '').replace(')', '').replace(';', '')
 
         # remove trailing and leading whitespace
         reactants = [reactant.strip().lstrip() for reactant in reactants]
@@ -163,12 +231,13 @@ def micm_equation_json(lines):
 
         if 'SUN' in coeffs:
             equation_dict['type'] = 'PHOTOLYSIS' 
+        elif 'ARR' in coeffs:
+            equation_dict = parse_kpp_arrhenius(coeffs)
         else:
+            # default to Arrhenius with a single coefficient
+            coeffs = coeffs.replace('(', '').replace(')', '')
             equation_dict['type'] = 'ARRHENIUS' 
-            # assuming a single coefficient here
             equation_dict['A'] = float(coeffs)
-            # need to generalize to parse both A and C from KPP
-            equation_dict['C'] = 0.0
 
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
@@ -208,6 +277,9 @@ if __name__ == '__main__':
     parser.add_argument('--kpp_dir', type=str,
         default=os.path.join('..', 'configs', 'kpp'),
         help='KPP input config directory')
+    parser.add_argument('--kpp_name', type=str,
+        default='small_strato',
+        help='KPP config name')
     parser.add_argument('--micm_dir', type=str,
         default=os.path.join('..', 'configs', 'micm'),
         help='MICM output species config file')
@@ -227,7 +299,7 @@ if __name__ == '__main__':
     """
     Read KPP config files
     """
-    lines = read_kpp_config(args.kpp_dir)
+    lines = read_kpp_config(args.kpp_dir, args.kpp_name)
 
     """
     Split KPP config by section
@@ -277,6 +349,8 @@ if __name__ == '__main__':
     Write MICM JSON
     """
     micm_mechanism_dir = os.path.join(args.micm_dir, args.mechanism)
+    if not os.path.exists(args.micm_dir):
+        os.mkdir(args.micm_dir)
     if not os.path.exists(micm_mechanism_dir):
         os.mkdir(micm_mechanism_dir)
     with open(os.path.join(micm_mechanism_dir, 'species.json'), 'w') as f:
