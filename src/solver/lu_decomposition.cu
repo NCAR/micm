@@ -1,41 +1,29 @@
 #include <iostream> 
-struct pair{
-    size_t first; 
-    size_t second; 
-}
+#include <micm/util/cuda_param> 
+const BLOCK_SIZE = 320; 
+
+struct decomposeDevice{
+    double* A; 
+    double* L; 
+    double* U; 
+    bool* do_aik; 
+    size_t* aik; 
+    bool* do_aki;
+    size_t* aki;  
+    size_t* uii; 
+}; 
+
+
+
 namespace micm{
     namespace cuda{
         __global__ void Decompose_kernel(){
 
         }
     
-        void decompose_kernelSetup(
-            const double* A, 
-            size_t A_size,
-            double* L, 
-            size_t L_size, 
-            double* U,
-            size_t U_size,
-            size_t* niLu, //pair 
-            size_t* niLu_size,
-            bool* do_aik,
-            size_t do_aik_size
-            size_t* aik, 
-            size_t aik_size,
-            size_t* uik_nkj, //pair 
-            size_t uik_nki_size,
-            size_t* lij_ujk, //pair 
-            size_t lij_ujk_size,
-            bool* do_aki, 
-            size_t do_aki_size,
-            size_t* aki, 
-            size_t aki_size,
-            size_t* lki_nkj, //pair 
-            size_t lki_nkj_size,
-            size_t* lkj_uji, //pair
-            size_t lki_uji_size,
-            size_t* uii,
-            size_t uii_size){
+        void DecomposeKernelDriver(
+            CUDAMatrixParam& matrix, 
+            CUDASolverParam& solver){
             
             //create device pointers and allocate device memory 
             double* d_A; 
@@ -46,26 +34,37 @@ namespace micm{
             bool* d_do_aki;
             size_t* d_aki;  
             size_t* d_uii; 
+            decomposeDevice* device; 
 
-            cudaMalloc(&d_A, A, sizeof(double)* A_size); 
-            cudaMalloc(&d_L, L, sizeof(double)* L_size); 
-            cudaMalloc(&d_U, U, sizeof(double)* U_size); 
-            cudaMalloc(&d_do_aik, sizeof(bool)* do_aik_size); 
-            cudaMalloc(&d_aik, sizeof(size_t)* aik_size); 
-            cudaMalloc(&d_do_aki, sizeof(bool)* do_aki_size); 
-            cudaMalloc(&d_aki, sizeof(size_t)* aki_size); 
-            cudaMalloc(d_uii, sizeof(size_t)* uii_size); 
+            cudaMalloc(&d_A, sizeof(double)* matrix.A_size); 
+            cudaMalloc(&d_L, sizeof(double)* matrix.L_size); 
+            cudaMalloc(&d_U, sizeof(double)* matrix.U_size); 
+            cudaMalloc(&d_do_aik, sizeof(bool)* solver.do_aik_size); 
+            cudaMalloc(&d_aik, sizeof(size_t)* solver.aik_size); 
+            cudaMalloc(&d_do_aki, sizeof(bool)* solver.do_aki_size); 
+            cudaMalloc(&d_aki, sizeof(size_t)* solver.aki_size); 
+            cudaMalloc(&d_uii, sizeof(size_t)* solver.uii_size); 
+            cudaMalloc(&device, sizeof(decomposeDevice)); 
 
             //transfer data from host to device 
-            cudaMemcpy(d_A, A, sizeof(double)* A_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_L, L, sizeof(double)* L_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_U, U, sizeof(double)* U_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_do_aik, do_aik, sizeof(bool)* do_aik_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_aik, aik, sizeof(size_t)* aik_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_do_aki, do_aki, sizeof(bool)* do_aki_size, cudaMemcpyHostToDevice); 
-
+            cudaMemcpy(d_A, matrix.A, sizeof(double)* matrix.A_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_L, matrix.L, sizeof(double)* matrix.L_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_U, matrix.U, sizeof(double)* matrix.U_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_do_aik, solver.do_aik, sizeof(bool)* solver.do_aik_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_aik, solver.aik, sizeof(size_t)* solver.aik_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_do_aki, solver.do_aki, sizeof(bool)* solver.do_aki_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_uii, solver.uii, sizeof(size_t)* solver.uii_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->A),&d_A, sizeof(double*), cudaMemcpyHostToDevice);
+            cudaMemcpy(&(device->L),&d_L, sizeof(double*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->U),&d_U, sizeof(double*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->do_aik), &d_do_aik, sizeof(bool*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->aik), &d_aik, sizeof(size_t*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->do_aki),&d_do_aki,sizeof(bool*),cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->aki),&d_aki, sizeof(size_t*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->uii), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
             
-
+            
+        
 
             }
         

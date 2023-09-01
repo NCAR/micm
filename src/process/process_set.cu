@@ -28,6 +28,7 @@ typedef struct jacobianDevice{
   double* yields; 
   size_t* jacobian_flat_ids; 
 };
+
 const size_t BLOCK_SIZE = 320;
 
 namespace micm

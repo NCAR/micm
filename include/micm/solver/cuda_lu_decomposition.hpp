@@ -1,28 +1,28 @@
 #pragma once
 #include<micm/solver/lu_decomposition.hpp>
+#include<micm/util/cuda_param.hpp>
 #include<thrust/device_vector.h> 
 #ifdef USE_CUDA
 #include <micm/solver/cuda_de_composition.cuh>
 #endif 
 
+#ifdef USE_CUDA
 namespace micm{
     class CUDALuDecomposition: public LuDecomposition{
         public: 
-        CUDALuDecomposition(); 
+    CUDALuDecomposition(); 
         /// @brief Construct an LU decomposition algorithm for a given sparse matrix
         /// @param matrix Sparse matrix
         template<typename T, typename OrderingPolicy>
-        CUDALuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix); 
+    CUDALuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix); 
     
-    #ifdef USE_CUDA
-        template<typename T, template<class> typename SparseMatrixPolicy>
-        requires VectorizableSparse<SparseMatrixPolicy<T>>
-        void Decompose(
-            const SparseMatrixPolicy<T>&A, 
-            SparseMatrixPolicy<T>& L, 
-            SparseMatrixPolicy<T>& U) const; 
-    #endif
-    
+    template<typename T, template<class> typename SparseMatrixPolicy>
+    requires VectorizableSparse<SparseMatrixPolicy<T>>
+    void Decompose(
+        const SparseMatrixPolicy<T>&A, 
+        SparseMatrixPolicy<T>& L, 
+        SparseMatrixPolicy<T>& U) const; 
+  
     inline CUDALuDecomposition::CUDALuDecomposition(){};
 
     template<typename T, typename OrderingPolicy>
@@ -105,16 +105,40 @@ namespace micm{
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const
     {
-        thrust::device_vector d_niLU<std::pair<size_t,size_t>> = niLU_; 
-        thrust::device_vector d_uik_nkj<std::pair<size_t,size_t>> = uik_nkj_;
-        thrust::device_vector d_lij_ujk<std::pair<size_t, size_t>> = lij_ujk_; 
-        thrust::device_vector d_lki_nkj<std::pair<size_t, size_t>> = lki_nkj_; 
-        thrust::device_vector d_lkj_uji<std::pair<size_t, size_t>> = lkj_uji_;
+        CUDAMatrixParam matrix; 
+        matrix.A = A.AsVector().data(); 
+        matrix.A_size = A.AsVector().size(); 
+        matrix.L = L.AsVector().data(); 
+        matrix.L_size = L.AsVector().size(); 
+        matrix.U = U.AsVector().data(); 
+        matrix.U_size = U.AsVector().size(); 
         
+        CUDASolverParam solver; 
+        solver.d_niLU.resize(niLU_.size()); 
+        solver.d_uik_nkj.resize(uik_nkj_.size());
+        solver.d_lij_ujk.resize(lij_ujk_.size()); 
+        solver.d_lki_nkj.resize(lki_nkj_.size()); 
+        solver.d_lkj_uji.resize(lkj_uji_.size()); 
+        solver.d_niLU = niLU_; 
+        solver.d_uik_nkj = uik_nkj_;
+        solver.d_lij_ujk = lij_ujk_; 
+        solver.d_lki_nkj = lki_nkj_; 
+        solver.d_lkj_uji = lkj_uji_;
+        solver.do_aik = do_aik_.data(); 
+        solver.do_aik_size = do_aik.size(); 
+        solver.aik = aik_.data(); 
+        solver.aik_size = aik_.size(); 
+        solver.do_aki = do_aki_.data(); 
+        solver.do_aki_size = do_aki_.size(); 
+        solver.aki = aki_.data(); 
+        solver.aki_size = aki_.size(); 
+        solver.uii = uii.data(); 
+     
         //calling kernelSetup function
-        
+        DecomposeKernelDriver(matrix, solver); 
     }
 
 
     } //end class CUDALuDecomposition
 }//end micm 
+   #endif
