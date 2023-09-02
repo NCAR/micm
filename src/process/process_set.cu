@@ -126,7 +126,7 @@ namespace micm
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         CUDAMatrixParam& matrixParam,
-        CUDASparseMatrix& sparseMatrix, 
+        CUDASparseMatrixParam& sparseMatrix, 
         CUDAProcessSetParam& processSet)
     {
       // create device pointers
