@@ -2,6 +2,7 @@
 #include<micm/solver/lu_decomposition.hpp>
 #include<micm/util/cuda_param.hpp>
 #include<thrust/device_vector.h> 
+#include<thrust/pair.h>
 #ifdef USE_CUDA
 #include <micm/solver/cuda_de_composition.cuh>
 #endif 
@@ -105,13 +106,13 @@ namespace micm{
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const
     {
-        CUDAMatrixParam matrix; 
-        matrix.A = A.AsVector().data(); 
-        matrix.A_size = A.AsVector().size(); 
-        matrix.L = L.AsVector().data(); 
-        matrix.L_size = L.AsVector().size(); 
-        matrix.U = U.AsVector().data(); 
-        matrix.U_size = U.AsVector().size(); 
+        CUDASparseMatrix sparseMatrix; 
+        sparseMatrix.A = A.AsVector().data(); 
+        sparseMatrix.A_size = A.AsVector().size(); 
+        sparseMatrix.L = L.AsVector().data(); 
+        sparseMatrix.L_size = L.AsVector().size(); 
+        sparseMatrix.U = U.AsVector().data(); 
+        sparseMatrix.U_size = U.AsVector().size(); 
         
         CUDASolverParam solver; 
         solver.d_niLU.resize(niLU_.size()); 
@@ -132,10 +133,12 @@ namespace micm{
         solver.do_aki_size = do_aki_.size(); 
         solver.aki = aki_.data(); 
         solver.aki_size = aki_.size(); 
-        solver.uii = uii.data(); 
+        solver.uii = uii_.data(); 
+        solver.uii_size = uii_.size(); 
      
+
         //calling kernelSetup function
-        DecomposeKernelDriver(matrix, solver); 
+        DecomposeKernelDriver(sparseMatrix, solver); 
     }
 
 

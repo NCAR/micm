@@ -1,4 +1,5 @@
 #include<thrust/device_vector.h> 
+#include <thrust/pair.h>
 #ifndef CUDA_PARAM_HPP
 #define CUDA_PARAM_HPP
   //member data of class CUDAProcessSet grouped in struct passing to kernel driver function 
@@ -16,11 +17,11 @@
 }; 
 
   struct CUDASolverParam{
-      thrust::device_vector d_niLU<thrust::pair<size_t,size_t>>;
-      thrust::device_vector d_uik_nkj<thrust::pair<size_t,size_t>>; 
-      thrust::device_vector d_lij_ujk<thrust::pair<size_t, size_t>>;
-      thrust::device_vector d_lki_nkj<thrust::pair<size_t, size_t>>; 
-      thrust::device_vector d_lkj_uji<thrust::pair<size_t, size_t>>;
+      thrust::device_vector<thrust::pair<size_t,size_t>> d_niLU;
+      thrust::device_vector<thrust::pair<size_t,size_t>> d_uik_nkj; 
+      thrust::device_vector<thrust::pair<size_t, size_t>> d_lij_ujk;
+      thrust::device_vector<thrust::pair<size_t, size_t>> d_lki_nkj; 
+      thrust::device_vector<thrust::pair<size_t, size_t>> d_lkj_uji;
       const bool* do_aik;
       size_t do_aik_size; 
       const size_t* aik;
@@ -45,5 +46,11 @@
 struct CUDASparseMatrixParam{
    double* jacobian; 
    size_t jacobian_size; 
+   const double* A; 
+   size_t A_size; 
+   double* L; 
+   size_t L_size; 
+   double* U;
+   size_t U_size; 
 };
 #endif

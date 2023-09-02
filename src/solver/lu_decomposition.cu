@@ -1,7 +1,8 @@
 #include <iostream> 
 #include <micm/util/cuda_param> 
+#include<thrust/device_vector.h> 
+#include <thrust/pair.h>
 const BLOCK_SIZE = 320; 
-
 struct decomposeDevice{
     double* A; 
     double* L; 
@@ -17,12 +18,16 @@ struct decomposeDevice{
 
 namespace micm{
     namespace cuda{
-        __global__ void Decompose_kernel(){
+        // __global__ void Decompose_kernel(
+        //     decomposeDevice& device, 
+        //     thrust::device_vector d_niLU<thrust::pair<size_t,size_t>>;
+        // )
+        // {
 
-        }
+        // }
     
         void DecomposeKernelDriver(
-            CUDAMatrixParam& matrix, 
+            CUDAMatrixParam& sparseMatrix, 
             CUDASolverParam& solver){
             
             //create device pointers and allocate device memory 
@@ -36,9 +41,9 @@ namespace micm{
             size_t* d_uii; 
             decomposeDevice* device; 
 
-            cudaMalloc(&d_A, sizeof(double)* matrix.A_size); 
-            cudaMalloc(&d_L, sizeof(double)* matrix.L_size); 
-            cudaMalloc(&d_U, sizeof(double)* matrix.U_size); 
+            cudaMalloc(&d_A, sizeof(double)* sparseMatrix.A_size); 
+            cudaMalloc(&d_L, sizeof(double)* sparseMatrix.L_size); 
+            cudaMalloc(&d_U, sizeof(double)* sparseMatrix.U_size); 
             cudaMalloc(&d_do_aik, sizeof(bool)* solver.do_aik_size); 
             cudaMalloc(&d_aik, sizeof(size_t)* solver.aik_size); 
             cudaMalloc(&d_do_aki, sizeof(bool)* solver.do_aki_size); 
@@ -47,9 +52,9 @@ namespace micm{
             cudaMalloc(&device, sizeof(decomposeDevice)); 
 
             //transfer data from host to device 
-            cudaMemcpy(d_A, matrix.A, sizeof(double)* matrix.A_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_L, matrix.L, sizeof(double)* matrix.L_size, cudaMemcpyHostToDevice); 
-            cudaMemcpy(d_U, matrix.U, sizeof(double)* matrix.U_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_A, sparseMatrix.A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_L, sparseMatrix.L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_U, sparseMatrix.U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_do_aik, solver.do_aik, sizeof(bool)* solver.do_aik_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_aik, solver.aik, sizeof(size_t)* solver.aik_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_do_aki, solver.do_aki, sizeof(bool)* solver.do_aki_size, cudaMemcpyHostToDevice); 
@@ -63,8 +68,7 @@ namespace micm{
             cudaMemcpy(&(device->aki),&d_aki, sizeof(size_t*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->uii), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
             
-            
-        
+            size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
             }
         
