@@ -127,6 +127,7 @@ namespace micm
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         CUDAMatrixParam& matrixParam,
+        CUDASparseMatrixParam& sparseMatrix, 
         CUDAProcessSetParam& processSet)
     {
       // create device pointers
@@ -141,24 +142,24 @@ namespace micm
       jacobianDevice* device; 
 
       // allocate device memory
-      cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
-      cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
-      cudaMalloc(&d_jacobian, sizeof(double) * matrixParam.jacobian_size_);
-      cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_);
+      cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids * matrixParam.n_reactions);
+      cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids * matrixParam.n_species);
+      cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size);
+      cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions);
       cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size);
-      cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions_);
+      cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions);
       cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size);
       cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size);
       cudaMalloc(&device, sizeof(jacobianDevice)); 
       
 
       // transfer data from host to device
-      cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_state_variables, matrixParam.state_variables_, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_jacobian, matrixParam.jacobian_, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_rate_constants, matrixParam.rate_constants, sizeof(double) * matrixParam.n_grids * matrixParam.n_reactions, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_state_variables, matrixParam.state_variables, sizeof(double) * matrixParam.n_grids * matrixParam.n_species, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_jacobian, sparseMatrix.jacobian, sizeof(double) * sparseMatrix.jacobian_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions, cudaMemcpyHostToDevice);
       cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * processSet.reactant_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size, cudaMemcpyHostToDevice);
       cudaMemcpy(&(device->rate_constants), &d_rate_constants, sizeof(double*), cudaMemcpyHostToDevice); 
@@ -172,10 +173,10 @@ namespace micm
 
       
       // setup kernel
-      size_t total_blocks = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      size_t total_blocks = (matrixParam.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-      size_t n_reactions = matrixParam.n_reactions_; 
-      size_t n_grids = matrixParam.n_grids_; 
+      size_t n_reactions = matrixParam.n_reactions; 
+      size_t n_grids = matrixParam.n_grids; 
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<total_blocks, BLOCK_SIZE>>>(
@@ -186,7 +187,7 @@ namespace micm
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
-      cudaMemcpy(matrixParam.jacobian_, d_jacobian, sizeof(double) * matrixParam.jacobian_size_, cudaMemcpyDeviceToHost);
+      cudaMemcpy(sparseMatrix.jacobian, d_jacobian, sizeof(double) * sparseMatrix.jacobian_size, cudaMemcpyDeviceToHost);
       // clean up
       cudaFree(d_rate_constants);
       cudaFree(d_state_variables);
@@ -216,23 +217,23 @@ namespace micm
       forcingDevice* device; 
 
       // allocate device memory
-      cudaMalloc(&d_rate_constants, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_reactions_));
-      cudaMalloc(&d_state_variables, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));
-      cudaMalloc(&d_forcing, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));
-      cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_);
+      cudaMalloc(&d_rate_constants, sizeof(double) * (matrixParam.n_grids * matrixParam.n_reactions));
+      cudaMalloc(&d_state_variables, sizeof(double) * (matrixParam.n_grids * matrixParam.n_species));
+      cudaMalloc(&d_forcing, sizeof(double) * (matrixParam.n_grids * matrixParam.n_species));
+      cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrixParam.n_reactions);
       cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size);
-      cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions_);
+      cudaMalloc(&d_number_of_products, sizeof(size_t) * matrixParam.n_reactions);
       cudaMalloc(&d_product_ids, sizeof(size_t) * processSet.product_ids_size);
       cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size);
       cudaMalloc(&device, sizeof(forcingDevice)); 
 
       // copy data from host memory to device memory
-      cudaMemcpy(d_rate_constants, matrixParam.rate_constants_, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_reactions_), cudaMemcpyHostToDevice);
-      cudaMemcpy(d_state_variables, matrixParam.state_variables_, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_), cudaMemcpyHostToDevice);
-      cudaMemcpy(d_forcing, matrixParam.forcing_, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_), cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_rate_constants, matrixParam.rate_constants, sizeof(double) * (matrixParam.n_grids * matrixParam.n_reactions), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_state_variables, matrixParam.state_variables, sizeof(double) * (matrixParam.n_grids * matrixParam.n_species), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_forcing, matrixParam.forcing, sizeof(double) * (matrixParam.n_grids * matrixParam.n_species), cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrixParam.n_reactions, cudaMemcpyHostToDevice);
       cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * processSet.reactant_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrixParam.n_reactions, cudaMemcpyHostToDevice);
       cudaMemcpy(d_product_ids, processSet.product_ids, sizeof(size_t) * processSet.product_ids_size, cudaMemcpyHostToDevice);
       cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
       cudaMemcpy(&(device->rate_constants), &d_rate_constants, sizeof(double*),cudaMemcpyHostToDevice); 
@@ -246,11 +247,11 @@ namespace micm
 
       // total thread count == number of grid cells
      
-      int num_block = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      int num_block = (matrixParam.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-      size_t n_grids = matrixParam.n_grids_; 
-      size_t n_reactions = matrixParam.n_reactions_; 
-      size_t n_species = matrixParam.n_species_; 
+      size_t n_grids = matrixParam.n_grids; 
+      size_t n_reactions = matrixParam.n_reactions; 
+      size_t n_species = matrixParam.n_species; 
       
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
@@ -264,7 +265,7 @@ namespace micm
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
       // copy data from device memory to host memory
-      cudaMemcpy(matrixParam.forcing_, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
+      cudaMemcpy(matrixParam.forcing, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
 
       // clean up
       cudaFree(d_rate_constants);

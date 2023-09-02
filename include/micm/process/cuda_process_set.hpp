@@ -53,12 +53,12 @@ namespace micm
       MatrixPolicy<double>& forcing) const
   {
     CUDAMatrixParam matrixParam;
-    matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
-    matrixParam.state_variables_ = state_variables.AsVector().data(); 
-    matrixParam.forcing_ = forcing.AsVector().data(); 
-    matrixParam.n_grids_ = rate_constants.size(); 
-    matrixParam.n_reactions_ = rate_constants[0].size(); 
-    matrixParam.n_species_ = state_variables[0].size();
+    matrixParam.rate_constants = rate_constants.AsVector().data(); 
+    matrixParam.state_variables = state_variables.AsVector().data(); 
+    matrixParam.forcing = forcing.AsVector().data(); 
+    matrixParam.n_grids = rate_constants.size(); 
+    matrixParam.n_reactions = rate_constants[0].size(); 
+    matrixParam.n_species = state_variables[0].size();
 
     CUDAProcessSetParam processSet; 
     processSet.number_of_reactants = number_of_reactants_.data(); 
@@ -83,13 +83,15 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian) const
   {
     CUDAMatrixParam matrixParam; 
-    matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
-    matrixParam.state_variables_ = state_variables.AsVector().data(); 
-    matrixParam.jacobian_= jacobian.AsVector().data(); 
-    matrixParam.n_grids_ = rate_constants.size(); 
-    matrixParam.n_reactions_ = rate_constants[0].size(); 
-    matrixParam.n_species_ = state_variables[0].size(); 
-    matrixParam.jacobian_size_ = jacobian.AsVector().size(); 
+    matrixParam.rate_constants = rate_constants.AsVector().data(); 
+    matrixParam.state_variables = state_variables.AsVector().data(); 
+    matrixParam.n_grids = rate_constants.size(); 
+    matrixParam.n_reactions = rate_constants[0].size(); 
+    matrixParam.n_species = state_variables[0].size(); 
+    
+    CUDASparseMatrixParam sparseMatrix; 
+    sparseMatrix.jacobian = jacobian.AsVector().data(); 
+    sparseMatrix.jacobian_size = jacobian.AsVector().size(); 
     
     CUDAProcessSetParam processSet; 
     processSet.number_of_reactants = number_of_reactants_.data(); 
@@ -103,6 +105,7 @@ namespace micm
     
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(
         matrixParam, 
+        sparseMatrix, 
         processSet);
     return kernel_duration;  // time performance of kernel function
   }
