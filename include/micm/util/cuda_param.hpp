@@ -32,7 +32,7 @@
       size_t aki_size; 
       const size_t* uii; 
       size_t uii_size; 
-  }
+  };
  //different matrix data grouped in struct passing to kernel driver function 
     struct CUDAMatrixParam{
      const double* rate_constants; 
