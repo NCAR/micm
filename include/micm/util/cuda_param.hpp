@@ -18,11 +18,9 @@
      const double* rate_constants; 
      const double* state_variables; 
      double* forcing; 
-     double* jacobian; 
      size_t n_grids; 
      size_t n_reactions; 
      size_t n_species; 
-     size_t jacobian_size; 
 }; 
 //sparseMatrix data grouped in struct passing to kernel driver function 
 struct CUDASparseMatrixParam{
