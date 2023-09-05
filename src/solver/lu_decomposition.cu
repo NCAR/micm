@@ -18,13 +18,71 @@ struct decomposeDevice{
 
 namespace micm{
     namespace cuda{
-        // __global__ void Decompose_kernel(
-        //     decomposeDevice& device, 
-        //     thrust::device_vector d_niLU<thrust::pair<size_t,size_t>>;
-        // )
-        // {
-
-        // }
+        __global__ void Decompose_kernel(
+            size_t A_size, 
+            decomposeDevice& device, 
+            thrust::device_vector<thrust::pair<size_t,size_t>> niLU,
+            thrust::device_vector<thrust::pair<size_t,size_t>> uik_nkj, 
+            thrust::device_vector<thrust::pair<size_t,size_t>> lij_ujk,
+            thrust::device_vector<thrust::pair<size_t,size_t>> lki_nkj,
+            thrust::device_vector<thrust::pair<size_t,size_t>> lkj_uji)
+        {
+            size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+            double* A = device->A; 
+            double* L = device->L;
+            double* U = device->U;
+            size_t do_aik_offset = 0; //boolean vector 
+            size_t aik_offset = 0;
+            size_t uik_nkj_offset = 0; 
+            size_t lij_ujk_offset = 0; 
+            size_t do_aki_offset = 0; //boolean vector 
+            size_t aki_offset = 0; 
+            size_t lki_nkj_offset = 0; 
+            size_t lkj_uji_offset = 0; 
+            size_t uii_offset = 0; 
+            if (tid < A_size){
+                for (auto& inLU : niLU){
+                    //upper triangular matrix 
+                    for (size_t iU = 0; iU < inLU.second; ++iU){
+                        if(device->do_aik[++do_aik_offset]){
+                            size_t U_idx = uik_nkj[uik_nkj_offset]->first + tid;
+                            size_t A_idx =  device->aik[++aik_offset]+ tid; 
+                            U[U_idx] = A[A_idx]; 
+                        }
+                        for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset]->second; ++ikj){
+                            
+                            size_t L_idx = lij_ujk[lij_ujk_offset]->first + tid;
+                            size_t U_idx_1 = uik_nkj[uik_nkj_offset]->first + tid; 
+                            size_t U_idx_2 = lij_ujk[lij_ujk_offset]->second + tid; 
+                            U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
+                            ++lij_ujk_offset; 
+                        }
+                        ++uik_nkj_offset; 
+                    }
+                    //lower triangular matrix
+                    L[lki_nkj[++lki_nkj_offset]->first + tid] = 1.0; 
+                    for (size_t iL = 0; iL <inLU.first; ++iL){
+                        if(device->do_aki[++do_aki_offset]){
+                            size_t L_idx = lki_nkj[lkj_nkj_offset]->first + tid; 
+                            size_t A_idx = aki->device[++aki_offset] + tid; 
+                            L[L_idx] = A[A_idx]; 
+                        }
+                        //working in progress 
+                        for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset]->second;++ikj){
+                            size_t L_idx_1 = lki_nkj[lki_nkj_offset]->first + tid;
+                            size_t L_idx_2 = lkj_uji[lkj_uji_offset]->first + tid;
+                            size_t U_idx = lkj_uji[lkj_uji_offset]->second + tid; 
+                            ++lkj_uji_offset; 
+                        }
+                        size_t L_idx = lki_nkj[lki_nkj_offset]->first + tid; 
+                        size_t U_idx = device->uii[uii_offset]+tid; 
+                        L[L_idx]/=U[U_idx]; 
+                        ++lki_nkj_offset; 
+                        ++uii_offset; 
+                    }
+                }
+            }
+        }// end of kernel
     
         void DecomposeKernelDriver(
             CUDAMatrixParam& sparseMatrix, 

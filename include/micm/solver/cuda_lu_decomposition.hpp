@@ -4,17 +4,18 @@
 #include<thrust/device_vector.h> 
 #include<thrust/pair.h>
 #ifdef USE_CUDA
-#include <micm/solver/cuda_de_composition.cuh>
+#include <micm/solver/cuda_lu_decomposition.cuh>
 #endif 
 
 #ifdef USE_CUDA
 namespace micm{
     class CUDALuDecomposition: public LuDecomposition{
-        public: 
-    CUDALuDecomposition(); 
-        /// @brief Construct an LU decomposition algorithm for a given sparse matrix
-        /// @param matrix Sparse matrix
-        template<typename T, typename OrderingPolicy>
+    public: 
+    CUDALuDecomposition(){}; 
+    
+    /// @brief Construct an LU decomposition algorithm for a given sparse matrix
+    /// @param matrix Sparse matrix
+    template<typename T, typename OrderingPolicy>
     CUDALuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix); 
     
     template<typename T, template<class> typename SparseMatrixPolicy>
@@ -23,8 +24,7 @@ namespace micm{
         const SparseMatrixPolicy<T>&A, 
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const; 
-  
-    inline CUDALuDecomposition::CUDALuDecomposition(){};
+    }; 
 
     template<typename T, typename OrderingPolicy>
     inline CUDALuDecomposition::CUDALuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix){
@@ -97,7 +97,7 @@ namespace micm{
         }
         niLU_.push_back(iLU);
     }
-  } 
+  }
 
     template<typename T, template<class> class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy<T>>) 
@@ -136,12 +136,8 @@ namespace micm{
         solver.uii = uii_.data(); 
         solver.uii_size = uii_.size(); 
      
-
         //calling kernelSetup function
         DecomposeKernelDriver(sparseMatrix, solver); 
     }
-
-
-    } //end class CUDALuDecomposition
-}//end micm 
-   #endif
+} //end micm
+#endif
