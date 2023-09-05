@@ -14,12 +14,9 @@ struct decomposeDevice{
     size_t* uii; 
 }; 
 
-
-
 namespace micm{
     namespace cuda{
-        __global__ void Decompose_kernel(
-            size_t A_size, 
+        __global__ void DecomposeKernel(
             decomposeDevice& device, 
             thrust::device_vector<thrust::pair<size_t,size_t>> niLU,
             thrust::device_vector<thrust::pair<size_t,size_t>> uik_nkj, 
@@ -126,11 +123,27 @@ namespace micm{
             cudaMemcpy(&(device->aki),&d_aki, sizeof(size_t*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->uii), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
             
+            
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+            //call kernel
+            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(
+            decomposeDevice& device, 
+            niLU,
+            uik_nkj, 
+            lij_ujk,
+            lki_nkj,
+            lkj_uji)
 
-            }
-        
-
-
-    }
-}
+        //clean up 
+        cudaFree(d_A); 
+        cudaFree(d_L); 
+        cudaFree(d_U); 
+        cudaFree(d_do_aik); 
+        cudaFree(d_aik);
+        cudaFree(d_do_aki); 
+        cudaFree(d_aki); 
+        cudaFree(d_uii); 
+        cudaFree(device); 
+    }//end kernelDriver
+ }//end cuda 
+}//end micm
