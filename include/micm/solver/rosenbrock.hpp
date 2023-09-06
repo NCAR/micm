@@ -519,9 +519,6 @@ namespace micm
 
     static constexpr double delta_min_ = 1.0e-5;
 
-    /// @brief Default constructor
-    RosenbrockSolver();
-
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
@@ -627,20 +624,6 @@ namespace micm
       default: return "Unknown";
     }
     return "";
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
-      : system_(),
-        processes_(),
-        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
-        process_set_(),
-        stats_(),
-        jacobian_(),
-        linear_solver_(),
-        jacobian_diagonal_elements_(),
-        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
-  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -872,7 +855,11 @@ namespace micm
       }
     }
 
-    result.state_ = SolverState::Converged;
+    if (result.state_ == SolverState::Running)
+    {
+      result.state_ = SolverState::Converged;
+    }
+
     result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);

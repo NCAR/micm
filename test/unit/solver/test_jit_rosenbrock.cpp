@@ -2,13 +2,14 @@
 
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t number_of_grid_cells)
+micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -40,7 +41,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+  return micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
@@ -96,7 +97,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
-TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
+TEST(JitRosenbrockSolver, StandardAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(1);
   testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(2);
@@ -122,7 +123,7 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
-TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
+TEST(JitRosenbrockSolver, DenseAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix>(1);
   testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix>(4);
