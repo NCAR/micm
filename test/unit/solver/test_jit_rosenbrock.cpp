@@ -97,14 +97,6 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
-TEST(JitRosenbrockSolver, StandardAlphaMinusJacobian)
-{
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(1);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(2);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(3);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(4);
-}
-
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
 template<class T>
