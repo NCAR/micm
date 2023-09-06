@@ -239,6 +239,7 @@ namespace micm
     double
     NormalizedError(const MatrixPolicy<double>& y, const MatrixPolicy<double>& y_new, const MatrixPolicy<double>& errors);
   };
+  
 }  // namespace micm
 
 #include "rosenbrock.inl"

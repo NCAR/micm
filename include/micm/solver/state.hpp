@@ -68,6 +68,7 @@ namespace micm
     void SetCustomRateParameter(const std::string& label, double value);
     void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
   };
+  
 }  // namespace micm
 
 #include "state.inl"

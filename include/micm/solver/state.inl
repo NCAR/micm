@@ -1,24 +1,27 @@
 namespace micm
 {
+  
   template<template<class> class MatrixPolicy>
-  State<MatrixPolicy>::State()
+  inline State<MatrixPolicy>::State()
       : conditions_(),
         variable_map_(),
         custom_rate_parameter_map_(),
+        variable_names_(),
         variables_(),
         custom_rate_parameters_(),
         rate_constants_()
   {
   }
+  
   template<template<class> class MatrixPolicy>
-  State<MatrixPolicy>::State(
+  inline State<MatrixPolicy>::State(
       const std::size_t state_size,
       const std::size_t custom_parameters_size,
       const std::size_t process_size)
       : conditions_(1),
         variable_map_(),
-        variable_names_(),
         custom_rate_parameter_map_(),
+        variable_names_(),
         variables_(1, state_size, 0.0),
         custom_rate_parameters_(1, custom_parameters_size, 0.0),
         rate_constants_(1, process_size, 0.0)
@@ -26,11 +29,11 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  State<MatrixPolicy>::State(const StateParameters& parameters)
+  inline State<MatrixPolicy>::State(const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variable_map_(),
-        variable_names_(parameters.state_variable_names_),
         custom_rate_parameter_map_(),
+        variable_names_(parameters.state_variable_names_),
         variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
         custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
         rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0)
@@ -44,7 +47,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetConcentrations(
+  inline void State<MatrixPolicy>::SetConcentrations(
       const System& system,
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
@@ -104,7 +107,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetConcentration(const Species& species, double concentration)
+  inline void State<MatrixPolicy>::SetConcentration(const Species& species, double concentration)
   {
     if (variables_.size() != 1)
       throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
@@ -112,7 +115,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
+  inline void State<MatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
   {
     if (variables_.size() != concentration.size())
       throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
@@ -122,14 +125,14 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetCustomRateParameters(const std::unordered_map<std::string, std::vector<double>>& parameters)
+  inline void State<MatrixPolicy>::SetCustomRateParameters(const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
+  inline void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -140,7 +143,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
+  inline void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -150,4 +153,5 @@ namespace micm
     for (std::size_t i = 0; i < custom_rate_parameters_.size(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
+  
 }  // namespace micm
