@@ -64,7 +64,7 @@ namespace micm
    private:
     /// @brief Generate a function to calculate forcing terms
     /// @param matrix The matrix that will hold the forcing terms
-    void GenerateForcingFunction(const VectorMatrix<double, L> &matrix);
+    void GenerateForcingFunction();
     /// @brief Generate a function to calculate Jacobian terms
     /// @param matrix The sparse matrix that will hold the Jacobian
     void GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
@@ -79,12 +79,11 @@ namespace micm
       : ProcessSet(processes, state),
         compiler_(compiler)
   {
-    MatrixPolicy<double> test_matrix;
-    this->GenerateForcingFunction(test_matrix);
+    this->GenerateForcingFunction();
   }
 
   template<std::size_t L>
-  void JitProcessSet<L>::GenerateForcingFunction(const VectorMatrix<double, L> &matrix)
+  void JitProcessSet<L>::GenerateForcingFunction()
   {
     JitFunction func = JitFunction::create(compiler_)
                            .name("add_forcing_terms")
