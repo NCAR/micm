@@ -34,6 +34,7 @@ namespace micm
   /// calls to Decompose to do the actual decomposition.
   class LuDecomposition
   {
+   protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
@@ -77,7 +78,7 @@ namespace micm
     LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
-    /// @param A Sparse matrix the will be decomposed
+    /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
     template<typename T, typename OrderingPolicy>
     static std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> GetLUMatrices(
@@ -86,9 +87,8 @@ namespace micm
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
-    /// @param LU the lower and upper triangular matrices returned as a square matrix
-    ///           The diagonal of LU belongs to the upper triangular matrix and the
-    ///           diagonal of the lower triangular matrix shoud be assumed to be 1
+    /// @param L The lower triangular matrix created by decomposition
+    /// @param U The upper triangular matrix created by decomposition
     template<typename T, template<class> class SparseMatrixPolicy>
     requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
         const SparseMatrixPolicy<T>& A,
