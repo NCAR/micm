@@ -52,19 +52,23 @@ TEST(JitLuDecomposition, RandomMatrixVectorOrdering)
   testRandomMatrix<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>(
       [&](const Group1SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<1> {
         return micm::JitLuDecomposition<1>{ jit.get(), matrix };
-      });
+      },
+      1);
   testRandomMatrix<Group2SparseVectorMatrix, micm::JitLuDecomposition<2>>(
       [&](const Group2SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<2> {
         return micm::JitLuDecomposition<2>{ jit.get(), matrix };
-      });
+      },
+      2);
   testRandomMatrix<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>(
       [&](const Group3SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<3> {
         return micm::JitLuDecomposition<3>{ jit.get(), matrix };
-      });
+      },
+      3);
   testRandomMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>(
       [&](const Group4SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<4> {
         return micm::JitLuDecomposition<4>{ jit.get(), matrix };
-      });
+      },
+      4);
 }
 
 TEST(JitLuDecomposition, DiagonalMatrixVectorOrdering)
@@ -78,17 +82,21 @@ TEST(JitLuDecomposition, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>(
       [&](const Group1SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<1> {
         return micm::JitLuDecomposition<1>{ jit.get(), matrix };
-      });
+      },
+      1);
   testDiagonalMatrix<Group2SparseVectorMatrix, micm::JitLuDecomposition<2>>(
       [&](const Group2SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<2> {
         return micm::JitLuDecomposition<2>{ jit.get(), matrix };
-      });
+      },
+      2);
   testDiagonalMatrix<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>(
       [&](const Group3SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<3> {
         return micm::JitLuDecomposition<3>{ jit.get(), matrix };
-      });
+      },
+      3);
   testDiagonalMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>(
       [&](const Group4SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<4> {
         return micm::JitLuDecomposition<4>{ jit.get(), matrix };
-      });
+      },
+      4);
 }
