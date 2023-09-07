@@ -40,8 +40,7 @@ namespace micm
 
    private:
     /// @brief Generates a function to perform the LU decomposition for a specific matrix sparsity structure
-    /// @param matrix The matrix whose sparsity structure will be used to generate the function
-    void GenerateDecomposeFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
+    void GenerateDecomposeFunction();
   };
 
   template<std::size_t L>
@@ -53,7 +52,7 @@ namespace micm
   {
     decompose_function_ = NULL;
     assert(matrix.size() <= L && "Jit LU Decomposition matrix size mismatch");
-    GenerateDecomposeFunction(matrix);
+    GenerateDecomposeFunction();
   }
 
   template<std::size_t L>
@@ -67,7 +66,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  void JitLuDecomposition<L>::GenerateDecomposeFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
+  void JitLuDecomposition<L>::GenerateDecomposeFunction()
   {
     JitFunction func = JitFunction::create(compiler_)
                            .name("lu_decompose")
