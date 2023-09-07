@@ -41,7 +41,7 @@ namespace micm
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy> &matrix);
 
-    /// @brief Add forcing terms for the set of processes for the current conditions
+    /// @brief Adds forcing terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
@@ -51,7 +51,7 @@ namespace micm
         const MatrixPolicy<double> &state_variables,
         MatrixPolicy<double> &forcing) const;
 
-    /// @brief Add Jacobian terms for the set of processes for the current conditions
+    /// @brief Adds Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
@@ -62,10 +62,10 @@ namespace micm
         SparseMatrixPolicy<double> &jacobian) const;
 
    private:
-    /// @brief Generate a function to calculate forcing terms
+    /// @brief Generates a function to calculate forcing terms
     /// @param matrix The matrix that will hold the forcing terms
     void GenerateForcingFunction(const VectorMatrix<double, L> &matrix);
-    /// @brief Generate a function to calculate Jacobian terms
+    /// @brief Generates a function to calculate Jacobian terms
     /// @param matrix The sparse matrix that will hold the Jacobian
     void GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
   };
@@ -283,12 +283,12 @@ namespace micm
   template<std::size_t L>
   JitProcessSet<L>::~JitProcessSet()
   {
-    if (forcing_function_resource_tracker_)
+    if (forcing_function_resource_tracker_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(forcing_function_resource_tracker_->remove());
     }
-    if (jacobian_function_resource_tracker_)
+    if (jacobian_function_resource_tracker_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(jacobian_function_resource_tracker_->remove());
