@@ -3,7 +3,6 @@
 #include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp> 
-#include <micm/solver/lu
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
