@@ -1,8 +1,7 @@
 #pragma once
 #include<micm/solver/lu_decomposition.hpp>
 #include<micm/util/cuda_param.hpp>
-#include<thrust/device_vector.h> 
-#include<thrust/pair.h>
+
 #ifdef USE_CUDA
 #include <micm/solver/cuda_lu_decomposition.cuh>
 #endif 
