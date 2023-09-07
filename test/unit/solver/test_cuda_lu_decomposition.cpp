@@ -1,5 +1,7 @@
-#include <gtest/gtest.h>
+#pragma once
 
+#include <gtest/gtest.h>
+#include <micm/util/cuda_param.hpp>
 #include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp> 

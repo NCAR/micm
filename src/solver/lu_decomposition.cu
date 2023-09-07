@@ -1,6 +1,6 @@
 #include <iostream> 
 #include <micm/util/cuda_param> 
-#include<thrust/device_vector.h> 
+#include <thrust/device_vector.h> 
 #include <thrust/pair.h>
 const BLOCK_SIZE = 320; 
 struct decomposeDevice{
