@@ -106,7 +106,7 @@ namespace micm{
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const
     {
-        CUDASparseMatrix sparseMatrix; 
+        CUDASparseMatrixParam sparseMatrix; 
         sparseMatrix.A = A.AsVector().data(); 
         sparseMatrix.A_size = A.AsVector().size(); 
         sparseMatrix.L = L.AsVector().data(); 
@@ -115,16 +115,17 @@ namespace micm{
         sparseMatrix.U_size = U.AsVector().size(); 
         
         CUDASolverParam solver; 
-        solver.d_niLU.resize(niLU_.size()); 
-        solver.d_uik_nkj.resize(uik_nkj_.size());
-        solver.d_lij_ujk.resize(lij_ujk_.size()); 
-        solver.d_lki_nkj.resize(lki_nkj_.size()); 
-        solver.d_lkj_uji.resize(lkj_uji_.size()); 
-        solver.d_niLU = niLU_; 
-        solver.d_uik_nkj = uik_nkj_;
-        solver.d_lij_ujk = lij_ujk_; 
-        solver.d_lki_nkj = lki_nkj_; 
-        solver.d_lkj_uji = lkj_uji_;
+        // solver.d_niLU.resize(niLU_.size()); 
+        // solver.d_uik_nkj.resize(uik_nkj_.size());
+        // solver.d_lij_ujk.resize(lij_ujk_.size()); 
+        // solver.d_lki_nkj.resize(lki_nkj_.size()); 
+        // solver.d_lkj_uji.resize(lkj_uji_.size()); 
+        // solver.d_niLU = niLU_; 
+        // solver.d_uik_nkj = uik_nkj_;
+        // solver.d_lij_ujk = lij_ujk_; 
+        // solver.d_lki_nkj = lki_nkj_; 
+        // solver.d_lkj_uji = lkj_uji_;
+        
         solver.do_aik = do_aik_.data(); 
         solver.do_aik_size = do_aik.size(); 
         solver.aik = aik_.data(); 
@@ -137,7 +138,7 @@ namespace micm{
         solver.uii_size = uii_.size(); 
      
         //calling kernelSetup function
-        DecomposeKernelDriver(sparseMatrix, solver); 
+        DecomposeKernelDriver(sparseMatrix, solver, uik_nkj_); 
     }
 } //end micm
 #endif

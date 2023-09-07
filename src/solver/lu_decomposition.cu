@@ -1,4 +1,5 @@
 #include <iostream> 
+#include <vector>
 #include <micm/util/cuda_param> 
 #include <thrust/device_vector.h> 
 #include <thrust/pair.h>
@@ -83,7 +84,8 @@ namespace micm{
     
         void DecomposeKernelDriver(
             CUDAMatrixParam& sparseMatrix, 
-            CUDASolverParam& solver){
+            CUDASolverParam& solver
+            std::vector<std::pair<std::size_t, std::size_t>> uik_nkj){
             
             //create device pointers and allocate device memory 
             double* d_A; 

@@ -24,13 +24,13 @@
       thrust::device_vector<thrust::pair<size_t, size_t>> d_lkj_uji;
       bool* do_aik;
       size_t do_aik_size; 
-      size_t* aik;
+      const size_t* aik;
       size_t aik_size; 
       bool* do_aki;
       size_t do_aki_size; 
-      size_t* aki; 
+      const size_t* aki; 
       size_t aki_size; 
-      size_t* uii; 
+      const size_t* uii; 
       size_t uii_size; 
   };
  //different matrix data grouped in struct passing to kernel driver function 
