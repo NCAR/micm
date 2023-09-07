@@ -118,9 +118,10 @@ namespace micm
           llvm::Value *prod = func.builder_->CreateFMul(L_val, U_val, "Lij_mul_Ujk");
           iUf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, uik_nkj->first));
           U_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iUf);
-          U_val = func.GetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double);
+          llvm::Value *U_ptr = func.builder_->CreateGEP(double_type, func.arguments_[2].ptr_, U_ptr_index);
+          U_val = func.builder_->CreateLoad(double_type, U_ptr);
           U_val = func.builder_->CreateFSub(U_val, prod, "Uik_seq_Lij_Ujk");
-          func.SetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double, U_val);
+          func.builder_->CreateStore(U_val, U_ptr);
           func.EndLoop(loop);
           ++lij_ujk;
         }
@@ -165,9 +166,10 @@ namespace micm
           llvm::Value *prod = func.builder_->CreateFMul(L_val, U_val, "Lkj_mul_Uji");
           iLf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, lki_nkj->first));
           L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
-          L_val = func.GetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double);
+          llvm::Value *L_ptr = func.builder_->CreateGEP(double_type, func.arguments_[1].ptr_, L_ptr_index);
+          L_val = func.builder_->CreateLoad(double_type, L_ptr);
           L_val = func.builder_->CreateFSub(L_val, prod, "Lki_seq_Lkj_Uji");
-          func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, L_val);
+          func.builder_->CreateStore(L_val, L_ptr);
           func.EndLoop(loop);
           ++lkj_uji;
         }
@@ -180,9 +182,10 @@ namespace micm
           llvm::Value *iLf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, lki_nkj->first));
           llvm::Value *L_ptr_index[1];
           L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
-          llvm::Value *L_val = func.GetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double);
+          llvm::Value *L_ptr = func.builder_->CreateGEP(double_type, func.arguments_[1].ptr_, L_ptr_index);
+          llvm::Value *L_val = func.builder_->CreateLoad(double_type, L_ptr);
           L_val = func.builder_->CreateFDiv(L_val, U_val, "Lki_deq_Uii");
-          func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, L_val);
+          func.builder_->CreateStore(L_val, L_ptr);
           func.EndLoop(loop);
           ++lki_nkj;
         }
