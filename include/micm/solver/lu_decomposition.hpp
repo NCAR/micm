@@ -90,11 +90,15 @@ namespace micm
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
     template<typename T, template<class> class SparseMatrixPolicy>
-      requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
-    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
+    requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
+        const SparseMatrixPolicy<T>& A,
+        SparseMatrixPolicy<T>& L,
+        SparseMatrixPolicy<T>& U) const;
     template<typename T, template<class> class SparseMatrixPolicy>
-      requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
+    requires(VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
+        const SparseMatrixPolicy<T>& A,
+        SparseMatrixPolicy<T>& L,
+        SparseMatrixPolicy<T>& U) const;
   };
 
   inline LuDecomposition::LuDecomposition()
@@ -238,8 +242,10 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
-  void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
+  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U) const
   {
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
@@ -290,8 +296,10 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-  void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
+  requires(VectorizableSparse<SparseMatrixPolicy<T>>) void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U) const
   {
     const std::size_t n_cells = A.GroupVectorSize();
     // Loop over groups of blocks
