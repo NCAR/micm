@@ -1536,3 +1536,148 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
+
+TEST(AnalyticalExamples, Robertson)
+{
+  /*
+   * A -> B, k1 = 0.04
+   * B + B -> C + B, k2 = 3e7
+   * B + C -> A + C, k3 = 1e4
+   *
+   * this problem is described in 
+   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd edition. ed. Springer, Berlin ; New York.
+   * Page 3
+   * 
+   * solutions are provided for B only at https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
+   * https://www.unige.ch/~hairer/testset/testset.html
+   */
+
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ a })
+                         .products({ yields(b, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ b })
+                         .products({ yields(b, 1), yields(c, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ b , c})
+                         .products({ yields(a, 1), yields(c, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2, r3 },
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
+
+  double temperature = 272.5;
+  double pressure = 101253.3;
+  double air_density = 1e6;
+
+  double time_step = 1.0;
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  double k1 = 0.04;
+  double k2 = 3e7;
+  double k3 = 1e4;
+
+  state.SetCustomRateParameter("r1", k1);
+  state.SetCustomRateParameter("r2", k2);
+  state.SetCustomRateParameter("r3", k3);
+
+  constexpr size_t N = 35;
+
+  std::vector<std::vector<double>> model_concentrations(N, std::vector<double>(3));
+  std::vector<std::vector<double>> analytical_concentrations(N, std::vector<double>(1));
+
+  model_concentrations[0] = { 1, 0, 0 };
+
+  analytical_concentrations = {
+   {0},
+   {0.9664597373330035E+00},
+   {0.3074626578578675E-04},
+   {0.3350951640121071E-01},
+   {0.8413699238414729E+00},
+   {0.1623390937990473E-04},
+   {0.1586138422491472E+00},
+   {0.6172348823960878E+00},
+   {0.6153591274639123E-05},
+   {0.3827589640126376E+00},
+   {0.3368745306607069E+00},
+   {0.2013702318261393E-05},
+   {0.6631234556369748E+00},
+   {0.1073004285378040E+00},
+   {0.4800166972571660E-06},
+   {0.8926990914454987E+00},
+   {0.1786592114209946E-01},
+   {0.7274751468436319E-07},
+   {0.9821340061103859E+00},
+   {0.2031483924973415E-02},
+   {0.8142277783356159E-08},
+   {0.9979685079327488E+00},
+   {0.2076093439016395E-03},
+   {0.8306077485067610E-09},
+   {0.9997923898254906E+00},
+   {0.2082417512179460E-04},
+   {0.8329841429908955E-10},
+   {0.9999791757415798E+00},
+   {0.2083229471647004E-05},
+   {0.8332935037760723E-11},
+   {0.9999979167621954E+00},
+   {0.2083328471883087E-06},
+   {0.8333315602809495E-12},
+   {0.9999997916663195E+00},
+   {0.2083340149701284E-07},
+   {0.8333360770334744E-13},
+   {0.9999999791665152E+00}
+  };
+
+  state.variables_[0] = model_concentrations[0];
+  state.conditions_[0].temperature_ = temperature;
+  state.conditions_[0].pressure_ = pressure;
+  state.conditions_[0].air_density_ = air_density;
+
+  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+
+  for (size_t i_time = 1; i_time < N; ++i_time)
+  {
+    // Model results
+    auto result = solver.Solve(time_step, state);
+    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
+    EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
+    EXPECT_NEAR(k3, state.rate_constants_.AsVector()[2], 1e-8);
+    model_concentrations[i_time] = result.result_.AsVector();
+    state.variables_[0] = result.result_.AsVector();
+
+    // Analytical results
+    double time = i_time * time_step;
+  }
+
+  std::vector<std::string> header = { "time", "A", "B", "C" };
+  writeCSV("model_concentrations.csv", header, model_concentrations);
+  header = { "time", "B" };
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
+
+  auto map = state.variable_map_;
+
+  size_t _b = map.at("B");
+
+  for (size_t i = 0; i < N; ++i)
+  {
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][0], 1e-5)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+  }
+}
