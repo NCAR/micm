@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <chrono>
+#include <ctime>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/rosenbrock.hpp>
@@ -57,8 +59,9 @@ namespace micm
           elem = -elem;
         alpha_minus_jacobian_(jacobian.AsVector().data(), a);
       }
-      else {
-        throw "asdf";
+      else
+      {
+        throw std::runtime_error("Failed to generate the alpha minus jacobia JIT function.");
       }
     }
 
@@ -69,30 +72,45 @@ namespace micm
       std::size_t n_cells = this->jacobian_.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = this->jacobian_.AsVector().size();
 
+      // Get the current timestamp using std::chrono::high_resolution_clock
+      std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+      std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
+      long long timestamp = ns.count();
+
+      // Convert the timestamp to a string
+      std::string timestampStr = std::to_string(timestamp);
+
+      // Create the function name with the timestamp
+      std::string functionName = "alpha_minus_jacobian_" + timestampStr;
+
+      // Create the JitFunction with the modified name
       JitFunction func = JitFunction::create(compiler_)
-                             .name("alpha_minus_jacobian")
+                             .name(functionName)
                              .arguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
                              .return_type(JitType::Void);
 
       // constants
       llvm::Value* zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
       llvm::Value* negative_one = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(-1.0));
-      llvm::Value* jacobian_size = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, number_of_nonzero_jacobian_elements));
+      llvm::Value* jacobian_size =
+          llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, number_of_nonzero_jacobian_elements));
 
       // types
       llvm::Type* double_type = func.GetType(JitType::Double);
 
       // iterative over the blocks of the jacobian and add the alpha value
       // jacobian_vector[i_elem + i_cell] += alpha;
-      for (const auto& i_elem : this->jacobian_diagonal_elements_){
+      for (const auto& i_elem : this->jacobian_diagonal_elements_)
+      {
         llvm::Value* ptr_index[1];
 
         auto cell_loop = func.StartLoop("add alpha", 0, n_cells);
-        llvm::Value *elem_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_elem));
+        llvm::Value* elem_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_elem));
 
         ptr_index[0] = func.builder_->CreateNSWAdd(cell_loop.index_, elem_id);
 
-        llvm::Value *indexer = func.builder_->CreateGEP(double_type, func.arguments_[0].ptr_, ptr_index, "index jacobian array");
+        llvm::Value* indexer =
+            func.builder_->CreateGEP(double_type, func.arguments_[0].ptr_, ptr_index, "index jacobian array");
         llvm::Value* jacobian_element = func.builder_->CreateLoad(double_type, indexer, "load jacobian element");
 
         jacobian_element = func.builder_->CreateFAdd(jacobian_element, func.arguments_[1].ptr_, "add alpha");
