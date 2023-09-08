@@ -106,6 +106,18 @@ namespace micm
     RosenbrockSolverParameters() = default;
   };
 
+  /// @brief The final state the solver was in after the Solve function finishes
+  enum class SolverState
+  {
+    NotYetCalled,
+    Running,
+    Converged,
+    ConvergenceExceededMaxSteps,
+    StepSizeTooSmall,
+    RepeatedlySingularMatrix,
+    NaNDetected
+  };
+
   /// @brief An implementation of the Chapman mechnanism solver
   ///
   /// The template parameter is the type of matrix to use
@@ -113,17 +125,6 @@ namespace micm
   class RosenbrockSolver
   {
    public:
-    enum class SolverState
-    {
-      NotYetCalled,
-      Running,
-      Converged,
-      ConvergenceExceededMaxSteps,
-      StepSizeTooSmall,
-      RepeatedlySingularMatrix,
-      NaNDetected
-    };
-
     struct SolverStats
     {
       uint64_t function_calls{};    // Nfun
@@ -137,7 +138,7 @@ namespace micm
       uint64_t total_steps{};       // Ntotstp
 
       void Reset();
-      std::string State(const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const;
+      std::string State(const SolverState& state) const;
     };
 
     struct [[nodiscard]] SolverResult
@@ -200,9 +201,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
