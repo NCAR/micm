@@ -198,9 +198,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
