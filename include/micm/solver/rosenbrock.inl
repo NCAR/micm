@@ -398,21 +398,6 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
-      : system_(),
-        processes_(),
-        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
-        state_reordering_(),
-        process_set_(),
-        stats_(),
-        jacobian_(),
-        linear_solver_(),
-        jacobian_diagonal_elements_(),
-        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
-  {
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver(
       const System& system,
       const std::vector<Process>& processes,

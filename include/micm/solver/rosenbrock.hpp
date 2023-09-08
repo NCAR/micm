@@ -165,9 +165,6 @@ namespace micm
 
     static constexpr double delta_min_ = 1.0e-5;
 
-    /// @brief Default constructor
-    RosenbrockSolver();
-
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
