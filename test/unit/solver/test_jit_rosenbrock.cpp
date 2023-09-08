@@ -1,16 +1,18 @@
 #include <gtest/gtest.h>
 
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/jit/jit_compiler.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::shared_ptr<micm::JitCompiler> jit, std::size_t number_of_grid_cells)
+micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(
+    std::shared_ptr<micm::JitCompiler> jit,
+    std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -131,7 +133,6 @@ TEST(JitRosenbrockSolver, DenseAlphaMinusJacobian)
   testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix>(jit.get(), 3);
   testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix>(jit.get(), 4);
 }
-
 
 // create mozart-micm
 // enable multiple grid cells for KPP
