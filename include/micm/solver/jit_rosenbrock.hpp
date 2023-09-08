@@ -27,7 +27,7 @@ namespace micm
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
-    using FuncPtr = void (*)(const double*, const double);
+    using FuncPtr = void (*)(double*, const double);
     FuncPtr alpha_minus_jacobian_ = nullptr;
 
    public:
@@ -50,38 +50,23 @@ namespace micm
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
     {
+      double a = alpha;
       if (alpha_minus_jacobian_)
       {
-        for(auto& elem: jacobian.AsVector()) {
-          std::cout << elem << ", ";
-        }
-        std::cout << std::endl;
-        alpha_minus_jacobian_(jacobian.AsVector().data(), alpha);
-        for(auto& elem: jacobian.AsVector()) {
-          std::cout << elem << ", ";
-        }
-        std::cout << std::endl;
+        for (auto& elem : jacobian.AsVector())
+          elem = -elem;
+        alpha_minus_jacobian_(jacobian.AsVector().data(), a);
+      }
+      else {
+        throw "asdf";
       }
     }
 
    private:
-    /*
-    const std::size_t n_cells = jacobian.GroupVectorSize();
-    for (auto& elem : jacobian.AsVector())
-      elem = -elem;
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
-    {
-      auto jacobian_vector =
-          std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
-      for (const auto& i_elem : this->jacobian_diagonal_elements_)
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          jacobian_vector[i_elem + i_cell] += alpha;
-    }
-    */
     void GenerateAlphaMinusJacobian()
     {
       // save sizes needed throughout the function
-      std::size_t L = this->jacobian_.GroupVectorSize();
+      std::size_t n_cells = this->jacobian_.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = this->jacobian_.AsVector().size();
 
       JitFunction func = JitFunction::create(compiler_)
@@ -97,26 +82,27 @@ namespace micm
       // types
       llvm::Type* double_type = func.GetType(JitType::Double);
 
-      // multiply each jacobian element by negative
-      {
+      // iterative over the blocks of the jacobian and add the alpha value
+      // jacobian_vector[i_elem + i_cell] += alpha;
+      for (const auto& i_elem : this->jacobian_diagonal_elements_){
         llvm::Value* ptr_index[1];
 
-        llvm::Value* index_list[2];
-        index_list[0] = zero;
-        auto loop = func.StartLoop("negate jacobian", 0, number_of_nonzero_jacobian_elements);
-        index_list[1] = loop.index_;
-        ptr_index[0] = loop.index_;
-        llvm::Value* indexer = func.builder_->CreateInBoundsGEP(double_type, func.arguments_[0].ptr_, ptr_index, "create an indexer into the jacobian array");
+        auto cell_loop = func.StartLoop("add alpha", 0, n_cells);
+        llvm::Value *elem_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_elem));
+
+        ptr_index[0] = func.builder_->CreateNSWAdd(cell_loop.index_, elem_id);
+
+        llvm::Value *indexer = func.builder_->CreateGEP(double_type, func.arguments_[0].ptr_, ptr_index, "index jacobian array");
         llvm::Value* jacobian_element = func.builder_->CreateLoad(double_type, indexer, "load jacobian element");
-        jacobian_element = func.builder_->CreateFMul(jacobian_element, negative_one, "negate");
+
+        jacobian_element = func.builder_->CreateFAdd(jacobian_element, func.arguments_[1].ptr_, "add alpha");
         func.builder_->CreateStore(jacobian_element, indexer);
 
-        func.EndLoop(loop);
+        func.EndLoop(cell_loop);
       }
 
       func.builder_->CreateRetVoid();
 
-      func.module_->print(llvm::outs(), nullptr);
       auto target = func.Generate();
 
       alpha_minus_jacobian_ = (FuncPtr)(intptr_t)target.second;

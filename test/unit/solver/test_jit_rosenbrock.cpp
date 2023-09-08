@@ -82,22 +82,22 @@ void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit, std::size_t 
     jacobian[i_cell][4][4] = 1.0;
   }
   solver.AlphaMinusJacobian(jacobian, 42.042);
-  // for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
-  // {
-  //   EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][0][1], -24.3 * (i_cell + 2), 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][0][2], -42.3, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][1][0], -0.43, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][1][1], 42.042 - 23.4, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][1][2], -83.4 / (i_cell + 3), 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][2][0], -4.74, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][2][2], 42.042 - 6.91, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][3][1], -59.1, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][3][3], 42.042 - 83.4, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][4][0], -78.5, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][4][2], -53.6, 1.0e-5);
-  //   EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
-  // }
+  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  {
+    EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][0][1], -24.3 * (i_cell + 2), 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][0][2], -42.3, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][1][0], -0.43, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][1][1], 42.042 - 23.4, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][1][2], -83.4 / (i_cell + 3), 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][2][0], -4.74, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][2][2], 42.042 - 6.91, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][3][1], -59.1, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][3][3], 42.042 - 83.4, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][4][0], -78.5, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][4][2], -53.6, 1.0e-5);
+    EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
+  }
 }
 
 template<class T>
