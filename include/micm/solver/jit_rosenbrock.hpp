@@ -47,6 +47,15 @@ namespace micm
       this->GenerateAlphaMinusJacobian();
     }
 
+    ~JitRosenbrockSolver()
+    {
+      if (function_resource_tracker_ != NULL)
+      {
+        llvm::ExitOnError exit_on_error;
+        exit_on_error(function_resource_tracker_->remove());
+      }
+    }
+
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
@@ -85,7 +94,7 @@ namespace micm
 
       // Create the JitFunction with the modified name
       JitFunction func = JitFunction::create(compiler_)
-                             .name(functionName)
+                             .name("alpha_minus_jacobian")
                              .arguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
                              .return_type(JitType::Void);
 
