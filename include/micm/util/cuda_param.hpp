@@ -1,3 +1,5 @@
+#include<vector>
+
 #ifndef CUDA_PARAM_HPP
 #define CUDA_PARAM_HPP
   //member data of class CUDAProcessSet grouped in struct passing to kernel driver function 
