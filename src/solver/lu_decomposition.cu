@@ -84,9 +84,12 @@ namespace micm{
     
         void DecomposeKernelDriver(
             CUDAMatrixParam& sparseMatrix, 
-            CUDASolverParam& solver
-            std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj_){
-            
+            CUDASolverParam& solver,
+            std::vector<std::pair<std::size_t, std::size_t>>& niLU_,
+            std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj_,
+            std::vector<std::pair<std::size_t, std::size_t>>& lij_ujk_,
+            std::vector<std::pair<std::size_t, std::size_t>>& lki_nkj_,
+            std::vector<std::pair<std::size_t, std::size_t>>& lkj_uji_){
             //create device pointers and allocate device memory 
             double* d_A; 
             double* d_L; 
@@ -98,16 +101,16 @@ namespace micm{
             size_t* d_uii; 
             decomposeDevice* device; 
 
-            // solver.d_niLU.resize(niLU_.size()); 
+            solver.d_niLU.resize(niLU_.size()); 
             solver.d_uik_nkj.resize(uik_nkj_.size());
-            // solver.d_lij_ujk.resize(lij_ujk_.size()); 
-            // solver.d_lki_nkj.resize(lki_nkj_.size()); 
-            // solver.d_lkj_uji.resize(lkj_uji_.size()); 
-            // solver.d_niLU = niLU_; 
+            solver.d_lij_ujk.resize(lij_ujk_.size()); 
+            solver.d_lki_nkj.resize(lki_nkj_.size()); 
+            solver.d_lkj_uji.resize(lkj_uji_.size()); 
+            solver.d_niLU = niLU_; 
             solver.d_uik_nkj = uik_nkj_;
-            // solver.d_lij_ujk = lij_ujk_; 
-            // solver.d_lki_nkj = lki_nkj_; 
-            // solver.d_lkj_uji = lkj_uji_;
+            solver.d_lij_ujk = lij_ujk_; 
+            solver.d_lki_nkj = lki_nkj_; 
+            solver.d_lkj_uji = lkj_uji_;
 
             cudaMalloc(&d_A, sizeof(double)* sparseMatrix.A_size); 
             cudaMalloc(&d_L, sizeof(double)* sparseMatrix.L_size); 

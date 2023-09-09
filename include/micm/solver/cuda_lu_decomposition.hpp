@@ -137,7 +137,7 @@ namespace micm{
         solver.uii_size = uii_.size(); 
      
         //calling kernelSetup function
-        DecomposeKernelDriver(sparseMatrix, solver, uik_nkj_); 
+        DecomposeKernelDriver(sparseMatrix, solver, niLU_, uik_nkj_, lij_ujk_, lki_nkj_,lkj_uji_ ); 
     }
 } //end micm
 #endif
