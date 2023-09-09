@@ -15,10 +15,10 @@
 }; 
 
   struct CUDASolverParam{
-      std::vector<std::pair<std::size_t, std::size_t>>& niLU,
-      std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj,
-      std::vector<std::pair<std::size_t, std::size_t>>& lij_ujk,
-      std::vector<std::pair<std::size_t, std::size_t>>& lki_nkj,
+      std::vector<std::pair<std::size_t, std::size_t>>& niLU;
+      std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj;
+      std::vector<std::pair<std::size_t, std::size_t>>& lij_ujk;
+      std::vector<std::pair<std::size_t, std::size_t>>& lki_nkj;
       std::vector<std::pair<std::size_t, std::size_t>>& lkj_uji ; 
       char* do_aik;
       size_t do_aik_size; 
