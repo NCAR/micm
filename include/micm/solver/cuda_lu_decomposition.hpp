@@ -143,7 +143,7 @@ namespace micm{
         solver.uii_size = uii_.size(); 
      
         //calling kernelSetup function
-        DecomposeKernelDriver(sparseMatrix, solver); 
+        micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
     }
 } //end micm
 #endif

@@ -19,9 +19,6 @@ struct decomposeDevice{
     thrust::device_vector<thrust::pair<size_t, size_t>> lki_nkj; 
     thrust::device_vector<thrust::pair<size_t, size_t>> lkj_uji;
 }; 
-
-
-
 namespace micm{
     namespace cuda{
         __global__ void DecomposeKernel(
