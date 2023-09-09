@@ -100,12 +100,16 @@ namespace micm{
             size_t* d_aki;  
             size_t* d_uii; 
             decomposeDevice* device; 
-
-            solver.d_niLU.resize(niLU_.size()); 
-            solver.d_uik_nkj.resize(uik_nkj_.size());
-            solver.d_lij_ujk.resize(lij_ujk_.size()); 
-            solver.d_lki_nkj.resize(lki_nkj_.size()); 
-            solver.d_lkj_uji.resize(lkj_uji_.size()); 
+            thrust::device_vector<thrust::pair<size_t,size_t>> d_niLU;
+            thrust::device_vector<thrust::pair<size_t,size_t>> d_uik_nkj; 
+            thrust::device_vector<thrust::pair<size_t, size_t>> d_lij_ujk;
+            thrust::device_vector<thrust::pair<size_t, size_t>> d_lki_nkj; 
+            thrust::device_vector<thrust::pair<size_t, size_t>> d_lkj_uji;
+            // solver.d_niLU.resize(niLU_.size()); 
+            // solver.d_uik_nkj.resize(uik_nkj_.size());
+            // solver.d_lij_ujk.resize(lij_ujk_.size()); 
+            // solver.d_lki_nkj.resize(lki_nkj_.size()); 
+            // solver.d_lkj_uji.resize(lkj_uji_.size()); 
             solver.d_niLU = niLU_; 
             solver.d_uik_nkj = uik_nkj_;
             solver.d_lij_ujk = lij_ujk_; 
