@@ -15,16 +15,16 @@
 }; 
 
   struct CUDASolverParam{
-      // thrust::device_vector<thrust::pair<size_t,size_t>> d_niLU;
-      // thrust::device_vector<thrust::pair<size_t,size_t>> d_uik_nkj; 
-      // thrust::device_vector<thrust::pair<size_t, size_t>> d_lij_ujk;
-      // thrust::device_vector<thrust::pair<size_t, size_t>> d_lki_nkj; 
-      // thrust::device_vector<thrust::pair<size_t, size_t>> d_lkj_uji;
-      bool* do_aik;
+      std::vector<std::pair<std::size_t, std::size_t>>& niLU,
+      std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj,
+      std::vector<std::pair<std::size_t, std::size_t>>& lij_ujk,
+      std::vector<std::pair<std::size_t, std::size_t>>& lki_nkj,
+      std::vector<std::pair<std::size_t, std::size_t>>& lkj_uji ; 
+      char* do_aik;
       size_t do_aik_size; 
       const size_t* aik;
       size_t aik_size; 
-      bool* do_aki;
+      char* do_aki;
       size_t do_aki_size; 
       const size_t* aki; 
       size_t aki_size; 

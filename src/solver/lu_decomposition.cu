@@ -13,17 +13,19 @@ struct decomposeDevice{
     bool* do_aki;
     size_t* aki;  
     size_t* uii; 
+    thrust::device_vector<thrust::pair<size_t,size_t>> niLU;
+    thrust::device_vector<thrust::pair<size_t,size_t>> uik_nkj; 
+    thrust::device_vector<thrust::pair<size_t, size_t>> lij_ujk;
+    thrust::device_vector<thrust::pair<size_t, size_t>> lki_nkj; 
+    thrust::device_vector<thrust::pair<size_t, size_t>> lkj_uji;
 }; 
+
+
 
 namespace micm{
     namespace cuda{
         __global__ void DecomposeKernel(
-            decomposeDevice& device, 
-            thrust::device_vector<thrust::pair<size_t,size_t>> niLU,
-            thrust::device_vector<thrust::pair<size_t,size_t>> uik_nkj, 
-            thrust::device_vector<thrust::pair<size_t,size_t>> lij_ujk,
-            thrust::device_vector<thrust::pair<size_t,size_t>> lki_nkj,
-            thrust::device_vector<thrust::pair<size_t,size_t>> lkj_uji)
+            decomposeDevice& device)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             double* A = device->A; 
@@ -39,40 +41,40 @@ namespace micm{
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
             if (tid < A_size){
-                for (auto& inLU : niLU){
+                for (auto& inLU : device.niLU){
                     //upper triangular matrix 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[++do_aik_offset]){
-                            size_t U_idx = uik_nkj[uik_nkj_offset]->first + tid;
+                            size_t U_idx = device.uik_nkj[uik_nkj_offset]->first + tid;
                             size_t A_idx =  device->aik[++aik_offset]+ tid; 
                             U[U_idx] = A[A_idx]; 
                         }
-                        for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset]->second; ++ikj){
+                        for (size_t ikj = 0; ikj < device.uik_nkj[uik_nkj_offset]->second; ++ikj){
                             
-                            size_t L_idx = lij_ujk[lij_ujk_offset]->first + tid;
-                            size_t U_idx_1 = uik_nkj[uik_nkj_offset]->first + tid; 
-                            size_t U_idx_2 = lij_ujk[lij_ujk_offset]->second + tid; 
+                            size_t L_idx = device.lij_ujk[lij_ujk_offset]->first + tid;
+                            size_t U_idx_1 = device.uik_nkj[uik_nkj_offset]->first + tid; 
+                            size_t U_idx_2 = device.lij_ujk[lij_ujk_offset]->second + tid; 
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
                             ++lij_ujk_offset; 
                         }
                         ++uik_nkj_offset; 
                     }
                     //lower triangular matrix
-                    L[lki_nkj[++lki_nkj_offset]->first + tid] = 1.0; 
+                    L[device.lki_nkj[++lki_nkj_offset]->first + tid] = 1.0; 
                     for (size_t iL = 0; iL <inLU.first; ++iL){
                         if(device->do_aki[++do_aki_offset]){
-                            size_t L_idx = lki_nkj[lkj_nkj_offset]->first + tid; 
+                            size_t L_idx = device.lki_nkj[lkj_nkj_offset]->first + tid; 
                             size_t A_idx = aki->device[++aki_offset] + tid; 
                             L[L_idx] = A[A_idx]; 
                         }
                         //working in progress 
-                        for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset]->second;++ikj){
-                            size_t L_idx_1 = lki_nkj[lki_nkj_offset]->first + tid;
-                            size_t L_idx_2 = lkj_uji[lkj_uji_offset]->first + tid;
-                            size_t U_idx = lkj_uji[lkj_uji_offset]->second + tid; 
+                        for(size_t ikj = 0; ikj < device.lki_nkj[lki_nkj_offset]->second;++ikj){
+                            size_t L_idx_1 = device.lki_nkj[lki_nkj_offset]->first + tid;
+                            size_t L_idx_2 = device.lkj_uji[lkj_uji_offset]->first + tid;
+                            size_t U_idx = device.lkj_uji[lkj_uji_offset]->second + tid; 
                             ++lkj_uji_offset; 
                         }
-                        size_t L_idx = lki_nkj[lki_nkj_offset]->first + tid; 
+                        size_t L_idx = device.lki_nkj[lki_nkj_offset]->first + tid; 
                         size_t U_idx = device->uii[uii_offset]+tid; 
                         L[L_idx]/=U[U_idx]; 
                         ++lki_nkj_offset; 
@@ -84,12 +86,7 @@ namespace micm{
     
         void DecomposeKernelDriver(
             CUDAMatrixParam& sparseMatrix, 
-            CUDASolverParam& solver,
-            std::vector<std::pair<std::size_t, std::size_t>>& niLU_,
-            std::vector<std::pair<std::size_t, std::size_t>>& uik_nkj_,
-            std::vector<std::pair<std::size_t, std::size_t>>& lij_ujk_,
-            std::vector<std::pair<std::size_t, std::size_t>>& lki_nkj_,
-            std::vector<std::pair<std::size_t, std::size_t>>& lkj_uji_){
+            CUDASolverParam& solver){
             //create device pointers and allocate device memory 
             double* d_A; 
             double* d_L; 
@@ -100,21 +97,12 @@ namespace micm{
             size_t* d_aki;  
             size_t* d_uii; 
             decomposeDevice* device; 
-            thrust::device_vector<thrust::pair<size_t,size_t>> d_niLU;
-            thrust::device_vector<thrust::pair<size_t,size_t>> d_uik_nkj; 
-            thrust::device_vector<thrust::pair<size_t, size_t>> d_lij_ujk;
-            thrust::device_vector<thrust::pair<size_t, size_t>> d_lki_nkj; 
-            thrust::device_vector<thrust::pair<size_t, size_t>> d_lkj_uji;
-            // solver.d_niLU.resize(niLU_.size()); 
-            // solver.d_uik_nkj.resize(uik_nkj_.size());
-            // solver.d_lij_ujk.resize(lij_ujk_.size()); 
-            // solver.d_lki_nkj.resize(lki_nkj_.size()); 
-            // solver.d_lkj_uji.resize(lkj_uji_.size()); 
-            solver.d_niLU = niLU_; 
-            solver.d_uik_nkj = uik_nkj_;
-            solver.d_lij_ujk = lij_ujk_; 
-            solver.d_lki_nkj = lki_nkj_; 
-            solver.d_lkj_uji = lkj_uji_;
+            
+            device.niLU =  solver.niLU; 
+            device.uik_nkj = solver.uik_nkj;
+            device.lij_ujk = solver.lij_ujk; 
+            device.lki_nkj = solver.lki_nkj; 
+            device.lkj_uji = solver.lkj_uji;
 
             cudaMalloc(&d_A, sizeof(double)* sparseMatrix.A_size); 
             cudaMalloc(&d_L, sizeof(double)* sparseMatrix.L_size); 
@@ -147,12 +135,7 @@ namespace micm{
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
             //call kernel
             DecomposeKernel<<<BLOCK_SIZE, num_block>>>(
-            decomposeDevice& device, 
-            niLU,
-            uik_nkj, 
-            lij_ujk,
-            lki_nkj,
-            lkj_uji)
+            decomposeDevice& device)
 
         //clean up 
         cudaFree(d_A); 

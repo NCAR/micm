@@ -113,31 +113,37 @@ namespace micm{
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
         
-        CUDASolverParam solver; 
-        // solver.d_niLU.resize(niLU_.size()); 
-        // solver.d_uik_nkj.resize(uik_nkj_.size());
-        // solver.d_lij_ujk.resize(lij_ujk_.size()); 
-        // solver.d_lki_nkj.resize(lki_nkj_.size()); 
-        // solver.d_lkj_uji.resize(lkj_uji_.size()); 
-        // solver.d_niLU = niLU_; 
-        // solver.d_uik_nkj = uik_nkj_;
-        // solver.d_lij_ujk = lij_ujk_; 
-        // solver.d_lki_nkj = lki_nkj_; 
-        // solver.d_lkj_uji = lkj_uji_;
-        
-        solver.do_aik = do_aik_.data(); 
+        CUDASolverParam solver;         
+        solver.niLU.resize(niLU_.size()); 
+        solver.uik_nkj.resize(uik_nkj_.size()); 
+        solver.lij_ujk.resize(lij_ujk_.size()); 
+        solver.lki_nkj.resize(lki_nkj_.size()); 
+        solver.lkj_uji.resize(lkj_uji_.size()); 
+        std::copy(niLU_.begin(), niLU_.end(), solver.niLU.begin()); 
+        std::copy(uik_nkj_.begin(), uik_nkj_.end(), solver.uik_nkj.begin()); 
+        std::copy(lij_ujk_.begin(), lij_ujk_.end(), solver.lij_ujk.begin()); 
+        std::copy(lki_nkj_.begin(), lki_nkj_.end(), solver.lki_nkj.begin()); 
+        std::copy(lkj_uji_.begin(), lkj_uji_.end(), solver.lkj_uji.begin()); 
+
+        std::vector<char> do_aik(do_aik_.size()); 
+        std::vector<char> do_aki(do_aki.size()); 
+        std::copy(do_aik_.begin(), do_aik_.end(), do_aik.begin()); 
+        std::copy(do_aki_.begin(), do_aki_.end(), do_aki.begin()); 
+
+
+        solver.do_aik = do_aik.data(); 
         solver.do_aik_size = do_aik.size(); 
         solver.aik = aik_.data(); 
         solver.aik_size = aik_.size(); 
-        solver.do_aki = do_aki_.data(); 
-        solver.do_aki_size = do_aki_.size(); 
+        solver.do_aki = do_aki.data(); 
+        solver.do_aki_size = do_aki.size(); 
         solver.aki = aki_.data(); 
         solver.aki_size = aki_.size(); 
         solver.uii = uii_.data(); 
         solver.uii_size = uii_.size(); 
      
         //calling kernelSetup function
-        DecomposeKernelDriver(sparseMatrix, solver, niLU_, uik_nkj_, lij_ujk_, lki_nkj_,lkj_uji_ ); 
+        DecomposeKernelDriver(sparseMatrix, solver); 
     }
 } //end micm
 #endif
