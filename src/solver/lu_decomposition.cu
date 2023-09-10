@@ -82,7 +82,7 @@ namespace micm{
         }// end of kernel
     
         void DecomposeKernelDriver(
-            CUDAMatrixParam& sparseMatrix, 
+            CUDASparseMatrixParam& sparseMatrix, 
             CUDASolverParam& solver){
             //create device pointers and allocate device memory 
             double* d_A; 
@@ -131,8 +131,7 @@ namespace micm{
             
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
             //call kernel
-            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(
-            decomposeDevice& device)
+            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device); 
 
         //clean up 
         cudaFree(d_A); 

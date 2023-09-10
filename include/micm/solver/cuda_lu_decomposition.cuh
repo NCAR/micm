@@ -7,7 +7,7 @@ namespace micm
   namespace cuda
   {
     void DecomposeKernelDriver(
-            CUDAMatrixParam& sparseMatrix, 
+            CUDASparseMatrixParam& sparseMatrix, 
             CUDASolverParam& solver);
   }  // namespace cuda
 }  // namespace micm
