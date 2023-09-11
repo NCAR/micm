@@ -49,12 +49,12 @@ void check_results(
 }
 
 template<template<class> class SparseMatrixPolicy>
-void testRandomMatrix()
+void testRandomMatrix(size_t n_grids)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(5).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(n_grids).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
@@ -65,7 +65,7 @@ void testRandomMatrix()
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (!A.IsZero(i, j))
-        for (std::size_t i_block = 0; i_block < 5; ++i_block)
+        for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
 //   micm::LuDecomposition cpu_lud(A);
@@ -85,18 +85,18 @@ void testRandomMatrix()
 }
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
 template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
 template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
 
 TEST(CUDALuDecomposition, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1SparseVectorMatrix>();
-  testRandomMatrix<Group2SparseVectorMatrix>();
-  testRandomMatrix<Group3SparseVectorMatrix>();
-  testRandomMatrix<Group4SparseVectorMatrix>();
+  testRandomMatrix<Group1SparseVectorMatrix>(100);
+  testRandomMatrix<Group2SparseVectorMatrix>(1000);
+  testRandomMatrix<Group3SparseVectorMatrix>(10000);
+  testRandomMatrix<Group4SparseVectorMatrix>(100000);
 }
