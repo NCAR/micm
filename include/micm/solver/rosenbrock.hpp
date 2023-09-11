@@ -163,7 +163,7 @@ namespace micm
     std::vector<std::size_t> jacobian_diagonal_elements_;
     size_t N_{};
 
-    static constexpr double delta_min_ = 1.0e-5;
+    static constexpr double delta_min_ = 1.0e-6;
 
     /// @brief Default constructor
     RosenbrockSolver();
@@ -176,7 +176,7 @@ namespace micm
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters);
 
-    virtual ~RosenbrockSolver();
+    virtual ~RosenbrockSolver() = default;
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
