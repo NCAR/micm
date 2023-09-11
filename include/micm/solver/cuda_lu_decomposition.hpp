@@ -112,8 +112,8 @@ namespace micm{
         sparseMatrix.L_size = L.AsVector().size(); 
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
-        try{
-        CUDASolverParam solver;         
+        CUDASolverParam solver;   
+        try{   
         solver.niLU.resize(niLU_.size()); 
         solver.uik_nkj.resize(uik_nkj_.size()); 
         solver.lij_ujk.resize(lij_ujk_.size()); 
