@@ -1,7 +1,7 @@
 #pragma once
 #include<micm/solver/lu_decomposition.hpp>
 #include<micm/util/cuda_param.hpp>
-
+#include <stdexcept>
 #ifdef USE_CUDA
 #include <micm/solver/cuda_lu_decomposition.cuh>
 #endif 
@@ -112,7 +112,7 @@ namespace micm{
         sparseMatrix.L_size = L.AsVector().size(); 
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
-        
+        try{
         CUDASolverParam solver;         
         solver.niLU.resize(niLU_.size()); 
         solver.uik_nkj.resize(uik_nkj_.size()); 
@@ -129,8 +129,12 @@ namespace micm{
         std::vector<char> do_aki(do_aki.size()); 
         std::copy(do_aik_.begin(), do_aik_.end(), do_aik.begin()); 
         std::copy(do_aki_.begin(), do_aki_.end(), do_aki.begin()); 
-
-
+        }catch (const std::bad_alloc& e) {
+        // Handle the memory allocation failure
+        std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+        // You can also throw your own exception here if needed
+        throw std::runtime_error("Vector resize failed due to memory allocation failure.");
+    }
         solver.do_aik = do_aik.data(); 
         solver.do_aik_size = do_aik.size(); 
         solver.aik = aik_.data(); 

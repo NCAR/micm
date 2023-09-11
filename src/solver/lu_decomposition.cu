@@ -1,8 +1,10 @@
 #include <iostream> 
 #include <vector>
-#include <micm/util/cuda_param> 
 #include <thrust/device_vector.h> 
 #include <thrust/pair.h>
+#include <micm/util/cuda_param> 
+#include <micm/solver/cuda_lu_decomposition.cuh>
+
 const BLOCK_SIZE = 320; 
 struct decomposeDevice{
     double* A; 
