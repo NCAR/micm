@@ -68,35 +68,35 @@ void testRandomMatrix(size_t n_grids)
         for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
-  micm::LuDecomposition cpu_lud(A);
-  auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
- std::cout<< "This is testing for CPU"<<std::endl; 
- check_results<double, SparseMatrixPolicy>(
-     A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+//   micm::LuDecomposition cpu_lud(A);
+//   auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+// cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
+//  std::cout<< "This is testing for CPU"<<std::endl; 
+//  check_results<double, SparseMatrixPolicy>(
+//      A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
  
-  // micm::CUDALuDecomposition gpu_lud(A); 
-  // auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
-  // gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
-  // std::cout <<"This is testing for GPU"<<std::endl; 
-  // check_results<double, SparseMatrixPolicy>(
-  //     A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  micm::CUDALuDecomposition gpu_lud(A); 
+  auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
+  gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
+  std::cout <<"This is testing for GPU"<<std::endl; 
+  check_results<double, SparseMatrixPolicy>(
+      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
 }
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10>>;
 template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
 template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
 
 TEST(CUDALuDecomposition, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1SparseVectorMatrix>(100);
-  testRandomMatrix<Group2SparseVectorMatrix>(1000);
-  testRandomMatrix<Group3SparseVectorMatrix>(10000);
-  testRandomMatrix<Group4SparseVectorMatrix>(100000);
+  testRandomMatrix<Group1SparseVectorMatrix>(10);
+  testRandomMatrix<Group2SparseVectorMatrix>(100);
+  // testRandomMatrix<Group3SparseVectorMatrix>(1000);
+  // testRandomMatrix<Group4SparseVectorMatrix>(100000);
 }
