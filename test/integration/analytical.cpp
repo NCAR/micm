@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include "oregonator.hpp"
+
 constexpr size_t nsteps = 1000;
 
 void writeCSV(
@@ -1548,7 +1550,7 @@ TEST(AnalyticalExamples, Robertson)
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 3
    *
-   * solutions are provided for B only at https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
+   * solutions are provided here https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
@@ -1636,6 +1638,121 @@ TEST(AnalyticalExamples, Robertson)
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
     time_step *= 10;
+  }
+
+  std::vector<std::string> header = { "time", "A", "B", "C" };
+  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
+
+  auto map = state.variable_map_;
+
+  size_t _a = map.at("A");
+  size_t _b = map.at("B");
+  size_t _c = map.at("C");
+
+  double tol = 1e-1;
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tol)
+        << "Arrays differ at index (" << i << ", " << 0 << ")";
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tol)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tol)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
+  }
+}
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  /*
+   * I think these are the equations, but I'm really not sure
+   * A+Y -> X+P
+   * X+Y -> 2P
+   * A+X -> 2X+2Z
+   * 2X -> A+P
+   * B+Z -> 1/2fY
+   *
+   * this problem is described in
+   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+   * edition. ed. Springer, Berlin ; New York. Page 3
+   *
+   * solutions are provided here https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
+   * https://www.unige.ch/~hairer/testset/testset.html
+   */
+
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ a })
+                         .products({ yields(b, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ b, b })
+                         .products({ yields(b, 1), yields(c, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ b, c })
+                         .products({ yields(a, 1), yields(c, 1) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+
+  Oregonator<micm::Matrix, SparseMatrixTest> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                                     std::vector<micm::Process>{ r1, r2, r3 },
+                                                     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+
+  double temperature = 272.5;
+  double pressure = 101253.3;
+  double air_density = 1e6;
+
+  constexpr size_t N = 12;
+
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
+  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(3));
+
+  model_concentrations[0] = { 1, 0, 0 };
+
+  analytical_concentrations = {
+    { 1, 2, 3 },
+    { 0.1000661467180497E+01, 0.1512778937348249E+04, 0.1035854312767229E+05 },
+    { 0.1000874625199626E+01, 0.1144336972384497E+04, 0.8372149966624639E+02 },
+    { 0.1001890368438751E+01, 0.5299926232295553E+03, 0.1662279579042420E+01 },
+    { 0.1004118022612645E+01, 0.2438326079910346E+03, 0.1008822224048647E+01 },
+    { 0.1008995416634061E+01, 0.1121664388662539E+03, 0.1007783229065319E+01 },
+    { 0.1019763472537298E+01, 0.5159761322947535E+02, 0.1016985778956374E+01 },
+    { 0.1043985088527474E+01, 0.2373442027531524E+02, 0.1037691843544522E+01 },
+    { 0.1100849071667922E+01, 0.1091533805469020E+02, 0.1085831969810860E+01 },
+    { 0.1249102130020572E+01, 0.5013945178605446E+01, 0.1208326626237875E+01 },
+    { 0.1779724751937019E+01, 0.2281852385542403E+01, 0.1613754023671725E+01 },
+    { 0.1000889326903503E+01, 0.1125438585746596E+04, 0.1641049483777168E+05 },
+    { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
+  };
+
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  state.variables_[0] = model_concentrations[0];
+  state.conditions_[0].temperature_ = temperature;
+  state.conditions_[0].pressure_ = pressure;
+  state.conditions_[0].air_density_ = air_density;
+
+  size_t idx_A = 0, idx_B = 1, idx_C = 2;
+
+  double time_step = 30;
+  for (size_t i_time = 1; i_time <= N; ++i_time)
+  {
+    // Model results
+    auto result = solver.Solve(time_step, state);
+    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    model_concentrations[i_time] = result.result_.AsVector();
+    state.variables_[0] = result.result_.AsVector();
+    time_step += 30;
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };

@@ -152,8 +152,8 @@ namespace micm
       double final_time_{};
     };
 
-    const System system_;
-    const std::vector<Process> processes_;
+    System system_;
+    std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
@@ -191,7 +191,7 @@ namespace micm
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param forcing Vector of forcings for the current conditions
-    void CalculateForcing(
+    virtual void CalculateForcing(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         MatrixPolicy<double>& forcing);
@@ -212,7 +212,7 @@ namespace micm
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param jacobian The matrix of partial derivatives
-    void CalculateJacobian(
+    virtual void CalculateJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         SparseMatrixPolicy<double>& jacobian);
