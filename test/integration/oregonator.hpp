@@ -19,7 +19,16 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->processes_ = processes;
     this->parameters_ = parameters;
     this->N_ = this->system_.StateSize() * this->parameters_.number_of_grid_cells_;
-    this->jacobian_ = SparseMatrixPolicy<double>::create(9).number_of_blocks(1);
+    auto builder = SparseMatrixPolicy<double>::create(3).number_of_blocks(1).initial_value(0.0);
+    for(int i = 0; i < 3; ++i)
+    {
+      for (int j = 0; j < 3; ++j){
+        builder = builder.with_element(i, j);
+      }
+    }
+    this->jacobian_ = builder;
+    for (std::size_t i = 0; i < this->jacobian_[0].size(); ++i)
+      this->jacobian_diagonal_elements_.push_back(this->jacobian_.VectorIndex(0, i, i));
   }
 
   /// @brief Calculate a chemical forcing
@@ -35,7 +44,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->stats_.function_calls += 1;
 
     auto data = number_densities.AsVector();
-    auto force = forcing.AsVector();
+    auto force = forcing[0];
 
     force[0] = 77.27 * (data[1] + data[0] * (1.0 - 8.375e-6 * data[0] - data[1]));
     force[1] = (data[2] - (1.0 + data[0]) * data[1]) / 77.27;
@@ -54,16 +63,16 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     auto data = number_densities.AsVector();
     auto jac = jacobian.AsVector();
 
-    jac[0] = 77.27 * (1. - 2. * 8.375e-6 * data[0] - data[1]);
-    jac[1] = 77.27 * (1. - data[0]);
-    jac[2] = 0;
+    jacobian[0][0][0] = 77.27 * (1. - 2. * 8.375e-6 * data[0] - data[1]);
+    jacobian[0][0][1] = 77.27 * (1. - data[0]);
+    jacobian[0][0][2] = 0;
 
-    jac[3] = -data[1] / 77.27;
-    jac[4] = -(1. + data[0]) / 77.27;
-    jac[5] = 1. / 77.27;
+    jacobian[0][1][0] = -data[1] / 77.27;
+    jacobian[0][1][1] = -(1. + data[0]) / 77.27;
+    jacobian[0][1][2] = 1. / 77.27;
 
-    jac[6] = .161;
-    jac[6] = 0;
-    jac[6] = -.161;
+    jacobian[0][2][0] = .161;
+    jacobian[0][2][1] = 0;
+    jacobian[0][2][2] = -.161;
   }
 };

@@ -1717,7 +1717,7 @@ TEST(AnalyticalExamples, Oregonator)
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
   std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(3));
 
-  model_concentrations[0] = { 1, 0, 0 };
+  model_concentrations[0] = { 1, 2, 3 };
 
   analytical_concentrations = {
     { 1, 2, 3 },
@@ -1750,6 +1750,7 @@ TEST(AnalyticalExamples, Oregonator)
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    std::cout << result.state_
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
     time_step += 30;

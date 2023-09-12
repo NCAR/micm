@@ -533,7 +533,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, state.rate_constants_);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -714,8 +714,7 @@ namespace micm
       double& H,
       const double gamma,
       bool& singular,
-      const MatrixPolicy<double>& number_densities,
-      const MatrixPolicy<double>& rate_constants)
+      const MatrixPolicy<double>& number_densities)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below

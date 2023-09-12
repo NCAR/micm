@@ -227,8 +227,7 @@ namespace micm
         double& H,
         const double gamma,
         bool& singular,
-        const MatrixPolicy<double>& number_densities,
-        const MatrixPolicy<double>& rate_constants);
+        const MatrixPolicy<double>& number_densities);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors
