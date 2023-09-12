@@ -378,38 +378,20 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(
-      const RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState& state) const
+  inline std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const SolverState& state) const
   {
     switch (state)
     {
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NotYetCalled: return "Not Yet Called";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Running: return "Running";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::Converged: return "Converged";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::ConvergenceExceededMaxSteps:
-        return "Convergence Exceeded Max Steps";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::StepSizeTooSmall: return "Step Size Too Small";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::RepeatedlySingularMatrix:
-        return "Repeatedly Singular Matrix";
-      case RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverState::NaNDetected: return "NaNDetected";
+      case SolverState::NotYetCalled: return "Not Yet Called";
+      case SolverState::Running: return "Running";
+      case SolverState::Converged: return "Converged";
+      case SolverState::ConvergenceExceededMaxSteps: return "Convergence Exceeded Max Steps";
+      case SolverState::StepSizeTooSmall: return "Step Size Too Small";
+      case SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
+      case SolverState::NaNDetected: return "NaNDetected";
       default: return "Unknown";
     }
     return "";
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
-      : system_(),
-        processes_(),
-        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
-        state_reordering_(),
-        process_set_(),
-        stats_(),
-        jacobian_(),
-        linear_solver_(),
-        jacobian_diagonal_elements_(),
-        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
-  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -762,5 +744,5 @@ namespace micm
     double error_min_ = 1.0e-10;
     return std::max(std::sqrt(error / N_), error_min_);
   }
-  
+
 }  // namespace micm

@@ -144,7 +144,7 @@ TEST(AnalyticalExamples, Troe)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -284,7 +284,7 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
@@ -384,7 +384,7 @@ TEST(AnalyticalExamples, Photolysis)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -516,7 +516,7 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
@@ -627,7 +627,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -767,7 +767,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
@@ -865,7 +865,7 @@ TEST(AnalyticalExamples, Tunneling)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -992,7 +992,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
@@ -1092,7 +1092,7 @@ TEST(AnalyticalExamples, Arrhenius)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -1220,7 +1220,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
@@ -1345,7 +1345,7 @@ TEST(AnalyticalExamples, Branched)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
@@ -1502,7 +1502,7 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
 
