@@ -11,9 +11,10 @@
 namespace micm
 {
 
-  /// @brief LU decomposer for SparseMatrix optimized with JIT-compilation
+  /// @brief LU decomposer for SparseMatrix with vector-ordering optimized with JIT-compilation
   ///
   /// See LuDecomposition class description for algorithm details
+  /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
   template<std::size_t L>
   class JitLuDecomposition : public LuDecomposition
   {

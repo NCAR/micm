@@ -17,7 +17,9 @@ namespace micm
   template<template<class> class MatrixPolicy>
   std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix);
 
-  /// @brief A general-use sparse-matrix linear solver
+  /// @brief A general-use block-diagonal sparse-matrix linear solver
+  ///
+  /// The sparsity pattern of each block in the block diagonal matrix is the same.
   template<typename T, template<class> class SparseMatrixPolicy>
   class LinearSolver
   {
@@ -57,17 +59,15 @@ namespace micm
     LinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
-    void Factor(SparseMatrixPolicy<T>& matrix);
+    void Factor(const SparseMatrixPolicy<T>& matrix);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+      requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
     template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+      requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
   };
 
 }  // namespace micm

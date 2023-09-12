@@ -1,6 +1,9 @@
+// Copyright (C) 2023 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 namespace micm
 {
-  
+
   template<template<class> class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {
@@ -88,16 +91,15 @@ namespace micm
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  inline void LinearSolver<T, SparseMatrixPolicy>::Factor(SparseMatrixPolicy<T>& matrix)
+  inline void LinearSolver<T, SparseMatrixPolicy>::Factor(const SparseMatrixPolicy<T>& matrix)
   {
     lu_decomp_.Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix_, upper_matrix_);
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
   template<template<class> class MatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) inline void LinearSolver<
-      T,
-      SparseMatrixPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)
+    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LinearSolver<T, SparseMatrixPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)
   {
     for (std::size_t i_cell = 0; i_cell < b.size(); ++i_cell)
     {
@@ -153,8 +155,8 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy>
   template<template<class> class MatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<
-               T>>) inline void LinearSolver<T, SparseMatrixPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)
+    requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LinearSolver<T, SparseMatrixPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)
   {
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks
@@ -217,4 +219,4 @@ namespace micm
     }
   }
 
-} // namespace micm
+}  // namespace micm
