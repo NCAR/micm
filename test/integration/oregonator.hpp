@@ -44,11 +44,10 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->stats_.function_calls += 1;
 
     auto data = number_densities.AsVector();
-    auto force = forcing[0];
 
-    force[0] = 77.27 * (data[1] + data[0] * (1.0 - 8.375e-6 * data[0] - data[1]));
-    force[1] = (data[2] - (1.0 + data[0]) * data[1]) / 77.27;
-    force[2] = 0.161 * (data[0] - data[2]);
+    forcing[0][0] = 77.27 * (data[1] + data[0] * (1.0 - 8.375e-6 * data[0] - data[1]));
+    forcing[0][1] = (data[2] - (1.0 + data[0]) * data[1]) / 77.27;
+    forcing[0][2] = 0.161 * (data[0] - data[2]);
   }
 
   /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
@@ -61,7 +60,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
       SparseMatrixPolicy<double>& jacobian) override
   {
     auto data = number_densities.AsVector();
-    auto jac = jacobian.AsVector();
+    stats_.jacobian_updates += 1;
 
     jacobian[0][0][0] = 77.27 * (1. - 2. * 8.375e-6 * data[0] - data[1]);
     jacobian[0][0][1] = 77.27 * (1. - data[0]);

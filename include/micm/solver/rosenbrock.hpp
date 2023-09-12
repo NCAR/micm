@@ -118,6 +118,8 @@ namespace micm
     NaNDetected
   };
 
+  std::string StateToString(const SolverState& state);
+
   /// @brief An implementation of the Chapman mechnanism solver
   ///
   /// The template parameter is the type of matrix to use
@@ -138,7 +140,6 @@ namespace micm
       uint64_t total_steps{};       // Ntotstp
 
       void Reset();
-      std::string State(const SolverState& state) const;
     };
 
     struct [[nodiscard]] SolverResult
@@ -165,6 +166,9 @@ namespace micm
     size_t N_{};
 
     static constexpr double delta_min_ = 1.0e-6;
+
+    /// @brief Default constructor
+    RosenbrockSolver();
 
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for

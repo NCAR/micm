@@ -1631,7 +1631,7 @@ TEST(AnalyticalExamples, Robertson)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     EXPECT_NEAR(k3, state.rate_constants_.AsVector()[2], 1e-8);
@@ -1704,9 +1704,11 @@ TEST(AnalyticalExamples, Oregonator)
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  Oregonator<micm::Matrix, SparseMatrixTest> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                                     std::vector<micm::Process>{ r1, r2, r3 },
-                                                     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  Oregonator<micm::Matrix, SparseMatrixTest> solver(
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2, r3 },
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  );
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1749,8 +1751,8 @@ TEST(AnalyticalExamples, Oregonator)
   {
     // Model results
     auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>::SolverState::Converged));
-    std::cout << result.state_
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    std::cout << "state: " << micm::StateToString(result.state_) << std::endl;
     model_concentrations[i_time] = result.result_.AsVector();
     state.variables_[0] = result.result_.AsVector();
     time_step += 30;

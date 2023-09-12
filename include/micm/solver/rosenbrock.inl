@@ -377,8 +377,7 @@ namespace micm
     total_steps = 0;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const SolverState& state) const
+  inline std::string StateToString(const SolverState& state)
   {
     switch (state)
     {
@@ -392,6 +391,21 @@ namespace micm
       default: return "Unknown";
     }
     return "";
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
+      : system_(),
+        processes_(),
+        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        state_reordering_(),
+        process_set_(),
+        stats_(),
+        jacobian_(),
+        linear_solver_(),
+        jacobian_diagonal_elements_(),
+        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
+  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
