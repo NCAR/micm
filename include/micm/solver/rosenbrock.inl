@@ -441,11 +441,6 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::~RosenbrockSolver()
-  {
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::GetState() const
   {
     std::vector<std::string> param_labels{};
@@ -623,7 +618,11 @@ namespace micm
       }
     }
 
-    result.state_ = SolverState::Converged;
+    if (result.state_ == SolverState::Running)
+    {
+      result.state_ = SolverState::Converged;
+    }
+
     result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
