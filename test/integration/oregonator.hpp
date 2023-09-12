@@ -29,6 +29,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->jacobian_ = builder;
     for (std::size_t i = 0; i < this->jacobian_[0].size(); ++i)
       this->jacobian_diagonal_elements_.push_back(this->jacobian_.VectorIndex(0, i, i));
+    this->linear_solver_ = micm::LinearSolver<double, SparseMatrixPolicy>(this->jacobian_, 1.0e-30);
   }
 
   /// @brief Calculate a chemical forcing

@@ -25,7 +25,9 @@ constexpr size_t nsteps = 1000;
 void writeCSV(
     const std::string& filename,
     const std::vector<std::string>& header,
-    const std::vector<std::vector<double>>& data)
+    const std::vector<std::vector<double>>& data,
+    const std::vector<double>& times
+    )
 {
   std::ofstream file(filename);
   if (file.is_open())
@@ -44,7 +46,7 @@ void writeCSV(
     // Write data rows
     for (size_t i = 0; i < data.size(); ++i)
     {
-      file << i << ",";
+      file << times[i] << ",";
       for (size_t j = 0; j < data[i].size(); ++j)
       {
         file << data[i][j];
@@ -140,8 +142,11 @@ TEST(AnalyticalExamples, Troe)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -162,8 +167,8 @@ TEST(AnalyticalExamples, Troe)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -280,8 +285,11 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -301,7 +309,7 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 
   auto header = state.variable_names_;
   header.insert(header.begin(), "time");
-  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -380,8 +388,11 @@ TEST(AnalyticalExamples, Photolysis)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -402,8 +413,8 @@ TEST(AnalyticalExamples, Photolysis)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -512,8 +523,11 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -532,8 +546,8 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -623,8 +637,11 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -645,8 +662,8 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -763,8 +780,11 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -784,7 +804,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 
   auto header = state.variable_names_;
   header.insert(header.begin(), "time");
-  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -861,8 +881,11 @@ TEST(AnalyticalExamples, Tunneling)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -883,8 +906,8 @@ TEST(AnalyticalExamples, Tunneling)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -988,6 +1011,8 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     // Model results
@@ -1009,7 +1034,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 
   auto header = state.variable_names_;
   header.insert(header.begin(), "time");
-  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1088,8 +1113,11 @@ TEST(AnalyticalExamples, Arrhenius)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1110,8 +1138,8 @@ TEST(AnalyticalExamples, Arrhenius)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1216,8 +1244,11 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1237,7 +1268,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 
   auto header = state.variable_names_;
   header.insert(header.begin(), "time");
-  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1341,8 +1372,11 @@ TEST(AnalyticalExamples, Branched)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1363,8 +1397,8 @@ TEST(AnalyticalExamples, Branched)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
-  writeCSV("model_concentrations.csv", header, model_concentrations);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1498,8 +1532,11 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1519,7 +1556,7 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 
   auto header = state.variable_names_;
   header.insert(header.begin(), "time");
-  writeCSV("stiff_model_concentrations.csv", header, model_concentrations);
+  writeCSV("stiff_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1627,8 +1664,11 @@ TEST(AnalyticalExamples, Robertson)
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
   double time_step = 1.0;
+  std::vector<double> times;
+  times.push_back(0);
   for (size_t i_time = 1; i_time <= N; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1641,8 +1681,8 @@ TEST(AnalyticalExamples, Robertson)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("model_concentrations.csv", header, model_concentrations);
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1746,9 +1786,12 @@ TEST(AnalyticalExamples, Oregonator)
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
+  std::vector<double> times;
+  times.push_back(0);
   double time_step = 30;
   for (size_t i_time = 1; i_time <= N; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1759,8 +1802,8 @@ TEST(AnalyticalExamples, Oregonator)
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("model_concentrations.csv", header, model_concentrations);
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations);
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
