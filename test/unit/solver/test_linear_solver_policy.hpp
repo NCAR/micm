@@ -162,7 +162,7 @@ void testMarkowitzReordering()
     for (std::size_t j = 0; j < order; ++j)
       orig[i][j] = (i == j || gen_bool()) ? 1 : 0;
 
-  auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(orig);
+  auto reorder_map = micm::DiagonalMarkowitzReorder<MatrixPolicy>(orig);
 
   auto builder = SparseMatrixPolicy<double>::create(50);
   for (std::size_t i = 0; i < order; ++i)
