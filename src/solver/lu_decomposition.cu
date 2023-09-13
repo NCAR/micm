@@ -21,13 +21,14 @@ namespace micm{
     namespace cuda{
         __global__ void DecomposeKernel(
             decomposeDevice* device,
-            size_t A_size)
+            size_t A_size,
+            size_t niLU_size)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             double* A = device->A; 
             double* L = device->L;
             double* U = device->U;
-            std::pair<size_t, sizePt>* lkj_uji device->lkj_uji;
+            std::pair<size_t, sizePt>* lkj_uji = device->lkj_uji;
             std::pair<size_t, size_t>* uik_nkj = device->uik_nkj;
             std::pair<size_t, size_t>* lij_ujk = device->lij_ujk;
             std::pair<size_t, size_t>* lki_nkj = device->lki_nkj;
@@ -41,8 +42,9 @@ namespace micm{
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
             if (tid < A_size){
-                for (auto& inLU : device->niLU){
+                for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
+                    auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[++do_aik_offset]){
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
@@ -80,6 +82,7 @@ namespace micm{
                         ++lki_nkj_offset; 
                         ++uii_offset; 
                     }
+                    i++; 
                 }
             }
         }// end of kernel
@@ -148,8 +151,9 @@ namespace micm{
             
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
             size_t A_size = sparseMatrix.A_size; 
+            size_t NiLU_size = solver.NiLU_size; 
             //call kernel
-            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size); 
+            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size, niLU_size); 
 
         //clean up 
         cudaFree(d_A); 
