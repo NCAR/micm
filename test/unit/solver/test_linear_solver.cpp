@@ -25,7 +25,8 @@ TEST(LinearSolver, RandomMatrixStandardOrdering)
   testRandomMatrix<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(
       [](const SparseMatrixTest<double>& matrix, double initial_value) -> micm::LinearSolver<double, SparseMatrixTest> {
         return micm::LinearSolver<double, SparseMatrixTest>{ matrix, initial_value };
-      });
+      },
+      5);
 }
 
 TEST(LinearSolver, DiagonalMatrixStandardOrdering)
@@ -33,7 +34,8 @@ TEST(LinearSolver, DiagonalMatrixStandardOrdering)
   testDiagonalMatrix<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(
       [](const SparseMatrixTest<double>& matrix, double initial_value) -> micm::LinearSolver<double, SparseMatrixTest> {
         return micm::LinearSolver<double, SparseMatrixTest>{ matrix, initial_value };
-      });
+      },
+      5);
 }
 
 TEST(LinearSolver, DiagonalMarkowitzReorder)
@@ -89,22 +91,26 @@ TEST(LinearSolver, RandomMatrixVectorOrdering)
       [](const Group1SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group1SparseVectorMatrix> {
         return micm::LinearSolver<double, Group1SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testRandomMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(
       [](const Group2SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group2SparseVectorMatrix> {
         return micm::LinearSolver<double, Group2SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testRandomMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(
       [](const Group3SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group3SparseVectorMatrix> {
         return micm::LinearSolver<double, Group3SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(
       [](const Group4SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group4SparseVectorMatrix> {
         return micm::LinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
 }
 
 TEST(LinearSolver, DiagonalMatrixVectorOrdering)
@@ -113,22 +119,26 @@ TEST(LinearSolver, DiagonalMatrixVectorOrdering)
       [](const Group1SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group1SparseVectorMatrix> {
         return micm::LinearSolver<double, Group1SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(
       [](const Group2SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group2SparseVectorMatrix> {
         return micm::LinearSolver<double, Group2SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(
       [](const Group3SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group3SparseVectorMatrix> {
         return micm::LinearSolver<double, Group3SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
   testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(
       [](const Group4SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group4SparseVectorMatrix> {
         return micm::LinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
-      });
+      },
+      5);
 }
 
 TEST(LinearSolver, VectorDiagonalMarkowitzReordering)

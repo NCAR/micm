@@ -21,7 +21,7 @@ namespace micm
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;
-    void (*solve_function_)(const double*, double*);
+    void (*solve_function_)(const double*, double*, const double*, const double*);
 
    public:
     /// @brief Create a JITed linear solver for a given sparse matrix structure
@@ -41,6 +41,10 @@ namespace micm
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
     void Solve(const MatrixPolicy<double>& b, MatrixPolicy<double>& x);
+
+   private:
+    /// @brief Generates the JIT-ed Solve function
+    void GenerateSolveFunction();
   };
 
 }  // namespace micm

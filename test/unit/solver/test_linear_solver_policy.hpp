@@ -91,29 +91,31 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-void testRandomMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
+void testRandomMatrix(
+    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+    std::size_t number_of_blocks)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(5).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
         builder = builder.with_element(i, j);
 
   SparseMatrixPolicy<double> A(builder);
-  MatrixPolicy<double> b(5, 10, 0.0);
-  MatrixPolicy<double> x(5, 10, 100.0);
+  MatrixPolicy<double> b(number_of_blocks, 10, 0.0);
+  MatrixPolicy<double> x(number_of_blocks, 10, 100.0);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (!A.IsZero(i, j))
-        for (std::size_t i_block = 0; i_block < 5; ++i_block)
+        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
           A[i_block][i][j] = get_double();
 
   for (std::size_t i = 0; i < 10; ++i)
-    for (std::size_t i_block = 0; i_block < 5; ++i_block)
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       b[i_block][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
@@ -125,20 +127,21 @@ void testRandomMatrix(const std::function<LinearSolverPolicy(const SparseMatrixP
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testDiagonalMatrix(
-    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
+    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+    std::size_t number_of_blocks)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(6).number_of_blocks(5).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::create(6).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.with_element(i, i);
 
   SparseMatrixPolicy<double> A(builder);
-  MatrixPolicy<double> b(5, 6, 0.0);
-  MatrixPolicy<double> x(5, 6, 100.0);
+  MatrixPolicy<double> b(number_of_blocks, 6, 0.0);
+  MatrixPolicy<double> x(number_of_blocks, 6, 100.0);
 
   for (std::size_t i = 0; i < 6; ++i)
-    for (std::size_t i_block = 0; i_block < 5; ++i_block)
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       A[i_block][i][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);

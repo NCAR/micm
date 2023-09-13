@@ -40,21 +40,6 @@ TEST(JitLinearSolver, DenseMatrixVectorOrdering)
           double initial_value) -> micm::JitLinearSolver<1, Group1SparseVectorMatrix> {
         return micm::JitLinearSolver<1, Group1SparseVectorMatrix>{ jit.get(), matrix, initial_value };
       });
-  testDenseMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::JitLinearSolver<2, Group2SparseVectorMatrix>>(
-      [&](const Group2SparseVectorMatrix<double>& matrix,
-          double initial_value) -> micm::JitLinearSolver<2, Group2SparseVectorMatrix> {
-        return micm::JitLinearSolver<2, Group2SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
-  testDenseMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(
-      [&](const Group3SparseVectorMatrix<double>& matrix,
-          double initial_value) -> micm::JitLinearSolver<3, Group3SparseVectorMatrix> {
-        return micm::JitLinearSolver<3, Group3SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
-  testDenseMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::JitLinearSolver<4, Group4SparseVectorMatrix>>(
-      [&](const Group4SparseVectorMatrix<double>& matrix,
-          double initial_value) -> micm::JitLinearSolver<4, Group4SparseVectorMatrix> {
-        return micm::JitLinearSolver<4, Group4SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
 }
 
 TEST(JitLinearSolver, RandomMatrixVectorOrdering)
@@ -69,22 +54,26 @@ TEST(JitLinearSolver, RandomMatrixVectorOrdering)
       [&](const Group1SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<1, Group1SparseVectorMatrix> {
         return micm::JitLinearSolver<1, Group1SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      1);
   testRandomMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::JitLinearSolver<2, Group2SparseVectorMatrix>>(
       [&](const Group2SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<2, Group2SparseVectorMatrix> {
         return micm::JitLinearSolver<2, Group2SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      2);
   testRandomMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(
       [&](const Group3SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<3, Group3SparseVectorMatrix> {
         return micm::JitLinearSolver<3, Group3SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      3);
   testRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::JitLinearSolver<4, Group4SparseVectorMatrix>>(
       [&](const Group4SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<4, Group4SparseVectorMatrix> {
         return micm::JitLinearSolver<4, Group4SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      4);
 }
 
 TEST(JitLinearSolver, DiagonalMatrixVectorOrdering)
@@ -99,20 +88,24 @@ TEST(JitLinearSolver, DiagonalMatrixVectorOrdering)
       [&](const Group1SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<1, Group1SparseVectorMatrix> {
         return micm::JitLinearSolver<1, Group1SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      1);
   testDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::JitLinearSolver<2, Group2SparseVectorMatrix>>(
       [&](const Group2SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<2, Group2SparseVectorMatrix> {
         return micm::JitLinearSolver<2, Group2SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      2);
   testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(
       [&](const Group3SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<3, Group3SparseVectorMatrix> {
         return micm::JitLinearSolver<3, Group3SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      3);
   testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::JitLinearSolver<4, Group4SparseVectorMatrix>>(
       [&](const Group4SparseVectorMatrix<double>& matrix,
           double initial_value) -> micm::JitLinearSolver<4, Group4SparseVectorMatrix> {
         return micm::JitLinearSolver<4, Group4SparseVectorMatrix>{ jit.get(), matrix, initial_value };
-      });
+      },
+      4);
 }

@@ -129,7 +129,6 @@ namespace micm
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
-          *x_elem = *(y_elem);
           // don't iterate before the beginning of the vector
           if (y_elem != y_cell.begin())
           {
@@ -195,9 +194,6 @@ namespace micm
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            x_elem[i_cell] = y_elem[i_cell];
-
           // don't iterate before the beginning of the vector
           std::size_t y_elem_distance = std::distance(x.AsVector().begin(), y_elem);
           y_elem -= std::min(n_cells, y_elem_distance);

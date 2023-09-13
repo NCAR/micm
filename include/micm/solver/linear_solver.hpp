@@ -23,6 +23,7 @@ namespace micm
   template<typename T, template<class> class SparseMatrixPolicy>
   class LinearSolver
   {
+   protected:
     // Parameters needed to calculate L (U x) = b
     //
     // The calculation is split into calculation of L y = b where y = U x:
