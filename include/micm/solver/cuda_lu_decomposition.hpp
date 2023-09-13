@@ -138,8 +138,8 @@ namespace micm{
         solver.lij_ujk_size = lij_ujk_.size(); 
         solver.lki_nkj = lki_nkj_.data(); 
         solver.lki_nkj_size = lki_nkj_.size(); 
-        solver.lki_uji =  lki_uji_.data(); 
-        solver.lki_uji_size = lki_uji_.size(); 
+        solver.lkj_uji =  lkj_uji_.data(); 
+        solver.lkj_uji_size = lkj_uji_.size(); 
 
         //calling kernelSetup function
         micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 

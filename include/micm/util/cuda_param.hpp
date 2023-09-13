@@ -26,8 +26,8 @@
     size_t lij_ujk_size; 
     const std::pair<size_t, size_t>* lki_nkj;
     size_t lki_nkj_size; 
-    const std::pair<size_t, size_t>* lki_uji;  
-    size_t lki_uji_size;  
+    const std::pair<size_t, size_t>* lkj_uji;  
+    size_t lkj_uji_size;  
     char* do_aik;
     size_t do_aik_size; 
     const size_t* aik;
