@@ -118,7 +118,7 @@ namespace micm{
             cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>)* solver.uik_nkj_size); 
             cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>)* solver.lij_ujk_size); 
             cudaMalloc(&d_lki_nkj,sizeof(std::pair<size_t, size_t>)* solver.lki_nkj_size); 
-            cudaMallco(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size);
+            cudaMalloc(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size);
             cudaMalloc(&device, sizeof(decomposeDevice)); 
 
             //transfer data from host to device 
@@ -147,11 +147,11 @@ namespace micm{
             cudaMemcpy(&(device->uik_nkj), &d_uik_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lij_ujk), &d_lij_ujk, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lki_nkj), &d_lki_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
-            cudaMemcpy(&(device->lkj_uji,), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->lkj_uji), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
             size_t A_size = sparseMatrix.A_size; 
-            size_t NiLU_size = solver.NiLU_size; 
+            size_t NiLU_size = solver.niLU_size; 
             //call kernel
             DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size, niLU_size); 
 
