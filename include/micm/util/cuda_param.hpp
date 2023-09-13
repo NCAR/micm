@@ -18,15 +18,15 @@
 
   struct CUDASolverParam{
    
-    std::pair<size_t, size_t>* niLU; 
+    const std::pair<size_t, size_t>* niLU; 
     size_t niLU_size;
-    std::pair<size_t, size_t>* uik_nkj; 
+    const std::pair<size_t, size_t>* uik_nkj; 
     size_t uik_nkj_size; 
-    std::pair<size_t, size_t>* lij_ujk; 
+    const std::pair<size_t, size_t>* lij_ujk; 
     size_t lij_ujk_size; 
-    std::pair<size_t, size_t>* lki_nkj;
+    const std::pair<size_t, size_t>* lki_nkj;
     size_t lki_nkj_size; 
-    std::pair<size_t, size_t>* lki_uji;  
+    const std::pair<size_t, size_t>* lki_uji;  
     size_t lki_uji_size;  
     char* do_aik;
     size_t do_aik_size; 
