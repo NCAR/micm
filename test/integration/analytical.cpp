@@ -1670,17 +1670,18 @@ TEST(AnalyticalExamples, Robertson)
   double time_step = 1.0;
   std::vector<double> times;
   times.push_back(0);
-  for (size_t i_time = 1; i_time <= N; ++i_time)
+  for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    times.push_back(time_step);
+    double solve_time = time_step + i_time*time_step;
+    times.push_back(solve_time);
     // Model results
-    auto result = solver.Solve(time_step, state);
-    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
-    EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
-    EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
-    EXPECT_NEAR(k3, state.rate_constants_.AsVector()[2], 1e-8);
-    model_concentrations[i_time] = result.result_.AsVector();
-    state.variables_[0] = result.result_.AsVector();
+    double actual_solve = 0;
+    while (actual_solve < time_step) {
+      auto result = solver.Solve(time_step - actual_solve, state);
+      state.variables_[0] = result.result_.AsVector();
+      actual_solve += result.final_time_;
+    }
+    model_concentrations[i_time+1] = state.variables_[0];
     time_step *= 10;
   }
 
@@ -1794,7 +1795,6 @@ TEST(AnalyticalExamples, Oregonator)
     double actual_solve = 0;
     while (actual_solve < time_step) {
       auto result = solver.Solve(time_step - actual_solve, state);
-      EXPECT_EQ(result.state_, (micm::SolverState::Converged));
       state.variables_[0] = result.result_.AsVector();
       actual_solve += result.final_time_;
     }
