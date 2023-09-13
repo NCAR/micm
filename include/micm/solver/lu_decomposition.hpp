@@ -39,7 +39,7 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise
-    std::vector<bool> do_aik_;
+    std::vector<char> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
     std::vector<std::size_t> aik_;
@@ -52,7 +52,7 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
     /// triangular matrix; False otherwise
-    std::vector<bool> do_aki_;
+    std::vector<char> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when A[k][i] is non-zero
     std::vector<std::size_t> aki_;
