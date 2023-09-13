@@ -144,5 +144,5 @@ namespace micm{
         //calling kernelSetup function
         micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
     }
-} //end micm
+}//end micm
 #endif
