@@ -1,8 +1,7 @@
 #include <iostream> 
 #include <vector>
 #include <micm/util/cuda_param.hpp> 
-
-const BLOCK_SIZE = 320; 
+const size_t BLOCK_SIZE = 320; 
 struct decomposeDevice{
     double* A; 
     double* L; 
@@ -27,9 +26,9 @@ namespace micm{
             double* A = device->A; 
             double* L = device->L;
             double* U = device->U;
-            std::pair<size_t, size_t> uik_nkj= device->uik_nkj;
-            std::pair<size_t, size_t> lij_ujk = device->lij_ujk;
-            std::pair<size_t, size_t> lki_nkj = device->lki_nkj;
+            std::pair<size_t, size_t>* uik_nkj= device->uik_nkj;
+            std::pair<size_t, size_t>* lij_ujk = device->lij_ujk;
+            std::pair<size_t, size_t>* lki_nkj = device->lki_nkj;
             size_t do_aik_offset = 0; //boolean vector 
             size_t aik_offset = 0;
             size_t uik_nkj_offset = 0; 
