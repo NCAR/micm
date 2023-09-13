@@ -17,21 +17,27 @@
 }; 
 
   struct CUDASolverParam{
-      std::vector<std::pair<std::size_t, std::size_t>> niLU;
-      std::vector<std::pair<std::size_t, std::size_t>> uik_nkj;
-      std::vector<std::pair<std::size_t, std::size_t>> lij_ujk;
-      std::vector<std::pair<std::size_t, std::size_t>> lki_nkj;
-      std::vector<std::pair<std::size_t, std::size_t>> lkj_uji ; 
-      char* do_aik;
-      size_t do_aik_size; 
-      const size_t* aik;
-      size_t aik_size; 
-      char* do_aki;
-      size_t do_aki_size; 
-      const size_t* aki; 
-      size_t aki_size; 
-      const size_t* uii; 
-      size_t uii_size; 
+   
+    std::pair<size_t, size_t>* niLU; 
+    size_t niLU_size;
+    std::pair<size_t, size_t>* uik_nkj; 
+    size_t uik_nkj_size; 
+    std::pair<size_t, size_t>* lij_ujk; 
+    size_t lij_ujk_size; 
+    std::pair<size_t, size_t>* lki_nkj;
+    size_t lki_nkj_size; 
+    std::pair<size_t, size_t>* lki_uji;  
+    size_t lki_uji_size;  
+    char* do_aik;
+    size_t do_aik_size; 
+    const size_t* aik;
+    size_t aik_size; 
+    char* do_aki;
+    size_t do_aki_size; 
+    const size_t* aki; 
+    size_t aki_size; 
+    const size_t* uii; 
+    size_t uii_size; 
   };
  //different matrix data grouped in struct passing to kernel driver function 
     struct CUDAMatrixParam{

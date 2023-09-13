@@ -112,33 +112,13 @@ namespace micm{
         sparseMatrix.L_size = L.AsVector().size(); 
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
-        CUDASolverParam solver;   
-        
+           
         std::vector<char> do_aik(do_aik_.size()); 
         std::vector<char> do_aki(do_aki.size()); 
-
-        try{   
-        solver.niLU.resize(niLU_.size()); 
-        solver.uik_nkj.resize(uik_nkj_.size()); 
-        solver.lij_ujk.resize(lij_ujk_.size()); 
-        solver.lki_nkj.resize(lki_nkj_.size()); 
-        solver.lkj_uji.resize(lkj_uji_.size()); 
-        std::copy(niLU_.begin(), niLU_.end(), solver.niLU.begin()); 
-        std::copy(uik_nkj_.begin(), uik_nkj_.end(), solver.uik_nkj.begin()); 
-        std::copy(lij_ujk_.begin(), lij_ujk_.end(), solver.lij_ujk.begin()); 
-        std::copy(lki_nkj_.begin(), lki_nkj_.end(), solver.lki_nkj.begin()); 
-        std::copy(lkj_uji_.begin(), lkj_uji_.end(), solver.lkj_uji.begin()); 
-
-        // std::vector<char> do_aik(do_aik_.size()); 
-        // std::vector<char> do_aki(do_aki.size()); 
         std::copy(do_aik_.begin(), do_aik_.end(), do_aik.begin()); 
         std::copy(do_aki_.begin(), do_aki_.end(), do_aki.begin()); 
-        }catch (const std::bad_alloc& e) {
-        // Handle the memory allocation failure
-        std::cerr << "Memory allocation failed: " << e.what() << std::endl;
-        // You can also throw your own exception here if needed
-        throw std::runtime_error("Vector resize failed due to memory allocation failure.");
-    }
+
+        CUDASolverParam solver;    
         solver.do_aik = do_aik.data(); 
         solver.do_aik_size = do_aik.size(); 
         solver.aik = aik_.data(); 
@@ -149,7 +129,19 @@ namespace micm{
         solver.aki_size = aki_.size(); 
         solver.uii = uii_.data(); 
         solver.uii_size = uii_.size(); 
-     
+        
+        solver.niLU = niLU_.data(); 
+        solver.niLU_size = niLU_.size(); 
+        solver.uik_nkj = uik_nkj_.data(); 
+        solver.uik_nkj_size = uik_nkj_.size(); 
+        solver.lij_ujk = lij_ujk_.data(); 
+        solver.lij_ujk_size = lij_ujk_.size(); 
+        solver.lki_nkj = lki_nkj_.data(); 
+        solver.lki_nkj_size = lki_nkj_.size(); 
+        solver.lki_uji =  lki_uji_.data(); 
+        solver.lki_uji_size = lki_uji_.size(); 
+
+        pairVector pair; 
         //calling kernelSetup function
         micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
     }
