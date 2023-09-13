@@ -20,7 +20,8 @@ struct decomposeDevice{
 namespace micm{
     namespace cuda{
         __global__ void DecomposeKernel(
-            decomposeDevice* device)
+            decomposeDevice* device,
+            size_t A_size)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             double* A = device->A; 
@@ -145,8 +146,9 @@ namespace micm{
             cudaMemcpy(&(device->lkj_uji,), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+            size_t A_size = sparseMatrix.A_size; 
             //call kernel
-            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device); 
+            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size); 
 
         //clean up 
         cudaFree(d_A); 
