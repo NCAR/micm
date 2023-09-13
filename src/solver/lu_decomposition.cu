@@ -28,7 +28,7 @@ namespace micm{
             double* A = device->A; 
             double* L = device->L;
             double* U = device->U;
-            std::pair<size_t, sizePt>* lkj_uji = device->lkj_uji;
+            std::pair<size_t, size_t>* lkj_uji = device->lkj_uji;
             std::pair<size_t, size_t>* uik_nkj = device->uik_nkj;
             std::pair<size_t, size_t>* lij_ujk = device->lij_ujk;
             std::pair<size_t, size_t>* lki_nkj = device->lki_nkj;
