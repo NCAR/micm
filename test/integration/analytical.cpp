@@ -1824,3 +1824,145 @@ TEST(AnalyticalExamples, Oregonator)
   //       << "Arrays differ at index (" << i << ", " << 2 << ")";
   // }
 }
+
+
+TEST(AnalyticalExamples, Oregonator2ElectricBoogaloo)
+{
+  /*
+  *
+  * y1 + y2 -> ( 1 - (1/77.27)^2 ) y2    k = 77.27
+  * y3 -> ( 1 / (0.161 * 77.27) ) y2   k = 0.161
+  * y2 -> ( 77.27 )^2 y1               k = 1/77.27
+  * y1 -> 2 y1 + ( 0.161/77.27 ) y3    k = 77.27
+  * y1 + y1 -> NULL                    k = 77.27 * 8.375e-6
+  *
+  */
+  auto y1 = micm::Species("Y1");
+  auto y2 = micm::Species("Y2");
+  auto y3 = micm::Species("Y3");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3 } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ y1, y2 })
+                         .products({ yields(y2, (1 - pow(1/77.27, 2))) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ y3 })
+                         .products({ yields(y2, 1/(0.161*77.27)) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ y2 })
+                         .products({ yields(y1, pow(77.27, 2)) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+
+  micm::Process r4 = micm::Process::create()
+                         .reactants({ y1 })
+                         .products({ yields(y1, 2), yields(y3, 0.161/77.27) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .phase(gas_phase);
+
+  micm::Process r5 = micm::Process::create()
+                         .reactants({ y1, y1 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
+                         .phase(gas_phase);
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+    std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
+
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  double k1 = 77.27;
+  double k2 = 0.161;
+  double k3 = 1/k1;
+  double k4 = k1*8.375e-6;
+
+  state.SetCustomRateParameter("r1", k1);
+  state.SetCustomRateParameter("r2", k2);
+  state.SetCustomRateParameter("r3", k3);
+  state.SetCustomRateParameter("r4", k1);
+  state.SetCustomRateParameter("r5", k4);
+
+  double end = 360;
+  double time_step = 30;
+  size_t N = static_cast<size_t>(end / time_step);
+
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
+  std::vector<std::vector<double>> analytical_concentrations(13, std::vector<double>(3));
+
+  model_concentrations[0] = { 1, 2, 3 };
+
+  analytical_concentrations = {
+    { 1, 2, 3 },
+    { 0.1000661467180497E+01, 0.1512778937348249E+04, 0.1035854312767229E+05 },
+    { 0.1000874625199626E+01, 0.1144336972384497E+04, 0.8372149966624639E+02 },
+    { 0.1001890368438751E+01, 0.5299926232295553E+03, 0.1662279579042420E+01 },
+    { 0.1004118022612645E+01, 0.2438326079910346E+03, 0.1008822224048647E+01 },
+    { 0.1008995416634061E+01, 0.1121664388662539E+03, 0.1007783229065319E+01 },
+    { 0.1019763472537298E+01, 0.5159761322947535E+02, 0.1016985778956374E+01 },
+    { 0.1043985088527474E+01, 0.2373442027531524E+02, 0.1037691843544522E+01 },
+    { 0.1100849071667922E+01, 0.1091533805469020E+02, 0.1085831969810860E+01 },
+    { 0.1249102130020572E+01, 0.5013945178605446E+01, 0.1208326626237875E+01 },
+    { 0.1779724751937019E+01, 0.2281852385542403E+01, 0.1613754023671725E+01 },
+    { 0.1000889326903503E+01, 0.1125438585746596E+04, 0.1641049483777168E+05 },
+    { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
+  };
+
+  state.variables_[0] = model_concentrations[0];
+
+  std::vector<double> times;
+  times.push_back(0);
+  for (size_t i_time = 0; i_time < N; ++i_time)
+  {
+    double solve_time = time_step + i_time*time_step;
+    times.push_back(solve_time);
+    // Model results
+    double actual_solve = 0;
+    while (actual_solve < solve_time) {
+      auto result = solver.Solve(solve_time - actual_solve, state);
+      std::cout << micm::StateToString(result.state_) << std::endl;
+      // EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+      state.variables_[0] = result.result_.AsVector();
+      actual_solve += result.final_time_;
+
+      if (result.state_ == micm::SolverState::NaNDetected){
+        break;
+      }
+    }
+    model_concentrations[i_time+1] = state.variables_[0];
+  }
+
+  std::vector<std::string> header = { "time", "A", "B", "C" };
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  std::vector<double> an_times;
+  an_times.push_back(0);
+  for(int i = 1; i <= 12; ++i){
+    an_times.push_back(30 * i);
+  }
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, an_times);
+
+  auto map = state.variable_map_;
+
+  // size_t _a = map.at("A");
+  // size_t _b = map.at("B");
+  // size_t _c = map.at("C");
+
+  // double tol = 1e-1;
+  // for (size_t i = 0; i < model_concentrations.size(); ++i)
+  // {
+  //   EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tol)
+  //       << "Arrays differ at index (" << i << ", " << 0 << ")";
+  //   EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tol)
+  //       << "Arrays differ at index (" << i << ", " << 1 << ")";
+  //   EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tol)
+  //       << "Arrays differ at index (" << i << ", " << 2 << ")";
+  // }
+}
