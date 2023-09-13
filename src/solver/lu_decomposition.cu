@@ -151,7 +151,7 @@ namespace micm{
             
             size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
             size_t A_size = sparseMatrix.A_size; 
-            size_t NiLU_size = solver.niLU_size; 
+            size_t niLU_size = solver.niLU_size; 
             //call kernel
             DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size, niLU_size); 
 
