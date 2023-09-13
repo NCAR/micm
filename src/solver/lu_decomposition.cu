@@ -27,7 +27,8 @@ namespace micm{
             double* A = device->A; 
             double* L = device->L;
             double* U = device->U;
-            std::pair<size_t, size_t>* uik_nkj= device->uik_nkj;
+            std::pair<size_t, sizePt>* lkj_uji device->lkj_uji;
+            std::pair<size_t, size_t>* uik_nkj = device->uik_nkj;
             std::pair<size_t, size_t>* lij_ujk = device->lij_ujk;
             std::pair<size_t, size_t>* lki_nkj = device->lki_nkj;
             size_t do_aik_offset = 0; //boolean vector 
@@ -62,8 +63,8 @@ namespace micm{
                     L[lki_nkj[++lki_nkj_offset].first + tid] = 1.0; 
                     for (size_t iL = 0; iL <inLU.first; ++iL){
                         if(device->do_aki[++do_aki_offset]){
-                            size_t L_idx = lki_nkj[lkj_nkj_offset].first + tid; 
-                            size_t A_idx = aki->device[++aki_offset] + tid; 
+                            size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
+                            size_t A_idx = device->aki[++aki_offset] + tid; 
                             L[L_idx] = A[A_idx]; 
                         }
                         //working in progress 
@@ -110,11 +111,11 @@ namespace micm{
             cudaMalloc(&d_do_aki,sizeof(bool)* solver.do_aki_size); 
             cudaMalloc(&d_aki,sizeof(size_t)* solver.aki_size); 
             cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); 
-            cudaMalloc(&d_niLU,sizeof(std::pair<size_t, size_t>), solver.niLU_size); 
-            cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>), solver.uik_nkj_size); 
-            cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>), solver.lij_ujk_size); 
-            cudaMalloc(&d_lki_nkj,sizeof(std::pair<size_t, size_t>), solver.lki_nkj_size); 
-            cudaMallco(&d_lkj_uji,sizeof(std::pair<size_t, size_t>), solver.lkj_uji_size);
+            cudaMalloc(&d_niLU,sizeof(std::pair<size_t, size_t>)* solver.niLU_size); 
+            cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>)* solver.uik_nkj_size); 
+            cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>)* solver.lij_ujk_size); 
+            cudaMalloc(&d_lki_nkj,sizeof(std::pair<size_t, size_t>)* solver.lki_nkj_size); 
+            cudaMallco(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size);
             cudaMalloc(&device, sizeof(decomposeDevice)); 
 
             //transfer data from host to device 
