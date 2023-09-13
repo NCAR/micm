@@ -17,7 +17,6 @@
 }; 
 
   struct CUDASolverParam{
-   
     const std::pair<size_t, size_t>* niLU; 
     size_t niLU_size;
     const std::pair<size_t, size_t>* uik_nkj; 
