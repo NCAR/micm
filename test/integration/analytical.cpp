@@ -1019,6 +1019,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));

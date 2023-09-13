@@ -32,6 +32,9 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->linear_solver_ = micm::LinearSolver<double, SparseMatrixPolicy>(this->jacobian_, 1.0e-30);
   }
 
+  ~Oregonator(){
+  }
+
   /// @brief Calculate a chemical forcing
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
