@@ -1949,6 +1949,7 @@ TEST(AnalyticalExamples, HIRES)
   writeCSV("model_concentrations.csv", header, model_concentrations, times);
   writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
 
+  double tol = 1e-5;
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     for (size_t j = 0; j < 8; ++j)
