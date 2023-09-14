@@ -19,9 +19,9 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ pairCheck(decomposeDevice& device){
+        __global__ void pairCheck(decomposeDevice& device){
             auto A_element = device->A[tid].second;
-            print("The second element of A is %d", A_element)//print something
+            printf("The second element of A is %d", A_element);//print something
         }
         
         
