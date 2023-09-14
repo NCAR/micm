@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "e5.hpp"
 #include "hires.hpp"
 #include "oregonator.hpp"
 
@@ -1949,12 +1950,113 @@ TEST(AnalyticalExamples, HIRES)
   writeCSV("model_concentrations.csv", header, model_concentrations, times);
   writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
 
+  double tol = 1e-5;
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    for (size_t j = 0; j < 8; ++j)
+    for (size_t j = 0; j < model_concentrations[0].size(); ++j)
     {
       double rel_diff = relative_difference(model_concentrations[i][j], analytical_concentrations[i][j]);
       EXPECT_NEAR(model_concentrations[i][j], analytical_concentrations[i][j], tol);
+    }
+  }
+}
+
+TEST(AnalyticalExamples, E5)
+{
+  /*
+   * No idea what these equations are
+   *
+   * this problem is described in
+   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+   * edition. ed. Springer, Berlin ; New York. Page 3
+   *
+   * solutions are provided here
+   * https://www.unige.ch/~hairer/testset/testset.html
+   */
+
+  auto y1 = micm::Species("y1");
+  auto y2 = micm::Species("y2");
+  auto y3 = micm::Species("y3");
+  auto y4 = micm::Species("y4");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4 } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ y1 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ y2 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ y3 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+  micm::Process r4 = micm::Process::create()
+                         .reactants({ y4 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .phase(gas_phase);
+
+  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  params.relative_tolerance_ = 1e-2;
+  params.absolute_tolerance_ = 1.7e-24;
+  E5<micm::Matrix, SparseMatrixTest> solver(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4 }, params);
+
+  size_t N = 7;
+
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(4));
+  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(4));
+
+  model_concentrations[0] = { 1.76e-3, 0, 0, 0 };
+
+  analytical_concentrations = {
+    { 1.76e-3, 0, 0, 0 },
+    { 1.7599259497677897058e-003, 1.3846281519376516449e-011, 7.6370038530073911180e-013, 1.3082581134075777338e-011 },
+    { 1.6180769999072942552e-003, 1.3822370304983735443e-010, 8.2515735006838336088e-012, 1.2997212954915352082e-010 },
+    { 7.4813208224292220114e-006, 2.3734781561205975019e-012, 2.2123586689581663654e-012, 1.6111948716243113653e-013 },
+    { 4.7150333630401632232e-010, 1.8188895860807021729e-014, 1.8188812376786725407e-014, 8.3484020296321693074e-020 },
+    { 3.1317148329356996037e-014, 1.4840957952870064294e-016, 1.4840957948345691466e-016, 4.5243728279782625194e-026 },
+    { 3.8139035189787091771e-049, 1.0192582567660293322e-020, 1.0192582567660293322e-020, 3.7844935507486221171e-065 },
+    { 0.0000000000000000000e-000, 8.8612334976263783420e-023, 8.8612334976263783421e-023, 0.0000000000000000000e-000 }
+  };
+
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  state.variables_[0] = model_concentrations[0];
+
+  std::vector<double> times;
+  times.push_back(0);
+  double time_step = 10;
+  for (size_t i_time = 0; i_time < N; ++i_time)
+  {
+    double solve_time = time_step + i_time * time_step;
+    times.push_back(solve_time);
+    // Model results
+    double actual_solve = 0;
+    while (actual_solve < time_step)
+    {
+      auto result = solver.Solve(time_step - actual_solve, state);
+      state.variables_[0] = result.result_.AsVector();
+      actual_solve += result.final_time_;
+    }
+    model_concentrations[i_time + 1] = state.variables_[0];
+    time_step *= 100;
+  }
+
+  std::vector<std::string> header = { "time", "y1", "y2", "y3", "y4" };
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+
+  double tol = 1e-5;
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    for (size_t j = 0; j < model_concentrations[0].size(); ++j)
+    {
+      double rel_diff = relative_difference(model_concentrations[i][j], analytical_concentrations[i][j]);
+      EXPECT_NEAR(model_concentrations[i][j], analytical_concentrations[i][j], tol)
+          << "difference at (" << i << ", " << j << ")";
     }
   }
 }
