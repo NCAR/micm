@@ -18,20 +18,21 @@
 #include <utility>
 #include <vector>
 
+#include "hires.hpp"
 #include "oregonator.hpp"
 
 constexpr size_t nsteps = 1000;
 
-double relative_difference(double a, double b){
-  return abs(a - b) / ((a+b)/ 2);
+double relative_difference(double a, double b)
+{
+  return abs(a - b) / ((a + b) / 2);
 }
 
 void writeCSV(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
-    const std::vector<double>& times
-    )
+    const std::vector<double>& times)
 {
   std::ofstream file(filename);
   if (file.is_open())
@@ -1592,7 +1593,7 @@ TEST(AnalyticalExamples, Robertson)
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 3
    *
-   * solutions are provided here https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
+   * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
@@ -1673,16 +1674,17 @@ TEST(AnalyticalExamples, Robertson)
   times.push_back(0);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time*time_step;
+    double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step) {
+    while (actual_solve < time_step)
+    {
       auto result = solver.Solve(time_step - actual_solve, state);
       state.variables_[0] = result.result_.AsVector();
       actual_solve += result.final_time_;
     }
-    model_concentrations[i_time+1] = state.variables_[0];
+    model_concentrations[i_time + 1] = state.variables_[0];
     time_step *= 10;
   }
 
@@ -1711,7 +1713,7 @@ TEST(AnalyticalExamples, Robertson)
 TEST(AnalyticalExamples, Oregonator)
 {
   /*
-   * I think these are the equations, but I'm really not sure. I don't know how this translates to the jacobian 
+   * I think these are the equations, but I'm really not sure. I don't know how this translates to the jacobian
    * and forcing functions used by the ODE book: https://www.unige.ch/~hairer/testset/stiff/orego/equation.f
    * A+Y -> X+P
    * X+Y -> 2P
@@ -1723,7 +1725,7 @@ TEST(AnalyticalExamples, Oregonator)
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 3
    *
-   * solutions are provided here https://www.unige.ch/~hairer/testset/stiff/rober/res_exact_pic
+   * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
@@ -1752,10 +1754,7 @@ TEST(AnalyticalExamples, Oregonator)
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3 },
-    params
-  );
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, params);
 
   double end = 360;
   double time_step = 30;
@@ -1790,23 +1789,25 @@ TEST(AnalyticalExamples, Oregonator)
   times.push_back(0);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time*time_step;
+    double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step) {
+    while (actual_solve < time_step)
+    {
       auto result = solver.Solve(time_step - actual_solve, state);
       state.variables_[0] = result.result_.AsVector();
       actual_solve += result.final_time_;
     }
-    model_concentrations[i_time+1] = state.variables_[0];
+    model_concentrations[i_time + 1] = state.variables_[0];
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
   writeCSV("model_concentrations.csv", header, model_concentrations, times);
   std::vector<double> an_times;
   an_times.push_back(0);
-  for(int i = 1; i <= 12; ++i){
+  for (int i = 1; i <= 12; ++i)
+  {
     an_times.push_back(30 * i);
   }
   writeCSV("analytical_concentrations.csv", header, analytical_concentrations, an_times);
@@ -1826,5 +1827,134 @@ TEST(AnalyticalExamples, Oregonator)
     EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 1 << ")";
     rel_diff = relative_difference(model_concentrations[i][_c], analytical_concentrations[i][2]);
     EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 2 << ")";
+  }
+}
+
+TEST(AnalyticalExamples, HIRES)
+{
+  /*
+   * No idea what these equations are
+   *
+   * this problem is described in
+   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+   * edition. ed. Springer, Berlin ; New York. Page 3
+   *
+   * solutions are provided here
+   * https://www.unige.ch/~hairer/testset/testset.html
+   */
+
+  auto y1 = micm::Species("y1");
+  auto y2 = micm::Species("y2");
+  auto y3 = micm::Species("y3");
+  auto y4 = micm::Species("y4");
+  auto y5 = micm::Species("y5");
+  auto y6 = micm::Species("y6");
+  auto y7 = micm::Species("y7");
+  auto y8 = micm::Species("y8");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4, y5, y6, y7, y8 } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ y1 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ y2 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ y3 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+  micm::Process r4 = micm::Process::create()
+                         .reactants({ y4 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .phase(gas_phase);
+  micm::Process r5 = micm::Process::create()
+                         .reactants({ y5 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
+                         .phase(gas_phase);
+  micm::Process r6 = micm::Process::create()
+                         .reactants({ y6 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
+                         .phase(gas_phase);
+  micm::Process r7 = micm::Process::create()
+                         .reactants({ y7 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
+                         .phase(gas_phase);
+  micm::Process r8 = micm::Process::create()
+                         .reactants({ y8 })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
+                         .phase(gas_phase);
+
+  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  params.relative_tolerance_ = 1e-3;
+  params.absolute_tolerance_ = params.relative_tolerance_ * 1e-4;
+  HIRES<micm::Matrix, SparseMatrixTest> solver(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8 },
+      params);
+
+  size_t N = 2;
+
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
+  std::vector<std::vector<double>> analytical_concentrations(3, std::vector<double>(8));
+
+  model_concentrations[0] = { 1, 0, 0, 0, 0, 0, 0, 0.0057 };
+
+  analytical_concentrations = {
+    { 1, 0, 0, 0, 0, 0, 0, 0.0057 },
+    { 0.000737131257332567,
+      0.000144248572631618,
+      0.000058887297409676,
+      0.001175651343283149,
+      0.002386356198831330,
+      0.006238968252742796,
+      0.002849998395185769,
+      0.002850001604814231 },
+    { 0.000670305503581864,
+      0.000130996846986347,
+      0.000046862231597733,
+      0.001044668020551705,
+      0.000594883830951485,
+      0.001399628833942774,
+      0.001014492757718480,
+      0.004685507242281520 },
+  };
+
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  state.variables_[0] = model_concentrations[0];
+
+  std::vector<double> times;
+  times.push_back(0);
+  double time_step = 321.8122;
+  for (size_t i_time = 0; i_time < N; ++i_time)
+  {
+    double solve_time = time_step + i_time * time_step;
+    times.push_back(solve_time);
+    // Model results
+    double actual_solve = 0;
+    while (actual_solve < time_step)
+    {
+      auto result = solver.Solve(time_step - actual_solve, state);
+      state.variables_[0] = result.result_.AsVector();
+      actual_solve += result.final_time_;
+    }
+    model_concentrations[i_time + 1] = state.variables_[0];
+    time_step += 100;
+  }
+
+  std::vector<std::string> header = { "time", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8" };
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    for (size_t j = 0; j < 8; ++j)
+    {
+      double rel_diff = relative_difference(model_concentrations[i][j], analytical_concentrations[i][j]);
+      EXPECT_NEAR(model_concentrations[i][j], analytical_concentrations[i][j], tol);
+    }
   }
 }
