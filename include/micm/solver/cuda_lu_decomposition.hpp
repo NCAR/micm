@@ -113,11 +113,6 @@ namespace micm{
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
            
-        // std::vector<char> do_aik(do_aik_.size()); 
-        // std::vector<char> do_aki(do_aki.size()); 
-        // std::copy(do_aik_.begin(), do_aik_.end(), do_aik.begin()); 
-        // std::copy(do_aki_.begin(), do_aki_.end(), do_aki.begin()); 
-
         CUDASolverParam solver;    
         solver.do_aik = do_aik_.data(); 
         solver.do_aik_size = do_aik_.size(); 

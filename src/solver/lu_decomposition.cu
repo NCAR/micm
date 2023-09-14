@@ -6,9 +6,9 @@ struct decomposeDevice{
     double* A; 
     double* L; 
     double* U; 
-    bool* do_aik; 
+    char* do_aik; 
     size_t* aik; 
-    bool* do_aki;
+    char* do_aki;
     size_t* aki;  
     size_t* uii; 
     std::pair<size_t,size_t>* niLU;
@@ -19,6 +19,12 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
+        __global__ pairCheck(decomposeDevice& device){
+            auto A_element = device->A[tid].second;
+            print("The second element of A is %d", A_element)//print something
+        }
+        
+        
         __global__ void DecomposeKernel(
             decomposeDevice* device,
             size_t A_size,
@@ -109,11 +115,11 @@ namespace micm{
             cudaMalloc(&d_A,sizeof(double)* sparseMatrix.A_size); 
             cudaMalloc(&d_L,sizeof(double)* sparseMatrix.L_size); 
             cudaMalloc(&d_U,sizeof(double)* sparseMatrix.U_size); 
-            cudaMalloc(&d_do_aik,sizeof(bool)* solver.do_aik_size); 
+            cudaMalloc(&d_do_aik,sizeof(char)* solver.do_aik_size); 
             cudaMalloc(&d_aik,sizeof(size_t)* solver.aik_size); 
-            cudaMalloc(&d_do_aki,sizeof(bool)* solver.do_aki_size); 
+            cudaMalloc(&d_do_aki,sizeof(char)* solver.do_aki_size); 
             cudaMalloc(&d_aki,sizeof(size_t)* solver.aki_size); 
-            cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); 
+            cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); //check upon here
             cudaMalloc(&d_niLU,sizeof(std::pair<size_t, size_t>)* solver.niLU_size); 
             cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>)* solver.uik_nkj_size); 
             cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>)* solver.lij_ujk_size); 
@@ -138,9 +144,9 @@ namespace micm{
             cudaMemcpy(&(device->A),&d_A, sizeof(double*), cudaMemcpyHostToDevice);
             cudaMemcpy(&(device->L),&d_L, sizeof(double*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->U),&d_U, sizeof(double*), cudaMemcpyHostToDevice); 
-            cudaMemcpy(&(device->do_aik), &d_do_aik, sizeof(bool*), cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->do_aik), &d_do_aik, sizeof(char*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->aik), &d_aik, sizeof(size_t*), cudaMemcpyHostToDevice); 
-            cudaMemcpy(&(device->do_aki),&d_do_aki,sizeof(bool*),cudaMemcpyHostToDevice); 
+            cudaMemcpy(&(device->do_aki),&d_do_aki,sizeof(char*),cudaMemcpyHostToDevice); //check upon here 
             cudaMemcpy(&(device->aki),&d_aki, sizeof(size_t*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->uii), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
             cudaMemcpy(&(device->niLU), &d_niLU, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
@@ -149,12 +155,14 @@ namespace micm{
             cudaMemcpy(&(device->lki_nkj), &d_lki_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lkj_uji), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
-            size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+            //total number of threads is number of blocks in sparseMatrix A 
+            size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t A_size = sparseMatrix.A_size; 
             size_t niLU_size = solver.niLU_size; 
             //call kernel
-            DecomposeKernel<<<BLOCK_SIZE, num_block>>>(device, A_size, niLU_size); 
-
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
+            // pairCheck<<<num_block, BLOCK_SIZE>>>
+        
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
