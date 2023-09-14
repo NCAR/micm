@@ -1051,7 +1051,7 @@ TEST(AnalyticalExamples, Arrhenius)
       micm::Process::create()
           .reactants({ b })
           .products({ yields(c, 1) })
-          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
+          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .phase(gas_phase);
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
@@ -1068,7 +1068,7 @@ TEST(AnalyticalExamples, Arrhenius)
   double k1 = 4.0e-3 * std::exp(50 / temperature);
 
   // B->C reaction rate
-  double k2 = 1.2e-4 * std::exp(75 / temperature) * pow(temperature / 50, 167) * (1.0 + 0.5 * pressure);
+  double k2 = 1.2e-4 * std::exp(75 / temperature) * pow(temperature / 50, 7) * (1.0 + 0.5 * pressure);
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
