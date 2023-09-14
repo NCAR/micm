@@ -20,9 +20,10 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
     this->parameters_ = parameters;
     this->N_ = this->system_.StateSize() * this->parameters_.number_of_grid_cells_;
     auto builder = SparseMatrixPolicy<double>::create(8).number_of_blocks(1).initial_value(0.0);
-    for(int i = 0; i < 8; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-      for (int j = 0; j < 8; ++j){
+      for (int j = 0; j < 8; ++j)
+      {
         builder = builder.with_element(i, j);
       }
     }
@@ -32,7 +33,8 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
     this->linear_solver_ = micm::LinearSolver<double, SparseMatrixPolicy>(this->jacobian_, 1.0e-30);
   }
 
-  ~HIRES(){
+  ~HIRES()
+  {
   }
 
   /// @brief Calculate a chemical forcing
