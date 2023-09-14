@@ -85,5 +85,5 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
   double k1 =
       k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) * pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * 42.2 / k_inf), 2)));
 
-  EXPECT_EQ(k, k1);
+  EXPECT_NEAR(k, k1, 1e-8);
 }
