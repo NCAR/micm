@@ -1830,6 +1830,150 @@ TEST(AnalyticalExamples, Oregonator)
   }
 }
 
+TEST(AnalyticalExamples, Oregonator2)
+{
+  /* Equations derived from the forcing function here: https://www.unige.ch/~hairer/testset/stiff/orego/equation.f
+   * a + b -> ( 1 - (1/77.27)^2 ) b    k = 77.27
+   * c -> ( 1 / (0.161 * 77.27) ) b    k = 0.161
+   * b -> ( 77.27 )^2 a                k = 1/77.27
+   * a -> 2 a + ( 0.161/77.27 ) c      k = 77.27
+   * a + a -> NULL                     k = 77.27 * 8.375e-6
+   *
+   * this problem is described in
+   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+   * edition. ed. Springer, Berlin ; New York. Page 3
+   *
+   * solutions are provided here
+   * https://www.unige.ch/~hairer/testset/testset.html
+   */
+
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::create()
+                         .reactants({ a, b })
+                         .products({ yields(b, 1 - pow((1/77.27), 2)) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .phase(gas_phase);
+
+  micm::Process r2 = micm::Process::create()
+                         .reactants({ c })
+                         .products({ yields(b, 1 / (0.161*77.27)) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .phase(gas_phase);
+
+  micm::Process r3 = micm::Process::create()
+                         .reactants({ b })
+                         .products({ yields(a, pow(77.27, 2)) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .phase(gas_phase);
+
+  micm::Process r4 = micm::Process::create()
+                         .reactants({ a })
+                         .products({ yields(a, 2), yields(c, 0.161/77.27) })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .phase(gas_phase);
+
+  micm::Process r5 = micm::Process::create()
+                         .reactants({ a, a })
+                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
+                         .phase(gas_phase);
+
+  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  params.relative_tolerance_ = 1e-4;
+  params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
+  Oregonator<micm::Matrix, SparseMatrixTest> solver(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, params);
+
+  double end = 360;
+  double time_step = 30;
+  size_t N = static_cast<size_t>(end / time_step);
+
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
+  std::vector<std::vector<double>> analytical_concentrations(13, std::vector<double>(3));
+
+  model_concentrations[0] = { 1, 2, 3 };
+
+  analytical_concentrations = {
+    { 1, 2, 3 },
+    { 0.1000661467180497E+01, 0.1512778937348249E+04, 0.1035854312767229E+05 },
+    { 0.1000874625199626E+01, 0.1144336972384497E+04, 0.8372149966624639E+02 },
+    { 0.1001890368438751E+01, 0.5299926232295553E+03, 0.1662279579042420E+01 },
+    { 0.1004118022612645E+01, 0.2438326079910346E+03, 0.1008822224048647E+01 },
+    { 0.1008995416634061E+01, 0.1121664388662539E+03, 0.1007783229065319E+01 },
+    { 0.1019763472537298E+01, 0.5159761322947535E+02, 0.1016985778956374E+01 },
+    { 0.1043985088527474E+01, 0.2373442027531524E+02, 0.1037691843544522E+01 },
+    { 0.1100849071667922E+01, 0.1091533805469020E+02, 0.1085831969810860E+01 },
+    { 0.1249102130020572E+01, 0.5013945178605446E+01, 0.1208326626237875E+01 },
+    { 0.1779724751937019E+01, 0.2281852385542403E+01, 0.1613754023671725E+01 },
+    { 0.1000889326903503E+01, 0.1125438585746596E+04, 0.1641049483777168E+05 },
+    { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
+  };
+
+  micm::State<micm::Matrix> state = solver.GetState();
+
+  double k1 = 77.27;
+  double k2 = 0.161;
+  double k3 = 1/77.27;
+  double k4 = 77.27;
+  double k5 = 77.27 * 8.375e-6;
+
+  state.SetCustomRateParameter("r1", k1);
+  state.SetCustomRateParameter("r2", k2);
+  state.SetCustomRateParameter("r3", k3);
+  state.SetCustomRateParameter("r4", k4);
+  state.SetCustomRateParameter("r5", k5);
+
+  state.variables_[0] = model_concentrations[0];
+
+  std::vector<double> times;
+  times.push_back(0);
+  for (size_t i_time = 0; i_time < N; ++i_time)
+  {
+    double solve_time = time_step + i_time * time_step;
+    times.push_back(solve_time);
+    // Model results
+    double actual_solve = 0;
+    while (actual_solve < time_step)
+    {
+      auto result = solver.Solve(time_step - actual_solve, state);
+      state.variables_[0] = result.result_.AsVector();
+      actual_solve += result.final_time_;
+    }
+    model_concentrations[i_time + 1] = state.variables_[0];
+  }
+
+  std::vector<std::string> header = { "time", "A", "B", "C" };
+  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  std::vector<double> an_times;
+  an_times.push_back(0);
+  for (int i = 1; i <= 12; ++i)
+  {
+    an_times.push_back(30 * i);
+  }
+  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, an_times);
+
+  auto map = state.variable_map_;
+
+  size_t _a = map.at("A");
+  size_t _b = map.at("B");
+  size_t _c = map.at("C");
+
+  double tol = 1e-3;
+  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  {
+    double rel_diff = relative_difference(model_concentrations[i][_a], analytical_concentrations[i][0]);
+    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 0 << ")";
+    rel_diff = relative_difference(model_concentrations[i][_b], analytical_concentrations[i][1]);
+    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 1 << ")";
+    rel_diff = relative_difference(model_concentrations[i][_c], analytical_concentrations[i][2]);
+    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 2 << ")";
+  }
+}
+
 TEST(AnalyticalExamples, HIRES)
 {
   /*
