@@ -22,16 +22,16 @@
 
 constexpr size_t nsteps = 1000;
 
-double relative_difference(double a, double b){
-  return abs(a - b) / ((a+b)/ 2);
+double relative_difference(double a, double b)
+{
+  return abs(a - b) / ((a + b) / 2);
 }
 
 void writeCSV(
     const std::string& filename,
     const std::vector<std::string>& header,
     const std::vector<std::vector<double>>& data,
-    const std::vector<double>& times
-    )
+    const std::vector<double>& times)
 {
   std::ofstream file(filename);
   if (file.is_open())
@@ -1673,16 +1673,17 @@ TEST(AnalyticalExamples, Robertson)
   times.push_back(0);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time*time_step;
+    double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step) {
+    while (actual_solve < time_step)
+    {
       auto result = solver.Solve(time_step - actual_solve, state);
       state.variables_[0] = result.result_.AsVector();
       actual_solve += result.final_time_;
     }
-    model_concentrations[i_time+1] = state.variables_[0];
+    model_concentrations[i_time + 1] = state.variables_[0];
     time_step *= 10;
   }
 
@@ -1711,7 +1712,7 @@ TEST(AnalyticalExamples, Robertson)
 TEST(AnalyticalExamples, Oregonator)
 {
   /*
-   * I think these are the equations, but I'm really not sure. I don't know how this translates to the jacobian 
+   * I think these are the equations, but I'm really not sure. I don't know how this translates to the jacobian
    * and forcing functions used by the ODE book: https://www.unige.ch/~hairer/testset/stiff/orego/equation.f
    * A+Y -> X+P
    * X+Y -> 2P
@@ -1752,10 +1753,7 @@ TEST(AnalyticalExamples, Oregonator)
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3 },
-    params
-  );
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, params);
 
   double end = 360;
   double time_step = 30;
@@ -1790,23 +1788,25 @@ TEST(AnalyticalExamples, Oregonator)
   times.push_back(0);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
-    double solve_time = time_step + i_time*time_step;
+    double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     // Model results
     double actual_solve = 0;
-    while (actual_solve < time_step) {
+    while (actual_solve < time_step)
+    {
       auto result = solver.Solve(time_step - actual_solve, state);
       state.variables_[0] = result.result_.AsVector();
       actual_solve += result.final_time_;
     }
-    model_concentrations[i_time+1] = state.variables_[0];
+    model_concentrations[i_time + 1] = state.variables_[0];
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
   writeCSV("model_concentrations.csv", header, model_concentrations, times);
   std::vector<double> an_times;
   an_times.push_back(0);
-  for(int i = 1; i <= 12; ++i){
+  for (int i = 1; i <= 12; ++i)
+  {
     an_times.push_back(30 * i);
   }
   writeCSV("analytical_concentrations.csv", header, analytical_concentrations, an_times);
@@ -1854,13 +1854,13 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Process r1 = micm::Process::create()
                          .reactants({ a, b })
-                         .products({ yields(b, 1 - pow((1/77.27), 2)) })
+                         .products({ yields(b, 1 - pow((1 / 77.27), 2)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
   micm::Process r2 = micm::Process::create()
                          .reactants({ c })
-                         .products({ yields(b, 1 / (0.161*77.27)) })
+                         .products({ yields(b, 1 / (0.161 * 77.27)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
 
@@ -1872,7 +1872,7 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Process r4 = micm::Process::create()
                          .reactants({ a })
-                         .products({ yields(a, 2), yields(c, 0.161/77.27) })
+                         .products({ yields(a, 2), yields(c, 0.161 / 77.27) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .phase(gas_phase);
 
@@ -1885,7 +1885,9 @@ TEST(AnalyticalExamples, Oregonator2)
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, params);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      params);
 
   double end = 360;
   double time_step = 30;
@@ -1916,7 +1918,7 @@ TEST(AnalyticalExamples, Oregonator2)
 
   double k1 = 77.27;
   double k2 = 0.161;
-  double k3 = 1/77.27;
+  double k3 = 1 / 77.27;
   double k4 = 77.27;
   double k5 = 77.27 * 8.375e-6;
 

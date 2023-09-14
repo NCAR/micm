@@ -69,7 +69,8 @@ namespace micm
     {
     }
 
-    System& operator=(const System& other) {
+    System& operator=(const System& other)
+    {
       gas_phase_ = other.gas_phase_;
       phases_ = other.phases_;
       return *this;

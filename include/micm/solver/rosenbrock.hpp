@@ -225,11 +225,7 @@ namespace micm
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void LinearFactor(
-        double& H,
-        const double gamma,
-        bool& singular,
-        const MatrixPolicy<double>& number_densities);
+    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors
