@@ -166,9 +166,8 @@ namespace micm{
             //call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
             cudaDeviceSynchronize();
-            cudaMemcpy(sparseMatrix.A, d_A, sizeof(size_t)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
-            cudaMemcpy(sparseMatrix.L, d_L, sizeof(size_t)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
-            cudaMemcpy(sparseMatrix.U, d_U, sizeof(size_t)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
            
         //clean up 
         cudaFree(d_A); 
