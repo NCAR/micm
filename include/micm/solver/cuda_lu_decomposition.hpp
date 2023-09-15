@@ -107,7 +107,7 @@ namespace micm{
     {
         CUDASparseMatrixParam sparseMatrix; 
         sparseMatrix.A = A.AsVector().data(); 
-        sparseMatrix.A_size = A.AsVector().data(); 
+        sparseMatrix.A_size = A.AsVector().size(); 
         sparseMatrix.L = L.AsVector().data(); 
         sparseMatrix.L_size = L.AsVector().size(); 
         sparseMatrix.U = U.AsVector().data(); 
