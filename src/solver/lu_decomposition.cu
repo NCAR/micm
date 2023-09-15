@@ -83,7 +83,7 @@ namespace micm{
                             size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
                             size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
                             size_t U_idx = lkj_uji[lkj_uji_offset].second + tid; 
-                            L[L_idx_1] -= L[L_idx_2] * U[U_idx]
+                            L[L_idx_1] -= L[L_idx_2] * U[U_idx];
                             ++lkj_uji_offset; 
                         }
                         size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
