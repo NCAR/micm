@@ -32,6 +32,14 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
+        ../micm \
+      && make -j 8 install
+
+# build the library and run the tests
+RUN mkdir /cuda_build \
+      && cd /cuda_build \ 
+      && cmake \
+        -D CMAKE_BUILD_TYPE=debug \
         -D ENABLE_CUDA=ON \
         -D GPU_TYPE="a100" \
         ../micm \
