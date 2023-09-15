@@ -19,10 +19,12 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        // __global__ void pairCheck(decomposeDevice* device){
-        //     auto A_element = device->A[tid].second;
-        //     printf("The second element of A is %d", A_element);//print something
-        // }
+        __global__ void pairCheck(decomposeDevice* device, size_t niLU_size){
+            size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+            if (tid < niLU_size){
+            auto niLU_element = device->niLU[tid].second;
+            printf("The second element of niLU is %d\n", niLU_element);}//print something
+        }
         
         
         __global__ void DecomposeKernel(
@@ -156,12 +158,13 @@ namespace micm{
             cudaMemcpy(&(device->lkj_uji), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             //total number of threads is number of blocks in sparseMatrix A 
-            size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+            // size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t A_size = sparseMatrix.A_size; 
             size_t niLU_size = solver.niLU_size; 
+            size_t num_block = (niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             //call kernel
-            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
-            // pairCheck<<<num_block, BLOCK_SIZE>>>
+            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
+            pairCheck<<<num_block, BLOCK_SIZE>>>(device, niLU_size); 
         
         //clean up 
         cudaFree(d_A); 

@@ -33,7 +33,7 @@ namespace micm
   /// calls to Decompose to do the actual decomposition.
   class LuDecomposition
   {
-    protected:
+    public:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
     /// for each iteration of the outer (i) loop
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
