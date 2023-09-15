@@ -91,7 +91,6 @@ namespace micm{
                         ++lki_nkj_offset; 
                         ++uii_offset; 
                     }
-                    i++; 
                 }
             }
         }// end of kernel
