@@ -57,5 +57,6 @@ struct CUDASparseMatrixParam{
    size_t L_size; 
    double* U;
    size_t U_size; 
+   size_t n_grids;
 };
 #endif

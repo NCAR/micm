@@ -107,12 +107,13 @@ namespace micm{
     {
         CUDASparseMatrixParam sparseMatrix; 
         sparseMatrix.A = A.AsVector().data(); 
-        sparseMatrix.A_size = A.AsVector().size(); 
+        sparseMatrix.A_size = A.AsVector().data(); 
         sparseMatrix.L = L.AsVector().data(); 
         sparseMatrix.L_size = L.AsVector().size(); 
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
-           
+        sparseMatrix.n_grids = A.size(); 
+
         CUDASolverParam solver;    
         solver.do_aik = do_aik_.data(); 
         solver.do_aik_size = do_aik_.size(); 
