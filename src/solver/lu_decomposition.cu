@@ -61,9 +61,8 @@ namespace micm{
                             U[U_idx] = A[A_idx]; 
                         }
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
-                            
-                            size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
+                            size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
                             size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid; 
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
                             ++lij_ujk_offset; 
@@ -72,6 +71,7 @@ namespace micm{
                     }
                     //lower triangular matrix
                     L[lki_nkj[++lki_nkj_offset].first + tid] = 1.0; 
+                    
                     for (size_t iL = 0; iL <inLU.first; ++iL){
                         if(device->do_aki[++do_aki_offset]){
                             size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
@@ -83,10 +83,11 @@ namespace micm{
                             size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
                             size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
                             size_t U_idx = lkj_uji[lkj_uji_offset].second + tid; 
+                            L[L_idx_1] -= L[L_idx_2] * U[U_idx]
                             ++lkj_uji_offset; 
                         }
                         size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                        size_t U_idx = device->uii[uii_offset]+tid; 
+                        size_t U_idx = device->uii[uii_offset]+ tid; 
                         L[L_idx]/=U[U_idx]; 
                         ++lki_nkj_offset; 
                         ++uii_offset; 
