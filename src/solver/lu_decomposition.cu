@@ -50,6 +50,7 @@ namespace micm{
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
             if (tid < A_size){
+                //loop through every element in niLU 
                 for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
                     auto inLU = device->niLU[i]; 

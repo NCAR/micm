@@ -82,9 +82,9 @@ cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
   // check_results<double, SparseMatrixPolicy>(
   //     A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-std::cout << "This is niLU second element"<<std::end; 
+std::cout << "This is niLU second element" <<std::endl; 
 for (auto& niLU_second : cpu_lud.niLU_){
-  std::cout <<niLU_.second<<std::endl; 
+  std::cout <<cpu_lud.niLU_.second<<std::endl; 
 }
 }
 
