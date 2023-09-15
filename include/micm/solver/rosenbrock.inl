@@ -380,8 +380,7 @@ namespace micm
     total_steps = 0;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const SolverState& state) const
+  inline std::string StateToString(const SolverState& state)
   {
     switch (state)
     {
@@ -395,6 +394,21 @@ namespace micm
       default: return "Unknown";
     }
     return "";
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
+      : system_(),
+        processes_(),
+        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        state_reordering_(),
+        process_set_(),
+        stats_(),
+        jacobian_(),
+        linear_solver_(),
+        jacobian_diagonal_elements_(),
+        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
+  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -518,7 +532,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, state.rate_constants_);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -699,8 +713,7 @@ namespace micm
       double& H,
       const double gamma,
       bool& singular,
-      const MatrixPolicy<double>& number_densities,
-      const MatrixPolicy<double>& rate_constants)
+      const MatrixPolicy<double>& number_densities)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
