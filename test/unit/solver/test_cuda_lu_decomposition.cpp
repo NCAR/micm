@@ -84,7 +84,7 @@ cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
 
 std::cout << "This is niLU second element" <<std::endl; 
 for (auto& niLU_second : cpu_lud.niLU_){
-  std::cout <<cpu_lud.niLU_.second<<std::endl; 
+  std::cout <<niLU_second.second<<std::endl; 
 }
 }
 
