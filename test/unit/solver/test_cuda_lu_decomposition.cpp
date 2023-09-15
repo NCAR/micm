@@ -68,24 +68,22 @@ void testRandomMatrix(size_t n_grids)
         for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
-micm::LuDecomposition cpu_lud(A);
-auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
-
+// micm::LuDecomposition cpu_lud(A);
+// auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+// cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
 // check_results<double, SparseMatrixPolicy>(
-//    A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+//     A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
  
   micm::CUDALuDecomposition gpu_lud(A); 
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
-  gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); //actually just printing niLU element now
+  gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
+  check_results<double, SparseMatrixPolicy>(
+      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-  // check_results<double, SparseMatrixPolicy>(
-  //     A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
-
-std::cout << "This is niLU second element" <<std::endl; 
-for (auto& niLU_second : cpu_lud.niLU_){
-  std::cout <<niLU_second.second<<std::endl; 
-}
+// std::cout << "This is niLU second element" <<std::endl; 
+// for (auto& niLU_second : cpu_lud.niLU_){
+//   std::cout <<niLU_second.second<<std::endl; 
+// }
 }
 
 template<class T>
@@ -99,8 +97,8 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(CUDALuDecomposition, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1SparseVectorMatrix>(1);
-  testRandomMatrix<Group2SparseVectorMatrix>(2);
+  testRandomMatrix<Group1SparseVectorMatrix>(10);
+  testRandomMatrix<Group2SparseVectorMatrix>(100);
   // testRandomMatrix<Group3SparseVectorMatrix>(1000);
   // testRandomMatrix<Group4SparseVectorMatrix>(100000);
 }

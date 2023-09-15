@@ -159,14 +159,17 @@ namespace micm{
             cudaMemcpy(&(device->lkj_uji), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             //total number of threads is number of blocks in sparseMatrix A 
-            // size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+            size_t num_block = (sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t A_size = sparseMatrix.A_size; 
             size_t niLU_size = solver.niLU_size; 
-            size_t num_block = (niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+         
             //call kernel
-            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
-            pairCheck<<<num_block, BLOCK_SIZE>>>(device, niLU_size); 
-        
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, A_size, niLU_size); 
+            cudaDeviceSynchronize();
+            cudaMemcpy(sparseMatrix.A, d_A, sizeof(size_t)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.L, d_L, sizeof(size_t)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.U, d_U, sizeof(size_t)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
+           
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
