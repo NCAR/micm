@@ -68,11 +68,6 @@ void testRandomMatrix(size_t n_grids)
         for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
-//print second element of A 
-for (int i = 0; i < n_grids; i++){
-  std::cout << A[i].
-}
-
 micm::LuDecomposition cpu_lud(A);
 auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
 cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
@@ -88,8 +83,8 @@ cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
   //     A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
 std::cout << "This is niLU second element"<<std::end; 
-for (auto& niLU_second : cpu_lud.niLU){
-  std::cout <<niLU.second<<std::endl; 
+for (auto& niLU_second : cpu_lud.niLU_){
+  std::cout <<niLU_.second<<std::endl; 
 }
 }
 
