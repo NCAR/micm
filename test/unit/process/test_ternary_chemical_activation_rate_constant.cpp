@@ -39,5 +39,6 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArugments)
   auto k = ternary.calculate(state.conditions_[0], params);
   double k0 = 1.2 * std::exp(302.3 / temperature) * std::pow(temperature / 300.0, 2.3);
   double kinf = 2.6 * std::exp(402.1 / temperature) * std::pow(temperature / 300.0, -3.1);
-  EXPECT_EQ(k, k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(k0 * 42.2 / kinf), 2))));
+  EXPECT_EQ(
+      k, k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(k0 * 42.2 / kinf), 2))));
 }

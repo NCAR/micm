@@ -38,7 +38,10 @@ TEST(TroeRateConstant, CalculateWithAllArugments)
   auto k = troe.calculate(state.conditions_[0], params);
   double k0 = 1.2 * std::exp(302.3 / temperature) * std::pow(temperature / 300.0, 2.3);
   double kinf = 2.6 * std::exp(402.1 / temperature) * std::pow(temperature / 300.0, -3.1);
-  EXPECT_EQ(k, 42.2 * k0 / (1.0 + 42.2 * k0 / kinf) * std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(42.2 * k0 / kinf), 2))));
+  EXPECT_EQ(
+      k,
+      42.2 * k0 / (1.0 + 42.2 * k0 / kinf) *
+          std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(42.2 * k0 / kinf), 2))));
 }
 
 TEST(TroeRateConstant, AnalyticalTroeExampleAB)
@@ -58,8 +61,8 @@ TEST(TroeRateConstant, AnalyticalTroeExampleAB)
 
   double k_0 = 4.0e-18;
   double k_inf = 1;
-  double k1 =
-      k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) * std::pow(0.6, 1.0 / (1.0 + 1.0 / 1.0 * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
+  double k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
+              std::pow(0.6, 1.0 / (1.0 + 1.0 / 1.0 * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
   EXPECT_EQ(k, k1);
 }
@@ -82,8 +85,8 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
 
   double k_0 = 1.2e-12 * std::exp(3.0 / 301.24) * std::pow(301.24 / 300.0, 167.0);
   double k_inf = 136.0 * std::exp(24.0 / 301.24) * std::pow(301.24 / 300.0, 5.0);
-  double k1 =
-      k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) * std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
+  double k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
+              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
   EXPECT_EQ(k, k1);
 }
