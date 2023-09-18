@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cmath>
-#include <iomanip>
 #include <micm/process/rate_constant.hpp>
 
 namespace micm
