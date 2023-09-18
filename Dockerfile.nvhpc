@@ -33,7 +33,6 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
-        -D CMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG -Mnofma" \
         ../micm \
       && make -j 8 install
 
