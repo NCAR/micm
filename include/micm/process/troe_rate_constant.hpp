@@ -84,22 +84,9 @@ namespace micm
 
   inline double TroeRateConstant::calculate(const double& temperature, const double& air_number_density) const
   {
-    // std::cout << "k0_A_: " << std::setprecision(16) << parameters_.k0_A_ << std::endl;
-    // std::cout << "k0_B_: " << std::setprecision(16) << parameters_.k0_B_ << std::endl;
-    // std::cout << "k0_C_: " << std::setprecision(16) << parameters_.k0_C_ << std::endl;
-    // std::cout << "kinf_A_: " << std::setprecision(16) << parameters_.kinf_A_ << std::endl;
-    // std::cout << "kinf_B_: " << std::setprecision(16) << parameters_.kinf_B_ << std::endl;
-    // std::cout << "kinf_C_: " << std::setprecision(16) << parameters_.kinf_C_ << std::endl;
-    // std::cout << "Fc_: " << std::setprecision(16) << parameters_.Fc_ << std::endl;
-    // std::cout << "N_: " << std::setprecision(16) << parameters_.N_ << std::endl;
-    // std::cout << "temperature: " << std::setprecision(16) << temperature << std::endl;
-    // std::cout << "air_number_density: " << std::setprecision(16) << air_number_density << std::endl;
-
     double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * std::pow(temperature / 300.0, parameters_.k0_B_);
     double kinf =
         parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) * std::pow(temperature / 300.0, parameters_.kinf_B_);
-
-    std::cout << std::setprecision(16) << "troe: " << k0 << " " << kinf << std::endl;
 
     return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
            std::pow(parameters_.Fc_, 1.0 / (1.0 + (1.0 / parameters_.N_) * std::pow(std::log10(k0 * air_number_density / kinf), 2)));

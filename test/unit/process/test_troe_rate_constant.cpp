@@ -86,9 +86,5 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
   double k1 =
       k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) * std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
-  std::cout << std::setprecision(16) << "test: " << k_0 << " " << k_inf << std::endl;
-
-  std::cout << std::setprecision(16) << k << " " << k1 << std::endl;
-
   EXPECT_EQ(k, k1);
 }
