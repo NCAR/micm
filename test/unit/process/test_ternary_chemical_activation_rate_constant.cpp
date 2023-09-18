@@ -17,7 +17,7 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
   auto k = ternary.calculate(state.conditions_[0], params);
   double k0 = 1.0;
   double kinf = 1.0;
-  EXPECT_NEAR(k, k0 / (1.0 + 42.4 * k0 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(42.2 * k0 / kinf), 2))), 0.001);
+  EXPECT_EQ(k, k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(k0 * 42.2 / kinf), 2))));
 }
 
 TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArugments)
@@ -39,5 +39,5 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArugments)
   auto k = ternary.calculate(state.conditions_[0], params);
   double k0 = 1.2 * std::exp(302.3 / temperature) * std::pow(temperature / 300.0, 2.3);
   double kinf = 2.6 * std::exp(402.1 / temperature) * std::pow(temperature / 300.0, -3.1);
-  EXPECT_NEAR(k, k0 / (1.0 + 42.2 * k0 / kinf) * std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(42.2 * k0 / kinf), 2))), 0.001);
+  EXPECT_EQ(k, k0 / (1.0 + k0 * 42.2 / kinf) * std::pow(0.9, 1.0 / (1.0 + 1.0 / 1.2 * std::pow(std::log10(k0 * 42.2 / kinf), 2))));
 }
