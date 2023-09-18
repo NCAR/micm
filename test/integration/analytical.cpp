@@ -1668,8 +1668,6 @@ TEST(AnalyticalExamples, Robertson)
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
-  size_t idx_A = 0, idx_B = 1, idx_C = 2;
-
   double time_step = 1.0;
   std::vector<double> times;
   times.push_back(0);
