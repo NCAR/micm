@@ -124,13 +124,13 @@ TEST(AnalyticalExamples, Troe)
   double k_0 = 4.0e-10;
   double k_inf = 1;
   double k1 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
-  k_inf = 136.0 * exp(24.0 / temperature) * pow(temperature / 300.0, 5.0);
+  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -262,13 +262,13 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   double k_0 = 4.0e-10;
   double k_inf = 1;
   double k1 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
-  k_inf = 136.0 * exp(24.0 / temperature) * pow(temperature / 300.0, 5.0);
+  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -619,13 +619,13 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   double k_0 = 4.0e-10;
   double k_inf = 1;
   double k1 = k_0 / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
-  k_inf = 136.0 * exp(24.0 / temperature) * pow(temperature / 300.0, 5.0);
+  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -757,13 +757,13 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   double k_0 = 4.0e-10;
   double k_inf = 1;
   double k1 = k_0 / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * exp(3.0 / temperature) * pow(temperature / 300.0, 167.0);
-  k_inf = 136.0 * exp(24.0 / temperature) * pow(temperature / 300.0, 5.0);
+  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 / (1.0 + k_0 * air_density / k_inf) *
-              pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * pow(log10(k_0 * air_density / k_inf), 2)));
+              std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -869,7 +869,7 @@ TEST(AnalyticalExamples, Tunneling)
   double k1 = 4.0e-3;
 
   // B->C reaction rate
-  double k2 = 1.2e-4 * exp(-167 / temperature + 1.0e8 / pow(temperature, 3));
+  double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -994,7 +994,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   double k1 = 4.0e-3;
 
   // B->C reaction rate
-  double k2 = 1.2e-4 * exp(-167 / temperature + 1.0e8 / pow(temperature, 3));
+  double k2 = 1.2e-4 * std::exp(-167 / temperature + 1.0e8 / std::pow(temperature, 3));
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -1085,7 +1085,7 @@ TEST(AnalyticalExamples, Arrhenius)
       micm::Process::create()
           .reactants({ b })
           .products({ yields(c, 1) })
-          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
+          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .phase(gas_phase);
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
@@ -1102,7 +1102,7 @@ TEST(AnalyticalExamples, Arrhenius)
   double k1 = 4.0e-3 * std::exp(50 / temperature);
 
   // B->C reaction rate
-  double k2 = 1.2e-4 * std::exp(75 / temperature) * pow(temperature / 50, 167) * (1.0 + 0.5 * pressure);
+  double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 7) * (1.0 + 0.5 * pressure);
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -1228,7 +1228,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   double k1 = 4.0e-3 * std::exp(50 / temperature);
 
   // B->C reaction rate
-  double k2 = 1.2e-4 * std::exp(75 / temperature) * pow(temperature / 50, 167) * (1.0 + 0.5 * pressure);
+  double k2 = 1.2e-4 * std::exp(75 / temperature) * std::pow(temperature / 50, 167) * (1.0 + 0.5 * pressure);
 
   double time_step = 1.0;
   micm::State<micm::Matrix> state = solver.GetState();
@@ -1856,7 +1856,7 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Process r1 = micm::Process::create()
                          .reactants({ a, b })
-                         .products({ yields(b, 1 - pow((1 / 77.27), 2)) })
+                         .products({ yields(b, 1 - std::pow((1 / 77.27), 2)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
@@ -1868,7 +1868,7 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Process r3 = micm::Process::create()
                          .reactants({ b })
-                         .products({ yields(a, pow(77.27, 2)) })
+                         .products({ yields(a, std::pow(77.27, 2)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 

@@ -74,7 +74,7 @@ namespace micm
 
   inline double ArrheniusRateConstant::calculate(const double& temperature, const double& pressure) const
   {
-    return parameters_.A_ * std::exp(parameters_.C_ / temperature) * pow(temperature / parameters_.D_, parameters_.B_) *
+    return parameters_.A_ * std::exp(parameters_.C_ / temperature) * std::pow(temperature / parameters_.D_, parameters_.B_) *
            (1.0 + parameters_.E_ * pressure);
   }
 
