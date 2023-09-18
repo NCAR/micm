@@ -37,7 +37,7 @@ RUN mkdir /build \
         ../micm \
       && make -j 8 install
 
-build the library and run the tests
+# build the library and run the tests
 RUN mkdir /cuda_build \
       && cd /cuda_build \ 
       && cmake \
