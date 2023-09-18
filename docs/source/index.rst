@@ -22,7 +22,7 @@ Welcome to MICM's documentation!
 
     .. grid-item-card::  User guide
         :img-top: _static/index_user_guide.svg
-        :link: user_guide
+        :link: user_guide/index
         :link-type: doc
 
         Learn how to configure micm for your mechanisms here!
@@ -48,7 +48,7 @@ Welcome to MICM's documentation!
    :caption: Contents:
 
    getting_started
-   user_guide
+   user_guide/index
    api/index
    contributing/index
    citation
