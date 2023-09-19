@@ -9,6 +9,15 @@ TEST(SolverConfig, DetectsInvalidConfigFile)
   EXPECT_EQ(micm::ConfigParseStatus::InvalidSpeciesFilePath, status);
 }
 
+TEST(SolverConfig, ReadAndParseCAMPFiles)
+{
+  micm::SolverConfig solverConfig{};
+
+  // Read and parse the CAMP configure file
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/camp");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+}
+
 TEST(SolverConfig, ReadAndParseSystemObject)
 {
   micm::SolverConfig solverConfig;
