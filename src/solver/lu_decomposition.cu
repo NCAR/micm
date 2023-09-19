@@ -19,10 +19,11 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ void pairCheck(decomposeDevice* device, size_t aik_size){
+        __global__ void pairCheck(decomposeDevice* device, size_t niLU_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            if (tid < aik_size){
-            printf("this is aik: %d\n", device->aik[tid]);
+            if (tid < niLU_size){
+            printf("this is aik first: %d\n", device->niLU[tid].first);
+             printf("this is aik second: %d\n", device->niLU[tid].second);
         }
     }
         
@@ -178,11 +179,10 @@ namespace micm{
             size_t aik_size = solver.aik_size; 
             //call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
-           
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            pairCheck<<<(solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, aik_size); 
+            pairCheck<<<(solver.niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, niLU_size); 
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
