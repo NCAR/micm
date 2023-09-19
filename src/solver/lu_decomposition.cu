@@ -56,15 +56,17 @@ namespace micm{
                     //upper triangular matrix 
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
-                        if(device->do_aik[do_aik_offset++]){
+                        if(device->do_aik[do_aik_offset]){
                             printf("tid: %d, this is aik %d\n", tid, device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
-                            size_t A_idx =  device->aik[aik_offset++]+ tid; 
+                            size_t A_idx =  device->aik[aik_offset]+ tid; 
                             printf("tid: %d, this is uik_nkj_first %d\n", tid, uik_nkj[uik_nkj_offset].first);
                             printf("tid: %d, this is gpu u index: %d\n", tid, U_idx); 
                             printf("tid: %d, this is gpu A index: %d\n", tid, A_idx); 
                             U[U_idx] = A[A_idx]; 
                             printf ("tid: %d, this is gpu U value: %d\n",tid, U[U_idx]); 
+                            do_aik_offset++;
+                            aik_offset++
                         }
 
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
@@ -80,10 +82,12 @@ namespace micm{
                     L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
                     
                     for (size_t iL = 0; iL <inLU.first; ++iL){
-                        if(device->do_aki[do_aki_offset++]){
+                        if(device->do_aki[do_aki_offset]){
                             size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                            size_t A_idx = device->aki[aki_offset++] + tid; 
+                            size_t A_idx = device->aki[aki_offset] + tid; 
                             L[L_idx] = A[A_idx]; 
+                            do_aki_offset++;
+                            aki_offset++;
                         }
                         //working in progress 
                         for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second;++ikj){
@@ -166,14 +170,14 @@ namespace micm{
             cudaMemcpy(&(device->lkj_uji), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             //total number of threads is number of blocks in sparseMatrix A 
-            // size_t num_block = (sparseMatrix.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE; 
-            size_t num_block = (solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+            size_t num_block = (sparseMatrix.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+            // size_t num_block = (solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t n_grids = sparseMatrix.n_grids;  
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
             //call kernel
-            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
-            pairCheck<<<num_block, BLOCK_SIZE>>>(device, aik_size); 
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
+            // pairCheck<<<num_block, BLOCK_SIZE>>>(device, aik_size); 
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
