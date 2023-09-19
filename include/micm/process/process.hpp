@@ -35,11 +35,13 @@ namespace micm
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<template<class> class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
+    requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy>& state);
     template<template<class> class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
+    requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
@@ -89,8 +91,9 @@ namespace micm
   };
 
   template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
+  requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy>& state)
   {
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {
@@ -107,8 +110,9 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
+  requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy>& state)
   {
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
