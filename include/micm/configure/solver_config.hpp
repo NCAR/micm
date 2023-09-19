@@ -102,6 +102,7 @@ namespace micm
     std::vector<Process> processes_;
 
     // Constants
+    // find names from config.json
     // Configure files
     static const inline std::string SPECIES_CONFIG = "species.json";
     static const inline std::string MECHANISM_CONFIG = "mechanism.json";
@@ -110,6 +111,7 @@ namespace micm
 
     // Common JSON
     static const inline std::string CAMP_DATA = "camp-data";
+    static const inline std::string CAMP_FILES = "camp-files";
     static const inline std::string TYPE = "type";
 
     // Functions
@@ -118,6 +120,8 @@ namespace micm
     /// @return True for successful parsing
     ConfigParseStatus Parse(const std::filesystem::path& config_dir)
     {
+      // Look for CAMP_FILES here
+
       // Create configure paths
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
