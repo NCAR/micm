@@ -58,6 +58,7 @@ namespace micm{
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
                             printf("iU loop: %d\n", iU); 
+                            printf("this is aik_offset: %d\n", aik_offset); 
                             printf("tid: %d, this is aik %d\n", tid, device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
@@ -172,17 +173,16 @@ namespace micm{
             
             //total number of threads is number of blocks in sparseMatrix A 
             size_t num_block = (sparseMatrix.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE; 
-            // size_t num_block = (solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t n_grids = sparseMatrix.n_grids;  
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
             //call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
-            // pairCheck<<<num_block, BLOCK_SIZE>>>(device, aik_size); 
+           
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-           
+            pairCheck<<<(solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, aik_size); 
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
