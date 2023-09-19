@@ -1,5 +1,3 @@
-
-
 ##########
 User Guide
 ##########
@@ -12,9 +10,8 @@ If you happen to find our examples are lacking for your needs, please,
 
 
 
-1. :doc:`Rate constants` (except user-defined ones)
-
-2. User defined rate constants
+1. :ref:`Rate constants`
+2. :ref:`User defined rate constants`
 
 
 .. toctree::
@@ -22,3 +19,4 @@ If you happen to find our examples are lacking for your needs, please,
    :caption: Contents:
 
    rate_constant_tutorial
+   user_defined_rate_constant_tutorial

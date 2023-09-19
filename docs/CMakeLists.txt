@@ -51,7 +51,7 @@ add_custom_command(
   MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
   COMMENT "Generating documentation with Sphinx"
   # run this command each time. This way we don't have to keep track of each individual rst file
-  ALWAYS
+  BuildDocs
 )
 
 add_custom_target(docs ALL DEPENDS ${SPHINX_INDEX_FILE})
