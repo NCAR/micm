@@ -167,7 +167,7 @@ namespace micm{
             
             //total number of threads is number of blocks in sparseMatrix A 
             // size_t num_block = (sparseMatrix.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE; 
-            size_t num_block = (sparseMatrix.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+            size_t num_block = (solver.aik_size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t n_grids = sparseMatrix.n_grids;  
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
