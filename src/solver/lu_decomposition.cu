@@ -57,8 +57,8 @@ namespace micm{
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset++]){
-                            size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             prinf("tid: %d, this is aik\n",device->aik[aik_offset]);
+                            size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset++]+ tid; 
                             prinf("tid: %d, this is uik_nkj_first\n",uik_nkj[uik_nkj_offset].first);
                             printf("tid: %d, this is gpu u index: %d\n", tid, U_idx); 
