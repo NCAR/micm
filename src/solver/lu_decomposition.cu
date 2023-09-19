@@ -50,8 +50,7 @@ namespace micm{
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
             if (tid < n_grids){
-                printf("inside the kernel %d\n", tid); 
-            
+                printf("tid: %d", tid); 
                 //loop through every element in niLU 
                 for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
@@ -60,8 +59,12 @@ namespace micm{
                         if(device->do_aik[do_aik_offset++]){
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset++]+ tid; 
+                            printf("this is u index %d", U_idx); 
+                            printf("this is A index %d", A_idx); 
                             U[U_idx] = A[A_idx]; 
+                            printf ("this is U value %d", U[U_idx]); 
                         }
+
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
@@ -89,7 +92,7 @@ namespace micm{
                             ++lkj_uji_offset; 
                         }
                         size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                        size_t U_idx = device->uii[uii_offset]+ tid; 
+                        size_t U_idx = device->uii[uii_offset] + tid; 
                         L[L_idx]/=U[U_idx]; 
                         ++lki_nkj_offset; 
                         ++uii_offset; 

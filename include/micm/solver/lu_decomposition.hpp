@@ -325,7 +325,12 @@ namespace micm
           if (*(do_aik++))
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              U_vector[uik_nkj->first + i_cell] = A_vector[*aik + i_cell];
+              int U_index = uik_nkj->first + i_cell; 
+              int A_index = *aik + i_cell;
+              U_vector[U_index] = A_vector[A_index];
+              std::cout << "this is U_index: "<<U_index<<std::endl; 
+              std::cout << "This is A_index:"<<A_index<<std::endl; 
+              std::cout << "this is U value"<< U_vector[U_index]<<std::endl; 
             ++aik;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
