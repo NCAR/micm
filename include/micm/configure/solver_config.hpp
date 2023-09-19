@@ -34,6 +34,7 @@ namespace micm
     InvalidKey,
     UnknownKey,
     InvalidSpecies,
+    CAMPFilesSectionNotFound,
     CAMPDataSectionNotFound,
     InvalidMechanism,
     ObjectTypeNotFound,
@@ -51,6 +52,7 @@ namespace micm
       case ConfigParseStatus::InvalidKey: return "InvalidKey";
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
       case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
+      case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
@@ -131,7 +133,10 @@ namespace micm
       std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
       if (std::filesystem::exists(camp_config))
       {
+        std::cout << "Reading CAMP config " << camp_config << std::endl;
         json camp_config = json::parse(std::ifstream(camp_config));
+        if (!camp_config.contains(CAMP_FILES))
+          return ConfigParseStatus::CAMPFilesSectionNotFound;
       }
 
       // Current reaction configs should be either mechanism_config or reactions config
