@@ -104,6 +104,7 @@ namespace micm
     // Constants
     // find names from config.json
     // Configure files
+    static const inline std::string CAMP_CONFIG = "config.json";
     static const inline std::string SPECIES_CONFIG = "species.json";
     static const inline std::string MECHANISM_CONFIG = "mechanism.json";
     static const inline std::string REACTIONS_CONFIG = "reactions.json";
@@ -120,13 +121,18 @@ namespace micm
     /// @return True for successful parsing
     ConfigParseStatus Parse(const std::filesystem::path& config_dir)
     {
-      // Look for CAMP_FILES here
-
       // Create configure paths
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
       std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
+
+      // Look for CAMP config file
+      std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
+      if (std::filesystem::exists(camp_config))
+      {
+        json camp_config = json::parse(std::ifstream(camp_config));
+      }
 
       // Current reaction configs should be either mechanism_config or reactions config
       std::filesystem::path cur_reactions_config;
