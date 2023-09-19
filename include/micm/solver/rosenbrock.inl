@@ -520,10 +520,10 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
-      // compute the concentrations at the current time
+      // compute the forcing at the beginning of the current time
       CalculateForcing(state.rate_constants_, Y, initial_forcing);
 
-      // compute the jacobian at the current time
+      // compute the jacobian at the beginning of the current time
       CalculateJacobian(state.rate_constants_, Y, jacobian_);
 
       bool accepted = false;
