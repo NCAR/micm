@@ -33,7 +33,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
 
   MatrixPolicy<double> expected_rate_constants(number_of_grid_cells, 3, 0.0);
   std::vector<double> params = { 0.0, 0.0, 0.0 };
-  auto get_double = std::bind(std::lognormal_distribution(0.0, -4.0), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
