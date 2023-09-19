@@ -57,7 +57,7 @@ namespace micm{
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
-                            printf("iU loop: %d", iU); 
+                            printf("iU loop: %d\n", iU); 
                             printf("tid: %d, this is aik %d\n", tid, device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
