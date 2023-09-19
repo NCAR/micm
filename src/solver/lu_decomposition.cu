@@ -49,6 +49,7 @@ namespace micm{
             size_t lki_nkj_offset = 0; 
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
+            
             if (tid < n_grids){
                 //loop through every element in niLU 
                 for (size_t i = 0; i < niLU_size; i++){
@@ -56,6 +57,7 @@ namespace micm{
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
+                            printf("iU loop: %d", iU); 
                             printf("tid: %d, this is aik %d\n", tid, device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
