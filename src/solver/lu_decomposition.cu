@@ -66,7 +66,7 @@ namespace micm{
                             U[U_idx] = A[A_idx]; 
                             printf ("tid: %d, this is gpu U value: %d\n",tid, U[U_idx]); 
                             do_aik_offset++;
-                            aik_offset++
+                            aik_offset++;
                         }
 
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
