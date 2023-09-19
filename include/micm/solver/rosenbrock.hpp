@@ -120,7 +120,7 @@ namespace micm
 
   std::string StateToString(const SolverState& state);
 
-  /// @brief An implementation of the Chapman mechnanism solver
+  /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
   template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
@@ -202,9 +202,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
