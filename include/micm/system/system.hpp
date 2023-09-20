@@ -69,6 +69,13 @@ namespace micm
     {
     }
 
+    System& operator=(const System& other)
+    {
+      gas_phase_ = other.gas_phase_;
+      phases_ = other.phases_;
+      return *this;
+    }
+
     /// @brief Returns the number of doubles required to store the system state
     size_t StateSize() const;
 

@@ -1,6 +1,9 @@
+// Copyright (C) 2023 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 namespace micm
 {
-  
+
   template<template<class> class MatrixPolicy>
   inline State<MatrixPolicy>::State()
       : conditions_(),
@@ -12,7 +15,7 @@ namespace micm
         rate_constants_()
   {
   }
-  
+
   template<template<class> class MatrixPolicy>
   inline State<MatrixPolicy>::State(
       const std::size_t state_size,
@@ -125,7 +128,8 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetCustomRateParameters(const std::unordered_map<std::string, std::vector<double>>& parameters)
+  inline void State<MatrixPolicy>::SetCustomRateParameters(
+      const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
@@ -153,5 +157,5 @@ namespace micm
     for (std::size_t i = 0; i < custom_rate_parameters_.size(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
-  
+
 }  // namespace micm

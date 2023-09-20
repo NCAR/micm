@@ -85,12 +85,15 @@ namespace micm
   inline double TernaryChemicalActivationRateConstant::calculate(const double& temperature, const double& air_number_density)
       const
   {
-    double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * pow(temperature / 300.0, parameters_.k0_B_);
-    double kinf =
-        parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) * pow(temperature / 300.0, parameters_.kinf_B_);
+    double k0 =
+        parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * std::pow(temperature / 300.0, parameters_.k0_B_);
+    double kinf = parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) *
+                  std::pow(temperature / 300.0, parameters_.kinf_B_);
 
     return k0 / (1.0 + k0 * air_number_density / kinf) *
-           pow(parameters_.Fc_, 1.0 / (1.0 + 1.0 / parameters_.N_ * pow(log10(k0 * air_number_density / kinf), 2)));
+           std::pow(
+               parameters_.Fc_,
+               1.0 / (1.0 + 1.0 / parameters_.N_ * std::pow(std::log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm

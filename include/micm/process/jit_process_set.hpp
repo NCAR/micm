@@ -79,6 +79,8 @@ namespace micm
       : ProcessSet(processes, state),
         compiler_(compiler)
   {
+    forcing_function_ = NULL;
+    jacobian_function_ = NULL;
     this->GenerateForcingFunction();
   }
 
@@ -282,12 +284,12 @@ namespace micm
   template<std::size_t L>
   JitProcessSet<L>::~JitProcessSet()
   {
-    if (forcing_function_resource_tracker_ != NULL)
+    if (forcing_function_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(forcing_function_resource_tracker_->remove());
     }
-    if (jacobian_function_resource_tracker_ != NULL)
+    if (jacobian_function_ != NULL)
     {
       llvm::ExitOnError exit_on_error;
       exit_on_error(jacobian_function_resource_tracker_->remove());

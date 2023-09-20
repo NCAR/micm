@@ -118,7 +118,9 @@ namespace micm
     NaNDetected
   };
 
-  /// @brief An implementation of the Chapman mechnanism solver
+  std::string StateToString(const SolverState& state);
+
+  /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
   template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
@@ -138,7 +140,6 @@ namespace micm
       uint64_t total_steps{};       // Ntotstp
 
       void Reset();
-      std::string State(const SolverState& state) const;
     };
 
     struct [[nodiscard]] SolverResult
@@ -153,8 +154,8 @@ namespace micm
       double final_time_{};
     };
 
-    const System system_;
-    const std::vector<Process> processes_;
+    System system_;
+    std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
@@ -164,7 +165,10 @@ namespace micm
     std::vector<std::size_t> jacobian_diagonal_elements_;
     size_t N_{};
 
-    static constexpr double delta_min_ = 1.0e-5;
+    static constexpr double delta_min_ = 1.0e-6;
+
+    /// @brief Default constructor
+    RosenbrockSolver();
 
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
@@ -174,7 +178,7 @@ namespace micm
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters);
 
-    virtual ~RosenbrockSolver();
+    virtual ~RosenbrockSolver() = default;
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
@@ -189,7 +193,7 @@ namespace micm
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param forcing Vector of forcings for the current conditions
-    void CalculateForcing(
+    virtual void CalculateForcing(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         MatrixPolicy<double>& forcing);
@@ -210,7 +214,7 @@ namespace micm
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param jacobian The matrix of partial derivatives
-    void CalculateJacobian(
+    virtual void CalculateJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         SparseMatrixPolicy<double>& jacobian);
@@ -221,12 +225,7 @@ namespace micm
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void LinearFactor(
-        double& H,
-        const double gamma,
-        bool& singular,
-        const MatrixPolicy<double>& number_densities,
-        const MatrixPolicy<double>& rate_constants);
+    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors

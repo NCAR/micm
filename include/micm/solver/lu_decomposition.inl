@@ -1,3 +1,6 @@
+// Copyright (C) 2023 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 namespace micm
 {
 
@@ -142,10 +145,9 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
-      const SparseMatrixPolicy<T>& A,
-      SparseMatrixPolicy<T>& L,
-      SparseMatrixPolicy<T>& U) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+      const
   {
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
@@ -196,10 +198,9 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
-      const SparseMatrixPolicy<T>& A,
-      SparseMatrixPolicy<T>& L,
-      SparseMatrixPolicy<T>& U) const
+    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+      const
   {
     const std::size_t n_cells = A.GroupVectorSize();
     // Loop over groups of blocks
@@ -263,4 +264,4 @@ namespace micm
     }
   }
 
-} // namespace micm
+}  // namespace micm

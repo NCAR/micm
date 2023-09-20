@@ -189,3 +189,7 @@ installation and usage instructions.
 - [Apache 2.0](/LICENSE)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
+
+
+> **Note**
+> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers

@@ -6,6 +6,7 @@ include(test_util)
 ################################################################################
 # Tests
 
+create_standard_test(NAME process SOURCES test_process.cpp)
 create_standard_test(NAME process_set SOURCES test_process_set.cpp)
 create_standard_test(NAME arrhenius_rate_constant SOURCES test_arrhenius_rate_constant.cpp)
 create_standard_test(NAME branched_rate_constant SOURCES test_branched_rate_constant.cpp)

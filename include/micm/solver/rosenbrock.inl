@@ -1,3 +1,6 @@
+// Copyright (C) 2023 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 namespace micm
 {
   //
@@ -377,8 +380,7 @@ namespace micm
     total_steps = 0;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline std::string RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverStats::State(const SolverState& state) const
+  inline std::string StateToString(const SolverState& state)
   {
     switch (state)
     {
@@ -392,6 +394,21 @@ namespace micm
       default: return "Unknown";
     }
     return "";
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::RosenbrockSolver()
+      : system_(),
+        processes_(),
+        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        state_reordering_(),
+        process_set_(),
+        stats_(),
+        jacobian_(),
+        linear_solver_(),
+        jacobian_diagonal_elements_(),
+        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
+  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -438,11 +455,6 @@ namespace micm
     process_set_.SetJacobianFlatIds(jacobian_);
     for (std::size_t i = 0; i < jacobian_[0].size(); ++i)
       jacobian_diagonal_elements_.push_back(jacobian_.VectorIndex(0, i, i));
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::~RosenbrockSolver()
-  {
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -508,10 +520,10 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
-      // compute the concentrations at the current time
+      // compute the forcing at the beginning of the current time
       CalculateForcing(state.rate_constants_, Y, initial_forcing);
 
-      // compute the jacobian at the current time
+      // compute the jacobian at the beginning of the current time
       CalculateJacobian(state.rate_constants_, Y, jacobian_);
 
       bool accepted = false;
@@ -520,7 +532,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, state.rate_constants_);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -623,7 +635,11 @@ namespace micm
       }
     }
 
-    result.state_ = SolverState::Converged;
+    if (result.state_ == SolverState::Running)
+    {
+      result.state_ = SolverState::Converged;
+    }
+
     result.final_time_ = present_time;
     result.stats_ = stats_;
     result.result_ = std::move(Y);
@@ -697,8 +713,7 @@ namespace micm
       double& H,
       const double gamma,
       bool& singular,
-      const MatrixPolicy<double>& number_densities,
-      const MatrixPolicy<double>& rate_constants)
+      const MatrixPolicy<double>& number_densities)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
