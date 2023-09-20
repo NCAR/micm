@@ -7,6 +7,7 @@
 .. ~ for subsubsubsections
 .. " for paragraphs
 
+================================
 Welcome to MICM's documentation!
 ================================
 

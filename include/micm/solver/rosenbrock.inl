@@ -642,7 +642,7 @@ namespace micm
 
     result.final_time_ = present_time;
     result.stats_ = stats_;
-    result.result_ = std::move(Y);
+    result.result_ = Y;
     return result;
   }
 
