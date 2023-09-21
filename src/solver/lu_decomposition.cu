@@ -19,10 +19,10 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ void pairCheck(decomposeDevice* device, size_t A_size){
+        __global__ void pairCheck(double* d_A, size_t A_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < A_size){
-            printf("this is A value: %d\n", device->A[tid]);
+            printf("this is A value: %d\n", d_A[tid]);
             
         }
     }
@@ -183,7 +183,7 @@ namespace micm{
             // cudaDeviceSynchronize();
             // cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             // cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, A_size); 
+            pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
