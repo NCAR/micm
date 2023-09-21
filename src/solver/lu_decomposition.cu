@@ -185,7 +185,7 @@ namespace micm{
             // cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
             pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
             
-            double* A = (double)malloc(sparseMatrix.A_size * sizeof(double)); 
+            double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
             cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
             for (int i = 0; i < A_size; i++){
                 std::cout <<"this is A transfer back to host: "<<A[i]<<std::endl; 
