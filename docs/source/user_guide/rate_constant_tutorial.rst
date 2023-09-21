@@ -21,16 +21,16 @@ At present, supported rate constants are:
 This tutorial covers all but the last one. See the :ref:`User defined rate constants` tutorial for examples and use
 cases on that.
 
-We'll setup and solve a fake chemical system with 4 species and 6 reactions, 
+We'll setup and solve a fake chemical system with 7 species and 6 reactions, 
 
 .. math::
 
   A &\longrightarrow B, &k_{1, \mathrm{arrhenius}} \\
   B &\longrightarrow C (\mathrm{alkoxy\ products}) + D (\mathrm{nitrate\ products}), &k_{2, \mathrm{branched}} \\
-  2C &\longrightarrow A, &k_{3, \mathrm{surface}} \\
-  D &\longrightarrow 2B, &k_{4, \mathrm{ternary\ chemical\ activation}} \\
-  A &\longrightarrow C, &k_{5, \mathrm{troe}} \\
-  B &\longrightarrow D, &k_{6, \mathrm{tunneling}} \\
+  2C &\longrightarrow E, &k_{3, \mathrm{surface}} \\
+  D &\longrightarrow 2F, &k_{4, \mathrm{ternary\ chemical\ activation}} \\
+  E &\longrightarrow G, &k_{5, \mathrm{troe}} \\
+  F &\longrightarrow G, &k_{6, \mathrm{tunneling}} \\
 
 
 MICM can be configured in two ways. We can either build the mechanism up by hand with the ``micm`` API,

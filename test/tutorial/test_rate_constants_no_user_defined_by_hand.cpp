@@ -20,32 +20,35 @@ using namespace micm;
 template<class T>
 using SparseMatrixPolicy = SparseMatrix<T>;
 
-
-void print_header(){
-  std::cout 
-      << std::setw(8) << "time" << ", "
-      << std::setw(22) << "A" << ", "
-      << std::setw(22) << "B" << ", "
-      << std::setw(22) << "C" << ", "
-      << std::setw(22) << "D" 
-      << std::endl;
+void print_header()
+{
+  std::cout << std::setw(4) << "time"
+            << ", " << std::setw(18) << "A"
+            << ", " << std::setw(18) << "B"
+            << ", " << std::setw(18) << "C"
+            << ", " << std::setw(18) << "D" 
+            << ", " << std::setw(18) << "E" 
+            << ", " << std::setw(18) << "F" 
+            << ", " << std::setw(18) << "G" 
+            << std::endl;
 }
 
 template<template<class> class T>
-void print_state(double time, State<T>& state) {
-  std::cout 
-          << std::defaultfloat
-          << std::setw(8) << time << ", "
-          << std::setw(20) << std::setprecision(16) 
-          << std::setw(20) << std::scientific 
-          << std::setw(20) << state.variables_[0][state.variable_map_["A"]] << ", "
-          << std::setw(20) << state.variables_[0][state.variable_map_["B"]] << ", " 
-          << std::setw(20) << state.variables_[0][state.variable_map_["C"]] << ", " 
-          << std::setw(20) << state.variables_[0][state.variable_map_["D"]] 
-          << std::endl;
+void print_state(double time, State<T>& state)
+{
+  std::cout << std::defaultfloat << std::setw(4) << time << ", "
+            << std::scientific << std::setprecision(10)
+            << std::setw(18) << state.variables_[0][state.variable_map_["A"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["B"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["C"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["D"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["E"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["F"]] << ", " 
+            << std::setw(18) << state.variables_[0][state.variable_map_["G"]] 
+            << std::endl;
 }
 
-int main(const int argc, const char *argv[])
+int main(const int argc, const char* argv[])
 {
   auto a = Species("A");
   auto b = Species("B");
@@ -54,13 +57,16 @@ int main(const int argc, const char *argv[])
       std::map<std::string, double>{ { "molecular weight [kg mol-1]", 0.025 },
                                      { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   auto d = Species("D");
+  auto e = Species("E");
+  auto f = Species("F");
+  auto g = Species("G");
 
-  Phase gas_phase{ std::vector<Species>{ a, b, c, d } };
+  Phase gas_phase{ std::vector<Species>{ a, b, c, d, e, f, g } };
 
   Process r1 = Process::create()
                    .reactants({ a })
                    .products({ yields(b, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                   .rate_constant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
                    .phase(gas_phase);
 
   // a branched reaction has two output pathways
@@ -87,13 +93,13 @@ int main(const int argc, const char *argv[])
   // we will set those later
   Process r4 = Process::create()
                    .reactants({ c, c })
-                   .products({ yields(a, 1) })
+                   .products({ yields(e, 1) })
                    .rate_constant(SurfaceRateConstant({ .label_ = "c", .species_ = c, .reaction_probability_ = 0.74 }))
                    .phase(gas_phase);
 
   Process r5 = Process::create()
                    .reactants({ d })
-                   .products({ yields(b, 2) })
+                   .products({ yields(f, 2) })
                    .rate_constant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
                                                                           .k0_B_ = 2.3,
                                                                           .k0_C_ = 302.3,
@@ -105,20 +111,31 @@ int main(const int argc, const char *argv[])
                    .phase(gas_phase);
 
   Process r6 = Process::create()
-                   .reactants({ d })
-                   .products({ yields(b, 2) })
+                   .reactants({ e })
+                   .products({ yields(g, 1) })
+                   .rate_constant(TroeRateConstant({ .k0_A_ = 1.2e-12,
+                                                     .k0_B_ = 167.0,
+                                                     .k0_C_ = 3.0,
+                                                     .kinf_A_ = 136.0,
+                                                     .kinf_B_ = 5.0,
+                                                     .kinf_C_ = 24.0,
+                                                     .Fc_ = 0.9,
+                                                     .N_ = 0.8 }))
+                   .phase(gas_phase);
+
+  Process r7 = Process::create()
+                   .reactants({ f })
+                   .products({ yields(g, 1) })
                    .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                    .phase(gas_phase);
 
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
-  auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6 };
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
 
   RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
                                                        reactions,
                                                        RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
   State state = solver.GetState();
-
-  std::cout << r4.rate_constant_->CustomParameters()[0] << std::endl;
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
@@ -127,12 +144,15 @@ int main(const int argc, const char *argv[])
   state.SetConcentration(b, 0.0);  // mol m-3
   state.SetConcentration(c, 0.0);  // mol m-3
   state.SetConcentration(d, 0.0);  // mol m-3
+  state.SetConcentration(e, 0.0);  // mol m-3
+  state.SetConcentration(f, 0.0);  // mol m-3
+  state.SetConcentration(g, 0.0);  // mol m-3
 
   state.SetCustomRateParameter("c.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("c.particle number concentration [# m-3]", 2.5e6);
 
   // choose a timestep a print the initial state
-  double time_step = 500;
+  double time_step = 500; // s
 
   print_header();
   print_state(0, state);
@@ -154,7 +174,7 @@ int main(const int argc, const char *argv[])
       state.variables_[0] = result.result_.AsVector();
     }
 
-    print_state(time_step*(i+1), state);
+    print_state(time_step * (i + 1), state);
   }
 
   return 0;
