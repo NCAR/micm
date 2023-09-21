@@ -22,7 +22,7 @@ namespace micm{
         __global__ void pairCheck(double* d_A, size_t A_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < A_size){
-            printf("this is A value: %16.12f\n", d_A[tid]);
+            printf("this is A value: %g\n", d_A[tid]);
         }
     }
         
@@ -182,7 +182,7 @@ namespace micm{
             // cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             // cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
             pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
-            
+            cudaDeviceSynchronize();
             double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
             cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
             for (int i = 0; i < A_size; i++){
