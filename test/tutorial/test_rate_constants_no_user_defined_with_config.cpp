@@ -1,5 +1,3 @@
-// #ifdef USE_JSON
-
 #include <format>
 #include <iomanip>
 #include <iostream>
@@ -123,5 +121,3 @@ int main(const int argc, const char* argv[])
 
   return 0;
 }
-
-// #endif

@@ -113,7 +113,7 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
-          :lines: 60-72
+          :lines: 58-70
 
 Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
 There are several ways to configure the solver. Here we are using a three stage solver. More options
@@ -138,7 +138,7 @@ custom rate parameters, and temperature and pressure
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
-          :lines: 78-96
+          :lines: 76-94
 
 
 Finally, we are ready to pick a timestep ans solve the system.
