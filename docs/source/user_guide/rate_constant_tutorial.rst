@@ -27,9 +27,9 @@ We'll setup and solve a fake chemical system with 7 species and 6 reactions,
 
   A &\longrightarrow B, &k_{1, \mathrm{arrhenius}} \\
   B &\longrightarrow C (\mathrm{alkoxy\ products}) + D (\mathrm{nitrate\ products}), &k_{2, \mathrm{branched}} \\
-  2C &\longrightarrow E, &k_{3, \mathrm{surface}} \\
+  C &\longrightarrow E, &k_{3, \mathrm{surface}} \\
   D &\longrightarrow 2F, &k_{4, \mathrm{ternary\ chemical\ activation}} \\
-  E &\longrightarrow G, &k_{5, \mathrm{troe}} \\
+  2E &\longrightarrow G, &k_{5, \mathrm{troe}} \\
   F &\longrightarrow G, &k_{6, \mathrm{tunneling}} \\
 
 
@@ -67,16 +67,17 @@ rosenbrock solver at the top of the file.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 1-11
+    :lines: 1-13
 
 After that, we'll use the ``micm`` namespace and setup a template alias so that we can instantiate the 
 rosenbrock solver.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 13-20
+    :lines: 15-22
 
-Next we have to define the chemical system we want to solve. 
+To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
+and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these.
 
 .. tabs::
 
@@ -84,15 +85,83 @@ Next we have to define the chemical system we want to solve.
 
         To do this by hand, we have to define all of the chemical species in the system. This allows us to set
         any properties of the species that may be necessary for rate constanta calculations, like molecular weights 
-        and diffusion coefficients for the surface reaction. 
+        and diffusion coefficients for the surface reaction.  We will also put these species into the gas phase.
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 25-31
+          :lines: 56-67
 
-        Products are created with a :cpp:type:`micm::Yield` :cpp:func:`micm::yields`
+        Now that we have a gas phase and our species, we can start building the reactions. Two things to note are that
+        stoichiemtric coefficients for reactants are represented by repeating that product as many times as you need.
+        To specify the yield of a product, we've created a typedef :cpp:type:`micm::Yield` 
+        and a function :cpp:func:`micm::yields` that produces these.
+
+        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+          :language: cpp
+          :lines: 69-133
+        
+        And finally we define our chemical system and reactions
+
+        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+          :language: cpp
+          :lines: 135-136
 
     .. tab:: OpenAtmos Configuration reading
 
+        After defining a valid OpenAtmos configuration with reactions that ``micm`` supports, configuring the chemical
+        system and the processes is as simple as using the :cpp:class:`micm::SolverConfig` class
+
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
+          :lines: 60-72
+
+Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
+There are several ways to configure the solver. Here we are using a three stage solver. More options
+can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
+
+  .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+    :language: cpp
+    :lines: 138-140
+
+The rosenbrock solver will provide us a state, which we can use to set the concentrations,
+custom rate parameters, and temperature and pressure
+
+  .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+    :language: cpp
+    :lines: 141-155
+
+Finally, we are ready to pick a timestep ans solve the system.
+
+  .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+    :language: cpp
+    :lines: 157-183
+
+
+This is the output:
+
+
++-------+------------+------------+------------+------------+------------+------------+------------+
+| time  |     A      |     B      |     C      |     D      |     E      |     F      |     G      |
++=======+============+============+============+============+============+============+============+
+|   0   | 1.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+|  500  | 3.22e-09   | 3.70e-09   | 9.67e-01   | 3.92e-14   | 1.38e-03   | 2.04e-13   | 7.69e-03   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 1000  | 1.15e-14   | 1.33e-14   | 9.35e-01   | 1.40e-19   | 1.34e-03   | 7.31e-19   | 1.56e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 1500  | 4.14e-20   | 4.76e-20   | 9.06e-01   | 5.04e-25   | 1.29e-03   | 2.62e-24   | 2.30e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 2000  | 1.48e-25   | 1.71e-25   | 8.78e-01   | 1.81e-30   | 1.26e-03   | 9.40e-30   | 3.00e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 2500  | 5.32e-31   | 6.12e-31   | 8.52e-01   | 6.47e-36   | 1.22e-03   | 3.37e-35   | 3.65e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 3000  | 1.91e-36   | 2.19e-36   | 8.27e-01   | 2.32e-41   | 1.18e-03   | 1.21e-40   | 4.27e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 3500  | 6.84e-42   | 7.86e-42   | 8.04e-01   | 8.32e-47   | 1.15e-03   | 4.33e-46   | 4.85e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 4000  | 2.45e-47   | 2.82e-47   | 7.82e-01   | 2.98e-52   | 1.12e-03   | 1.55e-51   | 5.40e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 4500  | 8.80e-53   | 1.01e-52   | 7.61e-01   | 1.07e-57   | 1.09e-03   | 5.57e-57   | 5.92e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+
+| 5000  | 3.16e-58   | 3.63e-58   | 7.42e-01   | 3.84e-63   | 1.06e-03   | 2.00e-62   | 6.41e-02   |
++-------+------------+------------+------------+------------+------------+------------+------------+

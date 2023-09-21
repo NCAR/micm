@@ -22,30 +22,33 @@ using SparseMatrixPolicy = SparseMatrix<T>;
 
 void print_header()
 {
-  std::cout << std::setw(4) << "time"
-            << ", " << std::setw(18) << "A"
-            << ", " << std::setw(18) << "B"
-            << ", " << std::setw(18) << "C"
-            << ", " << std::setw(18) << "D" 
-            << ", " << std::setw(18) << "E" 
-            << ", " << std::setw(18) << "F" 
-            << ", " << std::setw(18) << "G" 
-            << std::endl;
+  std::cout << std::setw(5) << "time"
+            << "," << std::setw(11) << "A"
+            << "," << std::setw(10) << "B"
+            << "," << std::setw(10) << "C"
+            << "," << std::setw(10) << "D"
+            << "," << std::setw(10) << "E"
+            << "," << std::setw(10) << "F"
+            << "," << std::setw(10) << "G" << std::endl;
 }
 
 template<template<class> class T>
 void print_state(double time, State<T>& state)
 {
-  std::cout << std::defaultfloat << std::setw(4) << time << ", "
-            << std::scientific << std::setprecision(10)
-            << std::setw(18) << state.variables_[0][state.variable_map_["A"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["B"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["C"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["D"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["E"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["F"]] << ", " 
-            << std::setw(18) << state.variables_[0][state.variable_map_["G"]] 
-            << std::endl;
+  std::ios oldState(nullptr);
+  oldState.copyfmt(std::cout);
+
+  std::cout << std::setw(5) << time << ", " << std::flush;
+
+  std::cout << std::scientific << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["A"]]
+            << "," << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["B"]] << ","
+            << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["C"]] << "," << std::setw(10)
+            << std::setprecision(2) << state.variables_[0][state.variable_map_["D"]] << "," << std::setw(10)
+            << std::setprecision(2) << state.variables_[0][state.variable_map_["E"]] << "," << std::setw(10)
+            << std::setprecision(2) << state.variables_[0][state.variable_map_["F"]] << "," << std::setw(10)
+            << std::setprecision(2) << state.variables_[0][state.variable_map_["G"]] << std::endl;
+
+  std::cout.copyfmt(oldState);
 }
 
 int main(const int argc, const char* argv[])
@@ -87,14 +90,12 @@ int main(const int argc, const char* argv[])
                    .rate_constant(BranchedRateConstant(branched_params))
                    .phase(gas_phase);
 
-  // to have a stoichiemetric coefficient of more than one for reactants,
-  // list the reactant that many times
   // A surface rate constant also needs to know the effective radius and particle number concentration
   // we will set those later
   Process r4 = Process::create()
-                   .reactants({ c, c })
+                   .reactants({ c })
                    .products({ yields(e, 1) })
-                   .rate_constant(SurfaceRateConstant({ .label_ = "c", .species_ = c, .reaction_probability_ = 0.74 }))
+                   .rate_constant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
                    .phase(gas_phase);
 
   Process r5 = Process::create()
@@ -110,10 +111,12 @@ int main(const int argc, const char* argv[])
                                                                           .N_ = 1.2 }))
                    .phase(gas_phase);
 
+  // to have a stoichiemetric coefficient of more than one for reactants,
+  // list the reactant that many times
   Process r6 = Process::create()
-                   .reactants({ e })
+                   .reactants({ e, e })
                    .products({ yields(g, 1) })
-                   .rate_constant(TroeRateConstant({ .k0_A_ = 1.2e-12,
+                   .rate_constant(TroeRateConstant({ .k0_A_ = 1.2e4,
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
                                                      .kinf_A_ = 136.0,
@@ -148,11 +151,11 @@ int main(const int argc, const char* argv[])
   state.SetConcentration(f, 0.0);  // mol m-3
   state.SetConcentration(g, 0.0);  // mol m-3
 
-  state.SetCustomRateParameter("c.effective radius [m]", 1e-7);
-  state.SetCustomRateParameter("c.particle number concentration [# m-3]", 2.5e6);
+  state.SetCustomRateParameter("C.effective radius [m]", 1e-7);
+  state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
 
-  // choose a timestep a print the initial state
-  double time_step = 500; // s
+  // choose and timestep a print the initial state
+  double time_step = 500;  // s
 
   print_header();
   print_state(0, state);
