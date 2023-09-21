@@ -6,7 +6,7 @@ namespace micm
   //
   // RosenbrockSolverParameters
   //
-  void RosenbrockSolverParameters::print() const
+  inline void RosenbrockSolverParameters::print() const
   {
     std::cout << "stages_: " << stages_ << std::endl;
     std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
@@ -53,7 +53,7 @@ namespace micm
     std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -97,7 +97,7 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -153,7 +153,7 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -222,7 +222,7 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -277,7 +277,7 @@ namespace micm
     return parameters;
   }
 
-  RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {

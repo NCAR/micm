@@ -40,7 +40,7 @@ namespace micm
     RequiredKeyNotFound
   };
 
-  std::string configParseStatusToString(ConfigParseStatus status)
+  inline std::string configParseStatusToString(const ConfigParseStatus& status)
   {
     switch (status)
     {

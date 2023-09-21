@@ -17,7 +17,7 @@ namespace micm
 
   using Yield = std::pair<micm::Species, double>;
 
-  Yield yields(micm::Species species, double yield)
+  inline Yield yields(micm::Species species, double yield)
   {
     return Yield(species, yield);
   };
@@ -146,7 +146,7 @@ namespace micm
     return ProcessBuilder{};
   };
 
-  Process::Process(ProcessBuilder& builder)
+  inline Process::Process(ProcessBuilder& builder)
       : reactants_(builder.reactants_),
         products_(builder.products_),
         rate_constant_(std::move(builder.rate_constant_)),
@@ -154,7 +154,7 @@ namespace micm
   {
   }
 
-  Process::Process(const Process& other)
+  inline Process::Process(const Process& other)
       : reactants_(other.reactants_),
         products_(other.products_),
         rate_constant_(other.rate_constant_ ? other.rate_constant_->clone() : nullptr),
