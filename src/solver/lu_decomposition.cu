@@ -19,11 +19,11 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ void pairCheck(decomposeDevice* device, size_t niLU_size){
+        __global__ void pairCheck(decomposeDevice* device, size_t A_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            if (tid < niLU_size){
-            printf("this is aik first: %d\n", device->niLU[tid].first);
-            printf("this is aik second: %d\n", device->niLU[tid].second);
+            if (tid < A_size){
+            printf("this is A value: %d\n", device->A[tid]);
+            
         }
     }
         
@@ -60,12 +60,13 @@ namespace micm{
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
                             printf("this is aik_offset: %d\n", aik_offset); 
-                            printf("this is aik %d\n", tid, device->aik[aik_offset]);
+                            printf("this is aik %d\n", device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
-                            size_t A_idx =  device->aik[aik_offset +(tid*0)]+ tid; 
+                            size_t A_idx =  device->aik[aik_offset]+ tid; 
                             printf("this is gpu u index: %d\n",U_idx); 
                             printf("this is gpu A index: %d\n",A_idx); 
                             U[U_idx] = A[A_idx]; 
+                            
                             printf ("this is gpu U value: %d\n", U[U_idx]); 
                             do_aik_offset++;
                             aik_offset++;
@@ -176,12 +177,13 @@ namespace micm{
             size_t n_grids = sparseMatrix.n_grids;  
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
+            size_t A_size = sparseMatrix.A_size; 
             //call kernel
-            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
-            cudaDeviceSynchronize();
-            cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
-            cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            // pairCheck<<<(solver.niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, niLU_size); 
+            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
+            // cudaDeviceSynchronize();
+            // cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
+            // cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
+            pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, A_size); 
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 

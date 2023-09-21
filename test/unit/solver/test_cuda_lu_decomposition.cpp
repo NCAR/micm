@@ -68,11 +68,11 @@ void testRandomMatrix(size_t n_grids)
         for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
-micm::LuDecomposition cpu_lud(A);
-auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
-check_results<double, SparseMatrixPolicy>(
-    A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+// micm::LuDecomposition cpu_lud(A);
+// auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+// cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
+// check_results<double, SparseMatrixPolicy>(
+//     A, cpu_LU.first, cpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
  
   micm::CUDALuDecomposition gpu_lud(A); 
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
@@ -80,10 +80,10 @@ check_results<double, SparseMatrixPolicy>(
   check_results<double, SparseMatrixPolicy>(
       A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-// std::cout << "This is niLU second element" <<std::endl; 
-// for (auto& niLU_second : cpu_lud.niLU_){
-//   std::cout <<niLU_second.second<<std::endl; 
-// }
+  double* A_vector = A.AsVector().data(); 
+  for (int i = 0; i < A.AsVector.size(); i++){
+    std::cout << "A value: "<< A_vector[i]<<std::endl; 
+  }
 }
 
 template<class T>
