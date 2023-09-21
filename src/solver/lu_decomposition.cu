@@ -22,7 +22,7 @@ namespace micm{
         __global__ void pairCheck(double* d_A, size_t A_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < A_size){
-            printf("this is A value: %lf\n", d_A[tid]);
+            printf("this is A value: %g\n", d_A[tid]);
         }
     }
         
