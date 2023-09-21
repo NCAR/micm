@@ -330,8 +330,8 @@ namespace micm
               U_vector[U_index] = A_vector[A_index];
               std::cout<<"this is cpu aik: "<< *aik <<std::endl; 
               std::cout << "this is cpu U_index: "<<U_index<<std::endl; 
-              std::cout << "This is cpu A_index:"<<A_index<<std::endl; 
-              std::cout << "this is cpu U value:"<< U_vector[U_index]<<std::endl; }
+              std::cout << "This is cpu A_index: "<<A_index<<std::endl; 
+              std::cout << "this is cpu U value: "<< U_vector[U_index]<<std::endl; }
             ++aik;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
