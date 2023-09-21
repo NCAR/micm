@@ -23,7 +23,7 @@ namespace micm{
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < niLU_size){
             printf("this is aik first: %d\n", device->niLU[tid].first);
-             printf("this is aik second: %d\n", device->niLU[tid].second);
+            printf("this is aik second: %d\n", device->niLU[tid].second);
         }
     }
         
@@ -53,21 +53,20 @@ namespace micm{
             
             if (tid < n_grids){
                 //loop through every element in niLU 
+                printf("tid: %d\n", tid); 
                 for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
-                            printf("iU loop: %d\n", iU); 
                             printf("this is aik_offset: %d\n", aik_offset); 
-                            printf("tid: %d, this is aik %d\n", tid, device->aik[aik_offset]);
+                            printf("this is aik %d\n", tid, device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
-                            size_t A_idx =  device->aik[aik_offset]+ tid; 
-                            printf("tid: %d, this is uik_nkj_first %d\n", tid, uik_nkj[uik_nkj_offset].first);
-                            printf("tid: %d, this is gpu u index: %d\n", tid, U_idx); 
-                            printf("tid: %d, this is gpu A index: %d\n", tid, A_idx); 
+                            size_t A_idx =  device->aik[aik_offset +(tid*0)]+ tid; 
+                            printf("this is gpu u index: %d\n",U_idx); 
+                            printf("this is gpu A index: %d\n",A_idx); 
                             U[U_idx] = A[A_idx]; 
-                            printf ("tid: %d, this is gpu U value: %d\n",tid, U[U_idx]); 
+                            printf ("this is gpu U value: %d\n", U[U_idx]); 
                             do_aik_offset++;
                             aik_offset++;
                         }
@@ -182,7 +181,7 @@ namespace micm{
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            pairCheck<<<(solver.niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, niLU_size); 
+            // pairCheck<<<(solver.niLU_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, niLU_size); 
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
