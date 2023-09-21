@@ -328,8 +328,7 @@ namespace micm
               int U_index = uik_nkj->first + i_cell; 
               int A_index = *aik + i_cell;
               U_vector[U_index] = A_vector[A_index];
-              std::cout << "this is cpu uik_nkj_first"<<uik_nkj->first<<std::endl; 
-              std::cout<<"this is cpu aik"<< *aik <<std::endl; 
+              std::cout<<"this is cpu aik: "<< *aik <<std::endl; 
               std::cout << "this is cpu U_index: "<<U_index<<std::endl; 
               std::cout << "This is cpu A_index:"<<A_index<<std::endl; 
               std::cout << "this is cpu U value:"<< U_vector[U_index]<<std::endl; }
