@@ -81,7 +81,8 @@ void testRandomMatrix(size_t n_grids)
       A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
   double* A_vector = A.AsVector().data(); 
-  for (int i = 0; i < A.AsVector.size(); i++){
+
+  for (int i = 0; i < A.AsVector().size(); i++){
     std::cout << "A value: "<< A_vector[i]<<std::endl; 
   }
 }
