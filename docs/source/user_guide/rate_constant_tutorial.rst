@@ -126,9 +126,20 @@ can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
 The rosenbrock solver will provide us a state, which we can use to set the concentrations,
 custom rate parameters, and temperature and pressure
 
-  .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
-    :language: cpp
-    :lines: 141-155
+.. tabs::
+
+    .. tab:: Build the Mechanism with the API
+
+        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
+          :language: cpp
+          :lines: 141-155
+
+    .. tab:: OpenAtmos Configuration reading
+
+        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
+          :language: cpp
+          :lines: 78-96
+
 
 Finally, we are ready to pick a timestep ans solve the system.
 
