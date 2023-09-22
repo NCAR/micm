@@ -104,7 +104,6 @@ namespace micm
     std::vector<Process> processes_;
 
     // Constants
-    // find names from config.json
     // Configure files
     static const inline std::string CAMP_CONFIG = "config.json";
     static const inline std::string SPECIES_CONFIG = "species.json";
@@ -144,6 +143,9 @@ namespace micm
           std::cout << element.get<std::string>() << std::endl;
           camp_files.push_back(element.get<std::string>());
         }
+        // Temporary, for development purposes, assume camp files are ordered
+        species_config = camp_files[0];
+        reactions_config = camp_files[1];
       }
 
       // Current reaction configs should be either mechanism_config or reactions config
