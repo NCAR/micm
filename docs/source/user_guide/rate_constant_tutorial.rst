@@ -35,7 +35,9 @@ We'll setup and solve a fake chemical system with 7 species and 6 reactions,
 
 MICM can be configured in two ways. We can either build the mechanism up by hand with the ``micm`` API,
 or parse a valid mechanism Configuration
-in the OpenAtmos format. In this tutorial, we will do both. If you're looking for a copy and paste, choose
+in the OpenAtmos format. In this tutorial, we will do both. 
+
+If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
 
