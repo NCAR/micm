@@ -79,7 +79,8 @@ namespace micm
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return calculate(conditions.temperature_, conditions.air_density_);
+    double val = calculate(conditions.temperature_, conditions.air_density_);
+    return val;
   }
 
   inline double TernaryChemicalActivationRateConstant::calculate(const double& temperature, const double& air_number_density)
