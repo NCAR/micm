@@ -113,9 +113,7 @@ namespace micm{
         sparseMatrix.U = U.AsVector().data(); 
         sparseMatrix.U_size = U.AsVector().size(); 
         sparseMatrix.n_grids = A.size(); 
-        for (int i = 0; i < sparseMatrix.A_size; i++){
-            std::cout << "This is A outside of kernel: "<<sparseMatrix.A[i]<<std::endl; 
-        }
+        
         CUDASolverParam solver;    
         solver.do_aik = do_aik_.data(); 
         solver.do_aik_size = do_aik_.size(); 
