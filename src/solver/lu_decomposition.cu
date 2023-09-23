@@ -69,6 +69,7 @@ namespace micm{
                             printf("this is gpu u index: %d\n", U_idx); 
                             printf("this is gpu u value: %f\n", U[U_idx]);}
                         }
+                        
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
