@@ -57,17 +57,17 @@ namespace micm{
                     auto inLU = device->niLU[i]; 
                     printf("This is gpu niLU second: %d\n", inLU.second);
                     for (size_t iU = 0; iU < inLU.second; ++iU){
-                        if(device->do_aik[do_aik_offset]){
+                        
+                        if(device->do_aik[do_aik_offset++]){
                             printf("this is gpu aik_offset: %d\n", aik_offset); 
-                            printf("this is gpu aik %d\n", device->aik[aik_offset]);
+                            printf("this is gpu aik %d\n", device->aik[aik_offset++]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
                             U[U_idx] = A[A_idx];
                             printf("this is gpu u index: %d\n", U_idx); 
                             printf("this is gpu u value: %f\n", U[U_idx]);
-                            do_aik_offset++;
-                            aik_offset++;
                         }
+
 
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
@@ -82,12 +82,10 @@ namespace micm{
                     L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
                     
                     for (size_t iL = 0; iL <inLU.first; ++iL){
-                        if(device->do_aki[do_aki_offset]){
+                        if(device->do_aki[do_aki_offset++]){
                             size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                            size_t A_idx = device->aki[aki_offset] + tid; 
+                            size_t A_idx = device->aki[aki_offset++] + tid; 
                             L[L_idx] = A[A_idx]; 
-                            do_aki_offset++;
-                            aki_offset++;
                         }
                         //working in progress 
                         for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second;++ikj){
