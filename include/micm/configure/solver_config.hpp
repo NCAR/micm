@@ -144,11 +144,11 @@ namespace micm
           camp_files.push_back(element.get<std::string>());
         }
         // Temporary, for development purposes, assume camp files are ordered
-        species_config = camp_files[0];
-        reactions_config = camp_files[1];
+        species_config = config_dir / camp_files[0];
+        reactions_config = config_dir / camp_files[1];
       }
 
-      // Current reaction configs should be either mechanism_config or reactions config
+      // Current reaction configs should be either mechanism_config or reactions_config
       std::filesystem::path cur_reactions_config;
 
       // Check if species config exists
