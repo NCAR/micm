@@ -173,7 +173,7 @@ namespace micm{
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
             size_t A_size = sparseMatrix.A_size; 
-            call kernel
+            //call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
