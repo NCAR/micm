@@ -320,6 +320,7 @@ namespace micm
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
+        std::cout << "this is in cpu inLU second: "<<inLU.second<<std::endl; 
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
           if (*(do_aik++))

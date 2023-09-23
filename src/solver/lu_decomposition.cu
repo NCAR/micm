@@ -55,6 +55,7 @@ namespace micm{
                 for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
                     auto inLU = device->niLU[i]; 
+                    printf("This is gpu niLU second: %d\n", inLU.second);
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
                             printf("this is gpu aik_offset: %d\n", aik_offset); 
