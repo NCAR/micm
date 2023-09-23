@@ -72,7 +72,7 @@ namespace micm{
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
                             size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid; 
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
-                            printf("this is gpu u value after if loop:  %f\n" , U[U_idx_1]);
+                            printf("this is gpu u value after if loop:  %f\n", U[U_idx_1]);
                             ++lij_ujk_offset; 
                         }
                         ++uik_nkj_offset; 

@@ -272,7 +272,7 @@ namespace micm
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
-            std::cout<<"this is gpu u value after if loop: "<<U_vector[uik_nkj->first]<<std::endl; 
+            std::cout<<"this is cpu u value after if loop: "<<U_vector[uik_nkj->first]<<std::endl; 
             ++lij_ujk;
           }
           ++uik_nkj;
