@@ -62,7 +62,7 @@ namespace micm{
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
                             U[U_idx] = A[A_idx];
-                            printf("this is gpu u index: %.d\n", U_idx); 
+                            printf("this is gpu u index: %d\n", U_idx); 
                             printf("this is gpu u value: %f\n", U[U_idx]);
                             do_aik_offset++;
                             aik_offset++;
