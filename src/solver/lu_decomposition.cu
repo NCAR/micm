@@ -1,3 +1,4 @@
+#include "stdio.h"
 #include <iostream> 
 #include <vector>
 #include <micm/util/cuda_param.hpp> 
@@ -22,7 +23,7 @@ namespace micm{
         __global__ void pairCheck(double* d_A, size_t A_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < A_size){
-            printf("this is A value: %hd\n", d_A[tid]);
+            printf("this is A value: %.9f\n", d_A[tid]);
         }
     }
         
