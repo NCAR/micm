@@ -88,7 +88,7 @@ check_results<double, SparseMatrixPolicy>(
 }
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
 template<class T>
 using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
 template<class T>
@@ -98,7 +98,7 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(CUDALuDecomposition, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1SparseVectorMatrix>(1);
+  testRandomMatrix<Group1SparseVectorMatrix>(2);
   // testRandomMatrix<Group2SparseVectorMatrix>(100);
   // // testRandomMatrix<Group3SparseVectorMatrix>(1000);
   // // testRandomMatrix<Group4SparseVectorMatrix>(100000);
