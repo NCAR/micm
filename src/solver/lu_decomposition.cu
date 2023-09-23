@@ -52,21 +52,17 @@ namespace micm{
             
             if (tid < n_grids){
                 //loop through every element in niLU 
-                printf("tid: %d\n", tid); 
                 for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset]){
-                            printf("this is aik_offset: %d\n", aik_offset); 
-                            printf("this is aik %d\n", device->aik[aik_offset]);
+                            printf("tid: %d this is aik_offset: %d\n", tid, aik_offset); 
+                            printf("tid: %d this is aik %.d\n", device->aik[aik_offset]);
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset]+ tid; 
-                            printf("this is gpu u index: %d\n",U_idx); 
-                            printf("this is gpu A index: %d\n",A_idx); 
-                            U[U_idx] = A[A_idx]; 
-                            
-                            printf ("this is gpu U value: %d\n", U[U_idx]); 
+                            U[U_idx] = A[A_idx];
+                            printf("tid %d, this is gpu u index: %.9f\n",tid,U_idx); 
                             do_aik_offset++;
                             aik_offset++;
                         }
@@ -177,18 +173,18 @@ namespace micm{
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
             size_t A_size = sparseMatrix.A_size; 
-            //call kernel
-            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
-            // cudaDeviceSynchronize();
-            // cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
-            // cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
+            call kernel
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
             cudaDeviceSynchronize();
-            double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
-            cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
-            for (int i = 0; i < A_size; i++){
-                std::cout <<"this is A transfer back to host: "<<A[i]<<std::endl; 
-            }
+            cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
+            // pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
+            // cudaDeviceSynchronize();
+            // double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
+            // cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
+            // for (int i = 0; i < A_size; i++){
+            //     std::cout <<"this is A transfer back to host: "<<A[i]<<std::endl; 
+            // }
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
