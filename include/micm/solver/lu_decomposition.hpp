@@ -370,7 +370,7 @@ namespace micm
         //     L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
         //   ++lki_nkj;
         //   ++uii;
-        // }
+         }
       }
     }
   }
