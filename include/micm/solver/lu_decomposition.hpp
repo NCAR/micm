@@ -353,29 +353,29 @@ namespace micm
           }
           ++uik_nkj;
         }
-        // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[lki_nkj->first + i_cell] = 1.0;
-        ++lki_nkj;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        {
-          if (*(do_aki++))
-          {
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
-            ++aki;
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
-            ++lkj_uji;
-          }
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
-          ++lki_nkj;
-          ++uii;
-        }
+        // // Lower triangular matrix
+        // for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        //   L_vector[lki_nkj->first + i_cell] = 1.0;
+        // ++lki_nkj;
+        // for (std::size_t iL = 0; iL < inLU.first; ++iL)
+        // {
+        //   if (*(do_aki++))
+        //   {
+        //     for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        //       L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
+        //     ++aki;
+        //   }
+        //   for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
+        //   {
+        //     for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        //       L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
+        //     ++lkj_uji;
+        //   }
+        //   for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+        //     L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
+        //   ++lki_nkj;
+        //   ++uii;
+        // }
       }
     }
   }

@@ -81,29 +81,29 @@ namespace micm{
                         }
                         ++uik_nkj_offset; 
                     }
-                    //lower triangular matrix
-                    L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
+                //    // lower triangular matrix
+                //     L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
                     
-                    for (size_t iL = 0; iL <inLU.first; ++iL){
-                        if(device->do_aki[do_aki_offset++]){
-                            size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                            size_t A_idx = device->aki[aki_offset++] + tid; 
-                            L[L_idx] = A[A_idx]; 
-                        }
-                        //working in progress 
-                        for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second;++ikj){
-                            size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
-                            size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
-                            size_t U_idx = lkj_uji[lkj_uji_offset].second + tid; 
-                            L[L_idx_1] -= L[L_idx_2] * U[U_idx];
-                            ++lkj_uji_offset; 
-                        }
-                        size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
-                        size_t U_idx = device->uii[uii_offset] + tid; 
-                        L[L_idx]/=U[U_idx]; 
-                        ++lki_nkj_offset; 
-                        ++uii_offset; 
-                    }
+                //     for (size_t iL = 0; iL <inLU.first; ++iL){
+                //         if(device->do_aki[do_aki_offset++]){
+                //             size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
+                //             size_t A_idx = device->aki[aki_offset++] + tid; 
+                //             L[L_idx] = A[A_idx]; 
+                //         }
+                //         //working in progress 
+                //         for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second;++ikj){
+                //             size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
+                //             size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
+                //             size_t U_idx = lkj_uji[lkj_uji_offset].second + tid; 
+                //             L[L_idx_1] -= L[L_idx_2] * U[U_idx];
+                //             ++lkj_uji_offset; 
+                //         }
+                //         size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
+                //         size_t U_idx = device->uii[uii_offset] + tid; 
+                //         L[L_idx]/=U[U_idx]; 
+                //         ++lki_nkj_offset; 
+                //         ++uii_offset; 
+                //     }
                 }
             }
         }// end of kernel
