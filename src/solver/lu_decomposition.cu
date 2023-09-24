@@ -69,20 +69,20 @@ namespace micm{
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
                             size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid; 
+                            printf("this is u_index_1: %d\n", U_idx_1);
+                            printf("this is u_index_2: %d\n",U_idx_2);
+                            printf("this is L_index: %d\n", L_idx);
                             printf("this is gpu u_1 value %.9f\n", U[U_idx_1]);
                             printf("this is gpu u_2 value %.9f\n", U[U_idx_2]);
                             printf("this is gpu L value %.9f\n", L[L_idx]);
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
-                            printf("this is u_index_1: %d\n", U_idx_1);
-                            printf("this is L_index: %d\n", L_idx);
-                            printf("this is u_index_2: %d\n",U_idx_2);
                             printf("this is gpu u value after if loop:  %.9f\n", U[U_idx_1]);
                             ++lij_ujk_offset; 
                         }
                         ++uik_nkj_offset; 
                     }
-                //    // lower triangular matrix
-                //     L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
+                   // lower triangular matrix
+                    // L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
                     
                 //     for (size_t iL = 0; iL <inLU.first; ++iL){
                 //         if(device->do_aki[do_aki_offset++]){
@@ -103,7 +103,7 @@ namespace micm{
                 //         L[L_idx]/=U[U_idx]; 
                 //         ++lki_nkj_offset; 
                 //         ++uii_offset; 
-                //     }
+                     }
                 }
             }
         }// end of kernel
