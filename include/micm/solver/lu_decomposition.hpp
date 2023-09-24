@@ -329,7 +329,7 @@ namespace micm
               int U_index = uik_nkj->first + i_cell; 
               int A_index = *aik + i_cell;
               U_vector[U_index] = A_vector[A_index];
-              std::cout << "this is cpu U_index: "<<U_index<< << "this is cpu u_value: "<< U_vector[U_index]<<std::endl;
+              std::cout << "this is cpu U_index: "<<U_index << "this is cpu u_value: "<< U_vector[U_index]<<std::endl;}
             ++aik;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -339,8 +339,8 @@ namespace micm
               int L = lij_ujk->first + i_cell;
               int u_2 = lij_ujk->second + i_cell;
               std::cout << "this is cpu u_1 index: : "<<u_1 << " cpu u_1 value: "<< U_vector[u_2]<<std::endl; 
-              std::cout <<"this is cpu u_2 index: "<<u_2 << " cpu u_2 value: "<< U_vector[u_2]<<std::endl;
-              std::cout << "this is cpu L index: "<< L<< " cpu L value: "<< L_vector[L] <<std::endl; 
+              std::cout <<"this is cpu u_2 index: "<< u_2 << " cpu u_2 value: "<< U_vector[u_2]<<std::endl;
+              std::cout << "this is cpu L index: "<< L << " cpu L value: "<< L_vector[L] <<std::endl; 
               U_vector[u_1] -= L_vector[L] * U_vector[u_2];
               std::cout<<"this is cpu u value after if loop: "<<U_vector[uik_nkj->first]<<std::endl; 
               }
