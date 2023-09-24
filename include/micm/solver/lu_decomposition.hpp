@@ -337,7 +337,13 @@ namespace micm
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
-              U_vector[uik_nkj->first + i_cell] -= L_vector[lij_ujk->first + i_cell] * U_vector[lij_ujk->second + i_cell];
+              int u_1 = uik_nkj->first + i_cell;
+              int L = lij_ujk->first + i_cell;
+              int u_2 = lij_ujk->second + i_cell;
+              U_vector[u_1] -= L_vector[L] * U_vector[u_2];
+              std::cout << "this is cpu u index 1: "<<u_1<<std::endl; 
+              std::cout<< "this is cpu L index: " << L <<std::endl; 
+              std::cout << "this is cpu u index 2: "<< u_2<<std::endl; 
               std::cout<<"this is cpu u value after if loop: "<<U_vector[uik_nkj->first]<<std::endl; 
               }
             ++lij_ujk;
