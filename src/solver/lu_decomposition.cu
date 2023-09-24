@@ -106,7 +106,7 @@ namespace micm{
                      }
                 }
             }
-        }// end of kernel
+       // }// end of kernel
     
         void DecomposeKernelDriver(
             CUDASparseMatrixParam& sparseMatrix, 
