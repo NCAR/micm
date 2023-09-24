@@ -35,6 +35,7 @@ namespace micm
     UnknownKey,
     InvalidSpecies,
     CAMPFilesSectionNotFound,
+    InvalidCAMPFileCount,
     CAMPDataSectionNotFound,
     InvalidMechanism,
     ObjectTypeNotFound,
@@ -53,6 +54,7 @@ namespace micm
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
       case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
       case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
+      case ConfigParseStatus::InvalidCAMPFileCount: return "InvalidCAMPFileCount";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
@@ -126,6 +128,7 @@ namespace micm
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
+      // Note tolerance_config is defined here but not used
       std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
 
       // Look for CAMP config file
@@ -143,6 +146,10 @@ namespace micm
           std::cout << element.get<std::string>() << std::endl;
           camp_files.push_back(element.get<std::string>());
         }
+        if (camp_files.size() != 2) {
+          return ConfigParseStatus::InvalidCAMPFileCount;
+        }
+
         // Temporary, for development purposes, assume camp files are ordered
         species_config = config_dir / camp_files[0];
         reactions_config = config_dir / camp_files[1];
