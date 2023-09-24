@@ -374,4 +374,4 @@ namespace micm
       }
     }
   }
-}  // namespace micm
+  // namespace micm
