@@ -147,12 +147,13 @@ namespace micm
           camp_files.push_back(element.get<std::string>());
         }
         if (camp_files.size() != 2) {
+          std::string err_msg = "CAMP file list should contain two files [species.json, mechanism.json]";
+          std::cerr << err_msg << std::endl;
           return ConfigParseStatus::InvalidCAMPFileCount;
         }
-
-        // Temporary, for development purposes, assume camp files are ordered
+        // As a temporary implementation, assume camp files are ordered
         species_config = config_dir / camp_files[0];
-        reactions_config = config_dir / camp_files[1];
+        mechanism_config = config_dir / camp_files[1];
       }
 
       // Current reaction configs should be either mechanism_config or reactions_config
