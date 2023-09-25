@@ -338,7 +338,7 @@ namespace micm
               int u_1 = uik_nkj->first + i_cell;
               int L = lij_ujk->first + i_cell;
               int u_2 = lij_ujk->second + i_cell;
-              std::cout << "this is cpu u_1 index: "<<u_1 << " cpu u_1 value: "<< U_vector[u_2]<<std::endl; 
+              std::cout << "this is cpu u_1 index: "<<u_1 << " cpu u_1 value: "<< U_vector[u_1]<<std::endl; 
               std::cout <<"this is cpu u_2 index: "<< u_2 << " cpu u_2 value: "<< U_vector[u_2]<<std::endl;
               std::cout << "this is cpu L index: "<< L << " cpu L value: "<< L_vector[L] <<std::endl; 
               U_vector[u_1] -= L_vector[L] * U_vector[u_2];
