@@ -358,7 +358,8 @@ namespace micm
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
               L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
-              std::cout << "CPU L value in second if loop: "<< L_vector[lki_nkj->first + i_cell] <<std::endl; 
+              std::cout << "CPU A index : "<< *aki + i_cell << " A value : "<< A_vector[*aki + i_cell]<<std::endl; 
+              std::cout << "CPU L index : "<< lki_nkj->first + i_cell << " L value : "<< L_vector[lki_nkj->first + i_cell]<<std::endl; 
             }
             ++aki;
           }
