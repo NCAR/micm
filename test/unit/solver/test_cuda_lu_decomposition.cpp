@@ -77,14 +77,9 @@ cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
   micm::CUDALuDecomposition gpu_lud(A); 
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
   gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
-  // check_results<double, SparseMatrixPolicy>(
-  //     A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<double, SparseMatrixPolicy>(
+      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-  // double* A_vector = A.AsVector().data(); 
-
-  // for (int i = 0; i < A.AsVector().size(); i++){
-  //   std::cout << "A value: "<< A_vector[i]<<std::endl; 
-  // }
 }
 
 template<class T>
