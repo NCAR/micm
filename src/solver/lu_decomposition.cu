@@ -20,7 +20,7 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ void pairCheck(DecomposeDevice& device, size_t* d_aki, size_t aki_size){
+        __global__ void pairCheck(decomposeDevice& device, size_t* d_aki, size_t aki_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < aki_size){
             printf("device->aki value: %d\n", device->aki[tid]); 
