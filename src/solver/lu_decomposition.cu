@@ -82,7 +82,12 @@ namespace micm{
                         ++uik_nkj_offset; 
                     }
                    // lower triangular matrix
-                    // L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0; 
+                   
+                    L[lki_nkj[lki_nkj_offset].first + tid] = 1.0; 
+                    printf("L index after if loop: %d\n",lki_nkj[lki_nkj_offset].first + tid);
+                    printf("L value after if loop: %f\n",L[lki_nkj[lki_nkj_offset].first + tid]);
+                    lki_nkj_offset++;
+                    
                     
                 //     for (size_t iL = 0; iL <inLU.first; ++iL){
                 //         if(device->do_aki[do_aki_offset++]){

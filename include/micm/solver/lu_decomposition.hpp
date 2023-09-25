@@ -348,10 +348,11 @@ namespace micm
           }
           ++uik_nkj;
         }
-        // // Lower triangular matrix
-        // for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        //   L_vector[lki_nkj->first + i_cell] = 1.0;
-        // ++lki_nkj;
+        // Lower triangular matrix
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
+          L_vector[lki_nkj->first + i_cell] = 1.0;
+          std::cout << "L index after if loop: "<<lki_nkj->first + i_cell << " L value: "<< L_vector[lki_nkj->first + i_cell]<<std::endl;}
+        ++lki_nkj;
         // for (std::size_t iL = 0; iL < inLU.first; ++iL)
         // {
         //   if (*(do_aki++))
