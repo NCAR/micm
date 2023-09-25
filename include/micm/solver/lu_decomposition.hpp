@@ -320,7 +320,6 @@ namespace micm
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
-        std::cout << "this is in cpu inLU second: "<<inLU.second<<std::endl; 
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
           if (*(do_aik++))
@@ -328,8 +327,8 @@ namespace micm
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
               int U_index = uik_nkj->first + i_cell; 
               int A_index = *aik + i_cell;
-              U_vector[U_index] = A_vector[A_index];
-              std::cout << "this is cpu U_index: "<<U_index << " this is cpu u_value: "<< U_vector[U_index]<<std::endl;}
+              U_vector[U_index] = A_vector[A_index];}
+              //std::cout << "this is cpu U_index: "<<U_index << " this is cpu u_value: "<< U_vector[U_index]<<std::endl;}
             ++aik;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -338,40 +337,42 @@ namespace micm
               int u_1 = uik_nkj->first + i_cell;
               int L = lij_ujk->first + i_cell;
               int u_2 = lij_ujk->second + i_cell;
-              std::cout << "this is cpu u_1 index: "<<u_1 << " cpu u_1 value: "<< U_vector[u_1]<<std::endl; 
-              std::cout <<"this is cpu u_2 index: "<< u_2 << " cpu u_2 value: "<< U_vector[u_2]<<std::endl;
-              std::cout << "this is cpu L index: "<< L << " cpu L value: "<< L_vector[L] <<std::endl; 
+              // std::cout << "this is cpu u_1 index: "<<u_1 << " cpu u_1 value: "<< U_vector[u_1]<<std::endl; 
+              // std::cout <<"this is cpu u_2 index: "<< u_2 << " cpu u_2 value: "<< U_vector[u_2]<<std::endl;
+              // std::cout << "this is cpu L index: "<< L << " cpu L value: "<< L_vector[L] <<std::endl; 
               U_vector[u_1] -= L_vector[L] * U_vector[u_2];
-              std::cout<<"this is cpu u value after if loop: "<< U_vector[u_1]<<std::endl; 
+              //std::cout<<"this is cpu u value after if loop: "<< U_vector[u_1]<<std::endl; 
               }
             ++lij_ujk;
           }
           ++uik_nkj;
         }
         // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           L_vector[lki_nkj->first + i_cell] = 1.0;
-          std::cout << "L index after if loop: "<<lki_nkj->first + i_cell << " L value: "<< L_vector[lki_nkj->first + i_cell]<<std::endl;}
+          //std::cout << "L index after if loop: "<<lki_nkj->first + i_cell << " L value: "<< L_vector[lki_nkj->first + i_cell]<<std::endl;
         ++lki_nkj;
-        // for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        // {
-        //   if (*(do_aki++))
-        //   {
-        //     for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        //       L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
-        //     ++aki;
-        //   }
-        //   for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-        //   {
-        //     for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        //       L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
-        //     ++lkj_uji;
-        //   }
-        //   for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        //     L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
-        //   ++lki_nkj;
-        //   ++uii;
-        //}
+        for (std::size_t iL = 0; iL < inLU.first; ++iL)
+        {
+          if (*(do_aki++))
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
+              L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
+              std::cout << "CPU L value in second if loop: "<< L_vector[lki_nkj->first + i_cell] <<std::endl; 
+            }
+            ++aki;
+          }
+          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
+            ++lkj_uji;
+          }
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
+          ++lki_nkj;
+          ++uii;
+        }
       }
     }
   }
