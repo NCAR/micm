@@ -20,10 +20,11 @@ struct decomposeDevice{
 }; 
 namespace micm{
     namespace cuda{
-        __global__ void pairCheck(double* d_A, size_t A_size){
+        __global__ void pairCheck(DecomposeDevice& device, size_t* d_aki , size_t aki_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            if (tid < A_size){
-            printf("this is A value: %.9f\n", d_A[tid]);
+            if (tid < aki_size){
+            printf("device->aki value: %d\n", device->aki[tid]); 
+            printf("aki value: %d\n", d_aki[tid]);
         }
     }
         
@@ -179,13 +180,14 @@ namespace micm{
             size_t niLU_size = solver.niLU_size; 
             size_t aik_size = solver.aik_size; 
             size_t A_size = sparseMatrix.A_size; 
-            //call kernel
+            size_t aki_size = solver.aki_size; 
+            call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            // pairCheck<<<(sparseMatrix.A_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(d_A, A_size); 
-            // cudaDeviceSynchronize();
+            pairCheck<<<(solver.aki_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, d_aki, aki_size); 
+            cudaDeviceSynchronize();
             // double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
             // cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
             // for (int i = 0; i < A_size; i++){
