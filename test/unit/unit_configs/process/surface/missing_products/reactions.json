@@ -1,0 +1,15 @@
+{
+  "camp-data": [
+    {
+      "name": "Surface missing products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "SURFACE",
+          "gas-phase reactant": "foo",
+          "MUSICA name" : "kfoo"
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <cmath>
@@ -11,24 +10,20 @@ namespace micm
 {
   struct ArrheniusRateConstantParameters
   {
-    /// @brief Pre-exponential factor, (cm−3)^(−(𝑛−1))s−1
+    /// @brief Pre-exponential factor [(mol m−3)^(−(𝑛−1)) s−1]
     double A_{ 1 };
     /// @brief Unitless exponential factor
     double B_{ 0 };
-    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant (-E_a /
-    /// k_b), K
+    /// @brief Activation threshold, expected to be the negative activation energy divided by the boltzman constant
+    ///        [-E_a / k_b), K]
     double C_{ 0 };
-    /// @brief A factor that determines temperature dependence, (K)
+    /// @brief A factor that determines temperature dependence [K]
     double D_{ 300 };
-    /// @brief A factor that determines pressure dependence (Pa-1)
+    /// @brief A factor that determines pressure dependence [Pa-1]
     double E_{ 0 };
   };
 
-  /**
-   * @brief An arrhenius rate constant dependent on temperature and pressure
-   *
-   * More information can be found here: https://open-atmos.github.io/camp/html/camp_rxn_arrhenius.html
-   */
+  /// @brief An arrhenius rate constant dependent on temperature and pressure
   class ArrheniusRateConstant : public RateConstant
   {
    public:
@@ -50,8 +45,7 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
-        const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     double calculate(const double& temperature, const double& pressure) const;
   };
@@ -73,14 +67,14 @@ namespace micm
 
   inline double ArrheniusRateConstant::calculate(
       const Conditions& conditions,
-      const std::vector<double>::const_iterator& custom_parameters) const
+      std::vector<double>::const_iterator custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.pressure_);
   }
 
   inline double ArrheniusRateConstant::calculate(const double& temperature, const double& pressure) const
   {
-    return parameters_.A_ * std::exp(parameters_.C_ / temperature) * pow(temperature / parameters_.D_, parameters_.B_) *
+    return parameters_.A_ * std::exp(parameters_.C_ / temperature) * std::pow(temperature / parameters_.D_, parameters_.B_) *
            (1.0 + parameters_.E_ * pressure);
   }
 

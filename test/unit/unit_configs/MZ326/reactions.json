@@ -1,0 +1,87 @@
+{
+    "comments": [ "This mechanism may contain refactored reactions based on custom",
+                  "...." 
+                ],
+    "camp-data": [
+      {
+        "name": "MZ326_TS1.3_20230106",
+        "type": "MECHANISM",
+        "reactions": [
+          {
+            "type": "TROE",
+            "k0_A": 5.5e-30,
+            "kinf_A": 8.3e-13,
+            "N": -2,
+            "reactants": {
+              "C2H2": { },
+              "OH": { }
+            },
+            "products": {
+              "GLYOXAL": { "yield": 0.65 },
+              "OH": { "yield": 0.65 },
+              "HCOOH": { "yield": 0.35 },
+              "HO2": { "yield": 0.35 },
+              "CO": { "yield": 0.35 }
+            }
+          },
+          {
+            "type": "ARRHENIUS",
+            "A": 2.0e-12,
+            "Ea": -6.90325e-21,
+            "reactants": {
+              "CH3O2": { },
+              "TERPO2": { }
+            },
+            "products": {
+              "TERPROD1": { },
+              "CH2O": { "yield": 0.95 },
+              "CH3OH": { "yield": 0.25 },
+              "HO2": { },
+              "CH3COCH3": { "yield": 0.025 }
+            }
+          },
+          {
+            "type": "ARRHENIUS",
+            "A": 3.8e-12,
+            "Ea": -2.7613e-21,
+            "reactants": {
+              "C3H7OOH": { },
+              "OH": { }
+            },
+            "products": {
+              "H2O": { },
+              "C3H7O2": { }
+            }
+          },
+          {
+            "type": "PHOTOLYSIS",
+            "MUSICA name": "jterpnit",
+            "reactants": {
+              "TERPNIT": { }
+            },
+            "products": {
+              "TERPROD1": { },
+              "NO2": { },
+              "HO2": { }
+            }
+          },
+          {
+            "type": "TROE",
+            "k0_A": 1.07767,
+            "k0_B": -5.6,
+            "k0_C": -14000,
+            "kinf_A": 1.03323e+17,
+            "kinf_C": -14000,
+            "N": 1.5,
+            "reactants": {
+              "PAN": { }
+            },
+            "products": {
+              "CH3CO3": { },
+              "NO2": { }
+            }
+          }
+        ]
+    }]
+}
+

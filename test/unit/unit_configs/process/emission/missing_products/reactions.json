@@ -1,0 +1,14 @@
+{
+  "camp-data": [
+    {
+      "name": "Emission missing products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "EMISSION",
+          "MUSICA name" : "foo"
+        }
+      ]
+    }
+  ]
+}

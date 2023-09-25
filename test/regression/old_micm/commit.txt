@@ -1,4 +1,0 @@
-This was a git clone of micm at this commit
-https://github.com/NCAR/micm/commit/9fdec9c39f70e094fa3225366118cca50a9dcfee
-
-The extaneous files are deleted. This is only for testing purposes.

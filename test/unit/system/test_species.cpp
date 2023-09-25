@@ -11,63 +11,34 @@ TEST(Species, StringConstructor)
 
 TEST(Species, StringAndVectorConstructor)
 {
-  micm::Species species(
-      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
+  micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
   EXPECT_EQ(species.name_, "thing");
   EXPECT_EQ(species.properties_.size(), 2);
-  EXPECT_EQ(species.properties_[0].name_, "name");
-  EXPECT_EQ(species.properties_[0].units_, "units");
-  EXPECT_EQ(species.properties_[0].value_, 1.0);
-
-  EXPECT_EQ(species.properties_[1].name_, "name2");
-  EXPECT_EQ(species.properties_[1].units_, "units2");
-  EXPECT_EQ(species.properties_[1].value_, 2.0);
-}
-
-TEST(Species, StringAndSinglePropertyConstructor)
-{
-  micm::Species species("thing", micm::Property("name", "units", 1.0));
-
-  EXPECT_EQ(species.name_, "thing");
-  EXPECT_EQ(species.properties_.size(), 1);
-  EXPECT_EQ(species.properties_[0].name_, "name");
-  EXPECT_EQ(species.properties_[0].units_, "units");
-  EXPECT_EQ(species.properties_[0].value_, 1.0);
+  EXPECT_EQ(species.properties_["name [units]"], 1.0);
+  EXPECT_EQ(species.properties_["name2 [units2]"], 2.0);
 }
 
 TEST(Species, CopyConstructor)
 {
-  micm::Species species(
-      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
+  micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
   micm::Species species2(species);
 
   EXPECT_EQ(species2.name_, "thing");
   EXPECT_EQ(species2.properties_.size(), 2);
-  EXPECT_EQ(species2.properties_[0].name_, "name");
-  EXPECT_EQ(species2.properties_[0].units_, "units");
-  EXPECT_EQ(species2.properties_[0].value_, 1.0);
-
-  EXPECT_EQ(species2.properties_[1].name_, "name2");
-  EXPECT_EQ(species2.properties_[1].units_, "units2");
-  EXPECT_EQ(species2.properties_[1].value_, 2.0);
+  EXPECT_EQ(species2.properties_["name [units]"], 1.0);
+  EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
 }
 
 TEST(Species, CopyAssignment)
 {
-  micm::Species species(
-      "thing", std::vector<micm::Property>{ micm::Property("name", "units", 1.0), micm::Property("name2", "units2", 2.0) });
+  micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
   micm::Species species2 = species;
 
   EXPECT_EQ(species2.name_, "thing");
   EXPECT_EQ(species2.properties_.size(), 2);
-  EXPECT_EQ(species2.properties_[0].name_, "name");
-  EXPECT_EQ(species2.properties_[0].units_, "units");
-  EXPECT_EQ(species2.properties_[0].value_, 1.0);
-
-  EXPECT_EQ(species2.properties_[1].name_, "name2");
-  EXPECT_EQ(species2.properties_[1].units_, "units2");
-  EXPECT_EQ(species2.properties_[1].value_, 2.0);
+  EXPECT_EQ(species2.properties_["name [units]"], 1.0);
+  EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
 }

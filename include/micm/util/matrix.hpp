@@ -4,12 +4,21 @@
 #pragma once
 
 #include <cassert>
-#include <vector>
-
+#include <iostream>
 #include <micm/util/exit_codes.hpp>
+#include <vector>
 
 namespace micm
 {
+
+  /// Concept for vectorizable matrices
+  template<typename T>
+  concept VectorizableDense = requires(T t)
+  {
+    t.GroupSize();
+    t.GroupVectorSize();
+    t.NumberOfGroups();
+  };
 
   /// @brief A 2D array class with contiguous memory
   template<class T>
@@ -180,6 +189,21 @@ namespace micm
     Proxy operator[](std::size_t x)
     {
       return Proxy(*this, x * y_dim_, y_dim_);
+    }
+
+    void ForEach(const std::function<void(T &, T &)> f, Matrix &a)
+    {
+      auto a_iter = a.AsVector().begin();
+      for (auto &elem : data_)
+        f(elem, *(a_iter++));
+    }
+
+    void ForEach(const std::function<void(T &, T &, T &)> f, Matrix &a, Matrix &b)
+    {
+      auto a_iter = a.AsVector().begin();
+      auto b_iter = b.AsVector().begin();
+      for (auto &elem : data_)
+        f(elem, *(a_iter++), *(b_iter++));
     }
 
     std::vector<T> &AsVector()

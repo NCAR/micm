@@ -1,0 +1,40 @@
+{
+    "camp-data": [
+      {
+        "name": "ALKNIT",
+        "type": "CHEM_SPEC",
+        "description": "standard alkyl nitrate from BIGALK+OH chemistry",
+        "molecular weight [kg mol-1]": 0.133141
+      },
+      {
+        "name": "BZOOH",
+        "type": "CHEM_SPEC",
+        "description": "hydroperoxide from toluene oxidation",
+        "molecular weight [kg mol-1]": 0.124135
+      },
+      {
+        "name": "C6H5OOH",
+        "type": "CHEM_SPEC",
+        "description": "phenyl hydroperoxide",
+        "molecular weight [kg mol-1]": 0.110109
+      },
+      {
+        "name": "COF2",
+        "type": "CHEM_SPEC",
+        "description": "",
+        "molecular weight [kg mol-1]": 0.0
+      },
+      {
+        "name": "O2",
+        "type": "CHEM_SPEC",
+        "description": "",
+        "molecular weight [kg mol-1]": 0.0
+      },
+      {
+        "name": "FUR2O2",
+        "type": "CHEM_SPEC",
+        "description": "peroxy radical from furanone",
+        "molecular weight [kg mol-1]": 0.0
+      }
+    ]
+}

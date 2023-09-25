@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 
@@ -11,10 +10,7 @@ TEST(System, ConstructorWithAllParameters)
   std::vector<micm::Species> speciesB = { micm::Species("species3"), micm::Species("species4") };
 
   micm::Phase phase = speciesA;
-  std::unordered_map<std::string, micm::Phase> phases = {
-    { "phase1", speciesA },
-    { "phase2", speciesB }
-  };
+  std::unordered_map<std::string, micm::Phase> phases = { { "phase1", speciesA }, { "phase2", speciesB } };
 
   micm::System system = { micm::SystemParameters{ .gas_phase_ = phase, .phases_ = phases } };
 
@@ -30,4 +26,15 @@ TEST(System, ConstructorWithAllParameters)
   EXPECT_NE(std::find(names.begin(), names.end(), "phase1.species2"), names.end());
   EXPECT_NE(std::find(names.begin(), names.end(), "phase2.species3"), names.end());
   EXPECT_NE(std::find(names.begin(), names.end(), "phase2.species4"), names.end());
+
+  std::vector<int> reorder{ 3, 2, 1, 0, 5, 4 };
+  auto reordered_names = system.UniqueNames([&](const std::vector<std::string> variables, const std::size_t i)
+                                            { return variables[reorder[i]]; });
+  EXPECT_EQ(reordered_names.size(), 6);
+  EXPECT_EQ(reordered_names[0], names[3]);
+  EXPECT_EQ(reordered_names[1], names[2]);
+  EXPECT_EQ(reordered_names[2], names[1]);
+  EXPECT_EQ(reordered_names[3], names[0]);
+  EXPECT_EQ(reordered_names[4], names[5]);
+  EXPECT_EQ(reordered_names[5], names[4]);
 }

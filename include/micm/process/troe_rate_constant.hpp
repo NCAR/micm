@@ -1,7 +1,6 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <cmath>
@@ -13,13 +12,13 @@ namespace micm
   struct TroeRateConstantParameters
   {
     /// @brief low-pressure pre-exponential factor
-    double k0_A_;
+    double k0_A_ = 1.0;
     /// @brief low-pressure temperature-scaling parameter
     double k0_B_ = 0.0;
     /// @brief low-pressure exponential factor
     double k0_C_ = 0.0;
     /// @brief high-pressure pre-exponential factor
-    double kinf_A_;
+    double kinf_A_ = 1.0;
     /// @brief high-pressure temperature-scaling parameter
     double kinf_B_ = 0.0;
     /// @brief high-pressure exponential factor
@@ -30,10 +29,7 @@ namespace micm
     double N_ = 1.0;
   };
 
-  /**
-   * @brief A Troe rate constant
-   *
-   */
+  /// @brief A Troe rate constant
   class TroeRateConstant : public RateConstant
   {
    public:
@@ -54,12 +50,11 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, const std::vector<double>::const_iterator& custom_parameters)
-        const override;
+    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
-    /// @param air_number_density Number density in [# cm-3]
+    /// @param air_number_density Number density in [mol m-3]
     /// @return
     double calculate(const double& temperature, const double& air_number_density) const;
   };
@@ -81,19 +76,22 @@ namespace micm
 
   inline double TroeRateConstant::calculate(
       const Conditions& conditions,
-      const std::vector<double>::const_iterator& custom_parameters) const
+      std::vector<double>::const_iterator custom_parameters) const
   {
     return calculate(conditions.temperature_, conditions.air_density_);
   }
 
   inline double TroeRateConstant::calculate(const double& temperature, const double& air_number_density) const
   {
-    double k0 = parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * pow(temperature / 300.0, parameters_.k0_B_);
-    double kinf =
-        parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) * pow(temperature / 300.0, parameters_.kinf_B_);
+    double k0 =
+        parameters_.k0_A_ * std::exp(parameters_.k0_C_ / temperature) * std::pow(temperature / 300.0, parameters_.k0_B_);
+    double kinf = parameters_.kinf_A_ * std::exp(parameters_.kinf_C_ / temperature) *
+                  std::pow(temperature / 300.0, parameters_.kinf_B_);
 
     return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
-           pow(parameters_.Fc_, 1.0 / (1.0 + 1.0 / parameters_.N_ * pow(log10(k0 * air_number_density / kinf), 2)));
+           std::pow(
+               parameters_.Fc_,
+               1.0 / (1.0 + (1.0 / parameters_.N_) * std::pow(std::log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm
