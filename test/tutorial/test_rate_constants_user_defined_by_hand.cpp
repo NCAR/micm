@@ -193,6 +193,7 @@ int main(const int argc, const char* argv[])
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
     double elapsed_solve_time = 0;
+    // this rate is updated at each time step and would typically vary with time
     state.SetCustomRateParameter("my photolysis rate", photo_rate);
 
     while (elapsed_solve_time < time_step)
