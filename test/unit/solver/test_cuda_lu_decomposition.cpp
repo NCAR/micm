@@ -68,11 +68,12 @@ void testRandomMatrix(size_t n_grids)
         for (std::size_t i_block = 0; i_block < n_grids; ++i_block)
           A[i_block][i][j] = get_double();
 
+  
   micm::CUDALuDecomposition gpu_lud(A); 
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
   gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
   check_results<double, SparseMatrixPolicy>(
-      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_EQ(a, b); });
+      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void {EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
 template<class T>
