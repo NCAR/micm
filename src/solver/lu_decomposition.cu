@@ -137,7 +137,9 @@ namespace micm{
             cudaMalloc(&d_do_aik,sizeof(char)* solver.do_aik_size); 
             cudaMalloc(&d_aik,sizeof(size_t)* solver.aik_size); 
             cudaMalloc(&d_do_aki,sizeof(char)* solver.do_aki_size); 
+            
             cudaMalloc(&d_aki,sizeof(size_t)* solver.aki_size); 
+            
             cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); //check upon here
             cudaMalloc(&d_niLU,sizeof(std::pair<size_t, size_t>)* solver.niLU_size); 
             cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>)* solver.uik_nkj_size); 
@@ -152,7 +154,9 @@ namespace micm{
             cudaMemcpy(d_U, sparseMatrix.U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_do_aik, solver.do_aik, sizeof(char)* solver.do_aik_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_aik, solver.aik, sizeof(size_t)* solver.aik_size, cudaMemcpyHostToDevice); 
+            
             cudaMemcpy(d_do_aki, solver.do_aki, sizeof(char)* solver.do_aki_size, cudaMemcpyHostToDevice); 
+            cudaMemcpy(d_aki, solver.aki, sizeof(size_t)* solver.aki,cudaMemcpyHostToDevice); 
             cudaMemcpy(d_uii, solver.uii, sizeof(size_t)* solver.uii_size, cudaMemcpyHostToDevice);       
             cudaMemcpy(d_niLU, solver.niLU, sizeof(std::pair<size_t, size_t>)*solver.niLU_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_uik_nkj, solver.uik_nkj, sizeof(std::pair<size_t, size_t>)*solver.uik_nkj_size, cudaMemcpyHostToDevice);
