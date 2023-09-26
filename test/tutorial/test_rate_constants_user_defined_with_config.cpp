@@ -124,7 +124,7 @@ int main(const int argc, const char* argv[])
     }
 
     print_state(time_step * (i + 1), state);
-    photo_rate *= 10;
+    photo_rate *= 1.5;
   }
 
   return 0;
