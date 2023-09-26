@@ -19,15 +19,7 @@ struct decomposeDevice{
     std::pair<size_t, size_t>* lkj_uji;
 }; 
 namespace micm{
-    namespace cuda{
-        __global__ void pairCheck(decomposeDevice* device, size_t* d_aki, size_t aki_size){
-            size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            if (tid < aki_size){
-            // printf("device->aki value: %d\n", device->aki[tid]); 
-            printf("aki value: %d\n", d_aki[tid]);
-        }
-    }
-        
+    namespace cuda{        
         __global__ void DecomposeKernel(
             decomposeDevice* device,
             size_t n_grids,
@@ -58,26 +50,17 @@ namespace micm{
                     auto inLU = device->niLU[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
                         if(device->do_aik[do_aik_offset++]){
-                            //printf("tid: %d\n",tid); 
                             size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
                             size_t A_idx =  device->aik[aik_offset++]+ tid; 
                             U[U_idx] = A[A_idx];
-                            //printf("this is gpu u index: %d\n", U_idx); 
-                            //printf("this is gpu u value: %.9f\n", U[U_idx]);
                         }
                         
                         for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj){
                             size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid; 
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
-                            size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid; 
-                            // printf("this is u_index_1: %d\n", U_idx_1);
-                            // printf("this is u_index_2: %d\n",U_idx_2);
-                            // printf("this is L_index: %d\n", L_idx);
-                            // printf("this is gpu u_1 value %.9f\n", U[U_idx_1]);
-                            // printf("this is gpu u_2 value %.9f\n", U[U_idx_2]);
-                            // printf("this is gpu L value %.9f\n", L[L_idx]);
+                            size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid;
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
-                            //printf("this is gpu u value after if loop:  %.9f\n", U[U_idx_1]);
+                           
                             ++lij_ujk_offset; 
                         }
                         ++uik_nkj_offset; 
@@ -91,12 +74,7 @@ namespace micm{
                             size_t L_idx = lki_nkj[lki_nkj_offset].first + tid; 
                             size_t A_idx = device->aki[aki_offset++] + tid; 
                             L[L_idx] = A[A_idx]; 
-                            printf("GPU A index %d\n", A_idx);  
-                            printf("GPU A value in second if loop: %.9f\n", A[A_idx]);
-                            printf("GPU L index: %d\n", L_idx); 
-                            printf("GPU L value in second if loop: %.9f\n", L[L_idx]);
                         }
-                        //working in progress 
                         for(size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second;++ikj){
                             size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
                             size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
@@ -137,10 +115,8 @@ namespace micm{
             cudaMalloc(&d_do_aik,sizeof(char)* solver.do_aik_size); 
             cudaMalloc(&d_aik,sizeof(size_t)* solver.aik_size); 
             cudaMalloc(&d_do_aki,sizeof(char)* solver.do_aki_size); 
-            
             cudaMalloc(&d_aki,sizeof(size_t)* solver.aki_size); 
-            
-            cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); //check upon here
+            cudaMalloc(&d_uii,sizeof(size_t)* solver.uii_size); 
             cudaMalloc(&d_niLU,sizeof(std::pair<size_t, size_t>)* solver.niLU_size); 
             cudaMalloc(&d_uik_nkj,sizeof(std::pair<size_t, size_t>)* solver.uik_nkj_size); 
             cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>)* solver.lij_ujk_size); 
@@ -154,7 +130,6 @@ namespace micm{
             cudaMemcpy(d_U, sparseMatrix.U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_do_aik, solver.do_aik, sizeof(char)* solver.do_aik_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_aik, solver.aik, sizeof(size_t)* solver.aik_size, cudaMemcpyHostToDevice); 
-            
             cudaMemcpy(d_do_aki, solver.do_aki, sizeof(char)* solver.do_aki_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_aki, solver.aki, sizeof(size_t)*solver.aki_size, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_uii, solver.uii, sizeof(size_t)* solver.uii_size, cudaMemcpyHostToDevice);       
@@ -163,7 +138,6 @@ namespace micm{
             cudaMemcpy(d_lij_ujk, solver.lij_ujk, sizeof(std::pair<size_t, size_t>)*solver.lij_ujk_size, cudaMemcpyHostToDevice);
             cudaMemcpy(d_lki_nkj, solver.lki_nkj, sizeof(std::pair<size_t, size_t>)*solver.lki_nkj_size, cudaMemcpyHostToDevice);
             cudaMemcpy(d_lkj_uji, solver.lkj_uji, sizeof(std::pair<size_t, size_t>)*solver.lkj_uji_size, cudaMemcpyHostToDevice);
-
             cudaMemcpy(&(device->A),&d_A, sizeof(double*), cudaMemcpyHostToDevice);
             cudaMemcpy(&(device->L),&d_L, sizeof(double*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->U),&d_U, sizeof(double*), cudaMemcpyHostToDevice); 
@@ -182,21 +156,13 @@ namespace micm{
             size_t num_block = (sparseMatrix.n_grids + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             size_t n_grids = sparseMatrix.n_grids;  
             size_t niLU_size = solver.niLU_size; 
-            size_t aik_size = solver.aik_size; 
-            size_t A_size = sparseMatrix.A_size; 
-            size_t aki_size = solver.aki_size; 
+
            // call kernel
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, n_grids, niLU_size); 
             cudaDeviceSynchronize();
             cudaMemcpy(sparseMatrix.L, d_L, sizeof(double)* sparseMatrix.L_size, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
-            pairCheck<<<(solver.aki_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, d_aki, aki_size); 
-            cudaDeviceSynchronize();
-            size_t* aki = (size_t*)malloc(solver.aki_size * sizeof(size_t)); 
-            cudaMemcpy(aki, d_aki, sizeof(size_t)* solver.aki_size, cudaMemcpyDeviceToHost); 
-            for (int i = 0; i < A_size; i++){
-                std::cout <<"this is aki transfer back to host: "<<aki[i]<<std::endl; 
-            }
+          
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
