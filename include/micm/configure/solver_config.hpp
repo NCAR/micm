@@ -135,7 +135,7 @@ namespace micm
       std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
       if (std::filesystem::exists(camp_config))
       {
-        std::cout << "Reading CAMP config " << camp_config << std::endl;
+        // std::cout << "Reading CAMP config " << camp_config << std::endl;
         json camp_data = json::parse(std::ifstream(camp_config));
         if (!camp_data.contains(CAMP_FILES))
           return ConfigParseStatus::CAMPFilesSectionNotFound;
@@ -143,7 +143,7 @@ namespace micm
         std::vector<std::string> camp_files;
         for (const auto& element : camp_data[CAMP_FILES])
         {
-          std::cout << element.get<std::string>() << std::endl;
+          // std::cout << element.get<std::string>() << std::endl;
           camp_files.push_back(element.get<std::string>());
         }
         if (camp_files.size() != 2) {
