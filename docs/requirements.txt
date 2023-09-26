@@ -1,4 +1,6 @@
+breathe
 sphinx
 sphinx-book-theme
+sphinx-copybutton
 sphinx-design
-breathe
+sphinx-tabs

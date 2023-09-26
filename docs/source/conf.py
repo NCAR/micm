@@ -32,7 +32,9 @@ release = '3.2.0'
 # ones.
 extensions = [
   'breathe',
+  'sphinx_copybutton',
   'sphinx_design',
+  'sphinx_tabs.tabs',
 ]
 
 breathe_default_project = "micm"

@@ -15,6 +15,7 @@
 namespace micm
 {
 
+  /// @brief An alias that allows making products easily
   using Yield = std::pair<micm::Species, double>;
 
   inline Yield yields(micm::Species species, double yield)
