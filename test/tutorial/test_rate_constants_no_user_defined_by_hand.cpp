@@ -154,7 +154,7 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("C.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
 
-  // choose and timestep a print the initial state
+  // choose a timestep and print the initial state
   double time_step = 500;  // s
 
   print_header();
