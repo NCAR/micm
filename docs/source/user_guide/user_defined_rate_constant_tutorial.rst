@@ -168,7 +168,7 @@ Finally, set and upate the rate constants as needed:
              }
 
              print_state(time_step * (i + 1), state);
-          +   photo_rate *= 10;
+          +   photo_rate *= 1.5;
            }
 
     .. tab:: OpenAtmos Configuration reading
@@ -205,7 +205,7 @@ Finally, set and upate the rate constants as needed:
              }
 
              print_state(time_step * (i + 1), state);
-          +   photo_rate *= 10;
+          +   photo_rate *= 1.5;
            }
 
 And this is final output. Notice that the concentration of G ends up much higher than in 
