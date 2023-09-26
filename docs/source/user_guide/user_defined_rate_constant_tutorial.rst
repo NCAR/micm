@@ -7,8 +7,8 @@ This tutorial extends the :ref:`Rate constants` tutorial. That one showed how to
 except the user-defined ones. The difference is that a user-defined rate constant must be updated by the user,
 whereas the other rate constants update in response to a changing state. 
 
-Internal to MICM, user-defined rate constants determine provide the ability to represent 
-emissions, loss, and photolysis rates. These can be static and the same for each time step, or dynamically updated 
+Internal to MICM, user-defined rate constants provide the ability to represent 
+processes like emissions, loss, and photolysis that have rate constants that are calculated externally from MICM. These can be static and the same for each time step, or dynamically updated 
 during the simulation.
 
 To show how this works, we'll add one photolysis reaction, one first-order loss reaction, and one emission
