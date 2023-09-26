@@ -136,7 +136,10 @@ namespace micm{
         solver.lki_nkj_size = lki_nkj_.size(); 
         solver.lkj_uji =  lkj_uji_.data(); 
         solver.lkj_uji_size = lkj_uji_.size(); 
-
+        for (int i = 0; i < solver.aki_size; i++){
+            std::cout << "host aki value: "<<solver.aki[i]<<std::endl; 
+            std::cout << "host aki value: "<<aki_[i]<<std::endl; 
+        }
         //calling kernelSetup function
         micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
     }
