@@ -69,7 +69,7 @@ void testRandomMatrix(size_t n_grids)
           A[i_block][i][j] = get_double();
 
   
-  micm::CUDALuDecomposition gpu_lud(A); 
+  micm::LuDecomposition gpu_lud(A); 
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
   gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
   check_results<double, SparseMatrixPolicy>(
