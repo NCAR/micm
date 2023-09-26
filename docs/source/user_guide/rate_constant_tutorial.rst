@@ -67,14 +67,14 @@ rosenbrock solver at the top of the file.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 1-12
+    :lines: 1-13
 
 After that, we'll use the ``micm`` namespace and setup a template alias so that we can instantiate the 
 rosenbrock solver.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 14-15
+    :lines: 15-22
 
 To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these.
@@ -89,7 +89,7 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 50-61
+          :lines: 56-67
 
         Now that we have a gas phase and our species, we can start building the reactions. Two things to note are that
         stoichiemtric coefficients for reactants are represented by repeating that product as many times as you need.
@@ -98,13 +98,13 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 63-127
+          :lines: 69-133
         
         And finally we define our chemical system and reactions
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 129-130
+          :lines: 135-136
 
     .. tab:: OpenAtmos Configuration reading
 
@@ -113,7 +113,7 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
-          :lines: 51-60
+          :lines: 57-69
 
 Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
 There are several ways to configure the solver. Here we are using a three stage solver. More options
@@ -121,7 +121,7 @@ can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 132-132
+    :lines: 138-140
 
 The rosenbrock solver will provide us a state, which we can use to set the concentrations,
 custom rate parameters, and temperature and pressure
@@ -132,47 +132,47 @@ custom rate parameters, and temperature and pressure
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
-          :lines: 133-147
+          :lines: 141-155
 
     .. tab:: OpenAtmos Configuration reading
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
-          :lines: 67-85
+          :lines: 75-93
 
 
-Finally, we are ready to pick a timestep and solve the system.
+Finally, we are ready to pick a timestep ans solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 149-173
+    :lines: 157-183
 
 
 This is the output:
 
 
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| time  |     A      |     B      |     C      |     D      |     E      |     F      |     G      |
-+=======+============+============+============+============+============+============+============+
-|   0   | 1.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   | 0.00e+00   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-|  500  | 3.18e-09   | 3.66e-09   | 9.83e-01   | 3.88e-14   | 1.41e-03   | 2.02e-13   | 7.92e-03   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 1000  | 1.14e-14   | 1.31e-14   | 9.66e-01   | 1.39e-19   | 1.40e-03   | 7.24e-19   | 1.64e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 1500  | 4.09e-20   | 4.71e-20   | 9.49e-01   | 4.98e-25   | 1.39e-03   | 2.59e-24   | 2.48e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 2000  | 1.47e-25   | 1.69e-25   | 9.33e-01   | 1.79e-30   | 1.38e-03   | 9.30e-30   | 3.30e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 2500  | 5.26e-31   | 6.05e-31   | 9.17e-01   | 6.40e-36   | 1.37e-03   | 3.33e-35   | 4.11e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 3000  | 1.89e-36   | 2.17e-36   | 9.01e-01   | 2.30e-41   | 1.36e-03   | 1.20e-40   | 4.90e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 3500  | 6.77e-42   | 7.78e-42   | 8.85e-01   | 8.23e-47   | 1.34e-03   | 4.29e-46   | 5.68e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 4000  | 2.43e-47   | 2.79e-47   | 8.70e-01   | 2.95e-52   | 1.33e-03   | 1.54e-51   | 6.44e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 4500  | 8.70e-53   | 1.00e-52   | 8.55e-01   | 1.06e-57   | 1.32e-03   | 5.51e-57   | 7.20e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
-| 5000  | 3.12e-58   | 3.59e-58   | 8.40e-01   | 3.80e-63   | 1.31e-03   | 1.98e-62   | 7.94e-02   |
-+-------+------------+------------+------------+------------+------------+------------+------------+
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| time  |      A      |      B      |      C      |      D      |      E      |      F      |      G      |
++=======+=============+=============+=============+=============+=============+=============+=============+
+|   0   |   1.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+|  500  |   3.18e-09  |   3.66e-09  |   9.83e-01  |   3.88e-14  |   1.41e-03  |   2.02e-13  |   7.92e-03  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 1000  |   1.14e-14  |   1.31e-14  |   9.66e-01  |   1.39e-19  |   1.40e-03  |   7.24e-19  |   1.64e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 1500  |   4.09e-20  |   4.71e-20  |   9.49e-01  |   4.98e-25  |   1.39e-03  |   2.59e-24  |   2.48e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 2000  |   1.47e-25  |   1.69e-25  |   9.33e-01  |   1.79e-30  |   1.38e-03  |   9.30e-30  |   3.30e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 2500  |   5.26e-31  |   6.05e-31  |   9.17e-01  |   6.40e-36  |   1.37e-03  |   3.33e-35  |   4.11e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 3000  |   1.89e-36  |   2.17e-36  |   9.01e-01  |   2.30e-41  |   1.36e-03  |   1.20e-40  |   4.90e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 3500  |   6.77e-42  |   7.78e-42  |   8.85e-01  |   8.23e-47  |   1.34e-03  |   4.29e-46  |   5.68e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 4000  |   2.43e-47  |   2.79e-47  |   8.70e-01  |   2.95e-52  |   1.33e-03  |   1.54e-51  |   6.44e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 4500  |   8.70e-53  |   1.00e-52  |   8.55e-01  |   1.06e-57  |   1.32e-03  |   5.51e-57  |   7.20e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+| 5000  |   3.12e-58  |   3.59e-58  |   8.40e-01  |   3.80e-63  |   1.31e-03  |   1.98e-62  |   7.94e-02  |
++-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
