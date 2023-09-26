@@ -72,7 +72,7 @@ void testRandomMatrix(size_t n_grids)
   auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
   gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
   check_results<double, SparseMatrixPolicy>(
-      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+      A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_EQ(a, b); });
 }
 
 template<class T>

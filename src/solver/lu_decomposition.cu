@@ -1,4 +1,3 @@
-#include "stdio.h"
 #include <iostream> 
 #include <vector>
 #include <micm/util/cuda_param.hpp> 
@@ -143,7 +142,7 @@ namespace micm{
             cudaMemcpy(&(device->U),&d_U, sizeof(double*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->do_aik), &d_do_aik, sizeof(char*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->aik), &d_aik, sizeof(size_t*), cudaMemcpyHostToDevice); 
-            cudaMemcpy(&(device->do_aki),&d_do_aki,sizeof(char*),cudaMemcpyHostToDevice); //check upon here 
+            cudaMemcpy(&(device->do_aki),&d_do_aki,sizeof(char*),cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->aki),&d_aki, sizeof(size_t*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->uii), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
             cudaMemcpy(&(device->niLU), &d_niLU, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
