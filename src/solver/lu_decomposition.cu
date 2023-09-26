@@ -23,7 +23,7 @@ namespace micm{
         __global__ void pairCheck(decomposeDevice* device, size_t* d_aki, size_t aki_size){
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < aki_size){
-            printf("device->aki value: %d\n", device->aki[tid]); 
+            // printf("device->aki value: %d\n", device->aki[tid]); 
             printf("aki value: %d\n", d_aki[tid]);
         }
     }
@@ -188,11 +188,11 @@ namespace micm{
             cudaMemcpy(sparseMatrix.U, d_U, sizeof(double)* sparseMatrix.U_size, cudaMemcpyDeviceToHost); 
             pairCheck<<<(solver.aki_size + BLOCK_SIZE - 1) / BLOCK_SIZE, BLOCK_SIZE>>>(device, d_aki, aki_size); 
             cudaDeviceSynchronize();
-            // double* A = (double*)malloc(sparseMatrix.A_size * sizeof(double)); 
-            // cudaMemcpy(A, d_A, sizeof(double)* sparseMatrix.A_size, cudaMemcpyDeviceToHost); 
-            // for (int i = 0; i < A_size; i++){
-            //     std::cout <<"this is A transfer back to host: "<<A[i]<<std::endl; 
-            // }
+            size_t* aki = (size_t*)malloc(solver.aki_size * sizeof(size_t)); 
+            cudaMemcpy(aki, d_aki, sizeof(size_t)* solver.aki_size, cudaMemcpyDeviceToHost); 
+            for (int i = 0; i < A_size; i++){
+                std::cout <<"this is aki transfer back to host: "<<aki[i]<<std::endl; 
+            }
         //clean up 
         cudaFree(d_A); 
         cudaFree(d_L); 
