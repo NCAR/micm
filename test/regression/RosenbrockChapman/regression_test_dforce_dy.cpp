@@ -10,7 +10,7 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testJacobian()
 {
   std::random_device rnd_device;
@@ -18,7 +18,7 @@ void testJacobian()
   std::lognormal_distribution dist{ -2.0, 4.0 };
 
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(3);
 
   auto state = solver.GetState();
 
@@ -75,13 +75,13 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(RegressionRosenbrock, Jacobian)
 {
-  testJacobian<DenseMatrix, SparseMatrix>();
+  testJacobian<DenseMatrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>();
 }
 
 TEST(RegressionRosenbrock, VectorJacobian)
 {
-  testJacobian<Group1VectorMatrix, Group1SparseVectorMatrix>();
-  testJacobian<Group2VectorMatrix, Group2SparseVectorMatrix>();
-  testJacobian<Group3VectorMatrix, Group3SparseVectorMatrix>();
-  testJacobian<Group4VectorMatrix, Group4SparseVectorMatrix>();
+  testJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>();
+  testJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>();
+  testJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>();
+  testJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>();
 }

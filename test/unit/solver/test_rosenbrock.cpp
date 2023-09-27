@@ -7,8 +7,8 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t number_of_grid_cells)
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver(std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -40,7 +40,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
@@ -49,10 +49,10 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
 template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy>(number_of_grid_cells);
+  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
   auto jacobian = solver.jacobian_;
 
   EXPECT_EQ(jacobian.size(), number_of_grid_cells);
@@ -98,10 +98,10 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(1);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(2);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(3);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix>(4);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(2);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(3);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(4);
 }
 
 template<class T>
@@ -124,8 +124,8 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix>(1);
-  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix>(4);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix>(3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix>(2);
+  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
+  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(4);
+  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
+  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(2);
 }

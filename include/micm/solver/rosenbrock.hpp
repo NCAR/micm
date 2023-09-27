@@ -142,7 +142,9 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
+  template<template<class> class MatrixPolicy = Matrix,
+           template<class> class SparseMatrixPolicy = SparseMatrix,
+           class LinearSolverPolicy = LinearSolver<double, SparseMatrix>>
   class RosenbrockSolver
   {
    public:
@@ -180,7 +182,7 @@ namespace micm
     ProcessSet process_set_;
     SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
-    LinearSolver<double, SparseMatrixPolicy> linear_solver_;
+    LinearSolverPolicy linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
     size_t N_{};
 

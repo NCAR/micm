@@ -10,11 +10,11 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testRateConstants()
 {
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(3);
 
   auto state = solver.GetState();
   auto fixed_state = fixed_solver.GetState();
@@ -46,7 +46,7 @@ void testRateConstants()
   }
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testForcing()
 {
   std::random_device rnd_device;
@@ -54,7 +54,7 @@ void testForcing()
   std::lognormal_distribution dist(-2.0, 2.0);
 
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(3);
 
   auto state = solver.GetState();
 
@@ -110,26 +110,26 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(RegressionRosenbrock, RateConstants)
 {
-  testRateConstants<DenseMatrix, SparseMatrix>();
+  testRateConstants<DenseMatrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>();
 }
 
 TEST(RegressionRosenbrock, VectorRateConstants)
 {
-  testRateConstants<Group1VectorMatrix, Group1SparseVectorMatrix>();
-  testRateConstants<Group2VectorMatrix, Group2SparseVectorMatrix>();
-  testRateConstants<Group3VectorMatrix, Group3SparseVectorMatrix>();
-  testRateConstants<Group4VectorMatrix, Group4SparseVectorMatrix>();
+  testRateConstants<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>();
+  testRateConstants<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>();
+  testRateConstants<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>();
+  testRateConstants<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>();
 }
 
 TEST(RegressionRosenbrock, Forcing)
 {
-  testForcing<DenseMatrix, SparseMatrix>();
+  testForcing<DenseMatrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>();
 }
 
 TEST(RegressionRosenbrock, VectorForcing)
 {
-  testForcing<Group1VectorMatrix, Group1SparseVectorMatrix>();
-  testForcing<Group2VectorMatrix, Group2SparseVectorMatrix>();
-  testForcing<Group3VectorMatrix, Group3SparseVectorMatrix>();
-  testForcing<Group4VectorMatrix, Group4SparseVectorMatrix>();
+  testForcing<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>();
+  testForcing<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>();
+  testForcing<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>();
+  testForcing<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>();
 }
