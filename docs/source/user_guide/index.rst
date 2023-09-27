@@ -10,10 +10,6 @@ If you happen to find our examples are lacking for your needs, please,
 
 
 
-1. :ref:`Rate constants`
-2. :ref:`User defined rate constants`
-
-
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
