@@ -174,7 +174,7 @@ int main(const int argc, const char* argv[])
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-      state.variables_[0] = result.result_.AsVector();
+      state.variables_ = result.result_;
     }
 
     print_state(time_step * (i + 1), state);
