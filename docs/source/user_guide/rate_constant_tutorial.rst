@@ -126,6 +126,11 @@ can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
 The rosenbrock solver will provide us a state, which we can use to set the concentrations,
 custom rate parameters, and temperature and pressure
 
+.. _Rate constants set concentations:
+
+Initializing the state
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. tabs::
 
     .. tab:: Build the Mechanism with the API
@@ -141,7 +146,7 @@ custom rate parameters, and temperature and pressure
           :lines: 75-93
 
 
-Finally, we are ready to pick a timestep ans solve the system.
+Finally, we are ready to pick a timestep and solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp

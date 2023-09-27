@@ -22,6 +22,87 @@ We will use three grid cells. The second grid cells will have concentrations twi
 The third grid cell will have concentrations half as large as the first grid cell. Initial conditions are things
 that might be found in the atmosphere and the photolysis values are typical photolysis rates at noon.
 
+If you're looking for a copy and paste, choose
+the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
+
+.. tabs::
+
+    .. tab:: Build the Mechanism with the API
+
+      .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+        :language: cpp
+        
+Line-by-line explanation
+------------------------
+
+This mechanism only needs the arrhenius rate constant, the user defined rate constant (for photolysis rates)
+and the rosenbrock solver.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 1-9
+
+After that, we'll use the ``micm`` namespace and setup a template alias so that we can instantiate the 
+rosenbrock solver.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 11-18
+
+To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
+and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these as
+well as a :cpp:class:`micm::Phase`.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 84-94
+
+
+With the species and gas phase, we can define all of our reactions
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 96-138
+
+
+Now we can define our RosenbrockSolver. This time we'll form the reactions and chemical system in place.
+Also, notice the ``false`` in our :cpp:class:`micm::RosenbrockSolverParameters`. This tells the solver
+not to reorder the state variables. The reordering is an optimization that can minizie fill-in for some 
+of the linear algebra operations. For this example, it's turned off so that the order of the state matches
+the order the species are added to the gas phase.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 140-143
+
+
+Now we need to get a state and set the concentations of each of the species. In the 
+":ref:`Rate constants set concentations`" section of the rate constants tutorial, 
+we used a ``std::unordered_map<std::string, std::vector<double>>`` 
+to set the concentrations. Here we will set the concentations by providing the :cpp:class:`micm::Species` objects.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 145-165
+
+Then we set the photolysis rates by creating a vector that is 3 elements long, one for each grid cell.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 167-172
+
+And lastly set the temperature and pressure for each grid cell.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 174-179
+
+Now we are ready to run the simulation.
+
+.. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
+  :language: cpp
+  :lines: 181-204
+
 
 And these are the results.
 

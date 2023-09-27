@@ -5,11 +5,6 @@
 
 // Each rate constant is in its own header file
 #include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
@@ -142,17 +137,12 @@ int main()
                         .rate_constant(UserDefinedRateConstant({ .label_ = "jO3b" }))
                         .phase(gas_phase);
 
-  auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false);
-  params.relative_tolerance_ = 1e-3;
-  params.absolute_tolerance_ = params.relative_tolerance_ * 1e-4;
-
   RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
                                                        std::vector<Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-                                                       params };
+                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
+                                                           3, false) };
 
   State<Matrix> state = solver.GetState();
-
-  std::vector<double> concentrations{ 1, 1, 1, 2, 2, 2, 3, 3, 3 };
 
   // mol m-3
   double ar_concentration = 0.0334;
