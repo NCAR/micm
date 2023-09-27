@@ -86,37 +86,37 @@ namespace micm
     void print() const;
 
     /// @brief an L-stable method, 2 stages, order 2
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters two_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief an L-stable method, 3 stages, order 3, 2 function evaluations
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters three_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief L-stable rosenbrock method of order 4, with 4 stages
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters four_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief A stiffly-stable method, 4 stages, order 3
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
