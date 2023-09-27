@@ -34,6 +34,8 @@ namespace micm
     InvalidKey,
     UnknownKey,
     InvalidSpecies,
+    CAMPFilesSectionNotFound,
+    InvalidCAMPFileCount,
     CAMPDataSectionNotFound,
     InvalidMechanism,
     ObjectTypeNotFound,
@@ -51,6 +53,8 @@ namespace micm
       case ConfigParseStatus::InvalidKey: return "InvalidKey";
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
       case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
+      case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
+      case ConfigParseStatus::InvalidCAMPFileCount: return "InvalidCAMPFileCount";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
@@ -103,6 +107,7 @@ namespace micm
 
     // Constants
     // Configure files
+    static const inline std::string CAMP_CONFIG = "config.json";
     static const inline std::string SPECIES_CONFIG = "species.json";
     static const inline std::string MECHANISM_CONFIG = "mechanism.json";
     static const inline std::string REACTIONS_CONFIG = "reactions.json";
@@ -110,6 +115,7 @@ namespace micm
 
     // Common JSON
     static const inline std::string CAMP_DATA = "camp-data";
+    static const inline std::string CAMP_FILES = "camp-files";
     static const inline std::string TYPE = "type";
 
     // Functions
@@ -122,9 +128,33 @@ namespace micm
       std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
       std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
       std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
+      // Note tolerance_config is defined here but not used
       std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
 
-      // Current reaction configs should be either mechanism_config or reactions config
+      // Look for CAMP config file
+      std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
+      if (std::filesystem::exists(camp_config))
+      {
+        json camp_data = json::parse(std::ifstream(camp_config));
+        if (!camp_data.contains(CAMP_FILES))
+          return ConfigParseStatus::CAMPFilesSectionNotFound;
+
+        std::vector<std::string> camp_files;
+        for (const auto& element : camp_data[CAMP_FILES])
+        {
+          camp_files.push_back(element.get<std::string>());
+        }
+        if (camp_files.size() != 2) {
+          std::string err_msg = "CAMP file list should contain two files [species.json, mechanism.json]";
+          std::cerr << err_msg << std::endl;
+          return ConfigParseStatus::InvalidCAMPFileCount;
+        }
+        // As a temporary implementation, assume camp files are ordered
+        species_config = config_dir / camp_files[0];
+        mechanism_config = config_dir / camp_files[1];
+      }
+
+      // Current reaction configs should be either mechanism_config or reactions_config
       std::filesystem::path cur_reactions_config;
 
       // Check if species config exists
