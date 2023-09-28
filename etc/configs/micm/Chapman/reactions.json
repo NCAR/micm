@@ -1,0 +1,134 @@
+{
+    "camp-data": [
+        {
+            "name": "Chapman",
+            "type": "MECHANISM",
+            "reactions": [
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O2": {}
+                    },
+                    "products": {
+                        "O": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R1"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 8.018e-17,
+                    "reactants": {
+                        "O": {},
+                        "O2": {}
+                    },
+                    "products": {
+                        "O3": {}
+                    },
+                    "MUSICA name": "R2"
+                },
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O3": {}
+                    },
+                    "products": {
+                        "O": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R3"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 1.576e-15,
+                    "reactants": {
+                        "O": {},
+                        "O3": {}
+                    },
+                    "products": {
+                        "O2": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R4"
+                },
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O3": {}
+                    },
+                    "products": {
+                        "O1D": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R5"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 7.11e-11,
+                    "reactants": {
+                        "O1D": {},
+                        "M": {}
+                    },
+                    "products": {
+                        "O": {},
+                        "M": {}
+                    },
+                    "MUSICA name": "R6"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 1.2e-10,
+                    "reactants": {
+                        "O1D": {},
+                        "O3": {}
+                    },
+                    "products": {
+                        "O2": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R7"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 6.062e-15,
+                    "reactants": {
+                        "NO": {},
+                        "O3": {}
+                    },
+                    "products": {
+                        "NO2": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R8"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 1.069e-11,
+                    "reactants": {
+                        "NO2": {},
+                        "O": {}
+                    },
+                    "products": {
+                        "NO": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R9"
+                },
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "NO2": {}
+                    },
+                    "products": {
+                        "NO": {},
+                        "O": {}
+                    },
+                    "MUSICA name": "R10"
+                }
+            ]
+        }
+    ]
+}
