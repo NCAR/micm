@@ -9,6 +9,11 @@ int main(const int argc, const char *argv[])
   micm::ConfigParseStatus status = solver_config.ReadAndParse(
     "./configs/kpp_chapman");
 
+  if (status != micm::ConfigParseStatus::Success)
+  {
+    throw "Parsing failed";
+  }
+
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
 
   auto& process_vector = solver_params.processes_;
