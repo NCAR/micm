@@ -7,7 +7,7 @@ include(test_util)
 # Tests
 
 if(ENABLE_JSON)
-  create_standard_test(NAME test_kpp_to_micm SOURCES test_kpp_to_micm.cpp)
+  create_standard_test(NAME kpp_to_micm SOURCES test_kpp_to_micm.cpp)
 endif()
 
 ################################################################################
