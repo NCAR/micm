@@ -135,9 +135,9 @@ int main(const int argc, const char* argv[])
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
-                                                       reactions,
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<LinearSolver<double, SparseMatrixPolicy>, Matrix, SparseMatrixPolicy> solver{
+    chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K

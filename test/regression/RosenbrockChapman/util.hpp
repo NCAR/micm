@@ -79,65 +79,65 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
   return { photo_1, photo_2, photo_3, r1, r2, r3, r4 };
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getTwoStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
+template<class LinearSolverPolicy, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy> getTwoStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+  return micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(processes),
       micm::RosenbrockSolverParameters::two_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getThreeStageMultiCellChapmanSolver(
+template<class LinearSolverPolicy, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy> getThreeStageMultiCellChapmanSolver(
     const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+  return micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(processes),
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getFourStageMultiCellChapmanSolver(
+template<class LinearSolverPolicy, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy> getFourStageMultiCellChapmanSolver(
     const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+  return micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(processes),
       micm::RosenbrockSolverParameters::four_stage_rosenbrock_parameters(number_of_grid_cells));
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getFourStageDAMultiCellChapmanSolver(
+template<class LinearSolverPolicy, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy> getFourStageDAMultiCellChapmanSolver(
     const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+  return micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(processes),
       micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSixStageDAMultiCellChapmanSolver(
+template<class LinearSolverPolicy, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy> getSixStageDAMultiCellChapmanSolver(
     const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+  return micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::move(processes),
       micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells));

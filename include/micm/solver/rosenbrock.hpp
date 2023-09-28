@@ -142,9 +142,9 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy = Matrix,
-           template<class> class SparseMatrixPolicy = SparseMatrix,
-           class LinearSolverPolicy = LinearSolver<double, SparseMatrix>>
+  template<class LinearSolverPolicy,
+           template<class> class MatrixPolicy = Matrix,
+           template<class> class SparseMatrixPolicy = SparseMatrix>
   class RosenbrockSolver
   {
    public:

@@ -110,7 +110,7 @@ TEST(AnalyticalExamples, Troe)
                                                                  .N_ = 0.8 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -248,7 +248,7 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -359,7 +359,7 @@ TEST(AnalyticalExamples, Photolysis)
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -487,7 +487,7 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -605,7 +605,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
                                                                                       .N_ = 0.8 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -743,7 +743,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -855,7 +855,7 @@ TEST(AnalyticalExamples, Tunneling)
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -980,7 +980,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1088,7 +1088,7 @@ TEST(AnalyticalExamples, Arrhenius)
           .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1214,7 +1214,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1332,7 +1332,7 @@ TEST(AnalyticalExamples, Branched)
                                                       .n_ = 2 }))
           .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1487,7 +1487,7 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1622,7 +1622,7 @@ TEST(AnalyticalExamples, Robertson)
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
+  micm::RosenbrockSolver<micm::LinearSolver<double, micm::SparseMatrix>, micm::Matrix, SparseMatrixTest> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ r1, r2, r3 },
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
@@ -1752,7 +1752,7 @@ TEST(AnalyticalExamples, Oregonator)
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
-  Oregonator<micm::Matrix, SparseMatrixTest> solver(
+  Oregonator<micm::LinearSolver<double, SparseMatrixTest>, micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, params);
 
   double end = 360;
@@ -1884,7 +1884,7 @@ TEST(AnalyticalExamples, Oregonator2)
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
-  Oregonator<micm::Matrix, SparseMatrixTest> solver(
+  Oregonator<micm::LinearSolver<double, SparseMatrixTest>, micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
       params);
@@ -2035,7 +2035,7 @@ TEST(AnalyticalExamples, HIRES)
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-3;
   params.absolute_tolerance_ = params.relative_tolerance_ * 1e-4;
-  HIRES<micm::Matrix, SparseMatrixTest> solver(
+  HIRES<micm::LinearSolver<double, SparseMatrixTest>, micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8 },
       params);
@@ -2145,7 +2145,7 @@ TEST(AnalyticalExamples, E5)
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-2;
   params.absolute_tolerance_ = 1.7e-24;
-  E5<micm::Matrix, SparseMatrixTest> solver(
+  E5<micm::LinearSolver<double, SparseMatrixTest>, micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4 }, params);
 
   size_t N = 7;

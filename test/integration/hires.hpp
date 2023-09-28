@@ -2,8 +2,8 @@
 
 #include <micm/solver/rosenbrock.hpp>
 
-template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix, class LinearSolverPolicy = micm::LinearSolver<double, micm::SparseMatrix>>
-class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+template<class LinearSolverPolicy, template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix>
+class HIRES : public micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>
 {
  public:
   /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
@@ -13,7 +13,7 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
       const micm::System& system,
       const std::vector<micm::Process>& processes,
       const micm::RosenbrockSolverParameters& parameters)
-      : micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>()
+      : micm::RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>()
   {
     this->system_ = system;
     this->processes_ = processes;

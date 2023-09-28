@@ -9,8 +9,8 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver(
     std::shared_ptr<micm::JitCompiler> jit,
     std::size_t number_of_grid_cells)
 {
@@ -44,7 +44,7 @@ micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(
+  return micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
       jit,
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
@@ -54,10 +54,10 @@ micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(
 template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit, std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy>(jit, number_of_grid_cells);
+  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(jit, number_of_grid_cells);
   // return;
   auto jacobian = solver.jacobian_;
 
@@ -128,10 +128,14 @@ TEST(JitRosenbrockSolver, DenseAlphaMinusJacobian)
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
     EXPECT_TRUE(false);
   }
-  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix>(jit.get(), 1);
-  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix>(jit.get(), 2);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix>(jit.get(), 3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix>(jit.get(), 4);
+  testAlphaMinusJacobian<micm::LinearSolver<double, Group1SparseVectorMatrix>, Group1VectorMatrix, Group1SparseVectorMatrix>(
+      jit.get(), 1);
+  testAlphaMinusJacobian<micm::LinearSolver<double, Group2SparseVectorMatrix>, Group2VectorMatrix, Group2SparseVectorMatrix>(
+      jit.get(), 2);
+  testAlphaMinusJacobian<micm::LinearSolver<double, Group3SparseVectorMatrix>, Group3VectorMatrix, Group3SparseVectorMatrix>(
+      jit.get(), 3);
+  testAlphaMinusJacobian<micm::LinearSolver<double, Group4SparseVectorMatrix>, Group4VectorMatrix, Group4SparseVectorMatrix>(
+      jit.get(), 4);
 }
 
 // create mozart-micm

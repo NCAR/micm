@@ -88,6 +88,9 @@ To solve this system save the following code in a file named `foo_chem.cpp`:
 
 using namespace micm;
 
+template<class T>
+using SparseMatrixPolicy = SparseMatrix<T>;
+
 int main(const int argc, const char *argv[])
 {
   auto foo = Species{ "Foo" };
@@ -112,7 +115,9 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<LinearSolver<double, SparseMatrixPolicy>, Matrix, SparseMatrixPolicy> solver{
+    chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
 
   State state = solver.GetState();
 

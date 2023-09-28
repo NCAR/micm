@@ -24,8 +24,11 @@
 namespace micm
 {
 
-  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
-  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
+  template<
+      class LinearSolverPolicy,
+      template<class> class MatrixPolicy = Matrix,
+      template<class> class SparseMatrixPolicy = SparseMatrix>
+  class JitRosenbrockSolver : public RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
@@ -41,7 +44,7 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(system, processes, parameters),
+        : RosenbrockSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(system, processes, parameters),
           compiler_(compiler)
     {
       this->GenerateAlphaMinusJacobian();

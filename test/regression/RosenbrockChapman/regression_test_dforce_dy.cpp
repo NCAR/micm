@@ -18,7 +18,7 @@ void testJacobian()
   std::lognormal_distribution dist{ -2.0, 4.0 };
 
   micm::ChapmanODESolver fixed_solver{};
-  auto solver = getThreeStageMultiCellChapmanSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(3);
+  auto solver = getThreeStageMultiCellChapmanSolver<LinearSolverPolicy, MatrixPolicy, SparseMatrixPolicy>(3);
 
   auto state = solver.GetState();
 
