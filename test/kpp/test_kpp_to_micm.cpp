@@ -7,7 +7,7 @@ int main(const int argc, const char *argv[])
 
   // Read and parse the configure files
   micm::ConfigParseStatus status = solver_config.ReadAndParse(
-    "../etc/configs/micm/Chapman");
+    "./configs/kpp_chapman");
 
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
 
