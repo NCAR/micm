@@ -2,7 +2,7 @@
 
 #include <micm/solver/rosenbrock.hpp>
 
-template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix, class LinearSolverPolicy = micm::LinearSolver<double, micm::SparseMatrix>>
+template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix, class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
 class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
  public:
