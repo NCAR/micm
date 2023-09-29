@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -158,6 +159,11 @@ namespace micm
       uint64_t singular{};          // Nsng
       uint64_t total_steps{};       // Ntotstp
 
+      std::chrono::duration<double, std::nano> total_forcing_time {};
+      std::chrono::duration<double, std::nano> total_jacobian_time {};
+      std::chrono::duration<double, std::nano> total_linear_factor_time {};
+      std::chrono::duration<double, std::nano> total_linear_solve_time {};
+
       void Reset();
     };
 
@@ -206,6 +212,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
+    template<bool time_it = false>
     SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing

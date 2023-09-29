@@ -1,6 +1,18 @@
 // Copyright (C) 2023 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+#define TIMED_METHOD(assigned_increment, time_it, method, ...) \
+    { \
+      if constexpr (time_it) { \
+          auto start = std::chrono::steady_clock::now(); \
+          method(__VA_ARGS__); \
+          auto end = std::chrono::steady_clock::now(); \
+          assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
+      } else { \
+          method(__VA_ARGS__); \
+      } \
+    } \
+
 namespace micm
 {
   //
@@ -378,6 +390,10 @@ namespace micm
     solves = 0;
     singular = 0;
     total_steps = 0;
+    total_forcing_time = std::chrono::nanoseconds::zero();
+    total_jacobian_time = std::chrono::nanoseconds::zero();
+    total_linear_factor_time = std::chrono::nanoseconds::zero();
+    total_linear_solve_time = std::chrono::nanoseconds::zero();
   }
 
   inline std::string StateToString(const SolverState& state)
@@ -472,6 +488,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<bool time_it>
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
   {
@@ -521,10 +538,10 @@ namespace micm
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the forcing at the beginning of the current time
-      CalculateForcing(state.rate_constants_, Y, initial_forcing);
+      TIMED_METHOD(stats_.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
 
       // compute the jacobian at the beginning of the current time
-      CalculateJacobian(state.rate_constants_, Y, jacobian_);
+      TIMED_METHOD(stats_.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, jacobian_);
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -532,7 +549,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y);
+        TIMED_METHOD(stats_.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -557,7 +574,7 @@ namespace micm
                 auto a = parameters_.a_[stage_combinations + j];
                 Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
               }
-              CalculateForcing(state.rate_constants_, Ynew, forcing);
+              TIMED_METHOD(stats_.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
@@ -567,7 +584,7 @@ namespace micm
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage]);
+          TIMED_METHOD(stats_.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage]);
           stats_.solves += 1;
         }
 
