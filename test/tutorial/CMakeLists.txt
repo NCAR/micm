@@ -8,6 +8,7 @@ include(test_util)
 
 create_standard_test(NAME README_example SOURCES test_README_example.cpp)
 create_standard_test(NAME rate_constants_no_user_defined_example_by_hand SOURCES test_rate_constants_no_user_defined_by_hand.cpp)
+create_standard_test(NAME but_how_fast_is_it SOURCES test_but_how_fast_is_it.cpp)
 if(ENABLE_JSON)
   create_standard_test(NAME rate_constants_no_user_defined_example_with_config SOURCES test_rate_constants_no_user_defined_with_config.cpp)
 endif()
