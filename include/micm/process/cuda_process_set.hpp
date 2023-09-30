@@ -83,11 +83,11 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian) const
   {
     CudaMatrixParam matrix; 
-    matrixParam.rate_constants_ = rate_constants.AsVector().data(); 
-    matrixParam.state_variables_ = state_variables.AsVector().data(); 
-    matrixParam.n_grids_ = rate_constants.size(); 
-    matrixParam.n_reactions_ = rate_constants[0].size(); 
-    matrixParam.n_species_ = state_variables[0].size(); 
+    matrix.rate_constants_ = rate_constants.AsVector().data(); 
+    matrix.state_variables_ = state_variables.AsVector().data(); 
+    matrix.n_grids_ = rate_constants.size(); 
+    matrix.n_reactions_ = rate_constants[0].size(); 
+    matrix.n_species_ = state_variables[0].size(); 
     
     CudaSparseMatrixParam sparseMatrix; 
     sparseMatrix.jacobian_ = jacobian.AsVector().data(); 
