@@ -122,7 +122,7 @@ namespace micm{
             cudaMalloc(&d_lij_ujk,sizeof(std::pair<size_t, size_t>)* solver.lij_ujk_size_); 
             cudaMalloc(&d_lki_nkj,sizeof(std::pair<size_t, size_t>)* solver.lki_nkj_size_); 
             cudaMalloc(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size_);
-            cudaMalloc(&device, sizeof(decomposeDevice)); 
+            cudaMalloc(&device, sizeof(DecomposeDevice)); 
 
             //transfer data from host to device 
             cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double)* sparseMatrix.A_size_, cudaMemcpyHostToDevice); 
