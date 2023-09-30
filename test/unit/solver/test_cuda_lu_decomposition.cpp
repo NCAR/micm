@@ -70,7 +70,7 @@ void testRandomMatrix(size_t n_grids)
 
   
   micm::LuDecomposition gpu_lud(A); 
-  auto gpu_LU = micm::CUDALuDecomposition::GetLUMatrices(A, 1.0e-30); 
+  auto gpu_LU = micm::CudaLuDecomposition::GetLUMatrices(A, 1.0e-30); 
   gpu_lud.Decompose<double, SparseMatrixPolicy>(A, gpu_LU.first, gpu_LU.second); 
   check_results<double, SparseMatrixPolicy>(
       A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void {EXPECT_NEAR(a, b, 1.0e-5); });
@@ -85,7 +85,7 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
 
-TEST(CUDALuDecomposition, RandomMatrixVectorOrdering)
+TEST(CudaLuDecomposition, RandomMatrixVectorOrdering)
 {
   testRandomMatrix<Group1SparseVectorMatrix>(10);
   testRandomMatrix<Group2SparseVectorMatrix>(100);

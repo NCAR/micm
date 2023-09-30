@@ -142,10 +142,10 @@ namespace micm
       cudaMalloc(&d_state_variables, sizeof(double) * matrix.n_grids_ * matrix.n_species_);
       cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_);
       cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrix.n_reactions_);
-      cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size);
+      cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size_);
       cudaMalloc(&d_number_of_products, sizeof(size_t) * matrix.n_reactions_);
-      cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size);
-      cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size);
+      cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size_);
+      cudaMalloc(&d_jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size_);
       cudaMalloc(&device, sizeof(JacobianDevice)); 
       
 
@@ -153,11 +153,11 @@ namespace micm
       cudaMemcpy(d_rate_constants, matrix.rate_constants_, sizeof(double) * matrix.n_grids_ * matrix.n_reactions_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_state_variables, matrix.state_variables_, sizeof(double) * matrix.n_grids_ * matrix.n_species_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_jacobian, sparseMatrix.jacobian_, sizeof(double) * sparseMatrix.jacobian_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * processSet.reactant_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids, sizeof(size_t) * processSet.jacobian_flat_ids_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants_, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids, processSet.reactant_ids_, sizeof(size_t) * processSet.reactant_ids_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products, processSet.number_of_products_, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_yields, processSet.yields_, sizeof(double) * processSet.yields_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_jacobian_flat_ids, processSet.jacobian_flat_ids_, sizeof(size_t) * processSet.jacobian_flat_ids_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(&(device->rate_constants_), &d_rate_constants, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->state_variables_), &d_state_variables, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->jacobian_), &d_jacobian, sizeof(double*), cudaMemcpyHostToDevice); 
@@ -213,21 +213,21 @@ namespace micm
       cudaMalloc(&d_state_variables, sizeof(double) * (matrix.n_grids_ * matrix.n_species_));
       cudaMalloc(&d_forcing, sizeof(double) * (matrix.n_grids_ * matrix.n_species_));
       cudaMalloc(&d_number_of_reactants, sizeof(size_t) * matrix.n_reactions_);
-      cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size);
+      cudaMalloc(&d_reactant_ids, sizeof(size_t) * processSet.reactant_ids_size_);
       cudaMalloc(&d_number_of_products, sizeof(size_t) * matrix.n_reactions_);
-      cudaMalloc(&d_product_ids, sizeof(size_t) * processSet.product_ids_size);
-      cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size);
+      cudaMalloc(&d_product_ids, sizeof(size_t) * processSet.product_ids_size_);
+      cudaMalloc(&d_yields, sizeof(double) * processSet.yields_size_);
       cudaMalloc(&device, sizeof(ForcingDevice)); 
 
       // copy data from host memory to device memory
       cudaMemcpy(d_rate_constants, matrix.rate_constants_, sizeof(double) * (matrix.n_grids_ * matrix.n_reactions_), cudaMemcpyHostToDevice);
       cudaMemcpy(d_state_variables, matrix.state_variables_, sizeof(double) * (matrix.n_grids_ * matrix.n_species_), cudaMemcpyHostToDevice);
       cudaMemcpy(d_forcing, matrix.forcing_, sizeof(double) * (matrix.n_grids_ * matrix.n_species_), cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_reactant_ids, processSet.reactant_ids, sizeof(size_t) * processSet.reactant_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_number_of_products, processSet.number_of_products, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_product_ids, processSet.product_ids, sizeof(size_t) * processSet.product_ids_size, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_yields, processSet.yields, sizeof(double) * processSet.yields_size, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_reactants, processSet.number_of_reactants_, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_reactant_ids, processSet.reactant_ids_, sizeof(size_t) * processSet.reactant_ids_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_number_of_products, processSet.number_of_products_, sizeof(size_t) * matrix.n_reactions_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_product_ids, processSet.product_ids_, sizeof(size_t) * processSet.product_ids_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(d_yields, processSet.yields_, sizeof(double) * processSet.yields_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(&(device->rate_constants_), &d_rate_constants, sizeof(double*),cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->state_variables_), &d_state_variables, sizeof(double*), cudaMemcpyHostToDevice); 
       cudaMemcpy(&(device->forcing_), &d_forcing, sizeof(double*), cudaMemcpyHostToDevice);   

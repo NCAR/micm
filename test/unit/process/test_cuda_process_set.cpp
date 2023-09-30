@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include <chrono>
 #include <functional>
 #include <iostream>
