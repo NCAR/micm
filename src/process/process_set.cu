@@ -46,7 +46,7 @@ namespace micm
       double* forcing = device->forcing_; 
       size_t* number_of_reactants = device->number_of_reactants_; 
       size_t* reactant_ids = device->reactant_ids_; 
-      size_t* number_of_products = device->number_of_product_; 
+      size_t* number_of_products = device->number_of_products_; 
       size_t n_grids = device->n_grids_;
       if (tid < n_grids)
       {
