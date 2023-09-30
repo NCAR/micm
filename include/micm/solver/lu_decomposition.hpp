@@ -52,11 +52,11 @@ namespace micm
     /// when L[i][j] and U[j][k] are both non-zero.
     std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
-    /// triangular matrix; False otherwise
+    /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
+    ///does not suppor easy retrieval of memory address using data() function.
     std::vector<char> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
-    /// triangular matrix when A[k][i] is non-zero. Used data type char instead of bool because vector<bool> representation
-    ///does not suppor easy retrieval of memory address using data() function.
+    /// triangular matrix when A[k][i] is non-zero. 
     std::vector<std::size_t> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
