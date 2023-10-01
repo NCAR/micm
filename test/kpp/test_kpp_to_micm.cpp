@@ -1,4 +1,7 @@
 #include <micm/configure/solver_config.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include "../regression/RosenbrockChapman/chapman_ode_solver.hpp"
 
 int main(const int argc, const char *argv[])
 {
