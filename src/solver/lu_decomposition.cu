@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <iostream> 
 #include <vector>
+#include <chrono>
 #include <micm/util/cuda_param.hpp> 
 struct DecomposeDevice{
     double* A_; 
@@ -90,7 +91,7 @@ namespace micm{
             }
         }// end of kernel
     
-        void DecomposeKernelDriver(
+        std::chrono::nanoseconds DecomposeKernelDriver(
             CudaSparseMatrixParam& sparseMatrix, 
             CudaSolverParam& solver){
             //create device pointers and allocate device memory 
@@ -158,8 +159,11 @@ namespace micm{
             device->niLU_size_ = solver.niLU_size_; 
 
            // call kernel
+            auto startTime = std::chrono::high_resolution_clock::now();
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
             cudaDeviceSynchronize();
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
             cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
           
@@ -173,6 +177,7 @@ namespace micm{
         cudaFree(d_aki); 
         cudaFree(d_uii); 
         cudaFree(device); 
+        return kernel_duration; 
     }//end kernelDriver
  }//end cuda 
 }//end micm

@@ -5,6 +5,7 @@
 #include<micm/solver/lu_decomposition.hpp>
 #include<micm/util/cuda_param.hpp>
 #include <stdexcept>
+#include <chrono>
 #ifdef USE_CUDA
 #include <micm/solver/cuda_lu_decomposition.cuh>
 #endif 
@@ -25,7 +26,7 @@ namespace micm{
 
     template<typename T, template<class> class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy<T>>) 
-    void CudaLuDecomposition::Decompose(
+    std::chrono::nanoseconds CudaLuDecomposition::Decompose(
         const SparseMatrixPolicy<T>& A, 
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const
@@ -63,7 +64,7 @@ namespace micm{
         solver.lkj_uji_size_ = lkj_uji_.size(); 
 
         //calling kernelSetup function
-        micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
+        return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
     }
 }//end micm
 #endif

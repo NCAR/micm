@@ -8,7 +8,7 @@ namespace micm
 {
   namespace cuda
   {
-    void DecomposeKernelDriver(
+    std::chrono::nanoseconds DecomposeKernelDriver(
             CudaSparseMatrixParam& sparseMatrix, 
             CudaSolverParam& solver);
   }  // namespace cuda
