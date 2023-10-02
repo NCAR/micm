@@ -28,51 +28,63 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
 Line-by-line explanation
 ------------------------
 
-Up until now we have neglected to talk about what the solver returns, which is a :cpp:class:`micm::SolverResult`
+Up until now we have neglected to talk about what the solver returns, which is a :cpp:class:`micm::RosenbrockSolver::SolverResult`.
 
-Now we are ready to run the simulation.
+There are four values returned.
+
+#. :cpp:member:`micm::RosenbrockSolver::SolverResult::final_time_`
+
+    * This is the final simulation time achieved by the solver. The :cpp:func:`micm::RosenbrockSolver::Solve` function attempts to integrate the passed in state forward a set number of seconds. Often, the solver is able to complete the integration.  However, extremely stiff systems may only solve for a fraction of the time. It is imperative that the ``final_time_`` value is checked. If it is not equal to the amount of time you intended to solve for, call solve again as we do in the tutorials with the difference between what was solved and how long you intended to solve.
+
+      .. note::
+        This does **not** represent the amount of time taken by the solve routine. You must measure that yourself(shown below). The ``final_time_`` is simulation time.
+
+#. :cpp:member:`micm::RosenbrockSolver::SolverResult::result_`
+
+    * This contains the integrated state value; the concentrations reached at the end of Solve function after the amount of time specified by ``final_time_``.
+
+#. :cpp:member:`micm::RosenbrockSolver::SolverResult::state_`
+
+    * There are many possible reasons for the solver to return. This value is one of the possible enum values define on the :cpp:enum:`micm::SolverState`. Hopefully, you receive a :cpp:enumerator:`micm::SolverState::Converged` state. But, it is good to always check this to ensure the solver really did converge. You can print this value using the :cpp:func:`micm::StateToString` function.
+
+#. :cpp:member:`micm::RosenbrockSolver::SolverResult::stats_`
+
+    * This is an instance of a :cpp:class:`micm::RosenbrockSolver::SolverStats` struct which contains information about the number of function calls and optionally the total cumulative amount of time spent calling each function. For the time to be collected, you must call the ``Solve`` function with a ``true`` templated parameter. Please see the example below.
+
+First, let's run the simulation but without collecting the solve time. We'll inspect the solver state and look at what's collected
+in the stats object. 
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
-  :lines: 110-133
+  :lines: 75-86
 
+.. code-block:: console
 
-And these are the results.
+  Solver state: Converged
+  accepted: 20
+  function_calls: 40
+  jacobian_updates: 20
+  number_of_steps: 20
+  accepted: 20
+  rejected: 0
+  decompositions: 20
+  solves: 60
+  singular: 0
 
-.. csv-table::
-   :header: "time", "grid", "A", "B", "C"
-   :widths: 6, 6, 10, 10, 10
+To get the total accumulated time of each function call, you need to specify the templated boolean argument to turn the timing on.
+We can also record the total runtime of the ``Solve`` function.
 
-   0, 1, 1.00e+00, 0.00e+00, 0.00e+00
-   0, 2, 2.00e+00, 0.00e+00, 0.00e+00
-   0, 3, 5.00e-01, 0.00e+00, 0.00e+00
-   200, 1, 5.35e-01, 4.49e-06, 4.65e-01
-   200, 2, 1.21e+00, 6.01e-06, 7.89e-01
-   200, 3, 2.30e-01, 3.31e-06, 2.70e-01
-   400, 1, 4.50e-01, 3.23e-06, 5.50e-01
-   400, 2, 1.05e+00, 4.42e-06, 9.45e-01
-   400, 3, 1.85e-01, 2.32e-06, 3.15e-01
-   600, 1, 4.00e-01, 2.63e-06, 6.00e-01
-   600, 2, 9.59e-01, 3.65e-06, 1.04e+00
-   600, 3, 1.60e-01, 1.85e-06, 3.40e-01
-   800, 1, 3.64e-01, 2.27e-06, 6.36e-01
-   800, 2, 8.90e-01, 3.18e-06, 1.11e+00
-   800, 3, 1.42e-01, 1.57e-06, 3.58e-01
-   1000, 1, 3.37e-01, 2.01e-06, 6.63e-01
-   1000, 2, 8.35e-01, 2.85e-06, 1.16e+00
-   1000, 3, 1.29e-01, 1.38e-06, 3.71e-01
-   1200, 1, 3.15e-01, 1.82e-06, 6.85e-01
-   1200, 2, 7.91e-01, 2.60e-06, 1.21e+00
-   1200, 3, 1.19e-01, 1.24e-06, 3.81e-01
-   1400, 1, 2.96e-01, 1.67e-06, 7.04e-01
-   1400, 2, 7.54e-01, 2.40e-06, 1.25e+00
-   1400, 3, 1.11e-01, 1.13e-06, 3.89e-01
-   1600, 1, 2.81e-01, 1.55e-06, 7.19e-01
-   1600, 2, 7.21e-01, 2.24e-06, 1.28e+00
-   1600, 3, 1.04e-01, 1.04e-06, 3.96e-01
-   1800, 1, 2.67e-01, 1.45e-06, 7.33e-01
-   1800, 2, 6.93e-01, 2.11e-06, 1.31e+00
-   1800, 3, 9.77e-02, 9.65e-07, 4.02e-01
-   2000, 1, 2.55e-01, 1.37e-06, 7.45e-01
-   2000, 2, 6.68e-01, 2.00e-06, 1.33e+00
-   2000, 3, 9.25e-02, 9.02e-07, 4.07e-01
+.. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
+  :language: cpp
+  :lines: 88-96
+
+.. code-block:: console
+
+  Total solve time: 24416 nanoseconds
+  total_forcing_time: 3167 nanoseconds
+  total_jacobian_time: 1710 nanoseconds
+  total_linear_factor_time: 4584 nanoseconds
+  total_linear_solve_time: 3290 nanoseconds
+
+.. note::
+  Your systems clock may not report the same values depending on how accurate your system clock is. 
