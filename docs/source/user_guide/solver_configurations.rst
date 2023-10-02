@@ -29,6 +29,8 @@ Line-by-line explanation
 There are a total of six different configurations for the Rosenbrock solver. Each corresponds to a different number of stages.
 What each configuration means is beyond the scope of this tutorial. However, more information can be found in .
 
+:cite:`Sandu1996`
+
 .. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
   :language: cpp
   :lines: 88-96
