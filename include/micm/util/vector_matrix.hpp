@@ -19,7 +19,7 @@ namespace micm
   ///
   /// The template arguments are the type of the matrix elements and the size of the number
   /// of rows per group.
-  template<class T, std::size_t L>
+  template<class T, std::size_t L = 4>
   class VectorMatrix
   {
     std::vector<T> data_;

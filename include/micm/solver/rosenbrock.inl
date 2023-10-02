@@ -416,6 +416,22 @@ namespace micm
       const System& system,
       const std::vector<Process>& processes,
       const RosenbrockSolverParameters& parameters)
+      : RosenbrockSolver(
+            system,
+            processes,
+            parameters,
+            [](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
+              return LinearSolverPolicy{ matrix, initial_value };
+            })
+  {
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+  inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::RosenbrockSolver(
+      const System& system,
+      const std::vector<Process>& processes,
+      const RosenbrockSolverParameters& parameters,
+      const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
       : system_(system),
         processes_(processes),
         parameters_(parameters),
@@ -451,7 +467,7 @@ namespace micm
       builder = builder.with_element(i, i);
 
     jacobian_ = builder;
-    linear_solver_ = LinearSolverPolicy(jacobian_, 1.0e-30);
+    linear_solver_ = create_linear_solver(jacobian_, 1.0e-30);
     process_set_.SetJacobianFlatIds(jacobian_);
     for (std::size_t i = 0; i < jacobian_[0].size(); ++i)
       jacobian_diagonal_elements_.push_back(jacobian_.VectorIndex(0, i, i));
@@ -473,7 +489,9 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::SolverResult
-  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::Solve(double time_step, State<MatrixPolicy>& state) noexcept
+  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::Solve(
+      double time_step,
+      State<MatrixPolicy>& state) noexcept
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::SolverResult result{};
     result.state_ = SolverState::Running;

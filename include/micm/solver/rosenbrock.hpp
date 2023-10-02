@@ -86,37 +86,37 @@ namespace micm
     void print() const;
 
     /// @brief an L-stable method, 2 stages, order 2
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters two_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief an L-stable method, 3 stages, order 3, 2 function evaluations
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters three_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief L-stable rosenbrock method of order 4, with 4 stages
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters four_stage_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief A stiffly-stable method, 4 stages, order 3
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
-    /// @param number_of_grid_cells 
-    /// @param reorder_state 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @param reorder_state
+    /// @return
     static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
@@ -142,9 +142,10 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy = Matrix,
-           template<class> class SparseMatrixPolicy = SparseMatrix,
-           class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
+  template<
+      template<class> class MatrixPolicy = Matrix,
+      template<class> class SparseMatrixPolicy = SparseMatrix,
+      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
   class RosenbrockSolver
   {
    public:
@@ -194,10 +195,23 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
     RosenbrockSolver(
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters);
+
+    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters,
+    ///        with a specific function provided to create the linear solver
+    /// @param system The chemical system to create the solver for
+    /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
+    /// @param create_linear_solver Function that will be used to create a linear solver instance
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver);
 
     virtual ~RosenbrockSolver() = default;
 
@@ -223,9 +237,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system

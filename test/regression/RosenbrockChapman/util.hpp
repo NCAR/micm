@@ -1,3 +1,5 @@
+#pragma once
+
 #include <gtest/gtest.h>
 
 #include <micm/process/arrhenius_rate_constant.hpp>
@@ -80,7 +82,8 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getTwoStageMultiCellChapmanSolver(const size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getTwoStageMultiCellChapmanSolver(
+    const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);

@@ -54,7 +54,7 @@ namespace micm
 
    public:
     /// @brief default constructor
-    LinearSolver() = default;
+    LinearSolver(){};
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix

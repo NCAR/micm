@@ -12,8 +12,8 @@ namespace micm
       : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [&](const SparseMatrixPolicy<double> &m) -> JitLuDecomposition<L>
-            { return JitLuDecomposition<L>(compiler, m); }),
+            [&](const SparseMatrixPolicy<double> &m) -> LuDecompositionPolicy
+            { return LuDecompositionPolicy(compiler, m); }),
         compiler_(compiler)
   {
     solve_function_ = NULL;

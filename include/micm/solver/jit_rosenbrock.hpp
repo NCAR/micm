@@ -21,14 +21,16 @@
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 namespace micm
 {
 
   template<
-      template<class> class MatrixPolicy = Matrix,
-      template<class> class SparseMatrixPolicy = SparseMatrix,
-      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
+      template<class> class MatrixPolicy = VectorMatrix,
+      template<class> class SparseMatrixPolicy = VectorSparseMatrix,
+      class LinearSolverPolicy = JitLinearSolver<4, SparseMatrixPolicy>>
   class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
@@ -45,7 +47,13 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(system, processes, parameters),
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+              system,
+              processes,
+              parameters,
+              [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
+                return LinearSolverPolicy{ compiler, matrix, initial_value };
+              }),
           compiler_(compiler)
     {
       this->GenerateAlphaMinusJacobian();

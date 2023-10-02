@@ -25,6 +25,8 @@ namespace micm
     void (*solve_function_)(const double*, double*, const double*, const double*);
 
    public:
+    JitLinearSolver(){};
+
     /// @brief Create a JITed linear solver for a given sparse matrix structure
     /// @param compiler JIT compiler
     /// @param matrix Block-diagonal sparse matrix to create solver for

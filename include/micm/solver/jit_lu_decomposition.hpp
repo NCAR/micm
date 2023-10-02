@@ -23,6 +23,8 @@ namespace micm
     void (*decompose_function_)(const double *, double *, double *);
 
    public:
+    JitLuDecomposition(){};
+
     /// @brief Create a JITed LU decomposer for a given sparse matrix structure
     /// @param compiler JIT compiler
     /// @param matrix Sparse matrix to create LU decomposer for
