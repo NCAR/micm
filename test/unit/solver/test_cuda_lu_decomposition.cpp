@@ -61,7 +61,7 @@ void gpu_validation(
       vector<T> cpu_L_vector = cpu_L.ASVector(); 
       vector<T> gpu_U_vector = gpu_U.AsVector();
       vector<T> cpu_U_vector = cpu_U.AsVector(); 
-      for (int i = 0; i < L_sizel i++){
+      for (int i = 0; i < L_size; i++){
         EXPECT_EQ(gpu_L_vector[i], cpu_L_vector[i]); 
       };
       for (int j = 0; j < U_size; j++){
