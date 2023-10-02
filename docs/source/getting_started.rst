@@ -1,12 +1,12 @@
-
+###############
 Getting Started
-===============
+###############
 
 Build and Test
---------------
+==============
 
 CPU
-~~~
+---
 To build and install MICM locally, you must have the following libraries installed:
 
 - [sphinx](https://github.com/sphinx-doc/sphinx)
@@ -31,7 +31,7 @@ CMake will allow for setting options such as the installation directory
 with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
 
 Docker Container
-~~~~~~~~~~~~~~~~
+----------------
 
 Build and run the image::
 
@@ -41,19 +41,20 @@ Build and run the image::
 If you would like, you can ssh into a running docker container and edit the files there.
 
 GPU
-~~~
+---
 
 NCAR Hardware
--------------
+^^^^^^^^^^^^^
 
 On Cheyenne
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 On Casper
-~~~~~~~~~
+^^^^^^^^^
 
 On Gust and Derecho
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
+
 To compile and test on gust::
 
     $ qinteractive -A NTDD0005 --ngpus=1
@@ -64,7 +65,7 @@ To compile and test on gust::
     $ make test
 
 NOAA Hardware
--------------
+^^^^^^^^^^^^^
 
 Run an Example
 --------------
