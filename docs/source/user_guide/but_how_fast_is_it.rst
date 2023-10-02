@@ -72,7 +72,9 @@ in the stats object.
   singular: 0
 
 To get the total accumulated time of each function call, you need to specify the templated boolean argument to turn the timing on.
-We can also record the total runtime of the ``Solve`` function.
+We can also record the total runtime of the ``Solve`` function. Through the magic of templates, the timing information is only
+collected when you use the ``true`` version of the templated function. These values are not even computed, meaning no CPU cycles are 
+wasted, for the ``false`` version.
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
