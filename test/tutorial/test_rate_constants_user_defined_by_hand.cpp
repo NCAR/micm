@@ -136,18 +136,18 @@ int main(const int argc, const char* argv[])
   Process r8 = Process::create()
                    .reactants({ c })
                    .products({ yields(g, 1) })
-                   .rate_constant(UserDefinedRateConstant({.label_="my photolysis rate"}))
+                   .rate_constant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
                    .phase(gas_phase);
 
   Process r9 = Process::create()
                    .products({ yields(a, 1) })
-                   .rate_constant(UserDefinedRateConstant({.label_="my emission rate"}))
+                   .rate_constant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
                    .phase(gas_phase);
 
   Process r10 = Process::create()
-                   .reactants({ b })
-                   .rate_constant(UserDefinedRateConstant({.label_="my loss rate"}))
-                   .phase(gas_phase);
+                    .reactants({ b })
+                    .rate_constant(UserDefinedRateConstant({ .label_ = "my loss rate" }))
+                    .phase(gas_phase);
 
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
@@ -170,7 +170,6 @@ int main(const int argc, const char* argv[])
 
   state.SetCustomRateParameter("C.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
-
 
   // choose and timestep a print the initial state
   double time_step = 500;  // s
