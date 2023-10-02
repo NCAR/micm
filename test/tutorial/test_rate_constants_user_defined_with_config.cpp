@@ -56,7 +56,7 @@ int main(const int argc, const char* argv[])
 {
   SolverConfig solverConfig;
 
-  std::string config_path = "./configs/rate_constants_no_user_defined";
+  std::string config_path = "./configs/rate_constants_user_defined";
   ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
   if (status != micm::ConfigParseStatus::Success)
   {
@@ -92,11 +92,18 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("SURF.C surface.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("SURF.C surface.particle number concentration [# m-3]", 2.5e6);
 
-  // choose a timestep and print the initial state
+  // choose a timestep a print the initial state
   double time_step = 500;  // s
 
   print_header();
   print_state(0, state);
+
+  double photo_rate = 1e-10;
+  double emission_rate = 1e-20;
+  double loss = emission_rate * 1e-3;
+  // these rates are constant through the simulation
+  state.SetCustomRateParameter("EMIS.my emission rate", emission_rate);
+  state.SetCustomRateParameter("LOSS.my loss rate", loss);
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -106,16 +113,18 @@ int main(const int argc, const char* argv[])
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
     double elapsed_solve_time = 0;
+    // This rate is updated at each time step and would typically vary with time
+    state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
 
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-      state.variables_ = result.result_;
+      state.variables_[0] = result.result_.AsVector();
     }
 
     print_state(time_step * (i + 1), state);
+    photo_rate *= 1.5;
   }
 
   return 0;
