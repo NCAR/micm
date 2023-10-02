@@ -100,7 +100,7 @@ void testRandomMatrix(size_t n_grids)
   cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
   
   //checking GPU result again CPU
-  gpu_validation(gpu_LU.first, cpu_LU.first, gpu_LU.second, cpu_LU.second); 
+  gpu_validation<double, SparseMatrixPolicy>(gpu_LU.first, cpu_LU.first, gpu_LU.second, cpu_LU.second); 
 }  
 
 template<class T>
