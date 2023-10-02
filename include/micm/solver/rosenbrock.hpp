@@ -18,9 +18,9 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
-#include <chrono>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -159,10 +159,10 @@ namespace micm
       uint64_t singular{};          // Nsng
       uint64_t total_steps{};       // Ntotstp
 
-      std::chrono::duration<double, std::nano> total_forcing_time {};
-      std::chrono::duration<double, std::nano> total_jacobian_time {};
-      std::chrono::duration<double, std::nano> total_linear_factor_time {};
-      std::chrono::duration<double, std::nano> total_linear_solve_time {};
+      std::chrono::duration<double, std::nano> total_forcing_time{};
+      std::chrono::duration<double, std::nano> total_jacobian_time{};
+      std::chrono::duration<double, std::nano> total_linear_factor_time{};
+      std::chrono::duration<double, std::nano> total_linear_solve_time{};
 
       void Reset();
     };

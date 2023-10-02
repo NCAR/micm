@@ -8,6 +8,7 @@ include(test_util)
 
 create_standard_test(NAME README_example SOURCES test_README_example.cpp)
 
+create_standard_test(NAME multiple_grid_cells SOURCES test_multiple_grid_cells.cpp)
 create_standard_test(NAME rate_constants_no_user_defined_example_by_hand SOURCES test_rate_constants_no_user_defined_by_hand.cpp)
 create_standard_test(NAME rate_constants_user_defined_example_by_hand SOURCES test_rate_constants_user_defined_by_hand.cpp)
 if(ENABLE_JSON)
