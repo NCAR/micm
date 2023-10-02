@@ -17,3 +17,4 @@ If you happen to find our examples are lacking for your needs, please,
    rate_constant_tutorial
    user_defined_rate_constant_tutorial
    multiple_grid_cells
+   solver_configurations
