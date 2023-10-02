@@ -5,6 +5,8 @@
 #include <vector>
 #include <chrono>
 #include <micm/util/cuda_param.hpp> 
+
+//grouped parameters passing to DecomposeKernel()
 struct DecomposeDevice{
     double* A_; 
     double* L_; 
@@ -61,7 +63,6 @@ namespace micm{
                             size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
                             size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid;
                             U[U_idx_1] -= L[L_idx] * U[U_idx_2]; 
-                           
                             ++lij_ujk_offset; 
                         }
                         ++uik_nkj_offset; 
