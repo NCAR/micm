@@ -18,7 +18,7 @@ namespace micm{
     
     template<typename T, template<class> typename SparseMatrixPolicy>
     requires VectorizableSparse<SparseMatrixPolicy<T>>
-    void Decompose(
+    std::chrono::nanoseconds Decompose(
         const SparseMatrixPolicy<T>&A, 
         SparseMatrixPolicy<T>& L, 
         SparseMatrixPolicy<T>& U) const; 
