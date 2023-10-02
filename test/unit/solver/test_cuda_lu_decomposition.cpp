@@ -7,6 +7,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
+#include <vector>
 
 template<typename T, template<class> class SparseMatrixPolicy>
 void check_results(
@@ -56,12 +57,15 @@ void gpu_validation(
 {
       size_t L_size = cpu_L.AsVector().size(); 
       size_t U_size = cpu_U.AsVector().size(); 
+      vector<T> gpu_L_vector = gpu_L.AsVector();
+      vector<T> cpu_L_vector = cpu_L.ASVector(); 
+      vector<T> gpu_U_vector = gpu_U.AsVector();
+      vector<T> cpu_U_vector = cpu_U.AsVector(); 
       for (int i = 0; i < L_sizel i++){
-        EXPECT_EQ(gpu_L[i], cpu_L[i]); 
+        EXPECT_EQ(gpu_L_vector[i], cpu_L_vector[i]); 
       };
-      
       for (int j = 0; j < U_size; j++){
-        EXPECT_EQ(gpu_U[j], cpu_U[j]); 
+        EXPECT_EQ(gpu_U_vector[j], cpu_U_vector[j]); 
       };
 }
 
