@@ -61,12 +61,17 @@ namespace micm
           for (std::size_t i_react = 0; i_react < number_of_reactants[i_rxn]; ++i_react)
           {
             forcing[reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
+            forcing[reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
           }
+          for (std::size_t i_prod = 0; i_prod < number_of_products[i_rxn]; ++i_prod)
           for (std::size_t i_prod = 0; i_prod < number_of_products[i_rxn]; ++i_prod)
           {
             size_t index = device->product_ids_[prod_id_offset + i_prod] * n_grids + tid;
             forcing[index] += device->yields_[yield_offset + i_prod] * rate;
           }
+          react_id_offset += number_of_reactants[i_rxn];
+          prod_id_offset += number_of_products[i_rxn];
+          yield_offset += number_of_products[i_rxn];
           react_id_offset += number_of_reactants[i_rxn];
           prod_id_offset += number_of_products[i_rxn];
           yield_offset += number_of_products[i_rxn];

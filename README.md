@@ -6,20 +6,21 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
+[![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
 # Getting Started
 
 ## Installing MICM locally
-To build and install MICM locally, you must have the following libraries installed:
+To build and install MICM locally, you must have CMake installed on your machine.
+If you plan to build the documentation, you must also have:
 
 - [sphinx](https://github.com/sphinx-doc/sphinx)
 - [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
 - [sphinx-design](https://github.com/executablebooks/sphinx-design)
 - [breathe](https://github.com/breathe-doc/breathe)
 
-You must also have CMake installed on your machine. 
 
 Open a terminal window, navigate to a folder where you would like the MICM files to exist,
 and run the following commands:
@@ -44,10 +45,21 @@ If you would later like to uninstall MICM, you can run
 
 ## Running a MICM Docker container
 
-You must have [Docker Desktop](https://www.docker.com/get-started) installed and running. With Docker Desktop running, open a terminal window and run the following command to start the MICM container:
+You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
+With Docker Desktop running, open a terminal window.
+To build the latest MICM release, run the following command to start the MICM container:
 
 ```
 docker run -it ghcr.io/ncar/micm:release bash
+```
+
+To build the latest pre-release version of MICM, instead run:
+
+```
+git clone https://github.com/NCAR/micm.git
+cd micm
+docker build -t micm .
+docker run -it micm bash
 ```
 
 Inside the container, you can run the MICM tests from the `/build/` folder:
@@ -101,7 +113,7 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   State state = solver.GetState();
 
@@ -189,3 +201,7 @@ installation and usage instructions.
 - [Apache 2.0](/LICENSE)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
+
+
+> **Note**
+> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers

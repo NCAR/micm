@@ -18,6 +18,7 @@ TEST(JitFunction, SimpleInt32Function)
                                .return_type(micm::JitType::Int32);
   llvm::Value *ret_val = func.builder_->CreateNSWAdd(func.arguments_[0].ptr_, func.arguments_[1].ptr_, "add args");
   func.builder_->CreateRet(ret_val);
+
   auto func_target = func.Generate();
   int32_t (*func_ptr)(int32_t, int32_t) = (int32_t(*)(int32_t, int32_t))(intptr_t)func_target.second;
   EXPECT_EQ(12, func_ptr(8, 4));

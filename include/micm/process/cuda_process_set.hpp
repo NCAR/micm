@@ -5,6 +5,7 @@
 
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_param.hpp>
 
 #ifdef USE_CUDA
 #  include <micm/process/cuda_process_set.cuh>

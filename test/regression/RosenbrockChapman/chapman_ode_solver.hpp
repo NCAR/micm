@@ -98,7 +98,7 @@ namespace micm
     SolverStats stats_;
     std::size_t number_sparse_factor_elements_ = 23;
 
-    static constexpr double delta_min_ = 1.0e-5;
+    static constexpr double delta_min_ = 1.0e-6;
 
     /// @brief Default constructor
     ChapmanODESolver();

@@ -10,6 +10,13 @@
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t number_of_grid_cells)
 {
+  // ---- foo  bar  baz  quz  quuz
+  // foo   0    1    2    -    -
+  // bar   3    4    5    -    -
+  // baz   6    -    7    -    -
+  // quz   -    8    -    9    -
+  // quuz 10    -   11    -    12
+
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
   auto baz = micm::Species("baz");
@@ -39,20 +46,8 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy> getSolver(std::size_t n
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
 }
 
-// ---- foo  bar  baz  quz  quuz
-// foo   0    1    2    -    -
-// bar   3    4    5    -    -
-// baz   6    -    7    -    -
-// quz   -    8    -    9    -
-// quuz 10    -   11    -    12
-
 template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
-
-TEST(ChapmanODESolver, DefaultConstructor)
-{
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrix> solver{};
-}
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
@@ -133,4 +128,27 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
   testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix>(4);
   testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix>(3);
   testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix>(2);
+}
+
+TEST(RosenbrockSolver, Timing)
+{
+  auto solver = getSolver<micm::Matrix, SparseMatrix>(1);
+
+  auto state = solver.GetState();
+
+  state.variables_[0] = {
+    1, 1, 1, 1, 1,
+  };
+
+  auto result = solver.Solve<false>(1, state);
+  EXPECT_EQ(result.stats_.total_forcing_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_jacobian_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_linear_factor_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_linear_solve_time.count(), 0);
+
+  result = solver.Solve<true>(1, state);
+  EXPECT_NE(
+      result.stats_.total_forcing_time.count() + result.stats_.total_jacobian_time.count() +
+          result.stats_.total_linear_factor_time.count() + result.stats_.total_linear_solve_time.count(),
+      0.0);
 }

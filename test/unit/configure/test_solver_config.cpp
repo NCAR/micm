@@ -9,6 +9,28 @@ TEST(SolverConfig, DetectsInvalidConfigFile)
   EXPECT_EQ(micm::ConfigParseStatus::InvalidSpeciesFilePath, status);
 }
 
+TEST(SolverConfig, ReadAndParseCAMPFiles)
+{
+  micm::SolverConfig solverConfig{};
+
+  // Read and parse the CAMP configure file
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+}
+
+TEST(SolverConfig, DetectsInvalidCAMPConfigFile)
+{
+  micm::SolverConfig solverConfig{};
+
+  // Read and parse the CAMP configure file
+  micm::ConfigParseStatus status;
+  status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid");
+  EXPECT_EQ(micm::ConfigParseStatus::InvalidCAMPFileCount, status);
+
+  status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_no_files_key");
+  EXPECT_EQ(micm::ConfigParseStatus::CAMPFilesSectionNotFound, status);
+}
+
 TEST(SolverConfig, ReadAndParseSystemObject)
 {
   micm::SolverConfig solverConfig;

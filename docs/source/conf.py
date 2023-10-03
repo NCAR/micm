@@ -22,7 +22,7 @@ copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
 author = 'NCAR/UCAR'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.0'
+release = '3.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,7 +32,9 @@ release = '3.0.0'
 # ones.
 extensions = [
   'breathe',
+  'sphinx_copybutton',
   'sphinx_design',
+  'sphinx_tabs.tabs',
 ]
 
 breathe_default_project = "micm"
