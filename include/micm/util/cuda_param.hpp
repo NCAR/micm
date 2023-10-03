@@ -2,8 +2,7 @@
 
 #ifndef CUDA_PARAM_HPP
 #define CUDA_PARAM_HPP
-  //member data of class CUDAProcessSet grouped in struct passing to kernel driver function 
-  
+  //member data of class CudaProcessSet grouped in struct passing to kernel driver function 
   const size_t BLOCK_SIZE = 320;
   struct CudaProcessSetParam{
     const size_t* number_of_reactants_; 
