@@ -26,17 +26,35 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
 Line-by-line explanation
 ------------------------
 
-There are a total of six different configurations for the Rosenbrock solver. Each corresponds to a different number of stages.
-What each configuration means is beyond the scope of this tutorial. However, more information can be found in .
+There are a total of five different configurations for the Rosenbrock solver. Each corresponds to a different number of stages.
+What each configuration means is beyond the scope of this tutorial. However, references are included for further reading.
 
-:cite:`Sandu1996`
+- Two stage
+    - An L-stable method, 2 stages, order 2. :cite:`Hairer1996`
+- Three stage
+    - An L-stable method, 3 stages, order 3. :cite:`SanduStiff2-1997`
+- Four stage
+    - An L-stable method, 4 stages, order 4. :cite:`Hairer1996`
+- Four stage, differential algebraic
+    - A stiffly stable method, 4 stages, order 3, :cite:`Hairer1996`
+- Six stage, differential algebraic
+    - Stiffly stable rosenbrock method of order 4 with 6 stages, :cite:`Hairer1996`
+
+
+Configuring the rosenbrock solver is as easy as providing the solver with a set of :cpp:class:`micm::RosenbrockSolverParameters`
 
 .. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
   :language: cpp
-  :lines: 88-96
+  :lines: 154-172
 
+After that, the usage is the same as a regular solver. A templated method was used here to run the same solving code
+for each of the different solver configurations.
 
-You should see an output similar to this:
+.. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
+  :language: cpp
+  :lines: 40-123
+
+Running this program should give an output similar to this:
 
 .. code-block:: console
 
