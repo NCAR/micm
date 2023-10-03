@@ -49,5 +49,10 @@ int main(const int argc, const char *argv[])
     chemical_system, reactions,
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
+  micm::State state = solver.GetState();
+
+  state.conditions_[0].temperature_ = 217.0;  // K
+  state.conditions_[0].pressure_ = 30000.0;   // Pa
+
   return 0;
 }
