@@ -39,6 +39,26 @@ namespace micm
     FuncPtr alpha_minus_jacobian_ = nullptr;
 
    public:
+    JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
+    JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
+    JitRosenbrockSolver(JitRosenbrockSolver&& other)
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(std::move(other)),
+          compiler_(std::move(other.compiler_)),
+          function_resource_tracker_(std::move(other.function_resource_tracker_)),
+          alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
+    {
+      other.alpha_minus_jacobian_ = NULL;
+    }
+
+    JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
+    {
+      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      compiler_ = std::move(other.compiler_);
+      function_resource_tracker_ = std::move(other.function_resource_tracker_);
+      alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
+      other.alpha_minus_jacobian_ = NULL;
+    }
+
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving

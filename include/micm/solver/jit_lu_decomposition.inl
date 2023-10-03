@@ -3,6 +3,27 @@
 
 namespace micm
 {
+
+  template<std::size_t L>
+  inline JitLuDecomposition<L>::JitLuDecomposition(JitLuDecomposition &&other)
+      : LuDecomposition(std::move(other)),
+        compiler_(std::move(other.compiler_)),
+        decompose_function_resource_tracker_(std::move(other.decompose_function_resource_tracker_)),
+        decompose_function_(std::move(other.decompose_function_))
+  {
+    other.decompose_function_ = NULL;
+  }
+
+  template<std::size_t L>
+  inline JitLuDecomposition<L> &JitLuDecomposition<L>::operator=(JitLuDecomposition &&other)
+  {
+    LuDecomposition::operator=(std::move(other));
+    compiler_ = std::move(other.compiler_);
+    decompose_function_resource_tracker_ = std::move(other.decompose_function_resource_tracker_);
+    decompose_function_ = std::move(other.decompose_function_);
+    other.decompose_function_ = NULL;
+  }
+
   template<std::size_t L>
   inline JitLuDecomposition<L>::JitLuDecomposition(
       std::shared_ptr<JitCompiler> compiler,

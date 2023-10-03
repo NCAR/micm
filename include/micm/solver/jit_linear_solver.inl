@@ -5,6 +5,27 @@ namespace micm
 {
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::JitLinearSolver(JitLinearSolver &&other)
+      : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other)),
+        compiler_(std::move(other.compiler_)),
+        solve_function_resource_tracker_(std::move(other.solve_function_resource_tracker_)),
+        solve_function_(std::move(other.solve_function_))
+  {
+    other.solve_function_ = NULL;
+  }
+
+  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy> &
+  JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
+  {
+    LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
+    compiler_ = std::move(other.compiler_);
+    solve_function_resource_tracker_ = std::move(other.solve_function_resource_tracker_);
+    solve_function_ = std::move(other.solve_function_);
+    other.solve_function_ = NULL;
+  }
+
+  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::JitLinearSolver(
       std::shared_ptr<JitCompiler> compiler,
       const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix,
@@ -17,6 +38,7 @@ namespace micm
         compiler_(compiler)
   {
     solve_function_ = NULL;
+    GenerateSolveFunction();
   }
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -34,7 +56,6 @@ namespace micm
       SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
     LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix);
-    GenerateSolveFunction();
   }
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>

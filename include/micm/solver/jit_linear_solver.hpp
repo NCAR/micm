@@ -27,6 +27,11 @@ namespace micm
    public:
     JitLinearSolver(){};
 
+    JitLinearSolver(const JitLinearSolver&) = delete;
+    JitLinearSolver& operator=(const JitLinearSolver&) = delete;
+    JitLinearSolver(JitLinearSolver&&);
+    JitLinearSolver& operator=(JitLinearSolver&&);
+
     /// @brief Create a JITed linear solver for a given sparse matrix structure
     /// @param compiler JIT compiler
     /// @param matrix Block-diagonal sparse matrix to create solver for

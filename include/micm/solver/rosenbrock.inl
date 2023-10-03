@@ -467,7 +467,7 @@ namespace micm
       builder = builder.with_element(i, i);
 
     jacobian_ = builder;
-    linear_solver_ = create_linear_solver(jacobian_, 1.0e-30);
+    linear_solver_ = std::move(create_linear_solver(jacobian_, 1.0e-30));
     process_set_.SetJacobianFlatIds(jacobian_);
     for (std::size_t i = 0; i < jacobian_[0].size(); ++i)
       jacobian_diagonal_elements_.push_back(jacobian_.VectorIndex(0, i, i));
