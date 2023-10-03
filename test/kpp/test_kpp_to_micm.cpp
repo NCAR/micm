@@ -1,7 +1,9 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include "../regression/RosenbrockChapman/chapman_ode_solver.hpp"
+
+template<class T>
+using SparseMatrixPolicy = micm::SparseMatrix<T>;
 
 int main(const int argc, const char *argv[])
 {
@@ -39,6 +41,13 @@ int main(const int argc, const char *argv[])
 
     std::cout << std::endl;
   }
+
+  auto chemical_system = solver_params.system_;
+  auto reactions = solver_params.processes_;
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixPolicy> solver{
+    chemical_system, reactions,
+    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   return 0;
 }
