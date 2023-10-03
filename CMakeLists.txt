@@ -41,6 +41,7 @@ option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
+option(ENABLE_TESTS "Build the tests" ON)
 
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
@@ -68,7 +69,7 @@ endif()
 ################################################################################
 # Tests
 
-if(PROJECT_IS_TOP_LEVEL)
+if(PROJECT_IS_TOP_LEVEL AND ENABLE_TESTS)
   # Test code coverage
   if(ENABLE_COVERAGE)
     include(CodeCoverage)
