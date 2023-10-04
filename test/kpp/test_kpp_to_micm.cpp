@@ -67,5 +67,22 @@ int main(const int argc, const char *argv[])
 
   state.SetConcentrations(solver_params.system_, intial_concentration);
 
+  double time_step = 60;  // s
+  int nstep = 3;
+
+  for (int i = 0; i < nstep; ++i) {
+
+    double elapsed_solve_time = 0;
+
+    std::cout << "iteration, elapsed_time: "
+        << i << ", " << elapsed_solve_time << std::endl;
+
+    while (elapsed_solve_time < time_step) {
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
+      elapsed_solve_time = result.final_time_;
+      state.variables_[0] = result.result_.AsVector();
+    }
+  }
+
   return 0;
 }
