@@ -53,7 +53,7 @@ Building the documentation
 --------------------------
 
 All of our docs are stored in the ``docs`` directory. There are several python dependencies that need to install. To make 
-this easy, we provide a ``reuirements.txt`` file that you can use to install. 
+this easy, we provide a ``requirements.txt`` file that you can use to install. 
 
 Virtualenv
 ^^^^^^^^^^
