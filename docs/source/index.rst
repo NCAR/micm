@@ -52,7 +52,7 @@ Welcome to MICM's documentation!
    user_guide/index
    api/index
    contributing/index
-   citation
+   citing_and_bibliography/index
 
 Indices and tables
 ==================

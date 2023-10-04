@@ -1,12 +1,12 @@
-
+###############
 Getting Started
-===============
+###############
 
 Build and Test
---------------
+==============
 
 CPU
-~~~
+---
 To build and install MICM locally, you must have the following libraries installed:
 
 - `CMake <https://cmake.org/>`_
@@ -43,7 +43,7 @@ others require that you have libraries installed on your system.
   - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
 
 Docker Container
-~~~~~~~~~~~~~~~~
+----------------
 
 Build and run the image::
 
@@ -53,19 +53,20 @@ Build and run the image::
 If you would like, you can ssh into a running docker container and edit the files there.
 
 GPU
-~~~
+---
 
 NCAR Hardware
--------------
+^^^^^^^^^^^^^
 
 On Cheyenne
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 On Casper
-~~~~~~~~~
+^^^^^^^^^
 
 On Gust and Derecho
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
+
 To compile and test on gust::
 
     $ qinteractive -A NTDD0005 --ngpus=1
@@ -76,7 +77,7 @@ To compile and test on gust::
     $ make test
 
 NOAA Hardware
--------------
+^^^^^^^^^^^^^
 
 Run an Example
 --------------
