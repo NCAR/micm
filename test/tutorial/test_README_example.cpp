@@ -47,7 +47,7 @@ int main(const int argc, const char *argv[])
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
     std::cout << std::fixed << std::setprecision(6) 
-              << std::setw(4) << i << ", "
+              << std::setw(8) << i << ", "
               << std::setw(10) << state.variables_[0][state.variable_map_["Foo"]] << ", "
               << std::setw(10) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
               << std::setw(10) << state.variables_[0][state.variable_map_["Baz"]]

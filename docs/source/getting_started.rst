@@ -89,7 +89,7 @@ To build and run the example using GNU::
 You should see an output including this
 
 .. csv-table::
-   :header: "time", "foo", "bar", "baz"
+   :header: "time [s]", "foo", "bar", "baz"
    :widths: 6, 10, 10, 10
 
       0,  11.843503,   5.904845,   1.907012
