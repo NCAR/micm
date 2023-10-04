@@ -144,17 +144,17 @@ g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.1.0/include -std=c++20
 
 Output:
 ```
-foo,       bar,      baz
-19.034389, 0.762719, 0.197464
-18.105748, 1.478520, 0.395242
-17.213802, 2.150391, 0.592159
-16.358113, 2.781130, 0.787212
-15.538111, 3.373351, 0.979560
-14.753106, 3.929496, 1.168498
-14.002317, 4.451851, 1.353446
-13.284884, 4.942548, 1.533932
-12.599887, 5.403583, 1.709582
-11.946359, 5.836817, 1.880104
+time [s],        foo,        bar,        baz
+0.000000,  11.843503,   5.904845,   1.907012
+500.000000,   6.792023,   9.045965,   3.317336
+1000.000000,   3.828700,  10.740589,   4.210461
+1500.000000,   2.138145,  11.663685,   4.739393
+2000.000000,   1.187934,  12.169452,   5.042503
+2500.000000,   0.658129,  12.447502,   5.213261
+3000.000000,   0.363985,  12.600676,   5.308597
+3500.000000,   0.201076,  12.685147,   5.361559
+4000.000000,   0.111028,  12.731727,   5.390884
+4500.000000,   0.061290,  12.757422,   5.407096
 ```
 # Citation
 
@@ -185,10 +185,10 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Code of conduct]
+- [Code of conduct](CODE_OF_CONDUCT.md)
   - Please read this through to you understand the expectations with how to interact with this project.
 
-- [Contributor's guide]
+- [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
 

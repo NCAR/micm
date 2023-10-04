@@ -1,12 +1,12 @@
-
+###############
 Getting Started
-===============
+###############
 
 Build and Test
---------------
+==============
 
 CPU
-~~~
+---
 To build and install MICM locally, you must have the following libraries installed:
 
 - `CMake <https://cmake.org/>`_
@@ -43,7 +43,7 @@ others require that you have libraries installed on your system.
   - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
 
 Docker Container
-~~~~~~~~~~~~~~~~
+----------------
 
 Build and run the image::
 
@@ -53,19 +53,20 @@ Build and run the image::
 If you would like, you can ssh into a running docker container and edit the files there.
 
 GPU
-~~~
+---
 
 NCAR Hardware
--------------
+^^^^^^^^^^^^^
 
 On Cheyenne
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 On Casper
-~~~~~~~~~
+^^^^^^^^^
 
 On Gust and Derecho
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
+
 To compile and test on gust::
 
     $ qinteractive -A NTDD0005 --ngpus=1
@@ -76,7 +77,7 @@ To compile and test on gust::
     $ make test
 
 NOAA Hardware
--------------
+^^^^^^^^^^^^^
 
 Run an Example
 --------------
@@ -98,17 +99,20 @@ To build and run the example using GNU::
   $ g++ -o foo_chem foo_chem.cpp -I<CMAKE_INSTALL_PREFIX>/include -std=c++20
   $ ./foo_chem
 
-Output::
+You should see an output including this
 
-  foo,       bar,      baz
-  19.034389, 0.762719, 0.197464
-  18.105748, 1.478520, 0.395242
-  17.213802, 2.150391, 0.592159
-  16.358113, 2.781130, 0.787212
-  15.538111, 3.373351, 0.979560
-  14.753106, 3.929496, 1.168498
-  14.002317, 4.451851, 1.353446
-  13.284884, 4.942548, 1.533932
-  12.599887, 5.403583, 1.709582
-  11.946359, 5.836817, 1.880104
+.. csv-table::
+   :header: "time [s]", "foo", "bar", "baz"
+   :widths: 6, 10, 10, 10
+
+    0.000000,  11.843503,   5.904845,   1.907012
+    500.000000,   6.792023,   9.045965,   3.317336
+    1000.000000,   3.828700,  10.740589,   4.210461
+    1500.000000,   2.138145,  11.663685,   4.739393
+    2000.000000,   1.187934,  12.169452,   5.042503
+    2500.000000,   0.658129,  12.447502,   5.213261
+    3000.000000,   0.363985,  12.600676,   5.308597
+    3500.000000,   0.201076,  12.685147,   5.361559
+    4000.000000,   0.111028,  12.731727,   5.390884
+    4500.000000,   0.061290,  12.757422,   5.407096
 
