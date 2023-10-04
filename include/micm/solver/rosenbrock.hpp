@@ -152,7 +152,7 @@ namespace micm
   /// The template parameter is the type of matrix to use
   template<
       template<class> class MatrixPolicy = Matrix,
-      template<class> class SparseMatrixPolicy = SparseMatrix,
+      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
       class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
   class RosenbrockSolver
   {
