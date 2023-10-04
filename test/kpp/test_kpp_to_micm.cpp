@@ -51,8 +51,21 @@ int main(const int argc, const char *argv[])
 
   micm::State state = solver.GetState();
 
-  state.conditions_[0].temperature_ = 217.0;  // K
-  state.conditions_[0].pressure_ = 30000.0;   // Pa
+  // from Seinfeld and Pandas 3rd ed. table 5.1 p.121, z = 30 km
+  state.conditions_[0].temperature_ = 227.0;  // K
+  state.conditions_[0].pressure_ = 1200.0;    // Pa
+
+  std::unordered_map<std::string, std::vector<double>> intial_concentration = {
+    { "M",   { 3.1e17 } },  // molecules cm-3, S&P3e table 5.1, z = 30 km
+    { "O2",  { 6.5e16 } },  // [O2] ~ 0.21 [M]
+    { "O3",  { 2.0e12 } },  // typical [O3] mid-latitude z ~ 30 km
+    { "O",   { 6.0e7 } },   // [O] / [O3] ~ 3e-5, S&P3e p.124
+    { "O1D", { 0.0 } },     //
+    { "NO2", { 8.0e8 } },   // ~ 8 ppb
+    { "NO",  { 4.0e8 } },   // ~ 4 ppb
+  };
+
+  state.SetConcentrations(solver_params.system_, intial_concentration);
 
   return 0;
 }
