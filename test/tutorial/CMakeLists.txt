@@ -15,6 +15,10 @@ create_standard_test(NAME solver_configuration SOURCES test_solver_configuration
 if(ENABLE_JSON)
   create_standard_test(NAME rate_constants_no_user_defined_example_with_config SOURCES test_rate_constants_no_user_defined_with_config.cpp)
   create_standard_test(NAME rate_constants_user_defined_example_with_config SOURCES test_rate_constants_user_defined_with_config.cpp)
+
+  if(ENABLE_OPENMP)
+    create_standard_test(NAME openmp_tutorial SOURCES test_openmp.cpp)
+  endif()
 endif()
 
 ################################################################################
