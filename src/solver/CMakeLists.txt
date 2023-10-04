@@ -1,0 +1,6 @@
+if(ENABLE_CUDA)
+  target_sources(micm_cuda
+     PRIVATE
+     lu_decomposition.cu
+  )
+endif()
