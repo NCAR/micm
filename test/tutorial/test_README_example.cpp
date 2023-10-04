@@ -38,7 +38,7 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << std::setw(5) << "time," 
+  std::cout << std::setw(5) << "time [s]," 
             << std::setw(13) << "foo, "
             << std::setw(12) << "bar, "
             << std::setw(10) << "baz" << std::endl;
