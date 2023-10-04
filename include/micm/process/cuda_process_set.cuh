@@ -10,11 +10,11 @@ namespace micm
   namespace cuda
   {
     std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        CudaMatrixParam& matrix,
+        CudaMatrixParam& matrixParam,
         CudaProcessSetParam& processSet); 
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(
-        CudaMatrixParam& matrix, 
+        CudaMatrixParam& matrixParam, 
         CudaSparseMatrixParam& sparseMatrix, 
         CudaProcessSetParam& processSet);
   }  // namespace cuda
