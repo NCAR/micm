@@ -152,7 +152,7 @@ Finally, we are ready to pick a timestep and solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 157-183
+    :lines: 149-173
 
 
 This is the output:
