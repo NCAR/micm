@@ -28,8 +28,8 @@ step will simply copy the header files into the normal location required by your
 CMake will allow for setting options such as the installation directory
 with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
 
-MICM can optionally include support for json configuration reading,
-JIT-compiled chemistry functions, and GPU support. Each of these requires an additional library. 
+MICM can optionally include support for json configuration reading, OpenMP,
+JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
 Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
@@ -39,9 +39,8 @@ others require that you have libraries installed on your system.
   - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
   - Coming soon
-
-Open a terminal window, navigate to a folder where you would like the MICM files to exist,
-and run the following commands::
+- OpenMP
+  - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
 
 Docker Container
 ~~~~~~~~~~~~~~~~

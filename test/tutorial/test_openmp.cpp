@@ -1,4 +1,3 @@
-#include <gtest/gtest.h>
 #include <omp.h>
 
 #include <micm/configure/solver_config.hpp>
@@ -6,15 +5,32 @@
 
 using namespace micm;
 
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
+void print_header()
+{
+  std::cout << std::setw(10) << "A"
+            << "," << std::setw(10) << "B"
+            << "," << std::setw(10) << "C" << std::endl;
+}
+
+void print_results(std::vector<double> results)
+{
+  std::ios oldState(nullptr);
+  oldState.copyfmt(std::cout);
+
+  std::cout << std::scientific << std::setprecision(2) 
+    << std::setw(10) << results[0] << "," 
+    << std::setw(10) << results[1] << "," 
+    << std::setw(10) << results[2] 
+    << std::endl;
+
+  std::cout.copyfmt(oldState);
+}
 
 std::vector<double> test_solver_on_thread(System chemical_system, std::vector<Process> reactions)
 {
-  std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;
   RosenbrockSolver<> solver{ chemical_system,
                                   reactions,
-                                  RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+                                  RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1, false) };
   State<Matrix> state = solver.GetState();
 
   // mol m-3
@@ -52,13 +68,13 @@ std::vector<double> test_solver_on_thread(System chemical_system, std::vector<Pr
   return state.variables_.AsVector();
 }
 
-TEST(OpenMP, OneFileReadThreeThreads)
+int main()
 {
   constexpr size_t n_threads = 3;
 
   SolverConfig solverConfig;
 
-  std::string config_path = "./unit_configs/robertson";
+  std::string config_path = "./configs/robertson";
   ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
   if (status != micm::ConfigParseStatus::Success)
   {
@@ -76,12 +92,18 @@ TEST(OpenMP, OneFileReadThreeThreads)
   {
     std::vector<double> result = test_solver_on_thread(chemical_system, reactions);
     results[omp_get_thread_num()] = result;
-#pragma omp barrier 
+#pragma omp barrier
   }
 
-  for(int i = 0; i < results[0].size(); ++i) {
-    EXPECT_EQ(results[0][i], results[1][i]);
-    EXPECT_EQ(results[0][i], results[2][i]);
-    EXPECT_EQ(results[1][i], results[2][i]);
-  }
+  std::cout << "Thread 1" << std::endl;
+  print_header();
+  print_results(results[0]);
+
+  std::cout << "Thread 2" << std::endl;
+  print_header();
+  print_results(results[1]);
+
+  std::cout << "Thread 3" << std::endl;
+  print_header();
+  print_results(results[2]);
 }

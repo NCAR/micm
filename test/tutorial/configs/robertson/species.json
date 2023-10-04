@@ -10,7 +10,7 @@
     },
     {
       "name": "C",
-      "type": "CHEM_SPEC",
+      "type": "CHEM_SPEC"
     }
   ]
 }

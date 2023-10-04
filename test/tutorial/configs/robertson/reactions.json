@@ -17,20 +17,23 @@
         {
           "type": "PHOTOLYSIS",
           "reactants": {
-            "A": {}
+            "B": { "qty": 2}
           },
           "products": {
-            "B": {}
+            "B": {},
+            "C": {}
           },
           "MUSICA name": "r2"
         },
         {
           "type": "PHOTOLYSIS",
           "reactants": {
-            "A": {}
+            "B": {},
+            "C": {}
           },
           "products": {
-            "B": {}
+            "A": {},
+            "C": {}
           },
           "MUSICA name": "r3"
         }
