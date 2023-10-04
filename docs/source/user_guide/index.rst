@@ -43,4 +43,5 @@ If you would like to include the json examples, you must configure micm to build
    rate_constant_tutorial
    user_defined_rate_constant_tutorial
    multiple_grid_cells
+   but_how_fast_is_it
    openmp

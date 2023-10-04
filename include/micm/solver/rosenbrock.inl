@@ -4,9 +4,9 @@
 #define TIMED_METHOD(assigned_increment, time_it, method, ...) \
     { \
       if constexpr (time_it) { \
-          auto start = std::chrono::steady_clock::now(); \
+          auto start = std::chrono::high_resolution_clock::now(); \
           method(__VA_ARGS__); \
-          auto end = std::chrono::steady_clock::now(); \
+          auto end = std::chrono::high_resolution_clock::now(); \
           assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
       } else { \
           method(__VA_ARGS__); \
@@ -389,7 +389,6 @@ namespace micm
     decompositions = 0;
     solves = 0;
     singular = 0;
-    total_steps = 0;
     total_forcing_time = std::chrono::nanoseconds::zero();
     total_jacobian_time = std::chrono::nanoseconds::zero();
     total_linear_factor_time = std::chrono::nanoseconds::zero();
@@ -608,10 +607,9 @@ namespace micm
                 parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
         double Hnew = H * fac;
 
-        // Check the error magnitude and adjust step size
         stats_.number_of_steps += 1;
-        stats_.total_steps += 1;
 
+        // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
