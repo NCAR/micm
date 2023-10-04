@@ -14,7 +14,7 @@ namespace micm
 
   /// @brief JIT-compiled solver function calculators for a collection of processes
   ///        The template parameter is the number of grid cells to solve simultaneously
-  template<std::size_t L>
+  template<std::size_t L = DEFAULT_VECTOR_SIZE>
   class JitProcessSet : public ProcessSet
   {
     std::shared_ptr<JitCompiler> compiler_;

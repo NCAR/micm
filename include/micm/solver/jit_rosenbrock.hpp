@@ -30,7 +30,7 @@ namespace micm
   template<
       template<class> class MatrixPolicy = VectorMatrix,
       template<class> class SparseMatrixPolicy = VectorSparseMatrix,
-      class LinearSolverPolicy = JitLinearSolver<4, SparseMatrixPolicy>>
+      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>>
   class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;

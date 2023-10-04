@@ -41,6 +41,7 @@ option(BUILD_DOCS "Build the documentation" OFF)
 option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
+set(DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
@@ -50,6 +51,8 @@ cmake_dependent_option(ENABLE_GPU_TYPE "Enable custom CUDA flags" OFF
 if(ENABLE_GPU_TYPE)
   set(GPU_TYPE "" CACHE STRING "The GPU type being targeted")
 endif()
+
+add_compile_definitions(DEFAULT_VECTOR_SIZE=${DEFAULT_VECTOR_MATRIX_SIZE})
 
 ################################################################################
 # Dependencies
