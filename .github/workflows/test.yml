@@ -106,6 +106,7 @@ jobs:
           ctest -C Debug --rerun-failed --output-on-failure . --verbose
 
   xcode_1:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: macos-12
     strategy:
       matrix:
@@ -129,6 +130,7 @@ jobs:
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
   xcode_2:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: macos-13
     strategy:
       matrix:
