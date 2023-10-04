@@ -35,10 +35,16 @@ TEST(JitLinearSolver, DenseMatrixVectorOrdering)
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
     EXPECT_TRUE(false);
   }
-  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::JitLinearSolver<1, Group1SparseVectorMatrix>>(
+  testDenseMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>>(
       [&](const Group1SparseVectorMatrix<double>& matrix,
-          double initial_value) -> micm::JitLinearSolver<1, Group1SparseVectorMatrix> {
-        return micm::JitLinearSolver<1, Group1SparseVectorMatrix>{ jit.get(), matrix, initial_value };
+          double initial_value) -> micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>
+      {
+        return micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>{ jit.get(),
+                                                                                                matrix,
+                                                                                                initial_value };
       });
 }
 

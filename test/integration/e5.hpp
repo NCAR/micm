@@ -2,8 +2,8 @@
 
 #include <micm/solver/rosenbrock.hpp>
 
-template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix>
-class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
+template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix, class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
+class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
  public:
   /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
@@ -12,7 +12,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
   E5(const micm::System& system,
      const std::vector<micm::Process>& processes,
      const micm::RosenbrockSolverParameters& parameters)
-      : micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>()
+      : micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>()
   {
     this->system_ = system;
     this->processes_ = processes;
@@ -29,7 +29,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
     this->jacobian_ = builder;
     for (std::size_t i = 0; i < this->jacobian_[0].size(); ++i)
       this->jacobian_diagonal_elements_.push_back(this->jacobian_.VectorIndex(0, i, i));
-    this->linear_solver_ = micm::LinearSolver<double, SparseMatrixPolicy>(this->jacobian_, 1.0e-30);
+    this->linear_solver_ = LinearSolverPolicy(this->jacobian_, 1.0e-30);
   }
 
   ~E5()

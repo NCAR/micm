@@ -9,6 +9,10 @@
 #include <micm/util/exit_codes.hpp>
 #include <vector>
 
+#ifndef DEFAULT_VECTOR_SIZE
+#  define DEFAULT_VECTOR_SIZE 4
+#endif
+
 namespace micm
 {
 
@@ -19,7 +23,7 @@ namespace micm
   ///
   /// The template arguments are the type of the matrix elements and the size of the number
   /// of rows per group.
-  template<class T, std::size_t L>
+  template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
     std::vector<T> data_;

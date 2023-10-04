@@ -4,6 +4,9 @@
 #pragma once
 
 #include <cmath>
+
+#include "vector_matrix.hpp"
+
 namespace micm
 {
 
@@ -15,7 +18,7 @@ namespace micm
   ///
   /// The template argument is the number of blocks per set of blocks and should be
   /// approximately the size of the vector register.
-  template<std::size_t L>
+  template<std::size_t L = DEFAULT_VECTOR_SIZE>
   class SparseMatrixVectorOrdering
   {
    protected:
@@ -61,4 +64,9 @@ namespace micm
       return std::ceil((double)number_of_blocks / (double)L);
     }
   };
+
+  // Default vectorized SparseMatrix
+  template<class T>
+  using VectorSparseMatrix = SparseMatrix<T, SparseMatrixVectorOrdering<DEFAULT_VECTOR_SIZE>>;
+
 }  // namespace micm

@@ -150,7 +150,10 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = StandardSparseMatrix>
+  template<
+      template<class> class MatrixPolicy = Matrix,
+      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
+      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
   class RosenbrockSolver
   {
    public:
@@ -204,7 +207,7 @@ namespace micm
     ProcessSet process_set_;
     SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
-    LinearSolver<double, SparseMatrixPolicy> linear_solver_;
+    LinearSolverPolicy linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
     size_t N_{};
 
@@ -216,10 +219,23 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
     RosenbrockSolver(
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters);
+
+    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters,
+    ///        with a specific function provided to create the linear solver
+    /// @param system The chemical system to create the solver for
+    /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
+    /// @param create_linear_solver Function that will be used to create a linear solver instance
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver);
 
     virtual ~RosenbrockSolver() = default;
 
@@ -246,9 +262,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
