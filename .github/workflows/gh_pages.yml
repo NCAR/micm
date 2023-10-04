@@ -92,6 +92,7 @@ jobs:
           brdir=${brname//\//--}   # replace '/' with '--'
           rm -rf   _gh-pages/branch/${brdir}
           rsync -a tmpdocs/ _gh-pages/branch/${brdir}
+          mv docs/switcher.json _gh-pages
 
       # Go through each branch in _gh-pages/branch/, if it's not a
       # ref, then delete it.
