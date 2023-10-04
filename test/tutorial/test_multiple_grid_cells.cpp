@@ -1,6 +1,5 @@
 #include <iomanip>
 #include <iostream>
-
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
@@ -86,7 +85,7 @@ int main()
   State<Matrix> state = solver.GetState();
 
   // mol m-3
-  state.SetConcentration(a, std::vector<double>{1, 2, 0.5 });
+  state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
   state.SetConcentration(b, std::vector<double>(3, 0));
   state.SetConcentration(c, std::vector<double>(3, 0));
 
@@ -97,11 +96,12 @@ int main()
   state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
   state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
 
-  double temperature = 272.5; // [K]
-  double pressure = 101253.3; // [Pa]
-  double air_density = 1e6;   // [mol m-3]
+  double temperature = 272.5;  // [K]
+  double pressure = 101253.3;  // [Pa]
+  double air_density = 1e6;    // [mol m-3]
 
-  for(size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell) {
+  for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
+  {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
     state.conditions_[cell].air_density_ = air_density;

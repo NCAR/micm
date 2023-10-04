@@ -6,6 +6,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
+[![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
@@ -112,7 +113,7 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   State state = solver.GetState();
 

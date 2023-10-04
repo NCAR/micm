@@ -23,6 +23,41 @@ endif()
 # OpenMP
 
 if(ENABLE_OPENMP)
+  if(APPLE)
+    # Apple clang by default doesn't include support for openmp
+    # but if omp was installed with `brew install libomp`, support can be configured
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      # Set the C flags
+      set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
+      set(OpenMP_C_LIB_NAMES "omp")
+      set(OpenMP_omp_LIBRARY omp)
+
+      # Set the CXX flags
+      set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+      set(OpenMP_CXX_LIB_NAMES "omp")
+      set(OpenMP_omp_LIBRARY omp)
+
+      # Assume that libomp is instaleld on mac with brew when using apple clang
+      # Get the path to libomp from Homebrew
+      execute_process(
+        COMMAND brew --prefix libomp
+        OUTPUT_VARIABLE LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+      # Set the full path to the libomp library
+      set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
+
+      # Set the include directory
+      set(LIBOMP_INCLUDE_DIR "${LIBOMP_PREFIX}/include")
+
+      include_directories(
+        ${LIBOMP_INCLUDE_DIR}
+      )
+    endif()
+
+  endif()
+
   find_package(OpenMP REQUIRED)
   message(STATUS "Compiling with OpenMP support")
 endif()
