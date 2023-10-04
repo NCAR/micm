@@ -21,9 +21,9 @@ project = 'MICM'
 copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
 author = 'NCAR/UCAR'
 
-# The full version, including alpha/beta/rc tags
-release = '3.2.0'
-
+suffix = os.getenv("SWITCHER_SUFFIX", "")
+# the suffix is required. This is controlled by the dockerfile that builds the docs
+release = f'v3.2.0{suffix}'
 
 # -- General configuration ---------------------------------------------------
 
