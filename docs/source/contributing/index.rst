@@ -11,7 +11,7 @@ or provide other background knowledge.
 Testing
 -------
 
-Any code that you contribute must include associated unit tests or an integration test of some kind. Our tests run across
+Any code that you contribute must include associated unit tests and an integration test of some kind. Our tests run across
 various platforms and with different configurations automatically. By including tests that exercise your code, you help to
 minimize the amount of time debugging platform portability issues. Further, new features must include at least an example
 in our documentation.
