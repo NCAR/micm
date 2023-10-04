@@ -99,6 +99,7 @@ namespace micm
     jacobian_function_ = std::move(other.jacobian_function_);
     other.forcing_function_ = NULL;
     other.jacobian_function_ = NULL;
+    return *this;
   }
 
   template<std::size_t L>
@@ -112,6 +113,10 @@ namespace micm
   {
     forcing_function_ = NULL;
     jacobian_function_ = NULL;
+    if (state.variables_.size() != L || state.variables_.GroupVectorSize() != L)
+    {
+      throw std::runtime_error("Invalid state for JitProcessSet. Check the the VectorMatrix template parameters.");
+    }
     this->GenerateForcingFunction();
   }
 

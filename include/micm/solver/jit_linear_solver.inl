@@ -23,6 +23,7 @@ namespace micm
     solve_function_resource_tracker_ = std::move(other.solve_function_resource_tracker_);
     solve_function_ = std::move(other.solve_function_);
     other.solve_function_ = NULL;
+    return *this;
   }
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -38,6 +39,10 @@ namespace micm
         compiler_(compiler)
   {
     solve_function_ = NULL;
+    if (matrix.size() != L || matrix.GroupVectorSize() != L)
+    {
+      throw std::runtime_error("Invalid matrix for JitLinearSolver. Check the the VectorMatrix template parameters.");
+    }
     GenerateSolveFunction();
   }
 

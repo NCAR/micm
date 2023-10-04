@@ -22,6 +22,7 @@ namespace micm
     decompose_function_resource_tracker_ = std::move(other.decompose_function_resource_tracker_);
     decompose_function_ = std::move(other.decompose_function_);
     other.decompose_function_ = NULL;
+    return *this;
   }
 
   template<std::size_t L>
@@ -32,7 +33,10 @@ namespace micm
         compiler_(compiler)
   {
     decompose_function_ = NULL;
-    assert(matrix.size() <= L && "Jit LU Decomposition matrix size mismatch");
+    if (matrix.size() > L)
+    {
+      throw std::runtime_error("Invalid matrix for JitLuDecomposition. Check the the VectorMatrix template parameters.");
+    }
     GenerateDecomposeFunction();
   }
 

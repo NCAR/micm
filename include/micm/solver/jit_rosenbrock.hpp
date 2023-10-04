@@ -57,6 +57,7 @@ namespace micm
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
       other.alpha_minus_jacobian_ = NULL;
+      return *this;
     }
 
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
@@ -76,6 +77,11 @@ namespace micm
               }),
           compiler_(compiler)
     {
+      MatrixPolicy<double> temp{};
+      if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
+      {
+        throw std::runtime_error("Number of grid cells for JitRosenbrockSolver must match template parameter.");
+      }
       this->GenerateAlphaMinusJacobian();
     }
 
