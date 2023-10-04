@@ -1,0 +1,119 @@
+{
+  "camp-data": [
+    {
+      "name": "reaction rates no user defined",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "ARRHENIUS",
+          "reactants": {
+            "A": {}
+          },
+          "products": {
+            "B": {}
+          },
+          "A": 2.15e-1,
+          "B": 0,
+          "C": 110.0
+        },
+        {
+          "type": "BRANCHED",
+          "reactants": {
+            "B": {}
+          },
+          "alkoxy products": {
+            "C": {}
+          },
+          "nitrate products": {
+            "D": {}
+          },
+          "Y": 204.3,
+          "X": 1.2,
+          "a0": 1.0e-3,
+          "n": 2
+        },
+        {
+          "type": "SURFACE",
+          "gas-phase reactant": "C",
+          "gas-phase products": {
+            "E": {
+              "yield": 1.0
+            }
+          },
+          "MUSICA name": "C surface",
+          "reaction probability": 0.90
+        },
+        {
+          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "reactants": {
+            "D": {}
+          },
+          "products": {
+            "F": {
+              "yield": 2
+            }
+          },
+          "k0_A": 1.2,
+          "k0_B": 2.3,
+          "k0_C": 302.3,
+          "kinf_A": 2.6,
+          "kinf_B": -3.1,
+          "kinf_C": 402.1,
+          "Fc": 0.9,
+          "N": 1.2
+        },
+        {
+          "type": "TROE",
+          "k0_A": 1.2e4,
+          "k0_B": 167.0,
+          "k0_C": 3.0,
+          "kinf_A": 136.0,
+          "kinf_B": 5.0,
+          "kinf_C": 24.0,
+          "Fc": 0.9,
+          "N": 0.8,
+          "reactants": {
+            "E": {
+              "qty": 2
+            }
+          },
+          "products": {
+            "G": {}
+          }
+        },
+        {
+          "type": "TUNNELING",
+          "reactants": {
+            "F": {}
+          },
+          "products": {
+            "G": {}
+          },
+          "A": 1.2,
+          "B": 2.3,
+          "C": 302.3
+        },
+        {
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "C": {}
+          },
+          "products": {
+            "G": {}
+          },
+          "MUSICA name": "my photolysis rate"
+        },
+        {
+          "type": "FIRST_ORDER_LOSS",
+          "species": "B",
+          "MUSICA name": "my loss rate"
+        },
+        {
+          "type": "EMISSION",
+          "species": "A",
+          "MUSICA name": "my emission rate"
+        }
+      ]
+    }
+  ]
+}

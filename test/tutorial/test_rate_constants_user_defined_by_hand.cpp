@@ -9,10 +9,17 @@
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
+
+// The Rosenbrock solver can use many matrix ordering types
+// Here, we use the default ordering, but we still need to provide a templated
+// Arguent to the solver so it can use the proper ordering with any data type
+template<class T>
+using SparseMatrixPolicy = SparseMatrix<T>;
 
 void print_header()
 {
@@ -126,10 +133,28 @@ int main(const int argc, const char* argv[])
                    .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                    .phase(gas_phase);
 
-  auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
-  auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
+  Process r8 = Process::create()
+                   .reactants({ c })
+                   .products({ yields(g, 1) })
+                   .rate_constant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
+                   .phase(gas_phase);
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  Process r9 = Process::create()
+                   .products({ yields(a, 1) })
+                   .rate_constant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
+                   .phase(gas_phase);
+
+  Process r10 = Process::create()
+                    .reactants({ b })
+                    .rate_constant(UserDefinedRateConstant({ .label_ = "my loss rate" }))
+                    .phase(gas_phase);
+
+  auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
+
+  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
+                                                       reactions,
+                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K
@@ -146,11 +171,18 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("C.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("C.particle number concentration [# m-3]", 2.5e6);
 
-  // choose a timestep and print the initial state
+  // choose and timestep a print the initial state
   double time_step = 500;  // s
 
   print_header();
   print_state(0, state);
+
+  double photo_rate = 1e-10;
+  double emission_rate = 1e-20;
+  double loss = emission_rate * 1e-3;
+  // these rates are constant through the simulation
+  state.SetCustomRateParameter("my emission rate", emission_rate);
+  state.SetCustomRateParameter("my loss rate", loss);
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -160,16 +192,18 @@ int main(const int argc, const char* argv[])
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
     double elapsed_solve_time = 0;
+    // this rate is updated at each time step and would typically vary with time
+    state.SetCustomRateParameter("my photolysis rate", photo_rate);
 
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-      state.variables_ = result.result_;
+      state.variables_[0] = result.result_.AsVector();
     }
 
     print_state(time_step * (i + 1), state);
+    photo_rate *= 1.5;
   }
 
   return 0;

@@ -35,7 +35,9 @@ We'll setup and solve a fake chemical system with 7 species and 6 reactions,
 
 MICM can be configured in two ways. We can either build the mechanism up by hand with the ``micm`` API,
 or parse a valid mechanism Configuration
-in the OpenAtmos format. In this tutorial, we will do both. If you're looking for a copy and paste, choose
+in the OpenAtmos format. In this tutorial, we will do both. 
+
+If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
 
@@ -126,6 +128,11 @@ can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
 The rosenbrock solver will provide us a state, which we can use to set the concentrations,
 custom rate parameters, and temperature and pressure
 
+.. _Rate constants set concentations:
+
+Initializing the state
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. tabs::
 
     .. tab:: Build the Mechanism with the API
@@ -141,7 +148,7 @@ custom rate parameters, and temperature and pressure
           :lines: 75-93
 
 
-Finally, we are ready to pick a timestep ans solve the system.
+Finally, we are ready to pick a timestep and solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp

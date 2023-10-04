@@ -1,0 +1,34 @@
+{
+  "camp-data": [
+    {
+      "name": "A",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "B",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "C",
+      "type": "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.025,
+      "diffusion coefficient [m2 s-1]" : 2.3e2
+    },
+    {
+      "name": "D",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "E",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "F",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "G",
+      "type": "CHEM_SPEC"
+    }
+  ]
+}
