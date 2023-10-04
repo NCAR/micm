@@ -94,7 +94,6 @@ void test_solver_type(T solver)
       total_stats.decompositions += result.stats_.decompositions;
       total_stats.solves += result.stats_.solves;
       total_stats.singular += result.stats_.singular;
-      total_stats.total_steps += result.stats_.total_steps;
       total_stats.total_forcing_time += result.stats_.total_forcing_time;
       total_stats.total_jacobian_time += result.stats_.total_jacobian_time;
       total_stats.total_linear_factor_time += result.stats_.total_linear_factor_time;
