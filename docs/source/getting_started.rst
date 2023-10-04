@@ -9,16 +9,14 @@ CPU
 ~~~
 To build and install MICM locally, you must have the following libraries installed:
 
-- [sphinx](https://github.com/sphinx-doc/sphinx)
-- [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
-- [sphinx-design](https://github.com/executablebooks/sphinx-design)
-- [breathe](https://github.com/breathe-doc/breathe)
+- `CMake <https://cmake.org/>`_
+  - `installation <https://cmake.org/download/>`_
 
-You must also have CMake installed on your machine.
+Then, it's enough for you to configure and install micm on your computer. Because micm is header-only library, the install
+step will simply copy the header files into the normal location required by your system.
 
-Open a terminal window, navigate to a folder where you would like the MICM files to exist,
-and run the following commands::
-
+.. code-block:: console
+  
     $ git clone https://github.com/NCAR/micm.git
     $ cd micm
     $ mkdir build
@@ -29,6 +27,20 @@ and run the following commands::
 
 CMake will allow for setting options such as the installation directory
 with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
+
+MICM can optionally include support for json configuration reading, OpenMP,
+JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
+Some of these libraries can be included automatically with cmake build options,
+others require that you have libraries installed on your system.
+
+- JSON configuration support
+  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DENABLE_JSON=ON ..``
+- JIT-compiled chemistry functions 
+  - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
+- GPU support
+  - Coming soon
+- OpenMP
+  - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
 
 Docker Container
 ~~~~~~~~~~~~~~~~
@@ -74,7 +86,7 @@ The following example solves the fictitious chemical system::
   foo + bar --k2--> baz
 
 The `k1` and `k2` rate constants are for Arrhenius reactions.
-See the [MICM documentation](https://ncar.github.io/micm/)
+See the `MICM documentation <https://ncar.github.io/micm/>`
 for details on the types of reactions available in MICM and how to configure them.
 To solve this system save the following code in a file named `foo_chem.cpp`
 

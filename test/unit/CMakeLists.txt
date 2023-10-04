@@ -9,6 +9,9 @@ add_subdirectory(solver)
 add_subdirectory(system)
 add_subdirectory(util)
 add_subdirectory(version)
+if(ENABLE_OPENMP AND ENABLE_JSON)
+  add_subdirectory(openmp)
+endif()
 
 ################################################################################
 # Copy test data
