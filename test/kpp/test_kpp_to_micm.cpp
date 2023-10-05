@@ -75,8 +75,8 @@ int main(const int argc, const char *argv[])
 
   state.SetConcentrations(solver_params.system_, intial_concentration);
 
-  double time_step = 60;  // s
-  int nstep = 3;
+  double time_step = 600;  // s
+  int nstep = 20;
 
   for (int i = 0; i < nstep; ++i) {
 
