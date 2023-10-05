@@ -40,12 +40,11 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v5
         with:
           context: .
-          multiPlatform: true
-          platform: linux/amd64,linux/arm64,linux/arm/v7
-          dockerfile: Dockerfile.publish
+          platforms: linux/amd64
+          file: Dockerfile.publish
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
