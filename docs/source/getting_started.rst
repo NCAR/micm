@@ -47,7 +47,7 @@ Docker Container
 
 Build and run the image::
 
-    $ docker build -t micm -f Dockerfile.nvhpc .
+    $ docker build -t micm -f docker/Dockerfile.nvhpc .
     $ docker run --rm -it micm
 
 If you would like, you can ssh into a running docker container and edit the files there.
