@@ -21,9 +21,9 @@ project = 'MICM'
 copyright = f'2022-{datetime.datetime.now().year}, NCAR/UCAR'
 author = 'NCAR/UCAR'
 
-# The full version, including alpha/beta/rc tags
-release = '3.2.0'
-
+suffix = os.getenv("SWITCHER_SUFFIX", "")
+# the suffix is required. This is controlled by the dockerfile that builds the docs
+release = f'v3.2.0{suffix}'
 
 # -- General configuration ---------------------------------------------------
 
@@ -34,7 +34,6 @@ extensions = [
   'breathe',
   'sphinx_copybutton',
   'sphinx_design',
-  'sphinx_tabs.tabs',
   'sphinxcontrib.bibtex',
 ]
 
@@ -64,7 +63,7 @@ html_theme_options = {
     "github_url": "https://github.com/NCAR/micm",
     "navbar_end": ["version-switcher", "navbar-icon-links"],
     "switcher": {
-        "json_url": "https://ncar.github.io/micm/switcher.json",
+        "json_url": "https://ncar.github.io/micm/_static/switcher.json",
         "version_match": release,
     },
 }

@@ -16,9 +16,9 @@ We will use a simple 3-reaction 3-species mechanism. The setup here is the same 
 If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
       .. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
         :language: cpp

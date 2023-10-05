@@ -20,9 +20,9 @@ The third grid cell will have concentrations half as large as the first grid cel
 If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
       .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
         :language: cpp

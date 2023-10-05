@@ -51,7 +51,7 @@ jobs:
           set -x
           mkdir -p _build/html/versions
 
-          # create two copies of the documentaiton
+          # create two copies of the documentation
           # 1. the frozen version, represented as vX.X in the version switcher
           docker build -t micm -f docker/Dockerfile.docs .
           id=$(docker create micm)
@@ -73,7 +73,9 @@ jobs:
           # _gh-pages itself.
           find _gh-pages/ -mindepth 1 ! -path '_gh-pages/branch*' ! -path '_gh-pages/versions*' -delete
           rsync -a _build/html/versions/stable/* _gh-pages/
-          mv docs/switcher.json _gh-pages
+          mkdir -p _gh-pages/versions
+          rsync -a _build/html/versions/* _gh-pages/versions
+          # mv docs/switcher.json _gh-pages
 
       # If a push and not on default branch, then copy the build to
       # _gh-pages/branch/$brname (transforming '/' into '--')
