@@ -64,7 +64,7 @@ html_theme_options = {
     "github_url": "https://github.com/NCAR/micm",
     "navbar_end": ["version-switcher", "navbar-icon-links"],
     "switcher": {
-        "json_url": "https://ncar.github.io/micm/switcher.json",
+        "json_url": "https://ncar.github.io/micm/_static/switcher.json",
         "version_match": release,
     },
 }
