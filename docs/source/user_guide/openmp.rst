@@ -14,9 +14,9 @@ We will use a simple 3-reaction 3-species mechanism. The setup here is the same 
 
 If you're looking for a copy and paste, copy below and be on your way! Otherwise, stick around for a line by line explanation.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
       .. raw:: html
 

@@ -34,7 +34,6 @@ extensions = [
   'breathe',
   'sphinx_copybutton',
   'sphinx_design',
-  'sphinx_tabs.tabs',
   'sphinxcontrib.bibtex',
 ]
 
