@@ -14,13 +14,6 @@ Copyright (C) 2018-2023 National Center for Atmospheric Research
 
 ## Installing MICM locally
 To build and install MICM locally, you must have CMake installed on your machine.
-If you plan to build the documentation, you must also have:
-
-- [sphinx](https://github.com/sphinx-doc/sphinx)
-- [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
-- [sphinx-design](https://github.com/executablebooks/sphinx-design)
-- [breathe](https://github.com/breathe-doc/breathe)
-
 
 Open a terminal window, navigate to a folder where you would like the MICM files to exist,
 and run the following commands:
