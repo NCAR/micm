@@ -51,7 +51,7 @@ To build the latest pre-release version of MICM, instead run:
 ```
 git clone https://github.com/NCAR/micm.git
 cd micm
-docker build -t micm -f docker/Dockerfile .
+docker build -t micm -f docker/Dockerfile . -f docker/Dockerfile
 docker run -it micm bash
 ```
 
