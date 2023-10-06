@@ -41,14 +41,14 @@ If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         .. raw:: html
 
@@ -81,9 +81,9 @@ rosenbrock solver.
 To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         To do this by hand, we have to define all of the chemical species in the system. This allows us to set
         any properties of the species that may be necessary for rate constanta calculations, like molecular weights 
@@ -108,7 +108,7 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
           :language: cpp
           :lines: 135-136
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         After defining a valid OpenAtmos configuration with reactions that ``micm`` supports, configuring the chemical
         system and the processes is as simple as using the :cpp:class:`micm::SolverConfig` class
@@ -133,15 +133,15 @@ custom rate parameters, and temperature and pressure
 Initializing the state
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
           :lines: 141-155
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp

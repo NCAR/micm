@@ -29,14 +29,14 @@ To show how this works, we'll add one photolysis reaction, one first-order loss 
 If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_user_defined_by_hand.cpp
           :language: cpp
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         .. raw:: html
 
@@ -70,9 +70,9 @@ Then setup the reaction which will use this rate constant:
 
 
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. code-block:: diff
 
@@ -104,7 +104,7 @@ Then setup the reaction which will use this rate constant:
 
 
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         In this case, you only need to add the configuration to the reactions.json file in the configuration directory.
 
@@ -137,9 +137,9 @@ Finally, set and upate the rate constants as needed:
 
 
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. code-block:: diff
 
@@ -171,7 +171,7 @@ Finally, set and upate the rate constants as needed:
           +   photo_rate *= 1.5;
            }
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         In this case, you only need to add the configuration to the reactions.json file in the configuration directory.
         When reading in from a configuration file, the loss, emissions, and photolysis rates are prefixed with
