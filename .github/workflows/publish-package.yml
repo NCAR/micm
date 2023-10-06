@@ -2,7 +2,7 @@ name: Create and publish a Docker image
 
 on:
   push:
-    branches: ['release', '292-add-a-docker-image-publish']
+    branches: ['release']
     tags:
       - '*'
 
