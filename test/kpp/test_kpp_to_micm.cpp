@@ -9,10 +9,10 @@ void print_header()
 {
   std::cout << std::setw(5) << "time"
             << "," << std::setw(10) << "O2"
-            << "," << std::setw(9) << "O3"
-            << "," << std::setw(9) << "O"
-            << "," << std::setw(9) << "O1D"
-            << "," << std::setw(9) << "NO2"
+            << "," << std::setw(10) << "O3"
+            << "," << std::setw(10) << "O"
+            << "," << std::setw(10) << "O1D"
+            << "," << std::setw(10) << "NO2"
             << "," << std::setw(10) << "NO" << std::endl;
 }
 
@@ -22,7 +22,7 @@ void print_state(double time, micm::State<T>& state)
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
 
-  std::cout << std::setw(5) << time << ", " << std::flush;
+  std::cout << std::setw(5) << time << "," << std::flush;
 
   std::cout << std::scientific << std::setw(10) << std::setprecision(2)
             << state.variables_[0][state.variable_map_["O2"]]
