@@ -14,7 +14,7 @@ namespace micm
 
   /// @brief JIT-compiled solver function calculators for a collection of processes
   ///        The template parameter is the number of grid cells to solve simultaneously
-  template<std::size_t L>
+  template<std::size_t L = DEFAULT_VECTOR_SIZE>
   class JitProcessSet : public ProcessSet
   {
     std::shared_ptr<JitCompiler> compiler_;
@@ -24,6 +24,11 @@ namespace micm
     void (*jacobian_function_)(const double *, const double *, double *);
 
    public:
+    JitProcessSet(const JitProcessSet &) = delete;
+    JitProcessSet &operator=(const JitProcessSet &) = delete;
+    JitProcessSet(JitProcessSet &&);
+    JitProcessSet &operator=(JitProcessSet &&);
+
     /// @brief Create a JITed process set calculator for a given set of processes
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
@@ -71,6 +76,33 @@ namespace micm
   };
 
   template<std::size_t L>
+  inline JitProcessSet<L>::JitProcessSet(JitProcessSet &&other)
+      : ProcessSet(std::move(other)),
+        compiler_(std::move(other.compiler_)),
+        forcing_function_resource_tracker_(std::move(other.forcing_function_resource_tracker_)),
+        forcing_function_(std::move(other.forcing_function_)),
+        jacobian_function_resource_tracker_(std::move(other.jacobian_function_resource_tracker_)),
+        jacobian_function_(std::move(other.jacobian_function_))
+  {
+    other.forcing_function_ = NULL;
+    other.jacobian_function_ = NULL;
+  }
+
+  template<std::size_t L>
+  inline JitProcessSet<L> &JitProcessSet<L>::operator=(JitProcessSet &&other)
+  {
+    ProcessSet::operator=(std::move(other));
+    compiler_ = std::move(other.compiler_);
+    forcing_function_resource_tracker_ = std::move(other.forcing_function_resource_tracker_);
+    forcing_function_ = std::move(other.forcing_function_);
+    jacobian_function_resource_tracker_ = std::move(other.jacobian_function_resource_tracker_);
+    jacobian_function_ = std::move(other.jacobian_function_);
+    other.forcing_function_ = NULL;
+    other.jacobian_function_ = NULL;
+    return *this;
+  }
+
+  template<std::size_t L>
   template<template<class> class MatrixPolicy>
   inline JitProcessSet<L>::JitProcessSet(
       std::shared_ptr<JitCompiler> compiler,
@@ -81,6 +113,10 @@ namespace micm
   {
     forcing_function_ = NULL;
     jacobian_function_ = NULL;
+    if (state.variables_.size() != L || state.variables_.GroupVectorSize() != L)
+    {
+      throw std::runtime_error("Invalid state for JitProcessSet. Check the the VectorMatrix template parameters.");
+    }
     this->GenerateForcingFunction();
   }
 

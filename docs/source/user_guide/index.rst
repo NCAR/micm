@@ -9,9 +9,31 @@ If you happen to find our examples are lacking for your needs, please,
 `fill out an issue <https://github.com/NCAR/micm/issues/new>`_ and request the kind of example you'd like. 
 
 
+All of these tutorials are included in our automated tests. Each of them can be found in the code base in the
+``test/tutorial`` directory. When building MICM with tests (the default), you can each test individually to see the output.
 
-1. :ref:`Rate constants`
-2. :ref:`User defined rate constants`
+
+.. code-block:: console
+  
+    $ git clone https://github.com/NCAR/micm.git
+    $ cd micm
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    $ ./test_multiple_grid_cells
+    $ ./test_rate_constants_no_user_defined_example_by_hand
+    $ ./test_rate_constants_user_defined_example_by_hand
+
+
+If you would like to include the json examples, you must configure micm to build with json support.
+
+.. code-block:: console
+  
+    $ cmake -DENABLE_JSON=ON ..
+    $ make
+    $ ./test_rate_constants_no_user_defined_example_with_config
+    $ ./test_rate_constants_user_defined_example_with_config
 
 
 .. toctree::
@@ -20,3 +42,7 @@ If you happen to find our examples are lacking for your needs, please,
 
    rate_constant_tutorial
    user_defined_rate_constant_tutorial
+   multiple_grid_cells
+   solver_configurations
+   but_how_fast_is_it
+   openmp

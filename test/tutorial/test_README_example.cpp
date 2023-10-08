@@ -5,9 +5,6 @@
 
 using namespace micm;
 
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
 int main(const int argc, const char *argv[])
 {
   auto foo = Species{ "Foo" };
@@ -32,9 +29,7 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
-                                                       reactions,
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
   solver.parameters_.print();
 
   State state = solver.GetState();
@@ -43,13 +38,19 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << "foo, bar, baz" << std::endl;
+  std::cout << std::setw(5) << "time [s]," 
+            << std::setw(13) << "foo, "
+            << std::setw(12) << "bar, "
+            << std::setw(10) << "baz" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::fixed << std::setprecision(6) << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << state.variables_[0][state.variable_map_["Bar"]] << ", " << state.variables_[0][state.variable_map_["Baz"]]
+    std::cout << std::fixed << std::setprecision(6) 
+              << std::setw(8) << i * 500.0 << ", "
+              << std::setw(10) << state.variables_[0][state.variable_map_["Foo"]] << ", "
+              << std::setw(10) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
+              << std::setw(10) << state.variables_[0][state.variable_map_["Baz"]]
               << std::endl;
   }
 

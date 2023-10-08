@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -20,7 +21,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<typename T, template<class> class SparseMatrixPolicy>
+  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
@@ -47,30 +48,38 @@ namespace micm
     // Indices of non-zero combinations of U_ij and x_j
     std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
 
-    LuDecomposition lu_decomp_;
+    LuDecompositionPolicy lu_decomp_;
     SparseMatrixPolicy<T> lower_matrix_;
     SparseMatrixPolicy<T> upper_matrix_;
 
    public:
     /// @brief default constructor
-    LinearSolver() = default;
+    LinearSolver(){};
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
+    /// @param initial_value Initial value for matrix elements
     LinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value);
+
+    /// @brief Constructs a linear solver for the sparsity structure of the given matrix
+    /// @param matrix Sparse matrix
+    /// @param initial_value Initial value for matrix elements
+    /// @param create_lu_decomp Function to create an LU Decomposition object that adheres to LuDecompositionPolicy
+    LinearSolver(
+        const SparseMatrixPolicy<T>& matrix,
+        T initial_value,
+        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     void Factor(const SparseMatrixPolicy<T>& matrix);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+      requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
     template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+      requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
   };
 
 }  // namespace micm

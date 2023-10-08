@@ -35,18 +35,20 @@ We'll setup and solve a fake chemical system with 7 species and 6 reactions,
 
 MICM can be configured in two ways. We can either build the mechanism up by hand with the ``micm`` API,
 or parse a valid mechanism Configuration
-in the OpenAtmos format. In this tutorial, we will do both. If you're looking for a copy and paste, choose
+in the OpenAtmos format. In this tutorial, we will do both. 
+
+If you're looking for a copy and paste, choose
 the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         .. raw:: html
 
@@ -79,9 +81,9 @@ rosenbrock solver.
 To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these.
 
-.. tabs::
+.. tab-set::
 
-    .. tab:: Build the Mechanism with the API
+    .. tab-item:: Build the Mechanism with the API
 
         To do this by hand, we have to define all of the chemical species in the system. This allows us to set
         any properties of the species that may be necessary for rate constanta calculations, like molecular weights 
@@ -106,7 +108,7 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
           :language: cpp
           :lines: 135-136
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         After defining a valid OpenAtmos configuration with reactions that ``micm`` supports, configuring the chemical
         system and the processes is as simple as using the :cpp:class:`micm::SolverConfig` class
@@ -126,53 +128,48 @@ can be found in the :cpp:class:`micm::RosenbrockSolverParameters`
 The rosenbrock solver will provide us a state, which we can use to set the concentrations,
 custom rate parameters, and temperature and pressure
 
-.. tabs::
+.. _Rate constants set concentations:
 
-    .. tab:: Build the Mechanism with the API
+Initializing the state
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. tab-set::
+
+    .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
           :lines: 141-155
 
-    .. tab:: OpenAtmos Configuration reading
+    .. tab-item:: OpenAtmos Configuration reading
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
           :lines: 75-93
 
 
-Finally, we are ready to pick a timestep ans solve the system.
+Finally, we are ready to pick a timestep and solve the system.
 
   .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
     :language: cpp
-    :lines: 157-183
+    :lines: 149-173
 
 
 This is the output:
 
 
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| time  |      A      |      B      |      C      |      D      |      E      |      F      |      G      |
-+=======+=============+=============+=============+=============+=============+=============+=============+
-|   0   |   1.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |   0.00e+00  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-|  500  |   3.18e-09  |   3.66e-09  |   9.83e-01  |   3.88e-14  |   1.41e-03  |   2.02e-13  |   7.92e-03  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 1000  |   1.14e-14  |   1.31e-14  |   9.66e-01  |   1.39e-19  |   1.40e-03  |   7.24e-19  |   1.64e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 1500  |   4.09e-20  |   4.71e-20  |   9.49e-01  |   4.98e-25  |   1.39e-03  |   2.59e-24  |   2.48e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 2000  |   1.47e-25  |   1.69e-25  |   9.33e-01  |   1.79e-30  |   1.38e-03  |   9.30e-30  |   3.30e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 2500  |   5.26e-31  |   6.05e-31  |   9.17e-01  |   6.40e-36  |   1.37e-03  |   3.33e-35  |   4.11e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 3000  |   1.89e-36  |   2.17e-36  |   9.01e-01  |   2.30e-41  |   1.36e-03  |   1.20e-40  |   4.90e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 3500  |   6.77e-42  |   7.78e-42  |   8.85e-01  |   8.23e-47  |   1.34e-03  |   4.29e-46  |   5.68e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 4000  |   2.43e-47  |   2.79e-47  |   8.70e-01  |   2.95e-52  |   1.33e-03  |   1.54e-51  |   6.44e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 4500  |   8.70e-53  |   1.00e-52  |   8.55e-01  |   1.06e-57  |   1.32e-03  |   5.51e-57  |   7.20e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-| 5000  |   3.12e-58  |   3.59e-58  |   8.40e-01  |   3.80e-63  |   1.31e-03  |   1.98e-62  |   7.94e-02  |
-+-------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
+.. csv-table:: Table Title
+   :header: "time", "A", "B", "C", "D", "E", "F", "G"
+   :widths: 10, 15, 15, 15, 15, 15, 15, 15
+
+   "0", "1.00e+00", "0.00e+00", "0.00e+00", "0.00e+00", "0.00e+00", "0.00e+00", "0.00e+00"
+   "500", "3.18e-09", "3.66e-09", "9.83e-01", "3.88e-14", "1.41e-03", "2.02e-13", "7.92e-03"
+   "1000", "1.14e-14", "1.31e-14", "9.66e-01", "1.39e-19", "1.40e-03", "7.24e-19", "1.64e-02"
+   "1500", "4.09e-20", "4.71e-20", "9.49e-01", "4.98e-25", "1.39e-03", "2.59e-24", "2.48e-02"
+   "2000", "1.47e-25", "1.69e-25", "9.33e-01", "1.79e-30", "1.38e-03", "9.30e-30", "3.30e-02"
+   "2500", "5.26e-31", "6.05e-31", "9.17e-01", "6.40e-36", "1.37e-03", "3.33e-35", "4.11e-02"
+   "3000", "1.89e-36", "2.17e-36", "9.01e-01", "2.30e-41", "1.36e-03", "1.20e-40", "4.90e-02"
+   "3500", "6.77e-42", "7.78e-42", "8.85e-01", "8.23e-47", "1.34e-03", "4.29e-46", "5.68e-02"
+   "4000", "2.43e-47", "2.79e-47", "8.70e-01", "2.95e-52", "1.33e-03", "1.54e-51", "6.44e-02"
+   "4500", "8.70e-53", "1.00e-52", "8.55e-01", "1.06e-57", "1.32e-03", "5.51e-57", "7.20e-02"
+   "5000", "3.12e-58", "3.59e-58", "8.40e-01", "3.80e-63", "1.31e-03", "1.98e-62", "7.94e-02"

@@ -15,7 +15,7 @@ namespace micm
   ///
   /// See LuDecomposition class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L>
+  template<std::size_t L = DEFAULT_VECTOR_SIZE>
   class JitLuDecomposition : public LuDecomposition
   {
     std::shared_ptr<JitCompiler> compiler_;
@@ -23,6 +23,13 @@ namespace micm
     void (*decompose_function_)(const double *, double *, double *);
 
    public:
+    JitLuDecomposition(){};
+
+    JitLuDecomposition(const JitLuDecomposition &) = delete;
+    JitLuDecomposition &operator=(const JitLuDecomposition &) = delete;
+    JitLuDecomposition(JitLuDecomposition &&);
+    JitLuDecomposition &operator=(JitLuDecomposition &&);
+
     /// @brief Create a JITed LU decomposer for a given sparse matrix structure
     /// @param compiler JIT compiler
     /// @param matrix Sparse matrix to create LU decomposer for

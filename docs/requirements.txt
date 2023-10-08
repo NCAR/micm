@@ -3,4 +3,4 @@ sphinx
 sphinx-book-theme
 sphinx-copybutton
 sphinx-design
-sphinx-tabs
+sphinxcontrib-bibtex

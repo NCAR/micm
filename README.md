@@ -6,6 +6,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
+[![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
@@ -13,13 +14,6 @@ Copyright (C) 2018-2023 National Center for Atmospheric Research
 
 ## Installing MICM locally
 To build and install MICM locally, you must have CMake installed on your machine.
-If you plan to build the documentation, you must also have:
-
-- [sphinx](https://github.com/sphinx-doc/sphinx)
-- [sphinx-book-theme](https://github.com/executablebooks/sphinx-book-theme)
-- [sphinx-design](https://github.com/executablebooks/sphinx-design)
-- [breathe](https://github.com/breathe-doc/breathe)
-
 
 Open a terminal window, navigate to a folder where you would like the MICM files to exist,
 and run the following commands:
@@ -57,7 +51,7 @@ To build the latest pre-release version of MICM, instead run:
 ```
 git clone https://github.com/NCAR/micm.git
 cd micm
-docker build -t micm .
+docker build -t micm -f docker/Dockerfile .
 docker run -it micm bash
 ```
 
@@ -112,7 +106,7 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   State state = solver.GetState();
 
@@ -143,17 +137,17 @@ g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.1.0/include -std=c++20
 
 Output:
 ```
-foo,       bar,      baz
-19.034389, 0.762719, 0.197464
-18.105748, 1.478520, 0.395242
-17.213802, 2.150391, 0.592159
-16.358113, 2.781130, 0.787212
-15.538111, 3.373351, 0.979560
-14.753106, 3.929496, 1.168498
-14.002317, 4.451851, 1.353446
-13.284884, 4.942548, 1.533932
-12.599887, 5.403583, 1.709582
-11.946359, 5.836817, 1.880104
+time [s],        foo,        bar,        baz
+0.000000,  11.843503,   5.904845,   1.907012
+500.000000,   6.792023,   9.045965,   3.317336
+1000.000000,   3.828700,  10.740589,   4.210461
+1500.000000,   2.138145,  11.663685,   4.739393
+2000.000000,   1.187934,  12.169452,   5.042503
+2500.000000,   0.658129,  12.447502,   5.213261
+3000.000000,   0.363985,  12.600676,   5.308597
+3500.000000,   0.201076,  12.685147,   5.361559
+4000.000000,   0.111028,  12.731727,   5.390884
+4500.000000,   0.061290,  12.757422,   5.407096
 ```
 # Citation
 
@@ -184,10 +178,10 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Code of conduct]
+- [Code of conduct](CODE_OF_CONDUCT.md)
   - Please read this through to you understand the expectations with how to interact with this project.
 
-- [Contributor's guide]
+- [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
 

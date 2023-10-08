@@ -18,17 +18,17 @@ jobs:
           - Dockerfile.memcheck
           - Dockerfile.no_json
           - Dockerfile.nvhpc
+          - Dockerfile.openmp
           # - Dockerfile.intel # intel image is too large for GH action
-          # - Dockerfile.openmp
           # - Dockerfile.mpi
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Build Docker image
-        run: docker build -t micm -f ${{ matrix.dockerfile }} .
+        run: docker build -t micm -f docker/${{ matrix.dockerfile }} .
 
       - name: Run tests in container
         if: matrix.dockerfile != 'Dockerfile.coverage'
@@ -50,7 +50,7 @@ jobs:
           files: coverage.info
 
   multiplatform:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    if: github.event_name == 'pull_request'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -77,7 +77,7 @@ jobs:
       CXX: ${{ matrix.compiler.cpp }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install CMake
         if: matrix.os == 'windows-latest'
@@ -98,9 +98,57 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build .
+          cmake --build . --parallel 10
 
       - name: Run tests
         run: |
           cd build
           ctest -C Debug --rerun-failed --output-on-failure . --verbose
+
+  xcode_1:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-12
+    strategy:
+      matrix:
+        xcode: ['13.1', '13.2.1', '13.3.1', '13.4.1', '14.0', '14.0.1', '14.1']
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
+
+  xcode_2:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-13
+    strategy:
+      matrix:
+        xcode: ['14.1', '14.2', '14.3.1', '15.0']
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10

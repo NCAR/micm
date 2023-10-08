@@ -87,3 +87,4 @@ if(ENABLE_CUDA)
 endif()
 
 add_subdirectory(process)
+add_subdirectory(solver)

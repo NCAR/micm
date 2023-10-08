@@ -19,13 +19,19 @@
 #include <ctime>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
+#include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 namespace micm
 {
 
-  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
-  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>
+  template<
+      template<class> class MatrixPolicy = VectorMatrix,
+      template<class> class SparseMatrixPolicy = VectorSparseMatrix,
+      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>>
+  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
@@ -33,6 +39,27 @@ namespace micm
     FuncPtr alpha_minus_jacobian_ = nullptr;
 
    public:
+    JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
+    JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
+    JitRosenbrockSolver(JitRosenbrockSolver&& other)
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(std::move(other)),
+          compiler_(std::move(other.compiler_)),
+          function_resource_tracker_(std::move(other.function_resource_tracker_)),
+          alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
+    {
+      other.alpha_minus_jacobian_ = NULL;
+    }
+
+    JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
+    {
+      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      compiler_ = std::move(other.compiler_);
+      function_resource_tracker_ = std::move(other.function_resource_tracker_);
+      alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
+      other.alpha_minus_jacobian_ = NULL;
+      return *this;
+    }
+
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
@@ -41,9 +68,20 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>(system, processes, parameters),
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+              system,
+              processes,
+              parameters,
+              [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
+                return LinearSolverPolicy{ compiler, matrix, initial_value };
+              }),
           compiler_(compiler)
     {
+      MatrixPolicy<double> temp{};
+      if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
+      {
+        throw std::runtime_error("Number of grid cells for JitRosenbrockSolver must match template parameter.");
+      }
       this->GenerateAlphaMinusJacobian();
     }
 

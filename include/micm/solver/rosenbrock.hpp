@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <functional>
@@ -128,12 +129,19 @@ namespace micm
   /// @brief The final state the solver was in after the Solve function finishes
   enum class SolverState
   {
+    /// @brief This is the initial value at the start of the Solve function
     NotYetCalled,
+    /// @brief This is only used for control flow in the Solve function
     Running,
+    /// @brief A successful integration will have this value
     Converged,
+    /// @brief If the number of steps exceeds the maximum value on the solver parameter, this value will be returned
     ConvergenceExceededMaxSteps,
+    /// @brief Very stiff systems will likely result in a step size that is not useable for the solver
     StepSizeTooSmall,
+    /// @brief Matrices that are singular more than once will set this value. At present, this should never be returned
     RepeatedlySingularMatrix,
+    /// @brief Mostly this value is returned by systems that tend toward chemical explosions
     NaNDetected
   };
 
@@ -142,22 +150,41 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
-  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = SparseMatrix>
+  template<
+      template<class> class MatrixPolicy = Matrix,
+      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
+      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
   class RosenbrockSolver
   {
    public:
     struct SolverStats
     {
-      uint64_t function_calls{};    // Nfun
-      uint64_t jacobian_updates{};  // Njac
-      uint64_t number_of_steps{};   // Nstp
-      uint64_t accepted{};          // Nacc
-      uint64_t rejected{};          // Nrej
-      uint64_t decompositions{};    // Ndec
-      uint64_t solves{};            // Nsol
-      uint64_t singular{};          // Nsng
-      uint64_t total_steps{};       // Ntotstp
+      /// @brief The number of forcing function calls
+      uint64_t function_calls{};
+      /// @brief The number of jacobian function calls
+      uint64_t jacobian_updates{};
+      /// @brief The total number of internal time steps taken
+      uint64_t number_of_steps{};
+      /// @brief The number of accepted integrations
+      uint64_t accepted{};
+      /// @brief The number of rejected integrations
+      uint64_t rejected{};
+      /// @brief The number of LU decompositions
+      uint64_t decompositions{};
+      /// @brief The number of linear solvers
+      uint64_t solves{};
+      /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix is never singular
+      uint64_t singular{};
+      /// @brief The cumulative amount of time spent calculating the forcing function
+      std::chrono::duration<double, std::nano> total_forcing_time{};
+      /// @brief The cumulative amount of time spent calculating the jacobian
+      std::chrono::duration<double, std::nano> total_jacobian_time{};
+      /// @brief The cumulative amount of time spent calculating the linear factorization
+      std::chrono::duration<double, std::nano> total_linear_factor_time{};
+      /// @brief The cumulative amount of time spent calculating the linear solve
+      std::chrono::duration<double, std::nano> total_linear_solve_time{};
 
+      /// @brief Set all member variables to zero
       void Reset();
     };
 
@@ -165,7 +192,7 @@ namespace micm
     {
       /// @brief The new state computed by the solver
       MatrixPolicy<double> result_{};
-      /// @brief The finals state the solver was in
+      /// @brief The final state the solver was in
       SolverState state_ = SolverState::NotYetCalled;
       /// @brief A collection of runtime state for this call of the solver
       SolverStats stats_{};
@@ -180,7 +207,7 @@ namespace micm
     ProcessSet process_set_;
     SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
-    LinearSolver<double, SparseMatrixPolicy> linear_solver_;
+    LinearSolverPolicy linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
     size_t N_{};
 
@@ -192,10 +219,23 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
     RosenbrockSolver(
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters);
+
+    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters,
+    ///        with a specific function provided to create the linear solver
+    /// @param system The chemical system to create the solver for
+    /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param parameters Rosenbrock algorithm parameters
+    /// @param create_linear_solver Function that will be used to create a linear solver instance
+    RosenbrockSolver(
+        const System& system,
+        const std::vector<Process>& processes,
+        const RosenbrockSolverParameters& parameters,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver);
 
     virtual ~RosenbrockSolver() = default;
 
@@ -206,6 +246,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
+    template<bool time_it = false>
     SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
@@ -221,9 +262,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
