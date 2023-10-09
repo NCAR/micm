@@ -24,16 +24,6 @@
             "name": "O3",
             "type": "CHEM_SPEC",
             "absolute tolerance": 1e-12
-        },
-        {
-            "name": "NO",
-            "type": "CHEM_SPEC",
-            "absolute tolerance": 1e-12
-        },
-        {
-            "name": "NO2",
-            "type": "CHEM_SPEC",
-            "absolute tolerance": 1e-12
         }
     ]
 }

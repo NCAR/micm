@@ -11,9 +11,7 @@ void print_header()
             << "," << std::setw(10) << "O2"
             << "," << std::setw(10) << "O3"
             << "," << std::setw(10) << "O"
-            << "," << std::setw(10) << "O1D"
-            << "," << std::setw(10) << "NO2"
-            << "," << std::setw(10) << "NO" << std::endl;
+            << "," << std::setw(10) << "O1D" << std::endl;
 }
 
 template<template<class> class T>
@@ -31,11 +29,7 @@ void print_state(double time, micm::State<T>& state)
             << "," << std::setw(10) << std::setprecision(2)
             << state.variables_[0][state.variable_map_["O"]]
             << "," << std::setw(10) << std::setprecision(2)
-            << state.variables_[0][state.variable_map_["O1D"]]
-            << "," << std::setw(10) << std::setprecision(2)
-            << state.variables_[0][state.variable_map_["NO2"]]
-            << "," << std::setw(10) << std::setprecision(2)
-            << state.variables_[0][state.variable_map_["NO"]] << std::endl;
+            << state.variables_[0][state.variable_map_["O1D"]] << std::endl;
 
   std::cout.copyfmt(oldState);
 }
@@ -104,8 +98,6 @@ int main(const int argc, const char *argv[])
     { "O3",  { n_O3 } },
     { "O",   { 3.0e-5 * n_O3 } },  // [O] / [O3] ~ 3e-5, S&P3e p.124
     { "O1D", { 0.0 } },
-    { "NO2", { 8.0e-9 * n_M } },  // ~ 8 ppb
-    { "NO",  { 4.0e-9 * n_M} },   // ~ 4 ppb
   };
 
   state.SetConcentrations(solver_params.system_, intial_concentration);

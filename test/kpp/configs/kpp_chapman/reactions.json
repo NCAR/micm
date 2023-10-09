@@ -90,43 +90,6 @@
                         }
                     },
                     "MUSICA name": "R7"
-                },
-                {
-                    "type": "ARRHENIUS",
-                    "A": 3650.6217287120003,
-                    "reactants": {
-                        "NO": {},
-                        "O3": {}
-                    },
-                    "products": {
-                        "NO2": {},
-                        "O2": {}
-                    },
-                    "MUSICA name": "R8"
-                },
-                {
-                    "type": "ARRHENIUS",
-                    "A": 6437668.472440001,
-                    "reactants": {
-                        "NO2": {},
-                        "O": {}
-                    },
-                    "products": {
-                        "NO": {},
-                        "O2": {}
-                    },
-                    "MUSICA name": "R9"
-                },
-                {
-                    "type": "PHOTOLYSIS",
-                    "reactants": {
-                        "NO2": {}
-                    },
-                    "products": {
-                        "NO": {},
-                        "O": {}
-                    },
-                    "MUSICA name": "R10"
                 }
             ]
         }
