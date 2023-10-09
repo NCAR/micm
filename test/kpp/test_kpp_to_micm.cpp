@@ -8,6 +8,7 @@ using SparseMatrixPolicy = micm::SparseMatrix<T>;
 void print_header()
 {
   std::cout << std::setw(5) << "time"
+            << "," << std::setw(10) << "M"
             << "," << std::setw(10) << "O2"
             << "," << std::setw(10) << "O3"
             << "," << std::setw(10) << "O"
@@ -23,6 +24,8 @@ void print_state(double time, micm::State<T>& state)
   std::cout << std::setw(5) << time << "," << std::flush;
 
   std::cout << std::scientific << std::setw(10) << std::setprecision(2)
+            << state.variables_[0][state.variable_map_["M"]]
+            << "," << std::setw(10) << std::setprecision(2)
             << state.variables_[0][state.variable_map_["O2"]]
             << "," << std::setw(10) << std::setprecision(2)
             << state.variables_[0][state.variable_map_["O3"]]
@@ -93,7 +96,7 @@ int main(const int argc, const char *argv[])
   double n_O3 = 2.0e12 * 1.0e6 / N_Avogadro;
 
   std::unordered_map<std::string, std::vector<double>> intial_concentration = {
-    { "M",   { n_M} },
+    { "M",   { n_M } },
     { "O2",  { 0.21 * n_M } },  // [O2] ~ 0.21 [M]
     { "O3",  { n_O3 } },
     { "O",   { 3.0e-5 * n_O3 } },  // [O] / [O3] ~ 3e-5, S&P3e p.124
