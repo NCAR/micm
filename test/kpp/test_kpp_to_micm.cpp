@@ -71,6 +71,11 @@ int main(const int argc, const char *argv[])
     }
     std::cout << process_vector[i].products_[n_products - 1].first.name_;
 
+    std::vector<std::string> param_labels = process_vector[i].rate_constant_->CustomParameters();
+    for (int k = 0; k < param_labels.size(); k++) {
+      std::cout << " " << param_labels[k];
+    }
+
     std::cout << std::endl;
   }
 
@@ -91,6 +96,7 @@ int main(const int argc, const char *argv[])
 
   state.custom_rate_parameters_[0][0] = 6.0e-11;  // s^-1 j_O2
   state.custom_rate_parameters_[0][1] = 1.0e-3;   // s^-1 j_O3
+  state.custom_rate_parameters_[0][2] = 1.0e-3;   // s^-1 j_O3
 
   double N_Avogadro = 6.02214076e23;
   // molecules cm-3 -> mol m-3, S&P3e table 5.1, z = 30 km
