@@ -89,6 +89,9 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].temperature_ = 227.0;  // K
   state.conditions_[0].pressure_ = 1200.0;    // Pa
 
+  state.custom_rate_parameters_[0][0] = 6.0e-11;  // s^-1 j_O2
+  state.custom_rate_parameters_[0][1] = 1.0e-3;   // s^-1 j_O3
+
   double N_Avogadro = 6.02214076e23;
   // molecules cm-3 -> mol m-3, S&P3e table 5.1, z = 30 km
   double n_M = 3.1e17 * 1.0e6 / N_Avogadro;
