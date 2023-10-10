@@ -56,6 +56,7 @@ int main(const int argc, const char *argv[])
 
   auto& process_vector = solver_params.processes_;
 
+  // Print reactions from reactions configuration
   for (int i = 0; i < process_vector.size(); i++) {
 
     int n_reactants = process_vector[i].reactants_.size();
@@ -89,9 +90,6 @@ int main(const int argc, const char *argv[])
 
   micm::State state = solver.GetState();
 
-  double unit_conversion = 1.0e6 / 6.023e23; // convert molecules cm-3 to mol m-3
-
-  // from Seinfeld and Pandas 3rd ed. table 5.1 p.121, z = 30 km
   state.conditions_[0].temperature_ = 227.0;  // K
   state.conditions_[0].pressure_ = 1200.0;    // Pa
 
@@ -99,28 +97,15 @@ int main(const int argc, const char *argv[])
   state.SetCustomRateParameter("PHOTO.R3", 1.0e-3);   // s^-1 j_O3
   state.SetCustomRateParameter("PHOTO.R5", 1.0e-3);   // s^-1 j_O3
 
+  // Define initial concentrations from Seinfeld & Pandis 3e
+  //   and convert to SI units
   double N_Avogadro = 6.02214076e23;
-  // molecules cm-3 -> mol m-3, S&P3e table 5.1, z = 30 km
+  // molecules cm-3 -> mol m-3, z = 30 km, S&P3e table 5.1 p. 121
   double n_M = 3.1e17 * 1.0e6 / N_Avogadro;
   double n_O2 = 0.21 * n_M; // [O2] ~ 0.21 [M]
   // typical [O3] mid-latitude z ~ 30 km
   double n_O3 = 2.0e12 * 1.0e6 / N_Avogadro;
-  // [O] / [O3] ~ 3e-5, S&P3e p.124
-
-  std::cout << "M " << n_M << std::endl;
-  std::cout << "O2 " << n_O2 << std::endl;
-  std::cout << "O3 " << n_O3 << std::endl;
-
-  std::unordered_map<std::string, std::vector<double>> initial_concentration = {
-    { "M",   { n_M } },
-    { "O2",  { n_O2 } },
-    // { "O3",  { n_O3 } },
-    { "O3",  { 0.0 } },
-    { "O",   { 0.0 } },
-    { "O1D", { 0.0 } },
-  };
-
-  // state.SetConcentrations(solver_params.system_, initial_concentration);
+  // [O] / [O3] ~ 3e-5, S&P3e p. 124
 
   micm::Species M("M");
   micm::Species O2("O2");
@@ -130,13 +115,12 @@ int main(const int argc, const char *argv[])
 
   state.SetConcentration(M, n_M);
   state.SetConcentration(O2, n_O2);
-  // state.SetConcentration(O3, n_O3);
-  state.SetConcentration(O3, 0.0);
+  state.SetConcentration(O3, n_O3);
   state.SetConcentration(O, 0.0);
   state.SetConcentration(O1D, 0.0);
 
-  double time_step = 600;  // s
-  int nstep = 10;
+  double time_step = 3600;  // s
+  int nstep = 24;
 
   print_header();
   print_state(0, state);
