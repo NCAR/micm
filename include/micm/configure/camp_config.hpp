@@ -21,14 +21,11 @@ namespace micm
   {
     Success,
     None,
-    InvalidSpeciesFilePath,
-    InvalidReactionsFilePath,
     InvalidKey,
     UnknownKey,
-    InvalidSpecies,
     CAMPFilesSectionNotFound,
-    InvalidCAMPFileCount,
     CAMPDataSectionNotFound,
+    InvalidSpecies,
     InvalidMechanism,
     ObjectTypeNotFound,
     RequiredKeyNotFound
@@ -40,14 +37,11 @@ namespace micm
     {
       case ConfigParseStatus::Success: return "Success";
       case ConfigParseStatus::None: return "None";
-      case ConfigParseStatus::InvalidSpeciesFilePath: return "InvalidSpeciesFilePath";
-      case ConfigParseStatus::InvalidReactionsFilePath: return "InvalidReactionsFilePath";
       case ConfigParseStatus::InvalidKey: return "InvalidKey";
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
-      case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
       case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
-      case ConfigParseStatus::InvalidCAMPFileCount: return "InvalidCAMPFileCount";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
+      case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
       case ConfigParseStatus::RequiredKeyNotFound: return "RequiredKeyNotFound";
@@ -72,5 +66,10 @@ namespace micm
           processes_(std::move(processes))
     {
     }
+  };
+
+  class JsonReaderPolicy
+  {
+    using json = nlohmann::json;
   };
 }  // namespace micm
