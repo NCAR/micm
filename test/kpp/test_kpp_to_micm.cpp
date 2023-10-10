@@ -94,27 +94,32 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].temperature_ = 227.0;  // K
   state.conditions_[0].pressure_ = 1200.0;    // Pa
 
-  state.custom_rate_parameters_[0][0] = 6.0e-11;  // s^-1 j_O2
-  state.custom_rate_parameters_[0][1] = 1.0e-3;   // s^-1 j_O3
-  state.custom_rate_parameters_[0][2] = 1.0e-3;   // s^-1 j_O3
+  state.SetCustomRateParameter("PHOTO.R1", 6.0e-11);  // s^-1 j_O2
+  state.SetCustomRateParameter("PHOTO.R3", 1.0e-3);   // s^-1 j_O2
+  state.SetCustomRateParameter("PHOTO.R5", 1.0e-3);   // s^-1 j_O2
 
   double N_Avogadro = 6.02214076e23;
   // molecules cm-3 -> mol m-3, S&P3e table 5.1, z = 30 km
   double n_M = 3.1e17 * 1.0e6 / N_Avogadro;
+  double n_O2 = 0.21 * n_M; // [O2] ~ 0.21 [M]
   // typical [O3] mid-latitude z ~ 30 km
   double n_O3 = 2.0e12 * 1.0e6 / N_Avogadro;
 
+  std::cout << "M " << n_M << std::endl;
+  std::cout << "O2 " << n_O2 << std::endl;
+  std::cout << "O3 " << n_O3 << std::endl;
+
   std::unordered_map<std::string, std::vector<double>> intial_concentration = {
     { "M",   { n_M } },
-    { "O2",  { 0.21 * n_M } },  // [O2] ~ 0.21 [M]
+    { "O2",  { n_O2 } },
     { "O3",  { n_O3 } },
-    { "O",   { 3.0e-5 * n_O3 } },  // [O] / [O3] ~ 3e-5, S&P3e p.124
+    { "O",   { 0.0 } },  // [O] / [O3] ~ 3e-5, S&P3e p.124
     { "O1D", { 0.0 } },
   };
 
   state.SetConcentrations(solver_params.system_, intial_concentration);
 
-  double time_step = 10;  // s
+  double time_step = 60;  // s
   int nstep = 20;
 
   print_header();
