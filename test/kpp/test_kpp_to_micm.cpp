@@ -1,6 +1,7 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/system/species.hpp>
 
 template<class T>
 using SparseMatrixPolicy = micm::SparseMatrix<T>;
@@ -109,7 +110,7 @@ int main(const int argc, const char *argv[])
   std::cout << "O2 " << n_O2 << std::endl;
   std::cout << "O3 " << n_O3 << std::endl;
 
-  std::unordered_map<std::string, std::vector<double>> intial_concentration = {
+  std::unordered_map<std::string, std::vector<double>> initial_concentration = {
     { "M",   { n_M } },
     { "O2",  { n_O2 } },
     { "O3",  { n_O3 } },
@@ -117,7 +118,19 @@ int main(const int argc, const char *argv[])
     { "O1D", { 0.0 } },
   };
 
-  state.SetConcentrations(solver_params.system_, intial_concentration);
+  // state.SetConcentrations(solver_params.system_, initial_concentration);
+
+  micm::Species M("M");
+  micm::Species O2("O2");
+  micm::Species O3("O3");
+  micm::Species O("O");
+  micm::Species O1D("O1D");
+
+  state.SetConcentration(M, n_M);
+  state.SetConcentration(O2, n_O2);
+  state.SetConcentration(O3, n_O3);
+  state.SetConcentration(O, 0.0);
+  state.SetConcentration(O1D, 0.0);
 
   double time_step = 60;  // s
   int nstep = 20;
