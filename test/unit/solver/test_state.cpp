@@ -69,12 +69,7 @@ TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
     { "FUU", { 0.1 } }, { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "quz", { 0.4 } }
   };
 
-  // Build system
-  micm::Phase gas_phase(
-      std::vector<micm::Species>{ micm::Species("foo"), micm::Species("bar"), micm::Species("baz"), micm::Species("quz") });
-  micm::System system{ micm::SystemParameters{ gas_phase } };
-
-  EXPECT_ANY_THROW(state.SetConcentrations(system, concentrations));
+  EXPECT_ANY_THROW(state.SetConcentrations(concentrations));
 }
 
 TEST(State, SetConcentrations)
@@ -87,17 +82,12 @@ TEST(State, SetConcentrations)
                                                           .number_of_grid_cells_ = num_grid_cells,
                                                           .number_of_rate_constants_ = 10 } };
 
-  // Build system
-  micm::Phase gas_phase(
-      std::vector<micm::Species>{ micm::Species("foo"), micm::Species("bar"), micm::Species("baz"), micm::Species("quz") });
-  micm::System system{ micm::SystemParameters{ gas_phase } };
-
   std::unordered_map<std::string, std::vector<double>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
                                                                           { "baz", { 0.3, 0.33, 0.333 } },
                                                                           { "foo", { 0.9, 0.99, 0.999 } },
                                                                           { "quz", { 0.4, 0.44, 0.444 } } };
 
-  state.SetConcentrations(system, concentrations);
+  state.SetConcentrations(concentrations);
 
   // Compare concentration values
   std::vector<double> concentrations_in_order{

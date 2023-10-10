@@ -51,7 +51,6 @@ namespace micm
 
   template<template<class> class MatrixPolicy>
   inline void State<MatrixPolicy>::SetConcentrations(
-      const System& system,
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const int num_grid_cells = conditions_.size();
