@@ -96,8 +96,8 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 1200.0;    // Pa
 
   state.SetCustomRateParameter("PHOTO.R1", 6.0e-11);  // s^-1 j_O2
-  state.SetCustomRateParameter("PHOTO.R3", 1.0e-3);   // s^-1 j_O2
-  state.SetCustomRateParameter("PHOTO.R5", 1.0e-3);   // s^-1 j_O2
+  state.SetCustomRateParameter("PHOTO.R3", 1.0e-3);   // s^-1 j_O3
+  state.SetCustomRateParameter("PHOTO.R5", 1.0e-3);   // s^-1 j_O3
 
   double N_Avogadro = 6.02214076e23;
   // molecules cm-3 -> mol m-3, S&P3e table 5.1, z = 30 km
@@ -105,6 +105,7 @@ int main(const int argc, const char *argv[])
   double n_O2 = 0.21 * n_M; // [O2] ~ 0.21 [M]
   // typical [O3] mid-latitude z ~ 30 km
   double n_O3 = 2.0e12 * 1.0e6 / N_Avogadro;
+  // [O] / [O3] ~ 3e-5, S&P3e p.124
 
   std::cout << "M " << n_M << std::endl;
   std::cout << "O2 " << n_O2 << std::endl;
@@ -113,8 +114,9 @@ int main(const int argc, const char *argv[])
   std::unordered_map<std::string, std::vector<double>> initial_concentration = {
     { "M",   { n_M } },
     { "O2",  { n_O2 } },
-    { "O3",  { n_O3 } },
-    { "O",   { 0.0 } },  // [O] / [O3] ~ 3e-5, S&P3e p.124
+    // { "O3",  { n_O3 } },
+    { "O3",  { 0.0 } },
+    { "O",   { 0.0 } },
     { "O1D", { 0.0 } },
   };
 
@@ -128,12 +130,13 @@ int main(const int argc, const char *argv[])
 
   state.SetConcentration(M, n_M);
   state.SetConcentration(O2, n_O2);
-  state.SetConcentration(O3, n_O3);
+  // state.SetConcentration(O3, n_O3);
+  state.SetConcentration(O3, 0.0);
   state.SetConcentration(O, 0.0);
   state.SetConcentration(O1D, 0.0);
 
   double time_step = 600;  // s
-  int nstep = 20;
+  int nstep = 10;
 
   print_header();
   print_state(0, state);
