@@ -9,11 +9,11 @@ using SparseMatrixPolicy = micm::SparseMatrix<T>;
 void print_header()
 {
   std::cout << std::setw(5) << "time"
-            << "," << std::setw(10) << "M"
-            << "," << std::setw(10) << "O2"
-            << "," << std::setw(10) << "O3"
-            << "," << std::setw(10) << "O"
-            << "," << std::setw(10) << "O1D" << std::endl;
+            << "," << std::setw(11) << "M"
+            << "," << std::setw(11) << "O2"
+            << "," << std::setw(11) << "O3"
+            << "," << std::setw(11) << "O"
+            << "," << std::setw(11) << "O1D" << std::endl;
 }
 
 template<template<class> class T>
@@ -24,15 +24,15 @@ void print_state(double time, micm::State<T>& state)
 
   std::cout << std::setw(5) << time << "," << std::flush;
 
-  std::cout << std::scientific << std::setw(10) << std::setprecision(2)
+  std::cout << std::scientific << std::setw(10) << std::setprecision(3)
             << state.variables_[0][state.variable_map_["M"]]
-            << "," << std::setw(10) << std::setprecision(2)
+            << "," << std::setw(11) << std::setprecision(3)
             << state.variables_[0][state.variable_map_["O2"]]
-            << "," << std::setw(10) << std::setprecision(2)
+            << "," << std::setw(11) << std::setprecision(3)
             << state.variables_[0][state.variable_map_["O3"]]
-            << "," << std::setw(10) << std::setprecision(2)
+            << "," << std::setw(11) << std::setprecision(3)
             << state.variables_[0][state.variable_map_["O"]]
-            << "," << std::setw(10) << std::setprecision(2)
+            << "," << std::setw(11) << std::setprecision(3)
             << state.variables_[0][state.variable_map_["O1D"]] << std::endl;
 
   std::cout.copyfmt(oldState);
@@ -132,7 +132,7 @@ int main(const int argc, const char *argv[])
   state.SetConcentration(O, 0.0);
   state.SetConcentration(O1D, 0.0);
 
-  double time_step = 60;  // s
+  double time_step = 600;  // s
   int nstep = 20;
 
   print_header();
