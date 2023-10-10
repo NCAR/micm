@@ -7,6 +7,7 @@ include(test_util)
 # Tests
 
 create_standard_test(NAME solver_config SOURCES test_solver_config.cpp)
+create_standard_test(NAME camp_config SOURCES test_camp_config.cpp)
 
 ################################################################################
 # Tests
