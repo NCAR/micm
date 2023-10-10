@@ -9,7 +9,7 @@ using SparseMatrixPolicy = micm::SparseMatrix<T>;
 void print_header()
 {
   std::cout << std::setw(5) << "time"
-            << "," << std::setw(11) << "M"
+            << "," << std::setw(10) << "M"
             << "," << std::setw(11) << "O2"
             << "," << std::setw(11) << "O3"
             << "," << std::setw(11) << "O"
