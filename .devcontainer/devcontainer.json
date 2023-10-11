@@ -1,10 +1,10 @@
 {
-  "name": "Your Development Environment",
+  "name": "MICM Development Environment",
   "dockerFile": "Dockerfile.codespace",
   "extensions": [
     "ms-vscode.cpptools"
   ],
   "settings": {
   },
-  "postCreateCommand": "mkdir /build && cd /build && cmake -D CMAKE_BUILD_TYPE=debug -D ENABLE_CLANG_TIDY:BOOL=FALSE -D ENABLE_LLVM:BOOL=TRUE -D ENABLE_MEMCHECK:BOOL=TRUE /workspaces/micm && make install -j 8"
+  "postCreateCommand": "cd /workspaces/micm && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=debug -D ENABLE_CLANG_TIDY:BOOL=FALSE -D ENABLE_LLVM:BOOL=TRUE -D ENABLE_MEMCHECK:BOOL=TRUE .. && make install -j 2"
 }
