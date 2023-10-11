@@ -1,6 +1,6 @@
 {
   "name": "Your Development Environment",
-  "dockerFile": "docker/Dockerfile.codespace",
+  "dockerFile": "Dockerfile.codespace",
   "extensions": ["vscode.php"],
   "settings": {
       "php.validate.executablePath": "/usr/local/bin/php",
