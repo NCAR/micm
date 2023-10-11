@@ -49,7 +49,6 @@ namespace micm
     /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(
-        const System& system,
         const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
 
     /// @brief Set a single species concentration
