@@ -135,18 +135,20 @@ def micm_species_json(lines, fixed=False, tolerance=1.0e-12):
     return species_json
 
 
-def parse_kpp_arrhenius(kpp_str, to_si_units=False):
+def parse_kpp_arrhenius(kpp_str, to_si_units=False,
+    N_reactants=2):
     """
     Parse KPP Arrhenius reaction
 
     Parameters
         (str) kpp_str: Arrhenius reaction string
         (bool) to_si_units: convert A coefficient
-        from cm^3 molecule-1 s-1 to m^3 mol-1 s-1
+        from (cm^3 molecule-1)^(N-1) s-1 to (m^3 mol-1)^(N-1) s-1
+        where N is the number of reactants
+        (int) N_reactants: number of reactants
 
     Returns
         (dict): MICM Arrhenius reaction coefficients
-
 
     Arrhenius formula from KPP
     --------------------------
@@ -197,7 +199,7 @@ def parse_kpp_arrhenius(kpp_str, to_si_units=False):
     else:
         logging.error('unrecognized KPP Arrhenius syntax')
     if to_si_units:
-        arr_dict['A'] *= (N_Avogadro * 1.0e-6)
+        arr_dict['A'] *= (N_Avogadro * 1.0e-6)**(N_reactants - 1)
     logging.debug(arr_dict)
     return arr_dict
 
@@ -239,20 +241,22 @@ def micm_equation_json(lines, to_si_units=False):
         reactants = [reactant.strip().lstrip() for reactant in reactants]
         products = [product.strip().lstrip() for product in products]
 
+        N_reactants = len(reactants)
+
         equation_dict = dict()
 
         if 'SUN' in coeffs:
-            equation_dict['type'] = 'PHOTOLYSIS' 
+            equation_dict['type'] = 'PHOTOLYSIS'
         elif 'ARR' in coeffs:
             equation_dict = parse_kpp_arrhenius(coeffs,
-                to_si_units=to_si_units)
+                to_si_units=to_si_units, N_reactants=N_reactants)
         else:
             # default to Arrhenius with a single coefficient
             coeffs = coeffs.replace('(', '').replace(')', '')
-            equation_dict['type'] = 'ARRHENIUS' 
+            equation_dict['type'] = 'ARRHENIUS'
             equation_dict['A'] = float(coeffs)
             if to_si_units:
-                equation_dict['A'] *= (N_Avogadro * 1.0e-6)
+                equation_dict['A'] *= (N_Avogadro * 1.0e-6)**(N_reactants - 1)
 
         equation_dict['reactants'] = dict()
         equation_dict['products'] = dict()
