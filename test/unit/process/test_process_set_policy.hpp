@@ -21,8 +21,10 @@ void testProcessSet(
   auto baz = micm::Species("baz");
   auto quz = micm::Species("quz");
   auto quuz = micm::Species("quuz");
+  auto qux = micm::Species("qux");
+  qux.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.72; };
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
+  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz } };
 
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
                                                           .number_of_grid_cells_ = 2,
@@ -32,7 +34,7 @@ void testProcessSet(
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create().reactants({ bar }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
+      micm::Process::create().reactants({ bar, qux }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
 
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
 

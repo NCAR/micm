@@ -47,12 +47,13 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<template<class> typename MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>) void AddForcingTerms(
+      requires(!VectorizableDense<MatrixPolicy<double>>)
+    void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+      requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -63,12 +64,14 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+      requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
+    void AddJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+      requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    void AddJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
@@ -84,17 +87,25 @@ namespace micm
   {
     for (auto& process : processes)
     {
-      number_of_reactants_.push_back(process.reactants_.size());
-      number_of_products_.push_back(process.products_.size());
+      std::size_t number_of_reactants = 0;
+      std::size_t number_of_products = 0;
       for (auto& reactant : process.reactants_)
       {
+        if (reactant.IsParameterized())
+          continue;  // Skip reactants that are parameterizations
         reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
+        ++number_of_reactants;
       }
       for (auto& product : process.products_)
       {
+        if (product.first.IsParameterized())
+          continue;  // Skip products that are parameterizations
         product_ids_.push_back(state.variable_map_.at(product.first.name_));
         yields_.push_back(product.second);
+        ++number_of_products;
       }
+      number_of_reactants_.push_back(number_of_reactants);
+      number_of_products_.push_back(number_of_products);
     }
   };
 
@@ -147,7 +158,8 @@ namespace micm
   }
 
   template<template<class> typename MatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>) inline void ProcessSet::AddForcingTerms(
+    requires(!VectorizableDense<MatrixPolicy<double>>)
+  inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
@@ -183,7 +195,7 @@ namespace micm
   };
 
   template<template<class> typename MatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>>
   inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -224,12 +236,11 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      AddJacobianTerms(
-          const MatrixPolicy<double>& rate_constants,
-          const MatrixPolicy<double>& state_variables,
-          SparseMatrixPolicy<double>& jacobian) const
+    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
   {
     auto cell_jacobian = jacobian.AsVector().begin();
 
@@ -271,11 +282,11 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      AddJacobianTerms(
-          const MatrixPolicy<double>& rate_constants,
-          const MatrixPolicy<double>& state_variables,
-          SparseMatrixPolicy<double>& jacobian) const
+    requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::AddJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
