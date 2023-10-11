@@ -3,6 +3,7 @@ MICM Chemistry
 
 Model Independent Chemical Module. MICM can be used to configure and solve atmospheric chemistry systems.
 
+[![GitHub Releases](https://img.shields.io/github/release/NCAR/micm.svg)](https://github.com/NCAR/micm/releases)
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)

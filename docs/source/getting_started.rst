@@ -5,6 +5,9 @@ Getting Started
 Build and Test
 ==============
 
+Configuring for different platforms and environments is shown here. There is an additional tutorial which covers 
+some other specifics: :ref:`Installation and usage`.
+
 CPU
 ---
 To build and install MICM locally, you must have the following libraries installed:

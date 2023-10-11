@@ -34,14 +34,13 @@ This mechanism only needs the user defined rate constant and the rosenbrock solv
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 1-5
+  :lines: 1-4
 
-After that, we'll use the ``micm`` namespace and setup a template alias so that we can instantiate the 
-rosenbrock solver.
+After that, we'll use the ``micm`` namespace.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 7-14
+  :lines: 6-7
 
 To create a :cpp:class:`micm::RosenbrockSolver`, we have to define a chemical system (:cpp:class:`micm::System`)
 and our reactions, which will be a vector of :cpp:class:`micm::Process` We will use the species to define these as
@@ -49,14 +48,14 @@ well as a :cpp:class:`micm::Phase`.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 56-60
+  :lines: 49-53
 
 
 With the species and gas phase, we can define all of our reactions
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 62-78
+  :lines: 55-71
 
 
 Now we can define our RosenbrockSolver. This time we'll form the reactions and chemical system in place.
@@ -67,7 +66,7 @@ the order the species are added to the gas phase.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 80-84
+  :lines: 73-77
 
 
 Now we need to get a state and set the concentations of each of the species. In the 
@@ -77,25 +76,25 @@ to set the concentrations. Here we will set the concentations by providing the :
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 86-91
+  :lines: 79-84
 
 Then we set the reaction rates by creating a vector that is 3 elements long, one for each grid cell.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 93-98
+  :lines: 86-91
 
 And lastly set the temperature, pressure, and air density for each grid cell.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 100-108
+  :lines: 93-102
 
 Now we are ready to run the simulation.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 110-133
+  :lines: 104-127
 
 
 And these are the results.
