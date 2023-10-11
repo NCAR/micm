@@ -10,6 +10,10 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
+<p align="center">
+  <img style="border-radius: 100%" src="docs/source/_static/micm.png">
+</p>
+
 # Getting Started
 
 ## Installing MICM locally
