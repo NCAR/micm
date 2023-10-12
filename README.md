@@ -36,6 +36,13 @@ make test
 If you would later like to uninstall MICM, you can run
 `sudo make uninstall` from the `build/` directory.
 
+## Options
+
+There are multiple options for running micm. Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
+to learn how to configure these options.
+
+![Options for running micm](docs/source/_static/options.png)
+
 ## Running a MICM Docker container
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
