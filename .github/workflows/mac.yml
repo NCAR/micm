@@ -1,0 +1,54 @@
+name: Mac
+
+on: [push, pull_request]
+
+jobs:
+  xcode_macos_12:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-12
+    strategy:
+      matrix:
+        xcode: ['13.1', '14.1']
+        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
+
+  xcode_macos_13:
+    if: github.event_name == 'pull_request'
+    runs-on: macos-13
+    strategy:
+      matrix:
+        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
+        xcode: ['14.1', '15.0']
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure and build
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
