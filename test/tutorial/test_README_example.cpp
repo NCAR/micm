@@ -30,7 +30,6 @@ int main(const int argc, const char *argv[])
   std::vector<Process> reactions{ r1, r2 };
 
   RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
-  solver.parameters_.print();
 
   State state = solver.GetState();
 
@@ -46,11 +45,11 @@ int main(const int argc, const char *argv[])
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::fixed << std::setprecision(6) 
-              << std::setw(8) << i * 500.0 << ", "
-              << std::setw(10) << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << std::setw(10) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
-              << std::setw(10) << state.variables_[0][state.variable_map_["Baz"]]
+    std::cout << std::setfill(' ') << std::fixed
+              << std::setw(8) << std::setprecision(2) << i * 500.0 << ", "
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Foo"]] << ", "
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Baz"]]
               << std::endl;
   }
 
