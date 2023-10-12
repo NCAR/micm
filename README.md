@@ -4,7 +4,10 @@ MICM Chemistry
 Model Independent Chemical Module. MICM can be used to configure and solve atmospheric chemistry systems.
 
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
-[![CI Status](https://github.com/NCAR/micm/actions/workflows/test.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/test.yml)
+[![Docker builds](https://github.com/NCAR/micm/actions/workflows/docker_and_coverage.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/docker_and_coverage.yml)
+[![Windows](https://github.com/NCAR/micm/actions/workflows/windows.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/windows.yml)
+[![Mac](https://github.com/NCAR/micm/actions/workflows/mac.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/mac.yml)
+[![Ubuntu](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 [![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
 

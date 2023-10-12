@@ -1,4 +1,4 @@
-name: Docker and Coverage
+name: Docker
 
 on: [push, pull_request]
 
