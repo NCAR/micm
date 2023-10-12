@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   gcc:
+    runs-on: ubuntu-latest
     env:
       CC: gcc
       CXX: g++
@@ -29,6 +30,7 @@ jobs:
           cd build
           ctest -C Debug --rerun-failed --output-on-failure . --verbose
   clang:
+    runs-on: ubuntu-latest
     env:
       CC: clang
       CXX: clang++
