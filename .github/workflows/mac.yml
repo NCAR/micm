@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   xcode_macos_12:
-    if: github.event_name == 'pull_request'
     runs-on: macos-12
     strategy:
       matrix:
@@ -29,7 +28,6 @@ jobs:
           ctest --rerun-failed --output-on-failure . --verbose -j 10
 
   xcode_macos_13:
-    if: github.event_name == 'pull_request'
     runs-on: macos-13
     strategy:
       matrix:
