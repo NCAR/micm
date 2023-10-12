@@ -12,6 +12,9 @@ concurrency:
 jobs:
   gcc:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
     env:
       CC: gcc
       CXX: g++
@@ -20,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -28,9 +31,13 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest -C Debug --rerun-failed --output-on-failure . --verbose
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
+
   clang:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
     env:
       CC: clang
       CXX: clang++
@@ -39,7 +46,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -47,4 +54,4 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          ctest -C Debug --rerun-failed --output-on-failure . --verbose
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10

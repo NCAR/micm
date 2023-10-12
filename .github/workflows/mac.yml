@@ -7,25 +7,25 @@ jobs:
     runs-on: macos-12
     strategy:
       matrix:
-        xcode: ['13.1', '14.1']
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
+        xcode: ['13.1', '14.1']
+        build_type: [Debug, Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Configure and build
-        run: |
-          mkdir build
-          cd build
-          cmake ..
-          cmake --build . --parallel 10
+      - name: Run Cmake 
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build --parallel 10
 
       - name: Run tests
         run: |
           cd build
-          ctest --rerun-failed --output-on-failure . --verbose -j 10
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
 
   xcode_macos_13:
     runs-on: macos-13
@@ -33,20 +33,20 @@ jobs:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
         xcode: ['14.1', '15.0']
+        build_type: [Debug, Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Configure and build
-        run: |
-          mkdir build
-          cd build
-          cmake ..
-          cmake --build . --parallel 10
+      - name: Run Cmake 
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build --parallel 10
 
       - name: Run tests
         run: |
           cd build
-          ctest --rerun-failed --output-on-failure . --verbose -j 10
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
