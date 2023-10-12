@@ -63,7 +63,8 @@ jobs:
     strategy:
       matrix:
         compiler:
-          - { cpp: g++, c: gcc}
+          - { cpp: g++-11, c: gcc-11}
+          - { cpp: g++-12, c: gcc-12}
           - { cpp: clang++, c: clang}
         build_type: [Debug, Release]
     env:
