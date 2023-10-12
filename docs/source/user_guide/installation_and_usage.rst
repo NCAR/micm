@@ -105,6 +105,9 @@ for use with cmake's `find_package <https://cmake.org/cmake/help/latest/command/
   └── include
       └── micm
 
+micm only installs its header and cmake files. If you intend to use any of the additional features of micm
+like JIT compiling or json parsing, you'll need to have it's dependencies installed.
+
 Specify include path
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -112,15 +115,31 @@ To compile micm code, it's as simple as adding the include path to your compile 
 or ``export CPPFLAGS="-I/usr/local/micm-3.2.0/include"``. If you changed the install location when configuring cmake, you'll
 need to set that path instead.
 
-cmake with find_package
-~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 Cmake
 -----
 
 micm is developed with cmake support. This makes the inclusion of micm into projects that use cmake especially easy.
+
+find_package
+^^^^^^^^^^^^
+
+This assumes you have micm installed using one of the methods above.
+
+The cmake files installed with micm allow you to ask cmake to take care of finding and setting the include paths for you
+in a cmake project. Using micm with `find_package <https://cmake.org/cmake/help/latest/command/find_package.html>`_
+is as simple as adding this line to your cmake project and linking
+your target to micm. You will need to change the version accordingly.
+
+.. code-block:: cmake
+
+  find_package(micm 3.2.0 REQUIRED)
+
+  add_executable(my_target my_target.cpp)
+
+  target_link_libraries(my_target 
+    PUBLIC 
+      musica::micm
+  )
 
 Fetch content
 ^^^^^^^^^^^^^
@@ -156,11 +175,39 @@ or tag that you want to use. Then you make the content available and link your c
 Debugging
 ---------
 
+If you find yourself needing to debug the internals of micm, you don't have to stick to print statements.
+
+Luckily, cmake will generate projects for the major IDEs.
+
 VS Code
 ^^^^^^^
+
+At this time, the easiest way to work in VS Code is to build micm yourself with cmake on the command line and use print 
+statements. Feel free to submit a PR with instructions for setting up visual studio code for debugging micm.
 
 Xcode
 ^^^^^
 
+On macOS, you'll want to use xcode. You can ask cmake to generate an xcode project file for you.
+
+.. code-block::
+
+  mkdir xcode && cd xcode
+  cmake -G Xcode ..
+
+After this completes, there will be a file called micm.xcodeproj that you can open with Xcode. Select a target you want to build
+and start debugging. Further use of xcode is beyond the scope of this documentation.
+
 Visual Studio
 ^^^^^^^^^^^^^
+
+On windows, you'll want to use Visual Studio. You can ask cmake to generate an xcode project file for you.
+
+.. code-block::
+
+  mkdir xcode && cd xcode
+  cmake -G "Visual Studio 17 2022" ..
+
+After this completes, there will be a file called micm.sln that you can open with Visual Studio. 
+Select a target you want to build and start debugging. 
+Further use of Visual Studio is beyond the scope of this documentation.

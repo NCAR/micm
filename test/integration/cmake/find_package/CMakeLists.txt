@@ -8,14 +8,7 @@ project(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-include(FetchContent)
-
-FetchContent_Declare(micm
-  GIT_REPOSITORY https://github.com/NCAR/micm.git
-  GIT_TAG        0996e5848b097e77ccbb2819f22c49844154f3e3
-)
-
-FetchContent_MakeAvailable(micm)
+find_package(micm 3.2.0 REQUIRED)
 
 ################################################################################
 # Tests
