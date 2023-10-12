@@ -45,6 +45,9 @@ others require that you have libraries installed on your system.
 - OpenMP
   - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
 
+For more ways to build and install micm, see :ref:`Installation and usage`. If you would like instructions for building
+the docs, see :ref:`Contributing`.
+
 Docker Container
 ----------------
 
