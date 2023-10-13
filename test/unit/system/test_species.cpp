@@ -22,6 +22,14 @@ TEST(Species, StringAndVectorConstructor)
   EXPECT_EQ(species.properties_["name2 [units2]"], 2.0);
 }
 
+TEST(Species, ThirdBody)
+{
+  micm::Species species = micm::Species::ThirdBody();
+  EXPECT_EQ(species.name_, "M");
+  EXPECT_TRUE(species.IsParameterized());
+  EXPECT_EQ(species.parameterize_({ .air_density_ = 42.4 }), 42.4);
+}
+
 TEST(Species, CopyConstructor)
 {
   {

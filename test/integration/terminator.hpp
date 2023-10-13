@@ -15,7 +15,7 @@
 /// @brief A test of the "Terminator" mechanism:
 ///
 /// Cl2 --hv--> 2 Cl
-/// Cl + Cl + M --> Cl2 + M
+/// Cl + Cl --> Cl2
 ///
 /// More details including analytical solution can be found here:
 /// https://github.com/ESCOMP/CAM/blob/8cd44c50fe107c0b93ccd48b61eaa3d10a5b4e2f/src/chemistry/pp_terminator/chemistry.F90#L1-L434
@@ -26,9 +26,8 @@ void TestTerminator(
 {
   auto cl2 = micm::Species("Cl2");
   auto cl = micm::Species("Cl");
-  auto m = micm::Species::ThirdBody();
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ cl2, cl, m } };
+  micm::Phase gas_phase{ std::vector<micm::Species>{ cl2, cl } };
 
   micm::Process toy_r1 = micm::Process::create()
                              .reactants({ cl2 })
@@ -38,7 +37,7 @@ void TestTerminator(
 
   constexpr double k2 = 1.0;
   micm::Process toy_r2 = micm::Process::create()
-                             .reactants({ cl, cl, m })
+                             .reactants({ cl, cl })
                              .products({ micm::Yield(cl2, 1.0) })
                              .phase(gas_phase)
                              .rate_constant(micm::ArrheniusRateConstant({ .A_ = k2 }));
@@ -71,9 +70,9 @@ void TestTerminator(
           0.0,
           std::sin(lat) * std::sin(k1_lat_center) + std::cos(lat) * std::cos(k1_lat_center) * std::cos(lon - k1_lon_center));
       custom_rate_constants["toy_k1"][i_cell] = k1;
-      state.conditions_[i_cell].temperature_ = 298.0;
-      state.conditions_[i_cell].pressure_ = 101300.0;
-      state.conditions_[i_cell].air_density_ = 1.0;
+      state.conditions_[i_cell].temperature_ = 298.0;  // K
+      state.conditions_[i_cell].pressure_ = 101300.0;  // Pa
+      state.conditions_[i_cell].air_density_ = 42.0;   // mol m-3
     }
     state.SetCustomRateParameters(custom_rate_constants);
 
