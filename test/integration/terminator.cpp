@@ -2,17 +2,36 @@
 
 #include <gtest/gtest.h>
 
+#include <micm/process/process.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include <micm/system/system.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+void RunTerminatorTest(std::size_t number_of_grid_cells)
+{
+  TestTerminator<MatrixPolicy, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(
+      [&](const micm::System& s, const std::vector<micm::Process>& p)
+          -> micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+      {
+        auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
+        solver_params.absolute_tolerance_ = 1.0e-20;
+        solver_params.relative_tolerance_ = 1.0e-8;
+        solver_params.max_number_of_steps_ = 100000;
+        return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>{ s, p, solver_params };
+      },
+      number_of_grid_cells);
+}
+
 TEST(RosenbrockSolver, Terminator)
 {
-  TestTerminator<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(1);
-  TestTerminator<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(2);
-  TestTerminator<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(3);
-  TestTerminator<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(4);
+  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(2);
+  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(2);
+  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(3);
+  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(4);
 }
 
 template<class T>
@@ -35,8 +54,8 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(RosenbrockSolver, VectorTerminator)
 {
-  TestTerminator<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
-  TestTerminator<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(4);
-  TestTerminator<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
-  TestTerminator<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(2);
+  RunTerminatorTest<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
+  RunTerminatorTest<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(4);
+  RunTerminatorTest<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
+  RunTerminatorTest<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(2);
 }

@@ -19,8 +19,10 @@
 ///
 /// More details including analytical solution can be found here:
 /// https://github.com/ESCOMP/CAM/blob/8cd44c50fe107c0b93ccd48b61eaa3d10a5b4e2f/src/chemistry/pp_terminator/chemistry.F90#L1-L434
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-void TestTerminator(std::size_t number_of_grid_cells)
+template<template<class> class MatrixPolicy, class OdeSolverPolicy>
+void TestTerminator(
+    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver,
+    std::size_t number_of_grid_cells)
 {
   auto cl2 = micm::Species("Cl2");
   auto cl = micm::Species("Cl");
@@ -41,16 +43,8 @@ void TestTerminator(std::size_t number_of_grid_cells)
                              .phase(gas_phase)
                              .rate_constant(micm::ArrheniusRateConstant({ .A_ = k2 }));
 
-  auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
-  solver_params.absolute_tolerance_ = 1.0e-20;
-  solver_params.relative_tolerance_ = 1.0e-8;
-  solver_params.max_number_of_steps_ = 100000;
-  micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ toy_r1, toy_r2 },
-    solver_params
-  };
-
+  auto solver = create_solver(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ toy_r1, toy_r2 });
   micm::State<MatrixPolicy> state = solver.GetState();
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
