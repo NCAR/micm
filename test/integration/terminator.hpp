@@ -34,17 +34,21 @@ void TestTerminator(std::size_t number_of_grid_cells)
                              .phase(gas_phase)
                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "toy_k1" }));
 
-  constexpr double k2 = 1.0e-6;  // 1.0;
+  constexpr double k2 = 1.0;
   micm::Process toy_r2 = micm::Process::create()
                              .reactants({ cl, cl, m })
                              .products({ micm::Yield(cl2, 1.0) })
                              .phase(gas_phase)
                              .rate_constant(micm::ArrheniusRateConstant({ .A_ = k2 }));
 
+  auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
+  solver_params.absolute_tolerance_ = 1.0e-20;
+  solver_params.relative_tolerance_ = 1.0e-8;
+  solver_params.max_number_of_steps_ = 100000;
   micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> solver{
     micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
     std::vector<micm::Process>{ toy_r1, toy_r2 },
-    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true)
+    solver_params
   };
 
   micm::State<MatrixPolicy> state = solver.GetState();
@@ -72,14 +76,18 @@ void TestTerminator(std::size_t number_of_grid_cells)
       double k1 = std::max(
           0.0,
           std::sin(lat) * std::sin(k1_lat_center) + std::cos(lat) * std::cos(k1_lat_center) * std::cos(lon - k1_lon_center));
-      custom_rate_constants["toy_k1"][i_cell] = 1.0e-6;  // k1;
+      custom_rate_constants["toy_k1"][i_cell] = k1;
       state.conditions_[i_cell].temperature_ = 298.0;
       state.conditions_[i_cell].pressure_ = 101300.0;
+      state.conditions_[i_cell].air_density_ = 1.0;
     }
     state.SetCustomRateParameters(custom_rate_constants);
 
     double dt = 30.0;
     auto result = solver.Solve(dt, state);
+
+    EXPECT_EQ(result.state_, micm::SolverState::Converged);
+
     for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     {
       double r = custom_rate_constants["toy_k1"][i_cell] / (4.0 * k2);
@@ -92,9 +100,9 @@ void TestTerminator(std::size_t number_of_grid_cells)
       double cl_f = -l * (cl_i - det + r) * (cl_i + det + r) / (1.0 + e + dt * l * (cl_i + r));
       double cl2_f = -cl_f / 2.0;
       EXPECT_NEAR(
-          result.result_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-8 + 1.0e-30);
+          result.result_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-8 + 1.0e-15);
       EXPECT_NEAR(
-          result.result_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-8 + 1.0e-30);
+          result.result_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-8 + 1.0e-15);
     }
   }
 }
