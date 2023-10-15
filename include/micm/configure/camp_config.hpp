@@ -181,6 +181,7 @@ namespace micm
 
           if (type == "CHEM_SPEC")
           {
+            status = ParseChemicalSpecies(object);
           }
           else if (type == "RELATIVE_TOLERANCE")
           {
@@ -239,6 +240,55 @@ namespace micm
         }
         return true;
       }
+
+      ConfigParseStatus ParseChemicalSpecies(const json& object)
+      {
+        // required keys
+        const std::string NAME = "name";
+        std::array<std::string, 1> required_keys = { NAME };
+
+        // Check if it contains the required key(s)
+        for (const auto& key : required_keys)
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+        std::string name = object[NAME].get<std::string>();
+
+        // Load remaining keys as properties
+        std::map<std::string, double> properties{};
+        for (auto& [key, value] : object.items())
+        {
+          if (value.is_number_float())
+            properties[key] = value;
+        }
+        species_arr_.push_back(Species(name, properties));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseRelativeTolerance(const json& object)
+      {
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseMechanism(const json& object)
+      {
+        std::vector<std::string> required_keys = { "name", "reactions" };
+        for (const auto& key : required_keys)
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+        std::vector<json> objects;
+        for (const auto& element : object["reactions"])
+        {
+          objects.push_back(element);
+        }
+
+        return ParseObjectArray(objects);
+      }
+
   };
 
   /// @brief Public interface to read and parse config
