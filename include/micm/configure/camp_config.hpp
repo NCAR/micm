@@ -139,6 +139,7 @@ namespace micm
         {
           std::cout << "JsonReaderPolicy.Parse CAMP file" << camp_file << std::endl;
           json config_data = json::parse(std::ifstream(config_dir / camp_file));
+          std::cout << config_data.dump(4) << std::endl;
         }
 
         return ConfigParseStatus::Success;
