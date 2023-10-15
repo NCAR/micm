@@ -143,9 +143,42 @@ namespace micm
           std::copy(config_subset.begin(), config_subset.end(),
             std::back_inserter(config_data));
         }
-        std::cout << config_data.dump(4) << std::endl;
 
-        return ConfigParseStatus::Success;
+        ConfigParseStatus status;
+
+        status = Configure(config_data);
+
+        return status;
+      }
+
+    private:
+
+      ConfigParseStatus Configure(const json& config_data)
+      {
+        // std::cout << config_data.dump(4) << std::endl;
+
+        ConfigParseStatus status = ConfigParseStatus::None;
+
+        std::vector<json> sections;
+        std::vector<json> objects;
+
+        for (const auto& section : config_data)
+        {
+          sections.push_back(section);
+        }
+
+        for (const auto& section : sections)
+        {
+          for (const auto& object : section)
+          {
+            objects.push_back(object);
+            std::cout << object.dump(4) << std::endl;
+          }
+        }
+
+        status = ConfigParseStatus::Success;
+
+        return status;
       }
   };
 
