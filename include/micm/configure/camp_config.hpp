@@ -215,6 +215,10 @@ namespace micm
           else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
           {
           }
+          else
+          {
+            status = ConfigParseStatus::UnknownKey;
+          }
 
           if (status != ConfigParseStatus::Success)
             break;
