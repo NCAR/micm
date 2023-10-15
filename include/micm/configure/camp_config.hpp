@@ -110,6 +110,7 @@ namespace micm
       // Functions
 
       /// @brief Parse configures
+      /// @param config_dir Path to a the configuration directory
       /// @return True for successful parsing
       ConfigParseStatus Parse(const std::filesystem::path& config_dir)
       {
@@ -140,6 +141,24 @@ namespace micm
         }
 
         return ConfigParseStatus::Success;
+      }
+  };
+
+  /// @brief Public interface to read and parse config
+  template<class ConfigTypePolicy = JsonReaderPolicy>
+  class SolverConfig : public ConfigTypePolicy
+  {
+    private:
+      ConfigParseStatus last_parse_status_ = ConfigParseStatus::None;
+
+    public:
+      /// @brief Reads and parses configures
+      /// @param config_dir Path to a the configuration directory
+      /// @return an enum indicating the success or failure of the parse
+      [[nodiscard]] ConfigParseStatus ReadAndParse(const std::filesystem::path& config_dir)
+      {
+        last_parse_status_ = this->Parse(config_dir);
+        return last_parse_status_;
       }
   };
 }  // namespace micm
