@@ -286,7 +286,7 @@ namespace micm
           objects.push_back(element);
         }
 
-        return ParseObjectArray(objects);
+        // return ParseObjectArray(objects);
       }
 
   };
