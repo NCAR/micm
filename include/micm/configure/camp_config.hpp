@@ -159,18 +159,17 @@ namespace micm
 
         ConfigParseStatus status = ConfigParseStatus::None;
 
-        std::vector<json> sections;
         std::vector<json> objects;
 
         for (const auto& section : config_data)
         {
-          sections.push_back(section);
-        }
-
-        for (const auto& section : sections)
-        {
           for (const auto& object : section)
           {
+            if (!ValidateJsonWithKey(object, TYPE))
+            {
+              status = ConfigParseStatus::ObjectTypeNotFound;
+              break;
+            }
             objects.push_back(object);
             std::cout << object.dump(4) << std::endl;
           }
@@ -179,6 +178,17 @@ namespace micm
         status = ConfigParseStatus::Success;
 
         return status;
+      }
+
+      bool ValidateJsonWithKey(const json& object, const std::string& key)
+      {
+        if (!object.contains(key))
+        {
+          std::string msg = "Key " + key + " was not found in the config file";
+          std::cerr << msg << std::endl;
+          return false;
+        }
+        return true;
       }
   };
 
