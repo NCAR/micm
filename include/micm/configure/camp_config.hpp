@@ -31,6 +31,7 @@ namespace micm
     None,
     InvalidKey,
     UnknownKey,
+    InvalidCAMPFilePath,
     CAMPFilesSectionNotFound,
     CAMPDataSectionNotFound,
     InvalidSpecies,
@@ -47,6 +48,7 @@ namespace micm
       case ConfigParseStatus::None: return "None";
       case ConfigParseStatus::InvalidKey: return "InvalidKey";
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
+      case ConfigParseStatus::InvalidCAMPFilePath: return "InvalidCAMPFilePath";
       case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
       case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
@@ -99,15 +101,45 @@ namespace micm
       // Constants
       // Configure files
       static const inline std::string CAMP_CONFIG = "config.json";
-      static const inline std::string SPECIES_CONFIG = "species.json";
-      static const inline std::string MECHANISM_CONFIG = "mechanism.json";
-      static const inline std::string REACTIONS_CONFIG = "reactions.json";
-      static const inline std::string TOLERANCE_CONFIG = "tolerance.json";
 
       // Common JSON
       static const inline std::string CAMP_DATA = "camp-data";
       static const inline std::string CAMP_FILES = "camp-files";
       static const inline std::string TYPE = "type";
 
+      // Functions
+
+      /// @brief Parse configures
+      /// @return True for successful parsing
+      ConfigParseStatus Parse(const std::filesystem::path& config_dir)
+      {
+        std::vector<std::string> camp_files;
+
+        // Look for CAMP config file
+        std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
+        if (std::filesystem::exists(camp_config))
+        {
+          json camp_data = json::parse(std::ifstream(camp_config));
+          if (!camp_data.contains(CAMP_FILES))
+            return ConfigParseStatus::CAMPFilesSectionNotFound;
+
+          for (const auto& element : camp_data[CAMP_FILES])
+          {
+            camp_files.push_back(element.get<std::string>());
+          }
+        }
+        else
+        {
+          return ConfigParseStatus::InvalidCAMPFilePath;
+        }
+
+        // Merge config JSON from CAMP file list
+        for (const auto& camp_file : camp_files)
+        {
+          json config_data = json::parse(std::ifstream(camp_file));
+        }
+
+        return ConfigParseStatus::Success;
+      }
   };
 }  // namespace micm
