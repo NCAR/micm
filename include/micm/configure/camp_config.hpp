@@ -175,6 +175,51 @@ namespace micm
           }
         }
 
+        for (const auto& object : objects)
+        {
+          std::string type = object[TYPE].get<std::string>();
+
+          if (type == "CHEM_SPEC")
+          {
+          }
+          else if (type == "RELATIVE_TOLERANCE")
+          {
+          }
+          else if (type == "MECHANISM")
+          {
+          }
+          else if (type == "PHOTOLYSIS")
+          {
+          }
+          else if (type == "EMISSION")
+          {
+          }
+          else if (type == "FIRST_ORDER_LOSS")
+          {
+          }
+          else if (type == "ARRHENIUS")
+          {
+          }
+          else if (type == "TROE")
+          {
+          }
+          else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
+          {
+          }
+          else if (type == "SURFACE")
+          {
+          }
+          else if (type == "TERNARY_CHEMICAL_ACTIVATION")
+          {
+          }
+          else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
+          {
+          }
+
+          if (status != ConfigParseStatus::Success)
+            break;
+        }
+
         status = ConfigParseStatus::Success;
 
         return status;
