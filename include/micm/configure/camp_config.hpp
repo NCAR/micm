@@ -135,12 +135,15 @@ namespace micm
         }
 
         // Merge config JSON from CAMP file list
+        json config_data;
         for (const auto& camp_file : camp_files)
         {
           std::cout << "JsonReaderPolicy.Parse CAMP file" << camp_file << std::endl;
-          json config_data = json::parse(std::ifstream(config_dir / camp_file));
-          std::cout << config_data.dump(4) << std::endl;
+          json config_subset = json::parse(std::ifstream(config_dir / camp_file));
+          std::copy(config_subset.begin(), config_subset.end(),
+            std::back_inserter(config_data));
         }
+        std::cout << config_data.dump(4) << std::endl;
 
         return ConfigParseStatus::Success;
       }
