@@ -137,7 +137,8 @@ namespace micm
         // Merge config JSON from CAMP file list
         for (const auto& camp_file : camp_files)
         {
-          json config_data = json::parse(std::ifstream(camp_file));
+          std::cout << "JsonReaderPolicy.Parse CAMP file" << camp_file << std::endl;
+          json config_data = json::parse(std::ifstream(config_dir / camp_file));
         }
 
         return ConfigParseStatus::Success;
