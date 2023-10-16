@@ -195,9 +195,11 @@ namespace micm
           }
           else if (type == "RELATIVE_TOLERANCE")
           {
+            status = ParseRelativeTolerance(object);
           }
           else if (type == "MECHANISM")
           {
+            status = ParseMechanism(object);
           }
           else if (type == "PHOTOLYSIS")
           {
