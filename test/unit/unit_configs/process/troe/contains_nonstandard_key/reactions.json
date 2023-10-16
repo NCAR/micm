@@ -5,8 +5,7 @@
       "type": "MECHANISM",
       "reactions": [
         {
-          "__my comment": {},
-          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "type": "TROE",
           "reactants": {
             "foo" : { },
             "quz" : { "qty" :2 }
@@ -17,7 +16,7 @@
           }
         },
         {
-          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "type": "TROE",
           "reactants": {
             "bar" : { },
             "baz" : { }
@@ -26,14 +25,14 @@
             "bar": { "yield": 0.5 },
             "foo": { }
           },
-          "k0_A": 32.1,
-          "k0_B": -2.3,
-          "k0_C": 102.3,
-          "kinf_A": 63.4,
-          "kinf_B": -1.3,
-          "kinf_C": 908.5,
-          "Fc": 1.3,
-          "N": 32.1
+          "K0_A": 32.1,
+          "K0_B": -2.3,
+          "K0_C": 102.3,
+          "Kinf_A": 63.4,
+          "Kinf_B": -1.3,
+          "Kinf_C": 908.5,
+          "fc": 1.3,
+          "n": 32.1
         }
       ]
     }

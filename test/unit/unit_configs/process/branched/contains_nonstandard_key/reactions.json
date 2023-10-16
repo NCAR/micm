@@ -5,7 +5,6 @@
       "type": "MECHANISM",
       "reactions": [
         {
-          "__my comment": {},
           "type": "BRANCHED",
           "reactants": {
             "foo" : { },
@@ -14,6 +13,9 @@
           "alkoxy products": {
             "bar": { "yield": 1.0 },
             "baz": { "yield": 3.2 }
+          },
+          "Alkoxy products": {
+            "baz": { }
           },
           "nitrate products": {
             "quz": { "yield": 1.0 }
@@ -30,6 +32,9 @@
             "baz" : { }
           },
           "alkoxy products": {
+            "baz": { }
+          },
+          "Alkoxy products": {
             "baz": { }
           },
           "nitrate products": {

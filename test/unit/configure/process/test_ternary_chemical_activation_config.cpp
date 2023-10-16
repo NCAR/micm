@@ -72,3 +72,11 @@ TEST(TernaryChemicalActivationConfig, ParseConfig)
     EXPECT_EQ(params.N_, 32.1);
   }
 }
+
+TEST(TernaryChemicalActivationConfig, DetectsNonstandardKeys)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}

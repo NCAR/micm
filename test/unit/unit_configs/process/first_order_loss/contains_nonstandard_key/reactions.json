@@ -5,15 +5,10 @@
       "type": "MECHANISM",
       "reactions": [
         {
-          "__my comment": {},
           "type": "FIRST_ORDER_LOSS",
           "species": "foo",
-          "MUSICA name": "foo"
-        },
-        {
-          "type": "FIRST_ORDER_LOSS",
-          "species": "bar",
-          "MUSICA name": "bar"
+          "MUSICA name": "foo",
+          "mUSICA name": "foo"
         }
       ]
     }

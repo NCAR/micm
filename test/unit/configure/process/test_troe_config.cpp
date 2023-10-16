@@ -2,22 +2,23 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(TunnelingConfig, DetectsInvalidConfig)
+TEST(Troe, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_reactants");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/troe/missing_reactants");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
-  status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_products");
+  status = solver_config.ReadAndParse("./unit_configs/process/troe/missing_products");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
 }
 
-TEST(TunnelingConfig, ParseConfig)
+TEST(Troe, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/valid");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/troe/valid");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
@@ -35,12 +36,17 @@ TEST(TunnelingConfig, ParseConfig)
     EXPECT_EQ(process_vector[0].products_[0].second, 1.0);
     EXPECT_EQ(process_vector[0].products_[1].first.name_, "baz");
     EXPECT_EQ(process_vector[0].products_[1].second, 3.2);
-    micm::TunnelingRateConstant* tunneling_rate_constant =
-        dynamic_cast<micm::TunnelingRateConstant*>(process_vector[0].rate_constant_.get());
-    auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 1.0);
-    EXPECT_EQ(params.B_, 0.0);
-    EXPECT_EQ(params.C_, 0.0);
+    micm::TroeRateConstant* ternary_rate_constant =
+        dynamic_cast<micm::TroeRateConstant*>(process_vector[0].rate_constant_.get());
+    auto& params = ternary_rate_constant->parameters_;
+    EXPECT_EQ(params.k0_A_, 1.0);
+    EXPECT_EQ(params.k0_B_, 0.0);
+    EXPECT_EQ(params.k0_C_, 0.0);
+    EXPECT_EQ(params.kinf_A_, 1.0);
+    EXPECT_EQ(params.kinf_B_, 0.0);
+    EXPECT_EQ(params.kinf_C_, 0.0);
+    EXPECT_EQ(params.Fc_, 0.6);
+    EXPECT_EQ(params.N_, 1.0);
   }
 
   // second reaction
@@ -53,19 +59,24 @@ TEST(TunnelingConfig, ParseConfig)
     EXPECT_EQ(process_vector[1].products_[0].second, 0.5);
     EXPECT_EQ(process_vector[1].products_[1].first.name_, "foo");
     EXPECT_EQ(process_vector[1].products_[1].second, 1.0);
-    micm::TunnelingRateConstant* tunneling_rate_constant =
-        dynamic_cast<micm::TunnelingRateConstant*>(process_vector[1].rate_constant_.get());
-    auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 32.1);
-    EXPECT_EQ(params.B_, -2.3);
-    EXPECT_EQ(params.C_, 102.3);
+    micm::TroeRateConstant* ternary_rate_constant =
+        dynamic_cast<micm::TroeRateConstant*>(process_vector[1].rate_constant_.get());
+    auto& params = ternary_rate_constant->parameters_;
+    EXPECT_EQ(params.k0_A_, 32.1);
+    EXPECT_EQ(params.k0_B_, -2.3);
+    EXPECT_EQ(params.k0_C_, 102.3);
+    EXPECT_EQ(params.kinf_A_, 63.4);
+    EXPECT_EQ(params.kinf_B_, -1.3);
+    EXPECT_EQ(params.kinf_C_, 908.5);
+    EXPECT_EQ(params.Fc_, 1.3);
+    EXPECT_EQ(params.N_, 32.1);
   }
 }
 
-TEST(TunnelingConfig, DetectsNonstandardKeys)
+TEST(Troe, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/contains_nonstandard_key");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/troe/contains_nonstandard_key");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
