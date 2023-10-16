@@ -32,6 +32,7 @@ namespace micm
     InvalidKey,
     UnknownKey,
     InvalidCAMPFilePath,
+    NoConfigFilesFound,
     CAMPFilesSectionNotFound,
     CAMPDataSectionNotFound,
     InvalidSpecies,
@@ -49,6 +50,7 @@ namespace micm
       case ConfigParseStatus::InvalidKey: return "InvalidKey";
       case ConfigParseStatus::UnknownKey: return "UnknownKey";
       case ConfigParseStatus::InvalidCAMPFilePath: return "InvalidCAMPFilePath";
+      case ConfigParseStatus::NoConfigFilesFound: return "NoConfigFilesFound";
       case ConfigParseStatus::CAMPFilesSectionNotFound: return "CAMPFilesSectionNotFound";
       case ConfigParseStatus::CAMPDataSectionNotFound: return "CAMPDataSectionNotFound";
       case ConfigParseStatus::InvalidSpecies: return "InvalidSpecies";
@@ -135,26 +137,34 @@ namespace micm
         }
         else
         {
-          // return ConfigParseStatus::InvalidCAMPFilePath;
-          // TODO: add complete backward compatibility with original parser
           std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
           std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
+          std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
+          std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
           if (std::filesystem::exists(species_config))
           {
-            camp_files.push_back(config_dir / SPECIES_CONFIG);
-          }
-          else
-          {
-            return ConfigParseStatus::InvalidCAMPFilePath;
+            camp_files.push_back(species_config);
           }
           if (std::filesystem::exists(mechanism_config))
           {
-            camp_files.push_back(config_dir / MECHANISM_CONFIG);
+            camp_files.push_back(mechanism_config);
           }
-          else
+          if (std::filesystem::exists(reactions_config))
           {
-            return ConfigParseStatus::InvalidCAMPFilePath;
+            camp_files.push_back(reactions_config);
           }
+          if (std::filesystem::exists(tolerance_config))
+          {
+            camp_files.push_back(tolerance_config);
+          }
+        }
+
+        // No config files found
+        if (camp_files.size() < 1)
+        {
+	  std::string msg = "No config files found";
+	  std::cerr << msg << std::endl;
+          return ConfigParseStatus::NoConfigFilesFound;
         }
 
         // Merge config JSON from CAMP file list
