@@ -135,18 +135,23 @@ namespace micm
         }
 
         // Merge config JSON from CAMP file list
-        json config_data;
+        json camp_data;
         for (const auto& camp_file : camp_files)
         {
           std::cout << "JsonReaderPolicy.Parse CAMP file" << camp_file << std::endl;
           json config_subset = json::parse(std::ifstream(config_dir / camp_file));
+
+          if (!config_subset.contains(CAMP_DATA))
+            return ConfigParseStatus::CAMPDataSectionNotFound;
+          // json camp_subset = config_subset[CAMP_DATA];
+
           std::copy(config_subset.begin(), config_subset.end(),
-            std::back_inserter(config_data));
+            std::back_inserter(camp_data));
         }
 
         ConfigParseStatus status;
 
-        status = Configure(config_data);
+        status = Configure(camp_data);
 
         // Assign the parsed 'Species' to 'Phase'
         gas_phase_ = Phase(species_arr_);
@@ -158,7 +163,6 @@ namespace micm
 
       ConfigParseStatus Configure(const json& config_data)
       {
-        // std::cout << config_data.dump(4) << std::endl;
         ConfigParseStatus status = ConfigParseStatus::None;
 
         std::vector<json> objects;
@@ -734,6 +738,21 @@ namespace micm
       {
         last_parse_status_ = this->Parse(config_dir);
         return last_parse_status_;
+      }
+
+      /// @brief Creates and returns SolverParameters
+      /// @return SolverParameters that contains 'System' and a collection of 'Process'
+      SolverParameters GetSolverParams()
+      {
+        if (last_parse_status_ != ConfigParseStatus::Success)
+        {
+          std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
+                            configParseStatusToString(last_parse_status_);
+          throw std::runtime_error(msg);
+        }
+
+        return SolverParameters(
+          std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
       }
   };
 }  // namespace micm
