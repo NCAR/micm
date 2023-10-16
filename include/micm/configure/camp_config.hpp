@@ -301,6 +301,40 @@ namespace micm
         return ParseObjectArray(objects);
       }
 
+      std::vector<Species> ParseReactants(const json& object)
+      {
+        const std::string QTY = "qty";
+        std::vector<Species> reactants;
+        for (auto& [key, value] : object.items())
+        {
+          std::size_t qty = 1;
+          if (value.contains(QTY))
+            qty = value[QTY];
+          for (std::size_t i = 0; i < qty; ++i)
+            reactants.push_back(Species(key));
+        }
+        return reactants;
+      }
+
+      std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+      {
+        const std::string YIELD = "yield";
+        constexpr double DEFAULT_YEILD = 1.0;
+        std::vector<std::pair<Species, double>> products;
+        for (auto& [key, value] : object.items())
+        {
+          if (value.contains(YIELD))
+          {
+            products.push_back(std::make_pair(Species(key), value[YIELD]));
+          }
+          else
+          {
+            products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
+          }
+        }
+        return products;
+      }
+
   };
 
   /// @brief Public interface to read and parse config
