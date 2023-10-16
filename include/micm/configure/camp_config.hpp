@@ -227,6 +227,7 @@ namespace micm
           }
           else if (type == "SURFACE")
           {
+            status = ParseSurface(object);
           }
           else if (type == "TERNARY_CHEMICAL_ACTIVATION")
           {
@@ -570,6 +571,49 @@ namespace micm
         branched_rate_arr_.push_back(BranchedRateConstant(parameters));
         rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
         processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseSurface(const json& object)
+      {
+        const std::string REACTANTS = "gas-phase reactant";
+        const std::string PRODUCTS = "gas-phase products";
+        const std::string MUSICA_NAME = "MUSICA name";
+        const std::string PROBABILITY = "reaction probability";
+        for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        std::string species_name = object[REACTANTS].get<std::string>();
+        json reactants_object{};
+        reactants_object[species_name] = { {} };
+        auto reactants = ParseReactants(reactants_object);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        Species reactant_species = Species("");
+        for (auto& species : species_arr_)
+        {
+          if (species.name_ == species_name)
+          {
+            reactant_species = species;
+            break;
+          }
+        }
+        SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+                                                  .species_ = reactant_species };
+
+        if (object.contains(PROBABILITY))
+        {
+          parameters.reaction_probability_ = object[PROBABILITY].get<double>();
+        }
+
+        surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
+
+        std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
