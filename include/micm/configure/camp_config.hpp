@@ -231,20 +231,20 @@ namespace micm
           }
           else if (type == "TERNARY_CHEMICAL_ACTIVATION")
           {
+            status = ParseTernaryChemicalActivation(object);
           }
           else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
           {
+            status = ParseTunneling(object);
           }
           else
           {
             status = ConfigParseStatus::UnknownKey;
           }
 
-          // if (status != ConfigParseStatus::Success)
-          //   break;
+          if (status != ConfigParseStatus::Success)
+            break;
         }
-
-        status = ConfigParseStatus::Success;
 
         return status;
       }
@@ -618,6 +618,102 @@ namespace micm
         return ConfigParseStatus::Success;
       }
 
+      ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string PRODUCTS = "products";
+
+        // Check required json objects exist
+        for (const auto& key : { REACTANTS, PRODUCTS })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        TernaryChemicalActivationRateConstantParameters parameters;
+        if (object.contains("k0_A"))
+        {
+          parameters.k0_A_ = object["k0_A"].get<double>();
+        }
+        if (object.contains("k0_B"))
+        {
+          parameters.k0_B_ = object["k0_B"].get<double>();
+        }
+        if (object.contains("k0_C"))
+        {
+          parameters.k0_C_ = object["k0_C"].get<double>();
+        }
+        if (object.contains("kinf_A"))
+        {
+          parameters.kinf_A_ = object["kinf_A"].get<double>();
+        }
+        if (object.contains("kinf_B"))
+        {
+          parameters.kinf_B_ = object["kinf_B"].get<double>();
+        }
+        if (object.contains("kinf_C"))
+        {
+          parameters.kinf_C_ = object["kinf_C"].get<double>();
+        }
+        if (object.contains("Fc"))
+        {
+          parameters.Fc_ = object["Fc"].get<double>();
+        }
+        if (object.contains("N"))
+        {
+          parameters.N_ = object["N"].get<double>();
+        }
+
+        ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
+
+        std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
+          std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
+
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseTunneling(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string PRODUCTS = "products";
+
+        // Check required json objects exist
+        for (const auto& key : { REACTANTS, PRODUCTS })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        TunnelingRateConstantParameters parameters;
+        if (object.contains("A"))
+        {
+          parameters.A_ = object["A"].get<double>();
+        }
+        if (object.contains("B"))
+        {
+          parameters.B_ = object["B"].get<double>();
+        }
+        if (object.contains("C"))
+        {
+          parameters.C_ = object["C"].get<double>();
+        }
+
+        tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
+
+        std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
+
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
   };
 
   /// @brief Public interface to read and parse config
