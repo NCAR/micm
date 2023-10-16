@@ -156,7 +156,6 @@ namespace micm
       ConfigParseStatus Configure(const json& config_data)
       {
         // std::cout << config_data.dump(4) << std::endl;
-
         ConfigParseStatus status = ConfigParseStatus::None;
 
         std::vector<json> objects;
@@ -174,6 +173,15 @@ namespace micm
             std::cout << object.dump(4) << std::endl;
           }
         }
+
+        status = ParseObjectArray(objects);
+
+        return status;
+      }
+
+      ConfigParseStatus ParseObjectArray(const std::vector<json>& objects)
+      {
+        ConfigParseStatus status = ConfigParseStatus::None;
 
         for (const auto& object : objects)
         {
