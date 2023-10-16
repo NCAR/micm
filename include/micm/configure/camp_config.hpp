@@ -148,6 +148,9 @@ namespace micm
 
         status = Configure(config_data);
 
+        // Assign the parsed 'Species' to 'Phase'
+        gas_phase_ = Phase(species_arr_);
+
         return status;
       }
 
