@@ -13,6 +13,10 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
+> **Note**
+> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers
+and partially implemented features
+
 # Getting Started
 
 ## Installing MICM locally
@@ -41,10 +45,11 @@ If you would later like to uninstall MICM, you can run
 
 ## Options
 
-There are multiple options for running micm. Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
-to learn how to configure these options.
-
-![Options for running micm](docs/source/_static/options.png)
+There are multiple options for running micm. You can use [json](https://github.com/nlohmann/json)
+to configure a solver, [llvm](https://llvm.org/) to JIT-compile
+solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
+Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
+to learn how to enable these options.
 
 ## Running a MICM Docker container
 
@@ -209,7 +214,3 @@ installation and usage instructions.
 - [Apache 2.0](/LICENSE)
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
-
-
-> **Note**
-> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers
