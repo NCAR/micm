@@ -164,13 +164,7 @@ namespace micm
         {
           for (const auto& object : section)
           {
-            if (!ValidateJsonWithKey(object, TYPE))
-            {
-              status = ConfigParseStatus::ObjectTypeNotFound;
-              break;
-            }
             objects.push_back(object);
-            std::cout << object.dump(4) << std::endl;
           }
         }
 
@@ -185,7 +179,15 @@ namespace micm
 
         for (const auto& object : objects)
         {
+          if (!ValidateJsonWithKey(object, TYPE))
+          {
+            status = ConfigParseStatus::ObjectTypeNotFound;
+            break;
+          }
           std::string type = object[TYPE].get<std::string>();
+
+          std::cout << type << std::endl;
+          std::cout << object.dump(4) << std::endl;
 
           if (type == "CHEM_SPEC")
           {
@@ -229,8 +231,8 @@ namespace micm
             status = ConfigParseStatus::UnknownKey;
           }
 
-          if (status != ConfigParseStatus::Success)
-            break;
+          // if (status != ConfigParseStatus::Success)
+          //   break;
         }
 
         status = ConfigParseStatus::Success;
@@ -294,7 +296,7 @@ namespace micm
           objects.push_back(element);
         }
 
-        // return ParseObjectArray(objects);
+        return ParseObjectArray(objects);
       }
 
   };
