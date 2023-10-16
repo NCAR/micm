@@ -52,3 +52,87 @@ TEST(SolverConfig, ReadAndParseSystemObject)
     idx++;
   }
 }
+
+TEST(SolverConfig, ReadAndParseProcessObjects)
+{
+  micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
+
+  // Read and parse the configure files
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+
+  auto& process_vector = solver_params.processes_;
+
+  // Check the number of 'Process' created
+  EXPECT_EQ(process_vector.size(), 15);
+
+  // Check the number of 'reactants' and 'products' in each 'Process'
+  // Check 'yield' value for the first product and the number of 'spieces in 'phase' in each 'Process'
+  int num_reactants_in_each_process[] = { 1, 1, 1, 2, 2, 2, 3, 0, 0, 0, 1, 1, 1, 1, 1 };
+  int num_products_in_each_process[] = { 1, 2, 2, 2, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0 };
+  double yield_value_of_first_product_in_each_process[] = { 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0,
+                                                            1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+  int num_phase_in_each_process = 9;
+
+  short idx = 0;
+  for (const auto& p : process_vector)
+  {
+    EXPECT_EQ(p.reactants_.size(), num_reactants_in_each_process[idx]);
+    EXPECT_EQ(p.products_.size(), num_products_in_each_process[idx]);
+    if (num_products_in_each_process[idx] > 0)
+      EXPECT_EQ(p.products_[0].second, yield_value_of_first_product_in_each_process[idx]);
+    // EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
+    idx++;
+  }
+
+  // Check the parameters for 'ArrheniusRateConstant'
+  micm::ArrheniusRateConstant* arrhenius_rate_const = nullptr;
+  double A_param[] = { 2.15e-11, 3.3e-11, 8.0e-12, 6.0e-34 };
+  double B_param[] = { 0.0, 0.0, 0.0, 2.4 };
+  double C_param[] = { 110.0, 55.0, -2060.00, 0.0 };
+  double D_param[] = { 300.0, 300.0, 300.0, 300.0 };
+  double E_param[] = { 0.0, 0.0, 0.0, 0.0 };
+
+  for (short i = 3; i < 7; i++)
+  {
+    arrhenius_rate_const = dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[i].rate_constant_.get());
+
+    EXPECT_TRUE(arrhenius_rate_const != nullptr);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.A_, A_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.B_, B_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.C_, C_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.D_, D_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.E_, E_param[i - 3]);
+  }
+
+  // Check the number of custom parameters of 'rate constant' in each 'Process'
+  std::vector<std::vector<std::string>> custom_rate_labels = { { "PHOTO.O2_1" },
+                                                               { "PHOTO.O3_1" },
+                                                               { "PHOTO.O3_2" },
+                                                               {},
+                                                               {},
+                                                               {},
+                                                               {},
+                                                               { "EMIS.O1D" },
+                                                               { "EMIS.O" },
+                                                               { "EMIS.O3" },
+                                                               { "LOSS.N2" },
+                                                               { "LOSS.O2" },
+                                                               { "LOSS.CO2" },
+                                                               { "LOSS.Ar" },
+                                                               { "LOSS.H2O" } };
+
+  // check photlysis, emissions, and loss reaction labels
+  idx = 0;
+  std::vector<micm::Process>::iterator it;
+  for (it = solver_params.processes_.begin(); it != solver_params.processes_.end(); it++, idx++)
+  {
+    EXPECT_EQ(it->rate_constant_->SizeCustomParameters(), custom_rate_labels[idx].size());
+    for (std::size_t i = 0; i < custom_rate_labels[idx].size(); ++i)
+      EXPECT_EQ(it->rate_constant_->CustomParameters()[i], custom_rate_labels[idx][i]);
+  }
+}
+
