@@ -87,7 +87,7 @@ int main(const int argc, const char* argv[])
     { "G", { 0.0 } },  // mol m-3
   };
 
-  state.SetConcentrations(solver_params.system_, intial_concentration);
+  state.SetConcentrations(intial_concentration);
 
   state.SetCustomRateParameter("SURF.C surface.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("SURF.C surface.particle number concentration [# m-3]", 2.5e6);

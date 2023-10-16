@@ -46,7 +46,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
     { "Ar", { 0.2 } }, { "N2", { 0.3 } },  { "H2O", { 0.3 } }, { "CO2", { 0.3 } }
   };
 
-  state.SetConcentrations(solver_params.system_, concentrations);
+  state.SetConcentrations(concentrations);
 
   // User gives an input of photolysis rate constants
   std::unordered_map<std::string, std::vector<double>> photo_rates = { { "PHOTO.O2_1", { 0.1 } },

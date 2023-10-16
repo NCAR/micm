@@ -28,6 +28,12 @@ step will simply copy the header files into the normal location required by your
 CMake will allow for setting options such as the installation directory
 with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
 
+Options
+-------
+
+.. image:: _static/options.png
+
+
 MICM can optionally include support for json configuration reading, OpenMP,
 JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
 Some of these libraries can be included automatically with cmake build options,
