@@ -124,15 +124,20 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << "foo,       bar,      baz" << std::endl;
+  std::cout << std::setw(5) << "time [s]," 
+            << std::setw(13) << "foo, "
+            << std::setw(12) << "bar, "
+            << std::setw(10) << "baz" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::fixed << std::setprecision(6)
-              << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << state.variables_[0][state.variable_map_["Bar"]] << ", "
-              << state.variables_[0][state.variable_map_["Baz"]] << std::endl;
+    std::cout << std::setfill(' ') << std::fixed
+              << std::setw(8) << std::setprecision(2) << i * 500.0 << ", "
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Foo"]] << ", "
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
+              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Baz"]]
+              << std::endl;
   }
 
   return 0;
@@ -148,16 +153,16 @@ g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.1.0/include -std=c++20
 Output:
 ```
 time [s],        foo,        bar,        baz
-0.000000,  11.843503,   5.904845,   1.907012
-500.000000,   6.792023,   9.045965,   3.317336
-1000.000000,   3.828700,  10.740589,   4.210461
-1500.000000,   2.138145,  11.663685,   4.739393
-2000.000000,   1.187934,  12.169452,   5.042503
-2500.000000,   0.658129,  12.447502,   5.213261
-3000.000000,   0.363985,  12.600676,   5.308597
-3500.000000,   0.201076,  12.685147,   5.361559
-4000.000000,   0.111028,  12.731727,   5.390884
-4500.000000,   0.061290,  12.757422,   5.407096
+    0.00,    11.8435,     5.9048,     1.9070
+  500.00,     6.7920,     9.0460,     3.3173
+ 1000.00,     3.8287,    10.7406,     4.2105
+ 1500.00,     2.1381,    11.6637,     4.7394
+ 2000.00,     1.1879,    12.1695,     5.0425
+ 2500.00,     0.6581,    12.4475,     5.2133
+ 3000.00,     0.3640,    12.6007,     5.3086
+ 3500.00,     0.2011,    12.6851,     5.3616
+ 4000.00,     0.1110,    12.7317,     5.3909
+ 4500.00,     0.0613,    12.7574,     5.4071
 ```
 # Citation
 
