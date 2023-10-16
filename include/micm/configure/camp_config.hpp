@@ -219,9 +219,11 @@ namespace micm
           }
           else if (type == "TROE")
           {
+            status = ParseTroe(object);
           }
           else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
           {
+            status = ParseBranched(object);
           }
           else if (type == "SURFACE")
           {
@@ -468,6 +470,106 @@ namespace micm
         std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
 
         processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseTroe(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string PRODUCTS = "products";
+
+        // Check required json objects exist
+        for (const auto& key : { REACTANTS, PRODUCTS })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        TroeRateConstantParameters parameters;
+        if (object.contains("k0_A"))
+        {
+          parameters.k0_A_ = object["k0_A"].get<double>();
+        }
+        if (object.contains("k0_B"))
+        {
+          parameters.k0_B_ = object["k0_B"].get<double>();
+        }
+        if (object.contains("k0_C"))
+        {
+          parameters.k0_C_ = object["k0_C"].get<double>();
+        }
+        if (object.contains("kinf_A"))
+        {
+          parameters.kinf_A_ = object["kinf_A"].get<double>();
+        }
+        if (object.contains("kinf_B"))
+        {
+          parameters.kinf_B_ = object["kinf_B"].get<double>();
+        }
+        if (object.contains("kinf_C"))
+        {
+          parameters.kinf_C_ = object["kinf_C"].get<double>();
+        }
+        if (object.contains("Fc"))
+        {
+          parameters.Fc_ = object["Fc"].get<double>();
+        }
+        if (object.contains("N"))
+        {
+          parameters.N_ = object["N"].get<double>();
+        }
+
+        troe_rate_arr_.push_back(TroeRateConstant(parameters));
+
+        std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
+
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseBranched(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string ALKOXY_PRODUCTS = "alkoxy products";
+        const std::string NITRATE_PRODUCTS = "nitrate products";
+        const std::string X = "X";
+        const std::string Y = "Y";
+        const std::string A0 = "a0";
+        const std::string N = "n";
+
+        // Check required json objects exist
+        for (const auto& key : { REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
+        auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
+
+        BranchedRateConstantParameters parameters;
+        parameters.X_ = object[X].get<double>();
+        parameters.Y_ = object[Y].get<double>();
+        parameters.a0_ = object[A0].get<double>();
+        parameters.n_ = object[N].get<int>();
+
+        // Alkoxy branch
+        parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+        std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+        processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+
+        // Nitrate branch
+        parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
+        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+        rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+        processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
