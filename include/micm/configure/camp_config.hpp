@@ -130,23 +130,39 @@ namespace micm
 
           for (const auto& element : camp_data[CAMP_FILES])
           {
-            camp_files.push_back(element.get<std::string>());
+            camp_files.push_back(config_dir / element.get<std::string>());
           }
         }
         else
         {
           // return ConfigParseStatus::InvalidCAMPFilePath;
           // TODO: add complete backward compatibility with original parser
-          camp_files.push_back(config_dir / SPECIES_CONFIG);
-          camp_files.push_back(config_dir / MECHANISM_CONFIG);
+          std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
+          std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
+          if (std::filesystem::exists(species_config))
+          {
+            camp_files.push_back(config_dir / SPECIES_CONFIG);
+          }
+          else
+          {
+            return ConfigParseStatus::InvalidCAMPFilePath;
+          }
+          if (std::filesystem::exists(mechanism_config))
+          {
+            camp_files.push_back(config_dir / MECHANISM_CONFIG);
+          }
+          else
+          {
+            return ConfigParseStatus::InvalidCAMPFilePath;
+          }
         }
 
         // Merge config JSON from CAMP file list
         json camp_data;
         for (const auto& camp_file : camp_files)
         {
-          std::cout << "JsonReaderPolicy.Parse CAMP file" << camp_file << std::endl;
-          json config_subset = json::parse(std::ifstream(config_dir / camp_file));
+          std::cout << "JsonReaderPolicy.Parse CAMP file " << camp_file << std::endl;
+          json config_subset = json::parse(std::ifstream(camp_file));
 
           if (!config_subset.contains(CAMP_DATA))
             return ConfigParseStatus::CAMPDataSectionNotFound;
