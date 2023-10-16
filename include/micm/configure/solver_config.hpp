@@ -39,7 +39,8 @@ namespace micm
     CAMPDataSectionNotFound,
     InvalidMechanism,
     ObjectTypeNotFound,
-    RequiredKeyNotFound
+    RequiredKeyNotFound,
+    ContainsNonStandardKey
   };
 
   inline std::string configParseStatusToString(const ConfigParseStatus& status)
@@ -59,6 +60,7 @@ namespace micm
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
       case ConfigParseStatus::RequiredKeyNotFound: return "RequiredKeyNotFound";
+      case ConfigParseStatus::ContainsNonStandardKey: return "ContainsNonStandardKey";
       default: return "Unknown";
     }
   }
@@ -744,10 +746,13 @@ namespace micm
       const std::string PRODUCTS = "gas-phase products";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string PROBABILITY = "reaction probability";
-      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
-      {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+
+      std::vector<std::string> object_keys;
+      for (auto& [key, value] : object.items())
+          object_keys.push_back(key);      
+      auto status = ValidateSchema(object_keys, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {PROBABILITY});
+      if (status != ConfigParseStatus::Success) {
+        return status;
       }
 
       std::string species_name = object[REACTANTS].get<std::string>();
@@ -778,6 +783,50 @@ namespace micm
       std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
+      return ConfigParseStatus::Success;
+    }
+
+
+    /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
+    /// @param object_keys the keys of the object
+    /// @param required_keys The required keys
+    /// @param optional_keys The optional keys
+    /// @return true if only standard keys are found
+    ConfigParseStatus ValidateSchema(const std::vector<std::string>& object_keys, const std::vector<std::string>& required_keys, const std::vector<std::string>& optional_keys) {
+      // standard keys are: 
+      // those in required keys
+      // those in optional keys
+      // starting with __
+      // anything else is reported as an error so that typos are caught, specifically for optional keys
+
+      auto sorted_object_keys = object_keys;
+      auto sorted_required_keys = required_keys;
+      auto sorted_optional_keys = optional_keys;
+      std::sort(sorted_object_keys.begin(), sorted_object_keys.end());
+      std::sort(sorted_required_keys.begin(), sorted_required_keys.end());
+      std::sort(sorted_optional_keys.begin(), sorted_optional_keys.end());
+
+
+      // get the difference between the object keys and those required
+      // what's left should be the optional keys and valid comments
+      std::vector<std::string> difference;
+      std::set_difference(sorted_object_keys.begin(), sorted_object_keys.end(), sorted_required_keys.begin(), sorted_required_keys.end(), std::back_inserter(difference));
+
+      // check that the number of keys remaining is exactly equal to the expected number of required keys
+      if (difference.size() != (object_keys.size() - required_keys.size())) {
+          return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      std::vector<std::string> remaining;
+      std::set_difference(difference.begin(), difference.end(), optional_keys.begin(), optional_keys.end(), std::back_inserter(remaining));
+
+      // now, anything left must be standard comment starting with __
+      for(auto& key : remaining)
+      {
+        if (!key.starts_with("__")) {
+          return ConfigParseStatus::ContainsNonStandardKey;
+        }
+      }
       return ConfigParseStatus::Success;
     }
   };
