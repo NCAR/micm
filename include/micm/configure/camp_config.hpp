@@ -203,15 +203,19 @@ namespace micm
           }
           else if (type == "PHOTOLYSIS")
           {
+            status = ParsePhotolysis(object);
           }
           else if (type == "EMISSION")
           {
+            status = ParseEmission(object);
           }
           else if (type == "FIRST_ORDER_LOSS")
           {
+            status = ParseFirstOrderLoss(object);
           }
           else if (type == "ARRHENIUS")
           {
+            status = ParseArrhenius(object);
           }
           else if (type == "TROE")
           {
@@ -333,6 +337,139 @@ namespace micm
           }
         }
         return products;
+      }
+
+      ConfigParseStatus ParsePhotolysis(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string PRODUCTS = "products";
+        const std::string MUSICA_NAME = "MUSICA name";
+
+        for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
+
+        user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+        std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseEmission(const json& object)
+      {
+        const std::string SPECIES = "species";
+        const std::string MUSICA_NAME = "MUSICA name";
+        for (const auto& key : { SPECIES, MUSICA_NAME })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        std::string species = object["species"].get<std::string>();
+        json reactants_object{};
+        json products_object{};
+        products_object[species] = { { "YIELD", 1.0 } };
+        auto reactants = ParseReactants(reactants_object);
+        auto products = ParseProducts(products_object);
+
+        std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
+
+        user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+        std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseFirstOrderLoss(const json& object)
+      {
+        const std::string SPECIES = "species";
+        const std::string MUSICA_NAME = "MUSICA name";
+        for (const auto& key : { SPECIES, MUSICA_NAME })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        std::string species = object["species"].get<std::string>();
+        json reactants_object{};
+        json products_object{};
+        reactants_object[species] = { {} };
+        auto reactants = ParseReactants(reactants_object);
+        auto products = ParseProducts(products_object);
+
+        std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
+
+        user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+        std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseArrhenius(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string PRODUCTS = "products";
+
+        // Check required json objects exist
+        for (const auto& key : { REACTANTS, PRODUCTS })
+        {
+          if (!ValidateJsonWithKey(object, key))
+            return ConfigParseStatus::RequiredKeyNotFound;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        ArrheniusRateConstantParameters parameters;
+        if (object.contains("A"))
+        {
+          parameters.A_ = object["A"].get<double>();
+        }
+        if (object.contains("B"))
+        {
+          parameters.B_ = object["B"].get<double>();
+        }
+        if (object.contains("C"))
+        {
+          parameters.C_ = object["C"].get<double>();
+        }
+        if (object.contains("D"))
+        {
+          parameters.D_ = object["D"].get<double>();
+        }
+        if (object.contains("E"))
+        {
+          parameters.E_ = object["E"].get<double>();
+        }
+        if (object.contains("Ea"))
+        {
+          // Calculate 'C' using 'Ea'
+          parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
+        }
+
+        arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
+ 
+        std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
+
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
       }
 
   };
