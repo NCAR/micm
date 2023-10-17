@@ -334,14 +334,12 @@ namespace micm
       // required keys
       const std::string NAME = "name";
 
-      std::array<std::string, 1> required_keys = { NAME };
-
-      // Check if it contains the required key(s)
-      for (const auto& key : required_keys)
+      auto status = ValidateSchema(object, { NAME, "type" }, { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
+
       std::string name = object[NAME].get<std::string>();
 
       // Load remaining keys as properties
@@ -363,12 +361,12 @@ namespace micm
 
     ConfigParseStatus ParseMechanism(const json& object)
     {
-      std::vector<std::string> required_keys = { "name", "reactions" };
-      for (const auto& key : required_keys)
+      auto status = ValidateSchema(object, { "name", "reactions", "type" }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
+
       std::vector<json> objects;
       for (const auto& element : object["reactions"])
       {
