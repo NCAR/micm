@@ -1,7 +1,7 @@
 {
   "camp-data": [
     {
-      "name": "Ternary missing reactants",
+      "name": "missing reactants",
       "type": "MECHANISM",
       "reactions": [
         {

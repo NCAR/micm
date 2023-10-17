@@ -1,7 +1,7 @@
 {
   "camp-data": [
     {
-      "name": "Valid ternary chemical activation reactions",
+      "name": "captial Q",
       "type": "MECHANISM",
       "reactions": [
         {
@@ -14,7 +14,7 @@
             "bar": {}
           },
           "nitrate products": {
-            "quz": { "Yield": 1.0 }
+            "quz": { "yield": 1.0 }
           },
           "Y" : 42.3,
           "X" : 12.3,
