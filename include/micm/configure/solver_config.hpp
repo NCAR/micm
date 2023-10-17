@@ -884,7 +884,7 @@ namespace micm
     }
 
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
-    /// @param object_keys the keys of the object
+    /// @param object the object whose keys need to be validated
     /// @param required_keys The required keys
     /// @param optional_keys The optional keys
     /// @return true if only standard keys are found
