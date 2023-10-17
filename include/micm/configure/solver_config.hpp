@@ -467,7 +467,7 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea" });
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
       if (status != ConfigParseStatus::Success)
       {
         return status;
