@@ -1,0 +1,20 @@
+{
+  "camp-data": [
+    {
+      "name": "Invalid yield name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "SURFACE",
+          "gas-phase reactant": "bar",
+          "gas-phase products": {
+            "bar": { "Yield": 0.5 },
+            "foo": { }
+          },
+          "reaction probability": 0.5,
+          "MUSICA name": "kbar"
+        }
+      ]
+    }
+  ]
+}

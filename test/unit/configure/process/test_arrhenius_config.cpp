@@ -2,7 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(Arrhenius, DetectsInvalidConfig)
+TEST(ArrheniusConfig, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -16,7 +16,7 @@ TEST(Arrhenius, DetectsInvalidConfig)
   EXPECT_EQ(micm::ConfigParseStatus::MutuallyExclusiveOption, status);
 }
 
-TEST(Arrhenius, ParseConfig)
+TEST(ArrheniusConfig, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -89,7 +89,7 @@ TEST(Arrhenius, ParseConfig)
   }
 }
 
-TEST(Arrhenius, DetectsNonstandardKeys)
+TEST(ArrheniusConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
@@ -97,7 +97,7 @@ TEST(Arrhenius, DetectsNonstandardKeys)
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
 
-TEST(Arrhenius, DetectsNonstandardProductCoefficient)
+TEST(ArrheniusConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
@@ -105,10 +105,10 @@ TEST(Arrhenius, DetectsNonstandardProductCoefficient)
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
 
-TEST(Arrhenius, DetectsNonstandardReactantCoefficient)
+TEST(ArrheniusConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_react_coef");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }

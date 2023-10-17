@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid ternary chemical activation reactions",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "foo" : { "Qty": 2.0 }
+          },
+          "products": {
+            "bar": {}
+          },
+          "MUSICA name": "jfoo"
+        }
+      ]
+    }
+  ]
+}

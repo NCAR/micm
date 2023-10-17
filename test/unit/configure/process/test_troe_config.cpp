@@ -2,7 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 
-TEST(Troe, DetectsInvalidConfig)
+TEST(TroeConfig, DetectsInvalidConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -14,7 +14,7 @@ TEST(Troe, DetectsInvalidConfig)
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
 }
 
-TEST(Troe, ParseConfig)
+TEST(TroeConfig, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
@@ -73,10 +73,26 @@ TEST(Troe, ParseConfig)
   }
 }
 
-TEST(Troe, DetectsNonstandardKeys)
+TEST(TroeConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
   micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/troe/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(TroeConfig, DetectsNonstandardProductCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/troe/nonstandard_product_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(TroeConfig, DetectsNonstandardReactantCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/troe/nonstandard_reactant_coef");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
