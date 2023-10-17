@@ -1,7 +1,7 @@
 {
   "camp-data": [
     {
-      "name": "Valid ternary chemical activation reactions",
+      "name": "Mutually exclusive arrhenius reaction config",
       "type": "MECHANISM",
       "reactions": [
         {
