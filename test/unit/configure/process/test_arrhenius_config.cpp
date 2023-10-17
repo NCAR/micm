@@ -83,7 +83,7 @@ TEST(ArrheniusConfig, ParseConfig)
     auto& params = ternary_rate_constant->parameters_;
     EXPECT_EQ(params.A_, 32.1);
     EXPECT_EQ(params.B_, -2.3);
-    EXPECT_EQ(params.C_, -1 * 102.3 / BOLTZMANN_CONSTANT);
+    EXPECT_EQ(params.C_, -1 * 2e23 / BOLTZMANN_CONSTANT);
     EXPECT_EQ(params.D_, 63.4);
     EXPECT_EQ(params.E_, -1.3);
   }
