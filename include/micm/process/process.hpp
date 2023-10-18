@@ -67,20 +67,10 @@ namespace micm
           rate_constant_(std::move(rate_constant)),
           phase_(phase)
     {
-      if (dynamic_cast<ArrheniusRateConstant*>(rate_constant_.get())) {
-      }
-      else if (dynamic_cast<BranchedRateConstant*>(rate_constant_.get())) {
-      }
-      else if (dynamic_cast<SurfaceRateConstant*>(rate_constant_.get())) {
+      if (dynamic_cast<SurfaceRateConstant*>(rate_constant_.get())) {
         if (reactants_.size() > 1) {
           throw std::runtime_error("A surface rate constant can only have one reactant");
         }
-      }
-      else if (dynamic_cast<TernaryChemicalActivationRateConstant*>(rate_constant_.get())) {
-      }
-      else if (dynamic_cast<TroeRateConstant*>(rate_constant_.get())) {
-      }
-      else if (dynamic_cast<TunnelingRateConstant*>(rate_constant_.get())) {
       }
     }
 
