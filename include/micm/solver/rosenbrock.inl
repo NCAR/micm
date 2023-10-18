@@ -1,17 +1,20 @@
 // Copyright (C) 2023 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#define TIMED_METHOD(assigned_increment, time_it, method, ...) \
-    { \
-      if constexpr (time_it) { \
-          auto start = std::chrono::high_resolution_clock::now(); \
-          method(__VA_ARGS__); \
-          auto end = std::chrono::high_resolution_clock::now(); \
-          assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
-      } else { \
-          method(__VA_ARGS__); \
-      } \
-    } \
+#define TIMED_METHOD(assigned_increment, time_it, method, ...)                                 \
+  {                                                                                            \
+    if constexpr (time_it)                                                                     \
+    {                                                                                          \
+      auto start = std::chrono::high_resolution_clock::now();                                  \
+      method(__VA_ARGS__);                                                                     \
+      auto end = std::chrono::high_resolution_clock::now();                                    \
+      assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
+    }                                                                                          \
+    else                                                                                       \
+    {                                                                                          \
+      method(__VA_ARGS__);                                                                     \
+    }                                                                                          \
+  }
 
 namespace micm
 {
@@ -517,9 +520,9 @@ namespace micm
     MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
     std::vector<MatrixPolicy<double>> K{};
-
-    parameters_.h_max_ = time_step;
-    parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
+    const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
+    const double h_start =
+        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
 
     stats_.Reset();
     UpdateState(state);
@@ -528,11 +531,13 @@ namespace micm
       K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
 
     double present_time = 0.0;
-    double H =
-        std::min(std::max(std::abs(parameters_.h_min_), std::abs(parameters_.h_start_)), std::abs(parameters_.h_max_));
+    double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
       H = delta_min_;
+
+    // TODO: the logic above this point should be moved to the constructor and should return an error
+    //       if the parameters are invalid (e.g., h_min > h_max or h_start > h_max)
 
     bool reject_last_h = false;
     bool reject_more_h = false;
@@ -639,7 +644,7 @@ namespace micm
           stats_.accepted += 1;
           present_time = present_time + H;
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
-          Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
+          Hnew = std::max(parameters_.h_min_, std::min(Hnew, h_max));
           if (reject_last_h)
           {
             // No step size increase after a rejected step
