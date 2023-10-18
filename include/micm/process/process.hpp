@@ -6,6 +6,14 @@
 
 #include <memory>
 #include <micm/process/rate_constant.hpp>
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/process/branched_rate_constant.hpp>
+#include <micm/process/rate_constant.hpp>
+#include <micm/process/surface_rate_constant.hpp>
+#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
+#include <micm/process/troe_rate_constant.hpp>
+#include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
@@ -57,6 +65,11 @@ namespace micm
           rate_constant_(std::move(rate_constant)),
           phase_(phase)
     {
+      if (dynamic_cast<SurfaceRateConstant*>(rate_constant_.get())) {
+        if (reactants_.size() > 1) {
+          throw std::runtime_error("A surface rate constant can only have one reactant");
+        }
+      }
     }
 
     Process& operator=(const Process& other)
@@ -153,10 +166,7 @@ namespace micm
   };
 
   inline Process::Process(ProcessBuilder& builder)
-      : reactants_(builder.reactants_),
-        products_(builder.products_),
-        rate_constant_(std::move(builder.rate_constant_)),
-        phase_(builder.phase_)
+      : Process(builder.reactants_, builder.products_, std::move(builder.rate_constant_), builder.phase_)
   {
   }
 
