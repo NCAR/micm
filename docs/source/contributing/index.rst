@@ -1,3 +1,4 @@
+.. _Contributing:
 
 Contributing
 ============
@@ -40,14 +41,8 @@ of ``clang-format`` enforces some consistency which means moving from file to fi
 Setting up developer environments
 ---------------------------------
 
-macOS
-^^^^^
-
-Linux
-^^^^^
-
-Windows
-^^^^^^^
+Most developers work on micm in VS Code. For instructions on how to setup micm with Xcode or Visual Studio,
+please see the :ref:`Debugging` section of the :ref:`Installation and usage` guide.
 
 Building the documentation
 --------------------------
