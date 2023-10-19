@@ -10,6 +10,9 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+template<class T>
+using SparseMatrixTest = micm::SparseMatrix<T>;
+
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void RunTerminatorTest(std::size_t number_of_grid_cells)
 {
@@ -28,10 +31,10 @@ void RunTerminatorTest(std::size_t number_of_grid_cells)
 
 TEST(RosenbrockSolver, Terminator)
 {
-  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(2);
-  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(2);
-  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(3);
-  RunTerminatorTest<micm::Matrix, micm::SparseMatrix, micm::LinearSolver<double, micm::SparseMatrix>>(4);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(2);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(2);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(3);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(4);
 }
 
 template<class T>

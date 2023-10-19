@@ -5,6 +5,7 @@
 #pragma once
 
 #include <micm/system/species.hpp>
+#include <algorithm>
 #include <vector>
 
 namespace micm

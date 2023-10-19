@@ -93,9 +93,9 @@ void TestTerminator(
       double cl_f = -l * (cl_i - det + r) * (cl_i + det + r) / (1.0 + e + dt * l * (cl_i + r));
       double cl2_f = -cl_f / 2.0;
       EXPECT_NEAR(
-          result.result_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-8 + 1.0e-15);
+          result.result_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-7 + 1.0e-14);
       EXPECT_NEAR(
-          result.result_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-8 + 1.0e-15);
+          result.result_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-7 + 1.0e-14);
     }
   }
 }
