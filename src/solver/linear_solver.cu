@@ -82,7 +82,7 @@ __global__ void SolveKernel(SolveDevice* device)
         }
     }
 }
-void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaLinearSolverParam& sparseMatrix, CudaMatrixParam denseMatrix)
+void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaLinearSolverParam& sparseMatrix, CudaMatrixParam& denseMatrix)
 {
     //create device pointer
     std::pair<size_t, size_t>* d_nLij_Lii; 
