@@ -1,9 +1,8 @@
 #include<vector>
-
 #ifndef CUDA_PARAM_HPP
 #define CUDA_PARAM_HPP
-  //member data of class CudaProcessSet grouped in struct passing to kernel driver function 
   const size_t BLOCK_SIZE = 320;
+  //member data of class CudaProcessSet grouped in struct passing to kernel driver function 
   struct CudaProcessSetParam{
     const size_t* number_of_reactants_; 
     const size_t* reactant_ids_; 
@@ -39,15 +38,32 @@
     const size_t* uii_; 
     size_t uii_size_; 
   };
+  
+  struct CudaLinearSolverParam{
+    const std::pair<size_t, size_t>* nLij_Lii_; 
+    size_t nLij_Lii_size_;
+    const std::pair<size_t, size_t>* Lij_yj_; 
+    size_t Lij_yj_size_;
+    const std::pair<size_t, size_t>* nUij_Uii_;
+    size_t nUij_Uii_size_;
+    const std::pair< size_t, size_t>* Uij_xj_;
+    size_t Uij_xj_size_;
+  }
+
  //different matrix data grouped in struct passing to kernel driver function 
     struct CudaMatrixParam{
      const double* rate_constants_; 
      const double* state_variables_; 
      double* forcing_; 
+     const double* b_; 
+     double* x_;
      size_t n_grids_; 
      size_t n_reactions_; 
      size_t n_species_; 
+     size_t b_column_counts_; 
+     size_t x_column_counts_;
 }; 
+
 //sparseMatrix data grouped in struct passing to kernel driver function 
 struct CudaSparseMatrixParam{
    double* jacobian_; 
@@ -59,5 +75,9 @@ struct CudaSparseMatrixParam{
    double* U_;
    size_t U_size_; 
    size_t n_grids_;
+   const double* lower_matrix_; 
+   size_t lower_matrix_size_; 
+   const double* upper_matrix_; 
+   size_t upper_matrix_size_; 
 };
 #endif
