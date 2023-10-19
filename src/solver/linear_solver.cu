@@ -17,7 +17,8 @@ struct SolveDevice{
     size_t nLij_Lii_size_;
     size_t nUij_Uii_size_;
 }
-
+namespace micm{
+    namespace cuda{
 __global__ void SolveKernel(SolveDevice* device)
 {
     size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -42,9 +43,7 @@ __global__ void SolveKernel(SolveDevice* device)
         size_t y_column_backward_index = x_column_backward_index; 
         size_t Lij_yj_index = 0; 
         size_t Uij_xj_index = 0;
-        size_t nLij_Lii_size = device->nLij_Lii_size_;
-        size_t nUij_Uii_size = device->nUij_Uii_size_;
-        for (size_t j = 0; j < nLij_Lii_size; ++j)
+        for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
         {
             auto& nLij_Lii = nLij_Lii[j]; 
             y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
@@ -59,13 +58,13 @@ __global__ void SolveKernel(SolveDevice* device)
             y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii.second + tid]; 
         }
         
-        for (size_t k = 0; k < nUij_Uii_size; ++k)
+        for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
         {   
             auto& nUij_Uii = nUij_Uii[k]; 
-            if (y_column_backward_index != 0)
-            {
-                --y_column_backward_index;
-            }
+            // if (y_column_backward_index != 0)
+            // {
+            //     --y_column_backward_index;
+            // }
             for (size_t i = 0; i < nUij_Uii.first; ++i)
             {
                 size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
@@ -73,7 +72,7 @@ __global__ void SolveKernel(SolveDevice* device)
                 x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
                 ++Uij_xj_index;
             }
-            x[x_column_backward_index] /= upper_matrix[nUij_Uii.second + tid];
+            x[x_column_backward_index * n_grids+tid] /= upper_matrix[nUij_Uii.second + tid];
             
             if (x_column_backward_index != 0)
             {
@@ -82,8 +81,8 @@ __global__ void SolveKernel(SolveDevice* device)
         }
     }
 }
-void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaLinearSolverParam& sparseMatrix, CudaMatrixParam& denseMatrix)
-{
+    void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaLinearSolverParam& sparseMatrix, CudaMatrixParam& denseMatrix)
+    {
     //create device pointer
     std::pair<size_t, size_t>* d_nLij_Lii; 
     std::pair<size_t, size_t>* d_Lij_yj; 
@@ -147,6 +146,6 @@ void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaLinearSolverParam
     cudaFree(d_b); 
     cudaFree(d_x);
     cudaFree(device);
-}
-
-                    
+    }
+  }//end cuda 
+}// end micm 
