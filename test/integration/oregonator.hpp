@@ -47,7 +47,6 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
       MatrixPolicy<double>& forcing) override
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-    this->stats_.function_calls += 1;
 
     auto data = number_densities.AsVector();
 
@@ -66,7 +65,6 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
       SparseMatrixPolicy<double>& jacobian) override
   {
     auto data = number_densities.AsVector();
-    this->stats_.jacobian_updates += 1;
 
     jacobian[0][0][0] = 77.27 * (1. - 2. * 8.375e-6 * data[0] - data[1]);
     jacobian[0][0][1] = 77.27 * (1. - data[0]);

@@ -171,7 +171,7 @@ namespace micm
       uint64_t rejected{};
       /// @brief The number of LU decompositions
       uint64_t decompositions{};
-      /// @brief The number of linear solvers
+      /// @brief The number of linear solves
       uint64_t solves{};
       /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix is never singular
       uint64_t singular{};
@@ -205,7 +205,6 @@ namespace micm
     RosenbrockSolverParameters parameters_;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
-    SolverStats stats_;
     SparseMatrixPolicy<double> jacobian_;
     LinearSolverPolicy linear_solver_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
@@ -285,7 +284,7 @@ namespace micm
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities);
+    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities, SolverStats& stats);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors

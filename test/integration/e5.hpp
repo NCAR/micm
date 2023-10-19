@@ -46,7 +46,6 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
       MatrixPolicy<double>& forcing) override
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-    this->stats_.function_calls += 1;
 
     auto data = number_densities.AsVector();
 
@@ -71,7 +70,6 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     auto data = number_densities.AsVector();
-    this->stats_.jacobian_updates += 1;
 
     double A = 7.89e-10;
     double B = 1.1e7;

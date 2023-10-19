@@ -418,7 +418,6 @@ namespace micm
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
         state_reordering_(),
         process_set_(),
-        stats_(),
         jacobian_(),
         linear_solver_(),
         jacobian_diagonal_elements_(),
@@ -452,7 +451,6 @@ namespace micm
         parameters_(parameters),
         state_reordering_(),
         process_set_(),
-        stats_(),
         jacobian_(),
         linear_solver_(),
         jacobian_diagonal_elements_(),
@@ -521,7 +519,7 @@ namespace micm
     parameters_.h_max_ = time_step;
     parameters_.h_start_ = std::max(parameters_.h_min_, delta_min_);
 
-    stats_.Reset();
+    SolverStats stats;
     UpdateState(state);
 
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
@@ -539,7 +537,7 @@ namespace micm
 
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      if (stats_.number_of_steps > parameters_.max_number_of_steps_)
+      if (stats.number_of_steps > parameters_.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
@@ -555,10 +553,12 @@ namespace micm
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the forcing at the beginning of the current time
-      TIMED_METHOD(stats_.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
+      TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
+      stats.function_calls += 1;
 
       // compute the jacobian at the beginning of the current time
-      TIMED_METHOD(stats_.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, jacobian_);
+      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, jacobian_);
+      stats.jacobian_updates += 1;
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -566,7 +566,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        TIMED_METHOD(stats_.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y);
+        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -591,7 +591,8 @@ namespace micm
                 auto a = parameters_.a_[stage_combinations + j];
                 Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
               }
-              TIMED_METHOD(stats_.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
+              TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
+              stats.function_calls += 1;
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
@@ -601,8 +602,8 @@ namespace micm
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          TIMED_METHOD(stats_.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage]);
-          stats_.solves += 1;
+          TIMED_METHOD(stats.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage]);
+          stats.solves += 1;
         }
 
         // Compute the new solution
@@ -625,7 +626,7 @@ namespace micm
                 parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
         double Hnew = H * fac;
 
-        stats_.number_of_steps += 1;
+        stats.number_of_steps += 1;
 
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
@@ -636,7 +637,7 @@ namespace micm
         }
         else if ((error < 1) || (H < parameters_.h_min_))
         {
-          stats_.accepted += 1;
+          stats.accepted += 1;
           present_time = present_time + H;
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, parameters_.h_max_));
@@ -660,9 +661,9 @@ namespace micm
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats_.accepted >= 1)
+          if (stats.accepted >= 1)
           {
-            stats_.rejected += 1;
+            stats.rejected += 1;
           }
         }
       }
@@ -674,7 +675,7 @@ namespace micm
     }
 
     result.final_time_ = present_time;
-    result.stats_ = stats_;
+    result.stats_ = stats;
     result.result_ = Y;
     return result;
   }
@@ -687,7 +688,6 @@ namespace micm
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
-    stats_.function_calls += 1;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -732,7 +732,6 @@ namespace micm
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
-    stats_.jacobian_updates += 1;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -746,7 +745,8 @@ namespace micm
       double& H,
       const double gamma,
       bool& singular,
-      const MatrixPolicy<double>& number_densities)
+      const MatrixPolicy<double>& number_densities,
+      SolverStats& stats)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
@@ -759,10 +759,10 @@ namespace micm
       AlphaMinusJacobian(jacobian, alpha);
       linear_solver_.Factor(jacobian);
       singular = false;  // TODO This should be evaluated in some way
-      stats_.decompositions += 1;
+      stats.decompositions += 1;
       if (!singular)
         break;
-      stats_.singular += 1;
+      stats.singular += 1;
       if (++n_consecutive > 5)
         break;
       H /= 2;

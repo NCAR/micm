@@ -47,7 +47,6 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
       MatrixPolicy<double>& forcing) override
   {
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-    this->stats_.function_calls += 1;
 
     auto data = number_densities.AsVector();
 
@@ -72,7 +71,6 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     auto data = number_densities.AsVector();
-    this->stats_.jacobian_updates += 1;
 
     jacobian[0][0][0] = -1.71;
     jacobian[0][0][1] = 0.43;
