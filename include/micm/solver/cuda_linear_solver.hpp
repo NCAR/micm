@@ -7,7 +7,7 @@
 namespace micm{
     class CudaLinearSolver: public LinearSolver{
         //constructor 
-        CudaLinearSolver::CudaLinear(){};
+        CudaLinearSolver::CudaLinearSolver(){};
     
         template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
         template<template<class> class MatrixPolicy> 
