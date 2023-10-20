@@ -93,11 +93,11 @@ __global__ void SolveKernel(SolveDevice* device)
     double* d_b; 
     double* d_x;
     SolveDevice* device;
-    device.n_grids_= denseMatrix.n_grids_;
-    device.b_column_counts_ = denseMatrix.b_column_counts_; 
-    device.x_column_counts_ = denseMatrix.x_column_counts_;
-    device.nLij_Lii_size_ = linearSolver.nLij_Lii_size_;
-    device.nUij_Uii_size_ = linearSolver.nUij_Uii_size_;
+    device->n_grids_= denseMatrix.n_grids_;
+    device->b_column_counts_ = denseMatrix.b_column_counts_; 
+    device->x_column_counts_ = denseMatrix.x_column_counts_;
+    device->nLij_Lii_size_ = linearSolver.nLij_Lii_size_;
+    device->nUij_Uii_size_ = linearSolver.nUij_Uii_size_;
     
     //allocate device memory 
     cudaMalloc(&d_nLij_Lii, sizeof(std::pair<size_t, size_t>)* linearSolver.nLij_Lii_size_); 
