@@ -6,7 +6,7 @@
 #ifdef USE_CUDA
 #include <micm/solver/cuda_linear_solver.cuh>
 namespace micm{
-    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
     class CudaLinearSolver: public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
     public:
         //constructor
