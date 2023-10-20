@@ -106,8 +106,8 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMalloc(&d_Uij_xj, sizeof(std::pair<size_t, size_t>)* linearSolver.Uij_xj_size_); 
     cudaMalloc(&d_lower_matrix, sizeof(double)* sparseMatrix.lower_matrix_size_); 
     cudaMalloc(&d_upper_matrix, sizeof(double)* sparseMatrix.upper_matrix_size_);
-    cudaMalloc(&d_b, sizeof(double)* denseMatrix.n_grids_* b_column_counts_);
-    cudaMalloc(&d_x, sizeof(double)* denseMatrix.n_grids_* x_column_counts_); 
+    cudaMalloc(&d_b, sizeof(double)* denseMatrix.n_grids_* denseMatrix.b_column_counts_);
+    cudaMalloc(&d_x, sizeof(double)* denseMatrix.n_grids_* denseMatrix.x_column_counts_); 
     cudaMalloc(&device, sizeof(SolveDevice)); 
 
     //transfer memory from host to device
