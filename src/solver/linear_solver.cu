@@ -16,7 +16,7 @@ struct SolveDevice{
     size_t x_column_counts_;
     size_t nLij_Lii_size_;
     size_t nUij_Uii_size_;
-}
+};
 namespace micm{
     namespace cuda{
 __global__ void SolveKernel(SolveDevice* device)
