@@ -136,3 +136,36 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   }
 }
 
+//
+// Tests for MZ326 configure files
+//
+TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
+{
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+
+  // Check 'gas_phase' in 'System'
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_.size(), 6);
+
+  // Check 'phases' in 'System'
+  EXPECT_EQ(solver_params.system_.phases_.size(), 0);
+
+  // Check 'name' and molecular_weight from 'properties' in 'Species'
+  std::vector<std::pair<std::string, double>> species_name_and_molecular_weight = {
+    std::make_pair("ALKNIT", 0.133141), std::make_pair("BZOOH", 0.124135), std::make_pair("C6H5OOH", 0.110109),
+    std::make_pair("COF2", 0.0),        std::make_pair("O2", 0.0),         std::make_pair("FUR2O2", 0.0)
+  };
+
+  short idx = 0;
+  for (const auto& s : solver_params.system_.gas_phase_.species_)
+  {
+    EXPECT_EQ(s.name_, species_name_and_molecular_weight[idx].first);
+    EXPECT_EQ(s.properties_.at("molecular weight [kg mol-1]"), species_name_and_molecular_weight[idx].second);
+    idx++;
+  }
+}
+

@@ -153,10 +153,10 @@ namespace micm
           {
             camp_files.push_back(reactions_config);
           }
-          if (std::filesystem::exists(tolerance_config))
-          {
-            camp_files.push_back(tolerance_config);
-          }
+          // if (std::filesystem::exists(tolerance_config))
+          // {
+          //   camp_files.push_back(tolerance_config);
+          // }
         }
 
         // No config files found
@@ -176,8 +176,10 @@ namespace micm
 
           if (!config_subset.contains(CAMP_DATA))
             return ConfigParseStatus::CAMPDataSectionNotFound;
-          // json camp_subset = config_subset[CAMP_DATA];
-
+          // std::cout << "config_subset" << std::endl; 
+          // std::cout << config_subset.dump(4) << std::endl;
+          json camp_subset = config_subset[CAMP_DATA];
+          // need to this merge differently, to work with camp_subset objects
           std::copy(config_subset.begin(), config_subset.end(),
             std::back_inserter(camp_data));
         }
@@ -187,6 +189,7 @@ namespace micm
         status = Configure(camp_data);
 
         // Assign the parsed 'Species' to 'Phase'
+        std::cout << "Parse species_arr_ size " << species_arr_.size() << std::endl;
         gas_phase_ = Phase(species_arr_);
 
         return status;
