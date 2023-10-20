@@ -48,7 +48,7 @@
     size_t nUij_Uii_size_;
     const std::pair< size_t, size_t>* Uij_xj_;
     size_t Uij_xj_size_;
-  }
+  };
 
  //different matrix data grouped in struct passing to kernel driver function 
     struct CudaMatrixParam{
