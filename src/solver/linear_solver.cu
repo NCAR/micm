@@ -133,7 +133,7 @@ __global__ void SolveKernel(SolveDevice* device)
     
     //kernel call 
     size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    Solve<<<num_block, BLOCK_SIZE>>>(device);
+    SolveKernel<<<num_block, BLOCK_SIZE>>>(device);
     cudaDeviceSynchronize();
 
     //clean up 
