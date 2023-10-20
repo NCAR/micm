@@ -6,16 +6,9 @@
 
 using namespace micm;
 
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
-std::vector<double> test_solver_on_thread(System chemical_system, std::vector<Process> reactions)
+std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)
 {
   std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;
-  RosenbrockSolver<> solver{ chemical_system,
-                                  reactions,
-                                  RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
-  State<Matrix> state = solver.GetState();
 
   // mol m-3
   state.variables_[0] = { 1, 0, 0 };
@@ -70,16 +63,20 @@ TEST(OpenMP, OneFileReadThreeThreads)
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  std::vector<std::vector<double>> results(3);
+  std::vector<std::vector<double>> results(n_threads);
+
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
 #pragma omp parallel num_threads(n_threads)
   {
-    std::vector<double> result = test_solver_on_thread(chemical_system, reactions);
+    auto state = solver.GetState();
+    std::vector<double> result = run_solver_on_thread_with_own_state(solver, state);
     results[omp_get_thread_num()] = result;
-#pragma omp barrier 
+#pragma omp barrier
   }
 
-  for(int i = 0; i < results[0].size(); ++i) {
+  for (int i = 0; i < results[0].size(); ++i)
+  {
     EXPECT_EQ(results[0][i], results[1][i]);
     EXPECT_EQ(results[0][i], results[2][i]);
     EXPECT_EQ(results[1][i], results[2][i]);

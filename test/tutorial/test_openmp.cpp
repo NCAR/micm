@@ -26,7 +26,7 @@ void print_results(std::vector<double> results)
   std::cout.copyfmt(oldState);
 }
 
-std::vector<double> test_solver_on_thread(System chemical_system, std::vector<Process> reactions)
+std::vector<double> run_solver_on_thread_with_own_state(System chemical_system, std::vector<Process> reactions)
 {
   RosenbrockSolver<> solver{ chemical_system,
                                   reactions,
@@ -90,7 +90,7 @@ int main()
 
 #pragma omp parallel num_threads(n_threads)
   {
-    std::vector<double> result = test_solver_on_thread(chemical_system, reactions);
+    std::vector<double> result = run_solver_on_thread_with_own_state(chemical_system, reactions);
     results[omp_get_thread_num()] = result;
 #pragma omp barrier
   }
