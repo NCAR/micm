@@ -7,7 +7,7 @@ namespace micm
   {
     void SolveKernelDriver(
      CudaLinearSolverParam& linearSolver,
-     CudaLinearSolverParam& sparseMatrix, 
+     CudaSparseMatrixParam& sparseMatrix, 
      CudaMatrixParam& denseMatrix);
   }  // namespace cuda
 }  // namespace micm
