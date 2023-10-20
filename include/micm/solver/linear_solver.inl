@@ -111,6 +111,12 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, bool& is_singular)
+  {
+    lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix_, upper_matrix_, is_singular);
+  }
+
+  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x)

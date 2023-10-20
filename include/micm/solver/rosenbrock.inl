@@ -757,12 +757,18 @@ namespace micm
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     SparseMatrixPolicy<double> jacobian = jacobian_;
     uint64_t n_consecutive = 0;
-    singular = true;
+    singular = false;
     while (true)
     {
       double alpha = 1 / (H * gamma);
       AlphaMinusJacobian(jacobian, alpha);
-      linear_solver_.Factor(jacobian);
+      if (parameters_.check_singularity_)
+      {
+        linear_solver_.Factor(jacobian, singular);
+      } else {
+        singular = false;
+        linear_solver_.Factor(jacobian);
+      }
       singular = false;  // TODO This should be evaluated in some way
       stats_.decompositions += 1;
       if (!singular)
