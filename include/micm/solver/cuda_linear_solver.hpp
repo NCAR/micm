@@ -1,12 +1,13 @@
 #pragma once
 #include <micm/solver/linear_solver.hpp> 
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
 
 #ifdef USE_CUDA
 #include <micm/solver/cuda_linear_solver.cuh>
 namespace micm{
     template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
-    class CudaLinearSolver: public LinearSolver{
+    class CudaLinearSolver: public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
     public:
         //constructor
         CudaLinearSolver::CudaLinearSolver(){};
