@@ -19,12 +19,15 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->processes_ = processes;
     this->parameters_ = parameters;
     this->N_ = this->system_.StateSize() * this->parameters_.number_of_grid_cells_;
+
     auto builder = SparseMatrixPolicy<double>::create(3).number_of_blocks(1).initial_value(0.0);
+    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
       {
         builder = builder.with_element(i, j);
+        nonzero_jacobian_elements.insert(std::make_pair(i, j));
       }
     }
     SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
@@ -39,12 +42,14 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
         for (auto& label : process.rate_constant_->CustomParameters())
           param_labels.push_back(label);
     
+    
     this->state_parameters_ = {
       .variable_names_ = system.UniqueNames(this->state_reordering_),
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
       .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = 1,
-      .number_of_rate_constants_ = processes.size()
+      .number_of_rate_constants_ = processes.size(),
+      .nonzero_jacobian_elements_ = nonzero_jacobian_elements
     };
 
     this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);

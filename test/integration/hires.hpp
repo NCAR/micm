@@ -19,12 +19,15 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     this->processes_ = processes;
     this->parameters_ = parameters;
     this->N_ = this->system_.StateSize() * this->parameters_.number_of_grid_cells_;
+
     auto builder = SparseMatrixPolicy<double>::create(8).number_of_blocks(1).initial_value(0.0);
+    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;
     for (int i = 0; i < 8; ++i)
     {
       for (int j = 0; j < 8; ++j)
       {
         builder = builder.with_element(i, j);
+        nonzero_jacobian_elements.insert(std::make_pair(i, j));
       }
     }
     SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
@@ -44,7 +47,8 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
       .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = 1,
-      .number_of_rate_constants_ = processes.size()
+      .number_of_rate_constants_ = processes.size(),
+      .nonzero_jacobian_elements_ = nonzero_jacobian_elements
     };
 
     this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);
