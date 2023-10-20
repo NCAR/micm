@@ -169,3 +169,96 @@ TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
   }
 }
 
+TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
+{
+  micm::SolverConfig solverConfig;
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+
+  auto& process_vector = solver_params.processes_;
+
+  // Check the number of 'Process' created
+  EXPECT_EQ(process_vector.size(), 5);
+
+  // Check the number of 'reactants' and 'products' in each 'Process'
+  // Check 'yield' value for the first product and the number of 'spieces in 'phase' in each 'Process'
+  int num_reactants_in_each_process[] = { 2, 2, 2, 1, 1 };
+  int num_products_in_each_process[] = { 5, 5, 2, 3, 2 };
+  int num_phase_in_each_process = 6;
+
+  short idx = 0;
+  for (const auto& p : process_vector)
+  {
+    EXPECT_EQ(p.reactants_.size(), num_reactants_in_each_process[idx]);
+    EXPECT_EQ(p.products_.size(), num_products_in_each_process[idx]);
+    // EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
+    idx++;
+  }
+
+  // Check the parameters for 'TroeRateConstant'
+  micm::TroeRateConstant* troe_rate_const = nullptr;
+  double k0_A_param[] = { 5.5e-30, 1.07767 };
+  double k0_B_param[] = { 0.0, -5.6 };
+  double k0_C_param[] = { 0.0, -14000 };
+  double kinf_A_param[] = { 8.3e-13, 1.03323e+17 };
+  double kinf_B_param[] = { 0.0, 0.0 };
+  double kinf_C_param[] = { 0.0, -14000 };
+  double Fc_param[] = { 0.6, 0.6 };
+  double N_param[] = { -2, 1.5 };
+
+  idx = 0;
+  for (short i : { 0, 4 })
+  {
+    troe_rate_const = dynamic_cast<micm::TroeRateConstant*>(process_vector[i].rate_constant_.get());
+
+    EXPECT_TRUE(troe_rate_const != nullptr);
+    EXPECT_EQ(troe_rate_const->parameters_.k0_A_, k0_A_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.k0_B_, k0_B_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.k0_C_, k0_C_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.kinf_A_, kinf_A_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.kinf_B_, kinf_B_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.kinf_C_, kinf_C_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.Fc_, Fc_param[idx]);
+    EXPECT_EQ(troe_rate_const->parameters_.N_, N_param[idx]);
+
+    idx++;
+  }
+
+  // Check the name for 'UserDefinedRateConstant'
+  micm::UserDefinedRateConstant* photolysis_rate_const = nullptr;
+  std::string photolysis_name = "PHOTO.jterpnit";
+
+  for (short i : { 3 })
+  {
+    photolysis_rate_const = dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[i].rate_constant_.get());
+
+    EXPECT_TRUE(photolysis_rate_const != nullptr);
+    EXPECT_EQ(photolysis_rate_const->CustomParameters()[0], photolysis_name);
+  }
+
+  // Check the parameters for 'ArrheniusRateConstant'
+  micm::ArrheniusRateConstant* arrhenius_rate_const = nullptr;
+  double A_param[] = { 2.0e-12, 3.8e-12 };
+  double B_param[] = { 0.0, 0.0 };
+  double C_param[] = { -1 * -6.90325e-21 / 1.3806505e-23, -1 * -2.7613e-21 / 1.3806505e-23 };
+  double D_param[] = { 300.0, 300.0 };
+  double E_param[] = { 0.0, 0.0 };
+
+  idx = 0;
+  for (short i : { 1, 2 })
+  {
+    arrhenius_rate_const = dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[i].rate_constant_.get());
+
+    EXPECT_TRUE(arrhenius_rate_const != nullptr);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.A_, A_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.B_, B_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.C_, C_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.D_, D_param[idx]);
+    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.E_, E_param[idx]);
+
+    idx++;
+  }
+}
