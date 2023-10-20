@@ -27,6 +27,18 @@ void RunTerminatorTest(std::size_t number_of_grid_cells)
         return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>{ s, p, solver_params };
       },
       number_of_grid_cells);
+  TestTerminator<MatrixPolicy, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(
+      [&](const micm::System& s, const std::vector<micm::Process>& p)
+          -> micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+      {
+        auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
+        solver_params.absolute_tolerance_ = 1.0e-20;
+        solver_params.relative_tolerance_ = 1.0e-8;
+        solver_params.max_number_of_steps_ = 100000;
+        solver_params.check_singularity_ = true;
+        return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>{ s, p, solver_params };
+      },
+      number_of_grid_cells);
 }
 
 TEST(RosenbrockSolver, Terminator)
