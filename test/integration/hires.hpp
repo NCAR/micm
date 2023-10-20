@@ -33,8 +33,18 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     for (std::size_t i = 0; i < jacobian[0].size(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
+    std::vector<std::string> param_labels{};
+    for (const auto& process : processes)
+      if (process.rate_constant_)
+        for (auto& label : process.rate_constant_->CustomParameters())
+          param_labels.push_back(label);
+    
     this->state_parameters_ = {
-      .jacobian_diagonal_elements_ = jacobian_diagonal_elements
+      .variable_names_ = system.UniqueNames(this->state_reordering_),
+      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
+      .custom_rate_parameter_labels_ = param_labels,
+      .number_of_grid_cells_ = 1,
+      .number_of_rate_constants_ = processes.size()
     };
 
     this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);

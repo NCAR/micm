@@ -47,6 +47,8 @@ namespace micm
     std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
+    SparseMatrixPolicy<double> lower_matrix_;
+    SparseMatrixPolicy<double> upper_matrix_;
 
     /// @brief
     State();

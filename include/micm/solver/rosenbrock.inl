@@ -536,11 +536,18 @@ namespace micm
   inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::GetState() const
   {
     auto state = State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
+      
     state.jacobian_ = build_jacobian<SparseMatrixPolicy>(
       state_parameters_.nonzero_jacobian_elements_,
       state_parameters_.number_of_grid_cells_,
       system_.StateSize()
     );
+
+    auto lu = linear_solver_.GetLUMatrices(state.jacobian_, 1.0e-30);
+    auto lower_matrix = std::move(lu.first);
+    auto upper_matrix = std::move(lu.second);
+    state.lower_matrix_ = lower_matrix;
+    state.upper_matrix_ = upper_matrix;
 
     return state;
   }
@@ -611,7 +618,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats, state.jacobian_);
+        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats, state);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -647,7 +654,7 @@ namespace micm
             K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          TIMED_METHOD(stats.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage]);
+          TIMED_METHOD(stats.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
 
@@ -792,17 +799,18 @@ namespace micm
       bool& singular,
       const MatrixPolicy<double>& number_densities,
       SolverStats& stats, 
-      SparseMatrixPolicy<double> jacobian)
+      State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
+    auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
     singular = true;
     while (true)
     {
       double alpha = 1 / (H * gamma);
       AlphaMinusJacobian(jacobian, alpha);
-      linear_solver_.Factor(jacobian);
+      linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
       singular = false;  // TODO This should be evaluated in some way
       stats.decompositions += 1;
       if (!singular)
