@@ -153,10 +153,10 @@ namespace micm
           {
             camp_files.push_back(reactions_config);
           }
-          // if (std::filesystem::exists(tolerance_config))
-          // {
-          //   camp_files.push_back(tolerance_config);
-          // }
+          if (std::filesystem::exists(tolerance_config))
+          {
+            camp_files.push_back(tolerance_config);
+          }
         }
 
         // No config files found
@@ -167,26 +167,30 @@ namespace micm
           return ConfigParseStatus::NoConfigFilesFound;
         }
 
-        // Merge config JSON from CAMP file list
-        json camp_data;
+        // Iterate CAMP file list and form CAMP data object list
+        std::vector<json> objects;
+
         for (const auto& camp_file : camp_files)
         {
           std::cout << "JsonReaderPolicy.Parse CAMP file " << camp_file << std::endl;
           json config_subset = json::parse(std::ifstream(camp_file));
 
-          if (!config_subset.contains(CAMP_DATA))
+          if (config_subset.contains(CAMP_DATA))
+          {
+            for (const auto& object : config_subset[CAMP_DATA])
+            {
+              objects.push_back(object);
+            }
+          }
+          else
+          {
             return ConfigParseStatus::CAMPDataSectionNotFound;
-          // std::cout << "config_subset" << std::endl; 
-          // std::cout << config_subset.dump(4) << std::endl;
-          json camp_subset = config_subset[CAMP_DATA];
-          // need to this merge differently, to work with camp_subset objects
-          std::copy(config_subset.begin(), config_subset.end(),
-            std::back_inserter(camp_data));
+          }
         }
 
         ConfigParseStatus status;
 
-        status = Configure(camp_data);
+        status = ParseObjectArray(objects);
 
         // Assign the parsed 'Species' to 'Phase'
         std::cout << "Parse species_arr_ size " << species_arr_.size() << std::endl;
@@ -196,25 +200,6 @@ namespace micm
       }
 
     private:
-
-      ConfigParseStatus Configure(const json& config_data)
-      {
-        ConfigParseStatus status = ConfigParseStatus::None;
-
-        std::vector<json> objects;
-
-        for (const auto& section : config_data)
-        {
-          for (const auto& object : section)
-          {
-            objects.push_back(object);
-          }
-        }
-
-        status = ParseObjectArray(objects);
-
-        return status;
-      }
 
       ConfigParseStatus ParseObjectArray(const std::vector<json>& objects)
       {
