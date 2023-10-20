@@ -21,8 +21,8 @@ void print_header()
             << "," << std::setw(10) << "C" << std::endl;
 }
 
-template<template<class> class T>
-void print_state(double time, State<T>& state)
+template<template<class> class T, template<class> class D>
+void print_state(double time, State<T, D>& state)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
@@ -82,7 +82,7 @@ int main()
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false)
   };
 
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });

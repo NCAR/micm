@@ -1,20 +1,42 @@
 // Copyright (C) 2023 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#define TIMED_METHOD(assigned_increment, time_it, method, ...) \
-    { \
-      if constexpr (time_it) { \
-          auto start = std::chrono::high_resolution_clock::now(); \
-          method(__VA_ARGS__); \
-          auto end = std::chrono::high_resolution_clock::now(); \
-          assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
-      } else { \
-          method(__VA_ARGS__); \
-      } \
-    } \
+#define TIMED_METHOD(assigned_increment, time_it, method, ...)                                 \
+  {                                                                                            \
+    if constexpr (time_it)                                                                     \
+    {                                                                                          \
+      auto start = std::chrono::high_resolution_clock::now();                                  \
+      method(__VA_ARGS__);                                                                     \
+      auto end = std::chrono::high_resolution_clock::now();                                    \
+      assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
+    }                                                                                          \
+    else                                                                                       \
+    {                                                                                          \
+      method(__VA_ARGS__);                                                                     \
+    }                                                                                          \
+  }
 
 namespace micm
 {
+  // annonymous namespace to hide jacobian builder
+  namespace {
+    template<template<class> class SparseMatrixPolicy>
+    SparseMatrixPolicy<double> build_jacobian(
+      std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements,
+      size_t number_of_grid_cells,
+      size_t state_size
+    )
+    {
+      auto builder = SparseMatrixPolicy<double>::create(state_size).number_of_blocks(number_of_grid_cells);
+      for (auto& elem : nonzero_jacobian_elements)
+        builder = builder.with_element(elem.first, elem.second);
+      // Always include diagonal elements
+      for (std::size_t i = 0; i < state_size; ++i)
+        builder = builder.with_element(i, i);
+      
+      return SparseMatrixPolicy<double>(builder);
+    }
+  }
   //
   // RosenbrockSolverParameters
   //
@@ -378,8 +400,7 @@ namespace micm
   //
   // RosenbrockSolver
   //
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::SolverStats::Reset()
+  inline void SolverStats::Reset()
   {
     function_calls = 0;
     jacobian_updates = 0;
@@ -416,11 +437,10 @@ namespace micm
       : system_(),
         processes_(),
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        state_parameters_(),
         state_reordering_(),
         process_set_(),
-        jacobian_(),
         linear_solver_(),
-        jacobian_diagonal_elements_(),
         N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
   }
@@ -449,18 +469,23 @@ namespace micm
       : system_(system),
         processes_(processes),
         parameters_(parameters),
+        state_parameters_(),
         state_reordering_(),
         process_set_(),
-        jacobian_(),
         linear_solver_(),
-        jacobian_diagonal_elements_(),
         N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
+    std::map<std::string, std::size_t> variable_map;
+
+    std::size_t index = 0;
+    for (auto& name : system_.UniqueNames(state_reordering_))
+      variable_map[name] = index++;
+
     // generate a state-vector reordering function to reduce fill-in in linear solver
     if (parameters_.reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
-      auto unsorted_process_set = ProcessSet(processes, GetState());
+      auto unsorted_process_set = ProcessSet(processes, variable_map);
       auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
       MatrixPolicy<int> unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
@@ -468,36 +493,56 @@ namespace micm
       auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
       state_reordering_ = [=](const std::vector<std::string>& variables, const std::size_t i)
       { return variables[reorder_map[i]]; };
+
+      variable_map.clear();
+      std::size_t index = 0;
+      for (auto& name : system_.UniqueNames(state_reordering_))
+        variable_map[name] = index++;
     }
-    process_set_ = ProcessSet(processes, GetState());
-    auto builder =
-        SparseMatrixPolicy<double>::create(system_.StateSize()).number_of_blocks(parameters_.number_of_grid_cells_);
-    auto jac_elements = process_set_.NonZeroJacobianElements();
-    for (auto& elem : jac_elements)
-      builder = builder.with_element(elem.first, elem.second);
-    // Always include diagonal elements
-    for (std::size_t i = 0; i < system_.StateSize(); ++i)
-      builder = builder.with_element(i, i);
-
-    jacobian_ = builder;
-    linear_solver_ = std::move(create_linear_solver(jacobian_, 1.0e-30));
-    process_set_.SetJacobianFlatIds(jacobian_);
-    for (std::size_t i = 0; i < jacobian_[0].size(); ++i)
-      jacobian_diagonal_elements_.push_back(jacobian_.VectorIndex(0, i, i));
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-  inline State<MatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::GetState() const
-  {
+    
+    // setup the state_parameters
     std::vector<std::string> param_labels{};
     for (const auto& process : processes_)
       if (process.rate_constant_)
         for (auto& label : process.rate_constant_->CustomParameters())
           param_labels.push_back(label);
-    return State<MatrixPolicy>{ micm::StateParameters{ .state_variable_names_ = system_.UniqueNames(state_reordering_),
-                                                       .custom_rate_parameter_labels_ = param_labels,
-                                                       .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-                                                       .number_of_rate_constants_ = processes_.size() } };
+
+    process_set_ = ProcessSet(processes, variable_map);
+
+    auto jacobian = build_jacobian<SparseMatrixPolicy>(
+      process_set_.NonZeroJacobianElements(),
+      parameters_.number_of_grid_cells_,
+      system_.StateSize()
+    );
+
+    std::vector<std::size_t> jacobian_diagonal_elements;
+    for (std::size_t i = 0; i < jacobian[0].size(); ++i)
+      jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
+
+    state_parameters_ = {
+      .variable_names_ = system_.UniqueNames(state_reordering_),
+      .custom_rate_parameter_labels_ = param_labels,
+      .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
+      .number_of_rate_constants_ = processes_.size(),
+      .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements(),
+      .jacobian_diagonal_elements_ = jacobian_diagonal_elements
+    };
+
+    process_set_.SetJacobianFlatIds(jacobian);
+    linear_solver_ = std::move(create_linear_solver(jacobian, 1.0e-30));
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+  inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::GetState() const
+  {
+    auto state = State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
+    state.jacobian_ = build_jacobian<SparseMatrixPolicy>(
+      state_parameters_.nonzero_jacobian_elements_,
+      state_parameters_.number_of_grid_cells_,
+      system_.StateSize()
+    );
+
+    return state;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -505,7 +550,7 @@ namespace micm
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::Solve(
       double time_step,
-      State<MatrixPolicy>& state) noexcept
+      State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::SolverResult result{};
     result.state_ = SolverState::Running;
@@ -557,7 +602,7 @@ namespace micm
       stats.function_calls += 1;
 
       // compute the jacobian at the beginning of the current time
-      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, jacobian_);
+      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates += 1;
 
       bool accepted = false;
@@ -566,7 +611,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats);
+        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats, state.jacobian_);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -701,7 +746,7 @@ namespace micm
     for (std::size_t i_block = 0; i_block < jacobian.size(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
-      for (const auto& i_elem : jacobian_diagonal_elements_)
+      for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
         jacobian_vector[i_elem] += alpha;
     }
   }
@@ -718,7 +763,7 @@ namespace micm
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
-      for (const auto& i_elem : jacobian_diagonal_elements_)
+      for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
     }
@@ -735,7 +780,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::UpdateState(State<MatrixPolicy>& state)
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::UpdateState(State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
   }
@@ -746,11 +791,11 @@ namespace micm
       const double gamma,
       bool& singular,
       const MatrixPolicy<double>& number_densities,
-      SolverStats& stats)
+      SolverStats& stats, 
+      SparseMatrixPolicy<double> jacobian)
   {
     // TODO: invesitage this function. The fortran equivalent appears to have a bug.
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
-    SparseMatrixPolicy<double> jacobian = jacobian_;
     uint64_t n_consecutive = 0;
     singular = true;
     while (true)

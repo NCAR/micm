@@ -33,8 +33,8 @@ void print_header()
             << "," << std::setw(10) << "G" << std::endl;
 }
 
-template<template<class> class T>
-void print_state(double time, State<T>& state)
+template<template<class> class T, template<class> class D>
+void print_state(double time, State<T, D>& state)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);

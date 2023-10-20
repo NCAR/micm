@@ -16,8 +16,8 @@ void print_header()
             << "," << std::setw(11) << "O1D" << std::endl;
 }
 
-template<template<class> class T>
-void print_state(double time, micm::State<T>& state)
+template<template<class> class T, template<class> class D>
+void print_state(double time, micm::State<T, D>& state)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
