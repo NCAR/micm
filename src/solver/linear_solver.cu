@@ -119,7 +119,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMemcpy(d_lower_matrix, sparseMatrix.lower_matrix_, sizeof(double)*sparseMatrix.lower_matrix_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_, sizeof(double)* sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, denseMatrix.b_, sizeof(double)* denseMatrix.n_grids_* denseMatrix.b_column_counts_, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_x, denseMatrix.x_, sizeof(double)* denseMatrix.n_grids * denseMatrix.x_column_counts_, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_x, denseMatrix.x_, sizeof(double)* denseMatrix.n_grids_ * denseMatrix.x_column_counts_, cudaMemcpyHostToDevice);
     
     cudaMemcpy(&(device->nLij_Lii_), &d_nLij_Lii, sizeof(std::pair<size_t, size_t>*),cudaMemcpyHostToDevice);
     cudaMemcpy(&(device->Lij_yj_), &d_Lij_yj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
