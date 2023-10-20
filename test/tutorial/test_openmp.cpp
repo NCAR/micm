@@ -26,12 +26,9 @@ void print_results(std::vector<double> results)
   std::cout.copyfmt(oldState);
 }
 
-std::vector<double> run_solver_on_thread_with_own_state(System chemical_system, std::vector<Process> reactions)
+std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)
 {
-  RosenbrockSolver<> solver{ chemical_system,
-                                  reactions,
-                                  RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1, false) };
-  State<Matrix> state = solver.GetState();
+  std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;
 
   // mol m-3
   state.variables_[0] = { 1, 0, 0 };
@@ -86,11 +83,15 @@ int main()
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  std::vector<std::vector<double>> results(3);
+  std::vector<std::vector<double>> results(n_threads);
+
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
 #pragma omp parallel num_threads(n_threads)
   {
-    std::vector<double> result = run_solver_on_thread_with_own_state(chemical_system, reactions);
+    // each thread should use its own state
+    auto state = solver.GetState();
+    std::vector<double> result = run_solver_on_thread_with_own_state(solver, state);
     results[omp_get_thread_num()] = result;
 #pragma omp barrier
   }

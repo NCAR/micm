@@ -108,7 +108,7 @@ namespace micm
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
       const State<MatrixPolicy> &state)
-      : ProcessSet(processes, state),
+      : ProcessSet(processes, state.variable_map_),
         compiler_(compiler)
   {
     forcing_function_ = NULL;
