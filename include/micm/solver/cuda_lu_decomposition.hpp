@@ -17,7 +17,7 @@ namespace micm{
     CudaLuDecomposition(){}; 
 
     template<typename T, typename OrderingPolicy>
-    CudaLuDecomposition::CudaLuDecomposition: LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix){};    
+    CudaLuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix): LuDecomposition(matrix){};    
 
     template<typename T, template<class> typename SparseMatrixPolicy>
     requires VectorizableSparse<SparseMatrixPolicy<T>>

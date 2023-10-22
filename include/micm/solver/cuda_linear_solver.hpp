@@ -11,10 +11,10 @@ namespace micm{
     class CudaLinearSolver: public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
     public:
         //constructor
-        CudaLinearSolver::CudaLinearSolver(){};
+        CudaLinearSolver(){};
     
         
-        CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value){};
+        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value){};
         // {
         //     //call instructor of parent class 
         //     micm::LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
