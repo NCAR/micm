@@ -15,10 +15,10 @@ namespace micm{
     
         
         CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): linearSolver(matrix, initial_value){};
-        {
-            //call instructor of parent class 
-            micm::LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
-        }
+        // {
+        //     //call instructor of parent class 
+        //     micm::LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
+        // };
     
         template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
@@ -47,7 +47,7 @@ namespace micm{
         sparseMatrix.upper_matrix_size_ = upper_matrix_.AsVector().size(); 
         denseMatrix.b_ = b.AsVector().data(); 
         denseMatrix.x_ = x.AsVector().data();
-        denseMatrix.n_grids_ = b.size() //number of grids
+        denseMatrix.n_grids_ = b.size(); //number of grids
         denseMatrix.b_column_counts_ = b[0].size(); 
         denseMatrix.x_column_counts_= x[0].size(); 
         
