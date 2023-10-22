@@ -52,7 +52,7 @@ namespace micm
     SparseMatrixPolicy<T> lower_matrix_;
     SparseMatrixPolicy<T> upper_matrix_;
 
-  
+    public:
     /// @brief default constructor
     LinearSolver(){};
 
