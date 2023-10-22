@@ -13,8 +13,6 @@ namespace micm{
         //constructor
         CudaLinearSolver::CudaLinearSolver(){};
     
-        template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-        template<typename T, template<class> class SparseMatrix>
         CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
         {
             //call instructor of parent class 
