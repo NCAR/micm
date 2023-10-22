@@ -12,6 +12,12 @@ namespace micm{
         //constructor
         CudaLinearSolver::CudaLinearSolver(){};
     
+        CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
+        {
+            //call instructor of parent class 
+            LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
+        }
+    
         template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
         void Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x);
