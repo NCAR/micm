@@ -1,6 +1,7 @@
 #pragma once
 #include <micm/solver/linear_solver.hpp> 
 #include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
 
 #ifdef USE_CUDA
