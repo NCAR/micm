@@ -14,10 +14,10 @@ namespace micm{
         CudaLinearSolver::CudaLinearSolver(){};
     
         
-        CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
+        CudaLinearSolver::CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): linearSolver(matrix, initial_value){};
         {
             //call instructor of parent class 
-            micm::LinearSolver::LinearSolver(matrix, initial_value);
+            micm::LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
         }
     
         template<template<class> class MatrixPolicy> 
