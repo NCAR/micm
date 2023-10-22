@@ -3,7 +3,6 @@
 
 namespace micm
 {
-
   template<template<class> class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {

@@ -12,16 +12,16 @@ namespace micm{
     public:
         //constructor
         CudaLinearSolver(){};
-    
+
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecomposition> (matrix, initial_value){};
       
         template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
         void Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
         {
-            CudaLinearSolverParam linearSolver; 
+            CudaLinearSolverParam linearSolver;
             CudaSparseMatrixParam sparseMatrix; 
-            CudaMatrixParam denseMatrix; 
+            CudaMatrixParam denseMatrix;
             linearSolver.nLij_Lii_ = nLij_Lii_.data(); 
             linearSolver.nLij_Lii_size_ = nLij_Lii_.size(); 
             linearSolver.Lij_yj_= Lij_yj_.data();
