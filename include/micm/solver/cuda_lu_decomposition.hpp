@@ -15,7 +15,10 @@ namespace micm{
     class CudaLuDecomposition: public LuDecomposition{
     public: 
     CudaLuDecomposition(){}; 
-    
+
+    template<typename T, typename OrderingPolicy>
+    CudaLuDecomposition::CudaLuDecomposition: LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix){};    
+
     template<typename T, template<class> typename SparseMatrixPolicy>
     requires VectorizableSparse<SparseMatrixPolicy<T>>
     std::chrono::nanoseconds Decompose(
