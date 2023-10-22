@@ -27,7 +27,7 @@ namespace micm{
     template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
     template<template<class> class MatrixPolicy> 
     requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
-    inline void CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
+    inline void micm::CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
     {
         CudaLinearSolverParam linearSolver; 
         CudaSparseMatrixParam sparseMatrix; 
@@ -51,7 +51,7 @@ namespace micm{
         denseMatrix.x_column_counts_= x[0].size(); 
         
         //calling kernel driver
-        SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
+        micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
     }
 }//end micm
 #endif
