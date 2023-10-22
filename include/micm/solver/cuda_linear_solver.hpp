@@ -8,13 +8,12 @@
 #include <micm/solver/cuda_linear_solver.cuh>
 namespace micm{
     template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
-    class CudaLinearSolver: public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
+    class CudaLinearSolver: public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy = LuDecomposition> {
     public:
         //constructor
         CudaLinearSolver(){};
     
-        
-        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value){};
+        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy = LuDecomposition>(matrix, initial_value){};
         // {
         //     //call instructor of parent class 
         //     micm::LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(matrix, initial_value);
