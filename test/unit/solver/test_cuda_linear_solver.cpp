@@ -7,9 +7,9 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/solver/linear_solver.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/cuda_linear_solver.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp>
-#include <micm/solver/lu_decomposition.hpp>
 #include "test_linear_solver_policy.hpp"
 
 template<class T>
