@@ -2,9 +2,16 @@
 #include <omp.h>
 
 #include <micm/configure/solver_config.hpp>
-#include <micm/solver/rosenbrock.hpp>
+#include <micm/jit/jit_compiler.hpp>
+#include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/util/sparse_matrix.hpp>
 
 using namespace micm;
+
+template<class T>
+using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
 
 std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)
 {
@@ -45,7 +52,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   return state.variables_.AsVector();
 }
 
-TEST(OpenMP, OneSolverManyStates)
+TEST(OpenMP, JITOneSolverManyStates)
 {
   constexpr size_t n_threads = 8;
 
@@ -65,7 +72,17 @@ TEST(OpenMP, OneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  auto jit{ micm::JitCompiler::create() };
+  JitRosenbrockSolver<
+    Group1VectorMatrix, 
+    Group1SparseVectorMatrix, 
+    JitLinearSolver<1, Group1SparseVectorMatrix>
+    > solver(
+      jit.get(), 
+      chemical_system, 
+      reactions, 
+      RosenbrockSolverParameters::three_stage_rosenbrock_parameters() 
+    );
 
 #pragma omp parallel num_threads(n_threads)
   {
