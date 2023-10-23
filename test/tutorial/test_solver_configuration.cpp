@@ -1,6 +1,6 @@
+#include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <chrono>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
@@ -22,11 +22,9 @@ void print_state(double time, State<T>& state)
   oldState.copyfmt(std::cout);
 
   std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) 
-    << std::setw(10) << state.variables_[0][state.variable_map_["A"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["C"]] 
-    << std::endl;
+  std::cout << std::scientific << std::setprecision(2) << std::setw(10) << state.variables_[0][state.variable_map_["A"]]
+            << "," << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," << std::setw(10)
+            << state.variables_[0][state.variable_map_["C"]] << std::endl;
 
   std::cout.copyfmt(oldState);
 }
@@ -37,7 +35,7 @@ void test_solver_type(T solver)
   State<Matrix> state = solver.GetState();
 
   // mol m-3
-  state.variables_[0] = {1, 0, 0};
+  state.variables_[0] = { 1, 0, 0 };
 
   double k1 = 0.04;
   double k2 = 3e7;
@@ -61,8 +59,8 @@ void test_solver_type(T solver)
   print_state(0, state);
 
   typename T::SolverStats total_stats;
-  std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();;
-
+  std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
+  ;
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -144,25 +142,19 @@ int main()
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<> two_stage{
-    system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> two_stage{ system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<> three_stage{
-    system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> three_stage{ system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<> four_stage{
-    system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> four_stage{ system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<> four_stage_da{
-    system, reactions, RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> four_stage_da{ system,
+                                    reactions,
+                                    RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters() };
 
-  RosenbrockSolver<> six_stage_da{
-    system, reactions, RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> six_stage_da{ system,
+                                   reactions,
+                                   RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters() };
 
   std::cout << "Two stages: " << std::endl;
   test_solver_type(two_stage);

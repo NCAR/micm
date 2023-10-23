@@ -95,13 +95,12 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 {
   micm::Species c("c", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
   micm::Species e("e");
-  
-  micm::Phase gas_phase({c, e});
-  EXPECT_ANY_THROW(
-    micm::Process r = micm::Process::create()
-                    .reactants({ c, c })
-                    .products({ yields(e, 1) })
-                    .rate_constant(micm::SurfaceRateConstant({ .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-                    .phase(gas_phase);
-  ); 
+
+  micm::Phase gas_phase({ c, e });
+  EXPECT_ANY_THROW(micm::Process r = micm::Process::create()
+                                         .reactants({ c, c })
+                                         .products({ yields(e, 1) })
+                                         .rate_constant(micm::SurfaceRateConstant(
+                                             { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
+                                         .phase(gas_phase););
 }

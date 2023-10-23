@@ -70,11 +70,9 @@ int main()
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3 },
-    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false)
-  };
+  micm::RosenbrockSolver<> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                   std::vector<micm::Process>{ r1, r2, r3 },
+                                   micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
   State<Matrix> state = solver.GetState();
 
