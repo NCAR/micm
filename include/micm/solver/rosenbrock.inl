@@ -439,8 +439,7 @@ namespace micm
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
         state_parameters_(),
         process_set_(),
-        linear_solver_(),
-        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
+        linear_solver_()
   {
   }
 
@@ -470,8 +469,7 @@ namespace micm
         parameters_(parameters),
         state_parameters_(),
         process_set_(),
-        linear_solver_(),
-        N_(system_.StateSize() * parameters_.number_of_grid_cells_)
+        linear_solver_()
   {
     std::map<std::string, std::size_t> variable_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
@@ -519,10 +517,10 @@ namespace micm
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     state_parameters_ = {
-      .variable_names_ = system_.UniqueNames(state_reordering),
-      .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
       .number_of_rate_constants_ = processes_.size(),
+      .variable_names_ = system_.UniqueNames(state_reordering),
+      .custom_rate_parameter_labels_ = param_labels,
       .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements(),
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements
     };
@@ -839,10 +837,11 @@ namespace micm
     auto _y = Y.AsVector();
     auto _ynew = Ynew.AsVector();
     auto _errors = errors.AsVector();
+    size_t N = Y.AsVector().size();
 
     double error = 0;
 
-    for (size_t i = 0; i < N_; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
       double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
@@ -850,7 +849,7 @@ namespace micm
     }
 
     double error_min_ = 1.0e-10;
-    return std::max(std::sqrt(error / N_), error_min_);
+    return std::max(std::sqrt(error / N), error_min_);
   }
 
 }  // namespace micm

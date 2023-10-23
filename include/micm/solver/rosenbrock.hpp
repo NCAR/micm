@@ -210,7 +210,6 @@ namespace micm
     StateParameters state_parameters_;
     ProcessSet process_set_;
     LinearSolverPolicy linear_solver_;
-    size_t N_{};
 
     static constexpr double delta_min_ = 1.0e-6;
 
