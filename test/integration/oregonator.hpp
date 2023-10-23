@@ -42,9 +42,9 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
         for (auto& label : process.rate_constant_->CustomParameters())
           param_labels.push_back(label);
     
-    
+    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     this->state_parameters_ = {
-      .variable_names_ = system.UniqueNames(this->state_reordering_),
+      .variable_names_ = system.UniqueNames(state_reordering),
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
       .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = 1,

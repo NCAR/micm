@@ -438,7 +438,6 @@ namespace micm
         processes_(),
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
         state_parameters_(),
-        state_reordering_(),
         process_set_(),
         linear_solver_(),
         N_(system_.StateSize() * parameters_.number_of_grid_cells_)
@@ -470,15 +469,15 @@ namespace micm
         processes_(processes),
         parameters_(parameters),
         state_parameters_(),
-        state_reordering_(),
         process_set_(),
         linear_solver_(),
         N_(system_.StateSize() * parameters_.number_of_grid_cells_)
   {
     std::map<std::string, std::size_t> variable_map;
+    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
 
     std::size_t index = 0;
-    for (auto& name : system_.UniqueNames(state_reordering_))
+    for (auto& name : system_.UniqueNames(state_reordering))
       variable_map[name] = index++;
 
     // generate a state-vector reordering function to reduce fill-in in linear solver
@@ -491,12 +490,12 @@ namespace micm
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
       auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
-      state_reordering_ = [=](const std::vector<std::string>& variables, const std::size_t i)
+      state_reordering = [=](const std::vector<std::string>& variables, const std::size_t i)
       { return variables[reorder_map[i]]; };
 
       variable_map.clear();
       std::size_t index = 0;
-      for (auto& name : system_.UniqueNames(state_reordering_))
+      for (auto& name : system_.UniqueNames(state_reordering))
         variable_map[name] = index++;
     }
     
@@ -520,7 +519,7 @@ namespace micm
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     state_parameters_ = {
-      .variable_names_ = system_.UniqueNames(state_reordering_),
+      .variable_names_ = system_.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
       .number_of_rate_constants_ = processes_.size(),
@@ -803,8 +802,6 @@ namespace micm
       SolverStats& stats, 
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
-    // TODO: invesitage this function. The fortran equivalent appears to have a bug.
-    // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
     singular = false;

@@ -208,7 +208,6 @@ namespace micm
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     StateParameters state_parameters_;
-    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
     ProcessSet process_set_;
     LinearSolverPolicy linear_solver_;
     size_t N_{};
