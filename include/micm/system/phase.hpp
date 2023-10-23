@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include <micm/system/species.hpp>
 #include <algorithm>
+#include <micm/system/species.hpp>
 #include <vector>
 
 namespace micm

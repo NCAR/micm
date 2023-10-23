@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <micm/process/rate_constant.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
@@ -44,11 +43,13 @@ namespace micm
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<template<class> class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
+    requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy>& state);
     template<template<class> class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state);
+    requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
@@ -65,8 +66,10 @@ namespace micm
           rate_constant_(std::move(rate_constant)),
           phase_(phase)
     {
-      if (dynamic_cast<SurfaceRateConstant*>(rate_constant_.get())) {
-        if (reactants_.size() > 1) {
+      if (dynamic_cast<SurfaceRateConstant*>(rate_constant_.get()))
+      {
+        if (reactants_.size() > 1)
+        {
           throw std::runtime_error("A surface rate constant can only have one reactant");
         }
       }
@@ -103,8 +106,9 @@ namespace micm
   };
 
   template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
+  requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy>& state)
   {
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {
@@ -125,8 +129,9 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy>& state)
+  requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy>& state)
   {
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
