@@ -27,7 +27,7 @@ void testProcessSet(
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz } };
 
   micm::State<MatrixPolicy> state{ micm::StateParameters{
-      .variable_names_{ "foo", "bar", "baz", "quz", "quuz" }, .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3 } };
+      .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3 }, .variable_names_{ "foo", "bar", "baz", "quz", "quuz" },  };
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
