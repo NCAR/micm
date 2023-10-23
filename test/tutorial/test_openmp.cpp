@@ -17,11 +17,8 @@ void print_results(std::vector<double> results)
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
 
-  std::cout << std::scientific << std::setprecision(2) 
-    << std::setw(10) << results[0] << "," 
-    << std::setw(10) << results[1] << "," 
-    << std::setw(10) << results[2] 
-    << std::endl;
+  std::cout << std::scientific << std::setprecision(2) << std::setw(10) << results[0] << "," << std::setw(10) << results[1]
+            << "," << std::setw(10) << results[2] << std::endl;
 
   std::cout.copyfmt(oldState);
 }

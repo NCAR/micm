@@ -26,8 +26,8 @@ TEST(LuDecomposition, DenseMatrixStandardOrdering)
 
 TEST(LuDecomposition, SingularMatrixStandardOrdering)
 {
-    testSingularMatrix<SparseMatrixTest, micm::LuDecomposition>(
-        [](const SparseMatrixTest<double>& matrix) -> micm::LuDecomposition { return micm::LuDecomposition{ matrix }; });
+  testSingularMatrix<SparseMatrixTest, micm::LuDecomposition>(
+      [](const SparseMatrixTest<double>& matrix) -> micm::LuDecomposition { return micm::LuDecomposition{ matrix }; });
 }
 
 TEST(LuDecomposition, RandomMatrixStandardOrdering)

@@ -1,8 +1,8 @@
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include <chrono>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
@@ -34,9 +34,8 @@ int main()
                    .phase(gas_phase);
 
   RosenbrockSolver<> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
-                                                       std::vector<Process>{ r1, r2, r3 },
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
-                                                           3, false) };
+                             std::vector<Process>{ r1, r2, r3 },
+                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
   auto state = solver.GetState();
 

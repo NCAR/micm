@@ -2,7 +2,10 @@
 
 #include <micm/solver/rosenbrock.hpp>
 
-template<template<class> class MatrixPolicy = micm::Matrix, template<class> class SparseMatrixPolicy = micm::SparseMatrix, class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
+template<
+    template<class> class MatrixPolicy = micm::Matrix,
+    template<class> class SparseMatrixPolicy = micm::SparseMatrix,
+    class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
 class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
  public:
@@ -17,7 +20,6 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     this->system_ = system;
     this->processes_ = processes;
     this->parameters_ = parameters;
-    this->N_ = this->system_.StateSize() * this->parameters_.number_of_grid_cells_;
 
     auto builder = SparseMatrixPolicy<double>::create(4).number_of_blocks(1).initial_value(0.0);
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;

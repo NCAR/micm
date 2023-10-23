@@ -18,11 +18,9 @@ void print_state(double time, State<T>& state)
   oldState.copyfmt(std::cout);
 
   std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) 
-    << std::setw(10) << state.variables_[0][state.variable_map_["A"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["C"]] 
-    << std::endl;
+  std::cout << std::scientific << std::setprecision(2) << std::setw(10) << state.variables_[0][state.variable_map_["A"]]
+            << "," << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," << std::setw(10)
+            << state.variables_[0][state.variable_map_["C"]] << std::endl;
 
   std::cout.copyfmt(oldState);
 }
@@ -46,8 +44,8 @@ int main()
   auto reactions = solver_params.processes_;
 
   RosenbrockSolver<> solver{ chemical_system,
-                                  reactions,
-                                  RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1, false) };
+                             reactions,
+                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1, false) };
   State<Matrix> state = solver.GetState();
 
   // mol m-3
