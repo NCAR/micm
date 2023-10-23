@@ -45,12 +45,12 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;    
     this->state_parameters_ = {
-      .variable_names_ = system.UniqueNames(state_reordering),
-      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
-      .custom_rate_parameter_labels_ = param_labels,
       .number_of_grid_cells_ = 1,
       .number_of_rate_constants_ = processes.size(),
-      .nonzero_jacobian_elements_ = nonzero_jacobian_elements
+      .variable_names_ = system.UniqueNames(state_reordering),
+      .custom_rate_parameter_labels_ = param_labels,
+      .nonzero_jacobian_elements_ = nonzero_jacobian_elements,
+      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
     };
 
     this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);
