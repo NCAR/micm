@@ -26,9 +26,8 @@ void testProcessSet(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz } };
 
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
-                                                          .number_of_grid_cells_ = 2,
-                                                          .number_of_rate_constants_ = 3 } };
+  micm::State<MatrixPolicy> state{ micm::StateParameters{
+      .variable_names_{ "foo", "bar", "baz", "quz", "quuz" }, .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3 } };
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
@@ -136,9 +135,11 @@ void testRandomSystem(
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .variable_names_{ species_names },
-                                                          .number_of_grid_cells_ = n_cells,
-                                                          .number_of_rate_constants_ = n_reactions } };
+  micm::State<MatrixPolicy> state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+  } };
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {
