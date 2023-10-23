@@ -58,6 +58,13 @@ namespace micm
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix, bool& is_singular)
+  {
+    LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, is_singular);
+  }
+
+  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
     LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix);
