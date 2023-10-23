@@ -56,14 +56,14 @@ Adding the custom rate constant is quite simple. Include the header file:
 
 .. code-block:: diff
 
-     #include <micm/process/arrhenius_rate_constant.hpp>
-     #include <micm/process/branched_rate_constant.hpp>
-     #include <micm/process/surface_rate_constant.hpp>
-     #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-     #include <micm/process/troe_rate_constant.hpp>
-     #include <micm/process/tunneling_rate_constant.hpp>
-    +#include <micm/process/user_defined_rate_constant.hpp>
-     #include <micm/solver/rosenbrock.hpp>
+    #include <micm/process/arrhenius_rate_constant.hpp>
+    #include <micm/process/branched_rate_constant.hpp>
+    #include <micm/process/surface_rate_constant.hpp>
+    #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
+    #include <micm/process/troe_rate_constant.hpp>
+    #include <micm/process/tunneling_rate_constant.hpp>
+  + #include <micm/process/user_defined_rate_constant.hpp>
+    #include <micm/solver/rosenbrock.hpp>
 
 
 Then setup the reaction which will use this rate constant:

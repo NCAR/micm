@@ -7,12 +7,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
 void print_header()
 {
   std::cout << std::setw(5) << "time"
@@ -150,23 +144,23 @@ int main()
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> two_stage{
+  RosenbrockSolver<> two_stage{
     system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters()
   };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> three_stage{
+  RosenbrockSolver<> three_stage{
     system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> four_stage{
+  RosenbrockSolver<> four_stage{
     system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters()
   };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> four_stage_da{
+  RosenbrockSolver<> four_stage_da{
     system, reactions, RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters()
   };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> six_stage_da{
+  RosenbrockSolver<> six_stage_da{
     system, reactions, RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters()
   };
 

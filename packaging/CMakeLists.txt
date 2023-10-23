@@ -1,4 +1,6 @@
 include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
 
 install(
   TARGETS 

@@ -40,6 +40,7 @@ If you would like to include the json examples, you must configure micm to build
    :maxdepth: 1
    :caption: Contents:
 
+   installation_and_usage
    rate_constant_tutorial
    user_defined_rate_constant_tutorial
    multiple_grid_cells

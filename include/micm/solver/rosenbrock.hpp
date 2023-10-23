@@ -50,9 +50,11 @@ namespace micm
     double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
     double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
 
-    double h_min_{ 0 };        // step size min
-    double h_max_{ 0.5 };      // step size max
-    double h_start_{ 0.005 };  // step size start
+    double h_min_{ 0.0 };  // step size min [s]
+    double h_max_{
+      0.0
+    };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
+    double h_start_{ 0.0 };  // step size start [s] (if zero, 1.0e-6 will be used, if greater than h_max, h_max will be used)
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)

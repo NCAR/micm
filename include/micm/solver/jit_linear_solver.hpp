@@ -44,11 +44,18 @@ namespace micm
     ~JitLinearSolver();
 
     /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
-    void Factor(SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix);
+    void Factor(
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& lower_matrix,
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& upper_matrix);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
-    void Solve(const MatrixPolicy<double>& b, MatrixPolicy<double>& x);
+    void Solve(
+        const MatrixPolicy<double>& b,
+        MatrixPolicy<double>& x,
+        SparseMatrixPolicy<double>& lower_matrix,
+        SparseMatrixPolicy<double>& upper_matrix);
 
    private:
     /// @brief Generates the JIT-ed Solve function

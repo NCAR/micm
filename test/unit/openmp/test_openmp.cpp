@@ -47,7 +47,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
 
 TEST(OpenMP, OneFileReadThreeThreads)
 {
-  constexpr size_t n_threads = 3;
+  constexpr size_t n_threads = 8;
 
   SolverConfig solverConfig;
 
@@ -75,10 +75,10 @@ TEST(OpenMP, OneFileReadThreeThreads)
 #pragma omp barrier
   }
 
-  for (int i = 0; i < results[0].size(); ++i)
-  {
-    EXPECT_EQ(results[0][i], results[1][i]);
-    EXPECT_EQ(results[0][i], results[2][i]);
-    EXPECT_EQ(results[1][i], results[2][i]);
+  // compare each thread to thread 1
+  for (int i = 1; i < n_threads; ++i) {
+    for (int j = 0; j < results[0].size(); ++j) {
+      EXPECT_EQ(results[0][j], results[i][j]);
+    }
   }
 }

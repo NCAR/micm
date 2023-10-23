@@ -56,9 +56,9 @@ in the stats object.
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
-  :lines: 75-86
+  :lines: 69-80
 
-.. code-block:: console
+.. code-block:: bash
 
   Solver state: Converged
   accepted: 20
@@ -78,9 +78,9 @@ wasted, for the ``false`` version.
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
-  :lines: 88-96
+  :lines: 82-90
 
-.. code-block:: console
+.. code-block:: bash
 
   Total solve time: 24416 nanoseconds
   total_forcing_time: 3167 nanoseconds
