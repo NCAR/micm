@@ -44,6 +44,16 @@ namespace micm
     ~JitLinearSolver();
 
     /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
+    /// @param matrix Matrix that will be factored into lower and upper triangular matrices
+    /// @param is_singular Flag that will be set to true if matrix is singular; false otherwise
+    void Factor(
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& lower_matrix,
+        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& upper_matrix,
+        bool& is_singular);
+
+    /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
+    /// @param matrix Matrix that will be factored into lower and upper triangular matrices
     void Factor(
         SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
         SparseMatrix<double, SparseMatrixVectorOrdering<L>>& lower_matrix,

@@ -807,12 +807,18 @@ namespace micm
     // From my understanding the fortran do loop would only ever do one iteration and is equivalent to what's below
     auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
-    singular = true;
+    singular = false;
     while (true)
     {
       double alpha = 1 / (H * gamma);
       AlphaMinusJacobian(jacobian, alpha);
-      linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
+      if (parameters_.check_singularity_)
+      {
+        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
+      } else {
+        singular = false;
+        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
+      }
       singular = false;  // TODO This should be evaluated in some way
       stats.decompositions += 1;
       if (!singular)

@@ -70,6 +70,11 @@ namespace micm
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     void Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix);
+    
+    /// @brief Decompose the matrix into upper and lower triangular matrices
+    /// @param matrix Matrix to decompose into lower and upper triangular matrices
+    /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
+    void Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix, bool& is_singular);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>

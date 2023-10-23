@@ -112,6 +112,12 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix, bool& is_singular)
+  {
+    lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix, is_singular);
+  }
+
+  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
@@ -139,17 +145,11 @@ namespace micm
         }
       }
       {
-        auto y_elem = std::next(y_cell.end(), -1);
         auto x_elem = std::next(x_cell.end(), -1);
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
-          // don't iterate before the beginning of the vector
-          if (y_elem != y_cell.begin())
-          {
-            --y_elem;
-          }
-
+          // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             *x_elem -= upper_matrix.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
@@ -204,15 +204,11 @@ namespace micm
         }
       }
       {
-        auto y_elem = std::next(y_group, x.GroupSize() - n_cells);
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
-          // don't iterate before the beginning of the vector
-          std::size_t y_elem_distance = std::distance(x.AsVector().begin(), y_elem);
-          y_elem -= std::min(n_cells, y_elem_distance);
-
+          // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)

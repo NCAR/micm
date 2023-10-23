@@ -84,6 +84,7 @@ namespace micm
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
     bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
+    bool check_singularity_{ false };   // Check for singular A matrix in linear solve of A x = b
 
     // Print RosenbrockSolverParameters to console
     void print() const;
