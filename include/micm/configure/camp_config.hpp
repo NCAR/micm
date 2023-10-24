@@ -103,10 +103,6 @@ namespace micm
       // Constants
       // Configure files
       static const inline std::string CAMP_CONFIG = "config.json";
-      static const inline std::string SPECIES_CONFIG = "species.json";
-      static const inline std::string MECHANISM_CONFIG = "mechanism.json";
-      static const inline std::string REACTIONS_CONFIG = "reactions.json";
-      static const inline std::string TOLERANCE_CONFIG = "tolerance.json";
 
       // Common JSON
       static const inline std::string CAMP_DATA = "camp-data";
@@ -133,29 +129,6 @@ namespace micm
           for (const auto& element : camp_data[CAMP_FILES])
           {
             camp_files.push_back(config_dir / element.get<std::string>());
-          }
-        }
-        else
-        {
-          std::filesystem::path species_config(config_dir / SPECIES_CONFIG);
-          std::filesystem::path mechanism_config(config_dir / MECHANISM_CONFIG);
-          std::filesystem::path reactions_config(config_dir / REACTIONS_CONFIG);
-          std::filesystem::path tolerance_config(config_dir / TOLERANCE_CONFIG);
-          if (std::filesystem::exists(species_config))
-          {
-            camp_files.push_back(species_config);
-          }
-          if (std::filesystem::exists(mechanism_config))
-          {
-            camp_files.push_back(mechanism_config);
-          }
-          if (std::filesystem::exists(reactions_config))
-          {
-            camp_files.push_back(reactions_config);
-          }
-          if (std::filesystem::exists(tolerance_config))
-          {
-            camp_files.push_back(tolerance_config);
           }
         }
 
