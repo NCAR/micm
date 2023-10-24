@@ -66,6 +66,13 @@ namespace micm
     /// @param value new parameter value
     void SetCustomRateParameter(const std::string& label, double value);
     void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
+
+    /// @brief Print a header of species to display concentrations with respect to time
+    void PrintHeader();
+
+    /// @brief Print state (concentrations) at the given time 
+    /// @param time solving time
+    void PrintState(double time);
   };
 
 }  // namespace micm

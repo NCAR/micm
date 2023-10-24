@@ -42,6 +42,7 @@ option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(ENABLE_TESTS "Build the tests" ON)
+option(BUILD_EXAMPLES "Build the examples" ON)
 set(DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
@@ -98,3 +99,8 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 ################################################################################
+# Examples
+
+if(BUILD_EXAMPLES)
+  add_subdirectory(examples)
+endif()
