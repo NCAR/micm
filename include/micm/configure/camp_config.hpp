@@ -172,7 +172,6 @@ namespace micm
 
         for (const auto& camp_file : camp_files)
         {
-          std::cout << "JsonReaderPolicy.Parse CAMP file " << camp_file << std::endl;
           json config_subset = json::parse(std::ifstream(camp_file));
 
           if (config_subset.contains(CAMP_DATA))
@@ -193,7 +192,6 @@ namespace micm
         status = ParseObjectArray(objects);
 
         // Assign the parsed 'Species' to 'Phase'
-        std::cout << "Parse species_arr_ size " << species_arr_.size() << std::endl;
         gas_phase_ = Phase(species_arr_);
 
         for (auto& p : processes_)
@@ -222,8 +220,9 @@ namespace micm
           }
           std::string type = object[TYPE].get<std::string>();
 
-          std::cout << type << std::endl;
-          std::cout << object.dump(4) << std::endl;
+          // debug statements
+          // std::cout << type << std::endl;
+          // std::cout << object.dump(4) << std::endl;
 
           if (type == "CHEM_SPEC")
           {
