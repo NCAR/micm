@@ -33,11 +33,11 @@ namespace micm
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    template<template<class> class MatrixPolicy>
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     JitProcessSet(
         std::shared_ptr<JitCompiler> compiler,
         const std::vector<Process> &processes,
-        const State<MatrixPolicy> &state);
+        const State<MatrixPolicy, SparseMatrixPolicy> &state);
 
     ~JitProcessSet();
 
@@ -103,11 +103,11 @@ namespace micm
   }
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy>
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline JitProcessSet<L>::JitProcessSet(
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
-      const State<MatrixPolicy> &state)
+      const State<MatrixPolicy, SparseMatrixPolicy> &state)
       : ProcessSet(processes, state.variable_map_),
         compiler_(compiler)
   {
