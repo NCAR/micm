@@ -84,7 +84,7 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
     EXPECT_EQ(p.products_.size(), num_products_in_each_process[idx]);
     if (num_products_in_each_process[idx] > 0)
       EXPECT_EQ(p.products_[0].second, yield_value_of_first_product_in_each_process[idx]);
-    // EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
+    EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
     idx++;
   }
 
@@ -194,7 +194,7 @@ TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
   {
     EXPECT_EQ(p.reactants_.size(), num_reactants_in_each_process[idx]);
     EXPECT_EQ(p.products_.size(), num_products_in_each_process[idx]);
-    // EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
+    EXPECT_EQ(p.phase_.species_.size(), num_phase_in_each_process);
     idx++;
   }
 

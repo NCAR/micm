@@ -196,6 +196,14 @@ namespace micm
         std::cout << "Parse species_arr_ size " << species_arr_.size() << std::endl;
         gas_phase_ = Phase(species_arr_);
 
+        for (auto& p : processes_)
+        {
+          for (const auto& s : species_arr_)
+          {
+            p.phase_.species_.push_back(s);
+          }
+        }
+
         return status;
       }
 
