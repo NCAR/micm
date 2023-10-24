@@ -429,7 +429,6 @@ namespace micm
       case SolverState::NaNDetected: return "NaNDetected";
       default: return "Unknown";
     }
-    return "";
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>

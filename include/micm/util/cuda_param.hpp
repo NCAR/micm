@@ -1,7 +1,10 @@
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
+#pragma once
+
 #include <vector>
 
-#ifndef CUDA_PARAM_HPP
-#  define CUDA_PARAM_HPP
 // member data of class CudaProcessSet grouped in struct passing to kernel driver function
 const size_t BLOCK_SIZE = 320;
 struct CudaProcessSetParam
@@ -64,4 +67,3 @@ struct CudaSparseMatrixParam
   size_t U_size_;
   size_t n_grids_;
 };
-#endif
