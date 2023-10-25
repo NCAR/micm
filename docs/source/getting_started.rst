@@ -5,6 +5,9 @@ Getting Started
 Build and Test
 ==============
 
+Configuring for different platforms and environments is shown here. There is an additional tutorial which covers 
+some other specifics: :ref:`Installation and usage`.
+
 CPU
 ---
 To build and install MICM locally, you must have the following libraries installed:
@@ -47,6 +50,9 @@ others require that you have libraries installed on your system.
   - Coming soon
 - OpenMP
   - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
+
+For more ways to build and install micm, see :ref:`Installation and usage`. If you would like instructions for building
+the docs, see :ref:`Contributing`.
 
 Docker Container
 ----------------

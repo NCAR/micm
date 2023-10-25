@@ -27,10 +27,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 # Set up include and lib directories
 set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
 
-include(GNUInstallDirs)
-set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
-set(INSTALL_MOD_DIR "${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
-
 option(ENABLE_CLANG_TIDY "Enable clang-tiday to format source code" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support" OFF)

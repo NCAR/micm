@@ -61,3 +61,27 @@ TEST(TunnelingConfig, ParseConfig)
     EXPECT_EQ(params.C_, 102.3);
   }
 }
+
+TEST(TunnelingConfig, DetectsNonstandardKeys)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(TunnelingConfig, DetectsNonstandardProductCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(TunnelingConfig, DetectsNonstandardReactantCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}

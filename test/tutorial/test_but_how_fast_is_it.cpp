@@ -1,17 +1,11 @@
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include <chrono>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
-
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
 
 int main()
 {
@@ -39,10 +33,9 @@ int main()
                    .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
                    .phase(gas_phase);
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
-                                                       std::vector<Process>{ r1, r2, r3 },
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
-                                                           3, false) };
+  RosenbrockSolver<> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
+                             std::vector<Process>{ r1, r2, r3 },
+                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
   State<Matrix> state = solver.GetState();
 

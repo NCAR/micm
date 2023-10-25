@@ -39,7 +39,7 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    ///does not suppor easy retrieval of memory address using data() function.
+    /// does not suppor easy retrieval of memory address using data() function.
     std::vector<char> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
@@ -53,10 +53,10 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> lij_ujk_;
     /// True when A[k][i] is non-zero for each iteration of the middle (k) loop for the lower
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    ///does not suppor easy retrieval of memory address using data() function.
+    /// does not suppor easy retrieval of memory address using data() function.
     std::vector<char> do_aki_;
     /// Index in A.data_ for A[k][i] for each iteration of the middle (k) loop for the lower
-    /// triangular matrix when A[k][i] is non-zero. 
+    /// triangular matrix when A[k][i] is non-zero.
     std::vector<std::size_t> aki_;
     /// Index in L.data_ for L[k][i] for each iteration of the middle (k) loop for the lower
     /// triangular matrix when L[k][i] is non-zero, and the corresponding number of elements
@@ -91,15 +91,25 @@ namespace micm
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
     template<typename T, template<class> class SparseMatrixPolicy>
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
+
+    /// @brief Perform an LU decomposition on a given A matrix
+    /// @param A Sparse matrix to decompose
+    /// @param L The lower triangular matrix created by decomposition
+    /// @param U The upper triangular matrix created by decomposition
+    /// @param is_singular Flag that is set to true if A is singular; false otherwise
+    template<typename T, template<class> class SparseMatrixPolicy>
     requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
         const SparseMatrixPolicy<T>& A,
         SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U) const;
+        SparseMatrixPolicy<T>& U,
+        bool& is_singular) const;
     template<typename T, template<class> class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
         const SparseMatrixPolicy<T>& A,
         SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U) const;
+        SparseMatrixPolicy<T>& U,
+        bool& is_singular) const;
   };
 
 }  // namespace micm

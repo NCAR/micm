@@ -84,17 +84,25 @@ namespace micm
   {
     for (auto& process : processes)
     {
-      number_of_reactants_.push_back(process.reactants_.size());
-      number_of_products_.push_back(process.products_.size());
+      std::size_t number_of_reactants = 0;
+      std::size_t number_of_products = 0;
       for (auto& reactant : process.reactants_)
       {
+        if (reactant.IsParameterized())
+          continue;  // Skip reactants that are parameterizations
         reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
+        ++number_of_reactants;
       }
       for (auto& product : process.products_)
       {
+        if (product.first.IsParameterized())
+          continue;  // Skip products that are parameterizations
         product_ids_.push_back(state.variable_map_.at(product.first.name_));
         yields_.push_back(product.second);
+        ++number_of_products;
       }
+      number_of_reactants_.push_back(number_of_reactants);
+      number_of_products_.push_back(number_of_products);
     }
   };
 
