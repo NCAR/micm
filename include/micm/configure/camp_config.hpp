@@ -171,6 +171,19 @@ namespace micm
 
         ConfigParseStatus status;
 
+        // Clear vectors and maps
+        species_arr_.clear();
+        user_defined_rate_arr_.clear();
+        arrhenius_rate_arr_.clear();
+        troe_rate_arr_.clear();
+        branched_rate_arr_.clear();
+        surface_rate_arr_.clear();
+        ternary_rate_arr_.clear();
+        tunneling_rate_arr_.clear();
+        phases_.clear();
+        processes_.clear();
+
+        // Parse data object list
         status = ParseObjectArray(objects);
 
         // Assign the parsed 'Species' to 'Phase'
