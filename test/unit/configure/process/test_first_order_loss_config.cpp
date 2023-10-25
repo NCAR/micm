@@ -51,6 +51,7 @@ TEST(FirstOrderLossConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/first_order_loss/contains_nonstandard_key");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/first_order_loss/contains_nonstandard_key");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }

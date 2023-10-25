@@ -334,7 +334,10 @@ namespace micm
       // required keys
       const std::string NAME = "name";
 
-      auto status = ValidateSchema(object, { NAME, "type" }, { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+      auto status = ValidateSchema(
+          object,
+          { NAME, "type" },
+          { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -387,7 +390,8 @@ namespace micm
       {
         std::size_t qty = 1;
         auto new_status = ValidateSchema(value, {}, { "qty" });
-        if (new_status != ConfigParseStatus::Success) {
+        if (new_status != ConfigParseStatus::Success)
+        {
           status = new_status;
         }
         if (value.contains(QTY))
@@ -401,7 +405,7 @@ namespace micm
     std::pair<ConfigParseStatus, std::vector<std::pair<Species, double>>> ParseProducts(const json& object)
     {
       const std::string YIELD = "yield";
-        
+
       ConfigParseStatus status = ConfigParseStatus::Success;
 
       constexpr double DEFAULT_YEILD = 1.0;
@@ -409,7 +413,8 @@ namespace micm
       for (auto& [key, value] : object.items())
       {
         auto new_status = ValidateSchema(value, {}, { "yield" });
-        if (new_status != ConfigParseStatus::Success) {
+        if (new_status != ConfigParseStatus::Success)
+        {
           status = new_status;
         }
         if (value.contains(YIELD))
@@ -465,7 +470,8 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
+      auto status =
+          ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -808,7 +814,7 @@ namespace micm
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
-      reactants_object[species] = { };
+      reactants_object[species] = {};
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
       if (reactants.first != ConfigParseStatus::Success)
@@ -846,7 +852,7 @@ namespace micm
 
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
-      reactants_object[species_name] = { };
+      reactants_object[species_name] = {};
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(object[PRODUCTS]);
       if (reactants.first != ConfigParseStatus::Success)
