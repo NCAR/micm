@@ -108,26 +108,33 @@ namespace micm
       // Functions
 
       /// @brief Parse configures
-      /// @param config_file Path to a the configuration file
+      /// @param config_file Path to a the CAMP configuration file
       /// @return True for successful parsing
       ConfigParseStatus Parse(const std::filesystem::path& config_file)
       {
+        if (!std::filesystem::exists(config_file))
+        {
+	  std::string msg = "Invalid CAMP configuration file path";
+	  std::cerr << msg << std::endl;
+          return ConfigParseStatus::InvalidCAMPFilePath;
+        }
+
         // Extract configuration dir from configuration file path
         std::filesystem::path config_dir = config_file.parent_path();
 
         std::vector<std::string> camp_files;
 
         // Look for CAMP config file
-        std::filesystem::path camp_config(config_file);
-        if (std::filesystem::exists(camp_config))
-        {
-          json camp_data = json::parse(std::ifstream(camp_config));
-          if (!camp_data.contains(CAMP_FILES))
-            return ConfigParseStatus::CAMPFilesSectionNotFound;
+        json camp_data = json::parse(std::ifstream(config_file));
+        if (!camp_data.contains(CAMP_FILES))
+          return ConfigParseStatus::CAMPFilesSectionNotFound;
 
-          for (const auto& element : camp_data[CAMP_FILES])
+        for (const auto& element : camp_data[CAMP_FILES])
+        {
+          std::filesystem::path camp_file = config_dir / element.get<std::string>();
+          if (std::filesystem::exists(camp_file))
           {
-            camp_files.push_back(config_dir / element.get<std::string>());
+            camp_files.push_back(camp_file);
           }
         }
 
