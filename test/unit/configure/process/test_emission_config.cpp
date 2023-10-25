@@ -48,3 +48,11 @@ TEST(EmissionConfig, ParseConfig)
     EXPECT_EQ(emission_rate_constant->CustomParameters()[0], "EMIS.bar");
   }
 }
+
+TEST(EmissionConfig, DetectsNonstandardKeys)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/emission/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}

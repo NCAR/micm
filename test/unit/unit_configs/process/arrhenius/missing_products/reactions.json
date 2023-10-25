@@ -1,0 +1,17 @@
+{
+  "camp-data": [
+    {
+      "name": "missing products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "ARRHENIUS",
+          "reactants": {
+            "bar": { },
+            "baz": { "qty": 2 }
+          }
+        }
+      ]
+    }
+  ]
+}

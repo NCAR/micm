@@ -101,3 +101,30 @@ TEST(BranchedConfig, ParseConfig)
     EXPECT_EQ(params.branch_, micm::BranchedRateConstantParameters::Branch::Nitrate);
   }
 }
+
+TEST(BranchedConfig, DetectsNonstandardKeys)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/branched/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(BranchedConfig, DetectsNonstandardProductCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_alkoxy_product_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+
+  status = solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_nitrate_product_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}
+
+TEST(BranchedConfig, DetectsNonstandardReactantCoefficient)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_reactant_coef");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+}

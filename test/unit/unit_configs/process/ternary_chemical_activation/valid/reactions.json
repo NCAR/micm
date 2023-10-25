@@ -5,6 +5,7 @@
       "type": "MECHANISM",
       "reactions": [
         {
+          "__my comment": {},
           "type": "TERNARY_CHEMICAL_ACTIVATION",
           "reactants": {
             "foo" : { },

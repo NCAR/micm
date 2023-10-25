@@ -39,7 +39,9 @@ namespace micm
     CAMPDataSectionNotFound,
     InvalidMechanism,
     ObjectTypeNotFound,
-    RequiredKeyNotFound
+    RequiredKeyNotFound,
+    ContainsNonStandardKey,
+    MutuallyExclusiveOption
   };
 
   inline std::string configParseStatusToString(const ConfigParseStatus& status)
@@ -59,6 +61,8 @@ namespace micm
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
       case ConfigParseStatus::RequiredKeyNotFound: return "RequiredKeyNotFound";
+      case ConfigParseStatus::ContainsNonStandardKey: return "ContainsNonStandardKey";
+      case ConfigParseStatus::MutuallyExclusiveOption: return "MutuallyExclusiveOption";
       default: return "Unknown";
     }
   }
@@ -330,14 +334,12 @@ namespace micm
       // required keys
       const std::string NAME = "name";
 
-      std::array<std::string, 1> required_keys = { NAME };
-
-      // Check if it contains the required key(s)
-      for (const auto& key : required_keys)
+      auto status = ValidateSchema(object, { NAME, "type" }, { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
+
       std::string name = object[NAME].get<std::string>();
 
       // Load remaining keys as properties
@@ -359,12 +361,12 @@ namespace micm
 
     ConfigParseStatus ParseMechanism(const json& object)
     {
-      std::vector<std::string> required_keys = { "name", "reactions" };
-      for (const auto& key : required_keys)
+      auto status = ValidateSchema(object, { "name", "reactions", "type" }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
+
       std::vector<json> objects;
       for (const auto& element : object["reactions"])
       {
@@ -374,28 +376,42 @@ namespace micm
       return ParseObjectArray(objects);
     }
 
-    std::vector<Species> ParseReactants(const json& object)
+    std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
     {
       const std::string QTY = "qty";
       std::vector<Species> reactants;
+
+      ConfigParseStatus status = ConfigParseStatus::Success;
+
       for (auto& [key, value] : object.items())
       {
         std::size_t qty = 1;
+        auto new_status = ValidateSchema(value, {}, { "qty" });
+        if (new_status != ConfigParseStatus::Success) {
+          status = new_status;
+        }
         if (value.contains(QTY))
           qty = value[QTY];
         for (std::size_t i = 0; i < qty; ++i)
           reactants.push_back(Species(key));
       }
-      return reactants;
+      return std::make_pair(status, reactants);
     }
 
-    std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+    std::pair<ConfigParseStatus, std::vector<std::pair<Species, double>>> ParseProducts(const json& object)
     {
       const std::string YIELD = "yield";
+        
+      ConfigParseStatus status = ConfigParseStatus::Success;
+
       constexpr double DEFAULT_YEILD = 1.0;
       std::vector<std::pair<Species, double>> products;
       for (auto& [key, value] : object.items())
       {
+        auto new_status = ValidateSchema(value, {}, { "yield" });
+        if (new_status != ConfigParseStatus::Success) {
+          status = new_status;
+        }
         if (value.contains(YIELD))
         {
           products.push_back(std::make_pair(Species(key), value[YIELD]));
@@ -405,7 +421,7 @@ namespace micm
           products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
         }
       }
-      return products;
+      return std::make_pair(status, products);
     }
 
     ConfigParseStatus ParsePhotolysis(const json& object)
@@ -414,14 +430,24 @@ namespace micm
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
 
-      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
+
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
@@ -429,7 +455,7 @@ namespace micm
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -439,15 +465,24 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      // Check required json objects exist
-      for (const auto& key : { REACTANTS, PRODUCTS })
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
+
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       ArrheniusRateConstantParameters parameters;
       if (object.contains("A"))
@@ -472,6 +507,11 @@ namespace micm
       }
       if (object.contains("Ea"))
       {
+        if (parameters.C_ != 0)
+        {
+          std::cerr << "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." << std::endl;
+          return ConfigParseStatus::MutuallyExclusiveOption;
+        }
         // Calculate 'C' using 'Ea'
         parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
       }
@@ -480,7 +520,7 @@ namespace micm
 
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
 
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -495,16 +535,28 @@ namespace micm
       const std::string A0 = "a0";
       const std::string N = "n";
 
-      // Check required json objects exist
-      for (const auto& key : { REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N })
+      auto status = ValidateSchema(object, { "type", REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
       auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
+
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (alkoxy_products.first != ConfigParseStatus::Success)
+      {
+        return alkoxy_products.first;
+      }
+      if (nitrate_products.first != ConfigParseStatus::Success)
+      {
+        return nitrate_products.first;
+      }
 
       BranchedRateConstantParameters parameters;
       parameters.X_ = object[X].get<double>();
@@ -516,13 +568,13 @@ namespace micm
       parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
       branched_rate_arr_.push_back(BranchedRateConstant(parameters));
       std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-      processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, alkoxy_products.second, std::move(rate_ptr), gas_phase_));
 
       // Nitrate branch
       parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
       branched_rate_arr_.push_back(BranchedRateConstant(parameters));
       rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-      processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, nitrate_products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -532,15 +584,23 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      // Check required json objects exist
-      for (const auto& key : { REACTANTS, PRODUCTS })
+      auto status = ValidateSchema(
+          object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       TroeRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -580,7 +640,7 @@ namespace micm
 
       std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
 
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -590,15 +650,23 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      // Check required json objects exist
-      for (const auto& key : { REACTANTS, PRODUCTS })
+      auto status = ValidateSchema(
+          object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       TernaryChemicalActivationRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -639,7 +707,7 @@ namespace micm
       std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
           std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
 
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -649,15 +717,22 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      // Check required json objects exist
-      for (const auto& key : { REACTANTS, PRODUCTS })
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C" });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       TunnelingRateConstantParameters parameters;
       if (object.contains("A"))
@@ -677,7 +752,7 @@ namespace micm
 
       std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -686,18 +761,27 @@ namespace micm
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
-      for (const auto& key : { SPECIES, MUSICA_NAME })
+
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
-      products_object[species] = { { "YIELD", 1.0 } };
+      products_object[species] = { { "yield", 1.0 } };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
 
@@ -705,7 +789,7 @@ namespace micm
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -714,18 +798,27 @@ namespace micm
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
-      for (const auto& key : { SPECIES, MUSICA_NAME })
+
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
-      reactants_object[species] = { {} };
+      reactants_object[species] = { };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
@@ -733,7 +826,7 @@ namespace micm
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
     }
@@ -744,17 +837,26 @@ namespace micm
       const std::string PRODUCTS = "gas-phase products";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string PROBABILITY = "reaction probability";
-      for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
+      if (status != ConfigParseStatus::Success)
       {
-        if (!ValidateJsonWithKey(object, key))
-          return ConfigParseStatus::RequiredKeyNotFound;
+        return status;
       }
 
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
-      reactants_object[species_name] = { {} };
+      reactants_object[species_name] = { };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(object[PRODUCTS]);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
 
       Species reactant_species = Species("");
       for (auto& species : species_arr_)
@@ -776,8 +878,69 @@ namespace micm
       surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
 
       std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
-      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
+      return ConfigParseStatus::Success;
+    }
+
+    /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
+    /// @param object the object whose keys need to be validated
+    /// @param required_keys The required keys
+    /// @param optional_keys The optional keys
+    /// @return true if only standard keys are found
+    ConfigParseStatus ValidateSchema(
+        const json& object,
+        const std::vector<std::string>& required_keys,
+        const std::vector<std::string>& optional_keys)
+    {
+      // standard keys are:
+      // those in required keys
+      // those in optional keys
+      // starting with __
+      // anything else is reported as an error so that typos are caught, specifically for optional keys
+
+      std::vector<std::string> sorted_object_keys;
+      for (auto& [key, value] : object.items())
+        sorted_object_keys.push_back(key);
+
+      auto sorted_required_keys = required_keys;
+      auto sorted_optional_keys = optional_keys;
+      std::sort(sorted_object_keys.begin(), sorted_object_keys.end());
+      std::sort(sorted_required_keys.begin(), sorted_required_keys.end());
+      std::sort(sorted_optional_keys.begin(), sorted_optional_keys.end());
+
+      // get the difference between the object keys and those required
+      // what's left should be the optional keys and valid comments
+      std::vector<std::string> difference;
+      std::set_difference(
+          sorted_object_keys.begin(),
+          sorted_object_keys.end(),
+          sorted_required_keys.begin(),
+          sorted_required_keys.end(),
+          std::back_inserter(difference));
+
+      // check that the number of keys remaining is exactly equal to the expected number of required keys
+      if (difference.size() != (sorted_object_keys.size() - required_keys.size()))
+      {
+        return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      std::vector<std::string> remaining;
+      std::set_difference(
+          difference.begin(),
+          difference.end(),
+          sorted_optional_keys.begin(),
+          sorted_optional_keys.end(),
+          std::back_inserter(remaining));
+
+      // now, anything left must be standard comment starting with __
+      for (auto& key : remaining)
+      {
+        if (!key.starts_with("__"))
+        {
+          return ConfigParseStatus::ContainsNonStandardKey;
+        }
+      }
       return ConfigParseStatus::Success;
     }
   };
