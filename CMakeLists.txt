@@ -97,6 +97,6 @@ endif()
 ################################################################################
 # Command-line driver examples
 
-if(PROJECT_IS_TOP_LEVEL AND BUILD_EXAMPLES)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_EXAMPLES AND ENABLE_JSON)
   add_subdirectory(examples)
 endif()
