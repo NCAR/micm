@@ -24,6 +24,7 @@ namespace micm
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::vector<std::size_t> jacobian_diagonal_elements_;
+    size_t state_size_;
   };
 
   template<

@@ -433,8 +433,7 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::RosenbrockSolver()
-      : system_(),
-        processes_(),
+      : processes_(),
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
         state_parameters_(),
         process_set_(),
@@ -463,8 +462,7 @@ namespace micm
       const std::vector<Process>& processes,
       const RosenbrockSolverParameters& parameters,
       const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
-      : system_(system),
-        processes_(processes),
+      : processes_(processes),
         parameters_(parameters),
         state_parameters_(),
         process_set_(),
@@ -474,7 +472,7 @@ namespace micm
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
 
     std::size_t index = 0;
-    for (auto& name : system_.UniqueNames(state_reordering))
+    for (auto& name : system.UniqueNames())
       variable_map[name] = index++;
 
     // generate a state-vector reordering function to reduce fill-in in linear solver
@@ -483,7 +481,7 @@ namespace micm
       // get unsorted Jacobian non-zero elements
       auto unsorted_process_set = ProcessSet(processes, variable_map);
       auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
-      MatrixPolicy<int> unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
+      MatrixPolicy<int> unsorted_jac_non_zeros(system.StateSize(), system.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
       auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
@@ -492,7 +490,7 @@ namespace micm
 
       variable_map.clear();
       std::size_t index = 0;
-      for (auto& name : system_.UniqueNames(state_reordering))
+      for (auto& name : system.UniqueNames(state_reordering))
         variable_map[name] = index++;
     }
     
@@ -508,7 +506,7 @@ namespace micm
     auto jacobian = build_jacobian<SparseMatrixPolicy>(
       process_set_.NonZeroJacobianElements(),
       parameters_.number_of_grid_cells_,
-      system_.StateSize()
+      system.StateSize()
     );
 
     std::vector<std::size_t> jacobian_diagonal_elements;
@@ -518,9 +516,10 @@ namespace micm
     state_parameters_ = {
       .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
       .number_of_rate_constants_ = processes_.size(),
-      .variable_names_ = system_.UniqueNames(state_reordering),
+      .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
-      .jacobian_diagonal_elements_ = jacobian_diagonal_elements
+      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
+      .state_size_ = system.StateSize()
     };
 
     process_set_.SetJacobianFlatIds(jacobian);
@@ -535,7 +534,7 @@ namespace micm
     state.jacobian_ = build_jacobian<SparseMatrixPolicy>(
       process_set_.NonZeroJacobianElements(),
       state_parameters_.number_of_grid_cells_,
-      system_.StateSize()
+      state_parameters_.state_size_
     );
 
     auto lu = linear_solver_.GetLUMatrices(state.jacobian_, 1.0e-30);

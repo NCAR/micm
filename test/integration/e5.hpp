@@ -19,7 +19,6 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
      const micm::RosenbrockSolverParameters& parameters)
       : micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>()
   {
-    this->system_ = system;
     this->processes_ = processes;
     this->parameters_ = parameters;
 
@@ -51,6 +50,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
       .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
+      .state_size_ = system.StateSize()
     };
 
     this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);
@@ -65,7 +65,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
 
     state.jacobian_ = micm::build_jacobian<SparseMatrixPolicy>(
-        nonzero_jacobian_elements_, this->state_parameters_.number_of_grid_cells_, this->system_.StateSize());
+        nonzero_jacobian_elements_, this->state_parameters_.number_of_grid_cells_, this->state_parameters_.state_size_);
 
     auto lu = this->linear_solver_.GetLUMatrices(state.jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);

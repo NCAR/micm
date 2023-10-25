@@ -204,7 +204,6 @@ namespace micm
       double final_time_{};
     };
 
-    System system_;
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     StateParameters state_parameters_;

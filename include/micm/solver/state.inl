@@ -9,7 +9,8 @@ namespace micm
       : conditions_(),
         variables_(),
         custom_rate_parameters_(),
-        rate_constants_()
+        rate_constants_(),
+        jacobian_()
   {
   }
 
@@ -34,7 +35,8 @@ namespace micm
         rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0),
         variable_map_(),
         custom_rate_parameter_map_(),
-        variable_names_(parameters.variable_names_)
+        variable_names_(parameters.variable_names_),
+        jacobian_()
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
