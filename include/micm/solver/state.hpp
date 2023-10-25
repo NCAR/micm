@@ -20,7 +20,6 @@ namespace micm
   {
     std::size_t number_of_grid_cells_{ 1 };
     std::size_t number_of_rate_constants_{ 0 };
-    std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
