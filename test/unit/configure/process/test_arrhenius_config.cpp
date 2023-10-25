@@ -7,8 +7,7 @@ TEST(ArrheniusConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status =
-      solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_reactants");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_reactants");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
   status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_products");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);

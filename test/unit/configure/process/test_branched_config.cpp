@@ -114,7 +114,8 @@ TEST(BranchedConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_alkoxy_product_coef");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_alkoxy_product_coef");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 
   status = solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_nitrate_product_coef");

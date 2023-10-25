@@ -65,7 +65,6 @@ TEST(SurfaceConfig, ParseConfig)
   }
 }
 
-
 TEST(SurfaceConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
