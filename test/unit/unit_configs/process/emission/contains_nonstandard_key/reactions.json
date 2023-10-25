@@ -1,0 +1,16 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard emission",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "EMISSION",
+          "species": "foo",
+          "MUSICA name": "foo",
+          "mUSICA name": "foo"
+        }
+      ]
+    }
+  ]
+}

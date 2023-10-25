@@ -1,0 +1,22 @@
+{
+  "camp-data": [
+    {
+      "name": "Invalid yield name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "TERNARY_CHEMICAL_ACTIVATION",
+          "reactants": {
+            "foo" : { },
+            "quz" : { "qty" :2 }
+          },
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "Yield": 3.2 }
+          }
+        }
+      ]
+    }
+  ]
+}

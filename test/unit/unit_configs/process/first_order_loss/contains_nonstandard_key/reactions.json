@@ -1,0 +1,16 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard keys",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "FIRST_ORDER_LOSS",
+          "species": "foo",
+          "MUSICA name": "foo",
+          "mUSICA name": "foo"
+        }
+      ]
+    }
+  ]
+}
