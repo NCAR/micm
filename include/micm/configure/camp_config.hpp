@@ -100,26 +100,25 @@ namespace micm
       std::unordered_map<std::string, Phase> phases_;
       std::vector<Process> processes_;
 
-      // Constants
-      // Configure files
-      static const inline std::string CAMP_CONFIG = "config.json";
-
       // Common JSON
-      static const inline std::string CAMP_DATA = "camp-data";
       static const inline std::string CAMP_FILES = "camp-files";
+      static const inline std::string CAMP_DATA = "camp-data";
       static const inline std::string TYPE = "type";
 
       // Functions
 
       /// @brief Parse configures
-      /// @param config_dir Path to a the configuration directory
+      /// @param config_file Path to a the configuration file
       /// @return True for successful parsing
-      ConfigParseStatus Parse(const std::filesystem::path& config_dir)
+      ConfigParseStatus Parse(const std::filesystem::path& config_file)
       {
+        // Extract configuration dir from configuration file path
+        std::filesystem::path config_dir = config_file.parent_path();
+
         std::vector<std::string> camp_files;
 
         // Look for CAMP config file
-        std::filesystem::path camp_config(config_dir / CAMP_CONFIG);
+        std::filesystem::path camp_config(config_file);
         if (std::filesystem::exists(camp_config))
         {
           json camp_data = json::parse(std::ifstream(camp_config));

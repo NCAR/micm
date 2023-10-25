@@ -7,7 +7,7 @@ TEST(SolverConfig, ReadAndParseCAMPFiles)
   micm::SolverConfig solverConfig{};
 
   // Read and parse the CAMP configure file
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid");
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid/config.json");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 }
 
@@ -16,7 +16,7 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   micm::SolverConfig solverConfig;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman/config.json");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
@@ -49,7 +49,7 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman");
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman/config.json");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
@@ -133,7 +133,7 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
 TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
 {
   micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326/config.json");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
@@ -163,7 +163,7 @@ TEST(SolverConfig, ReadAndParseSystemObjectfromMZ326)
 TEST(SolverConfig, ReadAndParseProcessObjectsfromMZ326)
 {
   micm::SolverConfig solverConfig;
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326");
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/MZ326/config.json");
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 
   // Get solver parameters ('System', the collection of 'Process')
