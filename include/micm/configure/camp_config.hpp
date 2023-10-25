@@ -112,12 +112,16 @@ namespace micm
       /// @return True for successful parsing
       ConfigParseStatus Parse(const std::filesystem::path& config_file)
       {
+        // Parse status
+        ConfigParseStatus status;
+
         // Look for CAMP config file
         if (!std::filesystem::exists(config_file))
         {
-	  std::string msg = "Invalid CAMP configuration file path";
+          status = ConfigParseStatus::InvalidCAMPFilePath;
+	  std::string msg = configParseStatusToString(status);
 	  std::cerr << msg << std::endl;
-          return ConfigParseStatus::InvalidCAMPFilePath;
+          return status;
         }
 
         // Extract configuration dir from configuration file path
@@ -129,7 +133,12 @@ namespace micm
         // Load the CAMP file list JSON
         json camp_data = json::parse(std::ifstream(config_file));
         if (!camp_data.contains(CAMP_FILES))
-          return ConfigParseStatus::CAMPFilesSectionNotFound;
+        {
+          status = ConfigParseStatus::CAMPFilesSectionNotFound;
+	  std::string msg = configParseStatusToString(status);
+	  std::cerr << msg << std::endl;
+          return status;
+        }
 
         for (const auto& element : camp_data[CAMP_FILES])
         {
@@ -144,9 +153,10 @@ namespace micm
         // No config files found
         if (camp_files.size() < 1)
         {
-	  std::string msg = "No CAMP list files found";
+          status = ConfigParseStatus::NoConfigFilesFound;
+	  std::string msg = configParseStatusToString(status);
 	  std::cerr << msg << std::endl;
-          return ConfigParseStatus::NoConfigFilesFound;
+          return status;
         }
 
         // Iterate CAMP file list and form CAMP data object list
@@ -169,7 +179,6 @@ namespace micm
           }
         }
 
-        ConfigParseStatus status;
 
         // Clear vectors and maps
         species_arr_.clear();
