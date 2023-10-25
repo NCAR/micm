@@ -95,8 +95,8 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 ################################################################################
-# Examples
+# Command-line driver examples
 
-if(BUILD_EXAMPLES)
+if(PROJECT_IS_TOP_LEVEL AND BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
