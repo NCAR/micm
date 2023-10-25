@@ -24,7 +24,6 @@ namespace micm
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
-    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
   };
 

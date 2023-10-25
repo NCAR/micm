@@ -8,6 +8,8 @@ template<
     class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
 class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
+  std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_;
+
  public:
   /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
   /// @param system The chemical system to create the solver for
@@ -22,13 +24,12 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     this->parameters_ = parameters;
 
     auto builder = SparseMatrixPolicy<double>::create(4).number_of_blocks(1).initial_value(0.0);
-    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;
     for (int i = 0; i < 4; ++i)
     {
       for (int j = 0; j < 4; ++j)
       {
         builder = builder.with_element(i, j);
-        nonzero_jacobian_elements.insert(std::make_pair(i, j));
+        nonzero_jacobian_elements_.insert(std::make_pair(i, j));
       }
     }
     SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
@@ -42,14 +43,13 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
       if (process.rate_constant_)
         for (auto& label : process.rate_constant_->CustomParameters())
           param_labels.push_back(label);
-    
-    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;    
+
+    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     this->state_parameters_ = {
       .number_of_grid_cells_ = 1,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
-      .nonzero_jacobian_elements_ = nonzero_jacobian_elements,
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
     };
 
@@ -58,6 +58,22 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
 
   ~E5()
   {
+  }
+
+  micm::State<MatrixPolicy, SparseMatrixPolicy> GetState() const override
+  {
+    auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
+
+    state.jacobian_ = micm::build_jacobian<SparseMatrixPolicy>(
+        nonzero_jacobian_elements_, this->state_parameters_.number_of_grid_cells_, this->system_.StateSize());
+
+    auto lu = this->linear_solver_.GetLUMatrices(state.jacobian_, 1.0e-30);
+    auto lower_matrix = std::move(lu.first);
+    auto upper_matrix = std::move(lu.second);
+    state.lower_matrix_ = lower_matrix;
+    state.upper_matrix_ = upper_matrix;
+
+    return state;
   }
 
   /// @brief Calculate a chemical forcing

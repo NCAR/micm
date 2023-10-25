@@ -241,7 +241,7 @@ namespace micm
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
-    State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
+    virtual State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by

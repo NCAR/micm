@@ -520,7 +520,6 @@ namespace micm
       .number_of_rate_constants_ = processes_.size(),
       .variable_names_ = system_.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
-      .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements(),
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements
     };
 
@@ -534,7 +533,7 @@ namespace micm
     auto state = State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
       
     state.jacobian_ = build_jacobian<SparseMatrixPolicy>(
-      state_parameters_.nonzero_jacobian_elements_,
+      process_set_.NonZeroJacobianElements(),
       state_parameters_.number_of_grid_cells_,
       system_.StateSize()
     );
