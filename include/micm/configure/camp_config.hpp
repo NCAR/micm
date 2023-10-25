@@ -112,6 +112,7 @@ namespace micm
       /// @return True for successful parsing
       ConfigParseStatus Parse(const std::filesystem::path& config_file)
       {
+        // Look for CAMP config file
         if (!std::filesystem::exists(config_file))
         {
 	  std::string msg = "Invalid CAMP configuration file path";
@@ -122,9 +123,10 @@ namespace micm
         // Extract configuration dir from configuration file path
         std::filesystem::path config_dir = config_file.parent_path();
 
+        // The CAMP file list
         std::vector<std::string> camp_files;
 
-        // Look for CAMP config file
+        // Load the CAMP file list JSON
         json camp_data = json::parse(std::ifstream(config_file));
         if (!camp_data.contains(CAMP_FILES))
           return ConfigParseStatus::CAMPFilesSectionNotFound;
@@ -136,12 +138,13 @@ namespace micm
           {
             camp_files.push_back(camp_file);
           }
+          // Error return here if CAMP files list has a missing file? 
         }
 
         // No config files found
         if (camp_files.size() < 1)
         {
-	  std::string msg = "No config files found";
+	  std::string msg = "No CAMP list files found";
 	  std::cerr << msg << std::endl;
           return ConfigParseStatus::NoConfigFilesFound;
         }

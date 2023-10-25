@@ -2,6 +2,20 @@
 
 #include <micm/configure/camp_config.hpp>
 
+TEST(SolverConfig, DetectsInvalidConfigFile)
+{
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("not_a_config_file");
+  EXPECT_EQ(micm::ConfigParseStatus::InvalidCAMPFilePath, status);
+}
+
+TEST(SolverConfig, NoConfigFilesFound)
+{
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config.json");
+  EXPECT_EQ(micm::ConfigParseStatus::NoConfigFilesFound, status);
+}
+
 TEST(SolverConfig, ReadAndParseCAMPFiles)
 {
   micm::SolverConfig solverConfig{};
