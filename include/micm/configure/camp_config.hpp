@@ -38,7 +38,9 @@ namespace micm
     InvalidSpecies,
     InvalidMechanism,
     ObjectTypeNotFound,
-    RequiredKeyNotFound
+    RequiredKeyNotFound,
+    ContainsNonStandardKey,
+    MutuallyExclusiveOption
   };
 
   inline std::string configParseStatusToString(const ConfigParseStatus& status)
@@ -57,6 +59,8 @@ namespace micm
       case ConfigParseStatus::InvalidMechanism: return "InvalidMechanism";
       case ConfigParseStatus::ObjectTypeNotFound: return "ObjectTypeNotFound";
       case ConfigParseStatus::RequiredKeyNotFound: return "RequiredKeyNotFound";
+      case ConfigParseStatus::ContainsNonStandardKey: return "ContainsNonStandardKey";
+      case ConfigParseStatus::MutuallyExclusiveOption: return "MutuallyExclusiveOption";
       default: return "Unknown";
     }
   }
@@ -767,6 +771,67 @@ namespace micm
 
         return ConfigParseStatus::Success;
       }
+
+    /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
+    /// @param object the object whose keys need to be validated
+    /// @param required_keys The required keys
+    /// @param optional_keys The optional keys
+    /// @return true if only standard keys are found
+    ConfigParseStatus ValidateSchema(
+        const json& object,
+        const std::vector<std::string>& required_keys,
+        const std::vector<std::string>& optional_keys)
+    {
+      // standard keys are:
+      // those in required keys
+      // those in optional keys
+      // starting with __
+      // anything else is reported as an error so that typos are caught, specifically for optional keys
+
+      std::vector<std::string> sorted_object_keys;
+      for (auto& [key, value] : object.items())
+        sorted_object_keys.push_back(key);
+
+      auto sorted_required_keys = required_keys;
+      auto sorted_optional_keys = optional_keys;
+      std::sort(sorted_object_keys.begin(), sorted_object_keys.end());
+      std::sort(sorted_required_keys.begin(), sorted_required_keys.end());
+      std::sort(sorted_optional_keys.begin(), sorted_optional_keys.end());
+
+      // get the difference between the object keys and those required
+      // what's left should be the optional keys and valid comments
+      std::vector<std::string> difference;
+      std::set_difference(
+          sorted_object_keys.begin(),
+          sorted_object_keys.end(),
+          sorted_required_keys.begin(),
+          sorted_required_keys.end(),
+          std::back_inserter(difference));
+
+      // check that the number of keys remaining is exactly equal to the expected number of required keys
+      if (difference.size() != (sorted_object_keys.size() - required_keys.size()))
+      {
+        return ConfigParseStatus::RequiredKeyNotFound;
+      }
+
+      std::vector<std::string> remaining;
+      std::set_difference(
+          difference.begin(),
+          difference.end(),
+          sorted_optional_keys.begin(),
+          sorted_optional_keys.end(),
+          std::back_inserter(remaining));
+
+      // now, anything left must be standard comment starting with __
+      for (auto& key : remaining)
+      {
+        if (!key.starts_with("__"))
+        {
+          return ConfigParseStatus::ContainsNonStandardKey;
+        }
+      }
+      return ConfigParseStatus::Success;
+    }
   };
 
   /// @brief Public interface to read and parse config
