@@ -28,7 +28,6 @@ namespace micm
         upper_matrix_(),
         state_size_(parameters.variable_names_.size())
   {
-    assert(state_size_ > 0);
     std::size_t index = 0;
     for (auto& name : variable_names_)
       variable_map_[name] = index++;
