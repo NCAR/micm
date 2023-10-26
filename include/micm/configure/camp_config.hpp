@@ -321,14 +321,16 @@ namespace micm
       {
         // required keys
         const std::string NAME = "name";
-        std::array<std::string, 1> required_keys = { NAME };
 
-        // Check if it contains the required key(s)
-        for (const auto& key : required_keys)
+        auto status = ValidateSchema(
+          object,
+          { NAME, "type" },
+          { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
+
         std::string name = object[NAME].get<std::string>();
 
         // Load remaining keys as properties
@@ -350,12 +352,12 @@ namespace micm
 
       ConfigParseStatus ParseMechanism(const json& object)
       {
-        std::vector<std::string> required_keys = { "name", "reactions" };
-        for (const auto& key : required_keys)
+        auto status = ValidateSchema(object, { "name", "reactions", "type" }, {});
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
+
         std::vector<json> objects;
         for (const auto& element : object["reactions"])
         {
@@ -365,35 +367,53 @@ namespace micm
         return ParseObjectArray(objects);
       }
 
+      // std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
       std::vector<Species> ParseReactants(const json& object)
       {
         const std::string QTY = "qty";
         std::vector<Species> reactants;
+
+        ConfigParseStatus status = ConfigParseStatus::Success;
+
         for (auto& [key, value] : object.items())
         {
           std::size_t qty = 1;
+          auto new_status = ValidateSchema(value, {}, { "qty" });
+          if (new_status != ConfigParseStatus::Success)
+          {
+            status = new_status;
+          }
           if (value.contains(QTY))
             qty = value[QTY];
           for (std::size_t i = 0; i < qty; ++i)
             reactants.push_back(Species(key));
         }
+        // return std::make_pair(status, reactants);
         return reactants;
       }
 
       std::vector<std::pair<Species, double>> ParseProducts(const json& object)
       {
         const std::string YIELD = "yield";
-        constexpr double DEFAULT_YEILD = 1.0;
+
+        ConfigParseStatus status = ConfigParseStatus::Success;
+
+        constexpr double DEFAULT_YIELD = 1.0;
         std::vector<std::pair<Species, double>> products;
         for (auto& [key, value] : object.items())
         {
+          auto new_status = ValidateSchema(value, {}, { "yield" });
+          if (new_status != ConfigParseStatus::Success)
+          {
+            status = new_status;
+          }
           if (value.contains(YIELD))
           {
             products.push_back(std::make_pair(Species(key), value[YIELD]));
           }
           else
           {
-            products.push_back(std::make_pair(Species(key), DEFAULT_YEILD));
+            products.push_back(std::make_pair(Species(key), DEFAULT_YIELD));
           }
         }
         return products;
