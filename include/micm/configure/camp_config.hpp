@@ -101,6 +101,7 @@ namespace micm
       std::vector<Process> processes_;
 
       // Common JSON
+      static const inline std::string DEFAULT_CONFIG_FILE = "config.json";
       static const inline std::string CAMP_FILES = "camp-files";
       static const inline std::string CAMP_DATA = "camp-data";
       static const inline std::string TYPE = "type";
@@ -108,15 +109,15 @@ namespace micm
       // Functions
 
       /// @brief Parse configures
-      /// @param config_file Path to a the CAMP configuration file
+      /// @param config_path Path to a the CAMP configuration directory or file
       /// @return True for successful parsing
-      ConfigParseStatus Parse(const std::filesystem::path& config_file)
+      ConfigParseStatus Parse(const std::filesystem::path& config_path)
       {
         // Parse status
         ConfigParseStatus status;
 
-        // Look for CAMP config file
-        if (!std::filesystem::exists(config_file))
+        // Look for CAMP config path
+        if (!std::filesystem::exists(config_path))
         {
           status = ConfigParseStatus::InvalidCAMPFilePath;
 	  std::string msg = configParseStatusToString(status);
@@ -124,8 +125,21 @@ namespace micm
           return status;
         }
 
-        // Extract configuration dir from configuration file path
-        std::filesystem::path config_dir = config_file.parent_path();
+        std::filesystem::path config_dir;
+        std::filesystem::path config_file;
+
+        if (std::filesystem::is_directory(config_path))
+        {
+          // If config path is a directory, use default config file name
+          config_dir = config_path;
+          config_file = config_dir / DEFAULT_CONFIG_FILE;
+        }
+        else
+        {
+          // Extract configuration dir from configuration file path
+          config_dir = config_path.parent_path();
+          config_file = config_path;
+        }
 
         // The CAMP file list
         std::vector<std::filesystem::path> camp_files;

@@ -25,6 +25,15 @@ TEST(SolverConfig, ReadAndParseCAMPFiles)
   EXPECT_EQ(micm::ConfigParseStatus::Success, status);
 }
 
+TEST(SolverConfig, ReadAndParseCAMPFilesFromDir)
+{
+  micm::SolverConfig solverConfig{};
+
+  // Read and parse the CAMP configure file
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid");
+  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+}
+
 TEST(SolverConfig, ReadAndParseSystemObject)
 {
   micm::SolverConfig solverConfig;
