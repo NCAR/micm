@@ -367,8 +367,7 @@ namespace micm
         return ParseObjectArray(objects);
       }
 
-      // std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
-      std::vector<Species> ParseReactants(const json& object)
+      std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
       {
         const std::string QTY = "qty";
         std::vector<Species> reactants;
@@ -388,11 +387,10 @@ namespace micm
           for (std::size_t i = 0; i < qty; ++i)
             reactants.push_back(Species(key));
         }
-        // return std::make_pair(status, reactants);
-        return reactants;
+        return std::make_pair(status, reactants);
       }
 
-      std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+      std::pair<ConfigParseStatus, std::vector<std::pair<Species, double>>> ParseProducts(const json& object)
       {
         const std::string YIELD = "yield";
 
@@ -416,7 +414,7 @@ namespace micm
             products.push_back(std::make_pair(Species(key), DEFAULT_YIELD));
           }
         }
-        return products;
+        return std::make_pair(status, products);
       }
 
       ConfigParseStatus ParsePhotolysis(const json& object)
@@ -434,13 +432,23 @@ namespace micm
         auto reactants = ParseReactants(object[REACTANTS]);
         auto products = ParseProducts(object[PRODUCTS]);
 
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
+
         std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
         user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
         std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -460,8 +468,19 @@ namespace micm
         json reactants_object{};
         json products_object{};
         products_object[species] = { { "YIELD", 1.0 } };
+
         auto reactants = ParseReactants(reactants_object);
         auto products = ParseProducts(products_object);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
 
@@ -469,7 +488,7 @@ namespace micm
 
         std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -489,8 +508,19 @@ namespace micm
         json reactants_object{};
         json products_object{};
         reactants_object[species] = { {} };
+
         auto reactants = ParseReactants(reactants_object);
         auto products = ParseProducts(products_object);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
@@ -498,7 +528,7 @@ namespace micm
 
         std::unique_ptr<UserDefinedRateConstant> rate_ptr =
           std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -517,6 +547,16 @@ namespace micm
 
         auto reactants = ParseReactants(object[REACTANTS]);
         auto products = ParseProducts(object[PRODUCTS]);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         ArrheniusRateConstantParameters parameters;
         if (object.contains("A"))
@@ -549,7 +589,7 @@ namespace micm
  
         std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
 
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -568,6 +608,16 @@ namespace micm
 
         auto reactants = ParseReactants(object[REACTANTS]);
         auto products = ParseProducts(object[PRODUCTS]);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         TroeRateConstantParameters parameters;
         if (object.contains("k0_A"))
@@ -607,7 +657,7 @@ namespace micm
 
         std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
 
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -626,6 +676,16 @@ namespace micm
 
         auto reactants = ParseReactants(object[REACTANTS]);
         auto products = ParseProducts(object[PRODUCTS]);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         TernaryChemicalActivationRateConstantParameters parameters;
         if (object.contains("k0_A"))
@@ -666,7 +726,7 @@ namespace micm
         std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
           std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
 
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -691,6 +751,21 @@ namespace micm
         auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
         auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
 
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (alkoxy_products.first != ConfigParseStatus::Success)
+        {
+          return alkoxy_products.first;
+        }
+
+        if (nitrate_products.first != ConfigParseStatus::Success)
+        {
+          return nitrate_products.first;
+        }
+
         BranchedRateConstantParameters parameters;
         parameters.X_ = object[X].get<double>();
         parameters.Y_ = object[Y].get<double>();
@@ -701,13 +776,13 @@ namespace micm
         parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
         branched_rate_arr_.push_back(BranchedRateConstant(parameters));
         std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-        processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, alkoxy_products.second, std::move(rate_ptr), gas_phase_));
 
         // Nitrate branch
         parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
         branched_rate_arr_.push_back(BranchedRateConstant(parameters));
         rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-        processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, nitrate_products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -725,6 +800,16 @@ namespace micm
 
         auto reactants = ParseReactants(object[REACTANTS]);
         auto products = ParseProducts(object[PRODUCTS]);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         TunnelingRateConstantParameters parameters;
         if (object.contains("A"))
@@ -744,7 +829,7 @@ namespace micm
 
         std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -765,8 +850,19 @@ namespace micm
         std::string species_name = object[REACTANTS].get<std::string>();
         json reactants_object{};
         reactants_object[species_name] = { {} };
+
         auto reactants = ParseReactants(reactants_object);
         auto products = ParseProducts(object[PRODUCTS]);
+
+        if (reactants.first != ConfigParseStatus::Success)
+        {
+          return reactants.first;
+        }
+
+        if (products.first != ConfigParseStatus::Success)
+        {
+          return products.first;
+        }
 
         Species reactant_species = Species("");
         for (auto& species : species_arr_)
@@ -788,7 +884,7 @@ namespace micm
         surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
 
         std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+        processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
       }
@@ -848,7 +944,7 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
-          return ConfigParseStatus::ContainsNonStandardKey;
+          // return ConfigParseStatus::ContainsNonStandardKey;
         }
       }
       return ConfigParseStatus::Success;
