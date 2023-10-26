@@ -206,7 +206,8 @@
       "name": "ISOPNITB",
       "type": "CHEM_SPEC",
       "__description": "1,4-hydroxynitrate from OH+isoprene chemistry",
-      "molecular weight [kg mol-1]": 0.147126
+      "molecular weight [kg mol-1]": 0.147126,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "SO3",
@@ -272,7 +273,8 @@
       "name": "N2O5",
       "type": "CHEM_SPEC",
       "__description": "dinitrogen pentoxide",
-      "molecular weight [kg mol-1]": 0.10801
+      "molecular weight [kg mol-1]": 0.10801,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "HCN",
@@ -320,7 +322,8 @@
       "name": "TERPNIT",
       "type": "CHEM_SPEC",
       "__description": "mostly hydroxynitrates from OH+terpene chemistry",
-      "molecular weight [kg mol-1]": 0.21524
+      "molecular weight [kg mol-1]": 0.21524,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "ISOPO2VBS",
@@ -422,7 +425,8 @@
       "name": "NO2",
       "type": "CHEM_SPEC",
       "__description": "nitrogen dioxide",
-      "molecular weight [kg mol-1]": 0.0460055
+      "molecular weight [kg mol-1]": 0.0460055,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "EOOH",
@@ -434,7 +438,8 @@
       "name": "NTERPOOH",
       "type": "CHEM_SPEC",
       "__description": "nitrooxy-hydroperoxide from NO3+terpene chemistry",
-      "molecular weight [kg mol-1]": 0.23124
+      "molecular weight [kg mol-1]": 0.23124,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "XYLEO2VBS",
@@ -902,7 +907,8 @@
       "name": "GLYOXAL",
       "type": "CHEM_SPEC",
       "__description": "glyoxal",
-      "molecular weight [kg mol-1]": 0.0580356
+      "molecular weight [kg mol-1]": 0.0580356,
+      "diffusion coefficient [m2 s-1]": 1e300
     },
     {
       "name": "MPAN",
@@ -914,7 +920,8 @@
       "name": "NC4CH2OH",
       "type": "CHEM_SPEC",
       "__description": "nitrooxy-alcohol from NO3+isoprene chemistry",
-      "molecular weight [kg mol-1]": 0.147126
+      "molecular weight [kg mol-1]": 0.147126,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "ISOPOOH",
@@ -932,7 +939,8 @@
       "name": "HO2",
       "type": "CHEM_SPEC",
       "__description": "hydroperoxyl radical",
-      "molecular weight [kg mol-1]": 0.0330062
+      "molecular weight [kg mol-1]": 0.0330062,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "HOCH2OO",
@@ -1052,13 +1060,15 @@
       "name": "HONITR",
       "type": "CHEM_SPEC",
       "__description": "lumped hydroxynitrates from various compounds (formula updated 2017-04-06)",
-      "molecular weight [kg mol-1]": 0.1331
+      "molecular weight [kg mol-1]": 0.1331,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "ISOPNITA",
       "type": "CHEM_SPEC",
       "__description": "1,2-hydroxynitrate from OH+isoprene chemistry",
-      "molecular weight [kg mol-1]": 0.147126
+      "molecular weight [kg mol-1]": 0.147126,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "ISOPNOOH",
@@ -1076,7 +1086,8 @@
       "name": "ONITR",
       "type": "CHEM_SPEC",
       "__description": "lumped hydroxynitrates (formula updated 2017-04-06)",
-      "molecular weight [kg mol-1]": 0.147126
+      "molecular weight [kg mol-1]": 0.147126,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "H2SO4",
@@ -1094,7 +1105,8 @@
       "name": "NO3",
       "type": "CHEM_SPEC",
       "__description": "nitrate radical",
-      "molecular weight [kg mol-1]": 0.0620049
+      "molecular weight [kg mol-1]": 0.0620049,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "OH",
@@ -1244,7 +1256,8 @@
       "name": "NC4CHO",
       "type": "CHEM_SPEC",
       "__description": "nitrooxy-aldehyde from NO3+isoprene chemistry",
-      "molecular weight [kg mol-1]": 0.145111
+      "molecular weight [kg mol-1]": 0.145111,
+      "diffusion coefficient [m2 s-1]": 1000.0
     },
     {
       "name": "TEPOMUC",

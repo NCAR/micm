@@ -6801,16 +6801,10 @@
           }
         }
       ]
-    }
-  ],
-  "__comment": [
-    "These reactions are not yet supported by CAMP, but exist in the tagged mechanism.",
-    "They will be ignored during solving."
-  ],
-  "__unsupported reactions": [
+    },
     {
-      "type": "UNSUPPORTED",
-      "label": "het17",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het17",
       "reactants": {
         "HOBR": { },
         "HCL": { }
@@ -6821,8 +6815,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het14",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het14",
       "reactants": {
         "BRONO2": { }
       },
@@ -6832,8 +6826,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het5",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het5",
       "reactants": {
         "HCL": { },
         "HOCL": { }
@@ -6844,8 +6838,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het10",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het10",
       "reactants": {
         "HCL": { },
         "HOCL": { }
@@ -6856,8 +6850,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het3",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het3",
       "reactants": {
         "BRONO2": { }
       },
@@ -6867,20 +6861,19 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_NO2_aer",
-      "reactants": {
-        "NO2": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_NO2_aer",
+      "reaction probability": 8.0e-6,
+      "gas-phase reactant": "NO2",
+      "gas-phase products": {
         "OH": { "yield": 0.5 },
         "NO": { "yield": 0.5 },
         "HNO3": { "yield": 0.5 }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het2",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het2",
       "reactants": {
         "CLONO2": { }
       },
@@ -6890,8 +6883,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het11",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het11",
       "reactants": {
         "BRONO2": { }
       },
@@ -6901,28 +6894,26 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_HO2_aer",
-      "reactants": {
-        "HO2": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_HO2_aer",
+      "reaction probability": 0.02,
+      "gas-phase reactant": "HO2",
+      "gas-phase products": {
         "H2O": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_NO3_aer",
-      "reactants": {
-        "NO3": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_NO3_aer",
+      "reaction probability": 0.002,
+      "gas-phase reactant": "NO3",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het8",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het8",
       "reactants": {
         "CLONO2": { }
       },
@@ -6932,28 +6923,26 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_ISOPNITA_aer",
-      "reactants": {
-        "ISOPNITA": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_ISOPNITA_aer",
+      "reaction probability": 0.005,
+      "gas-phase reactant": "ISOPNITA",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_ISOPNITB_aer",
-      "reactants": {
-        "ISOPNITB": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_ISOPNITB_aer",
+      "reaction probability": 0.005,
+      "gas-phase reactant": "ISOPNITB",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het16",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het16",
       "reactants": {
         "HCL": { },
         "HOCL": { }
@@ -6964,18 +6953,17 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_GLYOXAL_aer",
-      "reactants": {
-        "GLYOXAL": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_GLYOXAL_aer",
+      "reaction probability": 2.0e-4,
+      "gas-phase reactant": "GLYOXAL",
+      "gas-phase products": {
         "SOAG0": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het13",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het13",
       "reactants": {
         "CLONO2": { }
       },
@@ -6985,28 +6973,26 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_ONITR_aer",
-      "reactants": {
-        "ONITR": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_ONITR_aer",
+      "reaction probability": 0.005,
+      "gas-phase reactant": "ONITR",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_N2O5_aer",
-      "reactants": {
-        "N2O5": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_N2O5_aer",
+      "reaction probability": 0.02,
+      "gas-phase reactant": "N2O5",
+      "gas-phase products": {
         "HNO3": { "yield": 2 }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het9",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het9",
       "reactants": {
         "CLONO2": { },
         "HCL": { }
@@ -7017,8 +7003,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het1",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het1",
       "reactants": {
         "N2O5": { }
       },
@@ -7027,8 +7013,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het6",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het6",
       "reactants": {
         "HOBR": { },
         "HCL": { }
@@ -7039,18 +7025,17 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_HONITR_aer",
-      "reactants": {
-        "HONITR": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_HONITR_aer",
+      "reaction probability": 0.005,
+      "gas-phase reactant": "HONITR",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het12",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het12",
       "reactants": {
         "N2O5": { }
       },
@@ -7059,18 +7044,17 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_NC4CHO_aer",
-      "reactants": {
-        "NC4CHO": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_NC4CHO_aer",
+      "reaction probability": 0.02,
+      "gas-phase reactant": "NC4CHO",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het7",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het7",
       "reactants": {
         "N2O5": { }
       },
@@ -7079,8 +7063,8 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het15",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het15",
       "reactants": {
         "CLONO2": { },
         "HCL": { }
@@ -7091,28 +7075,26 @@
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_TERPNIT_aer",
-      "reactants": {
-        "TERPNIT": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_TERPNIT_aer",
+      "reaction probability": 0.01,
+      "gas-phase reactant": "TERPNIT",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_NTERPOOH_aer",
-      "reactants": {
-        "NTERPOOH": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_NTERPOOH_aer",
+      "reaction probability": 0.01,
+      "gas-phase reactant": "NTERPOOH",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_CO_OH",
+      "type": "USER_DEFINED",
+      "MUSICA name": "usr_CO_OH; non-standard algorithm",
       "reactants": {
         "OH": { },
         "CO": { }
@@ -7120,21 +7102,21 @@
       "products": {
         "CO2": { },
         "HO2": { }
-      }
+      },
+      "MUSICA name": "k_co_oh_jpl19"
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "usr_NC4CH2OH_aer",
-      "reactants": {
-        "NC4CH2OH": { }
-      },
-      "products": {
+      "type": "SURFACE",
+      "MUSICA name": "usr_NC4CH2OH_aer",
+      "reaction probability": 0.005,
+      "gas-phase reactant": "NC4CH2OH",
+      "gas-phase products": {
         "HNO3": { }
       }
     },
     {
-      "type": "UNSUPPORTED",
-      "label": "het4",
+      "type": "USER_DEFINED",
+      "MUSICA name": "het4",
       "reactants": {
         "CLONO2": { },
         "HCL": { }

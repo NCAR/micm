@@ -187,6 +187,24 @@ TEST(Examples, TS1)
     { "PHOTO.jxooh->,jch3ooh", { 1.0e-8 } },        // s-1
     { "PHOTO.jxylenooh->,jch3ooh", { 1.0e-8 } },    // s-1
     { "PHOTO.jxylolooh->,jch3ooh", { 1.0e-8 } },    // s-1
+    { "USER.het1", { 1.0e-8 } },                    // s-1
+    { "USER.het2", { 1.0e-8 } },                    // s-1
+    { "USER.het3", { 1.0e-8 } },                    // s-1
+    { "USER.het4", { 1.0e-8 } },                    // s-1
+    { "USER.het5", { 1.0e-8 } },                    // s-1
+    { "USER.het6", { 1.0e-8 } },                    // s-1
+    { "USER.het7", { 1.0e-8 } },                    // s-1
+    { "USER.het8", { 1.0e-8 } },                    // s-1
+    { "USER.het9", { 1.0e-8 } },                    // s-1
+    { "USER.het10", { 1.0e-8 } },                   // s-1
+    { "USER.het11", { 1.0e-8 } },                   // s-1
+    { "USER.het12", { 1.0e-8 } },                   // s-1
+    { "USER.het13", { 1.0e-8 } },                   // s-1
+    { "USER.het14", { 1.0e-8 } },                   // s-1
+    { "USER.het15", { 1.0e-8 } },                   // s-1
+    { "USER.het16", { 1.0e-8 } },                   // s-1
+    { "USER.het17", { 1.0e-8 } },                   // s-1
+    { "USER.k_co_oh_jpl19", { 1.0e-8 } }            // s-1
   };
   state.SetCustomRateParameters(custom_rate_constants);
 

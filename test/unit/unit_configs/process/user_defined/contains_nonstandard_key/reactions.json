@@ -1,0 +1,17 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard user-defined reaction",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "USER_DEFINED",
+          "reactants": { },
+          "products": { },
+          "MUSICA name": "foo",
+          "mUSICA name": "foo"
+        }
+      ]
+    }
+  ]
+}

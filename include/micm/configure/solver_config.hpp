@@ -318,6 +318,10 @@ namespace micm
         {
           status = ParseSurface(object);
         }
+        else if (type == "USER_DEFINED")
+        {
+          status = ParseUserDefined(object);
+        }
         else
         {
           status = ConfigParseStatus::UnknownKey;
@@ -837,6 +841,41 @@ namespace micm
       return ConfigParseStatus::Success;
     }
 
+    ConfigParseStatus ParseUserDefined(const json& object)
+    {
+      const std::string REACTANTS = "reactants";
+      const std::string PRODUCTS = "products";
+      const std::string MUSICA_NAME = "MUSICA name";
+
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+      if (status != ConfigParseStatus::Success)
+      {
+        return status;
+      }
+
+      auto reactants = ParseReactants(object[REACTANTS]);
+      auto products = ParseProducts(object[PRODUCTS]);
+
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
+
+      std::string name = "USER." + object[MUSICA_NAME].get<std::string>();
+
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
     ConfigParseStatus ParseSurface(const json& object)
     {
       const std::string REACTANTS = "gas-phase reactant";
@@ -928,6 +967,16 @@ namespace micm
       // check that the number of keys remaining is exactly equal to the expected number of required keys
       if (difference.size() != (sorted_object_keys.size() - required_keys.size()))
       {
+        std::vector<std::string> missing_keys;
+        std::set_difference(
+            sorted_required_keys.begin(),
+            sorted_required_keys.end(),
+            sorted_object_keys.begin(),
+            sorted_object_keys.end(),
+            std::back_inserter(missing_keys));
+        for(auto &key : missing_keys)
+          std::cerr << "Missing required key '" << key << "' in object: " << object << std::endl;
+
         return ConfigParseStatus::RequiredKeyNotFound;
       }
 
@@ -944,7 +993,8 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
-          std::cerr << "Non-standard key '" << key <<"' found." << std::endl;
+          std::cerr << "Non-standard key '" << key <<"' found in object" << object << std::endl;
+        
           return ConfigParseStatus::ContainsNonStandardKey;
         }
       }
