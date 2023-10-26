@@ -1,0 +1,20 @@
+{
+  "camp-data": [
+    {
+      "name": "invaild yield name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "ARRHENIUS",
+          "reactants": {
+            "foo" : { }
+          },
+          "products": {
+            "bar": { "Yield": 1.0 }
+          }
+        }
+      ]
+    }
+  ]
+}

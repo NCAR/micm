@@ -41,6 +41,32 @@ TEST(JitLuDecomposition, DenseMatrixVectorOrdering)
       });
 }
 
+TEST(JitLuDecomposition, SingularMatrixVectorOrdering)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
+    EXPECT_TRUE(false);
+  }
+  testSingularMatrix<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>(
+      [&](const Group1SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<1> {
+        return micm::JitLuDecomposition<1>{ jit.get(), matrix };
+      });
+  testSingularMatrix<Group2SparseVectorMatrix, micm::JitLuDecomposition<2>>(
+      [&](const Group2SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<2> {
+        return micm::JitLuDecomposition<2>{ jit.get(), matrix };
+      });
+  testSingularMatrix<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>(
+      [&](const Group3SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<3> {
+        return micm::JitLuDecomposition<3>{ jit.get(), matrix };
+      });
+  testSingularMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>(
+      [&](const Group4SparseVectorMatrix<double>& matrix) -> micm::JitLuDecomposition<4> {
+        return micm::JitLuDecomposition<4>{ jit.get(), matrix };
+      });
+}
+
 TEST(JitLuDecomposition, RandomMatrixVectorOrdering)
 {
   auto jit{ micm::JitCompiler::create() };

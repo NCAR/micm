@@ -43,6 +43,18 @@ namespace micm
     /// @param A Sparse matrix that will be decomposed
     /// @param lower The lower triangular matrix created by decomposition
     /// @param upper The upper triangular matrix created by decomposition
+    /// @param is_singular Flag that will be set to true if A is singular; false otherwise
+    template<typename T, template<class> class SparseMatrixPolicy>
+    void Decompose(
+        const SparseMatrixPolicy<T> &A,
+        SparseMatrixPolicy<T> &lower,
+        SparseMatrixPolicy<T> &upper,
+        bool &is_singular) const;
+
+    /// @brief Create sparse L and U matrices for a given A matrix
+    /// @param A Sparse matrix that will be decomposed
+    /// @param lower The lower triangular matrix created by decomposition
+    /// @param upper The upper triangular matrix created by decomposition
     template<typename T, template<class> class SparseMatrixPolicy>
     void Decompose(const SparseMatrixPolicy<T> &A, SparseMatrixPolicy<T> &lower, SparseMatrixPolicy<T> &upper) const;
 

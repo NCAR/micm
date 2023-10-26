@@ -1,0 +1,24 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard key",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "ARRHENIUS",
+          "reactants": {
+            "bar" : { },
+            "baz" : { }
+          },
+          "products": {
+            "bar": { "yield": 0.5 },
+            "foo": { }
+          },
+          "a": 32.1,
+          "b": -2.3,
+          "c": 102.3
+        }
+      ]
+    }
+  ]
+}

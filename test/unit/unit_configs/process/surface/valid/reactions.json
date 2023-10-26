@@ -5,6 +5,7 @@
       "type": "MECHANISM",
       "reactions": [
         {
+          "__my comment": "asdf",
           "type": "SURFACE",
           "gas-phase reactant": "foo",
           "gas-phase products": {

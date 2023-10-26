@@ -5,6 +5,9 @@ Getting Started
 Build and Test
 ==============
 
+Configuring for different platforms and environments is shown here. There is an additional tutorial which covers 
+some other specifics: :ref:`Installation and usage`.
+
 CPU
 ---
 To build and install MICM locally, you must have the following libraries installed:
@@ -28,6 +31,12 @@ step will simply copy the header files into the normal location required by your
 CMake will allow for setting options such as the installation directory
 with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
 
+Options
+-------
+
+.. image:: _static/options.png
+
+
 MICM can optionally include support for json configuration reading, OpenMP,
 JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
 Some of these libraries can be included automatically with cmake build options,
@@ -41,6 +50,9 @@ others require that you have libraries installed on your system.
   - Coming soon
 - OpenMP
   - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
+
+For more ways to build and install micm, see :ref:`Installation and usage`. If you would like instructions for building
+the docs, see :ref:`Contributing`.
 
 Docker Container
 ----------------

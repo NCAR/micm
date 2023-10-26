@@ -50,9 +50,11 @@ namespace micm
     double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
     double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
 
-    double h_min_{ 0 };        // step size min
-    double h_max_{ 0.5 };      // step size max
-    double h_start_{ 0.005 };  // step size start
+    double h_min_{ 0.0 };  // step size min [s]
+    double h_max_{
+      0.0
+    };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
+    double h_start_{ 0.0 };  // step size start [s] (if zero, 1.0e-6 will be used, if greater than h_max, h_max will be used)
 
     // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
     // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
@@ -82,6 +84,7 @@ namespace micm
 
     size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
     bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
+    bool check_singularity_{ false };   // Check for singular A matrix in linear solve of A x = b
 
     // Print RosenbrockSolverParameters to console
     void print() const;
@@ -173,7 +176,8 @@ namespace micm
       uint64_t decompositions{};
       /// @brief The number of linear solvers
       uint64_t solves{};
-      /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix is never singular
+      /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
+      /// is never singular
       uint64_t singular{};
       /// @brief The cumulative amount of time spent calculating the forcing function
       std::chrono::duration<double, std::nano> total_forcing_time{};
@@ -262,9 +266,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system

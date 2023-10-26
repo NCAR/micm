@@ -188,6 +188,17 @@ namespace micm
   void JitLuDecomposition<L>::Decompose(
       const SparseMatrixPolicy<T> &A,
       SparseMatrixPolicy<T> &lower,
+      SparseMatrixPolicy<T> &upper,
+      bool& is_singular) const
+  {
+    LuDecomposition::Decompose<T, SparseMatrixPolicy>(A, lower, upper, is_singular);
+  }
+
+  template<std::size_t L>
+  template<typename T, template<class> class SparseMatrixPolicy>
+  void JitLuDecomposition<L>::Decompose(
+      const SparseMatrixPolicy<T> &A,
+      SparseMatrixPolicy<T> &lower,
       SparseMatrixPolicy<T> &upper) const
   {
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());

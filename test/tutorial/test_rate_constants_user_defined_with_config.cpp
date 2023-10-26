@@ -15,12 +15,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
 void print_header()
 {
   std::cout << std::setw(5) << "time"
@@ -68,9 +62,7 @@ int main(const int argc, const char* argv[])
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
-                                                       reactions,
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   State state = solver.GetState();
 
@@ -87,7 +79,7 @@ int main(const int argc, const char* argv[])
     { "G", { 0.0 } },  // mol m-3
   };
 
-  state.SetConcentrations(solver_params.system_, intial_concentration);
+  state.SetConcentrations(intial_concentration);
 
   state.SetCustomRateParameter("SURF.C surface.effective radius [m]", 1e-7);
   state.SetCustomRateParameter("SURF.C surface.particle number concentration [# m-3]", 2.5e6);

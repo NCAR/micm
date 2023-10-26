@@ -71,15 +71,24 @@ namespace micm
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
+    /// @param matrix Matrix to decompose into lower and upper triangular matrices
+    /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
     void Factor(const SparseMatrixPolicy<T>& matrix);
+
+    /// @brief Decompose the matrix into upper and lower triangular matrices
+    /// @param matrix Matrix to decompose into lower and upper triangular matrices
+    /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
+    void Factor(const SparseMatrixPolicy<T>& matrix, bool& is_singular);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
-    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
+    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
+        const MatrixPolicy<T>& b,
+        MatrixPolicy<T>& x);
     template<template<class> class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
-    void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x);
+    requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
+        const MatrixPolicy<T>& b,
+        MatrixPolicy<T>& x);
   };
 
 }  // namespace micm

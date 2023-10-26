@@ -105,6 +105,31 @@ void testDenseMatrix(const std::function<LuDecompositionPolicy(const SparseMatri
 }
 
 template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testSingularMatrix(const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp)
+{
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(2)
+                                                                .initial_value(1.0e-30)
+                                                                .with_element(0, 0)
+                                                                .with_element(0, 1)
+                                                                .with_element(1, 0)
+                                                                .with_element(1, 1));
+
+  A[0][0][0] = 0;
+  A[0][0][1] = 1;
+  A[0][1][0] = 1;
+  A[0][1][1] = 1;
+
+  LuDecompositionPolicy lud = create_lu_decomp(A);
+  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0E-30);
+  bool is_singular{ false };
+  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+  EXPECT_TRUE(is_singular);
+  A[0][0][0] = 12;
+  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+  EXPECT_FALSE(is_singular);
+}
+
+template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
 void testRandomMatrix(
     const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp,
     std::size_t number_of_blocks)

@@ -15,12 +15,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
 void print_header()
 {
   std::cout << std::setw(5) << "time"
@@ -152,9 +146,7 @@ int main(const int argc, const char* argv[])
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
-                                                       reactions,
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K
