@@ -425,10 +425,10 @@ namespace micm
         const std::string PRODUCTS = "products";
         const std::string MUSICA_NAME = "MUSICA name";
 
-        for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
+        auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         auto reactants = ParseReactants(object[REACTANTS]);
@@ -449,10 +449,11 @@ namespace micm
       {
         const std::string SPECIES = "species";
         const std::string MUSICA_NAME = "MUSICA name";
-        for (const auto& key : { SPECIES, MUSICA_NAME })
+
+        auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         std::string species = object["species"].get<std::string>();
@@ -477,10 +478,11 @@ namespace micm
       {
         const std::string SPECIES = "species";
         const std::string MUSICA_NAME = "MUSICA name";
-        for (const auto& key : { SPECIES, MUSICA_NAME })
+
+        auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         std::string species = object["species"].get<std::string>();
@@ -506,11 +508,11 @@ namespace micm
         const std::string REACTANTS = "reactants";
         const std::string PRODUCTS = "products";
 
-        // Check required json objects exist
-        for (const auto& key : { REACTANTS, PRODUCTS })
+        auto status =
+          ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         auto reactants = ParseReactants(object[REACTANTS]);
@@ -557,11 +559,11 @@ namespace micm
         const std::string REACTANTS = "reactants";
         const std::string PRODUCTS = "products";
 
-        // Check required json objects exist
-        for (const auto& key : { REACTANTS, PRODUCTS })
+        auto status = ValidateSchema(
+          object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         auto reactants = ParseReactants(object[REACTANTS]);
