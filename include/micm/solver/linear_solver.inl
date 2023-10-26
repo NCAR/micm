@@ -225,10 +225,4 @@ namespace micm
       }
     }
   }
-
-  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::GetLUMatrices(const SparseMatrixPolicy<T>& matrix, T initial_value) const {
-    return lu_decomp_.GetLUMatrices(matrix, initial_value);
-  }
-
 }  // namespace micm

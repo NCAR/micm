@@ -55,6 +55,11 @@ namespace micm
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
+
+    /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @param air_number_density Number density in [mol m-3]
     /// @return
@@ -88,6 +93,11 @@ namespace micm
   inline double BranchedRateConstant::calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
+  {
+    return calculate(conditions.temperature_, conditions.air_density_);
+  }
+
+  inline double BranchedRateConstant::calculate(const Conditions& conditions) const
   {
     return calculate(conditions.temperature_, conditions.air_density_);
   }

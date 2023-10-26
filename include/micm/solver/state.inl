@@ -15,19 +15,6 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy>::State(
-      const std::size_t state_size,
-      const std::size_t custom_parameters_size,
-      const std::size_t process_size)
-      : conditions_(1),
-        variables_(1, state_size, 0.0),
-        custom_rate_parameters_(1, custom_parameters_size, 0.0),
-        rate_constants_(1, process_size, 0.0),
-        jacobian_()
-  {
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline State<MatrixPolicy, SparseMatrixPolicy>::State(const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
@@ -36,14 +23,30 @@ namespace micm
         variable_map_(),
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
-        jacobian_()
+        jacobian_(),
+        lower_matrix_(),
+        upper_matrix_(),
+        state_size_(parameters.variable_names_.size())
   {
+    assert(state_size_ > 0);
     std::size_t index = 0;
     for (auto& name : variable_names_)
       variable_map_[name] = index++;
     index = 0;
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
+
+    jacobian_ = build_jacobian<SparseMatrixPolicy>(
+      parameters.nonzero_jacobian_elements_,
+      parameters.number_of_grid_cells_,
+      state_size_
+    );
+    
+    auto lu =  LuDecomposition::GetLUMatrices(jacobian_, 1.0e-30);
+    auto lower_matrix = std::move(lu.first);
+    auto upper_matrix = std::move(lu.second);
+    lower_matrix_ = lower_matrix;
+    upper_matrix_ = upper_matrix;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>

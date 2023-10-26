@@ -29,6 +29,7 @@
 #include <micm/solver/state.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <string>

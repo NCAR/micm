@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <random>
+#include <micm/solver/lu_decomposition.hpp>
 
 template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void check_results(
@@ -84,7 +85,7 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
   b[0][2] = 9;
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = solver.GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
@@ -122,7 +123,7 @@ void testRandomMatrix(
       b[i_block][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = solver.GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
@@ -151,7 +152,7 @@ void testDiagonalMatrix(
       A[i_block][i][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = solver.GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);

@@ -17,27 +17,7 @@
   }
 
 namespace micm
-{
-  // annonymous namespace to hide jacobian builder
-  namespace {
-    template<template<class> class SparseMatrixPolicy>
-    SparseMatrixPolicy<double> build_jacobian(
-      std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements,
-      size_t number_of_grid_cells,
-      size_t state_size
-    )
-    {
-      auto builder = SparseMatrixPolicy<double>::create(state_size).number_of_blocks(number_of_grid_cells);
-      for (auto& elem : nonzero_jacobian_elements)
-        builder = builder.with_element(elem.first, elem.second);
-      // Always include diagonal elements
-      for (std::size_t i = 0; i < state_size; ++i)
-        builder = builder.with_element(i, i);
-      
-      return SparseMatrixPolicy<double>(builder);
-    }
-  }
-  
+{ 
   //
   // RosenbrockSolver
   //
@@ -160,7 +140,7 @@ namespace micm
       .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
       .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
-      .state_size_ = system.StateSize()
+      .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements()
     };
 
     process_set_.SetJacobianFlatIds(jacobian);
@@ -170,21 +150,7 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
   inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::GetState() const
   {
-    auto state = State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
-      
-    state.jacobian_ = build_jacobian<SparseMatrixPolicy>(
-      process_set_.NonZeroJacobianElements(),
-      state_parameters_.number_of_grid_cells_,
-      state_parameters_.state_size_
-    );
-
-    auto lu = linear_solver_.GetLUMatrices(state.jacobian_, 1.0e-30);
-    auto lower_matrix = std::move(lu.first);
-    auto upper_matrix = std::move(lu.second);
-    state.lower_matrix_ = lower_matrix;
-    state.upper_matrix_ = upper_matrix;
-
-    return state;
+    return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };   
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
