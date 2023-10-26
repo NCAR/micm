@@ -128,7 +128,7 @@ namespace micm
         std::filesystem::path config_dir = config_file.parent_path();
 
         // The CAMP file list
-        std::vector<std::string> camp_files;
+        std::vector<std::filesystem::path> camp_files;
 
         // Load the CAMP file list JSON
         json camp_data = json::parse(std::ifstream(config_file));
