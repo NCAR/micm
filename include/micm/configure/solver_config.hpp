@@ -148,9 +148,9 @@ namespace micm
         {
           camp_files.push_back(element.get<std::string>());
         }
-        if (camp_files.size() != 2)
+        if (camp_files.size() < 2)
         {
-          std::string err_msg = "CAMP file list should contain two files [species.json, mechanism.json]";
+          std::string err_msg = "CAMP file list should contain at least two files [species.json, mechanism.json]";
           std::cerr << err_msg << std::endl;
           return ConfigParseStatus::InvalidCAMPFileCount;
         }
