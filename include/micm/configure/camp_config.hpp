@@ -18,10 +18,10 @@
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
+#include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/process/surface_rate_constant.hpp>
 
 namespace micm
 {
@@ -94,10 +94,10 @@ namespace micm
       std::vector<UserDefinedRateConstant> user_defined_rate_arr_;
       std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
       std::vector<TroeRateConstant> troe_rate_arr_;
-      std::vector<BranchedRateConstant> branched_rate_arr_;
-      std::vector<SurfaceRateConstant> surface_rate_arr_;
       std::vector<TernaryChemicalActivationRateConstant> ternary_rate_arr_;
+      std::vector<BranchedRateConstant> branched_rate_arr_;
       std::vector<TunnelingRateConstant> tunneling_rate_arr_;
+      std::vector<SurfaceRateConstant> surface_rate_arr_;
 
       // Specific for solver parameters
       Phase gas_phase_;
@@ -203,10 +203,10 @@ namespace micm
         user_defined_rate_arr_.clear();
         arrhenius_rate_arr_.clear();
         troe_rate_arr_.clear();
-        branched_rate_arr_.clear();
-        surface_rate_arr_.clear();
         ternary_rate_arr_.clear();
+        branched_rate_arr_.clear();
         tunneling_rate_arr_.clear();
+        surface_rate_arr_.clear();
         phases_.clear();
         processes_.clear();
 
@@ -278,21 +278,21 @@ namespace micm
           {
             status = ParseTroe(object);
           }
-          else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
-          {
-            status = ParseBranched(object);
-          }
-          else if (type == "SURFACE")
-          {
-            status = ParseSurface(object);
-          }
           else if (type == "TERNARY_CHEMICAL_ACTIVATION")
           {
             status = ParseTernaryChemicalActivation(object);
           }
+          else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
+          {
+            status = ParseBranched(object);
+          }
           else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
           {
             status = ParseTunneling(object);
+          }
+          else if (type == "SURFACE")
+          {
+            status = ParseSurface(object);
           }
           else
           {
@@ -612,101 +612,16 @@ namespace micm
         return ConfigParseStatus::Success;
       }
 
-      ConfigParseStatus ParseBranched(const json& object)
-      {
-        const std::string REACTANTS = "reactants";
-        const std::string ALKOXY_PRODUCTS = "alkoxy products";
-        const std::string NITRATE_PRODUCTS = "nitrate products";
-        const std::string X = "X";
-        const std::string Y = "Y";
-        const std::string A0 = "a0";
-        const std::string N = "n";
-
-        // Check required json objects exist
-        for (const auto& key : { REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N })
-        {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
-        }
-
-        auto reactants = ParseReactants(object[REACTANTS]);
-        auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
-        auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
-
-        BranchedRateConstantParameters parameters;
-        parameters.X_ = object[X].get<double>();
-        parameters.Y_ = object[Y].get<double>();
-        parameters.a0_ = object[A0].get<double>();
-        parameters.n_ = object[N].get<int>();
-
-        // Alkoxy branch
-        parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
-        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
-        std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-        processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
-
-        // Nitrate branch
-        parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
-        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
-        rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-        processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
-
-        return ConfigParseStatus::Success;
-      }
-
-      ConfigParseStatus ParseSurface(const json& object)
-      {
-        const std::string REACTANTS = "gas-phase reactant";
-        const std::string PRODUCTS = "gas-phase products";
-        const std::string MUSICA_NAME = "MUSICA name";
-        const std::string PROBABILITY = "reaction probability";
-        for (const auto& key : { REACTANTS, PRODUCTS, MUSICA_NAME })
-        {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
-        }
-
-        std::string species_name = object[REACTANTS].get<std::string>();
-        json reactants_object{};
-        reactants_object[species_name] = { {} };
-        auto reactants = ParseReactants(reactants_object);
-        auto products = ParseProducts(object[PRODUCTS]);
-
-        Species reactant_species = Species("");
-        for (auto& species : species_arr_)
-        {
-          if (species.name_ == species_name)
-          {
-            reactant_species = species;
-            break;
-          }
-        }
-        SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
-                                                  .species_ = reactant_species };
-
-        if (object.contains(PROBABILITY))
-        {
-          parameters.reaction_probability_ = object[PROBABILITY].get<double>();
-        }
-
-        surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
-
-        std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
-        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
-
-        return ConfigParseStatus::Success;
-      }
-
       ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
       {
         const std::string REACTANTS = "reactants";
         const std::string PRODUCTS = "products";
 
-        // Check required json objects exist
-        for (const auto& key : { REACTANTS, PRODUCTS })
+        auto status = ValidateSchema(
+          object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         auto reactants = ParseReactants(object[REACTANTS]);
@@ -756,16 +671,56 @@ namespace micm
         return ConfigParseStatus::Success;
       }
 
+      ConfigParseStatus ParseBranched(const json& object)
+      {
+        const std::string REACTANTS = "reactants";
+        const std::string ALKOXY_PRODUCTS = "alkoxy products";
+        const std::string NITRATE_PRODUCTS = "nitrate products";
+        const std::string X = "X";
+        const std::string Y = "Y";
+        const std::string A0 = "a0";
+        const std::string N = "n";
+
+        auto status = ValidateSchema(object, { "type", REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N }, {});
+        if (status != ConfigParseStatus::Success)
+        {
+          return status;
+        }
+
+        auto reactants = ParseReactants(object[REACTANTS]);
+        auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
+        auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
+
+        BranchedRateConstantParameters parameters;
+        parameters.X_ = object[X].get<double>();
+        parameters.Y_ = object[Y].get<double>();
+        parameters.a0_ = object[A0].get<double>();
+        parameters.n_ = object[N].get<int>();
+
+        // Alkoxy branch
+        parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
+        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+        std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+        processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
+
+        // Nitrate branch
+        parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
+        branched_rate_arr_.push_back(BranchedRateConstant(parameters));
+        rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
+        processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
       ConfigParseStatus ParseTunneling(const json& object)
       {
         const std::string REACTANTS = "reactants";
         const std::string PRODUCTS = "products";
 
-        // Check required json objects exist
-        for (const auto& key : { REACTANTS, PRODUCTS })
+        auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C" });
+        if (status != ConfigParseStatus::Success)
         {
-          if (!ValidateJsonWithKey(object, key))
-            return ConfigParseStatus::RequiredKeyNotFound;
+          return status;
         }
 
         auto reactants = ParseReactants(object[REACTANTS]);
@@ -789,6 +744,50 @@ namespace micm
 
         std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
 
+        processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
+
+        return ConfigParseStatus::Success;
+      }
+
+      ConfigParseStatus ParseSurface(const json& object)
+      {
+        const std::string REACTANTS = "gas-phase reactant";
+        const std::string PRODUCTS = "gas-phase products";
+        const std::string MUSICA_NAME = "MUSICA name";
+        const std::string PROBABILITY = "reaction probability";
+
+        auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
+        if (status != ConfigParseStatus::Success)
+        {
+          return status;
+        }
+
+        std::string species_name = object[REACTANTS].get<std::string>();
+        json reactants_object{};
+        reactants_object[species_name] = { {} };
+        auto reactants = ParseReactants(reactants_object);
+        auto products = ParseProducts(object[PRODUCTS]);
+
+        Species reactant_species = Species("");
+        for (auto& species : species_arr_)
+        {
+          if (species.name_ == species_name)
+          {
+            reactant_species = species;
+            break;
+          }
+        }
+        SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+                                                  .species_ = reactant_species };
+
+        if (object.contains(PROBABILITY))
+        {
+          parameters.reaction_probability_ = object[PROBABILITY].get<double>();
+        }
+
+        surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
+
+        std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
         processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
         return ConfigParseStatus::Success;
