@@ -32,6 +32,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
       param_labels.push_back(label);
   micm::State<MatrixPolicy> state{ micm::StateParameters{ .number_of_grid_cells_ = number_of_grid_cells,
                                                           .number_of_rate_constants_ = processes.size(),
+                                                          .variable_names_ = { "foo", "bar'" },
                                                           .custom_rate_parameter_labels_ = param_labels,
                                                           } };
 
