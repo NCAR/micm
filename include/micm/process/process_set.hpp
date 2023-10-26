@@ -90,6 +90,8 @@ namespace micm
       {
         if (reactant.IsParameterized())
           continue;  // Skip reactants that are parameterizations
+        if (state.variable_map_.count( reactant.name_ ) < 1)
+          throw std::runtime_error("Reactant '" + reactant.name_ + "' does not exist");   
         reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
         ++number_of_reactants;
       }
@@ -97,6 +99,8 @@ namespace micm
       {
         if (product.first.IsParameterized())
           continue;  // Skip products that are parameterizations
+        if (state.variable_map_.count( product.first.name_ ) < 1)
+          throw std::runtime_error("Product '" + product.first.name_ + "' does not exist");   
         product_ids_.push_back(state.variable_map_.at(product.first.name_));
         yields_.push_back(product.second);
         ++number_of_products;

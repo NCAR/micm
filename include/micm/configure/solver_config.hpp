@@ -944,6 +944,7 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
+          std::cerr << "Non-standard key '" << key <<"' found." << std::endl;
           return ConfigParseStatus::ContainsNonStandardKey;
         }
       }
