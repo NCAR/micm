@@ -192,7 +192,6 @@ namespace micm
             {
               if (!object.is_null())
               {
-                // std::cout << object.dump(4) << std::endl;
                 objects.push_back(object);
               }
             }
@@ -248,8 +247,8 @@ namespace micm
           std::string type = object[TYPE].get<std::string>();
 
           // debug statements
-          std::cout << type << std::endl;
-          std::cout << object.dump(4) << std::endl;
+          // std::cout << type << std::endl;
+          // std::cout << object.dump(4) << std::endl;
 
           if (type == "CHEM_SPEC")
           {
@@ -915,7 +914,9 @@ namespace micm
       // starting with __
       // anything else is reported as an error so that typos are caught, specifically for optional keys
 
-      std::cout << "ValidateSchema object " << object.dump(4) << std::endl;
+      // debug statement
+      // std::cout << "ValidateSchema object " << object.dump(4) << std::endl;
+
       if (!object.empty() && object.begin().value().is_null())
       {
         return ConfigParseStatus::Success;
