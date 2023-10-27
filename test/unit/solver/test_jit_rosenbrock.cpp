@@ -133,3 +133,8 @@ TEST(JitRosenbrockSolver, AlphaMinusJacobian)
   testAlphaMinusJacobian<3, Group3VectorMatrix, Group3SparseVectorMatrix>(jit.get());
   testAlphaMinusJacobian<4, Group4VectorMatrix, Group4SparseVectorMatrix>(jit.get());
 }
+
+TEST(JitRosenbrockSolver, MultipleInstances)
+{
+  auto jit{ micm::JitCompiler::create() };
+}
