@@ -586,6 +586,11 @@ namespace micm
         }
         if (object.contains("Ea"))
         {
+        if (parameters.C_ != 0)
+        {
+          std::cerr << "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." << std::endl;
+          return ConfigParseStatus::MutuallyExclusiveOption;
+        }
           // Calculate 'C' using 'Ea'
           parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
         }
