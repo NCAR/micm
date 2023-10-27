@@ -33,11 +33,10 @@ namespace micm
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    template<template<class> class MatrixPolicy>
     JitProcessSet(
         std::shared_ptr<JitCompiler> compiler,
         const std::vector<Process> &processes,
-        const State<MatrixPolicy> &state);
+        const std::map<std::string, std::size_t>& variable_map);
 
     ~JitProcessSet();
 
@@ -103,20 +102,15 @@ namespace micm
   }
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy>
   inline JitProcessSet<L>::JitProcessSet(
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
-      const State<MatrixPolicy> &state)
-      : ProcessSet(processes, state),
+      const std::map<std::string, std::size_t>& variable_map)
+      : ProcessSet(processes, variable_map),
         compiler_(compiler)
   {
     forcing_function_ = NULL;
     jacobian_function_ = NULL;
-    if (state.variables_.size() != L || state.variables_.GroupVectorSize() != L)
-    {
-      throw std::runtime_error("Invalid state for JitProcessSet. Check the the VectorMatrix template parameters.");
-    }
     this->GenerateForcingFunction();
   }
 

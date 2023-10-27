@@ -25,14 +25,6 @@ function(create_standard_test)
     target_link_libraries(test_${TEST_NAME} PUBLIC ${library})
   endforeach()
 
-  if(ENABLE_JSON)
-    target_link_libraries(test_${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
-  endif()
-
-  if(ENABLE_LLVM)
-    target_link_libraries(test_${TEST_NAME} PRIVATE ${llvm_libs})
-  endif()
-
   if(NOT DEFINED TEST_WORKING_DIRECTORY)
     set(TEST_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
   endif()

@@ -16,7 +16,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -28,7 +27,9 @@
 #include <micm/process/process_set.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <string>
@@ -36,98 +37,6 @@
 
 namespace micm
 {
-
-  /// @brief Rosenbrock solver parameters
-  struct RosenbrockSolverParameters
-  {
-    size_t stages_{};
-    size_t upper_limit_tolerance_{};
-    size_t max_number_of_steps_{ 1000 };
-
-    double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
-    double factor_min_{ 0.2 };                                    // solver step size minimum boundary
-    double factor_max_{ 6 };                                      // solver step size maximum boundary
-    double rejection_factor_decrease_{ 0.1 };                     // used to decrease the step after 2 successive rejections
-    double safety_factor_{ 0.9 };                                 // safety factor in new step size computation
-
-    double h_min_{ 0.0 };  // step size min [s]
-    double h_max_{
-      0.0
-    };  // step size max [s] (if zero or greater than the solver time-step, the time-step passed to the solver will be used)
-    double h_start_{ 0.0 };  // step size start [s] (if zero, 1.0e-6 will be used, if greater than h_max, h_max will be used)
-
-    // Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-    // or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-    std::array<bool, 6>
-        new_function_evaluation_{};  // which steps reuse the previous iterations evaluation or do a new evaluation
-
-    double estimator_of_local_order_{};  // the minumum between the main and the embedded scheme orders plus one
-
-    //  The coefficient matrices A and C are strictly lower triangular.
-    //  The lower triangular (subdiagonal) elements are stored in row-wise order:
-    //  A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-    //  The general mapping formula is:
-    //      A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
-    //      C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-    std::array<double, 15> a_{};  // coefficient matrix a
-    std::array<double, 15> c_{};  // coefficient matrix c
-    std::array<double, 6> m_{};   // coefficients for new step evaluation
-    std::array<double, 6> e_{};   // error estimation coefficients
-
-    // Y_stage_i ~ Y( T + H*Alpha_i )
-    std::array<double, 6> alpha_{};
-    // Gamma_i = \sum_j  gamma_{i,j}
-    std::array<double, 6> gamma_{};
-
-    double absolute_tolerance_{ 1e-3 };
-    double relative_tolerance_{ 1e-4 };
-
-    size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
-    bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
-    bool check_singularity_{ false };   // Check for singular A matrix in linear solve of A x = b
-
-    // Print RosenbrockSolverParameters to console
-    void print() const;
-
-    /// @brief an L-stable method, 2 stages, order 2
-    /// @param number_of_grid_cells
-    /// @param reorder_state
-    /// @return
-    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(
-        size_t number_of_grid_cells = 1,
-        bool reorder_state = true);
-    /// @brief an L-stable method, 3 stages, order 3, 2 function evaluations
-    /// @param number_of_grid_cells
-    /// @param reorder_state
-    /// @return
-    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(
-        size_t number_of_grid_cells = 1,
-        bool reorder_state = true);
-    /// @brief L-stable rosenbrock method of order 4, with 4 stages
-    /// @param number_of_grid_cells
-    /// @param reorder_state
-    /// @return
-    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(
-        size_t number_of_grid_cells = 1,
-        bool reorder_state = true);
-    /// @brief A stiffly-stable method, 4 stages, order 3
-    /// @param number_of_grid_cells
-    /// @param reorder_state
-    /// @return
-    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(
-        size_t number_of_grid_cells = 1,
-        bool reorder_state = true);
-    /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
-    /// @param number_of_grid_cells
-    /// @param reorder_state
-    /// @return
-    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(
-        size_t number_of_grid_cells = 1,
-        bool reorder_state = true);
-
-   private:
-    RosenbrockSolverParameters() = default;
-  };
 
   /// @brief The final state the solver was in after the Solve function finishes
   enum class SolverState
@@ -150,6 +59,37 @@ namespace micm
 
   std::string StateToString(const SolverState& state);
 
+  struct SolverStats
+  {
+    /// @brief The number of forcing function calls
+    uint64_t function_calls{};
+    /// @brief The number of jacobian function calls
+    uint64_t jacobian_updates{};
+    /// @brief The total number of internal time steps taken
+    uint64_t number_of_steps{};
+    /// @brief The number of accepted integrations
+    uint64_t accepted{};
+    /// @brief The number of rejected integrations
+    uint64_t rejected{};
+    /// @brief The number of LU decompositions
+    uint64_t decompositions{};
+    /// @brief The number of linear solves
+    uint64_t solves{};
+    /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix is never singular
+    uint64_t singular{};
+    /// @brief The cumulative amount of time spent calculating the forcing function
+    std::chrono::duration<double, std::nano> total_forcing_time{};
+    /// @brief The cumulative amount of time spent calculating the jacobian
+    std::chrono::duration<double, std::nano> total_jacobian_time{};
+    /// @brief The cumulative amount of time spent calculating the linear factorization
+    std::chrono::duration<double, std::nano> total_linear_factor_time{};
+    /// @brief The cumulative amount of time spent calculating the linear solve
+    std::chrono::duration<double, std::nano> total_linear_solve_time{};
+
+    /// @brief Set all member variables to zero
+    void Reset();
+  };
+
   /// @brief An implementation of the Rosenbrock ODE solver
   ///
   /// The template parameter is the type of matrix to use
@@ -160,37 +100,6 @@ namespace micm
   class RosenbrockSolver
   {
    public:
-    struct SolverStats
-    {
-      /// @brief The number of forcing function calls
-      uint64_t function_calls{};
-      /// @brief The number of jacobian function calls
-      uint64_t jacobian_updates{};
-      /// @brief The total number of internal time steps taken
-      uint64_t number_of_steps{};
-      /// @brief The number of accepted integrations
-      uint64_t accepted{};
-      /// @brief The number of rejected integrations
-      uint64_t rejected{};
-      /// @brief The number of LU decompositions
-      uint64_t decompositions{};
-      /// @brief The number of linear solvers
-      uint64_t solves{};
-      /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
-      /// is never singular
-      uint64_t singular{};
-      /// @brief The cumulative amount of time spent calculating the forcing function
-      std::chrono::duration<double, std::nano> total_forcing_time{};
-      /// @brief The cumulative amount of time spent calculating the jacobian
-      std::chrono::duration<double, std::nano> total_jacobian_time{};
-      /// @brief The cumulative amount of time spent calculating the linear factorization
-      std::chrono::duration<double, std::nano> total_linear_factor_time{};
-      /// @brief The cumulative amount of time spent calculating the linear solve
-      std::chrono::duration<double, std::nano> total_linear_solve_time{};
-
-      /// @brief Set all member variables to zero
-      void Reset();
-    };
 
     struct [[nodiscard]] SolverResult
     {
@@ -204,16 +113,11 @@ namespace micm
       double final_time_{};
     };
 
-    System system_;
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
-    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering_;
+    StateParameters state_parameters_;
     ProcessSet process_set_;
-    SolverStats stats_;
-    SparseMatrixPolicy<double> jacobian_;
     LinearSolverPolicy linear_solver_;
-    std::vector<std::size_t> jacobian_diagonal_elements_;
-    size_t N_{};
 
     static constexpr double delta_min_ = 1.0e-6;
 
@@ -245,13 +149,13 @@ namespace micm
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
-    State<MatrixPolicy> GetState() const;
+    virtual State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
     template<bool time_it = false>
-    SolverResult Solve(double time_step, State<MatrixPolicy>& state) noexcept;
+    SolverResult Solve(double time_step, State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -272,7 +176,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    void UpdateState(State<MatrixPolicy>& state);
+    void UpdateState(State<MatrixPolicy, SparseMatrixPolicy>& state);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
@@ -289,7 +193,7 @@ namespace micm
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities);
+    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities, SolverStats& stats, State<MatrixPolicy, SparseMatrixPolicy>& state);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors

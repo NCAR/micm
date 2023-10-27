@@ -238,7 +238,7 @@ TEST(AnalyticalExamples, Oregonator)
     { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
   };
 
-  micm::State<micm::Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   state.variables_[0] = model_concentrations[0];
 
@@ -372,7 +372,7 @@ TEST(AnalyticalExamples, Oregonator2)
     { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
   };
 
-  micm::State<micm::Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   double k1 = 77.27;
   double k2 = 0.161;
@@ -525,7 +525,7 @@ TEST(AnalyticalExamples, HIRES)
       0.004685507242281520 },
   };
 
-  micm::State<micm::Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   state.variables_[0] = model_concentrations[0];
 
@@ -624,7 +624,7 @@ TEST(AnalyticalExamples, E5)
     { 0.0000000000000000000e-000, 8.8612334976263783420e-023, 8.8612334976263783421e-023, 0.0000000000000000000e-000 }
   };
 
-  micm::State<micm::Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   state.variables_[0] = model_concentrations[0];
 

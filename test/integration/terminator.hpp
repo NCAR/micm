@@ -44,7 +44,7 @@ void TestTerminator(
 
   auto solver = create_solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ toy_r1, toy_r2 });
-  micm::State<MatrixPolicy> state = solver.GetState();
+  auto state = solver.GetState();
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   std::unordered_map<std::string, std::vector<double>> concentrations{ { "Cl2", {} }, { "Cl", {} } };

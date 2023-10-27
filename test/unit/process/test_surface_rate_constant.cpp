@@ -7,7 +7,15 @@
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-  micm::State<micm::Matrix> state{ 0, 2, 1 };
+
+  auto state_parameters_ = micm::StateParameters{
+    .number_of_grid_cells_ = 1,
+    .number_of_rate_constants_ = 1,
+    .variable_names_ = {"surface"},
+    .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
+  };
+  
+  micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
   state.conditions_[0].temperature_ = 273.65;    // K
@@ -25,7 +33,14 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
 TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
-  micm::State<micm::Matrix> state{ 0, 2, 1 };
+  auto state_parameters_ = micm::StateParameters{
+    .number_of_grid_cells_ = 1,
+    .number_of_rate_constants_ = 1,
+    .variable_names_ = {"surface"},
+    .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
+  };
+  
+  micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
   state.conditions_[0].temperature_ = 273.65;    // K

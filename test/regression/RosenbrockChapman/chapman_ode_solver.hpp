@@ -124,11 +124,11 @@ namespace micm
 
     /// @brief Returns a list of species that participate in photolysis
     /// @return vector of strings
-    std::vector<std::string> photolysis_names();
+    std::vector<std::string> photolysis_names() const;
 
     /// @brief Returns a list of species names
     /// @return vector of strings
-    std::vector<std::string> species_names();
+    std::vector<std::string> species_names() const;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -305,7 +305,14 @@ namespace micm
 
   inline State<> ChapmanODESolver::GetState() const
   {
-    return State<Matrix>{ 9, 3, 7 };
+    auto state_parameters = micm::StateParameters{
+      .number_of_grid_cells_ = 1,
+      .number_of_rate_constants_ = 7,
+      .variable_names_ = species_names(),
+      .custom_rate_parameter_labels_ = photolysis_names(),
+    };
+    
+    return micm::State{ state_parameters };
   }
 
   inline ChapmanODESolver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
@@ -488,7 +495,7 @@ namespace micm
     return std::vector<std::string>{ "O2_1", "O3_1", "O3_2", "N2_O1D_1", "O1D_O2_1", "O_O3_1", "M_O_O2_1" };
   }
 
-  inline std::vector<std::string> ChapmanODESolver::photolysis_names()
+  inline std::vector<std::string> ChapmanODESolver::photolysis_names() const
   {
     return std::vector<std::string>{
       "O2_1",
@@ -497,7 +504,7 @@ namespace micm
     };
   }
 
-  inline std::vector<std::string> ChapmanODESolver::species_names()
+  inline std::vector<std::string> ChapmanODESolver::species_names() const
   {
     return std::vector<std::string>{
       "M", "Ar", "CO2", "H2O", "N2", "O1D", "O", "O2", "O3",
