@@ -434,8 +434,9 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
+      const std::string SCALING_FACTOR = "scaling_factor";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {SCALING_FACTOR});
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -452,6 +453,10 @@ namespace micm
       if (products.first != ConfigParseStatus::Success)
       {
         return products.first;
+      }
+        
+      if (object.contains(SCALING_FACTOR)){
+        std::cerr << "Scaling factor supplied to photolysis rate. This is not yet implemented." << std::endl;
       }
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
@@ -767,8 +772,10 @@ namespace micm
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
+      const std::string PRODUCTS = "products";
+      const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {SCALING_FACTOR, PRODUCTS});
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -787,6 +794,14 @@ namespace micm
       if (products.first != ConfigParseStatus::Success)
       {
         return products.first;
+      }
+        
+      if (object.contains(PRODUCTS)) {
+          std::cerr << "Emission contains products, presumably to record the integrated reaction rate. Ignoring for now" << std::endl;
+      }
+        
+      if (object.contains(SCALING_FACTOR)){
+        std::cerr << "Scaling factor supplied to emission rate. This is not yet implemented." << std::endl;
       }
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();

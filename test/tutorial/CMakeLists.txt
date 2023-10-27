@@ -20,6 +20,10 @@ if(ENABLE_JSON)
   if(ENABLE_OPENMP)
     create_standard_test(NAME openmp_tutorial SOURCES test_openmp.cpp)
   endif()
+
+  if(ENABLE_LLVM)
+    create_standard_test(NAME jit_tutorial SOURCES test_jit_tutorial.cpp)
+  endif()
 endif()
 
 ################################################################################
