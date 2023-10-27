@@ -125,7 +125,7 @@ void run_solver(auto& solver)
 {
   auto state = solver.GetState();
 
-  state.variables_ = { 1, 0, 0 };
+  state.variables_[0] = { 1, 0, 0 };
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
@@ -139,7 +139,7 @@ void run_solver(auto& solver)
 
     while (elapsed_solve_time < time_step)
     {
-      auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
     }
