@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <micm/util/exit_codes.hpp>
