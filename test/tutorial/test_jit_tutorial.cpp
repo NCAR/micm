@@ -12,10 +12,12 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
+constexpr size_t n_grid_cells = 1;
+
 template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using GroupSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
 
 template<typename T>
 auto run_solver(T& solver)
@@ -25,44 +27,47 @@ auto run_solver(T& solver)
 
   state.variables_ = 1;
 
-  state.conditions_[0].temperature_ = 287.45;  // K
-  state.conditions_[0].pressure_ = 101319.9;   // Pa
-  state.conditions_[0].air_density_ = 1e6;     // mol m-3
+  for(int i = 0; i < n_grid_cells; ++i) {
+    state.conditions_[i].temperature_ = 287.45;  // K
+    state.conditions_[i].pressure_ = 101319.9;   // Pa
+    state.conditions_[i].air_density_ = 1e6;     // mol m-3
+  }
 
-  state.SetCustomRateParameter("EMIS.NO", 1.44e-10);
-  state.SetCustomRateParameter("EMIS.NO2", 7.56e-12);
-  state.SetCustomRateParameter("EMIS.CO", 1.9600000000000003e-09);
-  state.SetCustomRateParameter("EMIS.SO2", 1.06e-09);
-  state.SetCustomRateParameter("EMIS.FORM", 1.02e-11);
-  state.SetCustomRateParameter("EMIS.MEOH", 5.920000000000001e-13);
-  state.SetCustomRateParameter("EMIS.ALD2", 4.25e-12);
-  state.SetCustomRateParameter("EMIS.PAR", 4.27e-10);
-  state.SetCustomRateParameter("EMIS.ETH", 4.62e-11);
-  state.SetCustomRateParameter("EMIS.OLE", 1.49e-11);
-  state.SetCustomRateParameter("EMIS.IOLE", 1.49e-11);
-  state.SetCustomRateParameter("EMIS.TOL", 1.53e-11);
-  state.SetCustomRateParameter("EMIS.XYL", 1.4e-11);
-  state.SetCustomRateParameter("EMIS.ISOP", 6.03e-12);
-  state.SetCustomRateParameter("PHOTO.NO2", 0.00477);
-  state.SetCustomRateParameter("PHOTO.O3->O1D", 2.26e-06);
-  state.SetCustomRateParameter("PHOTO.O3->O3P", 0.00025299999999999997);
-  state.SetCustomRateParameter("PHOTO.NO3->NO2", 0.11699999999999999);
-  state.SetCustomRateParameter("PHOTO.NO3->NO", 0.0144);
-  state.SetCustomRateParameter("PHOTO.HONO", 0.000918);
-  state.SetCustomRateParameter("PHOTO.H2O2", 2.59e-06);
-  state.SetCustomRateParameter("PHOTO.PNA", 1.89e-06);
-  state.SetCustomRateParameter("PHOTO.HNO3", 8.61e-08);
-  state.SetCustomRateParameter("PHOTO.NTR", 4.77e-07);
-  state.SetCustomRateParameter("PHOTO.ROOH", 1.81e-06);
-  state.SetCustomRateParameter("PHOTO.MEPX", 1.81e-06);
-  state.SetCustomRateParameter("PHOTO.FORM->HO2", 7.93e-06);
-  state.SetCustomRateParameter("PHOTO.FORM->CO", 2.2e-05);
-  state.SetCustomRateParameter("PHOTO.ALD2", 2.2e-06);
-  state.SetCustomRateParameter("PHOTO.PACD", 1.81e-06);
-  state.SetCustomRateParameter("PHOTO.ALDX", 2.2e-06);
-  state.SetCustomRateParameter("PHOTO.OPEN", 0.0006450000000000001);
-  state.SetCustomRateParameter("PHOTO.MGLY", 7.64e-05);
-  state.SetCustomRateParameter("PHOTO.ISPD", 1.98e-09);
+
+  state.SetCustomRateParameter("EMIS.NO",         std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.44e-10));
+  state.SetCustomRateParameter("EMIS.NO2",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.56e-12));
+  state.SetCustomRateParameter("EMIS.CO",         std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.9600000000000003e-09));
+  state.SetCustomRateParameter("EMIS.SO2",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.06e-09));
+  state.SetCustomRateParameter("EMIS.FORM",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.02e-11));
+  state.SetCustomRateParameter("EMIS.MEOH",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 5.920000000000001e-13));
+  state.SetCustomRateParameter("EMIS.ALD2",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.25e-12));
+  state.SetCustomRateParameter("EMIS.PAR",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.27e-10));
+  state.SetCustomRateParameter("EMIS.ETH",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.62e-11));
+  state.SetCustomRateParameter("EMIS.OLE",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.49e-11));
+  state.SetCustomRateParameter("EMIS.IOLE",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.49e-11));
+  state.SetCustomRateParameter("EMIS.TOL",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.53e-11));
+  state.SetCustomRateParameter("EMIS.XYL",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.4e-11));
+  state.SetCustomRateParameter("EMIS.ISOP",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 6.03e-12));
+  state.SetCustomRateParameter("PHOTO.NO2",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.00477));
+  state.SetCustomRateParameter("PHOTO.O3->O1D",   std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.26e-06));
+  state.SetCustomRateParameter("PHOTO.O3->O3P",   std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.00025299999999999997));
+  state.SetCustomRateParameter("PHOTO.NO3->NO2",  std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.11699999999999999));
+  state.SetCustomRateParameter("PHOTO.NO3->NO",   std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.0144));
+  state.SetCustomRateParameter("PHOTO.HONO",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.000918));
+  state.SetCustomRateParameter("PHOTO.H2O2",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.59e-06));
+  state.SetCustomRateParameter("PHOTO.PNA",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.89e-06));
+  state.SetCustomRateParameter("PHOTO.HNO3",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 8.61e-08));
+  state.SetCustomRateParameter("PHOTO.NTR",       std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.77e-07));
+  state.SetCustomRateParameter("PHOTO.ROOH",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
+  state.SetCustomRateParameter("PHOTO.MEPX",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
+  state.SetCustomRateParameter("PHOTO.FORM->HO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.93e-06));
+  state.SetCustomRateParameter("PHOTO.FORM->CO",  std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-05));
+  state.SetCustomRateParameter("PHOTO.ALD2",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-06));
+  state.SetCustomRateParameter("PHOTO.PACD",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
+  state.SetCustomRateParameter("PHOTO.ALDX",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-06));
+  state.SetCustomRateParameter("PHOTO.OPEN",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.0006450000000000001));
+  state.SetCustomRateParameter("PHOTO.MGLY",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.64e-05));
+  state.SetCustomRateParameter("PHOTO.ISPD",      std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.98e-09));
 
   // choose a timestep and print the initial state
   double time_step = 500;  // s
@@ -112,20 +117,25 @@ int main(const int argc, const char* argv[])
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  auto solver_parameters = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(n_grid_cells);
+
+  RosenbrockSolver<
+    GroupVectorMatrix, 
+    GroupSparseVectorMatrix 
+  > solver{ chemical_system, reactions, solver_parameters };
 
   auto jit{ micm::JitCompiler::create() };
 
   auto start = std::chrono::high_resolution_clock::now();
   JitRosenbrockSolver<
-    Group1VectorMatrix, 
-    Group1SparseVectorMatrix, 
-    JitLinearSolver<1, Group1SparseVectorMatrix>
+    GroupVectorMatrix, 
+    GroupSparseVectorMatrix, 
+    JitLinearSolver<n_grid_cells, GroupSparseVectorMatrix>
     > jit_solver(
       jit.get(), 
       chemical_system, 
       reactions, 
-      RosenbrockSolverParameters::three_stage_rosenbrock_parameters() 
+      solver_parameters 
     );
   auto end = std::chrono::high_resolution_clock::now();
   auto jit_compile_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
@@ -181,8 +191,10 @@ int main(const int argc, const char* argv[])
   auto jit_result = result_pair.first;
 
   for(auto& species : result.variable_names_) {
-    if (result.variables_[0][result.variable_map_[species]] != jit_result.variables_[0][jit_result.variable_map_[species]]) {
-      std::cout << species << " do not match final concentration" << std::endl;
+    for(int i = 0; i < n_grid_cells; ++i) {
+      if (result.variables_[i][result.variable_map_[species]] != jit_result.variables_[i][jit_result.variable_map_[species]]) {
+        std::cout << species << " do not match final concentration" << std::endl;
+      }
     }
   }
   return 0;
