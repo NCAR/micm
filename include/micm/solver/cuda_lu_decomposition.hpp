@@ -2,15 +2,13 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
+
 #include <chrono>
+#include <micm/solver/cuda_lu_decomposition.cuh>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <stdexcept>
-#ifdef USE_CUDA
-#  include <micm/solver/cuda_lu_decomposition.cuh>
-#endif
 
-#ifdef USE_CUDA
 namespace micm
 {
   class CudaLuDecomposition : public LuDecomposition
@@ -65,4 +63,3 @@ namespace micm
     return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver);
   }
 }  // namespace micm
-#endif

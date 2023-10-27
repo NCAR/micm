@@ -60,7 +60,7 @@ void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit)
 {
   auto solver = getSolver<number_of_grid_cells, MatrixPolicy, SparseMatrixPolicy>(jit);
   // return;
-  auto jacobian = solver.jacobian_;
+  auto jacobian = solver.GetState().jacobian_;
 
   EXPECT_EQ(jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);

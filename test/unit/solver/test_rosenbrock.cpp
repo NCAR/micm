@@ -53,7 +53,7 @@ template<template<class> class MatrixPolicy, template<class> class SparseMatrixP
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
   auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
-  auto jacobian = solver.jacobian_;
+  auto jacobian = solver.GetState().jacobian_;
 
   EXPECT_EQ(jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);

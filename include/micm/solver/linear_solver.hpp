@@ -49,8 +49,6 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> Uij_xj_;
 
     LuDecompositionPolicy lu_decomp_;
-    SparseMatrixPolicy<T> lower_matrix_;
-    SparseMatrixPolicy<T> upper_matrix_;
 
    public:
     /// @brief default constructor
@@ -71,24 +69,31 @@ namespace micm
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
-    /// @param matrix Matrix to decompose into lower and upper triangular matrices
-    /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
-    void Factor(const SparseMatrixPolicy<T>& matrix);
+    void
+    Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
     /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
-    void Factor(const SparseMatrixPolicy<T>& matrix, bool& is_singular);
+    void Factor(
+        const SparseMatrixPolicy<T>& matrix,
+        SparseMatrixPolicy<T>& lower_matrix,
+        SparseMatrixPolicy<T>& upper_matrix,
+        bool& is_singular);
 
     /// @brief Solve for x in Ax = b
     template<template<class> class MatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+        MatrixPolicy<T>& x,
+        SparseMatrixPolicy<T>& lower_matrix,
+        SparseMatrixPolicy<T>& upper_matrix);
     template<template<class> class MatrixPolicy>
     requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x);
+        MatrixPolicy<T>& x,
+        SparseMatrixPolicy<T>& lower_matrix,
+        SparseMatrixPolicy<T>& upper_matrix);
   };
 
 }  // namespace micm

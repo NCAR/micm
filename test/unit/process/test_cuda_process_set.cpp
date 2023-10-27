@@ -38,10 +38,12 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
-                                                          .custom_rate_parameter_labels_{},
-                                                          .number_of_grid_cells_ = n_cells,
-                                                          .number_of_rate_constants_ = n_reactions } };
+  micm::State<MatrixPolicy> state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+      .custom_rate_parameter_labels_{},
+  } };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
@@ -61,8 +63,8 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet cpu_set{ processes, state };
-  micm::CudaProcessSet gpu_set{ processes, state };
+  micm::ProcessSet cpu_set{ processes, state.variable_map_ };
+  micm::CudaProcessSet gpu_set{ processes, state.variable_map_ };
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
@@ -110,9 +112,11 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
-                                                          .number_of_grid_cells_ = n_cells,
-                                                          .number_of_rate_constants_ = n_reactions } };
+  micm::State<MatrixPolicy> state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+  } };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
@@ -132,8 +136,8 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet cpu_set{ processes, state };
-  micm::CudaProcessSet gpu_set{ processes, state };
+  micm::ProcessSet cpu_set{ processes, state.variable_map_ };
+  micm::CudaProcessSet gpu_set{ processes, state.variable_map_ };
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();

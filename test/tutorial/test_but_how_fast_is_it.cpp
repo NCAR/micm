@@ -37,7 +37,7 @@ int main()
                              std::vector<Process>{ r1, r2, r3 },
                              RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
