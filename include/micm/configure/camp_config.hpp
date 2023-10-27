@@ -145,6 +145,8 @@ namespace micm
           config_file = config_path;
         }
 
+        std::cout << "config_file " << config_file << std::endl;
+
         // The CAMP file list
         std::vector<std::filesystem::path> camp_files;
 
@@ -467,7 +469,7 @@ namespace micm
         std::string species = object["species"].get<std::string>();
         json reactants_object{};
         json products_object{};
-        products_object[species] = { { "YIELD", 1.0 } };
+        products_object[species] = { { "yield", 1.0 } };
 
         auto reactants = ParseReactants(reactants_object);
         auto products = ParseProducts(products_object);
@@ -905,6 +907,8 @@ namespace micm
       // starting with __
       // anything else is reported as an error so that typos are caught, specifically for optional keys
 
+      std::cout << object.dump(4) << std::endl;
+
       std::vector<std::string> sorted_object_keys;
       for (auto& [key, value] : object.items())
         sorted_object_keys.push_back(key);
@@ -944,7 +948,7 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
-          std::cerr << key << std::endl;
+          std::cerr << "non-standard key " << key << std::endl;
           return ConfigParseStatus::ContainsNonStandardKey;
         }
       }
