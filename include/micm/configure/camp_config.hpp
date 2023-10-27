@@ -916,7 +916,7 @@ namespace micm
       // anything else is reported as an error so that typos are caught, specifically for optional keys
 
       std::cout << "ValidateSchema object " << object.dump(4) << std::endl;
-      if (object.begin().value().is_null())
+      if (!object.empty() && object.begin().value().is_null())
       {
         return ConfigParseStatus::Success;
       }
