@@ -26,8 +26,8 @@
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/linear_solver.hpp>
-#include <micm/solver/state.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
@@ -75,7 +75,8 @@ namespace micm
     uint64_t decompositions{};
     /// @brief The number of linear solves
     uint64_t solves{};
-    /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix is never singular
+    /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
+    /// is never singular
     uint64_t singular{};
     /// @brief The cumulative amount of time spent calculating the forcing function
     std::chrono::duration<double, std::nano> total_forcing_time{};
@@ -100,7 +101,6 @@ namespace micm
   class RosenbrockSolver
   {
    public:
-
     struct [[nodiscard]] SolverResult
     {
       /// @brief The new state computed by the solver
@@ -193,7 +193,13 @@ namespace micm
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
     /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
-    void LinearFactor(double& H, const double gamma, bool& singular, const MatrixPolicy<double>& number_densities, SolverStats& stats, State<MatrixPolicy, SparseMatrixPolicy>& state);
+    void LinearFactor(
+        double& H,
+        const double gamma,
+        bool& singular,
+        const MatrixPolicy<double>& number_densities,
+        SolverStats& stats,
+        State<MatrixPolicy, SparseMatrixPolicy>& state);
 
    protected:
     /// @brief Computes the scaled norm of the vector errors

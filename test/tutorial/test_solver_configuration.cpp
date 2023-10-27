@@ -61,7 +61,6 @@ void test_solver_type(T solver)
   SolverStats total_stats;
   std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
 
-
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
   {

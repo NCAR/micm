@@ -36,7 +36,7 @@ namespace micm
     JitProcessSet(
         std::shared_ptr<JitCompiler> compiler,
         const std::vector<Process> &processes,
-        const std::map<std::string, std::size_t>& variable_map);
+        const std::map<std::string, std::size_t> &variable_map);
 
     ~JitProcessSet();
 
@@ -105,7 +105,7 @@ namespace micm
   inline JitProcessSet<L>::JitProcessSet(
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
-      const std::map<std::string, std::size_t>& variable_map)
+      const std::map<std::string, std::size_t> &variable_map)
       : ProcessSet(processes, variable_map),
         compiler_(compiler)
   {

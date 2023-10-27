@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <iostream>
-#include <array>
 
 namespace micm
 {
@@ -458,5 +458,4 @@ namespace micm
     return parameters;
   }
 
-
-}
+}  // namespace micm

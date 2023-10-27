@@ -4,10 +4,10 @@
 #pragma once
 
 #include <chrono>
+#include <micm/solver/cuda_lu_decomposition.cuh>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <stdexcept>
-#include <micm/solver/cuda_lu_decomposition.cuh>
 
 namespace micm
 {

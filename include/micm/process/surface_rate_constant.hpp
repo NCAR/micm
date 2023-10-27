@@ -75,10 +75,10 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
   }
 
-  inline double SurfaceRateConstant::calculate(
-      const Conditions& conditions) const
+  inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
   {
-    throw std::runtime_error("Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
+    throw std::runtime_error(
+        "Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
   }
 
   inline double SurfaceRateConstant::calculate(
