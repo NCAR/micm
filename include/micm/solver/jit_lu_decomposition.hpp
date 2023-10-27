@@ -6,6 +6,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/lu_decomposition.hpp>
+#include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 namespace micm

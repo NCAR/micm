@@ -21,6 +21,7 @@
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -119,20 +120,11 @@ namespace micm
       std::size_t n_cells = this->jacobian_.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = this->jacobian_.AsVector().size();
 
-      // Get the current timestamp using std::chrono::high_resolution_clock
-      std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-      std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
-      long long timestamp = ns.count();
-
-      // Convert the timestamp to a string
-      std::string timestampStr = std::to_string(timestamp);
-
-      // Create the function name with the timestamp
-      std::string functionName = "alpha_minus_jacobian_" + timestampStr;
+      std::string function_name = "alpha_minus_jacobian_" + generate_random_string();
 
       // Create the JitFunction with the modified name
       JitFunction func = JitFunction::create(compiler_)
-                             .name("alpha_minus_jacobian")
+                             .name(function_name)
                              .arguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
                              .return_type(JitType::Void);
 

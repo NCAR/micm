@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
@@ -120,6 +121,31 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
+void run_solver(auto& solver)
+{
+  auto state = solver.GetState();
+
+  state.variables_ = { 1, 0, 0 };
+
+  state.conditions_[0].temperature_ = 287.45;  // K
+  state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].air_density_ = 1e6;     // mol m-3
+
+  double time_step = 500;  // s
+
+  for (int i = 0; i < 10; ++i)
+  {
+    double elapsed_solve_time = 0;
+
+    while (elapsed_solve_time < time_step)
+    {
+      auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      elapsed_solve_time = result.final_time_;
+      state.variables_ = result.result_;
+    }
+  }
+}
+
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 {
   auto jit{ micm::JitCompiler::create() };
@@ -137,4 +163,54 @@ TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 TEST(JitRosenbrockSolver, MultipleInstances)
 {
   auto jit{ micm::JitCompiler::create() };
+
+  micm::SolverConfig solverConfig;
+  std::string config_path = "./unit_configs/robertson";
+  micm::ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
+  if (status != micm::ConfigParseStatus::Success)
+  {
+    throw "Parsing failed";
+  }
+
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+
+  auto chemical_system = solver_params.system_;
+  auto reactions = solver_params.processes_;
+
+  auto solver_parameters = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+
+  micm::JitRosenbrockSolver<
+    Group1VectorMatrix, 
+    Group1SparseVectorMatrix, 
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    > solver1(
+      jit.get(), 
+      chemical_system, 
+      reactions, 
+      solver_parameters 
+    );
+  micm::JitRosenbrockSolver<
+    Group1VectorMatrix, 
+    Group1SparseVectorMatrix, 
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    > solver2(
+      jit.get(), 
+      chemical_system, 
+      reactions, 
+      solver_parameters 
+    );
+  micm::JitRosenbrockSolver<
+    Group1VectorMatrix, 
+    Group1SparseVectorMatrix, 
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    > solver3(
+      jit.get(), 
+      chemical_system, 
+      reactions, 
+      solver_parameters 
+    );
+
+    run_solver(solver1);
+    run_solver(solver2);
+    run_solver(solver3);
 }
