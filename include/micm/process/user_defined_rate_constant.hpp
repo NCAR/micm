@@ -67,7 +67,8 @@ namespace micm
 
   inline double UserDefinedRateConstant::calculate(const Conditions& conditions) const
   {
-    throw std::runtime_error("User defined rate constants must be supplied with custom rate parameters using the alternative calculate function");
+    throw std::runtime_error(
+        "User defined rate constants must be supplied with custom rate parameters using the alternative calculate function");
   }
 
   inline double UserDefinedRateConstant::calculate(

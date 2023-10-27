@@ -11,10 +11,10 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
   auto state_parameters_ = micm::StateParameters{
     .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
-    .variable_names_ = {"surface"},
+    .variable_names_ = { "surface" },
     .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
   };
-  
+
   micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
@@ -36,10 +36,10 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
   auto state_parameters_ = micm::StateParameters{
     .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
-    .variable_names_ = {"surface"},
+    .variable_names_ = { "surface" },
     .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
   };
-  
+
   micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]

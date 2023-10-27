@@ -6,7 +6,7 @@
 
 TEST(TroeRateConstant, CalculateWithMinimalArugments)
 {
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
     .air_density_ = 42.2,    // [mol mol-1]
   };
@@ -22,10 +22,10 @@ TEST(TroeRateConstant, CalculateWithMinimalArugments)
 
 TEST(TroeRateConstant, CalculateWithAllArugments)
 {
-  double temperature = 301.24; // [K]
-  micm::Conditions conditions {
-    .temperature_ = temperature,  
-    .air_density_ = 42.2,     // [mol mol-1]
+  double temperature = 301.24;  // [K]
+  micm::Conditions conditions{
+    .temperature_ = temperature,
+    .air_density_ = 42.2,  // [mol mol-1]
   };
   micm::TroeRateConstant troe{ micm::TroeRateConstantParameters{ .k0_A_ = 1.2,
                                                                  .k0_B_ = 2.3,
@@ -47,7 +47,7 @@ TEST(TroeRateConstant, CalculateWithAllArugments)
 TEST(TroeRateConstant, AnalyticalTroeExampleAB)
 {
   // based off of the troe rate constants in the analytical integration test:
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
     .air_density_ = 42.2,    // [mol mol-1]
   };
@@ -69,7 +69,7 @@ TEST(TroeRateConstant, AnalyticalTroeExampleAB)
 TEST(TroeRateConstant, AnalyticalTroeExampleBC)
 {
   // based off of the troe rate constants in the analytical integration test:
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
     .air_density_ = 42.2,    // [mol mol-1]
   };

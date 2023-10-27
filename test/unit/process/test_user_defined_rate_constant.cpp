@@ -12,7 +12,7 @@ TEST(UserDefinedRateConstant, CalculateWithSystem)
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
-  
+
   micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 0.5;
 
@@ -30,7 +30,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRate)
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
-  
+
   micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.1;
 
@@ -48,7 +48,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
-  
+
   micm::State state{ state_parameters_ };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();

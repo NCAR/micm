@@ -73,7 +73,9 @@ namespace micm
         SparseMatrixPolicy<double>& jacobian) const;
   };
 
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map)
+  inline ProcessSet::ProcessSet(
+      const std::vector<Process>& processes,
+      const std::map<std::string, std::size_t>& variable_map)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),

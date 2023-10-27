@@ -34,7 +34,8 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 TEST(ProcessSet, Matrix)
 {
   testProcessSet<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
-      [](const std::vector<micm::Process>& processes, const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
 }
@@ -42,19 +43,23 @@ TEST(ProcessSet, Matrix)
 TEST(ProcessSet, VectorMatrix)
 {
   testProcessSet<Group1VectorMatrix, Group1SparseVectorMatrix, micm::ProcessSet>(
-      [](const std::vector<micm::Process>& processes, const micm::State<Group1VectorMatrix, Group1SparseVectorMatrix>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<Group1VectorMatrix, Group1SparseVectorMatrix>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix, micm::ProcessSet>(
-      [](const std::vector<micm::Process>& processes, const micm::State<Group2VectorMatrix, Group2SparseVectorMatrix>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<Group2VectorMatrix, Group2SparseVectorMatrix>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testProcessSet<Group3VectorMatrix, Group3SparseVectorMatrix, micm::ProcessSet>(
-      [](const std::vector<micm::Process>& processes, const micm::State<Group3VectorMatrix, Group3SparseVectorMatrix>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<Group3VectorMatrix, Group3SparseVectorMatrix>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testProcessSet<Group4VectorMatrix, Group4SparseVectorMatrix, micm::ProcessSet>(
-      [](const std::vector<micm::Process>& processes, const micm::State<Group4VectorMatrix, Group4SparseVectorMatrix>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<Group4VectorMatrix, Group4SparseVectorMatrix>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
 }
@@ -65,21 +70,24 @@ TEST(RandomProcessSet, Matrix)
       2000,
       500,
       400,
-      [](const std::vector<micm::Process>& processes, const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testRandomSystem<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
       3000,
       300,
       200,
-      [](const std::vector<micm::Process>& processes, const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testRandomSystem<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
       4000,
       100,
       80,
-      [](const std::vector<micm::Process>& processes, const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
+      [](const std::vector<micm::Process>& processes,
+         const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
 }

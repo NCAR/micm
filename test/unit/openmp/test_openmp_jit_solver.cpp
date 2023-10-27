@@ -36,16 +36,8 @@ TEST(OpenMP, JITOneSolverManyStates)
   std::vector<std::vector<double>> results(n_threads);
 
   auto jit{ micm::JitCompiler::create() };
-  JitRosenbrockSolver<
-    Group1VectorMatrix, 
-    Group1SparseVectorMatrix, 
-    JitLinearSolver<1, Group1SparseVectorMatrix>
-    > solver(
-      jit.get(), 
-      chemical_system, 
-      reactions, 
-      RosenbrockSolverParameters::three_stage_rosenbrock_parameters() 
-    );
+  JitRosenbrockSolver<Group1VectorMatrix, Group1SparseVectorMatrix, JitLinearSolver<1, Group1SparseVectorMatrix>> solver(
+      jit.get(), chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters());
 
 #pragma omp parallel num_threads(n_threads)
   {
@@ -56,8 +48,10 @@ TEST(OpenMP, JITOneSolverManyStates)
   }
 
   // compare each thread to thread 1
-  for (int i = 1; i < n_threads; ++i) {
-    for (int j = 0; j < results[0].size(); ++j) {
+  for (int i = 1; i < n_threads; ++i)
+  {
+    for (int j = 0; j < results[0].size(); ++j)
+    {
       EXPECT_EQ(results[0][j], results[i][j]);
     }
   }

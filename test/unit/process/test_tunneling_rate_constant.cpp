@@ -6,7 +6,7 @@
 
 TEST(TunnelingRateConstant, CalculateWithMinimalArugments)
 {
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
   };
   micm::TunnelingRateConstantParameters tunneling_params;
@@ -18,7 +18,7 @@ TEST(TunnelingRateConstant, CalculateWithMinimalArugments)
 TEST(TunnelingRateConstant, CalculateWithAllArugments)
 {
   double temperature = 301.24;
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = temperature,  // [K]
   };
   micm::TunnelingRateConstant tunneling{ micm::TunnelingRateConstantParameters{ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 } };

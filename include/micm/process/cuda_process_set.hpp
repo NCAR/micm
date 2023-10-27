@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/process/cuda_process_set.cuh>
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_param.hpp>
-#include <micm/process/cuda_process_set.cuh>
 
 namespace micm
 {
@@ -34,7 +34,9 @@ namespace micm
     const;
   };
 
-  inline CudaProcessSet::CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map)
+  inline CudaProcessSet::CudaProcessSet(
+      const std::vector<Process>& processes,
+      const std::map<std::string, std::size_t>& variable_map)
       : ProcessSet(processes, variable_map)
   {
   }

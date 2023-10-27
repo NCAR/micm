@@ -6,7 +6,7 @@
 
 TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
 {
-  micm::Conditions conditions {
+  micm::Conditions conditions{
     .temperature_ = 301.24,  // [K]
     .air_density_ = 42.2,    // [mol mol-1]
   };
@@ -22,10 +22,10 @@ TEST(TernaryChemicalActivationRateConstant, CalculateWithMinimalArugments)
 
 TEST(TernaryChemicalActivationRateConstant, CalculateWithAllArugments)
 {
-  double temperature = 301.24; // [K]
-  micm::Conditions conditions {
-    .temperature_ = temperature,  
-    .air_density_ = 42.2,     // [mol mol-1]
+  double temperature = 301.24;  // [K]
+  micm::Conditions conditions{
+    .temperature_ = temperature,
+    .air_density_ = 42.2,  // [mol mol-1]
   };
   micm::TernaryChemicalActivationRateConstant ternary{ micm::TernaryChemicalActivationRateConstantParameters{
       .k0_A_ = 1.2,
