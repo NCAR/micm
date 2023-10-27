@@ -456,3 +456,19 @@ micm::SparseMatrix<int, OrderingPolicy> testMultiBlockMatrix()
       std::invalid_argument);
   return matrix;
 }
+
+template<class OrderingPolicy>
+micm::SparseMatrix<double, OrderingPolicy> testSetScalar()
+{
+  auto builder = micm::SparseMatrix<double, OrderingPolicy>::create(3);
+
+  micm::SparseMatrix<double, OrderingPolicy> matrix{ builder };
+
+  matrix = 2.0;
+
+  for(auto& elem : matrix.AsVector()) {
+    EXPECT_EQ(elem, 2.0);
+  }
+
+  return matrix;
+}
