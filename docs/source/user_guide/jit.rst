@@ -32,10 +32,113 @@ So what does this gain me?
 --------------------------
 
 Runtime configuraiton of chemical mechanisms that are *fast*. Let's compare the speed of :cpp:class:`micm::RosenbrockSolver` 
-and the :cpp:class:`micm::JitRosenbrockSolver` classes applied to the same problem. We'll use this system.
+and the :cpp:class:`micm::JitRosenbrockSolver` classes applied to the same problem. This time we'll use the carbon-bond 5
+mechanism :cite:`Yarwood2005`, which is an update to the carbon bond mechanism from :cite:`Gery1989`.
 
-.. math::
+If you're looking for a copy and paste, choose
+the appropriate tab below and be on your way! Otherwise, stick around for a line by line explanation.
 
-  A &\longrightarrow B, &k_{1, \mathrm{user\ defined}} \\
-  2B &\longrightarrow B + C, &k_{2, \mathrm{user\ defined}} \\
-  B + C &\longrightarrow A + C, \qquad &k_{3, \mathrm{user\ defined}} \\
+
+.. tab-set::
+
+    .. tab-item:: OpenAtmos Configuration reading
+
+        .. raw:: html
+
+            <div class="download-div">
+              <a href="../_static/tutorials/carbon_bond_5.zip" download>
+                <button class="download-button">Download zip configuration</button>
+              </a>
+            </div>
+
+        .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+          :language: cpp
+
+Line-by-line explanation
+------------------------
+
+Starting with the header files, we need headers for timing, outpu, reading the configuration,
+and of course for both types of solvers.
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 1-7
+
+Next, we use our namespace, define our number of gridcells (1 for now), and some
+partial template specializations. We are using our custom vectorized matrix, which
+groups mutliple reactions across grid cells into tiny blocks in a vector, allowing multiple
+grid cells to be solved simultaneously.
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 14-18
+
+Now, all at once, is the function which runs either type of solver. We set all species
+concentrations to 1 :math:`\mathrm{mol m^-3}` and set the rate paramters for all of the
+photolysis and emissions reactions. Additionally, we are collecting all of the solver
+stats across all solving timesteps
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 20-96
+
+Finally, the main function which reads the configuration and initializes the jit solver.
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 101-117
+
+The only additionall step here is to make an instance of the :cpp:class:`micm::JitCompiler`
+and pass it as a shared pointer to the :cpp:class:`micm::JitRosenbrockSolver`. We also are
+using our vectorized matrix for both solvers. The :cpp:class:`micm::JitRosenbrockSolver` only works
+with the vectorized matrix whereas the :cpp:class:`micm::RosenbrockSolver` works with a regular matrix.
+At construction of the :cpp:class:`micm::JitRosenbrockSolver`, all JIT functions are compiled. We record that
+time here.
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 119-140
+
+Finally, we run both solvers, output their cumulative stats, and compare their results.
+
+
+.. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
+  :language: cpp
+  :lines: 142-198
+
+
+The output will be similar to this:
+
+.. code:: bash
+
+  Jit compile time: 207422864917 nanoseconds
+  Result time: 8593750 nanoseconds
+  JIT result time: 4904666 nanoseconds
+  Result stats: 
+  accepted: 162
+  function_calls: 334
+  jacobian_updates: 162
+  number_of_steps: 172
+  accepted: 162
+  rejected: 0
+  decompositions: 172
+  solves: 516
+  singular: 0
+  total_forcing_time: 339551 nanoseconds
+  total_jacobian_time: 1.60283e+06 nanoseconds
+  total_linear_factor_time: 4.88587e+06 nanoseconds
+  total_linear_solve_time: 928501 nanoseconds
+  JIT result stats: 
+  accepted: 162
+  function_calls: 334
+  jacobian_updates: 162
+  number_of_steps: 172
+  accepted: 162
+  rejected: 0
+  decompositions: 172
+  solves: 516
+  singular: 0
+  total_forcing_time: 317043 nanoseconds
+  total_jacobian_time: 1.57724e+06 nanoseconds
+  total_linear_factor_time: 1.56572e+06 nanoseconds
+  total_linear_solve_time: 630749 nanoseconds 

@@ -1,9 +1,6 @@
 #include <chrono>
-#include <iomanip>
 #include <iostream>
-#include <map>
 
-// Each rate constant is in its own header file
 #include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
@@ -14,6 +11,7 @@ using namespace micm;
 
 constexpr size_t n_grid_cells = 1;
 
+// partial template specializations
 template<class T>
 using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
 template<class T>
@@ -32,7 +30,6 @@ auto run_solver(T& solver)
     state.conditions_[i].pressure_ = 101319.9;   // Pa
     state.conditions_[i].air_density_ = 1e6;     // mol m-3
   }
-
 
   state.SetCustomRateParameter("EMIS.NO",         std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.44e-10));
   state.SetCustomRateParameter("EMIS.NO2",        std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.56e-12));
