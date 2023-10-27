@@ -27,6 +27,7 @@ auto run_solver(T& solver)
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].air_density_ = 1e6;     // mol m-3
 
   state.SetCustomRateParameter("EMIS.NO", 1.44e-10);
   state.SetCustomRateParameter("EMIS.NO2", 7.56e-12);
