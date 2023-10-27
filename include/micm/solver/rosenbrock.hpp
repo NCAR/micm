@@ -97,7 +97,8 @@ namespace micm
   template<
       template<class> class MatrixPolicy = Matrix,
       template<class> class SparseMatrixPolicy = StandardSparseMatrix,
-      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>>
+      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
+      class ProcessSetPolicy = ProcessSet>
   class RosenbrockSolver
   {
    public:
@@ -116,7 +117,7 @@ namespace micm
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     StateParameters state_parameters_;
-    ProcessSet process_set_;
+    ProcessSetPolicy process_set_;
     LinearSolverPolicy linear_solver_;
 
     static constexpr double delta_min_ = 1.0e-6;
@@ -139,11 +140,13 @@ namespace micm
     /// @param processes The collection of chemical processes that will be applied during solving
     /// @param parameters Rosenbrock algorithm parameters
     /// @param create_linear_solver Function that will be used to create a linear solver instance
+    /// @param create_process_set Function that will be used to create a process set instance
     RosenbrockSolver(
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters,
-        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver);
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+        const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)> create_process_set);
 
     virtual ~RosenbrockSolver() = default;
 

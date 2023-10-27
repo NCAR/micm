@@ -17,12 +17,14 @@ void RunTerminatorTest()
       micm::JitRosenbrockSolver<
           MatrixPolicy,
           SparseMatrixPolicy,
-          micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>>>(
+          micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+          micm::JitProcessSet<number_of_grid_cells>>>(
       [&](const micm::System& s, const std::vector<micm::Process>& p)
           -> micm::JitRosenbrockSolver<
               MatrixPolicy,
               SparseMatrixPolicy,
-              micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>>
+              micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+              micm::JitProcessSet<number_of_grid_cells>>
       {
         auto jit{ micm::JitCompiler::create() };
         if (auto err = jit.takeError())
@@ -37,7 +39,8 @@ void RunTerminatorTest()
         return micm::JitRosenbrockSolver<
             MatrixPolicy,
             SparseMatrixPolicy,
-            micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>>{ jit.get(), s, p, solver_params };
+            micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+            micm::JitProcessSet<number_of_grid_cells>>{ jit.get(), s, p, solver_params };
       },
       number_of_grid_cells);
 }

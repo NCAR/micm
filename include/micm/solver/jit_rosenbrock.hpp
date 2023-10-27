@@ -19,6 +19,7 @@
 #include <ctime>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
+#include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/random_string.hpp>
@@ -31,8 +32,9 @@ namespace micm
   template<
       template<class> class MatrixPolicy = VectorMatrix,
       template<class> class SparseMatrixPolicy = VectorSparseMatrix,
-      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>>
-  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
+      class ProcessSetPolicy = JitProcessSet<DEFAULT_VECTOR_SIZE>>
+  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
@@ -43,7 +45,7 @@ namespace micm
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(std::move(other)),
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(std::move(other)),
           compiler_(std::move(other.compiler_)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
@@ -53,7 +55,7 @@ namespace micm
 
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
-      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::operator=(std::move(other));
       compiler_ = std::move(other.compiler_);
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
@@ -69,12 +71,15 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(
               system,
               processes,
               parameters,
               [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
                 return LinearSolverPolicy{ compiler, matrix, initial_value };
+              },
+              [&](const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
+                return ProcessSetPolicy{ compiler, processes, variable_map };
               }),
           compiler_(compiler)
     {

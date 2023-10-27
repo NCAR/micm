@@ -11,7 +11,7 @@
 #include <micm/util/vector_matrix.hpp>
 
 template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>>
+micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>, micm::JitProcessSet<number_of_grid_cells>>
 getSolver(std::shared_ptr<micm::JitCompiler> jit)
 {
   // ---- foo  bar  baz  quz  quuz
@@ -45,7 +45,7 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::
-      JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>>(
+      JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>, micm::JitProcessSet<number_of_grid_cells>>(
           jit,
           micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
           std::vector<micm::Process>{ r1, r2, r3 },
@@ -182,7 +182,8 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   micm::JitRosenbrockSolver<
     Group1VectorMatrix, 
     Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+    micm::JitProcessSet<1>
     > solver1(
       jit.get(), 
       chemical_system, 
@@ -192,7 +193,8 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   micm::JitRosenbrockSolver<
     Group1VectorMatrix, 
     Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+    micm::JitProcessSet<1>
     > solver2(
       jit.get(), 
       chemical_system, 
@@ -202,7 +204,8 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   micm::JitRosenbrockSolver<
     Group1VectorMatrix, 
     Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>
+    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+    micm::JitProcessSet<1>
     > solver3(
       jit.get(), 
       chemical_system, 

@@ -30,6 +30,8 @@ namespace micm
     JitProcessSet(JitProcessSet &&);
     JitProcessSet &operator=(JitProcessSet &&);
 
+    JitProcessSet() = default;
+
     /// @brief Create a JITed process set calculator for a given set of processes
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
