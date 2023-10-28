@@ -145,7 +145,7 @@ namespace micm
           config_file = config_path;
         }
 
-        std::cout << "config_file " << config_file << std::endl;
+        // std::cout << "config_file " << config_file << std::endl;
 
         // Load the CAMP file list JSON
         json camp_data = json::parse(std::ifstream(config_file));
@@ -258,7 +258,7 @@ namespace micm
 
           // debug statements
           // std::cout << type << std::endl;
-          // std::cout << object.dump(4) << std::endl;
+          // std::cout << "ParseSpeciesArray object " << object.dump(4) << std::endl;
 
           if (type == "CHEM_SPEC")
           {
@@ -286,7 +286,7 @@ namespace micm
 
           // debug statements
           // std::cout << type << std::endl;
-          // std::cout << object.dump(4) << std::endl;
+          // std::cout << "ParseMechanismArray object " << object.dump(4) << std::endl;
 
           if (type == "MECHANISM")
           {
