@@ -147,9 +147,6 @@ namespace micm
 
         std::cout << "config_file " << config_file << std::endl;
 
-        // The CAMP file list
-        std::vector<std::filesystem::path> camp_files;
-
         // Load the CAMP file list JSON
         json camp_data = json::parse(std::ifstream(config_file));
         if (!camp_data.contains(CAMP_FILES))
@@ -160,6 +157,8 @@ namespace micm
           return status;
         }
 
+        // Build a list of individual CAMP config files
+        std::vector<std::filesystem::path> camp_files;
         for (const auto& element : camp_data[CAMP_FILES])
         {
           std::filesystem::path camp_file = config_dir / element.get<std::string>();
@@ -179,20 +178,41 @@ namespace micm
           return status;
         }
 
-        // Iterate CAMP file list and form CAMP data object list
-        std::vector<json> objects;
+        std::vector<json> species_objects;
+        std::vector<json> mechanism_objects;
 
+        // Iterate CAMP file list and form CAMP data object arrays
         for (const auto& camp_file : camp_files)
         {
           json config_subset = json::parse(std::ifstream(camp_file));
 
           if (config_subset.contains(CAMP_DATA))
           {
+            // Iterate JSON objects from CAMP data entry
             for (const auto& object : config_subset[CAMP_DATA])
             {
               if (!object.is_null())
               {
-                objects.push_back(object);
+                // Require object to have a type entry
+                if (!ValidateJsonWithKey(object, TYPE))
+                {
+                  status = ConfigParseStatus::ObjectTypeNotFound;
+	          std::string msg = configParseStatusToString(status);
+	          std::cerr << msg << std::endl;
+                  return status;
+                }
+                // Sort into object arrays by type
+                std::string type = object[TYPE].get<std::string>();
+                // CHEM_SPEC and RELATIVE_TOLERANCE parsed first by ParseSpeciesArray
+                if ((type == "CHEM_SPEC") || (type == "RELATIVE_TOLERANCE"))
+                {
+                  species_objects.push_back(object);
+                }
+                // All other objects will be parsed by ParseMechanismArray
+                else
+                {
+                  mechanism_objects.push_back(object);
+                }
               }
             }
           }
@@ -214,36 +234,26 @@ namespace micm
         phases_.clear();
         processes_.clear();
 
-        // Parse data object list
-        status = ParseObjectArray(objects);
+        // Parse species object array
+        status = ParseSpeciesArray(species_objects);
 
         // Assign the parsed 'Species' to 'Phase'
         gas_phase_ = Phase(species_arr_);
 
-        for (auto& p : processes_)
-        {
-          for (const auto& s : species_arr_)
-          {
-            p.phase_.species_.push_back(s);
-          }
-        }
+        // Parse mechanism object array
+        status = ParseMechanismArray(mechanism_objects);
 
         return status;
       }
 
     private:
 
-      ConfigParseStatus ParseObjectArray(const std::vector<json>& objects)
+      ConfigParseStatus ParseSpeciesArray(const std::vector<json>& objects)
       {
         ConfigParseStatus status = ConfigParseStatus::None;
 
         for (const auto& object : objects)
         {
-          if (!ValidateJsonWithKey(object, TYPE))
-          {
-            status = ConfigParseStatus::ObjectTypeNotFound;
-            break;
-          }
           std::string type = object[TYPE].get<std::string>();
 
           // debug statements
@@ -258,7 +268,27 @@ namespace micm
           {
             status = ParseRelativeTolerance(object);
           }
-          else if (type == "MECHANISM")
+
+          if (status != ConfigParseStatus::Success)
+            break;
+        }
+
+        return status;
+      }
+
+      ConfigParseStatus ParseMechanismArray(const std::vector<json>& objects)
+      {
+        ConfigParseStatus status = ConfigParseStatus::None;
+
+        for (const auto& object : objects)
+        {
+          std::string type = object[TYPE].get<std::string>();
+
+          // debug statements
+          // std::cout << type << std::endl;
+          // std::cout << object.dump(4) << std::endl;
+
+          if (type == "MECHANISM")
           {
             status = ParseMechanism(object);
           }
@@ -368,7 +398,7 @@ namespace micm
           objects.push_back(element);
         }
 
-        return ParseObjectArray(objects);
+        return ParseMechanismArray(objects);
       }
 
       std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
