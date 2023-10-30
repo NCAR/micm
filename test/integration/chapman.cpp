@@ -132,7 +132,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
 
-  micm::State<micm::Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };
   state.variables_[0] = concentrations;

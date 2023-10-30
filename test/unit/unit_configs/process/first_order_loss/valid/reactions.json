@@ -5,6 +5,7 @@
       "type": "MECHANISM",
       "reactions": [
         {
+          "__my comment": {},
           "type": "FIRST_ORDER_LOSS",
           "species": "foo",
           "MUSICA name": "foo"

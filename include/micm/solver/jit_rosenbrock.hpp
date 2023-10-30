@@ -115,9 +115,10 @@ namespace micm
    private:
     void GenerateAlphaMinusJacobian()
     {
+      auto jacobian = this->GetState().jacobian_;
       // save sizes needed throughout the function
-      std::size_t n_cells = this->jacobian_.GroupVectorSize();
-      std::size_t number_of_nonzero_jacobian_elements = this->jacobian_.AsVector().size();
+      std::size_t n_cells = jacobian.GroupVectorSize();
+      std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
 
       // Get the current timestamp using std::chrono::high_resolution_clock
       std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
@@ -147,7 +148,7 @@ namespace micm
 
       // iterative over the blocks of the jacobian and add the alpha value
       // jacobian_vector[i_elem + i_cell] += alpha;
-      for (const auto& i_elem : this->jacobian_diagonal_elements_)
+      for (const auto& i_elem : this->state_parameters_.jacobian_diagonal_elements_)
       {
         llvm::Value* ptr_index[1];
 

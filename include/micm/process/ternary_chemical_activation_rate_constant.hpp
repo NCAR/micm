@@ -53,6 +53,11 @@ namespace micm
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
+
+    /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @param air_number_density Number density in [mol m-3]
     /// @return
@@ -73,6 +78,12 @@ namespace micm
   inline std::unique_ptr<RateConstant> TernaryChemicalActivationRateConstant::clone() const
   {
     return std::unique_ptr<RateConstant>{ new TernaryChemicalActivationRateConstant{ *this } };
+  }
+
+  inline double TernaryChemicalActivationRateConstant::calculate(const Conditions& conditions) const
+  {
+    double val = calculate(conditions.temperature_, conditions.air_density_);
+    return val;
   }
 
   inline double TernaryChemicalActivationRateConstant::calculate(

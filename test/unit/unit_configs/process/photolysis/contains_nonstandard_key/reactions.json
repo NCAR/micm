@@ -1,0 +1,33 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard key",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "foo" : { }
+          },
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          },
+          "MUSICA name": "jfoo"
+        },
+        {
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "bar" : { }
+          },
+          "products": {
+            "bar": { "yield": 0.5 },
+            "foo": { }
+          },
+          "MUSICA name": "jbar",
+          "mUSICA name": "jbar"
+        }
+      ]
+    }
+  ]
+}
