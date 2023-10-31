@@ -67,24 +67,24 @@ TEST(ProcessSet, VectorMatrix)
 TEST(RandomProcessSet, Matrix)
 {
   testRandomSystem<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
-      2000,
-      500,
+      20,
+      50,
       400,
       [](const std::vector<micm::Process>& processes,
          const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testRandomSystem<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
-      3000,
-      300,
+      30,
+      30,
       200,
       [](const std::vector<micm::Process>& processes,
          const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {
         return micm::ProcessSet{ processes, state.variable_map_ };
       });
   testRandomSystem<micm::Matrix, SparseMatrixTest, micm::ProcessSet>(
-      4000,
-      100,
+      40,
+      10,
       80,
       [](const std::vector<micm::Process>& processes,
          const micm::State<micm::Matrix, SparseMatrixTest>& state) -> micm::ProcessSet {

@@ -2,6 +2,7 @@ FROM fedora:37
 
 RUN dnf -y update \
     && dnf -y install \
+        clang \
         cmake \
         gcc-c++ \
         gdb \

@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "jit_compiler.hpp"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -184,6 +185,8 @@ namespace micm
       arg.arg_ = arg_iter++;
       arg.arg_->setName(arg.name_);
     }
+    for (unsigned int i = 0; i < arguments_.size(); ++i)
+      function_->addParamAttr(i, llvm::Attribute::NoAlias);
 
     // function body
 
