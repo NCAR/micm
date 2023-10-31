@@ -28,6 +28,10 @@ if(ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
+if(ENABLE_LLVM)
+  target_link_libraries(micm INTERFACE ${llvm_libs})
+endif()
+
 if(ENABLE_OPENACC OR ENABLE_CUDA)
   if(NOT GPU_TYPE)
     message(FATAL_ERROR "GPU_TYPE is not set or is empty. Please provide a GPU type.")
@@ -80,10 +84,6 @@ if(ENABLE_CUDA)
     PUBLIC cudart
   )
 
-  target_compile_definitions(micm_cuda
-    PUBLIC
-      USE_CUDA
-  )
 endif()
 
 add_subdirectory(process)

@@ -13,8 +13,9 @@ void compare_pair(const index_pair& a, const index_pair& b)
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
-void testProcessSet(
-    const std::function<ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<MatrixPolicy>&)> create_set)
+void testProcessSet(const std::function<ProcessSetPolicy(
+                        const std::vector<micm::Process>&,
+                        const micm::State<MatrixPolicy, SparseMatrixPolicy>&)> create_set)
 {
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
@@ -26,9 +27,8 @@ void testProcessSet(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz } };
 
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz", "quuz" },
-                                                          .number_of_grid_cells_ = 2,
-                                                          .number_of_rate_constants_ = 3 } };
+  micm::State<MatrixPolicy, SparseMatrixPolicy> state(micm::StateParameters{
+      .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz" } });
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
@@ -116,12 +116,14 @@ void testProcessSet(
   EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
 }
 
-template<template<class> class MatrixPolicy, class ProcessSetPolicy>
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
 void testRandomSystem(
     std::size_t n_cells,
     std::size_t n_reactions,
     std::size_t n_species,
-    const std::function<ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<MatrixPolicy>&)> create_set)
+    const std::function<
+        ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<MatrixPolicy, SparseMatrixPolicy>&)>
+        create_set)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -136,9 +138,11 @@ void testRandomSystem(
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{ .state_variable_names_{ species_names },
-                                                          .number_of_grid_cells_ = n_cells,
-                                                          .number_of_rate_constants_ = n_reactions } };
+  micm::State<MatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+  } };
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {

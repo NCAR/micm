@@ -3,14 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/process/cuda_process_set.cuh>
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_param.hpp>
 
-#ifdef USE_CUDA
-#  include <micm/process/cuda_process_set.cuh>
-#endif
-
-#ifdef USE_CUDA
 namespace micm
 {
   /// @brief A GPU-based implementation of ProcessSet
@@ -20,8 +16,7 @@ namespace micm
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param state Solver state
-    template<template<class> class MatrixPolicy>
-    CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
+    CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> std::chrono::nanoseconds AddForcingTerms(
@@ -39,9 +34,10 @@ namespace micm
     const;
   };
 
-  template<template<class> class MatrixPolicy>
-  inline CudaProcessSet::CudaProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
-      : ProcessSet(processes, state)
+  inline CudaProcessSet::CudaProcessSet(
+      const std::vector<Process>& processes,
+      const std::map<std::string, std::size_t>& variable_map)
+      : ProcessSet(processes, variable_map)
   {
   }
 
@@ -73,6 +69,7 @@ namespace micm
     std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(matrix, processSet);
     return kernel_duration;  // time performance of kernel function
   }
+
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
   inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
@@ -105,4 +102,3 @@ namespace micm
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
-#endif

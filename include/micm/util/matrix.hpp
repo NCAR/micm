@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <micm/util/exit_codes.hpp>
 #include <vector>
 
 namespace micm
@@ -50,8 +49,7 @@ namespace micm
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
         {
-          std::cerr << "Matrix row size mismatch in assignment from vector";
-          std::exit(micm::ExitCodes::InvalidMatrixDimension);
+          throw std::runtime_error("Matrix row size mismatch in assignment from vector");
         }
         auto other_elem = other.begin();
         for (auto &elem : *this)
@@ -164,8 +162,7 @@ namespace micm
                   // check that this row matches the expected rectangular matrix dimensions
                   if (other[x].size() != y_dim)
                   {
-                    std::cerr << "Invalid vector for matrix assignment\n";
-                    std::exit(micm::ExitCodes::InvalidMatrixDimension);
+                    throw std::runtime_error("Invalid vector for matrix assignment");
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {

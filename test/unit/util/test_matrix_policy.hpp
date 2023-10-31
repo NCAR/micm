@@ -170,7 +170,7 @@ MatrixPolicy<double> testConversionFromVector()
   std::vector<std::vector<int>> bad_vector = { { 3 }, { 4, 5 }, { 5 } };
 
   MatrixPolicy<int> bad_matrix;
-  EXPECT_DEATH(bad_matrix = bad_vector, "Invalid vector for matrix assignment");
+  EXPECT_ANY_THROW(bad_matrix = bad_vector);
 
   return matrix;
 }
@@ -199,7 +199,7 @@ MatrixPolicy<double> testAssignmentFromVector()
   EXPECT_EQ(matrix[2][2], 65.7);
   EXPECT_EQ(matrix[3][0], 0.0);
 
-  EXPECT_DEATH(matrix[2] = small_other, "Matrix row size mismatch in assignment from vector");
+  EXPECT_ANY_THROW(matrix[2] = small_other);
 
   return matrix;
 }

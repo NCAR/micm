@@ -4,55 +4,13 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
+#include "run_solver.hpp"
+
 using namespace micm;
 
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
-std::vector<double> test_solver_on_thread(System chemical_system, std::vector<Process> reactions)
+TEST(OpenMP, OneSolverManyStates)
 {
-  std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
-  State<Matrix> state = solver.GetState();
-
-  // mol m-3
-  state.variables_[0] = { 1, 0, 0 };
-
-  double k1 = 0.04;
-  double k2 = 3e7;
-  double k3 = 1e4;
-  state.SetCustomRateParameter("PHOTO.r1", k1);
-  state.SetCustomRateParameter("PHOTO.r2", k2);
-  state.SetCustomRateParameter("PHOTO.r3", k3);
-
-  double temperature = 272.5;  // [K]
-  double pressure = 101253.3;  // [Pa]
-  double air_density = 1e6;    // [mol m-3]
-
-  state.conditions_[0].temperature_ = temperature;
-  state.conditions_[0].pressure_ = pressure;
-  state.conditions_[0].air_density_ = air_density;
-
-  double time_step = 200;  // s
-
-  for (int i = 0; i < 10; ++i)
-  {
-    double elapsed_solve_time = 0;
-
-    while (elapsed_solve_time < time_step)
-    {
-      auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
-    }
-  }
-
-  return state.variables_.AsVector();
-}
-
-TEST(OpenMP, OneFileReadThreeThreads)
-{
-  constexpr size_t n_threads = 3;
+  constexpr size_t n_threads = 8;
 
   SolverConfig solverConfig;
 
@@ -68,19 +26,24 @@ TEST(OpenMP, OneFileReadThreeThreads)
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  std::vector<std::vector<double>> results(3);
+  std::vector<std::vector<double>> results(n_threads);
+
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
 #pragma omp parallel num_threads(n_threads)
   {
-    std::vector<double> result = test_solver_on_thread(chemical_system, reactions);
+    auto state = solver.GetState();
+    std::vector<double> result = run_solver_on_thread_with_own_state(solver, state);
     results[omp_get_thread_num()] = result;
 #pragma omp barrier
   }
 
-  for (int i = 0; i < results[0].size(); ++i)
+  // compare each thread to thread 1
+  for (int i = 1; i < n_threads; ++i)
   {
-    EXPECT_EQ(results[0][i], results[1][i]);
-    EXPECT_EQ(results[0][i], results[2][i]);
-    EXPECT_EQ(results[1][i], results[2][i]);
+    for (int j = 0; j < results[0].size(); ++j)
+    {
+      EXPECT_EQ(results[0][j], results[i][j]);
+    }
   }
 }

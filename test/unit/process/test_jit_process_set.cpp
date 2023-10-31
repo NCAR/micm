@@ -30,8 +30,8 @@ TEST(JitProcessSet, VectorMatrix)
   }
   testProcessSet<Group2VectorMatrix, Group2SparseVectorMatrix, micm::JitProcessSet<2>>(
       [&](const std::vector<micm::Process>& processes,
-          const micm::State<Group2VectorMatrix>& state) -> micm::JitProcessSet<2> {
-        return micm::JitProcessSet<2>{ jit.get(), processes, state };
+          const micm::State<Group2VectorMatrix, Group2SparseVectorMatrix>& state) -> micm::JitProcessSet<2> {
+        return micm::JitProcessSet<2>{ jit.get(), processes, state.variable_map_ };
       });
 }
 
@@ -43,36 +43,36 @@ TEST(RandomJitProcessSet, VectorMatrix)
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
     EXPECT_TRUE(false);
   }
-  testRandomSystem<Group2000VectorMatrix, micm::JitProcessSet<2000>>(
+  testRandomSystem<Group2000VectorMatrix, micm::StandardSparseMatrix, micm::JitProcessSet<2000>>(
       2000,
       20,
       30,
       [&](const std::vector<micm::Process>& processes,
           const micm::State<Group2000VectorMatrix>& state) -> micm::JitProcessSet<2000> {
-        return micm::JitProcessSet<2000>{ jit.get(), processes, state };
+        return micm::JitProcessSet<2000>{ jit.get(), processes, state.variable_map_ };
       });
-  testRandomSystem<Group3000VectorMatrix, micm::JitProcessSet<3000>>(
+  testRandomSystem<Group3000VectorMatrix, micm::StandardSparseMatrix, micm::JitProcessSet<3000>>(
       3000,
       50,
       40,
       [&](const std::vector<micm::Process>& processes,
           const micm::State<Group3000VectorMatrix>& state) -> micm::JitProcessSet<3000> {
-        return micm::JitProcessSet<3000>{ jit.get(), processes, state };
+        return micm::JitProcessSet<3000>{ jit.get(), processes, state.variable_map_ };
       });
-  testRandomSystem<Group3000VectorMatrix, micm::JitProcessSet<3000>>(
+  testRandomSystem<Group3000VectorMatrix, micm::StandardSparseMatrix, micm::JitProcessSet<3000>>(
       3000,
       30,
       20,
       [&](const std::vector<micm::Process>& processes,
           const micm::State<Group3000VectorMatrix>& state) -> micm::JitProcessSet<3000> {
-        return micm::JitProcessSet<3000>{ jit.get(), processes, state };
+        return micm::JitProcessSet<3000>{ jit.get(), processes, state.variable_map_ };
       });
-  testRandomSystem<Group4000VectorMatrix, micm::JitProcessSet<4000>>(
+  testRandomSystem<Group4000VectorMatrix, micm::StandardSparseMatrix, micm::JitProcessSet<4000>>(
       4000,
       100,
       80,
       [&](const std::vector<micm::Process>& processes,
           const micm::State<Group4000VectorMatrix>& state) -> micm::JitProcessSet<4000> {
-        return micm::JitProcessSet<4000>{ jit.get(), processes, state };
+        return micm::JitProcessSet<4000>{ jit.get(), processes, state.variable_map_ };
       });
 }
