@@ -57,6 +57,8 @@
      double* forcing_; 
      const double* b_; 
      double* x_;
+     size_t x_size_;
+     size_t b_size_;
      size_t n_grids_; 
      size_t n_reactions_; 
      size_t n_species_; 

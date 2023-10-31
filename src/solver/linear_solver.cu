@@ -33,14 +33,13 @@ __global__ void SolveKernel(SolveDevice* device)
     std::pair<size_t, size_t>* nUij_Uii = device->nUij_Uii_;
     std::pair<size_t, size_t>* Uij_xj = device->Uij_xj_;
     //parallize grid cell
-   if (tid < (device->n_grids_* device->b_column_counts_))
+   if (tid < (n_grids * device->b_column_counts_))
    { 
         size_t b_column_index = 0;
         size_t x_column_index = 0;
         size_t y_column_index = 0;
         size_t b_column_backward_index = device->b_column_counts_-1;
         size_t x_column_backward_index = device->x_column_counts_-1;
-        size_t y_column_backward_index = x_column_backward_index; 
         size_t Lij_yj_index = 0; 
         size_t Uij_xj_index = 0;
         for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
@@ -61,10 +60,7 @@ __global__ void SolveKernel(SolveDevice* device)
         for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
         {   
             auto& nUij_Uii_element = nUij_Uii[k]; 
-            // if (y_column_backward_index != 0)
-            // {
-            //     --y_column_backward_index;
-            // }
+        
             for (size_t i = 0; i < nUij_Uii_element.first; ++i)
             {
                 size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
@@ -72,7 +68,7 @@ __global__ void SolveKernel(SolveDevice* device)
                 x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
                 ++Uij_xj_index;
             }
-            x[x_column_backward_index * n_grids+tid] /= upper_matrix[nUij_Uii_element.second + tid];
+            x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
             
             if (x_column_backward_index != 0)
             {
@@ -106,8 +102,8 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMalloc(&d_Uij_xj, sizeof(std::pair<size_t, size_t>)* linearSolver.Uij_xj_size_); 
     cudaMalloc(&d_lower_matrix, sizeof(double)* sparseMatrix.lower_matrix_size_); 
     cudaMalloc(&d_upper_matrix, sizeof(double)* sparseMatrix.upper_matrix_size_);
-    cudaMalloc(&d_b, sizeof(double)* denseMatrix.n_grids_* denseMatrix.b_column_counts_);
-    cudaMalloc(&d_x, sizeof(double)* denseMatrix.n_grids_* denseMatrix.x_column_counts_); 
+    cudaMalloc(&d_b, sizeof(double)* denseMatrix.b_size_);
+    cudaMalloc(&d_x, sizeof(double)* denseMatrix.x_size_); 
     cudaMalloc(&device, sizeof(SolveDevice)); 
 
     //transfer memory from host to device
@@ -118,8 +114,8 @@ __global__ void SolveKernel(SolveDevice* device)
     
     cudaMemcpy(d_lower_matrix, sparseMatrix.lower_matrix_, sizeof(double)*sparseMatrix.lower_matrix_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_, sizeof(double)* sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, denseMatrix.b_, sizeof(double)* denseMatrix.n_grids_* denseMatrix.b_column_counts_, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_x, denseMatrix.x_, sizeof(double)* denseMatrix.n_grids_ * denseMatrix.x_column_counts_, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, denseMatrix.b_, sizeof(double)* denseMatrix.b_size_, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_x, denseMatrix.x_, sizeof(double)* denseMatrix.x_size_, cudaMemcpyHostToDevice);
     
     cudaMemcpy(&(device->nLij_Lii_), &d_nLij_Lii, sizeof(std::pair<size_t, size_t>*),cudaMemcpyHostToDevice);
     cudaMemcpy(&(device->Lij_yj_), &d_Lij_yj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
@@ -129,13 +125,13 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMemcpy(&(device->lower_matrix_), &d_lower_matrix, sizeof(double*), cudaMemcpyHostToDevice);
     cudaMemcpy(&(device->upper_matrix_), &d_upper_matrix, sizeof(double*), cudaMemcpyHostToDevice);
     cudaMemcpy(&(device->b_), &d_b, sizeof(double*), cudaMemcpyHostToDevice); 
-    cudaMemcpy(&(device->x_),&d_x,sizeof(double*), cudaMemcpyHostToDevice);
+    cudaMemcpy(&(device->x_),&d_x, sizeof(double*), cudaMemcpyHostToDevice);
     
     //kernel call 
     size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     SolveKernel<<<num_block, BLOCK_SIZE>>>(device);
     cudaDeviceSynchronize();
-    cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.n_grids_ * denseMatrix.x_column_counts_, cudaMemcpyDeviceToHost);
+    cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.x_size_, cudaMemcpyDeviceToHost);
 
     //clean up 
     cudaFree(d_nLij_Lii); 

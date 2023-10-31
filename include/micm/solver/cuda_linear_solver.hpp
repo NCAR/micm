@@ -36,6 +36,8 @@ namespace micm{
             sparseMatrix.upper_matrix_size_ = this->upper_matrix_.AsVector().size(); 
             denseMatrix.b_ = b.AsVector().data(); 
             denseMatrix.x_ = x.AsVector().data();
+            denseMatrix.b_size_= b.AsVector().size();
+            denseMatrix.x_size_= x.AsVector().size();
             denseMatrix.n_grids_ = b.size(); //number of grids
             denseMatrix.b_column_counts_ = b[0].size(); 
             denseMatrix.x_column_counts_= x[0].size(); 
