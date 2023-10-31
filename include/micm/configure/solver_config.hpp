@@ -895,7 +895,7 @@ namespace micm
 
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
-      reactants_object[species_name] = { {} };
+      reactants_object[species_name] = { };
 
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(object[PRODUCTS]);
