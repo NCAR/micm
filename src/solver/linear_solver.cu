@@ -114,7 +114,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMemcpy(d_nLij_Lii, linearSolver.nLij_Lii_, sizeof(std::pair<size_t, size_t>)* linearSolver.nLij_Lii_size_,cudaMemcpyHostToDevice);
     cudaMemcpy(d_Lij_yj, linearSolver.Lij_yj_, sizeof(std::pair<size_t, size_t>)* linearSolver.Lij_yj_size_,cudaMemcpyHostToDevice);
     cudaMemcpy(d_nUij_Uii, linearSolver.nUij_Uii_, sizeof(std::pair<size_t, size_t>)* linearSolver.nUij_Uii_size_,cudaMemcpyHostToDevice);
-    cudaMemcpy(d_Uij_xj, linearSolver.Uij_xj_, sizeof(std::pair<size_t, size_t>)* linearSolver.nUij_Uii_size_, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Uij_xj, linearSolver.Uij_xj_, sizeof(std::pair<size_t, size_t>)* linearSolver.Uij_xj_size_, cudaMemcpyHostToDevice);
     
     cudaMemcpy(d_lower_matrix, sparseMatrix.lower_matrix_, sizeof(double)*sparseMatrix.lower_matrix_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_, sizeof(double)* sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
