@@ -25,7 +25,7 @@ __global__ void SolveKernel(SolveDevice* device)
     size_t n_grids = device->n_grids_;
     double* b = device->b_;
     double* x = device->x_;
-    double* y = device->x_;//Alias x for consistency with equation, but to reuse memory
+    double* y = device->x_; //Alias x for consistency with equation, but to reuse memory
     double* lower_matrix = device->lower_matrix_;
     double* upper_matrix = device->upper_matrix_;
     std::pair<size_t, size_t>* nLij_Lii = device->nLij_Lii_;
@@ -33,7 +33,7 @@ __global__ void SolveKernel(SolveDevice* device)
     std::pair<size_t, size_t>* nUij_Uii = device->nUij_Uii_;
     std::pair<size_t, size_t>* Uij_xj = device->Uij_xj_;
     //parallize grid cell
-   if (tid < (n_grids * device->b_column_counts_))
+   if (tid < (n_grids))
    { 
         size_t b_column_index = 0;
         size_t x_column_index = 0;
@@ -100,6 +100,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMalloc(&d_Lij_yj, sizeof(std::pair<size_t, size_t>)* linearSolver.Lij_yj_size_); 
     cudaMalloc(&d_nUij_Uii, sizeof(std::pair<size_t, size_t>)* linearSolver.nUij_Uii_size_);
     cudaMalloc(&d_Uij_xj, sizeof(std::pair<size_t, size_t>)* linearSolver.Uij_xj_size_); 
+    
     cudaMalloc(&d_lower_matrix, sizeof(double)* sparseMatrix.lower_matrix_size_); 
     cudaMalloc(&d_upper_matrix, sizeof(double)* sparseMatrix.upper_matrix_size_);
     cudaMalloc(&d_b, sizeof(double)* denseMatrix.b_size_);
@@ -113,7 +114,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMemcpy(d_Uij_xj, linearSolver.Uij_xj_, sizeof(std::pair<size_t, size_t>)* linearSolver.Uij_xj_size_, cudaMemcpyHostToDevice);
     
     cudaMemcpy(d_lower_matrix, sparseMatrix.lower_matrix_, sizeof(double)*sparseMatrix.lower_matrix_size_, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_, sizeof(double)* sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_, sizeof(double)*sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, denseMatrix.b_, sizeof(double)* denseMatrix.b_size_, cudaMemcpyHostToDevice);
     cudaMemcpy(d_x, denseMatrix.x_, sizeof(double)* denseMatrix.x_size_, cudaMemcpyHostToDevice);
     
