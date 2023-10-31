@@ -135,7 +135,7 @@ __global__ void SolveKernel(SolveDevice* device)
     size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     SolveKernel<<<num_block, BLOCK_SIZE>>>(device);
     cudaDeviceSynchronize();
-    cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.x_column_counts_, cudaMemcpyDeviceToHost);
+    cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.n_grids_ * denseMatrix.x_column_counts_, cudaMemcpyDeviceToHost);
 
     //clean up 
     cudaFree(d_nLij_Lii); 
