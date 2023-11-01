@@ -189,8 +189,9 @@ namespace micm
       return Proxy(*this, x * y_dim_, y_dim_);
     }
 
-    Matrix& operator=(T val) {
-      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _){ return val;});
+    Matrix &operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
       return *this;
     }
 
