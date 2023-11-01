@@ -33,13 +33,13 @@ __global__ void SolveKernel(SolveDevice* device)
     std::pair<size_t, size_t>* nUij_Uii = device->nUij_Uii_;
     std::pair<size_t, size_t>* Uij_xj = device->Uij_xj_;
     //parallize grid cell
-   if (tid < (n_grids))
+   if (tid < n_grids)
    { 
         size_t b_column_index = 0;
         size_t x_column_index = 0;
         size_t y_column_index = 0;
-        size_t b_column_backward_index = device->b_column_counts_-1;
-        size_t x_column_backward_index = device->x_column_counts_-1;
+        size_t b_column_backward_index = device->b_column_counts_ -1;
+        size_t x_column_backward_index = device->x_column_counts_ -1;
         size_t Lij_yj_index = 0; 
         size_t Uij_xj_index = 0;
         for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
@@ -57,24 +57,24 @@ __global__ void SolveKernel(SolveDevice* device)
             y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
         }
         
-        for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
-        {   
-            auto& nUij_Uii_element = nUij_Uii[k]; 
+        // for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
+        // {   
+        //     auto& nUij_Uii_element = nUij_Uii[k]; 
         
-            for (size_t i = 0; i < nUij_Uii_element.first; ++i)
-            {
-                size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
-                size_t x_index = Uij_xj[Uij_xj_index].second * n_grids + tid;
-                x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
-                ++Uij_xj_index;
-            }
-            x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
+        //     for (size_t i = 0; i < nUij_Uii_element.first; ++i)
+        //     {
+        //         size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
+        //         size_t x_index = Uij_xj[Uij_xj_index].second * n_grids + tid;
+        //         x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
+        //         ++Uij_xj_index;
+        //     }
+        //     x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
             
-            if (x_column_backward_index != 0)
-            {
-                --x_column_backward_index;
-            }
-        }
+        //     if (x_column_backward_index != 0)
+        //     {
+        //         --x_column_backward_index;
+        //     }
+        // }
     }
 }
     void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix)
@@ -105,7 +105,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMalloc(&d_upper_matrix, sizeof(double)* sparseMatrix.upper_matrix_size_);
     cudaMalloc(&d_b, sizeof(double)* denseMatrix.b_size_);
     cudaMalloc(&d_x, sizeof(double)* denseMatrix.x_size_); 
-    cudaMalloc(&device, sizeof(SolveDevice)); 
+    cudaMalloc(&device, sizeof(SolveDevice));
 
     //transfer memory from host to device
     cudaMemcpy(d_nLij_Lii, linearSolver.nLij_Lii_, sizeof(std::pair<size_t, size_t>)* linearSolver.nLij_Lii_size_,cudaMemcpyHostToDevice);
@@ -135,7 +135,7 @@ __global__ void SolveKernel(SolveDevice* device)
     cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.x_size_, cudaMemcpyDeviceToHost);
 
     //clean up 
-    cudaFree(d_nLij_Lii); 
+    cudaFree(d_nLij_Lii);
     cudaFree(d_Lij_yj); 
     cudaFree(d_nUij_Uii); 
     cudaFree(d_Uij_xj);
