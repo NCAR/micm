@@ -20,7 +20,7 @@ using GroupSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOr
 template<typename T>
 auto run_solver(T& solver)
 {
-  typename T::SolverStats total_stats;
+  SolverStats total_stats;
   State state = solver.GetState();
 
   state.variables_ = 1;
