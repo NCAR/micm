@@ -240,7 +240,8 @@ MatrixPolicy<double> testSetScalar()
 
   matrix = 2.0;
 
-  for(auto& elem : matrix.AsVector()) {
+  for (auto& elem : matrix.AsVector())
+  {
     EXPECT_EQ(elem, 2.0);
   }
 
