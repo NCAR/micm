@@ -47,14 +47,14 @@ __global__ void SolveKernel(SolveDevice* device)
             auto& nLij_Lii_element = nLij_Lii[j]; 
             y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
             
-            for (size_t i = 0; i < nLij_Lii_element.first; ++i)
-            {
-                size_t lower_matrix_index = Lij_yj[Lij_yj_index].first + tid;
-                size_t y_index = Lij_yj[Lij_yj_index].second * n_grids + tid; 
-                y[y_column_index * n_grids + tid] -= lower_matrix[lower_matrix_index] * y[y_index];
-                ++Lij_yj_index;  
-            }
-            y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
+            // for (size_t i = 0; i < nLij_Lii_element.first; ++i)
+            // {
+            //     size_t lower_matrix_index = Lij_yj[Lij_yj_index].first + tid;
+            //     size_t y_index = Lij_yj[Lij_yj_index].second * n_grids + tid; 
+            //     y[y_column_index * n_grids + tid] -= lower_matrix[lower_matrix_index] * y[y_index];
+            //     ++Lij_yj_index;  
+            // }
+            // y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
         }
         
         // for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
