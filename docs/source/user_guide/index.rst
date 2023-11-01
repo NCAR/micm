@@ -47,3 +47,4 @@ If you would like to include the json examples, you must configure micm to build
    solver_configurations
    but_how_fast_is_it
    openmp
+   jit

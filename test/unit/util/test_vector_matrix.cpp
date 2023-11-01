@@ -90,3 +90,11 @@ TEST(VectorMatrix, ForEach)
   testForEach<Group3MatrixAlias>();
   testForEach<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, SetScaler)
+{
+  testSetScalar<Group1MatrixAlias>();
+  testSetScalar<Group2MatrixAlias>();
+  testSetScalar<Group3MatrixAlias>();
+  testSetScalar<Group4MatrixAlias>();
+}

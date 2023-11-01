@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -186,6 +187,11 @@ namespace micm
     Proxy operator[](std::size_t x)
     {
       return Proxy(*this, x * y_dim_, y_dim_);
+    }
+
+    Matrix& operator=(T val) {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _){ return val;});
+      return *this;
     }
 
     void ForEach(const std::function<void(T &, T &)> f, Matrix &a)

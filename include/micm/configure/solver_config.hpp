@@ -454,8 +454,9 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
+      const std::string SCALING_FACTOR = "scaling_factor";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {SCALING_FACTOR});
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -473,88 +474,12 @@ namespace micm
       {
         return products.first;
       }
+        
+      if (object.contains(SCALING_FACTOR)){
+        std::cerr << "Scaling factor supplied to photolysis rate. This is not yet implemented." << std::endl;
+      }
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
-
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
-
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus::Success;
-    }
-
-    ConfigParseStatus ParseEmission(const json& object)
-    {
-      const std::string SPECIES = "species";
-      const std::string MUSICA_NAME = "MUSICA name";
-
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
-      if (status != ConfigParseStatus::Success)
-      {
-        return status;
-      }
-
-      std::string species = object["species"].get<std::string>();
-      json reactants_object{};
-      json products_object{};
-      products_object[species] = { { "yield", 1.0 } };
-
-      auto reactants = ParseReactants(reactants_object);
-      auto products = ParseProducts(products_object);
-
-      if (reactants.first != ConfigParseStatus::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first != ConfigParseStatus::Success)
-      {
-        return products.first;
-      }
-
-      std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
-
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
-
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus::Success;
-    }
-
-    ConfigParseStatus ParseFirstOrderLoss(const json& object)
-    {
-      const std::string SPECIES = "species";
-      const std::string MUSICA_NAME = "MUSICA name";
-
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
-      if (status != ConfigParseStatus::Success)
-      {
-        return status;
-      }
-
-      std::string species = object["species"].get<std::string>();
-      json reactants_object{};
-      json products_object{};
-      reactants_object[species] = { {} };
-
-      auto reactants = ParseReactants(reactants_object);
-      auto products = ParseProducts(products_object);
-
-      if (reactants.first != ConfigParseStatus::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first != ConfigParseStatus::Success)
-      {
-        return products.first;
-      }
-
-      std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
 
@@ -871,6 +796,90 @@ namespace micm
       return ConfigParseStatus::Success;
     }
 
+    ConfigParseStatus ParseEmission(const json& object)
+    {
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+      const std::string PRODUCTS = "products";
+      const std::string SCALING_FACTOR = "scaling factor";
+
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {SCALING_FACTOR, PRODUCTS});
+      if (status != ConfigParseStatus::Success)
+      {
+        return status;
+      }
+
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      products_object[species] = { { "yield", 1.0 } };
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
+        
+      if (object.contains(PRODUCTS)) {
+          std::cerr << "Emission contains products, presumably to record the integrated reaction rate. Ignoring for now" << std::endl;
+      }
+        
+      if (object.contains(SCALING_FACTOR)){
+        std::cerr << "Scaling factor supplied to emission rate. This is not yet implemented." << std::endl;
+      }
+
+      std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
+
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
+    ConfigParseStatus ParseFirstOrderLoss(const json& object)
+    {
+      const std::string SPECIES = "species";
+      const std::string MUSICA_NAME = "MUSICA name";
+
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+      if (status != ConfigParseStatus::Success)
+      {
+        return status;
+      }
+
+      std::string species = object["species"].get<std::string>();
+      json reactants_object{};
+      json products_object{};
+      reactants_object[species] = {};
+      auto reactants = ParseReactants(reactants_object);
+      auto products = ParseProducts(products_object);
+      if (reactants.first != ConfigParseStatus::Success)
+      {
+        return reactants.first;
+      }
+      if (products.first != ConfigParseStatus::Success)
+      {
+        return products.first;
+      }
+
+      std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
+
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
+
+      return ConfigParseStatus::Success;
+    }
+
     ConfigParseStatus ParseSurface(const json& object)
     {
       const std::string REACTANTS = "gas-phase reactant";
@@ -886,7 +895,7 @@ namespace micm
 
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
-      reactants_object[species_name] = { {} };
+      reactants_object[species_name] = { };
 
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(object[PRODUCTS]);
