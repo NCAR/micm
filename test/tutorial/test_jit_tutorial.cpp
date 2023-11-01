@@ -17,8 +17,8 @@ using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
 template<class T>
 using GroupSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
 
-template<typename T>
-auto run_solver(T& solver)
+
+auto run_solver(auto& solver)
 {
   SolverStats total_stats;
   State state = solver.GetState();

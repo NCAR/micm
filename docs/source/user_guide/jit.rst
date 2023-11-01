@@ -74,7 +74,7 @@ grid cells to be solved simultaneously.
   :lines: 14-18
 
 Now, all at once, is the function which runs either type of solver. We set all species
-concentrations to 1 :math:`\mathrm{mol m^-3}` and set the rate paramters for all of the
+concentrations to 1 :math:`\mathrm{mol\ m^-3}` and set the rate paramters for all of the
 photolysis and emissions reactions. Additionally, we are collecting all of the solver
 stats across all solving timesteps
 
