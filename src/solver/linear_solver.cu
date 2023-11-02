@@ -55,7 +55,7 @@ __global__ void SolveKernel(SolveDevice* device)
             //     ++Lij_yj_index;  
             // }
             // y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
-                prinf("y_column_index: %s\n", y_column_index); 
+                printf("y_column_index: %s\n", y_column_index); 
                 printf("vector position: %\n", y_column_index * n_grids + tid); 
                 y_column_index++; 
             
