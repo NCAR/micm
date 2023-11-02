@@ -46,35 +46,39 @@ __global__ void SolveKernel(SolveDevice* device)
         for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
         {
             auto& nLij_Lii_element = nLij_Lii[j]; 
-            y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
-            for (size_t i = 0; i < nLij_Lii_element.first; ++i)
-            {
-                size_t lower_matrix_index = Lij_yj[Lij_yj_index].first + tid;
-                size_t y_index = Lij_yj[Lij_yj_index].second * n_grids + tid; 
-                y[y_column_index * n_grids + tid] -= lower_matrix[lower_matrix_index] * y[y_index];
-                ++Lij_yj_index;  
-            }
-            y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
-        }
-        
-        for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
-        {   
-            auto& nUij_Uii_element = nUij_Uii[k]; 
-        
-            for (size_t i = 0; i < nUij_Uii_element.first; ++i)
-            {
-                size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
-                size_t x_index = Uij_xj[Uij_xj_index].second * n_grids + tid;
-                x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
-                ++Uij_xj_index;
-            }
-            x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
+            //y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
+            // for (size_t i = 0; i < nLij_Lii_element.first; ++i)
+            // {
+            //     size_t lower_matrix_index = Lij_yj[Lij_yj_index].first + tid;
+            //     size_t y_index = Lij_yj[Lij_yj_index].second * n_grids + tid; 
+            //     y[y_column_index * n_grids + tid] -= lower_matrix[lower_matrix_index] * y[y_index];
+            //     ++Lij_yj_index;  
+            // }
+            // y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid]; 
+                prinf("y_column_index: %s\n", y_column_index); 
+                printf("vector position: %\n", y_column_index * n_grids + tid); 
+                y_column_index++; 
             
-            if (x_column_backward_index != 0)
-            {
-                --x_column_backward_index;
-            }
         }
+        
+        // for (size_t k = 0; k < device->nUij_Uii_size_; ++k)
+        // {   
+        //     auto& nUij_Uii_element = nUij_Uii[k]; 
+        
+        //     for (size_t i = 0; i < nUij_Uii_element.first; ++i)
+        //     {
+        //         size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
+        //         size_t x_index = Uij_xj[Uij_xj_index].second * n_grids + tid;
+        //         x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
+        //         ++Uij_xj_index;
+        //     }
+        //     x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
+            
+        //     if (x_column_backward_index != 0)
+        //     {
+        //         --x_column_backward_index;
+        //     }
+        // }
     }
 }
     void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix)

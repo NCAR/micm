@@ -41,7 +41,7 @@ namespace micm{
             denseMatrix.n_grids_ = b.size(); //number of grids
             denseMatrix.b_column_counts_ = b[0].size(); 
             denseMatrix.x_column_counts_= x[0].size();
-           // printf ("nLij_Lii size: %s\n", linearSolver.nLij_Lii_size_);
+            printf ("nLij_Lii size: %s\n", linearSolver.nLij_Lii_size_);
             //calling kernel driver
             micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
         };
