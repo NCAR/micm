@@ -45,7 +45,7 @@ __global__ void SolveKernel(SolveDevice* device)
        
         for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
         {
-            auto& nLij_Lii_element = nLij_Lii[j]; 
+            //auto& nLij_Lii_element = nLij_Lii[j]; 
             //y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
             // for (size_t i = 0; i < nLij_Lii_element.first; ++i)
             // {
