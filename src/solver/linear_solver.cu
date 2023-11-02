@@ -42,10 +42,17 @@ __global__ void SolveKernel(SolveDevice* device)
         size_t x_column_backward_index = device->x_column_counts_ -1;
         size_t Lij_yj_index = 0; 
         size_t Uij_xj_index = 0;
+       
         for (size_t j = 0; j < device->nLij_Lii_size_; ++j)
         {
             auto& nLij_Lii_element = nLij_Lii[j]; 
-            y[y_column_index++ * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
+            // y[y_column_index++ * n_grids + tid] = b[b_column_index++ * n_grids + tid]; 
+            if (tid == 0){
+                
+                printf("y column index: %s\n", y_column_index);
+                printf("vector index %s\n", y_column_index * n_grids + tid);
+                y_column_index++; 
+            }
             
             // for (size_t i = 0; i < nLij_Lii_element.first; ++i)
             // {
