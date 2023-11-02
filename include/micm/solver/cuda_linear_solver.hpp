@@ -43,7 +43,7 @@ namespace micm{
             denseMatrix.x_column_counts_= x[0].size();
             printf ("nLij_Lii size: %s\n", linearSolver.nLij_Lii_size_);
             //calling kernel driver
-            micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
+           // micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
         };
     };
 }//end micm
