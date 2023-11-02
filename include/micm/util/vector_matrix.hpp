@@ -209,6 +209,12 @@ namespace micm
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
+    VectorMatrix &operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
+      return *this;
+    }
+
     void ForEach(const std::function<void(T &, T &)> f, VectorMatrix &a)
     {
       auto this_iter = data_.begin();

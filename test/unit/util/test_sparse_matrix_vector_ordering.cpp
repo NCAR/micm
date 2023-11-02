@@ -15,6 +15,11 @@ TEST(SparseVectorMatrix, ConstZeroMatrix)
   testConstZeroMatrix<micm::SparseMatrixVectorOrdering<3>>();
 }
 
+TEST(SparseVectorMatrix, SetScalar)
+{
+  testSetScalar<micm::SparseMatrixVectorOrdering<3>>();
+}
+
 TEST(SparseVectorMatrix, SingleBlockMatrix)
 {
   auto matrix = testSingleBlockMatrix<micm::SparseMatrixVectorOrdering<4>>();

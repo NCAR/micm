@@ -25,7 +25,9 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/PassManager.h"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
@@ -136,6 +138,10 @@ namespace micm
             llvm::VectorizerParams::VectorizationFactor = 2;
 
             // Add some optimizations.
+            // many from
+            // https://www.intel.com/content/www/us/en/developer/articles/technical/optimize-llvm-code-data-analytics-vectorization.html#gs.6xkals
+            // explanation of a few: https://seanforfun.github.io/llvm/2019/08/08/LLVMKaleidoscopeChap3.html
+            // pass_manager->add(llvm::createFunctionInliningPass()); // causes segfault
             pass_manager->add(llvm::createLoopRotatePass());
             pass_manager->add(llvm::createLICMPass());
             pass_manager->add(llvm::createInstructionCombiningPass());
@@ -145,7 +151,7 @@ namespace micm
             pass_manager->add(llvm::createCFGSimplificationPass());
             pass_manager->add(llvm::createLoopVectorizePass());
             pass_manager->add(llvm::createSLPVectorizerPass());
-            //pass_manager->add(llvm::createGlobalOptimizerPass());
+            // pass_manager->add(llvm::createGlobalOptimizerPass()); // causes segfault
             pass_manager->doInitialization();
 
             // Run the optimizations over all functions in the module being added to

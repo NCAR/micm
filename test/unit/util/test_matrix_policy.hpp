@@ -232,3 +232,18 @@ MatrixPolicy<double> testForEach()
 
   return matrix;
 }
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testSetScalar()
+{
+  MatrixPolicy<double> matrix{ 2, 3, 0.0 };
+
+  matrix = 2.0;
+
+  for (auto& elem : matrix.AsVector())
+  {
+    EXPECT_EQ(elem, 2.0);
+  }
+
+  return matrix;
+}

@@ -229,6 +229,12 @@ namespace micm
       return ProxyRow(*this, b);
     }
 
+    SparseMatrix& operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
+      return *this;
+    }
+
     const std::vector<std::size_t>& RowStartVector() const
     {
       return row_start_;
