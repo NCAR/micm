@@ -32,10 +32,10 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(CudaLinearSolver, DenseMatrixVectorOrdering)
 {
-  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>>(
+  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::LuDecomposition>>(
       [](const Group1SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition> {
-        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>{matrix, initial_value};
+         double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::LuDecomposition> {
+        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::LuDecomposition>{matrix, initial_value};
       });
 }
 

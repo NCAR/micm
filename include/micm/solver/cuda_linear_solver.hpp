@@ -8,7 +8,7 @@
 #ifdef USE_CUDA
 #include <micm/solver/cuda_linear_solver.cuh>
 namespace micm{
-    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
+    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
     class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
     public:
         //constructor
@@ -16,8 +16,8 @@ namespace micm{
 
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> (matrix, initial_value){};
       
-        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value, const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp):
-        linearSolver(matrix, initial_value, create_lu_decomp); 
+        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value, const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
+        : linearSolver(matrix, initial_value, create_lu_decomp); 
        
        template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
