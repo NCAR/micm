@@ -46,7 +46,7 @@ namespace micm{
             denseMatrix.b_column_counts_ = b[0].size(); 
             denseMatrix.x_column_counts_= x[0].size();
             //calling kernel driver
-            micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
+            //micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
         };
     };
 }//end micm
