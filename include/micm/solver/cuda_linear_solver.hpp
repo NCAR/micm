@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <micm/solver/linear_solver.hpp> 
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp>
@@ -15,7 +16,10 @@ namespace micm{
 
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> (matrix, initial_value){};
       
-        template<template<class> class MatrixPolicy> 
+        CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value, const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp):
+        linearSolver(matrix, initial_value, create_lu_decomp); 
+       
+       template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
         void Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
         {

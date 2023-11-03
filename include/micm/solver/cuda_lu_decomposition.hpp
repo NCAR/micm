@@ -41,30 +41,30 @@ namespace micm{
         sparseMatrix.L_size_ = L.AsVector().size(); 
         sparseMatrix.U_ = U.AsVector().data(); 
         sparseMatrix.U_size_ = U.AsVector().size(); 
-        sparseMatrix.n_grids_ = A.size(); 
+        sparseMatrix.n_grids_ = A.size();
         
         CudaSolverParam solver;    
-        solver.do_aik_ = do_aik_.data(); 
-        solver.do_aik_size_ = do_aik_.size(); 
-        solver.aik_ = aik_.data(); 
-        solver.aik_size_ = aik_.size(); 
-        solver.do_aki_ = do_aki_.data(); 
-        solver.do_aki_size_ = do_aki_.size(); 
-        solver.aki_ = aki_.data(); 
-        solver.aki_size_ = aki_.size(); 
-        solver.uii_ = uii_.data(); 
-        solver.uii_size_ = uii_.size(); 
+        solver.do_aik_ = this->do_aik_.data(); 
+        solver.do_aik_size_ = this->do_aik_.size(); 
+        solver.aik_ = this->aik_.data(); 
+        solver.aik_size_ = this->aik_.size(); 
+        solver.do_aki_ = this->do_aki_.data(); 
+        solver.do_aki_size_ = this->do_aki_.size(); 
+        solver.aki_ = this->aki_.data(); 
+        solver.aki_size_ = this->aki_.size(); 
+        solver.uii_ = this->uii_.data(); 
+        solver.uii_size_ = this->uii_.size(); 
         
-        solver.niLU_ = niLU_.data(); 
-        solver.niLU_size_ = niLU_.size(); 
-        solver.uik_nkj_ = uik_nkj_.data(); 
-        solver.uik_nkj_size_ = uik_nkj_.size(); 
-        solver.lij_ujk_ = lij_ujk_.data(); 
-        solver.lij_ujk_size_ = lij_ujk_.size(); 
-        solver.lki_nkj_ = lki_nkj_.data(); 
-        solver.lki_nkj_size_ = lki_nkj_.size(); 
-        solver.lkj_uji_ =  lkj_uji_.data(); 
-        solver.lkj_uji_size_ = lkj_uji_.size(); 
+        solver.niLU_ = this->niLU_.data(); 
+        solver.niLU_size_ = this->niLU_.size(); 
+        solver.uik_nkj_ = this->uik_nkj_.data(); 
+        solver.uik_nkj_size_ = this->uik_nkj_.size(); 
+        solver.lij_ujk_ = this->lij_ujk_.data(); 
+        solver.lij_ujk_size_ = this->lij_ujk_.size(); 
+        solver.lki_nkj_ = this->lki_nkj_.data(); 
+        solver.lki_nkj_size_ = this->lki_nkj_.size(); 
+        solver.lkj_uji_ =  this->lkj_uji_.data(); 
+        solver.lkj_uji_size_ = this->lkj_uji_.size(); 
 
         //calling kernelSetup function
         return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
