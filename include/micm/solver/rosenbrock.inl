@@ -31,6 +31,7 @@ namespace micm
     decompositions = 0;
     solves = 0;
     singular = 0;
+    total_update_state_time = std::chrono::nanoseconds::zero();
     total_forcing_time = std::chrono::nanoseconds::zero();
     total_jacobian_time = std::chrono::nanoseconds::zero();
     total_linear_factor_time = std::chrono::nanoseconds::zero();
@@ -177,7 +178,7 @@ namespace micm
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
-    UpdateState(state);
+    TIMED_METHOD(stats.total_update_state_time, time_it, UpdateState, state);
 
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
       K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
@@ -248,7 +249,7 @@ namespace micm
               for (uint64_t j = 0; j < stage; ++j)
               {
                 auto a = parameters_.a_[stage_combinations + j];
-                Ynew.ForEach([&](double& iYnew, double& iKj) { iYnew += a * iKj; }, K[j]);
+                Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
               }
               TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
               stats.function_calls += 1;
@@ -258,7 +259,7 @@ namespace micm
           for (uint64_t j = 0; j < stage; ++j)
           {
             auto HC = parameters_.c_[stage_combinations + j] / H;
-            K[stage].ForEach([&](double& iKstage, double& iKj) { iKstage += HC * iKj; }, K[j]);
+            K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
           TIMED_METHOD(stats.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage], state.lower_matrix_, state.upper_matrix_);
@@ -268,12 +269,12 @@ namespace micm
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach([&](double& iYnew, double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
+          Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
 
         // Compute the error estimation
         MatrixPolicy<double> Yerror(Y.size(), Y[0].size(), 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach([&](double& iYerror, double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
+          Yerror.ForEach([&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
 
         auto error = NormalizedError(Y, Ynew, Yerror);
 

@@ -78,6 +78,8 @@ namespace micm
     /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
     /// is never singular
     uint64_t singular{};
+    /// @brief The cumulative amount of time spent updating the state (including rate constant calculations)
+    std::chrono::duration<double, std::nano> total_update_state_time{};
     /// @brief The cumulative amount of time spent calculating the forcing function
     std::chrono::duration<double, std::nano> total_forcing_time{};
     /// @brief The cumulative amount of time spent calculating the jacobian

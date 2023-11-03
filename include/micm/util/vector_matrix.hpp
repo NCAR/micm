@@ -215,7 +215,7 @@ namespace micm
       return *this;
     }
 
-    void ForEach(const std::function<void(T &, T &)> f, VectorMatrix &a)
+    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -228,7 +228,7 @@ namespace micm
           f(this_iter[y * L + x], a_iter[y * L + x]);
     }
 
-    void ForEach(const std::function<void(T &, T &, T &)> f, VectorMatrix &a, VectorMatrix &b)
+    void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();

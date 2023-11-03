@@ -68,6 +68,8 @@ auto run_solver(auto& solver)
   // choose a timestep and print the initial state
   double time_step = 500;  // s
 
+  auto total_solve_time = std::chrono::nanoseconds::zero();
+
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
   {
@@ -75,7 +77,10 @@ auto run_solver(auto& solver)
 
     while (elapsed_solve_time < time_step)
     {
+      auto start = std::chrono::high_resolution_clock::now();
       auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      auto end = std::chrono::high_resolution_clock::now();
+      total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
 
@@ -87,6 +92,7 @@ auto run_solver(auto& solver)
       total_stats.decompositions += result.stats_.decompositions;
       total_stats.solves += result.stats_.solves;
       total_stats.singular += result.stats_.singular;
+      total_stats.total_update_state_time += result.stats_.total_update_state_time;
       total_stats.total_forcing_time += result.stats_.total_forcing_time;
       total_stats.total_jacobian_time += result.stats_.total_jacobian_time;
       total_stats.total_linear_factor_time += result.stats_.total_linear_factor_time;
@@ -94,7 +100,7 @@ auto run_solver(auto& solver)
     }
   }
 
-  return std::make_pair(state, total_stats);
+  return std::make_tuple(state, total_stats, total_solve_time);
 }
 
 int main(const int argc, const char* argv[])
@@ -131,63 +137,60 @@ int main(const int argc, const char* argv[])
 
   std::cout << "Jit compile time: " << jit_compile_time.count() << " nanoseconds" << std::endl;
 
-  start = std::chrono::high_resolution_clock::now();
-  auto result_pair = run_solver(solver);
-  end = std::chrono::high_resolution_clock::now();
-  auto result_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+  auto result_tuple = run_solver(solver);
+  auto jit_result_tuple = run_solver(jit_solver);
 
-  start = std::chrono::high_resolution_clock::now();
-  auto jit_result_pair = run_solver(jit_solver);
-  end = std::chrono::high_resolution_clock::now();
-  auto jit_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+  std::cout << "Standard solve time: " << std::get<2>(result_tuple).count() << " nanoseconds" << std::endl;
+  std::cout << "JIT solve time: " << std::get<2>(jit_result_tuple).count() << " nanoseconds" << std::endl;
 
-  std::cout << "Result time: " << result_time.count() << " nanoseconds" << std::endl;
-  std::cout << "JIT result time: " << jit_time.count() << " nanoseconds" << std::endl;
+  auto result_stats = std::get<1>(result_tuple);
+  std::cout << "Standard solve stats: " << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
+  std::cout << "\tfunction_calls: " << result_stats.function_calls << std::endl;
+  std::cout << "\tjacobian_updates: " << result_stats.jacobian_updates << std::endl;
+  std::cout << "\tnumber_of_steps: " << result_stats.number_of_steps << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
+  std::cout << "\trejected: " << result_stats.rejected << std::endl;
+  std::cout << "\tdecompositions: " << result_stats.decompositions << std::endl;
+  std::cout << "\tsolves: " << result_stats.solves << std::endl;
+  std::cout << "\tsingular: " << result_stats.singular << std::endl;
+  std::cout << "\ttotal_update_state_time: " << result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_forcing_time: " << result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_jacobian_time: " << result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl << std::endl;
 
-  auto result_stats = result_pair.second;
-  std::cout << "Result stats: " << std::endl;
-  std::cout << "accepted: " << result_stats.accepted << std::endl;
-  std::cout << "function_calls: " << result_stats.function_calls << std::endl;
-  std::cout << "jacobian_updates: " << result_stats.jacobian_updates << std::endl;
-  std::cout << "number_of_steps: " << result_stats.number_of_steps << std::endl;
-  std::cout << "accepted: " << result_stats.accepted << std::endl;
-  std::cout << "rejected: " << result_stats.rejected << std::endl;
-  std::cout << "decompositions: " << result_stats.decompositions << std::endl;
-  std::cout << "solves: " << result_stats.solves << std::endl;
-  std::cout << "singular: " << result_stats.singular << std::endl;
-  std::cout << "total_forcing_time: " << result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_jacobian_time: " << result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl;
-
-  auto jit_result_stats = jit_result_pair.second;
-  std::cout << "JIT result stats: " << std::endl;
-  std::cout << "accepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "function_calls: " << jit_result_stats.function_calls << std::endl;
-  std::cout << "jacobian_updates: " << jit_result_stats.jacobian_updates << std::endl;
-  std::cout << "number_of_steps: " << jit_result_stats.number_of_steps << std::endl;
-  std::cout << "accepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "rejected: " << jit_result_stats.rejected << std::endl;
-  std::cout << "decompositions: " << jit_result_stats.decompositions << std::endl;
-  std::cout << "solves: " << jit_result_stats.solves << std::endl;
-  std::cout << "singular: " << jit_result_stats.singular << std::endl;
-  std::cout << "total_forcing_time: " << jit_result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_jacobian_time: " << jit_result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_factor_time: " << jit_result_stats.total_linear_factor_time.count() << " nanoseconds"
+  auto jit_result_stats = std::get<1>(jit_result_tuple);
+  std::cout << "JIT solve stats: " << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
+  std::cout << "\tfunction_calls: " << jit_result_stats.function_calls << std::endl;
+  std::cout << "\tjacobian_updates: " << jit_result_stats.jacobian_updates << std::endl;
+  std::cout << "\tnumber_of_steps: " << jit_result_stats.number_of_steps << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
+  std::cout << "\trejected: " << jit_result_stats.rejected << std::endl;
+  std::cout << "\tdecompositions: " << jit_result_stats.decompositions << std::endl;
+  std::cout << "\tsolves: " << jit_result_stats.solves << std::endl;
+  std::cout << "\tsingular: " << jit_result_stats.singular << std::endl;
+  std::cout << "\ttotal_update_state_time: " << jit_result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_forcing_time: " << jit_result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_jacobian_time: " << jit_result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_linear_factor_time: " << jit_result_stats.total_linear_factor_time.count() << " nanoseconds"
             << std::endl;
-  std::cout << "total_linear_solve_time: " << jit_result_stats.total_linear_solve_time.count() << " nanoseconds"
+  std::cout << "\ttotal_linear_solve_time: " << jit_result_stats.total_linear_solve_time.count() << " nanoseconds"
             << std::endl;
 
-  auto result = result_pair.first;
-  auto jit_result = result_pair.first;
+  auto result = std::get<0>(result_tuple);
+  auto jit_result = std::get<0>(jit_result_tuple);
 
   for (auto& species : result.variable_names_)
   {
     for (int i = 0; i < n_grid_cells; ++i)
     {
-      if (result.variables_[i][result.variable_map_[species]] != jit_result.variables_[i][jit_result.variable_map_[species]])
+      double a = result.variables_[i][result.variable_map_[species]];
+      double b = jit_result.variables_[i][jit_result.variable_map_[species]];
+      if ( std::abs(a - b) > 1.0e-5 * (std::abs(a) + std::abs(b)) / 2.0 + 1.0e-30 )
       {
-        std::cout << species << " do not match final concentration" << std::endl;
+        std::cout << species << " does not match final concentration" << std::endl;
       }
     }
   }

@@ -135,7 +135,7 @@ namespace micm
             // Create a function pass manager.
             auto pass_manager = std::make_unique<llvm::legacy::FunctionPassManager>(&module);
 
-            llvm::VectorizerParams::VectorizationFactor = 2;
+            llvm::VectorizerParams::VectorizationFactor = 4;
 
             // Add some optimizations.
             // many from
