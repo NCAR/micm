@@ -66,6 +66,8 @@ html_theme_options = {
         "json_url": "https://ncar.github.io/micm/_static/switcher.json",
         "version_match": release,
     },
+   "pygment_light_style": "tango",
+   "pygment_dark_style": "monokai"
 }
 
 html_css_files = [

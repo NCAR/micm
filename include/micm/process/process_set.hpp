@@ -29,9 +29,8 @@ namespace micm
 
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
-    /// @param state Solver state
-    template<template<class> class MatrixPolicy>
-    ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
+    /// @param StateParameters Solver state
+    ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
@@ -74,8 +73,9 @@ namespace micm
         SparseMatrixPolicy<double>& jacobian) const;
   };
 
-  template<template<class> class MatrixPolicy>
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
+  inline ProcessSet::ProcessSet(
+      const std::vector<Process>& processes,
+      const std::map<std::string, std::size_t>& variable_map)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),
@@ -90,18 +90,18 @@ namespace micm
       {
         if (reactant.IsParameterized())
           continue;  // Skip reactants that are parameterizations
-        if (state.variable_map_.count( reactant.name_ ) < 1)
+        if (variable_map.count( reactant.name_ ) < 1)
           throw std::runtime_error("Reactant '" + reactant.name_ + "' does not exist");   
-        reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
+        reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
       for (auto& product : process.products_)
       {
         if (product.first.IsParameterized())
           continue;  // Skip products that are parameterizations
-        if (state.variable_map_.count( product.first.name_ ) < 1)
+        if (variable_map.count( product.first.name_ ) < 1)
           throw std::runtime_error("Product '" + product.first.name_ + "' does not exist");   
-        product_ids_.push_back(state.variable_map_.at(product.first.name_));
+        product_ids_.push_back(variable_map.at(product.first.name_));
         yields_.push_back(product.second);
         ++number_of_products;
       }

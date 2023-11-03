@@ -43,6 +43,11 @@ namespace micm
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
   };
 
   inline UserDefinedRateConstant::UserDefinedRateConstant()
@@ -58,6 +63,12 @@ namespace micm
   inline std::unique_ptr<RateConstant> UserDefinedRateConstant::clone() const
   {
     return std::unique_ptr<RateConstant>{ new UserDefinedRateConstant{ *this } };
+  }
+
+  inline double UserDefinedRateConstant::calculate(const Conditions& conditions) const
+  {
+    throw std::runtime_error(
+        "User defined rate constants must be supplied with custom rate parameters using the alternative calculate function");
   }
 
   inline double UserDefinedRateConstant::calculate(

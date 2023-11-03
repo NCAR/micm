@@ -4,10 +4,12 @@
 
 TEST(State, Constructor)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                          .number_of_grid_cells_ = 3,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 3,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "quux", "corge" },
+  } };
 
   EXPECT_EQ(state.conditions_.size(), 3);
   EXPECT_EQ(state.variable_map_["foo"], 0);
@@ -26,10 +28,12 @@ TEST(State, Constructor)
 
 TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                          .number_of_grid_cells_ = 3,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 3,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "quux", "corge" },
+  } };
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, 1.0));
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, std::vector<double>{ 1.0, 2.0 }));
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, 1.0));
@@ -39,20 +43,24 @@ TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
 TEST(State, SetSingleConcentration)
 {
   {
-    micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                            .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                            .number_of_grid_cells_ = 3,
-                                                            .number_of_rate_constants_ = 10 } };
+    micm::State state{ micm::StateParameters{
+        .number_of_grid_cells_ = 3,
+        .number_of_rate_constants_ = 10,
+        .variable_names_{ "foo", "bar", "baz", "quz" },
+        .custom_rate_parameter_labels_{ "quux", "corge" },
+    } };
     std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
     state.SetConcentration(micm::Species{ "bar" }, concentrations);
     for (std::size_t i = 0; i < concentrations.size(); ++i)
       EXPECT_EQ(state.variables_[i][state.variable_map_["bar"]], concentrations[i]);
   }
   {
-    micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                            .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                            .number_of_grid_cells_ = 1,
-                                                            .number_of_rate_constants_ = 10 } };
+    micm::State state{ micm::StateParameters{
+        .number_of_grid_cells_ = 1,
+        .number_of_rate_constants_ = 10,
+        .variable_names_{ "foo", "bar", "baz", "quz" },
+        .custom_rate_parameter_labels_{ "quux", "corge" },
+    } };
     state.SetConcentration(micm::Species{ "bar" }, 324.2);
     EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 324.2);
   }
@@ -60,10 +68,12 @@ TEST(State, SetSingleConcentration)
 
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                          .number_of_grid_cells_ = 3,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 3,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "quux", "corge" },
+  } };
 
   std::unordered_map<std::string, std::vector<double>> concentrations = {
     { "FUU", { 0.1 } }, { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "quz", { 0.4 } }
@@ -77,10 +87,12 @@ TEST(State, SetConcentrations)
   uint32_t num_grid_cells = 3;
   uint32_t num_species = 4;
 
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "quux", "corge" },
-                                                          .number_of_grid_cells_ = num_grid_cells,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = num_grid_cells,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "quux", "corge" },
+  } };
 
   std::unordered_map<std::string, std::vector<double>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
                                                                           { "baz", { 0.3, 0.33, 0.333 } },
@@ -106,10 +118,12 @@ TEST(State, SetConcentrations)
 
 TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-                                                          .number_of_grid_cells_ = 3,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 3,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = {
@@ -121,10 +135,12 @@ TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)
 
 TEST(State, SettingCustomRateParameterWithInvalidLabelThrowsException)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-                                                          .number_of_grid_cells_ = 1,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 1,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = {
@@ -136,10 +152,12 @@ TEST(State, SettingCustomRateParameterWithInvalidLabelThrowsException)
 
 TEST(State, SetCustomRateParameter)
 {
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-                                                          .number_of_grid_cells_ = 1,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 1,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
 
   state.SetCustomRateParameter("O2", 42.3);
   EXPECT_EQ(state.custom_rate_parameters_[0][1], 42.3);
@@ -149,10 +167,12 @@ TEST(State, SetCustomRateParameters)
 {
   uint32_t num_grid_cells = 3;
 
-  micm::State<micm::Matrix> state{ micm::StateParameters{ .state_variable_names_{ "foo", "bar", "baz", "quz" },
-                                                          .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-                                                          .number_of_grid_cells_ = num_grid_cells,
-                                                          .number_of_rate_constants_ = 10 } };
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = num_grid_cells,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },

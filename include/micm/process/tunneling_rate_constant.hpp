@@ -43,6 +43,11 @@ namespace micm
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
+
+    /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @return the calculated rate constant
     double calculate(const double& temperature) const;
@@ -61,6 +66,11 @@ namespace micm
   inline std::unique_ptr<RateConstant> TunnelingRateConstant::clone() const
   {
     return std::unique_ptr<RateConstant>{ new TunnelingRateConstant{ *this } };
+  }
+
+  inline double TunnelingRateConstant::calculate(const Conditions& conditions) const
+  {
+    return calculate(conditions.temperature_);
   }
 
   inline double TunnelingRateConstant::calculate(

@@ -8,7 +8,7 @@ TEST(UserDefinedConfig, DetectsInvalidConfig)
 
   // Read and parse the configure files
   micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_reactants");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
+  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status) << " " << micm::configParseStatusToString(status) << "\n";
   status = solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_products");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
   status = solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_MUSICA_name");
