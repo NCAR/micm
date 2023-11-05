@@ -52,6 +52,8 @@ namespace micm
 
     llvm::orc::JITDylib &main_lib_;
 
+    unsigned int name_uniquer_{0};
+
    public:
     JitCompiler(
         std::unique_ptr<llvm::orc::ExecutionSession> execution_session,
@@ -122,6 +124,11 @@ namespace micm
     llvm::Expected<llvm::JITEvaluatedSymbol> Lookup(llvm::StringRef name)
     {
       return execution_session_->lookup({ &main_lib_ }, mangle_(name.str()));
+    }
+
+    std::string UniquifyName(const std::string &base_name)
+    {
+      return base_name + std::to_string(name_uniquer_++);
     }
 
    private:

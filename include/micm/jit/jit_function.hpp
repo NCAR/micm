@@ -157,7 +157,7 @@ namespace micm
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
       : generated_(false),
-        name_(function_builder.name_),
+        name_(function_builder.compiler_->UniquifyName(function_builder.name_)),
         compiler_(function_builder.compiler_),
         context_(std::make_unique<llvm::LLVMContext>()),
         module_(std::make_unique<llvm::Module>(name_ + " module", *context_)),
