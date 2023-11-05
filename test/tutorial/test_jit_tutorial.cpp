@@ -29,41 +29,9 @@ auto run_solver(auto& solver)
     state.conditions_[i].pressure_ = 101319.9;   // Pa
     state.conditions_[i].air_density_ = 1e6;     // mol m-3
   }
-
-  state.SetCustomRateParameter("EMIS.NO", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.44e-10));
-  state.SetCustomRateParameter("EMIS.NO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.56e-12));
-  state.SetCustomRateParameter("EMIS.CO", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.96e-09));
-  state.SetCustomRateParameter("EMIS.SO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.06e-09));
-  state.SetCustomRateParameter("EMIS.FORM", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.02e-11));
-  state.SetCustomRateParameter("EMIS.MEOH", std::vector<double>(solver.parameters_.number_of_grid_cells_, 5.92e-13));
-  state.SetCustomRateParameter("EMIS.ALD2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.25e-12));
-  state.SetCustomRateParameter("EMIS.PAR", std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.27e-10));
-  state.SetCustomRateParameter("EMIS.ETH", std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.62e-11));
-  state.SetCustomRateParameter("EMIS.OLE", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.49e-11));
-  state.SetCustomRateParameter("EMIS.IOLE", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.49e-11));
-  state.SetCustomRateParameter("EMIS.TOL", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.53e-11));
-  state.SetCustomRateParameter("EMIS.XYL", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.4e-11));
-  state.SetCustomRateParameter("EMIS.ISOP", std::vector<double>(solver.parameters_.number_of_grid_cells_, 6.03e-12));
-  state.SetCustomRateParameter("PHOTO.NO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.00477));
-  state.SetCustomRateParameter("PHOTO.O3->O1D", std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.26e-06));
-  state.SetCustomRateParameter("PHOTO.O3->O3P", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.000253));
-  state.SetCustomRateParameter("PHOTO.NO3->NO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.117));
-  state.SetCustomRateParameter("PHOTO.NO3->NO", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.0144));
-  state.SetCustomRateParameter("PHOTO.HONO", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.000918));
-  state.SetCustomRateParameter("PHOTO.H2O2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.59e-06));
-  state.SetCustomRateParameter("PHOTO.PNA", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.89e-06));
-  state.SetCustomRateParameter("PHOTO.HNO3", std::vector<double>(solver.parameters_.number_of_grid_cells_, 8.61e-08));
-  state.SetCustomRateParameter("PHOTO.NTR", std::vector<double>(solver.parameters_.number_of_grid_cells_, 4.77e-07));
-  state.SetCustomRateParameter("PHOTO.ROOH", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
-  state.SetCustomRateParameter("PHOTO.MEPX", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
-  state.SetCustomRateParameter("PHOTO.FORM->HO2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.93e-06));
-  state.SetCustomRateParameter("PHOTO.FORM->CO", std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-05));
-  state.SetCustomRateParameter("PHOTO.ALD2", std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-06));
-  state.SetCustomRateParameter("PHOTO.PACD", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.81e-06));
-  state.SetCustomRateParameter("PHOTO.ALDX", std::vector<double>(solver.parameters_.number_of_grid_cells_, 2.2e-06));
-  state.SetCustomRateParameter("PHOTO.OPEN", std::vector<double>(solver.parameters_.number_of_grid_cells_, 0.000645));
-  state.SetCustomRateParameter("PHOTO.MGLY", std::vector<double>(solver.parameters_.number_of_grid_cells_, 7.64e-05));
-  state.SetCustomRateParameter("PHOTO.ISPD", std::vector<double>(solver.parameters_.number_of_grid_cells_, 1.98e-09));
+  auto foo = Species("Foo");
+  std::vector<double> foo_conc(n_grid_cells, 1.0);
+  state.SetConcentration(foo, foo_conc);
 
   // choose a timestep and print the initial state
   double time_step = 500;  // s
@@ -105,19 +73,27 @@ auto run_solver(auto& solver)
 
 int main(const int argc, const char* argv[])
 {
-  SolverConfig solverConfig;
+  auto foo = Species{ "Foo" };
+  auto bar = Species{ "Bar" };
+  auto baz = Species{ "Baz" };
 
-  std::string config_path = "./configs/carbon_bond_5";
-  ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  if (status != micm::ConfigParseStatus::Success)
-  {
-    throw "Parsing failed";
-  }
+  Phase gas_phase{ std::vector<Species>{ foo, bar, baz } };
 
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  auto chemical_system = solver_params.system_;
-  auto reactions = solver_params.processes_;
+  Process r1 = Process::create()
+                   .reactants({ foo })
+                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .phase(gas_phase);
+
+  Process r2 = Process::create()
+                   .reactants({ foo, bar })
+                   .products({ Yield(baz, 1) })
+                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .phase(gas_phase);
+
+  std::vector<Process> reactions{ r1, r2 };
 
   auto solver_parameters = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(n_grid_cells);
 
@@ -140,6 +116,11 @@ int main(const int argc, const char* argv[])
   auto result_tuple = run_solver(solver);
   auto jit_result_tuple = run_solver(jit_solver);
 
+  // Rerun for more fair comparison after assumed improvements to
+  // branch-prediction during state update
+  result_tuple = run_solver(solver);
+  jit_result_tuple = run_solver(jit_solver);
+
   std::cout << "Standard solve time: " << std::get<2>(result_tuple).count() << " nanoseconds" << std::endl;
   std::cout << "JIT solve time: " << std::get<2>(jit_result_tuple).count() << " nanoseconds" << std::endl;
 
@@ -157,8 +138,10 @@ int main(const int argc, const char* argv[])
   std::cout << "\ttotal_update_state_time: " << result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
   std::cout << "\ttotal_forcing_time: " << result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
   std::cout << "\ttotal_jacobian_time: " << result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl << std::endl;
+  std::cout << "\ttotal_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds"
+            << std::endl;
+  std::cout << "\ttotal_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl
+            << std::endl;
 
   auto jit_result_stats = std::get<1>(jit_result_tuple);
   std::cout << "JIT solve stats: " << std::endl;
@@ -171,7 +154,8 @@ int main(const int argc, const char* argv[])
   std::cout << "\tdecompositions: " << jit_result_stats.decompositions << std::endl;
   std::cout << "\tsolves: " << jit_result_stats.solves << std::endl;
   std::cout << "\tsingular: " << jit_result_stats.singular << std::endl;
-  std::cout << "\ttotal_update_state_time: " << jit_result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
+  std::cout << "\ttotal_update_state_time: " << jit_result_stats.total_update_state_time.count() << " nanoseconds"
+            << std::endl;
   std::cout << "\ttotal_forcing_time: " << jit_result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
   std::cout << "\ttotal_jacobian_time: " << jit_result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
   std::cout << "\ttotal_linear_factor_time: " << jit_result_stats.total_linear_factor_time.count() << " nanoseconds"
@@ -188,7 +172,7 @@ int main(const int argc, const char* argv[])
     {
       double a = result.variables_[i][result.variable_map_[species]];
       double b = jit_result.variables_[i][jit_result.variable_map_[species]];
-      if ( std::abs(a - b) > 1.0e-5 * (std::abs(a) + std::abs(b)) / 2.0 + 1.0e-30 )
+      if (std::abs(a - b) > 1.0e-5 * (std::abs(a) + std::abs(b)) / 2.0 + 1.0e-30)
       {
         std::cout << species << " does not match final concentration" << std::endl;
       }
