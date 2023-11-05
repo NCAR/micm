@@ -126,11 +126,9 @@ namespace micm
       std::size_t n_cells = jacobian.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
 
-      std::string function_name = "alpha_minus_jacobian_" + generate_random_string();
-
       // Create the JitFunction with the modified name
       JitFunction func = JitFunction::create(compiler_)
-                             .name(function_name)
+                             .name("alpha_minus_jacobian")
                              .arguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
                              .return_type(JitType::Void);
 
