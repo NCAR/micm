@@ -11,7 +11,11 @@
 #include <micm/util/vector_matrix.hpp>
 
 template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-micm::JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>, micm::JitProcessSet<number_of_grid_cells>>
+micm::JitRosenbrockSolver<
+    MatrixPolicy,
+    SparseMatrixPolicy,
+    micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+    micm::JitProcessSet<number_of_grid_cells>>
 getSolver(std::shared_ptr<micm::JitCompiler> jit)
 {
   // ---- foo  bar  baz  quz  quuz
@@ -44,12 +48,15 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::
-      JitRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>, micm::JitProcessSet<number_of_grid_cells>>(
-          jit,
-          micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-          std::vector<micm::Process>{ r1, r2, r3 },
-          micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
+  return micm::JitRosenbrockSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+      micm::JitProcessSet<number_of_grid_cells>>(
+      jit,
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3 },
+      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
 }
 
 template<class T>
@@ -180,40 +187,25 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   auto solver_parameters = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
 
   micm::JitRosenbrockSolver<
-    Group1VectorMatrix, 
-    Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-    micm::JitProcessSet<1>
-    > solver1(
-      jit.get(), 
-      chemical_system, 
-      reactions, 
-      solver_parameters 
-    );
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+      micm::JitProcessSet<1>>
+      solver1(jit.get(), chemical_system, reactions, solver_parameters);
   micm::JitRosenbrockSolver<
-    Group1VectorMatrix, 
-    Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-    micm::JitProcessSet<1>
-    > solver2(
-      jit.get(), 
-      chemical_system, 
-      reactions, 
-      solver_parameters 
-    );
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+      micm::JitProcessSet<1>>
+      solver2(jit.get(), chemical_system, reactions, solver_parameters);
   micm::JitRosenbrockSolver<
-    Group1VectorMatrix, 
-    Group1SparseVectorMatrix, 
-    micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-    micm::JitProcessSet<1>
-    > solver3(
-      jit.get(), 
-      chemical_system, 
-      reactions, 
-      solver_parameters 
-    );
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
+      micm::JitProcessSet<1>>
+      solver3(jit.get(), chemical_system, reactions, solver_parameters);
 
-    run_solver(solver1);
-    run_solver(solver2);
-    run_solver(solver3);
+  run_solver(solver1);
+  run_solver(solver2);
+  run_solver(solver3);
 }

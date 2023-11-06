@@ -392,9 +392,9 @@ TEST(JitFunction, SameNameFunctions)
     EXPECT_TRUE(false);
   }
   micm::JitFunction func1 = micm::JitFunction::create(jit.get())
-                               .name("foobar")
-                               .arguments({ { "foo", micm::JitType::Int32 } })
-                               .return_type(micm::JitType::Int32);
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
   llvm::Value *const_val = llvm::ConstantInt::get(*(func1.context_), llvm::APInt(64, 2));
   llvm::Value *ret_val = func1.builder_->CreateNSWAdd(func1.arguments_[0].ptr_, const_val, "add args");
   func1.builder_->CreateRet(ret_val);
@@ -403,9 +403,9 @@ TEST(JitFunction, SameNameFunctions)
   int32_t (*func1_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func1_target.second;
 
   micm::JitFunction func2 = micm::JitFunction::create(jit.get())
-                               .name("foobar")
-                               .arguments({ { "foo", micm::JitType::Int32 } })
-                               .return_type(micm::JitType::Int32);
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
   const_val = llvm::ConstantInt::get(*(func2.context_), llvm::APInt(64, 12));
   ret_val = func2.builder_->CreateNSWAdd(func2.arguments_[0].ptr_, const_val, "add args");
   func2.builder_->CreateRet(ret_val);
@@ -414,9 +414,9 @@ TEST(JitFunction, SameNameFunctions)
   int32_t (*func2_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func2_target.second;
 
   micm::JitFunction func3 = micm::JitFunction::create(jit.get())
-                               .name("foobar")
-                               .arguments({ { "foo", micm::JitType::Int32 } })
-                               .return_type(micm::JitType::Int32);
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
   const_val = llvm::ConstantInt::get(*(func3.context_), llvm::APInt(64, 24));
   ret_val = func3.builder_->CreateNSWAdd(func3.arguments_[0].ptr_, const_val, "add args");
   func3.builder_->CreateRet(ret_val);

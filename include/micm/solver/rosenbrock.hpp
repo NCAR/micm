@@ -148,7 +148,8 @@ namespace micm
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters,
         const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
-        const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)> create_process_set);
+        const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
+            create_process_set);
 
     virtual ~RosenbrockSolver() = default;
 

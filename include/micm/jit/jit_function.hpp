@@ -8,7 +8,6 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
-
 #include <micm/util/random_string.hpp>
 
 #include "jit_compiler.hpp"
