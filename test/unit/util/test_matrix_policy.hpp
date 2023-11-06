@@ -14,7 +14,7 @@ MatrixPolicy<double> testSmallMatrix()
   EXPECT_EQ(matrix[0][0], 41.2);
   EXPECT_EQ(matrix[2][4], 102.3);
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<double> &data = matrix.AsVector();
 
   EXPECT_GE(data.size(), 3);
 
@@ -36,7 +36,7 @@ const MatrixPolicy<double> testSmallConstMatrix()
   EXPECT_EQ(const_matrix[0][0], 41.2);
   EXPECT_EQ(const_matrix[2][4], 102.3);
 
-  const std::vector<double>& data = const_matrix.AsVector();
+  const std::vector<double> &data = const_matrix.AsVector();
 
   EXPECT_GE(data.size(), 3);
 
@@ -240,7 +240,7 @@ MatrixPolicy<double> testSetScalar()
 
   matrix = 2.0;
 
-  for (auto& elem : matrix.AsVector())
+  for (auto &elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 2.0);
   }

@@ -78,7 +78,8 @@ namespace micm
               [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
                 return LinearSolverPolicy{ compiler, matrix, initial_value };
               },
-              [&](const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
+              [&](const std::vector<Process>& processes,
+                  const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
                 return ProcessSetPolicy{ compiler, processes, variable_map };
               }),
           compiler_(compiler)
