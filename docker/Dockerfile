@@ -17,7 +17,7 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake \
-        -D CMAKE_BUILD_TYPE=debug \
+        -D CMAKE_BUILD_TYPE=release \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
       && make install -j

@@ -22,7 +22,9 @@ if(ENABLE_JSON)
   endif()
 
   if(ENABLE_LLVM)
-    create_standard_test(NAME jit_tutorial SOURCES test_jit_tutorial.cpp)
+    # Memory checking the JIT Tutorial is too costly, so just build standard test
+    create_standard_test(NAME jit_tutorial SOURCES test_jit_tutorial.cpp
+                         SKIP_MEMCHECK)
   endif()
 endif()
 
