@@ -51,7 +51,7 @@ paste the example code into a file named ``foo_jit_chem.cpp`` and run:
 
 .. code:: bash
 
-  g++ -o foo_jit_chem foo_jit_chem.cpp -I/usr/local/micm-3.2.0/include -std=c++20 `llvm-config --cxxflags --ldflags --system-libs --libs support core orcjit native irreader` -std=c++20 -fexceptions
+  g++ -o foo_jit_chem foo_jit_chem.cpp -I/usr/local/micm-3.2.0/include `llvm-config --cxxflags --ldflags --system-libs --libs support core orcjit native irreader` -std=c++20 -fexceptions
   ./foo_jit_chem
 
 Line-by-line explanation
