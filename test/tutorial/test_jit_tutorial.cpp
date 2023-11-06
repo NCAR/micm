@@ -1,6 +1,5 @@
 #include <chrono>
 #include <iostream>
-#include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
