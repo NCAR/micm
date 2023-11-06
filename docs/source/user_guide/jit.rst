@@ -41,18 +41,18 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
 
 .. tab-set::
 
-    .. tab-item:: OpenAtmos Configuration reading
-
-        .. raw:: html
-
-            <div class="download-div">
-              <a href="../_static/tutorials/carbon_bond_5.zip" download>
-                <button class="download-button">Download zip configuration</button>
-              </a>
-            </div>
+    .. tab-item:: JIT-compiled Rosenbrock Solver
 
         .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
           :language: cpp
+
+To build and run the example using GNU (assuming the default install location), copy and
+paste the example code into a file named ``foo_jit_chem.cpp`` and run:
+
+.. code:: bash
+
+  g++ -o foo_jit_chem foo_jit_chem.cpp -I/usr/local/micm-3.2.0/include `llvm-config --cxxflags --ldflags --system-libs --libs support core orcjit native irreader` -std=c++20 -fexceptions
+  ./foo_jit_chem
 
 Line-by-line explanation
 ------------------------
