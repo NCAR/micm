@@ -976,7 +976,7 @@ namespace micm
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
-    } 
+    }
 
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
     /// @param object the object whose keys need to be validated
@@ -1032,7 +1032,7 @@ namespace micm
             sorted_object_keys.begin(),
             sorted_object_keys.end(),
             std::back_inserter(missing_keys));
-        for(auto &key : missing_keys)
+        for (auto& key : missing_keys)
           std::cerr << "Missing required key '" << key << "' in object: " << object << std::endl;
 
         return ConfigParseStatus::RequiredKeyNotFound;
@@ -1051,8 +1051,8 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
-          std::cerr << "Non-standard key '" << key <<"' found in object" << object << std::endl;
-        
+          std::cerr << "Non-standard key '" << key << "' found in object" << object << std::endl;
+
           return ConfigParseStatus::ContainsNonStandardKey;
         }
       }
