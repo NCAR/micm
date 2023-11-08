@@ -28,8 +28,10 @@ void testProcessSet(const std::function<ProcessSetPolicy(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
 
-  micm::State<MatrixPolicy, SparseMatrixPolicy> state(micm::StateParameters{
-      .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
+  micm::State<MatrixPolicy, SparseMatrixPolicy> state(
+      micm::StateParameters{ .number_of_grid_cells_ = 2,
+                             .number_of_rate_constants_ = 3,
+                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
