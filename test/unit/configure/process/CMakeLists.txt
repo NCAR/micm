@@ -15,4 +15,4 @@ create_standard_test(NAME surface_config SOURCES test_surface_config.cpp)
 create_standard_test(NAME ternary_chemical_activation_config SOURCES test_ternary_chemical_activation_config.cpp)
 create_standard_test(NAME troe_config SOURCES test_troe_config.cpp)
 create_standard_test(NAME tunneling_config SOURCES test_tunneling_config.cpp)
-
+create_standard_test(NAME user_defined_config SOURCES test_user_defined_config.cpp)

@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "invaild yield name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "USER_DEFINED",
+          "MUSICA name": "foo",
+          "reactants": {
+            "foo" : { }
+          },
+          "products": {
+            "bar": { "Yield": 1.0 }
+          }
+        }
+      ]
+    }
+  ]
+}
