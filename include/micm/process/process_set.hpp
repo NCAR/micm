@@ -71,6 +71,11 @@ namespace micm
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
+
+    /// @brief Returns the set of species used in a set of processes
+    /// @param processes The set of processes
+    /// @return The set of species used in the set of processes
+    static std::set<std::string> SpeciesUsed(const std::vector<Process>& processes);
   };
 
   inline ProcessSet::ProcessSet(
@@ -331,5 +336,18 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
+  }
+
+  std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
+  {
+    std::set<std::string> used_species;
+    for (auto &process : processes)
+    {
+      for (auto &reactant : process.reactants_)
+        used_species.insert(reactant.name_);
+      for (auto &product : process.products_)
+        used_species.insert(product.first.name_);
+    }
+    return used_species;
   }
 }  // namespace micm
