@@ -12,7 +12,7 @@ TEST(UserDefinedConfig, DetectsInvalidConfig)
   status = solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_products");
   EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
   status = solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_MUSICA_name");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);  
+  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
 }
 
 TEST(UserDefinedConfig, ParseConfig)
@@ -55,14 +55,15 @@ TEST(UserDefinedConfig, ParseConfig)
         dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[1].rate_constant_.get());
     EXPECT_EQ(photo_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(photo_rate_constant->CustomParameters()[0], "USER.bar");
-  }  
+  }
 }
 
 TEST(PhotolysisConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/user_defined/contains_nonstandard_key");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/user_defined/contains_nonstandard_key");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
 
@@ -70,7 +71,8 @@ TEST(PhotolysisConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_product_coef");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_product_coef");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
 
@@ -78,6 +80,7 @@ TEST(PhotolysisConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_reactant_coef");
+  micm::ConfigParseStatus status =
+      solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_reactant_coef");
   EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }
