@@ -54,10 +54,10 @@ namespace micm
     double absolute_tolerance_{ 1e-3 };
     double relative_tolerance_{ 1e-4 };
 
-    size_t number_of_grid_cells_{ 1 };  // Number of grid cells to solve simultaneously
-    bool reorder_state_{ true };        // Reorder state during solver construction to minimize LU fill-in
-    bool check_singularity_{ false };   // Check for singular A matrix in linear solve of A x = b
-    bool ignore_unused_species_{ false }; // Allow unused species to be included in state and solve
+    size_t number_of_grid_cells_{ 1 };     // Number of grid cells to solve simultaneously
+    bool reorder_state_{ true };           // Reorder state during solver construction to minimize LU fill-in
+    bool check_singularity_{ false };      // Check for singular A matrix in linear solve of A x = b
+    bool ignore_unused_species_{ false };  // Allow unused species to be included in state and solve
 
     // Print RosenbrockSolverParameters to console
     void print() const;

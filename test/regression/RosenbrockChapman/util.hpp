@@ -92,9 +92,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::move(processes),
-      options);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::move(processes), options);
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -108,9 +106,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::move(processes),
-      options);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::move(processes), options);
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -124,9 +120,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::move(processes),
-      options);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::move(processes), options);
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -136,13 +130,12 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
+  auto options =
+      micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::move(processes),
-      options);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::move(processes), options);
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -152,11 +145,10 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
+  auto options =
+      micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::move(processes),
-      options);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::move(processes), options);
 }

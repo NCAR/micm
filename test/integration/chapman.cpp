@@ -35,11 +35,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
   options.ignore_unused_species_ = true;
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
-    solver_params.system_,
-    std::move(solver_params.processes_),
-    options
-  };
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
+                                                                 std::move(solver_params.processes_),
+                                                                 options };
 
   micm::State state = solver.GetState();
 

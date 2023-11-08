@@ -345,11 +345,11 @@ namespace micm
   std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
   {
     std::set<std::string> used_species;
-    for (auto &process : processes)
+    for (auto& process : processes)
     {
-      for (auto &reactant : process.reactants_)
+      for (auto& reactant : process.reactants_)
         used_species.insert(reactant.name_);
-      for (auto &product : process.products_)
+      for (auto& product : process.products_)
         used_species.insert(product.first.name_);
     }
     return used_species;
