@@ -20,7 +20,7 @@ RUN mkdir /build \
         -D CMAKE_BUILD_TYPE=release \
         -D ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
-      && make install -j
+      && make install -j 8
 
 # now test if we can use the installed files
 RUN cd /micm/test/integration/cmake/find_package \

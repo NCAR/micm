@@ -23,12 +23,13 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   auto quz = micm::Species("quz");
   auto quuz = micm::Species("quuz");
   auto qux = micm::Species("qux");
+  auto corge = micm::Species("corge");
   qux.parameterize_ = [](const micm::Conditions& c) { return c.air_density_ * 0.72; };
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz } };
+  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
 
   micm::State<MatrixPolicy, SparseMatrixPolicy> state(micm::StateParameters{
-      .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz" } });
+      .number_of_grid_cells_ = 2, .number_of_rate_constants_ = 3, .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
   micm::Process r1 =
       micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
@@ -38,12 +39,23 @@ void testProcessSet(const std::function<ProcessSetPolicy(
 
   micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
 
+  auto used_species = ProcessSetPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
+
+  EXPECT_EQ(used_species.size(), 6);
+  EXPECT_TRUE(used_species.contains("foo"));
+  EXPECT_TRUE(used_species.contains("bar"));
+  EXPECT_TRUE(used_species.contains("baz"));
+  EXPECT_TRUE(used_species.contains("quz"));
+  EXPECT_TRUE(used_species.contains("quuz"));
+  EXPECT_TRUE(used_species.contains("qux"));
+  EXPECT_FALSE(used_species.contains("corge"));
+
   ProcessSetPolicy set = create_set(std::vector<micm::Process>{ r1, r2, r3 }, state);
 
   EXPECT_EQ(state.variables_.size(), 2);
-  EXPECT_EQ(state.variables_[0].size(), 5);
-  state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5 };
-  state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5 };
+  EXPECT_EQ(state.variables_[0].size(), 6);
+  state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
+  state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
   MatrixPolicy<double> rate_constants{ 2, 3 };
   rate_constants[0] = { 10.0, 20.0, 30.0 };
   rate_constants[1] = { 110.0, 120.0, 130.0 };

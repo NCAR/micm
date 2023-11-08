@@ -98,6 +98,19 @@ namespace micm
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
 
     std::size_t index = 0;
+    auto used_species = ProcessSetPolicy::SpeciesUsed(processes);
+    auto available_species = system.UniqueNames();
+    std::sort(available_species.begin(), available_species.end());
+    std::set<std::string> unused_species;
+    std::set_difference(available_species.begin(), available_species.end(), used_species.begin(), used_species.end(), std::inserter(unused_species, unused_species.begin()));
+    if (unused_species.size() > 0 && !parameters_.ignore_unused_species_)
+    {
+      std::string err_msg = "Unused species in chemical system:";
+      for (auto& species: unused_species)
+        err_msg += " '" + species + "'";
+      err_msg += ". Set solver parameter ignore_unused_species_ to allow unused species in solve.";
+      throw std::runtime_error(err_msg);
+    }
     for (auto& name : system.UniqueNames())
       variable_map[name] = index++;
 
