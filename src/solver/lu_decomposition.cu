@@ -166,7 +166,7 @@ namespace micm{
 
            // call kernel
             auto startTime = std::chrono::high_resolution_clock::now();
-            //DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
             //cudaDeviceSynchronize();
             auto endTime = std::chrono::high_resolution_clock::now();
             auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
@@ -174,15 +174,15 @@ namespace micm{
             cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
           
         //clean up 
-        cudaFree(d_A); 
-        cudaFree(d_L); 
-        cudaFree(d_U); 
-        cudaFree(d_do_aik); 
-        cudaFree(d_aik);
-        cudaFree(d_do_aki); 
-        cudaFree(d_aki); 
-        cudaFree(d_uii); 
-        cudaFree(device); 
+        // cudaFree(d_A); 
+        // cudaFree(d_L); 
+        // cudaFree(d_U); 
+        // cudaFree(d_do_aik); 
+        // cudaFree(d_aik);
+        // cudaFree(d_do_aki); 
+        // cudaFree(d_aki); 
+        // cudaFree(d_uii); 
+        // cudaFree(device); 
         return kernel_duration; 
     }//end kernelDriver
  }//end cuda 
