@@ -158,12 +158,12 @@ namespace micm{
             cudaMemcpy(&(device->lki_nkj_), &d_lki_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lkj_uji_), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
-            std::cout<< "segment fault after all maloc??"<<std::endl; 
+            std::cout<< "segment fault after all maloc1??"<<std::endl; 
             //total number of threads is number of blocks in sparseMatrix A 
             size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             device->n_grids_ = sparseMatrix.n_grids_;  
             device->niLU_size_ = solver.niLU_size_; 
-            std::cout<< "segment fault after all maloc??"<<std::endl; 
+            std::cout<< "segment fault after all maloc2??"<<std::endl; 
            // call kernel
             auto startTime = std::chrono::high_resolution_clock::now();
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
