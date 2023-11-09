@@ -125,6 +125,8 @@ namespace micm{
             cudaMalloc(&d_lki_nkj,sizeof(std::pair<size_t, size_t>)* solver.lki_nkj_size_); 
             cudaMalloc(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size_);
             cudaMalloc(&device, sizeof(DecomposeDevice)); 
+            
+            std::cout<< "Segment fault here???"<<std::endl; 
 
             //transfer data from host to device 
             cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double)* sparseMatrix.A_size_, cudaMemcpyHostToDevice); 
@@ -160,13 +162,13 @@ namespace micm{
             device->niLU_size_ = solver.niLU_size_; 
 
            // call kernel
-            auto startTime = std::chrono::high_resolution_clock::now();
-            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
-            cudaDeviceSynchronize();
-            auto endTime = std::chrono::high_resolution_clock::now();
-            auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-            cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
-            cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
+            // auto startTime = std::chrono::high_resolution_clock::now();
+            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
+            // cudaDeviceSynchronize();
+            // auto endTime = std::chrono::high_resolution_clock::now();
+            // auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+            // cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
+            // cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
           
         //clean up 
         cudaFree(d_A); 
