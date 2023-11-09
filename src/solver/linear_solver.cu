@@ -11,11 +11,6 @@ struct SolveDevice{
     double* upper_matrix_; 
     double* b_; 
     double* x_;
-    size_t n_grids_;
-    size_t b_column_counts_;
-    size_t x_column_counts_;
-    size_t nLij_Lii_size_;
-    size_t nUij_Uii_size_;
 };
 namespace micm{
     namespace cuda{
@@ -128,15 +123,6 @@ __global__ void SolveKernel(SolveDevice* device,
     cudaMemcpy(&(device->b_), &d_b, sizeof(double*), cudaMemcpyHostToDevice); 
     cudaMemcpy(&(device->x_),&d_x, sizeof(double*), cudaMemcpyHostToDevice);
     
-    std::cout << "segment fault after all linear solver cuda copy??"<<std::endl; 
-
-    // device->n_grids_= denseMatrix.n_grids_;
-    // device->b_column_counts_ = denseMatrix.b_column_counts_; 
-    // device->x_column_counts_ = denseMatrix.x_column_counts_;
-    // device->nLij_Lii_size_ = linearSolver.nLij_Lii_size_;
-    // device->nUij_Uii_size_ = linearSolver.nUij_Uii_size_;
-    
-    std::cout << "segment fault before linear solver kernel run??"<<std::endl; 
     //kernel call 
     size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
     SolveKernel<<<num_block, BLOCK_SIZE>>>(device, 

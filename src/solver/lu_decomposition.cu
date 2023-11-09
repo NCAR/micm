@@ -21,8 +21,6 @@ struct DecomposeDevice{
     std::pair<size_t, size_t>* lij_ujk_;
     std::pair<size_t, size_t>* lki_nkj_; 
     std::pair<size_t, size_t>* lkj_uji_;
-    size_t n_grids_;
-    size_t niLU_size_;
 }; 
 namespace micm{
     namespace cuda{        
@@ -126,12 +124,8 @@ namespace micm{
             cudaMalloc(&d_lkj_uji,sizeof(std::pair<size_t, size_t>)* solver.lkj_uji_size_);
             cudaMalloc(&device, sizeof(DecomposeDevice)); 
             
-            std::cout<< "Segment fault here???"<<std::endl; 
-
             //transfer data from host to device 
-            cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double)* sparseMatrix.A_size_, cudaMemcpyHostToDevice); 
-            std::cout<<"segment fault after sparseMatrix A???"<<std::endl;
-            
+            cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double)* sparseMatrix.A_size_, cudaMemcpyHostToDevice);             
             cudaMemcpy(d_L, sparseMatrix.L_, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_U, sparseMatrix.U_, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_do_aik, solver.do_aik_, sizeof(char)* solver.do_aik_size_, cudaMemcpyHostToDevice); 
@@ -157,25 +151,19 @@ namespace micm{
             cudaMemcpy(&(device->lij_ujk_), &d_lij_ujk, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lki_nkj_), &d_lki_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             cudaMemcpy(&(device->lkj_uji_), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
-            
-            std::cout<< "segment fault after all maloc1??"<<std::endl; 
-            std::cout << "sparseMatrix n_grid: "<< sparseMatrix.n_grids_<<std::endl;
-            std::cout << "niLu size: "<< solver.niLU_size_<<std::endl;
+        
             //total number of threads is number of blocks in sparseMatrix A 
             size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE; 
-            // device->n_grids_ = sparseMatrix.n_grids_;  
-            // device->niLU_size_ = solver.niLU_size_; 
-            std::cout<< "segment fault after all maloc2??"<<std::endl; 
+          
            // call kernel
             auto startTime = std::chrono::high_resolution_clock::now();
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, sparseMatrix.n_grids_, solver.niLU_size_); 
             cudaDeviceSynchronize();
             auto endTime = std::chrono::high_resolution_clock::now();
             auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-            std::cout<< "segment fault after kernel run??"<<std::endl; 
+           
             cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
-            std::cout<< "segment fault after last cudaMemcpy??"<<std::endl; 
         //clean up 
         // cudaFree(d_A); 
         // cudaFree(d_L); 
