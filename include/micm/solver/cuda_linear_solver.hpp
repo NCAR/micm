@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <functional>
 #include <micm/solver/linear_solver.hpp> 
 #include <micm/solver/lu_decomposition.hpp>
@@ -19,9 +20,9 @@ namespace micm{
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value, const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
         : linearSolver(matrix, initial_value, create_lu_decomp); 
        
-       template<template<class> class MatrixPolicy> 
+        template<template<class> class MatrixPolicy> 
         requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
-        void Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
+        std::chrono::nanoseconds Solve(const MatrixPolicy<T>&b, MatrixPolicy<T>& x)
         {
             CudaLinearSolverParam linearSolver;
             CudaSparseMatrixParam sparseMatrix; 
@@ -46,7 +47,7 @@ namespace micm{
             denseMatrix.b_column_counts_ = b[0].size(); 
             denseMatrix.x_column_counts_= x[0].size();
             //calling kernel driver
-            micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
+            return micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
         };
     };
 }//end micm

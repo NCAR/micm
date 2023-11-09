@@ -77,7 +77,7 @@ __global__ void SolveKernel(SolveDevice* device,
         }
     }
 }
-    void SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix)
+    std::chrono::nanoseconds SolveKernelDriver(CudaLinearSolverParam& linearSolver,CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix)
     {
     //create device pointer
     std::pair<size_t, size_t>* d_nLij_Lii; 
@@ -125,6 +125,7 @@ __global__ void SolveKernel(SolveDevice* device,
     
     //kernel call 
     size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    auto startTime = std::chrono::high_resolution_clock::now();
     SolveKernel<<<num_block, BLOCK_SIZE>>>(device, 
                                           denseMatrix.n_grids_, 
                                           denseMatrix.b_column_counts_, 
@@ -132,6 +133,8 @@ __global__ void SolveKernel(SolveDevice* device,
                                           linearSolver.nLij_Lii_size_,
                                           linearSolver.nUij_Uii_size_);
     cudaDeviceSynchronize();
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
     cudaMemcpy(denseMatrix.x_, d_x, sizeof(double)* denseMatrix.x_size_, cudaMemcpyDeviceToHost);
 
     //clean up 
@@ -144,6 +147,7 @@ __global__ void SolveKernel(SolveDevice* device,
     cudaFree(d_b); 
     cudaFree(d_x);
     cudaFree(device);
+    return kernel_duration;
     }
   }//end cuda 
 }// end micm 

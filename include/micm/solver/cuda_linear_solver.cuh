@@ -5,7 +5,7 @@ namespace micm
 {
   namespace cuda
   {
-    void SolveKernelDriver(
+    std::chrono::nanoseconds SolveKernelDriver(
      CudaLinearSolverParam& linearSolver,
      CudaSparseMatrixParam& sparseMatrix, 
      CudaMatrixParam& denseMatrix);

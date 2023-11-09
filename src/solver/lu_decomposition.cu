@@ -161,7 +161,6 @@ namespace micm{
             cudaDeviceSynchronize();
             auto endTime = std::chrono::high_resolution_clock::now();
             auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-           
             cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
         //clean up 
