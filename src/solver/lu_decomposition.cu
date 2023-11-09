@@ -26,7 +26,7 @@ struct DecomposeDevice{
 }; 
 namespace micm{
     namespace cuda{        
-        __global__ void DecomposeKernel(DecomposeDevice* device)
+        __global__ void DecomposeKernel(DecomposeDevice* device, size_t n_grids, size_t niLU_size)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             double* A = device->A_; 
@@ -46,9 +46,9 @@ namespace micm{
             size_t lkj_uji_offset = 0; 
             size_t uii_offset = 0; 
             
-            if (tid < device->n_grids_){
+            if (tid < n_grids){
                 //loop through every element in niLU 
-                for (size_t i = 0; i < device->niLU_size_; i++){
+                for (size_t i = 0; i < niLU_size; i++){
                     //upper triangular matrix 
                     auto inLU = device->niLU_[i]; 
                     for (size_t iU = 0; iU < inLU.second; ++iU){
@@ -163,12 +163,12 @@ namespace micm{
             std::cout << "niLu size: "<< solver.niLU_size_<<std::endl;
             //total number of threads is number of blocks in sparseMatrix A 
             size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE; 
-            device->n_grids_ = sparseMatrix.n_grids_;  
-            device->niLU_size_ = solver.niLU_size_; 
+            // device->n_grids_ = sparseMatrix.n_grids_;  
+            // device->niLU_size_ = solver.niLU_size_; 
             std::cout<< "segment fault after all maloc2??"<<std::endl; 
            // call kernel
             auto startTime = std::chrono::high_resolution_clock::now();
-            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
+            DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, sparseMatrix.n_grids_, solver.niLU_size_); 
             cudaDeviceSynchronize();
             auto endTime = std::chrono::high_resolution_clock::now();
             auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
