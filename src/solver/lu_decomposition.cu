@@ -162,13 +162,13 @@ namespace micm{
             device->niLU_size_ = solver.niLU_size_; 
 
            // call kernel
-            // auto startTime = std::chrono::high_resolution_clock::now();
-            // DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
-            // cudaDeviceSynchronize();
-            // auto endTime = std::chrono::high_resolution_clock::now();
-            // auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-            // cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
-            // cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
+            auto startTime = std::chrono::high_resolution_clock::now();
+            //DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
+            //cudaDeviceSynchronize();
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+            cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
+            cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
           
         //clean up 
         cudaFree(d_A); 
