@@ -159,6 +159,8 @@ namespace micm{
             cudaMemcpy(&(device->lkj_uji_), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice); 
             
             std::cout<< "segment fault after all maloc1??"<<std::endl; 
+            std::cout << "sparseMatrix n_grid: "<< sparseMatrix.n_grids_<<std::endl;
+            std::cout << "niLu size: "<< solver.niLU_size_<<std::endl;
             //total number of threads is number of blocks in sparseMatrix A 
             size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             device->n_grids_ = sparseMatrix.n_grids_;  
