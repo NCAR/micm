@@ -8,14 +8,14 @@
 #ifdef USE_CUDA
 #include <micm/solver/cuda_linear_solver.cuh>
 namespace micm{
-    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+    template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
     class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
     public:
         //constructor
         CudaLinearSolver(){};
 
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value): LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> (matrix, initial_value){};
-      
+    
         CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value, const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
         : linearSolver(matrix, initial_value, create_lu_decomp); 
        

@@ -70,6 +70,7 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
+    std::count << "constructor called here!"<<endl; 
     auto lu = lu_decomp_.GetLUMatrices(matrix, initial_value);
     lower_matrix_ = std::move(lu.first);
     upper_matrix_ = std::move(lu.second);
