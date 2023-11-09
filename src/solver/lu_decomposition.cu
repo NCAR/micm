@@ -130,7 +130,7 @@ namespace micm{
 
             //transfer data from host to device 
             cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double)* sparseMatrix.A_size_, cudaMemcpyHostToDevice); 
-            std::cout<<"segment fault after sparseMatrix A???"<<std::endl
+            std::cout<<"segment fault after sparseMatrix A???"<<std::endl;
             
             cudaMemcpy(d_L, sparseMatrix.L_, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyHostToDevice); 
             cudaMemcpy(d_U, sparseMatrix.U_, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyHostToDevice); 
