@@ -163,16 +163,17 @@ namespace micm{
             size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE; 
             device->n_grids_ = sparseMatrix.n_grids_;  
             device->niLU_size_ = solver.niLU_size_; 
-
+            std::cout<< "segment fault after all maloc??"<<std::endl; 
            // call kernel
             auto startTime = std::chrono::high_resolution_clock::now();
             DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device); 
-            //cudaDeviceSynchronize();
+            cudaDeviceSynchronize();
             auto endTime = std::chrono::high_resolution_clock::now();
             auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+            std::cout<< "segment fault after kernel run??"<<std::endl; 
             cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double)* sparseMatrix.L_size_, cudaMemcpyDeviceToHost); 
             cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double)* sparseMatrix.U_size_, cudaMemcpyDeviceToHost); 
-          
+            std::cout<< "segment fault after last cudaMemcpy??"<<std::endl; 
         //clean up 
         // cudaFree(d_A); 
         // cudaFree(d_L); 
