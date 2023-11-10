@@ -485,8 +485,8 @@ namespace micm
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
+          UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -838,8 +838,8 @@ namespace micm
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
+          UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -873,13 +873,13 @@ namespace micm
       }
 
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
-      
+
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
+          UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -911,13 +911,13 @@ namespace micm
       }
 
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
-      
+
       std::string name = "USER." + object[MUSICA_NAME].get<std::string>();
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
-      std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
+      std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
+          UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
