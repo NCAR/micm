@@ -12,6 +12,8 @@ namespace micm
   {
     /// @brief Label for the reaction used to identify user-defined parameters
     std::string label_;
+    /// @brief Scaling factor to apply to user-provided rate constants
+    double scaling_factor_{ 1.0 };
   };
 
   /// @brief A photolysis rate constant
@@ -75,7 +77,7 @@ namespace micm
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return (double)*custom_parameters;
+    return (double)*custom_parameters * parameters_.scaling_factor_;
   }
 
   inline std::vector<std::string> UserDefinedRateConstant::CustomParameters() const
