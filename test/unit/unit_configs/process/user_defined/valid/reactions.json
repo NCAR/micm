@@ -25,7 +25,8 @@
           },
           "products": {
             "bar" : { }
-          } 
+          }, 
+          "scaling factor": 2.5
         }
       ]
     }

@@ -25,7 +25,6 @@ namespace micm
    public:
     const TunnelingRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor
     TunnelingRateConstant();
 

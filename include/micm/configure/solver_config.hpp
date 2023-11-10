@@ -458,7 +458,7 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
-      const std::string SCALING_FACTOR = "scaling_factor";
+      const std::string SCALING_FACTOR = "scaling factor";
 
       auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
       if (status != ConfigParseStatus::Success)
@@ -479,17 +479,14 @@ namespace micm
         return products.first;
       }
 
-      if (object.contains(SCALING_FACTOR))
-      {
-        std::cerr << "Scaling factor supplied to photolysis rate. This is not yet implemented." << std::endl;
-      }
+      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -835,17 +832,14 @@ namespace micm
                   << std::endl;
       }
 
-      if (object.contains(SCALING_FACTOR))
-      {
-        std::cerr << "Scaling factor supplied to emission rate. This is not yet implemented." << std::endl;
-      }
+      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -855,8 +849,9 @@ namespace micm
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
+      const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, {});
+      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -877,12 +872,14 @@ namespace micm
         return products.first;
       }
 
+      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;
@@ -893,8 +890,9 @@ namespace micm
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
+      const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, {});
+      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
       if (status != ConfigParseStatus::Success)
       {
         return status;
@@ -912,12 +910,14 @@ namespace micm
         return products.first;
       }
 
+      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      
       std::string name = "USER." + object[MUSICA_NAME].get<std::string>();
 
-      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name }));
+      user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr =
-          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name });
+          std::make_unique<UserDefinedRateConstant>(UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
       return ConfigParseStatus::Success;

@@ -19,9 +19,9 @@ namespace micm
   /// @brief A photolysis rate constant
   class UserDefinedRateConstant : public RateConstant
   {
+   public:
     UserDefinedRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor.
     UserDefinedRateConstant();
 
