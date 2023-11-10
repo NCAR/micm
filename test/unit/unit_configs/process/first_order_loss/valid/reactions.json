@@ -13,7 +13,8 @@
         {
           "type": "FIRST_ORDER_LOSS",
           "species": "bar",
-          "MUSICA name": "bar"
+          "MUSICA name": "bar",
+          "scaling factor": 2.5
         }
       ]
     }

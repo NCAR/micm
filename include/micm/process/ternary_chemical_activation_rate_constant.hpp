@@ -35,7 +35,6 @@ namespace micm
    public:
     const TernaryChemicalActivationRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor
     TernaryChemicalActivationRateConstant();
 

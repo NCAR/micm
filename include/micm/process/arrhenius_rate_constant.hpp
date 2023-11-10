@@ -29,7 +29,6 @@ namespace micm
    public:
     const ArrheniusRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor
     ArrheniusRateConstant();
 

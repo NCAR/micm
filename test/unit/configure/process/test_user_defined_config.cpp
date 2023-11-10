@@ -41,6 +41,7 @@ TEST(UserDefinedConfig, ParseConfig)
         dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[0].rate_constant_.get());
     EXPECT_EQ(photo_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(photo_rate_constant->CustomParameters()[0], "USER.foo");
+    EXPECT_EQ(photo_rate_constant->parameters_.scaling_factor_, 1.0);
   }
 
   // second reaction
@@ -55,6 +56,7 @@ TEST(UserDefinedConfig, ParseConfig)
         dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[1].rate_constant_.get());
     EXPECT_EQ(photo_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(photo_rate_constant->CustomParameters()[0], "USER.bar");
+    EXPECT_EQ(photo_rate_constant->parameters_.scaling_factor_, 2.5);
   }
 }
 
