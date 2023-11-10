@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "invalid quantity name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "USER_DEFINED",
+          "MUSICA name": "foo",
+          "reactants": {
+            "foo" : { "Qty": 2.0 }
+          },
+          "products": {
+            "bar": {}
+          }
+        }
+      ]
+    }
+  ]
+}

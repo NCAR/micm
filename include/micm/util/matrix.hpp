@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -188,14 +189,20 @@ namespace micm
       return Proxy(*this, x * y_dim_, y_dim_);
     }
 
-    void ForEach(const std::function<void(T &, T &)> f, Matrix &a)
+    Matrix &operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
+      return *this;
+    }
+
+    void ForEach(const std::function<void(T &, const T &)> f, const Matrix &a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto &elem : data_)
         f(elem, *(a_iter++));
     }
 
-    void ForEach(const std::function<void(T &, T &, T &)> f, Matrix &a, Matrix &b)
+    void ForEach(const std::function<void(T &, const T &, const T &)> f, const Matrix &a, const Matrix &b)
     {
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();

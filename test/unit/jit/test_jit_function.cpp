@@ -380,3 +380,63 @@ TEST(JitFunction, LocalArray)
   EXPECT_EQ(5, func_ptr(1));
   func.exit_on_error_(foo_target.first->remove());
 }
+
+// This test creates several functions with the same name that
+// add a unique number to the function argument and return the sum
+TEST(JitFunction, SameNameFunctions)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
+    EXPECT_TRUE(false);
+  }
+  micm::JitFunction func1 = micm::JitFunction::create(jit.get())
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
+  llvm::Value *const_val = llvm::ConstantInt::get(*(func1.context_), llvm::APInt(64, 2));
+  llvm::Value *ret_val = func1.builder_->CreateNSWAdd(func1.arguments_[0].ptr_, const_val, "add args");
+  func1.builder_->CreateRet(ret_val);
+
+  auto func1_target = func1.Generate();
+  int32_t (*func1_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func1_target.second;
+
+  micm::JitFunction func2 = micm::JitFunction::create(jit.get())
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
+  const_val = llvm::ConstantInt::get(*(func2.context_), llvm::APInt(64, 12));
+  ret_val = func2.builder_->CreateNSWAdd(func2.arguments_[0].ptr_, const_val, "add args");
+  func2.builder_->CreateRet(ret_val);
+
+  auto func2_target = func2.Generate();
+  int32_t (*func2_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func2_target.second;
+
+  micm::JitFunction func3 = micm::JitFunction::create(jit.get())
+                                .name("foobar")
+                                .arguments({ { "foo", micm::JitType::Int32 } })
+                                .return_type(micm::JitType::Int32);
+  const_val = llvm::ConstantInt::get(*(func3.context_), llvm::APInt(64, 24));
+  ret_val = func3.builder_->CreateNSWAdd(func3.arguments_[0].ptr_, const_val, "add args");
+  func3.builder_->CreateRet(ret_val);
+
+  auto func3_target = func3.Generate();
+  int32_t (*func3_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func3_target.second;
+
+  EXPECT_EQ(10, func1_ptr(8));
+  EXPECT_EQ(-6, func1_ptr(-8));
+  EXPECT_EQ(82, func1_ptr(80));
+
+  EXPECT_EQ(20, func2_ptr(8));
+  EXPECT_EQ(4, func2_ptr(-8));
+  EXPECT_EQ(92, func2_ptr(80));
+
+  EXPECT_EQ(32, func3_ptr(8));
+  EXPECT_EQ(16, func3_ptr(-8));
+  EXPECT_EQ(104, func3_ptr(80));
+
+  func1.exit_on_error_(func1_target.first->remove());
+  func2.exit_on_error_(func2_target.first->remove());
+  func3.exit_on_error_(func3_target.first->remove());
+}

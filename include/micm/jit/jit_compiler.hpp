@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Analysis/LoopAccessAnalysis.h"
 #include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
@@ -24,10 +25,14 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/PassManager.h"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Transforms/Utils.h"
+#include "llvm/Transforms/Vectorize.h"
 
 namespace micm
 {
@@ -129,17 +134,36 @@ namespace micm
             // Create a function pass manager.
             auto pass_manager = std::make_unique<llvm::legacy::FunctionPassManager>(&module);
 
+            llvm::VectorizerParams::VectorizationFactor = 4;
+
             // Add some optimizations.
+            // many from
+            // https://www.intel.com/content/www/us/en/developer/articles/technical/optimize-llvm-code-data-analytics-vectorization.html#gs.6xkals
+            // explanation of a few: https://seanforfun.github.io/llvm/2019/08/08/LLVMKaleidoscopeChap3.html
+            // pass_manager->add(llvm::createFunctionInliningPass()); // causes segfault
+            pass_manager->add(llvm::createLoopRotatePass());
+            pass_manager->add(llvm::createLICMPass());
             pass_manager->add(llvm::createInstructionCombiningPass());
             pass_manager->add(llvm::createReassociatePass());
+            pass_manager->add(llvm::createPromoteMemoryToRegisterPass());
             pass_manager->add(llvm::createGVNPass());
             pass_manager->add(llvm::createCFGSimplificationPass());
+            pass_manager->add(llvm::createLoopVectorizePass());
+            pass_manager->add(llvm::createSLPVectorizerPass());
+            // pass_manager->add(llvm::createGlobalOptimizerPass()); // causes segfault
             pass_manager->doInitialization();
 
             // Run the optimizations over all functions in the module being added to
             // the JIT.
             for (auto &function : module)
+            {
               pass_manager->run(function);
+#if 0
+              std::cout << "Generated function definition:" << std::endl;
+              function.print(llvm::errs());
+              std::cout << std::endl;
+#endif
+            }
           });
 
       return std::move(threadsafe_module);

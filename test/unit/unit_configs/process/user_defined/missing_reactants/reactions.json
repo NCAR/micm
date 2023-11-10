@@ -1,0 +1,18 @@
+{
+  "camp-data": [
+    {
+      "name": "User defined reaction missing products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "USER_DEFINED",
+          "MUSICA name" : "foo",
+          "products": { 
+            "foo" : { },
+            "bar" : { "yield": 2.2 }
+          } 
+        }
+      ]
+    }
+  ]
+}

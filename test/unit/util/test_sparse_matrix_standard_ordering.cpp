@@ -17,6 +17,11 @@ TEST(SparseMatrix, ConstZeroMatrix)
   testConstZeroMatrix<StandardOrdering>();
 }
 
+TEST(SparseMatrix, SetScalar)
+{
+  testSetScalar<StandardOrdering>();
+}
+
 TEST(SparseMatrix, SingleBlockMatrix)
 {
   auto matrix = testSingleBlockMatrix<StandardOrdering>();

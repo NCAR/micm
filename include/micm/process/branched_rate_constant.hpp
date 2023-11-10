@@ -37,7 +37,6 @@ namespace micm
     const double k0_;
     const double z_;
 
-   public:
     /// @brief Default constructor
     BranchedRateConstant();
 
