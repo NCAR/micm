@@ -99,8 +99,7 @@ namespace micm
 
     return k0 * air_number_density / (1.0 + k0 * air_number_density / kinf) *
            std::pow(
-               parameters_.Fc_,
-               parameters_.N_ / (parameters_.N_ + std::pow(std::log10(k0 * air_number_density / kinf), 2)));
+               parameters_.Fc_, parameters_.N_ / (parameters_.N_ + std::pow(std::log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm
