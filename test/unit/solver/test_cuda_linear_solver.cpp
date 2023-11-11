@@ -20,6 +20,9 @@ template<class T>
 using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+template<class T>
+using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
+
 
 template<class T>
 using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
@@ -29,6 +32,65 @@ template<class T>
 using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+template<class T>
+using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+
+
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+std::vector<double> linearSolverGenerator(
+    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+    std::size_t number_of_blocks)
+{
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
+
+  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t j = 0; j < 10; ++j)
+      if (i == j || gen_bool())
+        builder = builder.with_element(i, j);
+
+  SparseMatrixPolicy<double> A(builder);
+  MatrixPolicy<double> b(number_of_blocks, 10, 0.0);
+  MatrixPolicy<double> x(number_of_blocks, 10, 100.0);
+
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t j = 0; j < 10; ++j)
+      if (!A.IsZero(i, j))
+        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+          A[i_block][i][j] = get_double();
+
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+      b[i_block][i] = get_double();
+
+  LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
+  solver.Factor(A);
+  solver.template Solve<MatrixPolicy>(b, x);
+  return x.AsVector(); 
+}
+
+//bit to bit variation between CPU and GPU result with randomMatrixVectorOrdering
+void gpuValidation(){
+   std::vector<double> cpu_x = linearSolverGenerator<Group10000VectorMatrix, Group10000SparseVectorMatrix, micm::LinearSolver<double, Group10000SparseVectorMatrix>>(
+      [](const Group10000SparseVectorMatrix<double>& matrix,
+         double initial_value) -> micm::LinearSolver<double, Group10000SparseVectorMatrix> {
+        return micm::LinearSolver<double, Group10000SparseVectorMatrix>{ matrix, initial_value };
+      },
+      10000);
+
+  std::vector<double> gpu_x = linearSolverGenerator<Group10000VectorMatrix, Group10000SparseVectorMatrix, micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>>(
+      [](const Group10000SparseVectorMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group10000SparseVectorMatrix> {
+        return micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>{ matrix, initial_value };
+      },
+      10000);
+
+  for (int i = 0; i < cpu_x.size(); i++){
+    EXPECT_EQ(cpu_x, gpu_x); 
+  }
+}
+
 
 TEST(CudaLinearSolver, DenseMatrixVectorOrdering)
 {
@@ -65,6 +127,7 @@ TEST(CudaLinearSolver, RandomMatrixVectorOrdering)
         return micm::CudaLinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
       },
       4);
+  gpuValidation(); 
 }
 
 TEST(CudaLinearSolver, DiagonalMatrixVectorOrdering)
