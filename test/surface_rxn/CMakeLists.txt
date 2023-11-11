@@ -12,10 +12,3 @@ endif()
 
 ################################################################################
 
-################################################################################
-# Copy test data
-
-add_custom_target(copy_surface_rxn_configs ALL ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_CURRENT_SOURCE_DIR}/configs ${CMAKE_BINARY_DIR}/configs)
-
-################################################################################
