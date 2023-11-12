@@ -1,3 +1,7 @@
+// Copyright (C) 2023 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include <iostream> 
 #include <vector>
 #include <chrono>
