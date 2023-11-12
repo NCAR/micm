@@ -51,5 +51,13 @@ int main(const int argc, const char* argv[])
           "particle number concentration [# m-3]" },
   };
 
+  micm::State state{ state_parameters_ };
+  state.custom_rate_parameters_[0][0] = radius;
+  state.custom_rate_parameters_[0][1] = number_conc;
+  state.conditions_[0].temperature_ = temperature;
+  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
+  micm::SurfaceRateConstant surface{
+   { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
+
   return 0;
 }
