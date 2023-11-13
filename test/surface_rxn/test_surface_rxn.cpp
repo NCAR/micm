@@ -42,50 +42,51 @@ int main(const int argc, const char* argv[])
   micm::Species bar("bar");
   micm::Species baz("baz");
 
-  // define phase
+  // Phase
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz } };
 
+  // System
   auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
+  // Rate
   micm::SurfaceRateConstant surface{
     { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
 
+  // Process
   micm::Process surface_process = micm::Process::create()
                 .reactants({ foo })
                 .products({ micm::yields(bar, bar_yield), micm::yields(baz, baz_yield) })
                 .rate_constant(surface)
                 .phase(gas_phase);
 
-  // auto reactions = std::vector<micm::Process>{ process };
+  auto reactions = std::vector<micm::Process>{ surface_process };
 
-  /*
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixPolicy> solver{
+  // Solver
+  micm::RosenbrockSolver<> solver{
     chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
   };
 
-  auto state_parameters_ = micm::StateParameters{
-    .number_of_grid_cells_ = 1,
-    .number_of_rate_constants_ = 1,
-    .variable_names_ = { "surface" },
-    .custom_rate_parameter_labels_
-      = { "effective radius [m]",
-          "particle number concentration [# m-3]" },
-  };
-
-  micm::State state{ state_parameters_ };
-  state.custom_rate_parameters_[0][0] = radius;
-  state.custom_rate_parameters_[0][1] = number_conc;
+  // State
+  micm::State state = solver.GetState();
   state.conditions_[0].temperature_ = temperature;
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
-  */
-
-  // state.SetConcentration("foo", conc_foo);
+  state.conditions_[0].pressure_ = pressure;
+  state.SetCustomRateParameter("foo.effective radius [m]", radius);
+  state.SetCustomRateParameter("foo.particle number concentration [# m-3]", number_conc);
+  state.SetConcentration(foo, conc_foo);
 
   double time_step = 3600;  // s
   int nstep = 24;
 
   for (int i = 0; i < nstep; ++i)
   {
+    double elapsed_solve_time = 0;
+
+    while (elapsed_solve_time < time_step)
+    {
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
+      elapsed_solve_time = result.final_time_;
+      state.variables_ = result.result_;
+    }
   }
 
   return 0;
