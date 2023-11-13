@@ -67,3 +67,4 @@ namespace micm{
     return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver);
   }
 }  // namespace micm
+#endif
