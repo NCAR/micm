@@ -8,9 +8,8 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
-
-#ifdef USE_CUDA
 #include <micm/solver/cuda_linear_solver.cuh>
+
 namespace micm{
     template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
     class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy> {
@@ -54,4 +53,3 @@ namespace micm{
         };
     };
 }//end micm
-#endif
