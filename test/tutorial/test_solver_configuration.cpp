@@ -15,8 +15,8 @@ void print_header()
             << "," << std::setw(10) << "C" << std::endl;
 }
 
-template<template<class> class T>
-void print_state(double time, State<T>& state)
+template<template<class> class T, template<class> class D>
+void print_state(double time, State<T, D>& state)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
@@ -32,7 +32,7 @@ void print_state(double time, State<T>& state)
 template<typename T>
 void test_solver_type(T solver)
 {
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
   state.variables_[0] = { 1, 0, 0 };
@@ -58,9 +58,8 @@ void test_solver_type(T solver)
   print_header();
   print_state(0, state);
 
-  typename T::SolverStats total_stats;
+  SolverStats total_stats;
   std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
-  ;
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)

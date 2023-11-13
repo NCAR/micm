@@ -4,53 +4,52 @@
 namespace micm
 {
 
-  template<template<class> class MatrixPolicy>
-  inline State<MatrixPolicy>::State()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline State<MatrixPolicy, SparseMatrixPolicy>::State()
       : conditions_(),
-        variable_map_(),
-        custom_rate_parameter_map_(),
-        variable_names_(),
         variables_(),
         custom_rate_parameters_(),
-        rate_constants_()
+        rate_constants_(),
+        jacobian_()
   {
   }
 
-  template<template<class> class MatrixPolicy>
-  inline State<MatrixPolicy>::State(
-      const std::size_t state_size,
-      const std::size_t custom_parameters_size,
-      const std::size_t process_size)
-      : conditions_(1),
-        variable_map_(),
-        custom_rate_parameter_map_(),
-        variable_names_(),
-        variables_(1, state_size, 0.0),
-        custom_rate_parameters_(1, custom_parameters_size, 0.0),
-        rate_constants_(1, process_size, 0.0)
-  {
-  }
-
-  template<template<class> class MatrixPolicy>
-  inline State<MatrixPolicy>::State(const StateParameters& parameters)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline State<MatrixPolicy, SparseMatrixPolicy>::State(const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
+        variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
+        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
+        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0),
         variable_map_(),
         custom_rate_parameter_map_(),
-        variable_names_(parameters.state_variable_names_),
-        variables_(parameters.number_of_grid_cells_, parameters.state_variable_names_.size(), 0.0),
-        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
-        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0)
+        variable_names_(parameters.variable_names_),
+        jacobian_(),
+        lower_matrix_(),
+        upper_matrix_(),
+        state_size_(parameters.variable_names_.size())
   {
     std::size_t index = 0;
-    for (auto& name : parameters.state_variable_names_)
+    for (auto& name : variable_names_)
       variable_map_[name] = index++;
     index = 0;
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
+
+    jacobian_ = build_jacobian<SparseMatrixPolicy>(
+      parameters.nonzero_jacobian_elements_,
+      parameters.number_of_grid_cells_,
+      state_size_
+    );
+    
+    auto lu =  LuDecomposition::GetLUMatrices(jacobian_, 1.0e-30);
+    auto lower_matrix = std::move(lu.first);
+    auto upper_matrix = std::move(lu.second);
+    lower_matrix_ = lower_matrix;
+    upper_matrix_ = upper_matrix;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetConcentrations(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const int num_grid_cells = conditions_.size();
@@ -58,8 +57,8 @@ namespace micm
       SetConcentration({ pair.first }, pair.second);
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetConcentration(const Species& species, double concentration)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, double concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -69,8 +68,8 @@ namespace micm
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -82,16 +81,16 @@ namespace micm
       variables_[i][i_species] = concentration[i];
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetCustomRateParameters(
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -101,8 +100,8 @@ namespace micm
     custom_rate_parameters_[0][param->second] = value;
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())

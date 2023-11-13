@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <micm/util/exit_codes.hpp>
 #include <vector>
 
 #ifndef DEFAULT_VECTOR_SIZE
@@ -52,8 +51,7 @@ namespace micm
       {
         if (other.size() < y_dim_)
         {
-          std::cerr << "Matrix row size mismatch in assignment from vector";
-          std::exit(micm::ExitCodes::InvalidMatrixDimension);
+          throw std::runtime_error("Matrix row size mismatch in assignment from vector.");
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -165,8 +163,7 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    std::cerr << "Invalid vector for matrix assignment\n";
-                    std::exit(micm::ExitCodes::InvalidMatrixDimension);
+                    throw std::runtime_error("Invalid vector for matrix assignment");
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)
@@ -212,7 +209,13 @@ namespace micm
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
-    void ForEach(const std::function<void(T &, T &)> f, VectorMatrix &a)
+    VectorMatrix &operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
+      return *this;
+    }
+
+    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -225,7 +228,7 @@ namespace micm
           f(this_iter[y * L + x], a_iter[y * L + x]);
     }
 
-    void ForEach(const std::function<void(T &, T &, T &)> f, VectorMatrix &a, VectorMatrix &b)
+    void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();

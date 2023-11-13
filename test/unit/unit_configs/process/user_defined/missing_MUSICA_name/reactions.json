@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "User defined reaction missing MUSICA name",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "USER_DEFINED",
+          "reactants": { 
+            "foo" : { },
+            "bar" : { "qty": 2 }
+          },
+          "products": {
+            "baz" : { "yield": 1.4 },
+            "foo" : { }
+          } 
+        }
+      ]
+    }
+  ]
+}

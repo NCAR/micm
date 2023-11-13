@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <cstddef>
 #include <map>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
+#include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -14,33 +17,40 @@
 namespace micm
 {
 
+  /// @brief Invariants that can be used to construct a state
   struct StateParameters
   {
-    std::vector<std::string> state_variable_names_{};
-    std::vector<std::string> custom_rate_parameter_labels_{};
     std::size_t number_of_grid_cells_{ 1 };
     std::size_t number_of_rate_constants_{ 0 };
+    std::vector<std::string> variable_names_{};
+    std::vector<std::string> custom_rate_parameter_labels_{};
+    std::vector<std::size_t> jacobian_diagonal_elements_{};
+    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<template<class> class MatrixPolicy = Matrix>
+  template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
+    /// @brief The concentration of chemicals, varies through time
+    MatrixPolicy<double> variables_;
+    /// @brief Rate paramters particular to user-defined rate constants, may vary in time
+    MatrixPolicy<double> custom_rate_parameters_;
+    /// @brief The reaction rates, may vary in time
+    MatrixPolicy<double> rate_constants_;
+    /// @brief Atmospheric conditions, varies in time
     std::vector<Conditions> conditions_;
+    /// @brief The jacobian structure, varies for each solve
+    SparseMatrixPolicy<double> jacobian_;
+    /// @brief Immutable data required for the state
     std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    MatrixPolicy<double> variables_;
-    MatrixPolicy<double> custom_rate_parameters_;
-    MatrixPolicy<double> rate_constants_;
+    SparseMatrixPolicy<double> lower_matrix_;
+    SparseMatrixPolicy<double> upper_matrix_;
+    size_t state_size_;
 
     /// @brief
     State();
-
-    /// @brief
-    /// @param state_size The number of System state variables
-    /// @param custom_parameters_size The number of custom rate parameters
-    /// @param process_size The number of processes to store rate constants for
-    State(const std::size_t state_size, const std::size_t custom_parameters_size, const std::size_t process_size);
 
     /// @brief
     /// @param parameters State dimension information

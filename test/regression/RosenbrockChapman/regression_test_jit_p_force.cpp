@@ -11,7 +11,8 @@ TEST(RegressionJitRosenbrock, VectorRateConstants)
   auto solver = getThreeStageMultiCellJitChapmanSolver<
       Group3VectorMatrix,
       Group3SparseVectorMatrix,
-      micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(3);
+      micm::JitLinearSolver<3, Group3SparseVectorMatrix>,
+      micm::JitProcessSet<3>>(3);
   testRateConstants<>(solver);
 }
 
@@ -20,6 +21,7 @@ TEST(RegressionJitRosenbrock, VectorForcing)
   auto solver = getThreeStageMultiCellJitChapmanSolver<
       Group3VectorMatrix,
       Group3SparseVectorMatrix,
-      micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(3);
+      micm::JitLinearSolver<3, Group3SparseVectorMatrix>,
+      micm::JitProcessSet<3>>(3);
   testForcing<Group3VectorMatrix>(solver);
 }

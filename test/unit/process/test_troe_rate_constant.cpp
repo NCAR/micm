@@ -6,15 +6,15 @@
 
 TEST(TroeRateConstant, CalculateWithMinimalArugments)
 {
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
-  state.conditions_[0].temperature_ = 301.24;  // [K]
-  state.conditions_[0].air_density_ = 42.2;    // [mol mol-1]
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
+  micm::Conditions conditions{
+    .temperature_ = 301.24,  // [K]
+    .air_density_ = 42.2,    // [mol mol-1]
+  };
   micm::TroeRateConstantParameters troe_params;
   troe_params.k0_A_ = 1.0;
   troe_params.kinf_A_ = 1.0;
   micm::TroeRateConstant troe{ troe_params };
-  auto k = troe.calculate(state.conditions_[0], params);
+  auto k = troe.calculate(conditions);
   double k0 = 1.0;
   double kinf = 1.0;
   EXPECT_EQ(k, 42.2 * k0 / (1.0 + 42.2 * k0 / kinf) * std::pow(0.6, 1.0 / (1 + std::pow(std::log10(42.2 * k0 / kinf), 2))));
@@ -22,11 +22,11 @@ TEST(TroeRateConstant, CalculateWithMinimalArugments)
 
 TEST(TroeRateConstant, CalculateWithAllArugments)
 {
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
-  double temperature = 301.24;
-  state.conditions_[0].temperature_ = temperature;  // [K]
-  state.conditions_[0].air_density_ = 42.2;         // [mol mol-1]
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
+  double temperature = 301.24;  // [K]
+  micm::Conditions conditions{
+    .temperature_ = temperature,
+    .air_density_ = 42.2,  // [mol mol-1]
+  };
   micm::TroeRateConstant troe{ micm::TroeRateConstantParameters{ .k0_A_ = 1.2,
                                                                  .k0_B_ = 2.3,
                                                                  .k0_C_ = 302.3,
@@ -35,7 +35,7 @@ TEST(TroeRateConstant, CalculateWithAllArugments)
                                                                  .kinf_C_ = 402.1,
                                                                  .Fc_ = 0.9,
                                                                  .N_ = 1.2 } };
-  auto k = troe.calculate(state.conditions_[0], params);
+  auto k = troe.calculate(conditions);
   double k0 = 1.2 * std::exp(302.3 / temperature) * std::pow(temperature / 300.0, 2.3);
   double kinf = 2.6 * std::exp(402.1 / temperature) * std::pow(temperature / 300.0, -3.1);
   EXPECT_EQ(
@@ -47,17 +47,16 @@ TEST(TroeRateConstant, CalculateWithAllArugments)
 TEST(TroeRateConstant, AnalyticalTroeExampleAB)
 {
   // based off of the troe rate constants in the analytical integration test:
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
-  state.conditions_[0].temperature_ = 301.24;  // [K]
-  state.conditions_[0].air_density_ = 42.2;    // [mol mol-1]
-
-  auto params = state.custom_rate_parameters_[0].begin();
+  micm::Conditions conditions{
+    .temperature_ = 301.24,  // [K]
+    .air_density_ = 42.2,    // [mol mol-1]
+  };
 
   micm::TroeRateConstantParameters troe_params;
   troe_params.k0_A_ = 4.0e-18;
   micm::TroeRateConstant troe{ troe_params };
 
-  auto k = troe.calculate(state.conditions_[0], params);
+  auto k = troe.calculate(conditions);
 
   double k_0 = 4.0e-18;
   double k_inf = 1;
@@ -70,18 +69,17 @@ TEST(TroeRateConstant, AnalyticalTroeExampleAB)
 TEST(TroeRateConstant, AnalyticalTroeExampleBC)
 {
   // based off of the troe rate constants in the analytical integration test:
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
-  state.conditions_[0].temperature_ = 301.24;  // [K]
-  state.conditions_[0].air_density_ = 42.2;    // [mol mol-1]
-
-  auto params = state.custom_rate_parameters_[0].begin();
+  micm::Conditions conditions{
+    .temperature_ = 301.24,  // [K]
+    .air_density_ = 42.2,    // [mol mol-1]
+  };
 
   micm::TroeRateConstantParameters troe_params{
     .k0_A_ = 1.2e-12, .k0_B_ = 167.0, .k0_C_ = 3.0, .kinf_A_ = 136.0, .kinf_B_ = 5.0, .kinf_C_ = 24.0, .Fc_ = 0.9, .N_ = 0.8
   };
   micm::TroeRateConstant troe{ troe_params };
 
-  auto k = troe.calculate(state.conditions_[0], params);
+  auto k = troe.calculate(conditions);
 
   double k_0 = 1.2e-12 * std::exp(3.0 / 301.24) * std::pow(301.24 / 300.0, 167.0);
   double k_inf = 136.0 * std::exp(24.0 / 301.24) * std::pow(301.24 / 300.0, 5.0);

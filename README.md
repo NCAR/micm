@@ -158,7 +158,7 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.1.0/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.2.0/include -std=c++20
 ./foo_chem
 ```
 

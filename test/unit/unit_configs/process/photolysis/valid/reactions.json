@@ -24,7 +24,8 @@
             "bar": { "yield": 0.5 },
             "foo": { }
           },
-          "MUSICA name": "jbar"
+          "MUSICA name": "jbar",
+          "scaling factor": 2.5
         }
       ]
     }
