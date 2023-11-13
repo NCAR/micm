@@ -66,6 +66,8 @@ html_theme_options = {
         "json_url": "https://ncar.github.io/micm/_static/switcher.json",
         "version_match": release,
     },
+   "pygment_light_style": "tango",
+   "pygment_dark_style": "monokai"
 }
 
 html_css_files = [
@@ -76,3 +78,5 @@ html_css_files = [
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_favicon = '_static/favicon/favicon.ico'

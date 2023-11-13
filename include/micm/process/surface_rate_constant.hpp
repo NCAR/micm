@@ -33,7 +33,6 @@ namespace micm
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
 
-   public:
     /// @brief
     /// @param name A name for this reaction
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
@@ -56,6 +55,11 @@ namespace micm
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
   };
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
@@ -68,6 +72,12 @@ namespace micm
   inline std::unique_ptr<RateConstant> SurfaceRateConstant::clone() const
   {
     return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
+  }
+
+  inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
+  {
+    throw std::runtime_error(
+        "Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
   }
 
   inline double SurfaceRateConstant::calculate(

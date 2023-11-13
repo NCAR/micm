@@ -27,10 +27,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/cmake")
 # Set up include and lib directories
 set(MICM_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
 
-include(GNUInstallDirs)
-set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
-set(INSTALL_MOD_DIR "${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
-
 option(ENABLE_CLANG_TIDY "Enable clang-tiday to format source code" OFF)
 option(ENABLE_MPI "Enable MPI parallel support" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support" OFF)
@@ -54,6 +50,12 @@ if(ENABLE_GPU_TYPE)
 endif()
 
 add_compile_definitions(DEFAULT_VECTOR_SIZE=${DEFAULT_VECTOR_MATRIX_SIZE})
+
+# on ubuntu with clang, an incorrect version of the c++ standard library was being linked
+if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # If the compiler is Clang, use libc++
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
 
 ################################################################################
 # Dependencies
@@ -98,3 +100,9 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 ################################################################################
+
+# on ubuntu with clang, an incorrect version of the c++ standard library was being linked
+if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # If the compiler is Clang, use libc++
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()

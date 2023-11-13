@@ -1,0 +1,27 @@
+{
+  "camp-data": [
+    {
+      "name": "captial Q",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "BRANCHED",
+          "reactants": {
+            "foo" : { "Qty": 2.0 }
+          },
+          "alkoxy products": {
+            "bar": {}
+          },
+          "nitrate products": {
+            "quz": { "yield": 1.0 }
+          },
+          "Y" : 42.3,
+          "X" : 12.3,
+          "a0" : 1.0e-5,
+          "n" : 3
+        }
+      ]
+    }
+  ]
+}

@@ -6,12 +6,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
 void print_header()
 {
   std::cout << std::setw(5) << "time"
@@ -21,8 +15,8 @@ void print_header()
             << "," << std::setw(10) << "C" << std::endl;
 }
 
-template<template<class> class T>
-void print_state(double time, State<T>& state)
+template<template<class> class T, template<class> class D>
+void print_state(double time, State<T, D>& state)
 {
   std::ios oldState(nullptr);
   oldState.copyfmt(std::cout);
@@ -76,13 +70,11 @@ int main()
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixPolicy> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3 },
-    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false)
-  };
+  micm::RosenbrockSolver<> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                   std::vector<micm::Process>{ r1, r2, r3 },
+                                   micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });

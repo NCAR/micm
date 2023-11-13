@@ -2,13 +2,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
-#include<micm/solver/lu_decomposition.hpp>
-#include<micm/util/cuda_param.hpp>
-#include <stdexcept>
+
 #include <chrono>
-#ifdef USE_CUDA
 #include <micm/solver/cuda_lu_decomposition.cuh>
-#endif 
+#include <micm/solver/lu_decomposition.hpp>
+#include <micm/util/cuda_param.hpp>
+#include <stdexcept>
 
 #ifdef USE_CUDA
 namespace micm{
@@ -20,12 +19,10 @@ namespace micm{
     CudaLuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix): LuDecomposition(matrix){};    
 
     template<typename T, template<class> typename SparseMatrixPolicy>
-    requires VectorizableSparse<SparseMatrixPolicy<T>>
-    std::chrono::nanoseconds Decompose(
-        const SparseMatrixPolicy<T>&A, 
-        SparseMatrixPolicy<T>& L, 
-        SparseMatrixPolicy<T>& U) const; 
-    }; 
+    requires VectorizableSparse<SparseMatrixPolicy<T>> std::chrono::nanoseconds
+    Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+    const;
+  };
 
     template<typename T, template<class> class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy<T>>) 
@@ -66,8 +63,7 @@ namespace micm{
         solver.lkj_uji_ =  this->lkj_uji_.data(); 
         solver.lkj_uji_size_ = this->lkj_uji_.size(); 
 
-        //calling kernelSetup function
-        return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver); 
-    }
-}//end micm
-#endif
+    // calling kernelSetup function
+    return micm::cuda::DecomposeKernelDriver(sparseMatrix, solver);
+  }
+}  // namespace micm

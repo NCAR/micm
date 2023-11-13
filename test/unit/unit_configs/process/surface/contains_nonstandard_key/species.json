@@ -1,0 +1,24 @@
+{
+  "camp-data": [
+    {
+      "name": "foo",
+      "type": "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.123,
+      "diffusion coefficient [m2 s-1]" : 2.3e-4
+    },
+    {
+      "name": "bar",
+      "type": "CHEM_SPEC",
+      "molecular weight [kg mol-1]" : 0.321,
+      "diffusion coefficient [m2 s-1]" : 0.4e-5
+    },
+    {
+      "name": "baz",
+      "type": "CHEM_SPEC"
+    },
+    {
+      "name": "quz",
+      "type": "CHEM_SPEC"
+    }
+  ]
+}

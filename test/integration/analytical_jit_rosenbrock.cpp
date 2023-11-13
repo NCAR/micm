@@ -13,7 +13,8 @@ using DefaultSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVector
 using DefaultJitRosenbrockSolver = micm::JitRosenbrockSolver<
     DefaultVectorMatrix,
     DefaultSparseVectorMatrix,
-    micm::JitLinearSolver<1, DefaultSparseVectorMatrix, micm::JitLuDecomposition<1>>>;
+    micm::JitLinearSolver<1, DefaultSparseVectorMatrix, micm::JitLuDecomposition<1>>,
+    micm::JitProcessSet<1>>;
 
 TEST(AnalyticalExamplesJitRosenbrock, Troe)
 {

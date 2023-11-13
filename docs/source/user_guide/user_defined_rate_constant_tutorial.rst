@@ -56,14 +56,14 @@ Adding the custom rate constant is quite simple. Include the header file:
 
 .. code-block:: diff
 
-     #include <micm/process/arrhenius_rate_constant.hpp>
-     #include <micm/process/branched_rate_constant.hpp>
-     #include <micm/process/surface_rate_constant.hpp>
-     #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-     #include <micm/process/troe_rate_constant.hpp>
-     #include <micm/process/tunneling_rate_constant.hpp>
-    +#include <micm/process/user_defined_rate_constant.hpp>
-     #include <micm/solver/rosenbrock.hpp>
+    #include <micm/process/arrhenius_rate_constant.hpp>
+    #include <micm/process/branched_rate_constant.hpp>
+    #include <micm/process/surface_rate_constant.hpp>
+    #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
+    #include <micm/process/troe_rate_constant.hpp>
+    #include <micm/process/tunneling_rate_constant.hpp>
+  + #include <micm/process/user_defined_rate_constant.hpp>
+    #include <micm/solver/rosenbrock.hpp>
 
 
 Then setup the reaction which will use this rate constant:
@@ -194,7 +194,7 @@ Finally, set and upate the rate constants as needed:
              // so we need to track how much time the solver was able to integrate for and continue
              // solving until we finish
              double elapsed_solve_time = 0;
-          +  state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
+             +state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
 
              while (elapsed_solve_time < time_step)
              {
@@ -205,7 +205,7 @@ Finally, set and upate the rate constants as needed:
              }
 
              print_state(time_step * (i + 1), state);
-          +   photo_rate *= 1.5;
+             +photo_rate *= 1.5;
            }
 
 And this is final output. Notice that the concentration of G ends up much higher than in 

@@ -82,4 +82,3 @@ struct CudaSparseMatrixParam{
    const double* upper_matrix_; 
    size_t upper_matrix_size_; 
 };
-#endif

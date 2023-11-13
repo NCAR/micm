@@ -14,7 +14,7 @@ MatrixPolicy<double> testSmallMatrix()
   EXPECT_EQ(matrix[0][0], 41.2);
   EXPECT_EQ(matrix[2][4], 102.3);
 
-  std::vector<double>& data = matrix.AsVector();
+  std::vector<double> &data = matrix.AsVector();
 
   EXPECT_GE(data.size(), 3);
 
@@ -36,7 +36,7 @@ const MatrixPolicy<double> testSmallConstMatrix()
   EXPECT_EQ(const_matrix[0][0], 41.2);
   EXPECT_EQ(const_matrix[2][4], 102.3);
 
-  const std::vector<double>& data = const_matrix.AsVector();
+  const std::vector<double> &data = const_matrix.AsVector();
 
   EXPECT_GE(data.size(), 3);
 
@@ -170,7 +170,7 @@ MatrixPolicy<double> testConversionFromVector()
   std::vector<std::vector<int>> bad_vector = { { 3 }, { 4, 5 }, { 5 } };
 
   MatrixPolicy<int> bad_matrix;
-  EXPECT_DEATH(bad_matrix = bad_vector, "Invalid vector for matrix assignment");
+  EXPECT_ANY_THROW(bad_matrix = bad_vector);
 
   return matrix;
 }
@@ -199,7 +199,7 @@ MatrixPolicy<double> testAssignmentFromVector()
   EXPECT_EQ(matrix[2][2], 65.7);
   EXPECT_EQ(matrix[3][0], 0.0);
 
-  EXPECT_DEATH(matrix[2] = small_other, "Matrix row size mismatch in assignment from vector");
+  EXPECT_ANY_THROW(matrix[2] = small_other);
 
   return matrix;
 }
@@ -224,11 +224,26 @@ MatrixPolicy<double> testForEach()
       sum2 += i * 10.3 + j * 100.5 + i * 1.7 + j * 10.2 - i * 19.5 - j * 32.2;
     }
 
-  matrix.ForEach([&](double a, double b) { result += a + b; }, other);
+  matrix.ForEach([&](double &a, const double &b) { result += a + b; }, other);
   EXPECT_NEAR(sum, result, 1.0e-5);
   result = 0.0;
-  matrix.ForEach([&](double a, double b, double c) { result += a + b - c; }, other, other2);
+  matrix.ForEach([&](double &a, const double &b, const double &c) { result += a + b - c; }, other, other2);
   EXPECT_NEAR(sum2, result, 1.0e-5);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testSetScalar()
+{
+  MatrixPolicy<double> matrix{ 2, 3, 0.0 };
+
+  matrix = 2.0;
+
+  for (auto &elem : matrix.AsVector())
+  {
+    EXPECT_EQ(elem, 2.0);
+  }
 
   return matrix;
 }

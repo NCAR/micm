@@ -29,7 +29,6 @@ namespace micm
    public:
     const ArrheniusRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor
     ArrheniusRateConstant();
 
@@ -46,6 +45,11 @@ namespace micm
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
 
     double calculate(const double& temperature, const double& pressure) const;
   };
@@ -68,6 +72,11 @@ namespace micm
   inline double ArrheniusRateConstant::calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
+  {
+    return calculate(conditions.temperature_, conditions.pressure_);
+  }
+
+  inline double ArrheniusRateConstant::calculate(const Conditions& conditions) const
   {
     return calculate(conditions.temperature_, conditions.pressure_);
   }

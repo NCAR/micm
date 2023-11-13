@@ -1,0 +1,12 @@
+FROM fedora:37
+
+RUN dnf -y update \
+    && dnf -y install \
+        cmake \
+        gcc-c++ \
+        gdb \
+        git \
+        make \
+        zlib-devel \
+        llvm-devel \
+    && dnf clean all

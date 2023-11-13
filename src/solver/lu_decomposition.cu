@@ -1,10 +1,10 @@
 // Copyright (C) 2023 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
-#include <iostream> 
-#include <vector>
 #include <chrono>
-#include <micm/util/cuda_param.hpp> 
+#include <iostream>
+#include <micm/util/cuda_param.hpp>
+#include <vector>
 
 //grouped parameters passing to DecomposeKernel()
 struct DecomposeDevice{
