@@ -1,0 +1,97 @@
+{
+    "camp-data": [
+        {
+            "name": "Chapman",
+            "type": "MECHANISM",
+            "reactions": [
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O2": {}
+                    },
+                    "products": {
+                        "O": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R1"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 48.28552461368,
+                    "reactants": {
+                        "O": {},
+                        "O2": {}
+                    },
+                    "products": {
+                        "O3": {}
+                    },
+                    "MUSICA name": "R2"
+                },
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O3": {}
+                    },
+                    "products": {
+                        "O": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R3"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 949.089383776,
+                    "reactants": {
+                        "O": {},
+                        "O3": {}
+                    },
+                    "products": {
+                        "O2": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R4"
+                },
+                {
+                    "type": "PHOTOLYSIS",
+                    "reactants": {
+                        "O3": {}
+                    },
+                    "products": {
+                        "O1D": {},
+                        "O2": {}
+                    },
+                    "MUSICA name": "R5"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 42817420.803600006,
+                    "reactants": {
+                        "O1D": {},
+                        "M": {}
+                    },
+                    "products": {
+                        "O": {},
+                        "M": {}
+                    },
+                    "MUSICA name": "R6"
+                },
+                {
+                    "type": "ARRHENIUS",
+                    "A": 72265689.12,
+                    "reactants": {
+                        "O1D": {},
+                        "O3": {}
+                    },
+                    "products": {
+                        "O2": {
+                            "yield": 2.0
+                        }
+                    },
+                    "MUSICA name": "R7"
+                }
+            ]
+        }
+    ]
+}
