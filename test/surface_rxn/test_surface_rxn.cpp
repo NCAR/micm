@@ -42,6 +42,9 @@ int main(const int argc, const char* argv[])
   micm::Species bar("bar");
   micm::Species baz("baz");
 
+  // define phase
+  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz } };
+
   auto state_parameters_ = micm::StateParameters{
     .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
@@ -57,7 +60,32 @@ int main(const int argc, const char* argv[])
   state.conditions_[0].temperature_ = temperature;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::SurfaceRateConstant surface{
-   { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
+    { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
+
+  // state.SetConcentration("foo", conc_foo);
+
+  /*
+  Process process = micm::Process::create()
+                   .reactants({ f })
+                   .products({  })
+                   .rate_constant()
+                   .phase(gas_phase);
+
+  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  auto reactions = std::vector<micm::Process>{ process };
+
+
+  micm::RosenbrockSolver<micm::Matrix, SparseMatrixPolicy> solver{
+    chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  };
+  */
+
+  double time_step = 3600;  // s
+  int nstep = 24;
+
+  for (int i = 0; i < nstep; ++i)
+  {
+  }
 
   return 0;
 }
