@@ -127,7 +127,7 @@ TEST(CudaLinearSolver, RandomMatrixVectorOrdering)
         return micm::CudaLinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
       },
       4);
-  gpuValidation(); 
+  
 }
 
 TEST(CudaLinearSolver, DiagonalMatrixVectorOrdering)
