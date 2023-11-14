@@ -24,6 +24,9 @@ TEST(TroeConfig, ParseConfig)
 
   auto& process_vector = solver_params.processes_;
 
+  // Convert Arrhenius parameters from expecting molecules cm-3 to moles m-3
+  const double conv = 1.0e-6 * 6.02214076e23;
+  
   // first reaction
   {
     EXPECT_EQ(process_vector[0].reactants_.size(), 3);
@@ -38,10 +41,11 @@ TEST(TroeConfig, ParseConfig)
     micm::TroeRateConstant* ternary_rate_constant =
         dynamic_cast<micm::TroeRateConstant*>(process_vector[0].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.k0_A_, 1.0);
+    // NVHPC compiler has some round-off error
+    EXPECT_NEAR(params.k0_A_, 1.0 * std::pow(conv, 3), std::pow(conv, 3) * 1e-12);
     EXPECT_EQ(params.k0_B_, 0.0);
     EXPECT_EQ(params.k0_C_, 0.0);
-    EXPECT_EQ(params.kinf_A_, 1.0);
+    EXPECT_EQ(params.kinf_A_, 1.0 * std::pow(conv, 2));
     EXPECT_EQ(params.kinf_B_, 0.0);
     EXPECT_EQ(params.kinf_C_, 0.0);
     EXPECT_EQ(params.Fc_, 0.6);
@@ -61,10 +65,10 @@ TEST(TroeConfig, ParseConfig)
     micm::TroeRateConstant* ternary_rate_constant =
         dynamic_cast<micm::TroeRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.k0_A_, 32.1);
+    EXPECT_EQ(params.k0_A_, 32.1 * std::pow(conv, 2));
     EXPECT_EQ(params.k0_B_, -2.3);
     EXPECT_EQ(params.k0_C_, 102.3);
-    EXPECT_EQ(params.kinf_A_, 63.4);
+    EXPECT_EQ(params.kinf_A_, 63.4 * conv);
     EXPECT_EQ(params.kinf_B_, -1.3);
     EXPECT_EQ(params.kinf_C_, 908.5);
     EXPECT_EQ(params.Fc_, 1.3);

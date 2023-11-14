@@ -52,7 +52,7 @@ namespace micm
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
-    const int num_grid_cells = conditions_.size();
+    const std::size_t num_grid_cells = conditions_.size();
     for (const auto& pair : species_to_concentration)
       SetConcentration({ pair.first }, pair.second);
   }
