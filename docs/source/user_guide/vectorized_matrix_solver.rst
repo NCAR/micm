@@ -75,13 +75,61 @@ Regular, dense matrix ordering
 
 Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solvers like this:
 
-.. code-block:: cpp
-   
-     RosenbrockSolver<> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
-                             std::vector<Process>{ r1, r2, r3 },
-                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 46-50
 
 The empty angle brackets ``<>`` tell the compiler to use the default template paramters. The first two are most important and
 denote the ``MatrixPolicy`` and ``SparseMatrixPolicy`` to be used when we solve. By default, these are :cpp:class:`micm::Matrix`
 and :cpp:class:`micm::SparseMatrix`. The most visible data affected by these paratemeters is the state's 
 :cpp:member:`micm::State::variables_` parameter, representing the concnetration of each of the species. 
+
+After we created that first ``solver``, if we get a state and set the concentration of the species and then print them,
+they are printed in order of grid cell first and then species. Here, when setting the species, read the double as ``grid cell.species``.
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 52-61
+
+.. code-block:: bash
+
+  1.1
+  1.2
+  1.3
+  2.1
+  2.2
+  2.3
+  3.1
+  3.2
+  3.3
+
+But, if we create a vectorized solver, set the same concentrations and print out the state variables, we see that it is organized
+first by species and then by grid cell. Note that we needed to set some partial template speciailizations at the top of the file
+to create thise.
+
+At the top of the file:
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 14-18
+
+and the vectorized solver creation
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 65-78
+
+.. code-block:: bash
+
+  1.1
+  2.1
+  3.1
+  1.2
+  2.2
+  3.2
+  1.3
+  2.3
+  3.3
+
+And that's all you have to do to orgnaize the data by species first. By specifying the template parameter on the 
+solver, each operation will use the same ordering for all of the data sets needed to solver the chemical system.

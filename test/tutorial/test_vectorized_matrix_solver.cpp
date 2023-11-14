@@ -51,10 +51,9 @@ int main()
 
   auto state = solver.GetState();
 
-  // mol m-3
-  state.SetConcentration(a, std::vector<double>(3, 1));
-  state.SetConcentration(b, std::vector<double>(3, 2));
-  state.SetConcentration(c, std::vector<double>(3, 3));
+  state.SetConcentration(a, {1.1, 2.1, 3.1});
+  state.SetConcentration(b, {1.2, 2.2, 3.2});
+  state.SetConcentration(c, {1.3, 2.3, 3.3});
 
   for (auto& elem : state.variables_.AsVector())
   {
@@ -67,17 +66,18 @@ int main()
     System(SystemParameters{ .gas_phase_ = gas_phase }), std::vector<Process>{ r1, r2, r3 }, params
   };
 
-  auto vectorized_state = solver.GetState();
+  auto vectorized_state = vectorized_solver.GetState();
 
-  // mol m-3
-  vectorized_state.SetConcentration(a, std::vector<double>(3, 1));
-  vectorized_state.SetConcentration(b, std::vector<double>(3, 2));
-  vectorized_state.SetConcentration(c, std::vector<double>(3, 3));
+  vectorized_state.SetConcentration(a, {1.1, 2.1, 3.1});
+  vectorized_state.SetConcentration(b, {1.2, 2.2, 3.2});
+  vectorized_state.SetConcentration(c, {1.3, 2.3, 3.3});
 
   for (auto& elem : vectorized_state.variables_.AsVector())
   {
     std::cout << elem << std::endl;
   }
+
+  std::cout << std::endl;
 
   // double k1 = 0.04;
   // double k2 = 3e7;
