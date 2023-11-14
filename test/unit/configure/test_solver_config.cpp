@@ -112,10 +112,10 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
 
   // Convert Arrhenius parameters from expecting molecules cm-3 to moles m-3
   const double conv = 1.0e-6 * 6.02214076e23;
-  A_param[0] *= conv; // 2 reactants
-  A_param[1] *= conv; // 2 reactants
-  A_param[2] *= conv; // 2 reactants
-  A_param[3] *= conv * conv; // 3 reactants
+  A_param[0] *= conv;         // 2 reactants
+  A_param[1] *= conv;         // 2 reactants
+  A_param[2] *= conv;         // 2 reactants
+  A_param[3] *= conv * conv;  // 3 reactants
 
   for (short i = 3; i < 7; i++)
   {

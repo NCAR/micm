@@ -26,7 +26,7 @@ TEST(TroeConfig, ParseConfig)
 
   // Convert Arrhenius parameters from expecting molecules cm-3 to moles m-3
   const double conv = 1.0e-6 * 6.02214076e23;
-  
+
   // first reaction
   {
     EXPECT_EQ(process_vector[0].reactants_.size(), 3);
