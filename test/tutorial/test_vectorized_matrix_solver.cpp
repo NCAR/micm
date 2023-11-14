@@ -17,6 +17,42 @@ using Group3Matrix = micm::VectorMatrix<T, 3>;
 template<typename T>
 using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
 
+void solve(auto& solver, auto& state)
+{
+  double k1 = 0.04;
+  double k2 = 3e7;
+  double k3 = 1e4;
+  state.SetCustomRateParameter("r1", std::vector<double>(3, k1));
+  state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
+  state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
+
+  double temperature = 272.5;  // [K]
+  double pressure = 101253.3;  // [Pa]
+  double air_density = 1e6;    // [mol m-3]
+
+  for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
+  {
+    state.conditions_[cell].temperature_ = temperature;
+    state.conditions_[cell].pressure_ = pressure;
+    state.conditions_[cell].air_density_ = air_density;
+  }
+
+  double time_step = 100;  // s
+
+  auto result = solver.Solve(time_step, state);
+
+  for (int i = 0; i < 10; ++i)
+  {
+    double elapsed_solve_time = 0;
+    while (elapsed_solve_time < time_step)
+    {
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
+      elapsed_solve_time = result.final_time_;
+      state.variables_ = result.result_;
+    }
+  }
+}
+
 int main()
 {
   auto a = Species("A");
@@ -44,16 +80,16 @@ int main()
                    .phase(gas_phase);
 
   auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false);
+  auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
+  auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
-                             std::vector<Process>{ r1, r2, r3 },
-                             params };
+  RosenbrockSolver<> solver{ system, reactions, params };
 
   auto state = solver.GetState();
 
-  state.SetConcentration(a, {1.1, 2.1, 3.1});
-  state.SetConcentration(b, {1.2, 2.2, 3.2});
-  state.SetConcentration(c, {1.3, 2.3, 3.3});
+  state.SetConcentration(a, { 1.1, 2.1, 3.1 });
+  state.SetConcentration(b, { 1.2, 2.2, 3.2 });
+  state.SetConcentration(c, { 1.3, 2.3, 3.3 });
 
   for (auto& elem : state.variables_.AsVector())
   {
@@ -62,15 +98,13 @@ int main()
 
   std::cout << std::endl;
 
-  RosenbrockSolver<Group3Matrix, Group3SparseVectorMatrix> vectorized_solver{
-    System(SystemParameters{ .gas_phase_ = gas_phase }), std::vector<Process>{ r1, r2, r3 }, params
-  };
+  RosenbrockSolver<Group3Matrix, Group3SparseVectorMatrix> vectorized_solver{ system, reactions, params };
 
   auto vectorized_state = vectorized_solver.GetState();
 
-  vectorized_state.SetConcentration(a, {1.1, 2.1, 3.1});
-  vectorized_state.SetConcentration(b, {1.2, 2.2, 3.2});
-  vectorized_state.SetConcentration(c, {1.3, 2.3, 3.3});
+  vectorized_state.SetConcentration(a, { 1.1, 2.1, 3.1 });
+  vectorized_state.SetConcentration(b, { 1.2, 2.2, 3.2 });
+  vectorized_state.SetConcentration(c, { 1.3, 2.3, 3.3 });
 
   for (auto& elem : vectorized_state.variables_.AsVector())
   {
@@ -79,38 +113,23 @@ int main()
 
   std::cout << std::endl;
 
-  // double k1 = 0.04;
-  // double k2 = 3e7;
-  // double k3 = 1e4;
-  // state.SetCustomRateParameter("r1", std::vector<double>(3, k1));
-  // state.SetCustomRateParameter("r2", std::vector<double>(3, k2));
-  // state.SetCustomRateParameter("r3", std::vector<double>(3, k3));
+  solve(solver, state);
+  solve(vectorized_solver, vectorized_state);
 
-  // double temperature = 272.5;  // [K]
-  // double pressure = 101253.3;  // [Pa]
-  // double air_density = 1e6;    // [mol m-3]
+  for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
+  {
+    std::cout << "Cell " << cell << std::endl;
+    std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;
 
-  // for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
-  // {
-  //   state.conditions_[cell].temperature_ = temperature;
-  //   state.conditions_[cell].pressure_ = pressure;
-  //   state.conditions_[cell].air_density_ = air_density;
-  // }
+    for (auto& species : system.UniqueNames())
+    {
+      auto regular_idx = state.variable_map_[species];
+      auto vectorized_idx = vectorized_state.variable_map_[species];
 
-  // // choose a timestep and print the initial state
-  // double time_step = 200;  // s
+      std::cout << std::setw(10) << species << std::setw(20) << state.variables_[cell][regular_idx] << std::setw(20)
+                << vectorized_state.variables_[cell][vectorized_idx] << std::endl;
+    }
 
-  // auto result = solver.Solve(time_step, state);
-
-  // for (int i = 0; i < 10; ++i)
-  // {
-  //   double elapsed_solve_time = 0;
-  //   while (elapsed_solve_time < time_step)
-  //   {
-  //     auto result = solver.Solve(time_step - elapsed_solve_time, state);
-  //     elapsed_solve_time = result.final_time_;
-  //     state.variables_[0] = result.result_.AsVector();
-  //   }
-
-  // }
+    std::cout << std::endl;
+  }
 }

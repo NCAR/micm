@@ -77,7 +77,7 @@ Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solve
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 46-50
+  :lines: 86
 
 The empty angle brackets ``<>`` tell the compiler to use the default template paramters. The first two are most important and
 denote the ``MatrixPolicy`` and ``SparseMatrixPolicy`` to be used when we solve. By default, these are :cpp:class:`micm::Matrix`
@@ -89,7 +89,7 @@ they are printed in order of grid cell first and then species. Here, when settin
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 52-61
+  :lines: 88-97
 
 .. code-block:: bash
 
@@ -117,7 +117,7 @@ and the vectorized solver creation
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 65-78
+  :lines: 101-112
 
 .. code-block:: bash
 
@@ -133,3 +133,29 @@ and the vectorized solver creation
 
 And that's all you have to do to orgnaize the data by species first. By specifying the template parameter on the 
 solver, each operation will use the same ordering for all of the data sets needed to solver the chemical system.
+
+You can use the vectorized just as you would the regular solver, and in fact the same output is produced.
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 116-134
+
+.. code-block:: bash
+
+  Cell 0
+   Species             Regular          Vectorized
+         A             1.02174             1.02174
+         B         1.58226e-06         1.58226e-06
+         C             2.57826             2.57826
+
+  Cell 1
+    Species             Regular          Vectorized
+          A             2.01153             2.01153
+          B         1.75155e-06         1.75155e-06
+          C             4.58846             4.58846
+
+  Cell 2
+    Species             Regular          Vectorized
+          A              3.0096              3.0096
+          B         1.82514e-06         1.82514e-06
+          C              6.5904              6.5904
