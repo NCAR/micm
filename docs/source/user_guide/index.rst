@@ -48,3 +48,4 @@ If you would like to include the json examples, you must configure micm to build
    but_how_fast_is_it
    openmp
    jit
+   vectorized_matrix_solver

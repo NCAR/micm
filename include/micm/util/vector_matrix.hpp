@@ -60,7 +60,7 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              // don't iterate passed the end of the vector
+              // don't iterate past the end of the vector
               std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
               iter += std::min(L, remaining_elements);
             });
@@ -73,7 +73,7 @@ namespace micm
         for (auto &elem : vec)
         {
           elem = *iter;
-          // don't iterate passed the end of the vector
+          // don't iterate past the end of the vector
           std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
           iter += std::min(L, remaining_elements);
         }
@@ -169,7 +169,7 @@ namespace micm
                   for (auto &elem : other_row)
                   {
                     *iter = elem;
-                    // don't iterate passed the end of the vector
+                    // don't iterate past the end of the vector
                     std::size_t remaining_elements = std::distance(iter, data.end());
                     iter += std::min(L, remaining_elements);
                   }
