@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#pramga once
 #include<vector>
-#ifndef CUDA_PARAM_HPP
-#define CUDA_PARAM_HPP
+
   const size_t BLOCK_SIZE = 320;
   //member data of class CudaProcessSet grouped in struct passing to kernel driver function 
   struct CudaProcessSetParam{
@@ -86,4 +86,3 @@ struct CudaSparseMatrixParam{
    const double* upper_matrix_; 
    size_t upper_matrix_size_; 
 };
-#endif
