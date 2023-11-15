@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#pramga once
+#pragma once
 #include<vector>
 
   const size_t BLOCK_SIZE = 320;
