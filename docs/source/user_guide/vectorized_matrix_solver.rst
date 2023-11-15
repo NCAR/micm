@@ -103,9 +103,12 @@ they are printed in order of grid cell first and then species. Here, when settin
   3.2
   3.3
 
+Vectorized matrix ordering
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 But, if we create a vectorized solver, set the same concentrations and print out the state variables, we see that it is organized
 first by species and then by grid cell. Note that we needed to set some partial template speciailizations at the top of the file
-to create thise.
+to create these.
 
 At the top of the file:
 
@@ -113,7 +116,7 @@ At the top of the file:
   :language: cpp
   :lines: 14-18
 
-and the vectorized solver creation
+and then we pass these templates as the template arguments to the vectorized Rosenbrock solver 
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
@@ -132,7 +135,7 @@ and the vectorized solver creation
   3.3
 
 And that's all you have to do to orgnaize the data by species first. By specifying the template parameter on the 
-solver, each operation will use the same ordering for all of the data sets needed to solver the chemical system.
+solver, each operation will use the same ordering for all of the data structures needed to solve the chemical system.
 
 You can use the vectorized just as you would the regular solver, and in fact the same output is produced.
 
