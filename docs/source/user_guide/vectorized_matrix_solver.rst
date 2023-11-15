@@ -5,7 +5,7 @@ Vectorized matrix solver
 
 Many of the tutorials have defined a chemical system without talking about their location. Each of these is essentially
 defining a `box model <https://en.wikipedia.org/wiki/Climate_model#Box_models>`_. We often want to model chemistry
-in more than one location; multiple boxes. In weather and climate models, the domain is broken up into grids 2d or 3d grids.
+in more than one location; multiple boxes. In weather and climate models, the domain is broken up into 2d or 3d grids.
 Each location may be referred to as a grid cell or column. With ``micm``, we can solve multiple grid cells simultaneously in
 several ways.
 
@@ -50,30 +50,30 @@ This entire example is contained below. Copy and paste to follow along.
 Matrix types in micm
 --------------------
 
-``micm`` has its own matrix types, each providing a separate data layout. The data layouts are meant to provide efficient access
-such that cache misses are minimized. This is done by placing all of the data into a contiguous vector, and optionally imposing
-some sort of ordering on the data, like grouping species across gridcells together in memory. 
+``micm`` has its own matrix types. These provide dense matrices (for species concentrations, reaction rates, etc.),
+and sparse matrices (for the Jacobian matrix).
+The elements of these matrices are placed in a contiguous vector, in an effort to minimize cache misses.
+Both dense and sparse matrices also have two strategies for element ordering available: standard and vector.
+The vector-ordering strategy is intented to encourage vectorization of the solver code.
 
+Dense and sparse matrix types are described in more detail below.
 
-The dimensions of all ``micm``
-matrices are :math:`\mathrm{number\ of\ grid\ cells} \times \mathrm{number\ of\ species}`
+Dense matrix
+^^^^^^^^^^^^
+.. figure:: images/dense.png
+   :alt: dense matrix ordering
+   :figclass: transparent-image
+
+   Element ordering for standard (left) and vector (right) ordered dense matrices.
+
 
 * :cpp:class:`micm::Matrix`, a dense matrix, what you probably think of when you think of a matrix, with the caveat that all rows and columns live in one long array
 
-* :cpp:class:`micm::VectorMatrix`, the matrix type of interest here, where the data is ordered such that species across grid cells lie beside each other in memory
+* :cpp:class:`micm::VectorMatrix`, the same as :cpp:class:`micm::Matrix`, except that the data is ordered such that columns, rather than rows, are contiguous in memory.
 
-* :cpp:class:`micm::SparseMatrix`, a `sparse matrix <https://en.wikipedia.org/wiki/Sparse_matrix>`_ data structure
 
-   * The sparse matrix also allows you to specify wether the data is ordered as a regular dense matrix, with zeros removed, or with a vectorized ordering, the topic of this tutorial.
-
-      * :cpp:class:`micm::SparseMatrixStandardOrdering`
-
-      * :cpp:class:`micm::SparseMatrixVectorOrdering`
-
-Regular, dense matrix ordering
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: images/dense.png
+Dense matrix: standard ordering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solvers like this:
 
@@ -87,7 +87,8 @@ and :cpp:class:`micm::SparseMatrix`. The most visible data affected by these par
 :cpp:member:`micm::State::variables_` parameter, representing the concnetration of each of the species. 
 
 After we created that first ``solver``, if we get a state and set the concentration of the species and then print them,
-they are printed in order of grid cell first and then species. Here, when setting the species, read the double as ``grid cell.species``.
+they are printed in order of grid cell (columns) first and then species (rows).
+Here, when setting the species, read the double as ``grid cell.species``.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
@@ -105,12 +106,12 @@ they are printed in order of grid cell first and then species. Here, when settin
   3.2
   3.3
 
-Vectorized matrix ordering
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dense matrix: vector ordering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 But, if we create a vectorized solver, set the same concentrations and print out the state variables, we see that it is organized
-first by species and then by grid cell. Note that we needed to set some partial template speciailizations at the top of the file
-to create these.
+first by species (rows) and then by grid cell (columns).
+Note that we needed to set some partial template specializations at the top of the file to create these.
 
 At the top of the file:
 
@@ -139,16 +140,10 @@ and then we pass these templates as the template arguments to the vectorized Ros
 And that's all you have to do to orgnaize the data by species first. By specifying the template parameter on the 
 solver, each operation will use the same ordering for all of the data structures needed to solve the chemical system.
 
-
-Sparse matrix, standard ordering
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. image:: images/sparse.png
-
-Sparse matrix, vector ordering
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You can use the vectorized just as you would the regular solver, and in fact the same output is produced.
+It's important to note that regardless of the ordering policy, matrix elements can always be accessed using
+standard square-bracket notation: ``matrix[column][row]``.
+It's only when accessing the underlying data vector directly that you need to pay attention to the ordering strategy.
+In fact, you can use the vectorized solver just as you would the regular solver, and the same output is produced.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
@@ -174,3 +169,81 @@ You can use the vectorized just as you would the regular solver, and in fact the
           B         1.82514e-06         1.82514e-06
           C              6.5904              6.5904
 
+
+Sparse matrix
+^^^^^^^^^^^^^
+
+The sparse matrix type in ``micm`` is more-specifically a block-diagonal sparse matrix, where each block along the
+diagonal has the same sparsity structure.
+
+.. figure:: images/sparse.png
+   :alt: sparse matrix ordering
+   :figclass: transparent-image
+
+   Element ordering for standard (left) and vector (right) ordered block-diagonal sparse matrices.
+
+
+* :cpp:class:`micm::SparseMatrix`, a `sparse matrix <https://en.wikipedia.org/wiki/Sparse_matrix>`_ data structure
+
+   * The sparse matrix allows you to select the standard or vector ordering by applying a ordering policy to the :cpp:class:`micm::SparseMatrix` type.
+
+      * :cpp:class:`micm::SparseMatrixStandardOrdering`
+
+      * :cpp:class:`micm::SparseMatrixVectorOrdering`
+
+
+To demonstrate the effects of the ordering policy on sparse matrix objects, we create the same sparse matrix
+using each ordering policy:
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 136-152
+
+Standard ordering is the default, and thus does not have to be specified as a template parameter.
+When creating vector-ordered matrices, specify the second template argument using
+``micm::SparseMatrixVectorOrdering<L>`` where ``L`` is the number of blocks (i.e. grid cells) in the
+block diagonal matrix.
+
+Just like the dense matrix, the square bracket notation is always used as ``matrix[block][column][row]``.
+We use this syntax to set the same values for each element of our two sparse matrices.
+We created matrices of strings so the values can be set as ``block.column.row``:
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 154-165
+
+We can again see the effects of the ordering policy by accessing the underlying data vector directly:
+
+.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
+  :language: cpp
+  :lines: 167-176
+
+.. code-block:: bash
+
+  Sparse matrix standard ordering elements
+  0.0.1
+  0.2.1
+  0.2.3
+  0.3.2
+  1.0.1
+  1.2.1
+  1.2.3
+  1.3.2
+  2.0.1
+  2.2.1
+  2.2.3
+  2.3.2
+  
+  Sparse matrix vector ordering elements
+  0.0.1
+  1.0.1
+  2.0.1
+  0.2.1
+  1.2.1
+  2.2.1
+  0.2.3
+  1.2.3
+  2.2.3
+  0.3.2
+  1.3.2
+  2.3.2

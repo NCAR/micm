@@ -132,4 +132,46 @@ int main()
 
     std::cout << std::endl;
   }
+
+  micm::SparseMatrix<std::string> sparse_matrix{
+    micm::SparseMatrix<std::string>::create(4)
+      .with_element(0, 1)
+      .with_element(2, 1)
+      .with_element(2, 3)
+      .with_element(3, 2)
+      .number_of_blocks(3)
+    };
+
+  micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>> sparse_vector_matrix{
+    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::create(4)
+      .with_element(0, 1)
+      .with_element(2, 1)
+      .with_element(2, 3)
+      .with_element(3, 2)
+      .number_of_blocks(3)
+    };
+
+  sparse_matrix[0][0][1] = sparse_vector_matrix[0][0][1] = "0.0.1";
+  sparse_matrix[0][2][1] = sparse_vector_matrix[0][2][1] = "0.2.1";
+  sparse_matrix[0][2][3] = sparse_vector_matrix[0][2][3] = "0.2.3";
+  sparse_matrix[0][3][2] = sparse_vector_matrix[0][3][2] = "0.3.2";
+  sparse_matrix[1][0][1] = sparse_vector_matrix[1][0][1] = "1.0.1";
+  sparse_matrix[1][2][1] = sparse_vector_matrix[1][2][1] = "1.2.1";
+  sparse_matrix[1][2][3] = sparse_vector_matrix[1][2][3] = "1.2.3";
+  sparse_matrix[1][3][2] = sparse_vector_matrix[1][3][2] = "1.3.2";
+  sparse_matrix[2][0][1] = sparse_vector_matrix[2][0][1] = "2.0.1";
+  sparse_matrix[2][2][1] = sparse_vector_matrix[2][2][1] = "2.2.1";
+  sparse_matrix[2][2][3] = sparse_vector_matrix[2][2][3] = "2.2.3";
+  sparse_matrix[2][3][2] = sparse_vector_matrix[2][3][2] = "2.3.2";
+
+  std::cout << std::endl << "Sparse matrix standard ordering elements" << std::endl;
+  for (auto& elem : sparse_matrix.AsVector())
+  {
+    std::cout << elem << std::endl;
+  }
+  std::cout << std::endl << "Sparse matrix vector ordering elements" << std::endl;
+  for (auto& elem : sparse_vector_matrix.AsVector())
+  {
+    std::cout << elem << std::endl;
+  }
 }
