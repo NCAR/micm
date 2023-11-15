@@ -66,7 +66,7 @@ the order the species are added to the gas phase.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 73-77
+  :lines: 73-75
 
 
 Now we need to get a state and set the concentations of each of the species. In the 
@@ -76,25 +76,25 @@ to set the concentrations. Here we will set the concentations by providing the :
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 79-84
+  :lines: 77-82
 
 Then we set the reaction rates by creating a vector that is 3 elements long, one for each grid cell.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 86-91
+  :lines: 84-89
 
 And lastly set the temperature, pressure, and air density for each grid cell.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 93-102
+  :lines: 91-100
 
 Now we are ready to run the simulation.
 
 .. literalinclude:: ../../../test/tutorial/test_multiple_grid_cells.cpp
   :language: cpp
-  :lines: 104-127
+  :lines: 102-125
 
 
 And these are the results.
