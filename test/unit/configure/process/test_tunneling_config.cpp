@@ -24,6 +24,9 @@ TEST(TunnelingConfig, ParseConfig)
 
   auto& process_vector = solver_params.processes_;
 
+  // Convert Arrhenius parameters from expecting molecules cm-3 to moles m-3
+  const double conv = 1.0e-6 * 6.02214076e23;
+
   // first reaction
   {
     EXPECT_EQ(process_vector[0].reactants_.size(), 3);
@@ -38,7 +41,7 @@ TEST(TunnelingConfig, ParseConfig)
     micm::TunnelingRateConstant* tunneling_rate_constant =
         dynamic_cast<micm::TunnelingRateConstant*>(process_vector[0].rate_constant_.get());
     auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 1.0);
+    EXPECT_EQ(params.A_, 1.0 * conv * conv);
     EXPECT_EQ(params.B_, 0.0);
     EXPECT_EQ(params.C_, 0.0);
   }
@@ -56,7 +59,7 @@ TEST(TunnelingConfig, ParseConfig)
     micm::TunnelingRateConstant* tunneling_rate_constant =
         dynamic_cast<micm::TunnelingRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 32.1);
+    EXPECT_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, 102.3);
   }
