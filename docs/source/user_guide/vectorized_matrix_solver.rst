@@ -73,6 +73,8 @@ matrices are :math:`\mathrm{number\ of\ grid\ cells} \times \mathrm{number\ of\ 
 Regular, dense matrix ordering
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. image:: images/dense.png
+
 Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solvers like this:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
@@ -137,6 +139,15 @@ and then we pass these templates as the template arguments to the vectorized Ros
 And that's all you have to do to orgnaize the data by species first. By specifying the template parameter on the 
 solver, each operation will use the same ordering for all of the data structures needed to solve the chemical system.
 
+
+Sparse matrix, standard ordering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: images/sparse.png
+
+Sparse matrix, vector ordering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 You can use the vectorized just as you would the regular solver, and in fact the same output is produced.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
@@ -162,3 +173,4 @@ You can use the vectorized just as you would the regular solver, and in fact the
           A              3.0096              3.0096
           B         1.82514e-06         1.82514e-06
           C              6.5904              6.5904
+
