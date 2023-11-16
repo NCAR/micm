@@ -34,7 +34,7 @@ struct InitialConditions
 
     bool empty()
     {
-        if (!environments.empty() && !concentrations.empty()) 
+        if (!environments.empty())    
             return false;
         else 
             return true; 
