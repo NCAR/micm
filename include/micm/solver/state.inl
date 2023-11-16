@@ -112,8 +112,8 @@ namespace micm
       custom_rate_parameters_[i][param->second] = values[i];
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::PrintHeader()
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintHeader()
   {
     auto largest_str_iter = std::max_element(variable_names_.begin(), variable_names_.end(),
                                   [](const auto& a, const auto& b) {
@@ -122,15 +122,28 @@ namespace micm
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(5) << "time";
-    for(auto& species : variable_names_)
+
+    // Print only the first 10 if the number of elements are bigger than 10
+    if (variable_names_.size() > 10)
     {
-      std::cout << "," << std::setw(width) << species;
+      for(short i=0; i<10; i++)
+      {
+        std::cout << "," << std::setw(width) << variable_names_[i];
+      }
+      std::cout << std::setw(width) << "..." << std::endl;
     }
-    std::cout << std::endl;
+    else
+    {
+      for(auto& species : variable_names_)
+      {
+        std::cout << "," << std::setw(width) << species;
+      }
+      std::cout << std::endl;
+    }
   }
 
-  template<template<class> class MatrixPolicy>
-  inline void State<MatrixPolicy>::PrintState(double time)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintState(double time)
   {
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);
@@ -142,9 +155,22 @@ namespace micm
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(5) << time << std::flush;
-    for(auto& species : variable_names_)
+
+    // Print only the first 10 if the number of elements are bigger than 10
+    if (variable_names_.size() > 10)
     {
-      std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[species]];
+      for(short i=0; i<10; i++)
+      {
+        std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[variable_names_[i]]];
+      }
+      std::cout << std::scientific << std::setw(width) << std::setprecision(2) << "...";
+    }
+    else
+    {
+      for(auto& species : variable_names_)
+      {
+        std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[species]];
+      }
     }
     std::cout << std::endl;
     std::cout.copyfmt(oldState);
