@@ -38,7 +38,7 @@ int main(const int argc, const char* argv[])
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./configs/kpp_chapman");
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./examples/Chapman");
 
   if (status != micm::ConfigParseStatus::Success)
   {

@@ -26,6 +26,9 @@ TEST(ArrheniusConfig, ParseConfig)
 
   auto& process_vector = solver_params.processes_;
 
+  // Convert Arrhenius parameters from expecting molecules cm-3 to moles m-3
+  const double conv = 1.0e-6 * 6.02214076e23;
+
   // first reaction
   {
     EXPECT_EQ(process_vector[0].reactants_.size(), 3);
@@ -40,7 +43,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[0].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 1.0);
+    EXPECT_EQ(params.A_, 1.0 * conv * conv);
     EXPECT_EQ(params.B_, 0.0);
     EXPECT_EQ(params.C_, 0.0);
     EXPECT_EQ(params.D_, 300);
@@ -60,7 +63,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 32.1);
+    EXPECT_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, 102.3);
     EXPECT_EQ(params.D_, 63.4);
@@ -80,7 +83,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[2].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 32.1);
+    EXPECT_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, -1 * 2e23 / BOLTZMANN_CONSTANT);
     EXPECT_EQ(params.D_, 63.4);
