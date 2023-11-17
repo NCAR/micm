@@ -38,7 +38,7 @@ option(ENABLE_CUDA "Build with Cuda support" OFF)
 option(ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(ENABLE_TESTS "Build the tests" ON)
-option(BUILD_EXAMPLES "Build the examples" ON)
+option(ENABLE_EXAMPLES "Build the examples" ON)
 set(DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
@@ -111,6 +111,14 @@ endif()
 ################################################################################
 # Command-line driver examples
 
-if(PROJECT_IS_TOP_LEVEL AND BUILD_EXAMPLES AND ENABLE_JSON)
+if(PROJECT_IS_TOP_LEVEL AND ENABLE_EXAMPLES AND ENABLE_JSON)
   add_subdirectory(examples)
+endif()
+
+################################################################################
+# Copy configuration data
+
+if(ENABLE_TESTS OR ENABLE_EXAMPLES)
+add_custom_target(copy_example_configs ALL ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_SOURCE_DIR}/examples/configs ${CMAKE_BINARY_DIR}/examples/configs)
 endif()
