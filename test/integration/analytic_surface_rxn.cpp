@@ -1,8 +1,9 @@
 #include <micm/system/system.hpp>
-#include <micm/solver/state.hpp>
 #include <micm/system/species.hpp>
-#include <micm/process/surface_rate_constant.hpp>
+#include <micm/solver/state.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/process/surface_rate_constant.hpp>
+#include <micm/util/constants.hpp>
 
 int main(const int argc, const char* argv[])
 {
@@ -46,7 +47,7 @@ int main(const int argc, const char* argv[])
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz } };
 
   // System
-  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+  micm::System chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   // Rate
   micm::SurfaceRateConstant surface{
@@ -77,10 +78,22 @@ int main(const int argc, const char* argv[])
   double time_step = 3600;  // s
   int nstep = 24;
 
+  std::vector<std::vector<double>> model_conc(nstep, std::vector<double>(3));
+  std::vector<std::vector<double>> analytic_conc(nstep, std::vector<double>(3));
+
+  model_conc[0] = {conc_foo, 0, 0};
+  analytic_conc[0] = {conc_foo, 0, 0};
+
+  size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
+
+  std::vector<double> times;
+  times.push_back(0);
+
   for (int i = 0; i < nstep; ++i)
   {
-    double elapsed_solve_time = 0;
+    times.push_back(time_step);
 
+    double elapsed_solve_time = 0;
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
