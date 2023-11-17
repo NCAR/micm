@@ -95,13 +95,19 @@ int main(const int argc, const char* argv[])
     times.push_back(time_step);
 
     double elapsed_solve_time = 0;
+
+    // first iteration
+    auto result = solver.Solve(time_step - elapsed_solve_time, state);
+    elapsed_solve_time = result.final_time_;
+    // further iterations
     while (elapsed_solve_time < time_step)
     {
-      auto result = solver.Solve(time_step - elapsed_solve_time, state);
+      result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
-      EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     }
+    EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    model_conc[i] = result.result_.AsVector();
   }
 
   return 0;
