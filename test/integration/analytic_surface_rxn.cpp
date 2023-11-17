@@ -1,3 +1,4 @@
+#include <gtest/gtest.h>
 #include <micm/system/system.hpp>
 #include <micm/system/species.hpp>
 #include <micm/solver/state.hpp>
@@ -99,6 +100,7 @@ int main(const int argc, const char* argv[])
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
+      EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     }
   }
 
