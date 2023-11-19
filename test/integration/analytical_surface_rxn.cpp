@@ -76,39 +76,40 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("foo.particle number concentration [# m-3]", number_conc);
   state.SetConcentration(foo, conc_foo);
 
-
   // Surface reaction rate calculation
   double mean_free_speed = std::sqrt(8.0 * GAS_CONSTANT / (M_PI * MW_foo) * temperature);
   double k1 = 4.0 * number_conc * M_PI * radius * radius /
     (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
 
-
   double time_step = 0.1 / k1;  // s
   int nstep = 10;
 
-  std::vector<std::vector<double>> model_conc(nstep, std::vector<double>(3));
-  std::vector<std::vector<double>> analytic_conc(nstep, std::vector<double>(3));
+  std::vector<std::vector<double>> model_conc(nstep + 1, std::vector<double>(3));
+  std::vector<std::vector<double>> analytic_conc(nstep + 1, std::vector<double>(3));
 
   model_conc[0] = {conc_foo, 0, 0};
   analytic_conc[0] = {conc_foo, 0, 0};
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  for (int i = 0; i < nstep; ++i)
+  for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
 
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
+    state.variables_ = result.result_;
 
     // further iterations
+    /*
     while (elapsed_solve_time < time_step)
     {
       result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
     }
+    */
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 
     // Check surface reaction rate calculation
@@ -124,6 +125,7 @@ int main(const int argc, const char* argv[])
       << k1 << " "
       << state.rate_constants_.AsVector()[0] << " "
       << analytic_conc[i][idx_foo] << " "
+      << model_conc[i][idx_foo] << " "
       << std::endl;
   }
 
