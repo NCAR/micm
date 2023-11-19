@@ -76,6 +76,13 @@ int main(const int argc, const char* argv[])
   state.SetCustomRateParameter("foo.particle number concentration [# m-3]", number_conc);
   state.SetConcentration(foo, conc_foo);
 
+
+  // Check surface reaction rate calculation
+  double mean_free_speed = std::sqrt(8.0 * GAS_CONSTANT / (M_PI * MW_foo) * temperature);
+  double k_surface_rxn = 4.0 * number_conc * M_PI * radius * radius /
+    (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
+
+
   double time_step = 3600;  // s
   int nstep = 24;
 
@@ -107,6 +114,9 @@ int main(const int argc, const char* argv[])
       state.variables_ = result.result_;
     }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
+    std::cout << i << " " << k_surface_rxn << " "
+      << state.rate_constants_.AsVector()[0] << std::endl;
+    EXPECT_NEAR(k_surface_rxn, state.rate_constants_.AsVector()[0], 1e-8);
     model_conc[i] = result.result_.AsVector();
   }
 
