@@ -120,12 +120,13 @@ int main(const int argc, const char* argv[])
     double time = i * time_step;
     analytic_conc[i][idx_foo] = conc_foo * std::exp(-(k1)*time);
 
-    std::cout << i << " "
-      << time << " "
-      << k1 << " "
-      << state.rate_constants_.AsVector()[0] << " "
-      << analytic_conc[i][idx_foo] << " "
-      << model_conc[i][idx_foo] << " "
+    std::cout
+      << std::setw(3) << i << "  "
+      << std::fixed << std::setprecision(2)
+      << std::setw(5) << time << "  "
+      << std::fixed << std::setprecision(7)
+      << analytic_conc[i][idx_foo] << "  "
+      << model_conc[i][idx_foo] << "  "
       << std::endl;
   }
 
