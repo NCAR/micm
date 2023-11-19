@@ -77,14 +77,14 @@ int main(const int argc, const char* argv[])
   state.SetConcentration(foo, conc_foo);
 
 
-  // Check surface reaction rate calculation
+  // Surface reaction rate calculation
   double mean_free_speed = std::sqrt(8.0 * GAS_CONSTANT / (M_PI * MW_foo) * temperature);
-  double k_surface_rxn = 4.0 * number_conc * M_PI * radius * radius /
+  double k1 = 4.0 * number_conc * M_PI * radius * radius /
     (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
 
 
-  double time_step = 3600;  // s
-  int nstep = 24;
+  double time_step = 0.1 / k1;  // s
+  int nstep = 10;
 
   std::vector<std::vector<double>> model_conc(nstep, std::vector<double>(3));
   std::vector<std::vector<double>> analytic_conc(nstep, std::vector<double>(3));
@@ -94,18 +94,14 @@ int main(const int argc, const char* argv[])
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  std::vector<double> times;
-  times.push_back(0);
-
   for (int i = 0; i < nstep; ++i)
   {
-    times.push_back(time_step);
-
     double elapsed_solve_time = 0;
 
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
+
     // further iterations
     while (elapsed_solve_time < time_step)
     {
@@ -114,10 +110,21 @@ int main(const int argc, const char* argv[])
       state.variables_ = result.result_;
     }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
-    std::cout << i << " " << k_surface_rxn << " "
-      << state.rate_constants_.AsVector()[0] << std::endl;
-    EXPECT_NEAR(k_surface_rxn, state.rate_constants_.AsVector()[0], 1e-8);
+
+    // Check surface reaction rate calculation
+    EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
+
     model_conc[i] = result.result_.AsVector();
+
+    double time = i * time_step;
+    analytic_conc[i][idx_foo] = conc_foo * std::exp(-(k1)*time);
+
+    std::cout << i << " "
+      << time << " "
+      << k1 << " "
+      << state.rate_constants_.AsVector()[0] << " "
+      << analytic_conc[i][idx_foo] << " "
+      << std::endl;
   }
 
   return 0;
