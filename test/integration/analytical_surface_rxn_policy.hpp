@@ -67,9 +67,12 @@ void test_analytical_surface_rxn(
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
-  micm::RosenbrockSolver<> solver{
-    chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
-  };
+  // micm::RosenbrockSolver<> solver{
+  //   chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  // };
+
+  // Solver
+  OdeSolverPolicy solver = create_solver(chemical_system, reactions);
 
   // State
   micm::State state = solver.GetState();

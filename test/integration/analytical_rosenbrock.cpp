@@ -168,6 +168,18 @@ TEST(AnalyticalExamples, Robertson)
       });
 }
 
+TEST(AnalyticalExamples, SurfaceRxn)
+{
+  test_analytical_surface_rxn<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
+      [](const micm::System& s,
+         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
+      {
+        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
+          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+        };
+      });
+}
+
 TEST(AnalyticalExamples, Oregonator)
 {
   /*
