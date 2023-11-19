@@ -237,3 +237,20 @@ TEST(AnalyticalExamplesJitRosenbrock, Robertson)
         };
       });
 }
+
+TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
+    EXPECT_TRUE(false);
+  }
+  test_analytical_surface_rxn<DefaultJitRosenbrockSolver>(
+      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
+      {
+        return DefaultJitRosenbrockSolver{
+          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+        };
+      });
+}
