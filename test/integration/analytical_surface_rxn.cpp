@@ -132,6 +132,11 @@ int main(const int argc, const char* argv[])
     analytic_conc[i][idx_bar] = bar_yield * (1.0 - analytic_conc[i][idx_foo]);
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
+    // Check concentrations
+    EXPECT_NEAR(analytic_conc[i][idx_foo], model_conc[i][idx_foo], 1e-5);
+    EXPECT_NEAR(analytic_conc[i][idx_bar], model_conc[i][idx_bar], 1e-5);
+    EXPECT_NEAR(analytic_conc[i][idx_baz], model_conc[i][idx_baz], 1e-5);
+
     std::cout
       << std::setw(3) << i << "  "
       << std::fixed << std::setprecision(2)
