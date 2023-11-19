@@ -3,6 +3,7 @@
 #include <micm/solver/jit_rosenbrock.hpp>
 
 #include "analytical_policy.hpp"
+#include "analytical_surface_rxn_policy.hpp"
 
 template<class T>
 using DefaultVectorMatrix = micm::VectorMatrix<T, 1>;

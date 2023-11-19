@@ -4,6 +4,7 @@
 #include <micm/util/matrix.hpp>
 
 #include "analytical_policy.hpp"
+#include "analytical_surface_rxn_policy.hpp"
 #include "e5.hpp"
 #include "hires.hpp"
 #include "oregonator.hpp"
