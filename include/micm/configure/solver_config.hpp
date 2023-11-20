@@ -346,7 +346,7 @@ namespace micm
 
         if (status != ConfigParseStatus::Success)
         {
-          std::cout << "TEST" << std::endl;
+          std::cerr << type << std::endl;
           last_json_object_ << object.dump(4) << std::endl;
           break;
         }
