@@ -16,6 +16,13 @@ TEST(SolverConfig, NoConfigFilesFound)
   EXPECT_EQ(micm::ConfigParseStatus::NoConfigFilesFound, status);
 }
 
+TEST(SolverConfig, UnknownKey)
+{
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_unknown_key/config.json");
+  EXPECT_EQ(micm::ConfigParseStatus::UnknownKey, status);
+}
+
 TEST(SolverConfig, ReadAndParseCAMPFiles)
 {
   micm::SolverConfig solverConfig{};
