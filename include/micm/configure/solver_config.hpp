@@ -275,7 +275,7 @@ namespace micm
 
         if (status != ConfigParseStatus::Success)
         {
-          last_json_object_ << object.dump(4);
+          last_json_object_ << object.dump(4) << std::endl;
           break;
         }
       }
@@ -346,7 +346,7 @@ namespace micm
 
         if (status != ConfigParseStatus::Success)
         {
-          last_json_object_ << object.dump(4);
+          last_json_object_ << object.dump(4) << std::endl;
           break;
         }
       }
