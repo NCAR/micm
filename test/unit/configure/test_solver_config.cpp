@@ -25,7 +25,7 @@ TEST(SolverConfig, UnknownKey)
   {
     micm::SolverParameters solver_params = solverConfig.GetSolverParams();
   }
-  catch (...)
+  catch (std::runtime_error)
   {
   }
 }
