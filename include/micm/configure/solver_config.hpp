@@ -1109,7 +1109,7 @@ namespace micm
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
         std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
-                          configParseStatusToString(last_parse_status_) +
+                          configParseStatusToString(last_parse_status_) + "\n" +
                           this->last_json_object_.str();
         std::cerr << msg << std::endl;
         throw std::runtime_error(msg);
