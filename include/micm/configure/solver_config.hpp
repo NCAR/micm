@@ -1111,6 +1111,7 @@ namespace micm
         std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
                           configParseStatusToString(last_parse_status_) +
                           this->last_json_object_.str();
+        std::cerr << msg << std::endl;
         throw std::runtime_error(msg);
       }
 
