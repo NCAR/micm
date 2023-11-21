@@ -50,7 +50,7 @@ namespace micm
 
     LuDecompositionPolicy lu_decomp_;
 
-    public:
+   public:
     /// @brief default constructor
     LinearSolver(){};
 
