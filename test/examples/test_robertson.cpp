@@ -27,26 +27,24 @@ TEST(Examples, robertson)
                                    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
   micm::State state = solver.GetState();
 
-  const double temperature = 272.5;                             // K
-  const double pressure = 101253.3;                             // Pa
-  const double air_density = 1e6;                               // mol m-3
+  const double temperature = 272.5;  // K
+  const double pressure = 101253.3;  // Pa
+  const double air_density = 1e6;    // mol m-3
 
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
   std::unordered_map<std::string, std::vector<double>> initial_concentrations = {
-    { "A", { 1.0} },       // mol m-3
-    { "B", { 0.0} },       // mol m-3
-    { "C", { 0.0} },       // mol m-3
+    { "A", { 1.0 } },  // mol m-3
+    { "B", { 0.0 } },  // mol m-3
+    { "C", { 0.0 } },  // mol m-3
   };
   state.SetConcentrations(initial_concentrations);
 
-  std::unordered_map<std::string, std::vector<double>> custom_rate_constants = {
-    {"PHOTO.r1", {0.04}},                    
-    {"PHOTO.r2", {3e7}},
-    {"PHOTO.r3", {1e4}}
-  };
+  std::unordered_map<std::string, std::vector<double>> custom_rate_constants = { { "PHOTO.r1", { 0.04 } },
+                                                                                 { "PHOTO.r2", { 3e7 } },
+                                                                                 { "PHOTO.r3", { 1e4 } } };
 
   state.SetCustomRateParameters(custom_rate_constants);
 
@@ -56,5 +54,3 @@ TEST(Examples, robertson)
 
   EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 }
-
-
