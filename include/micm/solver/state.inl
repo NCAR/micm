@@ -123,23 +123,11 @@ namespace micm
 
     std::cout << std::setw(5) << "time";
 
-    // Print only the first 10 if the number of elements are bigger than 10
-    if (variable_names_.size() > 10)
+    for(auto& species : variable_names_)
     {
-      for(short i=0; i<10; i++)
-      {
-        std::cout << "," << std::setw(width) << variable_names_[i];
-      }
-      std::cout << std::setw(width) << "..." << std::endl;
+      std::cout << "," << std::setw(width) << species;
     }
-    else
-    {
-      for(auto& species : variable_names_)
-      {
-        std::cout << "," << std::setw(width) << species;
-      }
-      std::cout << std::endl;
-    }
+    std::cout << std::endl;
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -156,21 +144,9 @@ namespace micm
 
     std::cout << std::setw(5) << time << std::flush;
 
-    // Print only the first 10 if the number of elements are bigger than 10
-    if (variable_names_.size() > 10)
+    for(auto& species : variable_names_)
     {
-      for(short i=0; i<10; i++)
-      {
-        std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[variable_names_[i]]];
-      }
-      std::cout << std::scientific << std::setw(width) << std::setprecision(2) << "...";
-    }
-    else
-    {
-      for(auto& species : variable_names_)
-      {
-        std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[species]];
-      }
+      std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[species]];
     }
     std::cout << std::endl;
     std::cout.copyfmt(oldState);
