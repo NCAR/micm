@@ -18,7 +18,7 @@
 TEST(Examples, TS1)
 {
   micm::SolverConfig config;
-  std::string config_path = "./examples/TS1";
+  std::string config_path = "./examples/configs/TS1";
   auto status = config.ReadAndParse(config_path);
   EXPECT_EQ(status, micm::ConfigParseStatus::Success);
   auto solver_params = config.GetSolverParams();
