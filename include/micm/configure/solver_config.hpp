@@ -7,7 +7,6 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
@@ -22,6 +21,7 @@
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
 #include <nlohmann/json.hpp>
+#include <sstream>
 
 namespace micm
 {
@@ -1112,8 +1112,7 @@ namespace micm
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
         std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
-                          configParseStatusToString(last_parse_status_) + "\n" +
-                          this->last_json_object_.str();
+                          configParseStatusToString(last_parse_status_) + "\n" + this->last_json_object_.str();
         std::cerr << msg << std::endl;
         throw std::runtime_error(msg);
       }
