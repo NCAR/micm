@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iomanip>
 #include <map>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/system/conditions.hpp>
@@ -13,7 +14,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <iomanip>
 
 namespace micm
 {
@@ -80,7 +80,7 @@ namespace micm
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
 
-    /// @brief Print state (concentrations) at the given time 
+    /// @brief Print state (concentrations) at the given time
     /// @param time solving time
     void PrintState(double time);
   };
