@@ -7,6 +7,7 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
@@ -110,6 +111,9 @@ namespace micm
     static const inline std::string CAMP_FILES = "camp-files";
     static const inline std::string CAMP_DATA = "camp-data";
     static const inline std::string TYPE = "type";
+
+    // Error string
+    std::stringstream last_json_object_;
 
     // Functions
 
@@ -270,7 +274,10 @@ namespace micm
         }
 
         if (status != ConfigParseStatus::Success)
+        {
+          last_json_object_ << object.dump(4) << std::endl;
           break;
+        }
       }
 
       return status;
@@ -338,7 +345,13 @@ namespace micm
         }
 
         if (status != ConfigParseStatus::Success)
+        {
+          if (type != "MECHANISM")
+          {
+            last_json_object_ << object.dump(4) << std::endl;
+          }
           break;
+        }
       }
 
       return status;
@@ -1099,7 +1112,9 @@ namespace micm
       if (last_parse_status_ != ConfigParseStatus::Success)
       {
         std::string msg = "Parsing configuration files failed. The parsing failed with error: " +
-                          configParseStatusToString(last_parse_status_);
+                          configParseStatusToString(last_parse_status_) + "\n" +
+                          this->last_json_object_.str();
+        std::cerr << msg << std::endl;
         throw std::runtime_error(msg);
       }
 

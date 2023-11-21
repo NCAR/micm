@@ -16,6 +16,34 @@ TEST(SolverConfig, NoConfigFilesFound)
   EXPECT_EQ(micm::ConfigParseStatus::NoConfigFilesFound, status);
 }
 
+TEST(SolverConfig, UnknownKey)
+{
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_unknown_key/config.json");
+  EXPECT_EQ(micm::ConfigParseStatus::UnknownKey, status);
+  try
+  {
+    micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  }
+  catch (std::runtime_error)
+  {
+  }
+}
+
+TEST(SolverConfig, BadType)
+{
+  micm::SolverConfig solverConfig{};
+  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_bad_type/config.json");
+  EXPECT_EQ(micm::ConfigParseStatus::UnknownKey, status);
+  try
+  {
+    micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  }
+  catch (std::runtime_error)
+  {
+  }
+}
+
 TEST(SolverConfig, ReadAndParseCAMPFiles)
 {
   micm::SolverConfig solverConfig{};
