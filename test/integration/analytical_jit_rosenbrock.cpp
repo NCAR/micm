@@ -3,6 +3,7 @@
 #include <micm/solver/jit_rosenbrock.hpp>
 
 #include "analytical_policy.hpp"
+#include "analytical_surface_rxn_policy.hpp"
 
 template<class T>
 using DefaultVectorMatrix = micm::VectorMatrix<T, 1>;
@@ -229,6 +230,23 @@ TEST(AnalyticalExamplesJitRosenbrock, Robertson)
     EXPECT_TRUE(false);
   }
   test_analytical_robertson<DefaultJitRosenbrockSolver>(
+      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
+      {
+        return DefaultJitRosenbrockSolver{
+          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+        };
+      });
+}
+
+TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
+{
+  auto jit{ micm::JitCompiler::create() };
+  if (auto err = jit.takeError())
+  {
+    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
+    EXPECT_TRUE(false);
+  }
+  test_analytical_surface_rxn<DefaultJitRosenbrockSolver>(
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{

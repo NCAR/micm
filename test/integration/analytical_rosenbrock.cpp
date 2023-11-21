@@ -4,6 +4,7 @@
 #include <micm/util/matrix.hpp>
 
 #include "analytical_policy.hpp"
+#include "analytical_surface_rxn_policy.hpp"
 #include "e5.hpp"
 #include "hires.hpp"
 #include "oregonator.hpp"
@@ -158,6 +159,18 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 TEST(AnalyticalExamples, Robertson)
 {
   test_analytical_robertson<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
+      [](const micm::System& s,
+         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
+      {
+        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
+          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+        };
+      });
+}
+
+TEST(AnalyticalExamples, SurfaceRxn)
+{
+  test_analytical_surface_rxn<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
       [](const micm::System& s,
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
