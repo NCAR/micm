@@ -1,15 +1,17 @@
 #pragma once
 #include <gtest/gtest.h>
+
 #include <functional>
-#include <random>
+#include <micm/solver/cuda_linear_solver.hpp>
+#include <micm/solver/cuda_lu_decomposition.hpp>
+#include <micm/solver/linear_solver.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <micm/solver/linear_solver.hpp>
-#include <micm/solver/lu_decomposition.hpp>
-#include <micm/solver/cuda_linear_solver.hpp>
-#include <micm/solver/cuda_lu_decomposition.hpp>
+#include <random>
+
 #include "test_linear_solver_policy.hpp"
 
 template<class T>
@@ -22,7 +24,6 @@ template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
-
 
 template<class T>
 using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
@@ -72,34 +73,44 @@ std::vector<double> linearSolverGenerator(
   return x.AsVector();
 }
 
-//bit to bit variation between CPU and GPU result with randomMatrixVectorOrdering
-void gpuValidation(){
-   std::vector<double> cpu_x = linearSolverGenerator<Group10000VectorMatrix, Group10000SparseVectorMatrix, micm::LinearSolver<double, Group10000SparseVectorMatrix>>(
+// bit to bit variation between CPU and GPU result with randomMatrixVectorOrdering
+void gpuValidation()
+{
+  std::vector<double> cpu_x = linearSolverGenerator<
+      Group10000VectorMatrix,
+      Group10000SparseVectorMatrix,
+      micm::LinearSolver<double, Group10000SparseVectorMatrix>>(
       [](const Group10000SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::LinearSolver<double, Group10000SparseVectorMatrix> {
         return micm::LinearSolver<double, Group10000SparseVectorMatrix>{ matrix, initial_value };
       },
       10000);
 
-  std::vector<double> gpu_x = linearSolverGenerator<Group10000VectorMatrix, Group10000SparseVectorMatrix, micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>>(
+  std::vector<double> gpu_x = linearSolverGenerator<
+      Group10000VectorMatrix,
+      Group10000SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>>(
       [](const Group10000SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::CudaLinearSolver<double, Group10000SparseVectorMatrix> {
         return micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>{ matrix, initial_value };
       },
       10000);
 
-  for (int i = 0; i < cpu_x.size(); i++){
-    EXPECT_EQ(cpu_x, gpu_x); 
+  for (int i = 0; i < cpu_x.size(); i++)
+  {
+    EXPECT_EQ(cpu_x, gpu_x);
   }
 }
 
-
 TEST(CudaLinearSolver, DenseMatrixVectorOrdering)
 {
-  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>>(
+  testDenseMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>>(
       [](const Group1SparseVectorMatrix<double>& matrix,
          double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition> {
-        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>{matrix, initial_value};
+        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>{ matrix, initial_value };
       });
 }
 
@@ -130,7 +141,6 @@ TEST(CudaLinearSolver, RandomMatrixVectorOrdering)
       },
       4);
   gpuValidation();
-  
 }
 
 TEST(CudaLinearSolver, DiagonalMatrixVectorOrdering)
@@ -160,5 +170,3 @@ TEST(CudaLinearSolver, DiagonalMatrixVectorOrdering)
       },
       4);
 }
-
-
