@@ -118,7 +118,7 @@ endif()
 ################################################################################
 # Copy configuration data
 
-if(ENABLE_TESTS OR ENABLE_EXAMPLES)
-add_custom_target(copy_example_configs ALL ${CMAKE_COMMAND} -E copy_directory
-  ${CMAKE_SOURCE_DIR}/examples/configs ${CMAKE_BINARY_DIR}/examples/configs)
+if(PROJECT_IS_TOP_LEVEL AND (ENABLE_TESTS OR ENABLE_EXAMPLES))
+  add_custom_target(copy_example_configs ALL ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/examples/configs ${CMAKE_BINARY_DIR}/examples/configs)
 endif()
