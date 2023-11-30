@@ -183,7 +183,7 @@ InitialConditions readCSVToMap(const std::string& filename)
 
 int main(const int argc, const char *argv[])
 {
-    if (argc < 2)
+    if (argc < 3)
     {
         std::cout << "  path                  Path to the folder holding the configuration data" << std::endl;
         std::cout << "  initial condition     csv file contanining initial condtions" << std::endl;
@@ -219,7 +219,9 @@ int main(const int argc, const char *argv[])
     auto chemical_system = solver_params.system_;
     auto reactions = solver_params.processes_;
 
-    RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+    auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+    params.relative_tolerance_ = 0.1;
+    RosenbrockSolver<> solver{ chemical_system, reactions, params};
 
     State state = solver.GetState();
 
