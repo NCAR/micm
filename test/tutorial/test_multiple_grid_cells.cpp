@@ -6,44 +6,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void print_header()
-{
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(5) << "grid"
-            << "," << std::setw(10) << "A"
-            << "," << std::setw(10) << "B"
-            << "," << std::setw(10) << "C" << std::endl;
-}
-
-template<template<class> class T, template<class> class D>
-void print_state(double time, State<T, D>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "1," << std::setw(10)
-            << state.variables_[0][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[0][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[0][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "2," << std::setw(10)
-            << state.variables_[1][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[1][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[1][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "3," << std::setw(10)
-            << state.variables_[2][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[2][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[2][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
 int main()
 {
   auto a = micm::Species("A");
@@ -102,8 +64,8 @@ int main()
   // choose a timestep and print the initial state
   double time_step = 200;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -120,7 +82,6 @@ int main()
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
     }
-
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
   }
 }

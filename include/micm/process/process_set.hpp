@@ -29,7 +29,7 @@ namespace micm
 
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
-    /// @param StateParameters Solver state
+    /// @param variable_map A mapping of species names to concentration index
     ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes

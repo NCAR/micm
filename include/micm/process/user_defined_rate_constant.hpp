@@ -26,7 +26,7 @@ namespace micm
     UserDefinedRateConstant();
 
     /// @brief
-    /// @param name A name for this reaction
+    /// @param parameters The data needed to build this class
     UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters);
 
     /// @brief Deep copy

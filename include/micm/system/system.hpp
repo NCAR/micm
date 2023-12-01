@@ -84,7 +84,7 @@ namespace micm
     std::vector<std::string> UniqueNames() const;
 
     /// @brief Returns a set of unique species names
-    /// @param reordering Function used to apply specific order to unique names
+    /// @param f Function used to apply specific order to unique names
     /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames(
         const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const;
