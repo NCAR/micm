@@ -42,7 +42,7 @@ int main(const int argc, const char *argv[])
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    state.PrintState(i*500);
+    state.PrintState(i * 500);
   }
 
   return 0;
