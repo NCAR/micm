@@ -189,7 +189,7 @@ InitialConditions readCSVToMap(const std::string& filename)
             }
             catch(const std::exception& e)
             {
-                std::cerr << e.what() << ': Parsing ErrorL Unable to convert string to double for the value of "' << value_string << '"' << std::endl;
+                std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
                 dataMap.incomplete_parsing();
                 return dataMap;
             }
@@ -201,7 +201,7 @@ InitialConditions readCSVToMap(const std::string& filename)
             }
             catch(const std::exception& e)
             {
-                std::cerr << e.what() << ': Parsing ErrorL Unable to convert string to double for the value of "' << value_string << '"' << std::endl;
+                std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
                 dataMap.incomplete_parsing();
                 return dataMap;
             }            
