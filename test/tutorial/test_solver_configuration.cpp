@@ -7,30 +7,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void print_header()
-{
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(10) << "A"
-            << "," << std::setw(10) << "B"
-            << "," << std::setw(10) << "C" << std::endl;
-}
-
-template<template<class> class T, template<class> class D>
-void print_state(double time, State<T, D>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(10) << state.variables_[0][state.variable_map_["A"]]
-            << "," << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[0][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
-template<typename T>
-void test_solver_type(T solver)
+void test_solver_type(auto& solver)
 {
   auto state = solver.GetState();
 
@@ -55,8 +32,8 @@ void test_solver_type(T solver)
   // choose a timestep and print the initial state
   double time_step = 200;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
   SolverStats total_stats;
   std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
@@ -94,7 +71,7 @@ void test_solver_type(T solver)
       state.variables_ = result.result_;
     }
 
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
   }
   std::cout << "Total solve time: " << total_solve_time.count() << " nanoseconds" << std::endl;
   std::cout << "accepted: " << total_stats.accepted << std::endl;

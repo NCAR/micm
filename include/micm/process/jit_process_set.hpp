@@ -35,7 +35,7 @@ namespace micm
     /// @brief Create a JITed process set calculator for a given set of processes
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
-    /// @param state Solver state
+    /// @param variable_map A mapping of species names to concentration index
     JitProcessSet(
         std::shared_ptr<JitCompiler> compiler,
         const std::vector<Process> &processes,

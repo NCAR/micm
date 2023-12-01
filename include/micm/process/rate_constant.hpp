@@ -38,7 +38,6 @@ namespace micm
 
     /// @brief Calculate the rate constant for a set of conditions
     /// @param conditions The current environmental conditions of the chemical system
-    /// @param custom_parameters User defined rate constant parameters
     /// @return The reaction rate constant
     virtual double calculate(const Conditions& conditions) const
     {

@@ -121,7 +121,10 @@ namespace micm
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
-    std::cout << std::setw(5) << "time";
+    std::cout << std::setw(6) << "time";
+    if (variables_.size() > 1) {
+      std::cout << "," << std::setw(6) << "grid";
+    }
 
     for(const auto& [species, index] : variable_map_)
     {
@@ -142,14 +145,26 @@ namespace micm
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
-    std::cout << std::setw(5) << time << std::flush;
 
-    for(const auto& [species, index] : variable_map_)
-    {
-      std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][index];
+    for(size_t i = 0; i < variables_.size(); ++i) {
+      std::cout << std::setw(6) << time << ",";
+
+      if (variables_.size() > 1) {
+        std::cout << std::setw(6) << i << ",";
+      }
+
+      bool first = true;
+      for(const auto& [species, index] : variable_map_)
+      {
+        if (!first) {
+          std::cout << ",";
+        }
+        std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];
+        first = false;
+      }
+      std::cout << std::endl;
+      std::cout.copyfmt(oldState);
     }
-    std::cout << std::endl;
-    std::cout.copyfmt(oldState);
   }
 
 }  // namespace micm
