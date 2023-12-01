@@ -13,7 +13,7 @@
           "type": "TROE",
           "k0_A": 5.5e-30,
           "kinf_A": 8.3e-13,
-          "N": -2,
+          "kinf_B": 2,
           "reactants": {
             "C2H2": { },
             "OH": { }
@@ -57,7 +57,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jterpnit->,jch3ooh",
+          "MUSICA name": "jterpnit",
           "reactants": {
             "TERPNIT": { }
           },
@@ -113,7 +113,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jo2_b=userdefined,",
+          "MUSICA name": "jo2_b",
           "reactants": {
             "O2": { }
           },
@@ -160,7 +160,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jxylenooh->,jch3ooh",
+          "MUSICA name": "jxylenooh",
           "reactants": {
             "XYLENOOH": { }
           },
@@ -220,12 +220,12 @@
         },
         {
           "type": "TROE",
-          "k0_A": 1.07767,
-          "k0_B": -5.6,
+          "k0_A": 0.81103,
+          "k0_B": -4.1,
           "k0_C": -14000,
-          "kinf_A": 1.03323e+17,
+          "kinf_A": 1.05545e17,
           "kinf_C": -14000,
-          "N": 1.5,
+          "kinf_B": -1.6,
           "reactants": {
             "PAN": { }
           },
@@ -315,7 +315,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jterp2ooh->,jch3ooh",
+          "MUSICA name": "jterp2ooh",
           "reactants": {
             "TERP2OOH": { }
           },
@@ -441,7 +441,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbigald4->,.006*jno2",
+          "MUSICA name": "jbigald4",
           "reactants": {
             "BIGALD4": { }
           },
@@ -491,16 +491,18 @@
           }
         },
         {
-          "type": "ARRHENIUS",
-          "A": 1.38889e+16,
-          "Ea": 8.40401e-20,
+          "type": "TROE",
+          "k0_A": 8.796296296E-6,
+          "k0_B": -3.6,
+          "k0_C": -8537.0,
+          "kinf_A": 1.712962963E+15,
+          "kinf_B": -1.6,
+          "kinf_C": -8537.0,
           "reactants": {
-            "CL2O2": { },
-            "M": { }
+            "CL2O2": { }
           },
           "products": {
-            "CLO": { "yield": 2 },
-            "M": { }
+            "CLO": { "yield": 2 }
           }
         },
         {
@@ -517,7 +519,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa3_a2->,.0004*jno2",
+          "MUSICA name": "jsoa3_a2",
           "reactants": {
             "soa3_a2": { }
           },
@@ -605,7 +607,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jtepomuc->,.10*jno2",
+          "MUSICA name": "jtepomuc",
           "reactants": {
             "TEPOMUC": { }
           },
@@ -620,7 +622,7 @@
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "MDIALO2": { },
             "NO2": { }
@@ -696,7 +698,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jno=userdefined,",
+          "MUSICA name": "jno",
           "reactants": {
             "NO": { }
           },
@@ -833,7 +835,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jc3h7ooh->,jch3ooh",
+          "MUSICA name": "jc3h7ooh",
           "reactants": {
             "C3H7OOH": { }
           },
@@ -879,7 +881,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jnoa->,jch2o_a",
+          "MUSICA name": "jnoa",
           "reactants": {
             "NOA": { }
           },
@@ -955,8 +957,8 @@
           "k0_A": 6.1e-33,
           "k0_B": -1.5,
           "kinf_A": 9.8e-15,
+          "kinf_B": 4.6,
           "Fc": 0.8,
-          "N": -4.6,
           "reactants": {
             "OH": { },
             "HCN": { }
@@ -1015,7 +1017,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jnterpooh->,jch3ooh",
+          "MUSICA name": "jnterpooh",
           "reactants": {
             "NTERPOOH": { }
           },
@@ -1041,7 +1043,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jrooh->,jch3ooh",
+          "MUSICA name": "jrooh",
           "reactants": {
             "ROOH": { }
           },
@@ -1133,7 +1135,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jpooh->,jch3ooh",
+          "MUSICA name": "jpooh",
           "reactants": {
             "POOH": { }
           },
@@ -1173,7 +1175,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa2_a2->,.0004*jno2",
+          "MUSICA name": "jsoa2_a2",
           "reactants": {
             "soa2_a2": { }
           },
@@ -1432,7 +1434,7 @@
           "k0_A": 2.9e-31,
           "k0_B": -4.1,
           "kinf_A": 1.7e-12,
-          "N": -0.2,
+          "kinf_B": 0.2,
           "reactants": {
             "SO2": { },
             "OH": { }
@@ -1447,7 +1449,6 @@
           "k0_A": 1.8e-30,
           "k0_B": -3,
           "kinf_A": 2.8e-11,
-          "N": 0,
           "reactants": {
             "OH": { },
             "NO2": { }
@@ -1461,7 +1462,7 @@
           "k0_A": 1.8e-31,
           "k0_B": -3.4,
           "kinf_A": 1.5e-11,
-          "N": 1.9,
+          "kinf_B": -1.9,
           "reactants": {
             "CLO": { },
             "NO2": { }
@@ -1590,7 +1591,6 @@
           "k0_B": -3.5,
           "kinf_A": 3.0e-11,
           "Fc": 0.5,
-          "N": 0,
           "reactants": {
             "OH": { },
             "C3H6": { }
@@ -1630,12 +1630,12 @@
         },
         {
           "type": "TROE",
-          "k0_A": 0.000413793,
+          "k0_A": 4.13793120e-04,
           "k0_B": -3,
           "k0_C": -10840,
-          "kinf_A": 2.75862e+14,
+          "kinf_A": 2.7586208e+14,
           "kinf_C": -10840,
-          "N": -0.1,
+          "kinf_B": 0.1,
           "reactants": {
             "N2O5": { }
           },
@@ -1773,7 +1773,7 @@
           "k0_A": 1.9e-32,
           "k0_B": -3.6,
           "kinf_A": 3.7e-12,
-          "N": 1.6,
+          "kinf_B": -1.6,
           "reactants": {
             "CLO": { "qty": 2 }
           },
@@ -1783,7 +1783,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa5_a2->,.0004*jno2",
+          "MUSICA name": "jsoa5_a2",
           "reactants": {
             "soa5_a2": { }
           },
@@ -1889,7 +1889,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbenzooh->,jch3ooh",
+          "MUSICA name": "jbenzooh",
           "reactants": {
             "BENZOOH": { }
           },
@@ -2068,7 +2068,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jisopnooh->,jch3ooh",
+          "MUSICA name": "jisopnooh",
           "reactants": {
             "ISOPNOOH": { }
           },
@@ -2080,7 +2080,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jalkooh->,jch3ooh",
+          "MUSICA name": "jalkooh",
           "reactants": {
             "ALKOOH": { }
           },
@@ -2134,7 +2134,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa1_a1->,.0004*jno2",
+          "MUSICA name": "jsoa1_a1",
           "reactants": {
             "soa1_a1": { }
           },
@@ -2148,7 +2148,7 @@
           "k0_B": -3.1,
           "kinf_A": 9.0e-12,
           "Fc": 0.48,
-          "N": 0.85,
+          "kinf_B": -0.85,
           "reactants": {
             "C2H4": { },
             "OH": { }
@@ -2162,7 +2162,7 @@
           "k0_A": 5.3e-32,
           "k0_B": -1.8,
           "kinf_A": 9.5e-11,
-          "N": -0.4,
+          "kinf_B": 0.4,
           "reactants": {
             "O2": { },
             "H": { }
@@ -2261,7 +2261,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jeooh->,jch3ooh",
+          "MUSICA name": "jeooh",
           "reactants": {
             "EOOH": { }
           },
@@ -2309,7 +2309,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jisopooh->,jch3ooh",
+          "MUSICA name": "jisopooh",
           "reactants": {
             "ISOPOOH": { }
           },
@@ -2365,7 +2365,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jc6h5ooh->,jch3ooh",
+          "MUSICA name": "jc6h5ooh",
           "reactants": {
             "C6H5OOH": { }
           },
@@ -2429,7 +2429,7 @@
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "MALO2": { },
             "NO2": { }
@@ -2610,7 +2610,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbigald2->,.20*jno2",
+          "MUSICA name": "jbigald2",
           "reactants": {
             "BIGALD2": { }
           },
@@ -2661,7 +2661,7 @@
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "ACBZO2": { },
             "NO2": { }
@@ -2916,7 +2916,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jglyoxal->,jmgly",
+          "MUSICA name": "jglyoxal",
           "reactants": {
             "GLYOXAL": { }
           },
@@ -3045,7 +3045,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jhpald->,.006*jno2",
+          "MUSICA name": "jhpald",
           "reactants": {
             "HPALD": { }
           },
@@ -3098,7 +3098,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbzooh->,jch3ooh",
+          "MUSICA name": "jbzooh",
           "reactants": {
             "BZOOH": { }
           },
@@ -3198,7 +3198,7 @@
           "k0_A": 5.2e-30,
           "k0_B": -2.4,
           "kinf_A": 2.2e-10,
-          "N": 0.7,
+          "kinf_B": -0.7,
           "reactants": {
             "C2H2": { },
             "CL": { }
@@ -3234,7 +3234,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jalknit->,jch3ooh",
+          "MUSICA name": "jalknit",
           "reactants": {
             "ALKNIT": { }
           },
@@ -3279,7 +3279,7 @@
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "MCO3": { },
             "NO2": { }
@@ -3340,7 +3340,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbigald->,0.2*jno2",
+          "MUSICA name": "jbigald",
           "reactants": {
             "BIGALD": { }
           },
@@ -3382,7 +3382,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa5_a1->,.0004*jno2",
+          "MUSICA name": "jsoa5_a1",
           "reactants": {
             "soa5_a1": { }
           },
@@ -3420,7 +3420,7 @@
           "k0_A": 7.3e-29,
           "k0_B": -4.1,
           "kinf_A": 9.5e-12,
-          "N": 1.6,
+          "kinf_B": -1.6,
           "reactants": {
             "CH3CO3": { },
             "NO2": { }
@@ -3674,7 +3674,6 @@
           "k0_B": -3.5,
           "kinf_A": 3.0e-11,
           "Fc": 0.5,
-          "N": 0,
           "reactants": {
             "OH": { },
             "MPAN": { }
@@ -3693,8 +3692,8 @@
           "k0_B": -5.6,
           "k0_C": -14000,
           "kinf_A": 1.03323e+17,
+          "kinf_B": -1.5,
           "kinf_C": -14000,
-          "N": 1.5,
           "reactants": {
             "PBZNIT": { }
           },
@@ -3741,7 +3740,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jterprd2->,jch3cho",
+          "MUSICA name": "jterprd2",
           "reactants": {
             "TERPROD2": { }
           },
@@ -3815,7 +3814,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jmek->,jacet",
+          "MUSICA name": "jmek",
           "reactants": {
             "MEK": { }
           },
@@ -3907,7 +3906,6 @@
           "k0_A": 9.0e-32,
           "k0_B": -1.5,
           "kinf_A": 3.0e-11,
-          "N": 0,
           "reactants": {
             "NO": { },
             "O": { }
@@ -4014,7 +4012,7 @@
           "k0_A": 1.9e-31,
           "k0_B": -3.4,
           "kinf_A": 4.0e-12,
-          "N": 0.3,
+          "kinf_B": -0.3,
           "reactants": {
             "NO2": { },
             "HO2": { }
@@ -4104,7 +4102,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jxylolooh->,jch3ooh",
+          "MUSICA name": "jxylolooh",
           "reactants": {
             "XYLOLOOH": { }
           },
@@ -4128,7 +4126,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jmekooh->,jch3ooh",
+          "MUSICA name": "jmekooh",
           "reactants": {
             "MEKOOH": { }
           },
@@ -4193,7 +4191,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jphenooh->,jch3ooh",
+          "MUSICA name": "jphenooh",
           "reactants": {
             "PHENOOH": { }
           },
@@ -4299,7 +4297,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa4_a1->,.0004*jno2",
+          "MUSICA name": "jsoa4_a1",
           "reactants": {
             "soa4_a1": { }
           },
@@ -4346,7 +4344,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbigald3->,.20*jno2",
+          "MUSICA name": "jbigald3",
           "reactants": {
             "BIGALD3": { }
           },
@@ -4407,7 +4405,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbepomuc->,.10*jno2",
+          "MUSICA name": "jbepomuc",
           "reactants": {
             "BEPOMUC": { }
           },
@@ -4638,8 +4636,8 @@
           "k0_B": -3.4,
           "k0_C": -10900,
           "kinf_A": 1.90476e+15,
+          "kinf_B": -0.3,
           "kinf_C": -10900,
-          "N": 0.3,
           "reactants": {
             "HO2NO2": { }
           },
@@ -4700,7 +4698,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jnc4cho->,jch2o_a",
+          "MUSICA name": "jnc4cho",
           "reactants": {
             "NC4CHO": { }
           },
@@ -4733,7 +4731,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jhonitr->,jch2o_a",
+          "MUSICA name": "jhonitr",
           "reactants": {
             "HONITR": { }
           },
@@ -4764,7 +4762,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jxooh->,jch3ooh",
+          "MUSICA name": "jxooh",
           "reactants": {
             "XOOH": { }
           },
@@ -4830,7 +4828,7 @@
           "k0_A": 5.2e-31,
           "k0_B": -3.2,
           "kinf_A": 6.9e-12,
-          "N": 2.9,
+          "kinf_B": -2.9,
           "reactants": {
             "BRO": { },
             "NO2": { }
@@ -4855,6 +4853,7 @@
           "k0_A": 1.6e-29,
           "k0_B": -3.3,
           "kinf_A": 3.1e-10,
+          "kinf_B": -1.0,
           "reactants": {
             "C2H4": { },
             "CL": { }
@@ -4921,7 +4920,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jch3co3h->,0.28*jh2o2",
+          "MUSICA name": "jch3co3h",
           "reactants": {
             "CH3COOOH": { }
           },
@@ -5018,7 +5017,6 @@
           "k0_A": 6.9e-31,
           "k0_B": -1,
           "kinf_A": 2.6e-11,
-          "N": 0,
           "reactants": {
             "OH": { "qty": 2 }
           },
@@ -5028,7 +5026,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jonitr->,jch3cho",
+          "MUSICA name": "jonitr",
           "reactants": {
             "ONITR": { }
           },
@@ -5038,7 +5036,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jterpooh->,jch3ooh",
+          "MUSICA name": "jterpooh",
           "reactants": {
             "TERPOOH": { }
           },
@@ -5084,12 +5082,7 @@
           }
         },
         {
-          "type": "TROE",
-          "k0_A": 3.57e-43,
-          "k0_C": 7810,
-          "kinf_A": 3.09091e-12,
-          "kinf_C": 350,
-          "Fc": 1,
+          "type": "USER_DEFINED",
           "reactants": {
             "OH": { },
             "DMS": { }
@@ -5097,7 +5090,8 @@
           "products": {
             "SO2": { "yield": 0.5 },
             "HO2": { "yield": 0.5 }
-          }
+          },
+          "MUSICA name": "usr_DMS_OH"
         },
         {
           "type": "ARRHENIUS",
@@ -5232,7 +5226,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jbigald1->,.14*jno2",
+          "MUSICA name": "jbigald1",
           "reactants": {
             "BIGALD1": { }
           },
@@ -5270,7 +5264,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jc2h5ooh->,jch3ooh",
+          "MUSICA name": "jc2h5ooh",
           "reactants": {
             "C2H5OOH": { }
           },
@@ -5418,7 +5412,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jterprd1->,jch3cho",
+          "MUSICA name": "jterprd1",
           "reactants": {
             "TERPROD1": { }
           },
@@ -5430,7 +5424,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jmpan->,jpan",
+          "MUSICA name": "jmpan",
           "reactants": {
             "MPAN": { }
           },
@@ -5492,7 +5486,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa3_a1->,.0004*jno2",
+          "MUSICA name": "jsoa3_a1",
           "reactants": {
             "soa3_a1": { }
           },
@@ -5502,7 +5496,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa4_a2->,.0004*jno2",
+          "MUSICA name": "jsoa4_a2",
           "reactants": {
             "soa4_a2": { }
           },
@@ -5665,7 +5659,7 @@
           "k0_A": 9.7e-29,
           "k0_B": -5.6,
           "kinf_A": 9.3e-12,
-          "N": 1.5,
+          "kinf_B": -1.5,
           "reactants": {
             "DICARBO2": { },
             "NO2": { }
@@ -5758,10 +5752,10 @@
         {
           "type": "ARRHENIUS",
           "A": 8.5e-41,
-          "Ea": -9.02944e-20,
+          "C": 6540,
           "reactants": {
-            "H2O": { },
-            "SO3": { }
+            "H2O": { "qty": 2 },
+            "SO3": {}
           },
           "products": {
             "H2SO4": { },
@@ -5770,7 +5764,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jtolooh->,jch3ooh",
+          "MUSICA name": "jtolooh",
           "reactants": {
             "TOLOOH": { }
           },
@@ -5908,7 +5902,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa2_a1->,.0004*jno2",
+          "MUSICA name": "jsoa2_a1",
           "reactants": {
             "soa2_a1": { }
           },
@@ -6417,7 +6411,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jo2_a=userdefined,",
+          "MUSICA name": "jo2_a",
           "reactants": {
             "O2": { }
           },
@@ -6489,8 +6483,8 @@
           "k0_B": -5.6,
           "k0_C": -14000,
           "kinf_A": 1.03323e+17,
+          "kinf_B": -1.5,
           "kinf_C": -14000,
-          "N": 1.5,
           "reactants": {
             "MPAN": { }
           },
@@ -6611,7 +6605,7 @@
         },
         {
           "type": "PHOTOLYSIS",
-          "MUSICA name": "jsoa1_a2->,.0004*jno2",
+          "MUSICA name": "jsoa1_a2",
           "reactants": {
             "soa1_a2": { }
           },
@@ -6717,7 +6711,7 @@
           "k0_A": 2.5e-31,
           "k0_B": -1.8,
           "kinf_A": 2.2e-11,
-          "N": 0.7,
+          "kinf_B": -0.7,
           "reactants": {
             "NO2": { },
             "O": { }
@@ -6780,7 +6774,7 @@
           "k0_A": 2.4e-30,
           "k0_B": -3,
           "kinf_A": 1.6e-12,
-          "N": -0.1,
+          "kinf_B": 0.1,
           "reactants": {
             "NO3": { },
             "NO2": { }
@@ -7094,7 +7088,7 @@
     },
     {
       "type": "USER_DEFINED",
-      "MUSICA name": "usr_CO_OH; non-standard algorithm",
+      "__comments": "k_co_oh_jpl19; non-standard algorithm",
       "reactants": {
         "OH": { },
         "CO": { }
@@ -7103,7 +7097,7 @@
         "CO2": { },
         "HO2": { }
       },
-      "MUSICA name": "k_co_oh_jpl19"
+      "MUSICA name": "usr_CO_OH"
     },
     {
       "type": "SURFACE",

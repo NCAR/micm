@@ -123,7 +123,7 @@ namespace micm
 
     std::cout << std::setw(5) << "time";
 
-    for(auto& species : variable_names_)
+    for(const auto& [species, index] : variable_map_)
     {
       std::cout << "," << std::setw(width) << species;
     }
@@ -144,9 +144,9 @@ namespace micm
 
     std::cout << std::setw(5) << time << std::flush;
 
-    for(auto& species : variable_names_)
+    for(const auto& [species, index] : variable_map_)
     {
-      std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][variable_map_[species]];
+      std::cout << std::scientific << "," << std::setw(width) << std::setprecision(2) << variables_[0][index];
     }
     std::cout << std::endl;
     std::cout.copyfmt(oldState);
