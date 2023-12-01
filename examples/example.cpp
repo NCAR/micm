@@ -66,6 +66,7 @@ InitialConditions readCSVToMap(const std::string& filename)
     const std::string EMIS_PREFIX = "EMIS.";
     const std::string LOSS_PREFIX = "LOSS.";
     const std::string USER_PREFIX = "USER.";
+    const std::string SURF_PREFIX = "SURF.";
     constexpr int CONC_POS = 5;
     constexpr int ENV_POS = 4;
 
@@ -140,7 +141,7 @@ InitialConditions readCSVToMap(const std::string& filename)
                 return dataMap;
             }
         }
-        // Find custom rate constants
+        // Find custom rate constants that use UserDefinedRateConstant class
         else if (line.find(PHOTO_PREFIX) != std::string::npos 
                || line.find(EMIS_PREFIX) != std::string::npos 
                || line.find(LOSS_PREFIX) != std::string::npos
@@ -149,7 +150,7 @@ InitialConditions readCSVToMap(const std::string& filename)
             delimiter_pos = line.find_last_of(',');
             if (delimiter_pos == std::string::npos)
             {
-                std::cerr << "Error: Unable to find the delimiter \',' in \"" << line << "\"" << std::endl;
+                std::cerr << "Error: Unable to find the delimiter ',' in \"" << line << "\"" << std::endl;
                 dataMap.incomplete_parsing();
                 return dataMap;
             }
@@ -168,6 +169,42 @@ InitialConditions readCSVToMap(const std::string& filename)
                 dataMap.incomplete_parsing();
                 return dataMap;
             }
+        }
+        else if (line.find(SURF_PREFIX) != std::string::npos)
+        {
+            auto last_delimiter_pos = line.find_last_of(',');
+            auto second_last_delimiter_pos = line.substr(0,last_delimiter_pos-1).find_last_of(',');
+            if (last_delimiter_pos == std::string::npos || second_last_delimiter_pos == std::string::npos)
+            {
+                std::cerr << "Error: Unable to find both delimiters ',' in \"" << line << "\"" << std::endl;
+                dataMap.incomplete_parsing();
+                return dataMap;
+            }
+            key = line.substr(0, second_last_delimiter_pos);
+            value_string = line.substr(second_last_delimiter_pos + 1, last_delimiter_pos - second_last_delimiter_pos);
+            try
+            {
+                value = std::stod(value_string);
+                dataMap.custom_rate_params[key + ".effective radius [m]"].emplace_back(value);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
+                dataMap.incomplete_parsing();
+                return dataMap;
+            }
+            value_string = line.substr(last_delimiter_pos + 1);
+            try
+            {
+                value = std::stod(value_string);
+                dataMap.custom_rate_params[key + ".particle number concentration [# m-3]"].emplace_back(value);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
+                dataMap.incomplete_parsing();
+                return dataMap;
+            }            
         }
         else
         {
@@ -216,6 +253,21 @@ int main(const int argc, const char *argv[])
     }
 
     SolverParameters solver_params = solverConfig.GetSolverParams();
+
+    // add third-body species parameterizaton on air density
+    for (auto& species : solver_params.system_.gas_phase_.species_)
+      if (species.name_ == "M")
+        species.parameterize_ = [](const Conditions& c) { return c.air_density_; };
+    for (auto& process : solver_params.processes_)
+    {
+      for (auto& reactant : process.reactants_)
+        if (reactant.name_ == "M")
+          reactant.parameterize_ = [](const Conditions& c) { return c.air_density_; };
+      for (auto& product : process.products_)
+        if (product.first.name_ == "M")
+          product.first.parameterize_ = [](const Conditions& c) { return c.air_density_; };
+    }
+
     auto chemical_system = solver_params.system_;
     auto reactions = solver_params.processes_;
 
@@ -256,6 +308,11 @@ int main(const int argc, const char *argv[])
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
+      if (result.state_ != SolverState::Converged)
+      {
+        std::cout << "solver failed to converge" << std::endl;
+        return 1;
+      }
     }
     state.PrintState(time_step);
 
