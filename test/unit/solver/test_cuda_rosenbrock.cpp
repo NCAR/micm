@@ -95,3 +95,34 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
   }
 }
+
+template<class T>
+using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+template<class T>
+using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
+template<class T>
+using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
+template<class T>
+using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+
+TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
+{
+  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(
+      1);
+  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
+      2);
+  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
+      3);
+  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
+      4);
+}
+

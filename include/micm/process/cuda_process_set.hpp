@@ -13,9 +13,10 @@ namespace micm
   class CudaProcessSet : public ProcessSet
   {
    public:
+    CudaProcessSet() = default;
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
-    /// @param state Solver state
+    /// @param state Solver state    
     CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     template<template<class> typename MatrixPolicy>

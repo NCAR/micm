@@ -22,47 +22,53 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <string>
 #include <vector>
+#include <micm/process/cuda_process_set.hpp>
+#include <micm/solver/cuda_linear_solver.hpp>
 
 namespace micm{
 
  template<
       template<class> class MatrixPolicy = Matrix,
       template<class> class SparseMatrixPolicy = StandardSparseMatrix,
-      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
-      class ProcessSetPolicy = ProcessSet>
+      class LinearSolverPolicy = CudaLinearSolver<double, SparseMatrixPolicy>,
+      class ProcessSetPolicy = CudaProcessSet>
+
+
 class CudaRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>{
 ///@brief Default constructor 
+public:
 CudaRosenbrockSolver(); 
 
 CudaRosenbrockSolver(const System& system, 
                     const std::vector<Process>& processes, 
                     const RosenbrockSolverParameters& parameters)
-: RosenbrockSolver(system, processes, parameters){}; 
+: RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(system, processes, parameters){}; 
 
 CudaRosenbrockSolver(const System& system,
                     const std::vector<Process> processes, 
-                    const RosenbrockSolverParamters& parameters
-                    const std::function<linearSolverPolicy (const SparseMatrixPolicy<double>, double)> create_linear_solver,
+                    const RosenbrockSolverParameters& parameters,
+                    const std::function<LinearSolverPolicy (const SparseMatrixPolicy<double>, double)> create_linear_solver,
                     const std::function<ProcessSetPolicy (const std::vector<Process>& , const std::map<std::string, std::size_t>&)> create_process_set)
-: RosenbrockSolver(system, processes, parameters, create_linear_solver, create_process_set){}; 
+: RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(system, processes, parameters, create_linear_solver, create_process_set){}; 
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcesseSetPolicy> 
 requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
 void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
 {
     CudaSparseMatrixParam sparseMatrix; 
     sparseMatrix.jacobian_ = jacobian.AsVector(); 
     sparseMatrix.jacobian_size_ = jacobian.AsVector().size(); 
     sparseMatrix.n_grid_ = jacobian.size(); 
+    
     for (auto& element : sparseMatrix.jacobian_)
     {
         element = -element; 
     }
-    std::vector<size_t> jacobian_diagonal_element = state_parameters_.jacobian_diagonal_elements_; //just pass this in without storing in another vector 
-    AlphaMinusJacobianDriver(sparseMatrix,
+
+    micm::cuda::AlphaMinusJacobianDriver(sparseMatrix,
                             state_parameters_.jacobian_diagonal_elements_, 
                             alpha);
     
-    }; 
-}//end CudaRosenbrockSolver
+        }
+    }; //end CudaRosenbrockSolver
 }//end micm 
