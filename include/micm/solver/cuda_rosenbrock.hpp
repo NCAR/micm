@@ -24,7 +24,13 @@
 #include <vector>
 
 namespace micm{
-class CudaRosenbrockSolver : public RosenbrockSolver{
+
+ template<
+      template<class> class MatrixPolicy = Matrix,
+      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
+      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
+      class ProcessSetPolicy = ProcessSet>
+class CudaRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>{
 ///@brief Default constructor 
 CudaRosenbrockSolver(); 
 
