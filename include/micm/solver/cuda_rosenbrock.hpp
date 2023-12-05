@@ -15,6 +15,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+
 namespace micm{
 class CudaRosenbrockSolver : public RosenbrockSolver{
 ///@brief Default constructor 
@@ -49,6 +50,6 @@ void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alph
                             state_parameters_.jacobian_diagonal_elements_, 
                             alpha);
     
-}    
-    }//end CudaRosenbrockSolver
-        }//end micm 
+    }; 
+}//end CudaRosenbrockSolver
+}//end micm 
