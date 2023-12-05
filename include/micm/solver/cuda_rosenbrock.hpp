@@ -39,7 +39,7 @@ CudaRosenbrockSolver(const System& system,
                     const RosenbrockSolverParameters& parameters)
 : RosenbrockSolver(system, processes, parameters){}; 
 
-CudaRosenbrockSolver(const System& system
+CudaRosenbrockSolver(const System& system,
                     const std::vector<Process> processes, 
                     const RosenbrockSolverParamters& parameters
                     const std::function<linearSolverPolicy (const SparseMatrixPolicy<double>, double)> create_linear_solver,
