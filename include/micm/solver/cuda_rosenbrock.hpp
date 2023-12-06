@@ -33,16 +33,17 @@ namespace micm{
       class LinearSolverPolicy = CudaLinearSolver<double, SparseMatrixPolicy>,
       class ProcessSetPolicy = CudaProcessSet>
 
-
 class CudaRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>{
 ///@brief Default constructor 
 public:
 CudaRosenbrockSolver(); 
 
+
 CudaRosenbrockSolver(const System& system, 
                     const std::vector<Process>& processes, 
                     const RosenbrockSolverParameters& parameters)
 : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(system, processes, parameters){}; 
+
 
 CudaRosenbrockSolver(const System& system,
                     const std::vector<Process> processes, 
@@ -51,22 +52,24 @@ CudaRosenbrockSolver(const System& system,
                     const std::function<ProcessSetPolicy (const std::vector<Process>& , const std::map<std::string, std::size_t>&)> create_process_set)
 : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(system, processes, parameters, create_linear_solver, create_process_set){}; 
 
-requires(VectorizableSparse<SparseMatrixPolicy<double>>);
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+
+
+void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const
+requires VectorizableSparse<SparseMatrixPolicy<double>>
 {
-    CudaSparseMatrixParam sparseMatrix; 
-    sparseMatrix.jacobian_ = jacobian.AsVector(); 
-    sparseMatrix.jacobian_size_ = jacobian.AsVector().size(); 
-    sparseMatrix.n_grid_ = jacobian.size(); 
     
-    for (auto& element : sparseMatrix.jacobian_)
+    for (auto& element : jacobian.AsVector())
     {
         element = -element; 
     }
 
+     CudaSparseMatrixParam sparseMatrix; 
+    sparseMatrix.jacobian_ = jacobian.AsVector().data(); 
+    sparseMatrix.jacobian_size_ = jacobian.AsVector().size(); 
+    sparseMatrix.n_grids_ = jacobian.size(); 
+   
     micm::cuda::AlphaMinusJacobianDriver(sparseMatrix,
-                            state_parameters_.jacobian_diagonal_elements_, 
+                            this->state_parameters_.jacobian_diagonal_elements_, 
                             alpha);
     
         }

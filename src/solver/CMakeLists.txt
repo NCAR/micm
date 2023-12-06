@@ -3,5 +3,6 @@ if(ENABLE_CUDA)
      PRIVATE
      lu_decomposition.cu
      linear_solver.cu
+     rosenbrock.cu
   )
 endif()
