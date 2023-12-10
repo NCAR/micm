@@ -61,15 +61,18 @@ requires VectorizableSparse<SparseMatrixPolicy<double>>
     for (auto& element : jacobian.AsVector())
     {
         element = -element; 
+        
+        std::cout<< "opposite element: " << element<<std::endl; 
     }
 
      CudaSparseMatrixParam sparseMatrix; 
     sparseMatrix.jacobian_ = jacobian.AsVector().data(); 
     sparseMatrix.jacobian_size_ = jacobian.AsVector().size(); 
     sparseMatrix.n_grids_ = jacobian.size(); 
-   
+    sparseMatrix.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
+    sparseMatrix.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size(); 
     micm::cuda::AlphaMinusJacobianDriver(sparseMatrix,
-                            this->state_parameters_.jacobian_diagonal_elements_, 
+                            
                             alpha);
     
         }

@@ -5,7 +5,7 @@ namespace micm{
     namespace cuda{
   void AlphaMinusJacobianDriver(
                         CudaSparseMatrixParam& sparseMatrix,
-                        const std::vector<size_t> jacobian_diagonal_elements, 
+                      
                         double alpha);
 
     }//end cuda

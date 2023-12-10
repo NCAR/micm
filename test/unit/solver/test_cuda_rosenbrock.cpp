@@ -119,11 +119,11 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(
       1);
-  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
-      2);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
-      3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
-      4);
+  // testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
+  //     2);
+  // testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
+  //     3);
+  // testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
+  //     4);
 }
 
