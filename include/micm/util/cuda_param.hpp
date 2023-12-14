@@ -90,6 +90,4 @@ struct CudaSparseMatrixParam
   size_t lower_matrix_size_;
   const double* upper_matrix_;
   size_t upper_matrix_size_;
-  const size_t* jacobian_diagonal_elements_; 
-  size_t jacobian_diagonal_elements_size_; 
 };

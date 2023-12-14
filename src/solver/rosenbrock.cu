@@ -17,43 +17,44 @@ namespace micm{
     {
         for (int j = 0; j < jacobian_diagonal_elements_size; j++)
         {
-            //printf("j: %d\n", j); 
             size_t jacobian_index = d_jacobian_diagonal_elements[j];
-            printf("jacobian index: %d\n", d_jacobian_diagonal_elements[j]); 
             d_jacobian[jacobian_index + tid] += alpha; 
         }
     } 
 }
         
-        void AlphaMinusJacobianDriver(
+        std::chrono::nanoseconds AlphaMinusJacobianDriver(
                         CudaSparseMatrixParam& sparseMatrix,
-                        
+                        const std::vector<size_t> jacobian_diagonal_elements,
                         double alpha)
     {
         //device pointers
-        std::cout<< "element size: "<<sparseMatrix.jacobian_diagonal_elements_size_<<std::endl; 
-        
-        
         double* d_jacobian;
         size_t* d_jacobian_diagonal_elements; 
         cudaMalloc(&d_jacobian, sizeof(double)* sparseMatrix.jacobian_size_); 
-        cudaMalloc(&d_jacobian_diagonal_elements, sizeof(size_t)*sparseMatrix.jacobian_diagonal_elements_size_);
-        cudaMemcpy(d_jacobian, sparseMatrix.jacobian_, sparseMatrix.jacobian_size_, cudaMemcpyHostToDevice); 
-        cudaMemcpy(d_jacobian_diagonal_elements, sparseMatrix.jacobian_diagonal_elements_, sparseMatrix.jacobian_diagonal_elements_size_, cudaMemcpyHostToDevice);
-        
-        
+        cudaMalloc(&d_jacobian_diagonal_elements, sizeof(size_t)* jacobian_diagonal_elements.size());
+        cudaMemcpy(d_jacobian, sparseMatrix.jacobian_, sizeof(double)* sparseMatrix.jacobian_size_, cudaMemcpyHostToDevice); 
+        cudaMemcpy(d_jacobian_diagonal_elements, jacobian_diagonal_elements.data(), sizeof(size_t)* jacobian_diagonal_elements.size(), cudaMemcpyHostToDevice);
+
         //kernel call
         size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        auto startTime = std::chrono::high_resolution_clock::now();
         AlphaMinusJacobianKernel<<<num_block, BLOCK_SIZE>>>(sparseMatrix.n_grids_,
                                 d_jacobian,  
                                 d_jacobian_diagonal_elements,
-                                sparseMatrix.jacobian_diagonal_elements_size_,
+                                jacobian_diagonal_elements.size(),
                                 alpha);
-        
+
+
         cudaDeviceSynchronize();
-        cudaMemcpy(sparseMatrix.jacobian_, d_jacobian, sparseMatrix.jacobian_size_, cudaMemcpyDeviceToHost);
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+        cudaMemcpy(sparseMatrix.jacobian_, d_jacobian, sizeof(double)* sparseMatrix.jacobian_size_, cudaMemcpyDeviceToHost);
         cudaFree(d_jacobian);
         cudaFree(d_jacobian_diagonal_elements);
+        
+        return kernel_duration; 
+
     }
 
     }// end cuda

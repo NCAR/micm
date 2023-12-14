@@ -386,17 +386,15 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
-    for (auto& elem : jacobian.AsVector()){
+    for (auto& elem : jacobian.AsVector())
       elem = -elem;
-      std::cout<< "opporsite element on CPU: "<<elem<<std::endl; 
-    }
+     
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell){
-          std::cout<< "jacobian index: "<< i_elem + i_cell <<std::endl; 
-          jacobian_vector[i_elem + i_cell] += alpha;}
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          jacobian_vector[i_elem + i_cell] += alpha;
     }
   }
 
