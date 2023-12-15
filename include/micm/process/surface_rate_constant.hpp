@@ -34,7 +34,7 @@ namespace micm
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
 
     /// @brief
-    /// @param name A name for this reaction
+    /// @param parameters The data required to build this class
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
 
     /// @brief Deep copy

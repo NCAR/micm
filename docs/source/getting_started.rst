@@ -64,35 +64,35 @@ Build and run the image::
 
 If you would like, you can ssh into a running docker container and edit the files there.
 
-GPU
----
-
-NCAR Hardware
-^^^^^^^^^^^^^
-
-On Cheyenne
-^^^^^^^^^^^
-
-On Casper
-^^^^^^^^^
-
-On Gust and Derecho
-^^^^^^^^^^^^^^^^^^^
-
-To compile and test on gust::
-
-    $ qinteractive -A NTDD0005 --ngpus=1
-    $ module load cmake/3.25.2 nvhpc/23.1 cuda/11.7.1
-    $ mkdir build && cd build
-    $ cmake -DENABLE_OPENACC=OFF -DENABLE_CUDA=ON -D GPU_TYPE="a100" ..
-    $ make
-    $ make test
-
-NOAA Hardware
-^^^^^^^^^^^^^
-
 Run an Example
 --------------
+
+MICM Executable Example
+^^^^^^^^^^^^^^^^^^^^^^^
+
+A simple driver for MICM is built with the library and can be used to solve a
+chemical system for given initial conditions over one time step.
+
+Just pass the driver the path to the folder containing a valid JSON
+mechanism configuration and the path to a CSV file holding the initial
+conditions.
+
+Several example mechanisms and sets of conditions can be found in the
+``/examples/configs/`` folder.
+
+You can use them like this::
+
+  $ micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
+
+The output should be::
+
+  time,          O,        O1D,         O2,         O3
+     0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
+    60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
+
+
+MICM API Example
+^^^^^^^^^^^^^^^^
 The following example solves the fictitious chemical system::
 
   foo       --k1--> 0.8 bar + 0.2 baz
@@ -127,4 +127,5 @@ You should see an output including this
     3500.000000,   0.201076,  12.685147,   5.361559
     4000.000000,   0.111028,  12.731727,   5.390884
     4500.000000,   0.061290,  12.757422,   5.407096
+
 

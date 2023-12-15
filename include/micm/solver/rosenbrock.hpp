@@ -198,7 +198,7 @@ namespace micm
     /// @param gamma time step factor for specific rosenbrock method
     /// @param singular indicates if the matrix is singular
     /// @param number_densities constituent concentration (molec/cm^3)
-    /// @param rate_constants Rate constants for each process (molecule/cm3)^(n-1) s-1
+    /// @param state The current State
     void LinearFactor(
         double& H,
         const double gamma,
@@ -209,8 +209,8 @@ namespace micm
 
    protected:
     /// @brief Computes the scaled norm of the vector errors
-    /// @param Y the original vector
-    /// @param Ynew the new vector
+    /// @param y the original vector
+    /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
     double

@@ -110,34 +110,37 @@ The output will be similar to this:
 
 .. code:: bash
 
-  Jit compile time: 207422864917 nanoseconds
-  Result time: 8593750 nanoseconds
-  JIT result time: 4904666 nanoseconds
-  Result stats: 
-  accepted: 162
-  function_calls: 334
-  jacobian_updates: 162
-  number_of_steps: 172
-  accepted: 162
-  rejected: 0
-  decompositions: 172
-  solves: 516
-  singular: 0
-  total_forcing_time: 339551 nanoseconds
-  total_jacobian_time: 1.60283e+06 nanoseconds
-  total_linear_factor_time: 4.88587e+06 nanoseconds
-  total_linear_solve_time: 928501 nanoseconds
-  JIT result stats: 
-  accepted: 162
-  function_calls: 334
-  jacobian_updates: 162
-  number_of_steps: 172
-  accepted: 162
-  rejected: 0
-  decompositions: 172
-  solves: 516
-  singular: 0
-  total_forcing_time: 317043 nanoseconds
-  total_jacobian_time: 1.57724e+06 nanoseconds
-  total_linear_factor_time: 1.56572e+06 nanoseconds
-  total_linear_solve_time: 630749 nanoseconds 
+  Jit compile time: 38305334 nanoseconds
+  Standard solve time: 122582 nanoseconds
+  JIT solve time: 96541 nanoseconds
+  Standard solve stats: 
+          accepted: 130
+          function_calls: 260
+          jacobian_updates: 130
+          number_of_steps: 130
+          accepted: 130
+          rejected: 0
+          decompositions: 130
+          solves: 390
+          singular: 0
+          total_update_state_time: 416 nanoseconds
+          total_forcing_time: 14163 nanoseconds
+          total_jacobian_time: 9965 nanoseconds
+          total_linear_factor_time: 24893 nanoseconds
+          total_linear_solve_time: 12842 nanoseconds
+
+  JIT solve stats: 
+          accepted: 130
+          function_calls: 260
+          jacobian_updates: 130
+          number_of_steps: 130
+          accepted: 130
+          rejected: 0
+          decompositions: 130
+          solves: 390
+          singular: 0
+          total_update_state_time: 458 nanoseconds
+          total_forcing_time: 5036 nanoseconds
+          total_jacobian_time: 2168 nanoseconds
+          total_linear_factor_time: 17958 nanoseconds
+          total_linear_solve_time: 7586 nanoseconds

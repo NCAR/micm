@@ -11,6 +11,8 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![Ubuntu](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 [![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
+[![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
+
 
 Copyright (C) 2018-2023 National Center for Atmospheric Research
 
@@ -84,7 +86,33 @@ cd /build/
 make test
 ```
 
-# Using MICM
+# Using the MICM executable
+
+A simple driver for MICM is built with the library and can be used to solve a
+chemical system for given initial conditions over one time step.
+
+Just pass the driver the path to the folder containing a valid JSON
+mechanism configuration and the path to a CSV file holding the initial
+conditions.
+
+Several example mechanisms and sets of conditions can be found in the
+`/examples/configs/` folder.
+
+You can use them like this:
+
+```
+micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
+```
+
+The output should be:
+
+```
+ time,          O,        O1D,         O2,         O3
+    0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
+   60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
+```
+
+# Using the MICM API
 
 The following example solves the fictitious chemical system:
 
@@ -136,20 +164,12 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << std::setw(5) << "time [s]," 
-            << std::setw(13) << "foo, "
-            << std::setw(12) << "bar, "
-            << std::setw(10) << "baz" << std::endl;
+  state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::setfill(' ') << std::fixed
-              << std::setw(8) << std::setprecision(2) << i * 500.0 << ", "
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Bar"]] << ", " 
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Baz"]]
-              << std::endl;
+    state.PrintState(i*500);
   }
 
   return 0;
@@ -164,17 +184,17 @@ g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.2.0/include -std=c++20
 
 Output:
 ```
-time [s],        foo,        bar,        baz
-    0.00,    11.8435,     5.9048,     1.9070
-  500.00,     6.7920,     9.0460,     3.3173
- 1000.00,     3.8287,    10.7406,     4.2105
- 1500.00,     2.1381,    11.6637,     4.7394
- 2000.00,     1.1879,    12.1695,     5.0425
- 2500.00,     0.6581,    12.4475,     5.2133
- 3000.00,     0.3640,    12.6007,     5.3086
- 3500.00,     0.2011,    12.6851,     5.3616
- 4000.00,     0.1110,    12.7317,     5.3909
- 4500.00,     0.0613,    12.7574,     5.4071
+ time,        Bar,        Baz,        Foo
+    0,   5.90e+00,   1.91e+00,   1.18e+01
+  500,   9.05e+00,   3.32e+00,   6.79e+00
+ 1000,   1.07e+01,   4.21e+00,   3.83e+00
+ 1500,   1.17e+01,   4.74e+00,   2.14e+00
+ 2000,   1.22e+01,   5.04e+00,   1.19e+00
+ 2500,   1.24e+01,   5.21e+00,   6.58e-01
+ 3000,   1.26e+01,   5.31e+00,   3.64e-01
+ 3500,   1.27e+01,   5.36e+00,   2.01e-01
+ 4000,   1.27e+01,   5.39e+00,   1.11e-01
+ 4500,   1.28e+01,   5.41e+00,   6.13e-02
 ```
 # Citation
 

@@ -37,16 +37,12 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << std::setw(5) << "time [s]," << std::setw(13) << "foo, " << std::setw(12) << "bar, " << std::setw(10) << "baz"
-            << std::endl;
+  state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::setfill(' ') << std::fixed << std::setw(8) << std::setprecision(2) << i * 500.0 << ", "
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Bar"]] << ", "
-              << std::setw(10) << std::setprecision(4) << state.variables_[0][state.variable_map_["Baz"]] << std::endl;
+    state.PrintState(i * 500);
   }
 
   return 0;
