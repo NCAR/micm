@@ -68,7 +68,7 @@ micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver_cpu(std::size_t number_of_grid_cells)
+micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolverCPU(std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -108,7 +108,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 std::vector<double> getJacobianCPU(size_t number_of_grid_cells){
-  auto cpu_solver = getSolver_cpu<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells); 
+  auto cpu_solver = getSolverCPU<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells); 
   auto jacobian = cpu_solver.GetState().jacobian_;
   EXPECT_EQ(jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);
