@@ -95,6 +95,15 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
+
+TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
+{
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(2);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(3);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(4);
+}
+
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
 template<class T>
@@ -125,3 +134,25 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
       2);
 }
 
+TEST(RosenbrockSolver, Timing)
+{
+  auto solver = getSolver<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
+
+  auto state = solver.GetState();
+
+  state.variables_[0] = {
+    1, 1, 1, 1, 1,
+  };
+
+  auto result = solver.Solve<false>(1, state);
+  EXPECT_EQ(result.stats_.total_forcing_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_jacobian_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_linear_factor_time.count(), 0);
+  EXPECT_EQ(result.stats_.total_linear_solve_time.count(), 0);
+
+  result = solver.Solve<true>(1, state);
+  EXPECT_NE(
+      result.stats_.total_forcing_time.count() + result.stats_.total_jacobian_time.count() +
+          result.stats_.total_linear_factor_time.count() + result.stats_.total_linear_solve_time.count(),
+      0.0);
+}

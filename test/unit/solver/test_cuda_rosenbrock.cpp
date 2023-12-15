@@ -107,10 +107,14 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-std::vector<double> get_jacobian_cpu(size_t number_of_grid_cells){
+std::vector<double> getJacobianCPU(size_t number_of_grid_cells){
   auto cpu_solver = getSolver_cpu<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells); 
   auto jacobian = cpu_solver.GetState().jacobian_;
+  EXPECT_EQ(jacobian.size(), number_of_grid_cells);
+  EXPECT_EQ(jacobian[0].size(), 5);
+  EXPECT_EQ(jacobian[0][0].size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
+  
   for (auto& elem : jacobian.AsVector())
     elem = 100.0;  
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
@@ -183,7 +187,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
   std::vector<double> jacobian_gpu_vector = jacobian.AsVector(); 
   std::vector<double> jacobian_cpu_vector 
-    = get_jacobian_cpu<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>(number_of_grid_cells); 
+    = getJacobianCPU<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>(number_of_grid_cells); 
   for (int i = 0; i < jacobian_cpu_vector.size(); i++){
     EXPECT_EQ(jacobian_cpu_vector[i], jacobian_gpu_vector[i]);
   }
