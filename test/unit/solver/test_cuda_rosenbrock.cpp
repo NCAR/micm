@@ -129,7 +129,7 @@ std::vector<double> get_jacobian_cpu(size_t number_of_grid_cells){
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
-  //cpu_solver.AlphaMinusJacobian(jacobian, 42.042);
+  cpu_solver.AlphaMinusJacobian(jacobian, 42.042);
   return jacobian.AsVector(); 
 }
 
@@ -162,16 +162,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
-
-std::vector<double> gpu_jacobian = jacobian.AsVector(); 
-std::vector<double> cpu_jacobian 
-= get_jacobian_cpu<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(number_of_grid_cells);
-
-for (int i = 0; i < jacobian.AsVector().size(); i++){
-  EXPECT_EQ(gpu_jacobian[i], cpu_jacobian[i]);
-}
-
-
+  
   solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
@@ -190,13 +181,12 @@ for (int i = 0; i < jacobian.AsVector().size(); i++){
     EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
   }
 
-// std::vector<double> gpu_jacobian = jacobian.AsVector(); 
-// std::vector<double> cpu_jacobian 
-// = get_jacobian_cpu<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(number_of_grid_cells);
-
-// for (int i = 0; i < jacobian.AsVector().size(); i++){
-//   EXPECT_EQ(gpu_jacobian[i], cpu_jacobian[i]);
-// }
+  std::vector<double> jacobian_gpu_vector = jacobian.AsVector(); 
+  std::vector<double> jacobian_cpu_vector 
+    = get_jacobian_cpu<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>(number_of_grid_cells); 
+  for (int i = 0; i < jacobian_cpu_vector.size(); i++){
+    EXPECT_EQ(jacobian_cpu_vector[i], jacobian_gpu_vector[i]);
+  }
 
 }
 
