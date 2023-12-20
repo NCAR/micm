@@ -115,7 +115,7 @@ namespace micm
       /// @brief The final time the solver iterated to
       double final_time_{};
     };
-    
+
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
     StateParameters state_parameters_;
