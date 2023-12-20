@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
@@ -94,7 +95,6 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
   }
 }
-
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {

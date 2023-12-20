@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
+
 #include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/cuda_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/cuda_rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <micm/solver/cuda_rosenbrock.cuh>
-
 
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
@@ -28,7 +27,13 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class RosenbrockPolicy>
+template<
+    template<class>
+    class MatrixPolicy,
+    template<class>
+    class SparseMatrixPolicy,
+    class LinearSolverPolicy,
+    class RosenbrockPolicy>
 RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
@@ -70,7 +75,11 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
-  auto gpu_solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(number_of_grid_cells);  
+  auto gpu_solver = getSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      LinearSolverPolicy,
+      micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(number_of_grid_cells);
   auto jacobian = gpu_solver.GetState().jacobian_;
   EXPECT_EQ(jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);
@@ -94,8 +103,8 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
-  auto cpu_jacobian = jacobian; 
-  
+  auto cpu_jacobian = jacobian;
+
   gpu_solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
@@ -114,25 +123,37 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     EXPECT_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 
-  auto cpu_solver = getSolver<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>>(number_of_grid_cells);
+  auto cpu_solver = getSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      micm::LinearSolver<double, SparseMatrixPolicy>,
+      micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>>(
+      number_of_grid_cells);
   cpu_solver.AlphaMinusJacobian(cpu_jacobian, 42.042);
-  std::vector<double> jacobian_gpu_vector = jacobian.AsVector(); 
-  std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector(); 
-  for (int i = 0; i < jacobian_cpu_vector.size(); i++){
+  std::vector<double> jacobian_gpu_vector = jacobian.AsVector();
+  std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
+  for (int i = 0; i < jacobian_cpu_vector.size(); i++)
+  {
     EXPECT_EQ(jacobian_cpu_vector[i], jacobian_gpu_vector[i]);
   }
-
 }
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
-   testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(
-       1);
-   testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
-       2);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
-      3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
-      4);
+  testAlphaMinusJacobian<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1);
+  testAlphaMinusJacobian<
+      Group2VectorMatrix,
+      Group2SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(2);
+  testAlphaMinusJacobian<
+      Group3VectorMatrix,
+      Group3SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(3);
+  testAlphaMinusJacobian<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(4);
 }
-
