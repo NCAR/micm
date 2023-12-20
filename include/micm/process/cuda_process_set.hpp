@@ -13,6 +13,7 @@ namespace micm
   class CudaProcessSet : public ProcessSet
   {
    public:
+    CudaProcessSet() = default;
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
