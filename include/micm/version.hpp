@@ -16,7 +16,7 @@ extern "C" {
   }
   unsigned getMicmVersionMinor()
   {
-    return 2+0;
+    return 3+0;
   }
   unsigned getMicmVersionPatch()
   {
