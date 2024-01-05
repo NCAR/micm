@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 
-const size_t BLOCK_SIZE = 320;
+const size_t BLOCK_SIZE = 32;
 // member data of class CudaProcessSet grouped in struct passing to kernel driver function
 struct CudaProcessSetParam
 {
@@ -90,4 +90,20 @@ struct CudaSparseMatrixParam
   size_t lower_matrix_size_;
   const double* upper_matrix_;
   size_t upper_matrix_size_;
+};
+
+/// The device struct that holds the constatnt data members 
+/// from the "CudaLuDecomposition" class type;
+struct LuDecomposeConstDevice
+{
+  std::pair<size_t, size_t>* d_niLU_;
+  char* d_do_aik_;
+  size_t* d_aik_;
+  std::pair<size_t, size_t>* d_uik_nkj_;
+  std::pair<size_t, size_t>* d_lij_ujk_;
+  char* d_do_aki_;
+  size_t* d_aki_;
+  std::pair<size_t, size_t>* d_lki_nkj_;
+  std::pair<size_t, size_t>* d_lkj_uji_;
+  size_t* d_uii_;
 };

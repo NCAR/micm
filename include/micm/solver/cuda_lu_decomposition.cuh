@@ -8,8 +8,19 @@ namespace micm
 {
   namespace cuda
   {
+    /// This is the CPU function that calls the
+    /// CUDA kernel to perform LU decomposition;
     std::chrono::nanoseconds DecomposeKernelDriver(
             CudaSparseMatrixParam& sparseMatrix, 
-            CudaSolverParam& solver);
-  }  // namespace cuda
-}  // namespace micm
+            LuDecomposeConstDevice* devptr);
+
+    /// This is the function to copy the constant data members 
+    /// of objects with the "CudaLuDecomposition" type to the device
+    void CopyConstData(CudaLuDecomposition* self, LuDecomposeConstDevice* devptr);
+   
+    /// This is the function to delete the constant data members 
+    /// of objects with the "CudaLuDecomposition" type on the device
+    void FreeConstData(LuDecomposeConstDevice* devptr);
+
+  }  // end of namespace cuda
+}    // end of namespace micm
