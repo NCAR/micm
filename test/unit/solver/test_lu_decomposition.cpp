@@ -24,6 +24,12 @@ TEST(LuDecomposition, DenseMatrixStandardOrdering)
       [](const SparseMatrixTest<double>& matrix) -> micm::LuDecomposition { return micm::LuDecomposition{ matrix }; });
 }
 
+TEST(LuDecomposition, SingularMatrixStandardOrdering)
+{
+  testSingularMatrix<SparseMatrixTest, micm::LuDecomposition>(
+      [](const SparseMatrixTest<double>& matrix) -> micm::LuDecomposition { return micm::LuDecomposition{ matrix }; });
+}
+
 TEST(LuDecomposition, RandomMatrixStandardOrdering)
 {
   testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(
@@ -48,6 +54,22 @@ TEST(LuDecomposition, DenseMatrixVectorOrdering)
       [](const Group3SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
       { return micm::LuDecomposition{ matrix }; });
   testDenseMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>(
+      [](const Group4SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
+      { return micm::LuDecomposition{ matrix }; });
+}
+
+TEST(LuDecomposition, SingluarMatrixVectorOrdering)
+{
+  testSingularMatrix<Group1SparseVectorMatrix, micm::LuDecomposition>(
+      [](const Group1SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
+      { return micm::LuDecomposition{ matrix }; });
+  testSingularMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>(
+      [](const Group2SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
+      { return micm::LuDecomposition{ matrix }; });
+  testSingularMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>(
+      [](const Group3SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
+      { return micm::LuDecomposition{ matrix }; });
+  testSingularMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>(
       [](const Group4SparseVectorMatrix<double>& matrix) -> micm::LuDecomposition
       { return micm::LuDecomposition{ matrix }; });
 }

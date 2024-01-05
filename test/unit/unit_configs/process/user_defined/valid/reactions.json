@@ -1,0 +1,34 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid user-defined reaction",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "USER_DEFINED",
+          "MUSICA name": "foo",
+          "reactants": { 
+            "foo" : { },
+            "bar" : { "qty": 2 }
+          },
+          "products": {
+            "baz" : { "yield": 1.4 },
+            "foo" : { }
+          } 
+        },
+        {
+          "type": "USER_DEFINED",
+          "MUSICA name": "bar",
+          "reactants": { 
+            "foo" : { "qty": 2 }
+          },
+          "products": {
+            "bar" : { }
+          }, 
+          "scaling factor": 2.5
+        }
+      ]
+    }
+  ]
+}

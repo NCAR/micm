@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -6,6 +6,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -14,7 +15,7 @@ namespace micm
 
   /// @brief JIT-compiled solver function calculators for a collection of processes
   ///        The template parameter is the number of grid cells to solve simultaneously
-  template<std::size_t L>
+  template<std::size_t L = DEFAULT_VECTOR_SIZE>
   class JitProcessSet : public ProcessSet
   {
     std::shared_ptr<JitCompiler> compiler_;
@@ -24,15 +25,21 @@ namespace micm
     void (*jacobian_function_)(const double *, const double *, double *);
 
    public:
+    JitProcessSet(const JitProcessSet &) = delete;
+    JitProcessSet &operator=(const JitProcessSet &) = delete;
+    JitProcessSet(JitProcessSet &&);
+    JitProcessSet &operator=(JitProcessSet &&);
+
+    JitProcessSet() = default;
+
     /// @brief Create a JITed process set calculator for a given set of processes
     /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
-    /// @param state Solver state
-    template<template<class> class MatrixPolicy>
+    /// @param variable_map A mapping of species names to concentration index
     JitProcessSet(
         std::shared_ptr<JitCompiler> compiler,
         const std::vector<Process> &processes,
-        const State<MatrixPolicy> &state);
+        const std::map<std::string, std::size_t> &variable_map);
 
     ~JitProcessSet();
 
@@ -71,12 +78,38 @@ namespace micm
   };
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy>
+  inline JitProcessSet<L>::JitProcessSet(JitProcessSet &&other)
+      : ProcessSet(std::move(other)),
+        compiler_(std::move(other.compiler_)),
+        forcing_function_resource_tracker_(std::move(other.forcing_function_resource_tracker_)),
+        forcing_function_(std::move(other.forcing_function_)),
+        jacobian_function_resource_tracker_(std::move(other.jacobian_function_resource_tracker_)),
+        jacobian_function_(std::move(other.jacobian_function_))
+  {
+    other.forcing_function_ = NULL;
+    other.jacobian_function_ = NULL;
+  }
+
+  template<std::size_t L>
+  inline JitProcessSet<L> &JitProcessSet<L>::operator=(JitProcessSet &&other)
+  {
+    ProcessSet::operator=(std::move(other));
+    compiler_ = std::move(other.compiler_);
+    forcing_function_resource_tracker_ = std::move(other.forcing_function_resource_tracker_);
+    forcing_function_ = std::move(other.forcing_function_);
+    jacobian_function_resource_tracker_ = std::move(other.jacobian_function_resource_tracker_);
+    jacobian_function_ = std::move(other.jacobian_function_);
+    other.forcing_function_ = NULL;
+    other.jacobian_function_ = NULL;
+    return *this;
+  }
+
+  template<std::size_t L>
   inline JitProcessSet<L>::JitProcessSet(
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
-      const State<MatrixPolicy> &state)
-      : ProcessSet(processes, state),
+      const std::map<std::string, std::size_t> &variable_map)
+      : ProcessSet(processes, variable_map),
         compiler_(compiler)
   {
     forcing_function_ = NULL;
@@ -87,8 +120,9 @@ namespace micm
   template<std::size_t L>
   void JitProcessSet<L>::GenerateForcingFunction()
   {
+    std::string function_name = "add_forcing_terms_" + generate_random_string();
     JitFunction func = JitFunction::create(compiler_)
-                           .name("add_forcing_terms")
+                           .name(function_name)
                            .arguments({ { "rate constants", JitType::DoublePtr },
                                         { "state variables", JitType::DoublePtr },
                                         { "forcing", JitType::DoublePtr } })
@@ -188,8 +222,9 @@ namespace micm
   template<std::size_t L>
   void JitProcessSet<L>::GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
+    std::string function_name = "add_jacobian_terms_" + generate_random_string();
     JitFunction func = JitFunction::create(compiler_)
-                           .name("add_jacobian_terms")
+                           .name(function_name)
                            .arguments({ { "rate constants", JitType::DoublePtr },
                                         { "state variables", JitType::DoublePtr },
                                         { "jacobian", JitType::DoublePtr } })

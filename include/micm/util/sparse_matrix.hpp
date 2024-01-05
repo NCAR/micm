@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -25,6 +25,12 @@ namespace micm
   template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 
+  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
+  class SparseMatrix;
+
+  template<class T>
+  using StandardSparseMatrix = SparseMatrix<T, SparseMatrixStandardOrdering>;
+
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
   ///
   /// Each block sub-matrix is square and has the same structure of non-zero elements
@@ -33,7 +39,7 @@ namespace micm
   ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
+  template<class T, class OrderingPolicy>
   class SparseMatrix : public OrderingPolicy
   {
     std::size_t number_of_blocks_;        // Number of block sub-matrices in the overall matrix
@@ -221,6 +227,12 @@ namespace micm
     ProxyRow operator[](std::size_t b)
     {
       return ProxyRow(*this, b);
+    }
+
+    SparseMatrix& operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
+      return *this;
     }
 
     const std::vector<std::size_t>& RowStartVector() const

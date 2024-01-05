@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -33,9 +33,8 @@ namespace micm
     double diffusion_coefficient_;   // [m2 s-1]
     double mean_free_speed_factor_;  // 8 * gas_constant / ( pi * molecular_weight )  [K-1]
 
-   public:
     /// @brief
-    /// @param name A name for this reaction
+    /// @param parameters The data required to build this class
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
 
     /// @brief Deep copy
@@ -56,6 +55,11 @@ namespace micm
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
   };
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
@@ -70,6 +74,12 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
   }
 
+  inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
+  {
+    throw std::runtime_error(
+        "Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
+  }
+
   inline double SurfaceRateConstant::calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
@@ -77,8 +87,9 @@ namespace micm
     const double mean_free_speed = std::sqrt(mean_free_speed_factor_ * conditions.temperature_);
     const double radius = *(custom_parameters++);
     const double number = *(custom_parameters);
-    return (double)4.0 * number * M_PI * radius * radius /
-           (radius / diffusion_coefficient_ + 4.0 / (mean_free_speed * parameters_.reaction_probability_));
+    double val = (double)4.0 * number * M_PI * radius * radius /
+                 (radius / diffusion_coefficient_ + 4.0 / (mean_free_speed * parameters_.reaction_probability_));
+    return val;
   }
 
   inline std::vector<std::string> SurfaceRateConstant::CustomParameters() const

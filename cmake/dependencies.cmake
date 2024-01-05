@@ -23,6 +23,41 @@ endif()
 # OpenMP
 
 if(ENABLE_OPENMP)
+  if(APPLE)
+    # Apple clang by default doesn't include support for openmp
+    # but if omp was installed with `brew install libomp`, support can be configured
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      # Set the C flags
+      set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp")
+      set(OpenMP_C_LIB_NAMES "omp")
+      set(OpenMP_omp_LIBRARY omp)
+
+      # Set the CXX flags
+      set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp")
+      set(OpenMP_CXX_LIB_NAMES "omp")
+      set(OpenMP_omp_LIBRARY omp)
+
+      # Assume that libomp is instaleld on mac with brew when using apple clang
+      # Get the path to libomp from Homebrew
+      execute_process(
+        COMMAND brew --prefix libomp
+        OUTPUT_VARIABLE LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+      # Set the full path to the libomp library
+      set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
+
+      # Set the include directory
+      set(LIBOMP_INCLUDE_DIR "${LIBOMP_PREFIX}/include")
+
+      include_directories(
+        ${LIBOMP_INCLUDE_DIR}
+      )
+    endif()
+
+  endif()
+
   find_package(OpenMP REQUIRED)
   message(STATUS "Compiling with OpenMP support")
 endif()
@@ -39,17 +74,9 @@ endif()
 # google test
 
 if(PROJECT_IS_TOP_LEVEL)
-  # if google test isn't installed, fetch content will download and build what is needed
-  # but, we don't want to run clang tidy on google test, save those variables and reset them later
-  foreach (lang IN ITEMS C CXX)
-    set("CMAKE_${lang}_CLANG_TIDY_save" "${CMAKE_${lang}_CLANG_TIDY}")
-    set("CMAKE_${lang}_CLANG_TIDY" "")
-  endforeach ()
-
   FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG be03d00f5f0cc3a997d1a368bee8a1fe93651f48
-    # FIND_PACKAGE_ARGS GTest
   )
 
   set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
@@ -57,9 +84,11 @@ if(PROJECT_IS_TOP_LEVEL)
 
   FetchContent_MakeAvailable(googletest)
 
-  foreach (lang IN ITEMS C CXX)
-    set("CMAKE_${lang}_CLANG_TIDY" "${CMAKE_${lang}_CLANG_TIDY_save}")
-  endforeach ()
+  # don't run clang-tidy on google test
+  set_target_properties(gtest PROPERTIES CXX_CLANG_TIDY "")
+  set_target_properties(gtest_main PROPERTIES CXX_CLANG_TIDY "")
+  # set_target_properties(gmock PROPERTIES CXX_CLANG_TIDY "")
+  # set_target_properties(gmock_main PROPERTIES CXX_CLANG_TIDY "")
 endif()
 
 ################################################################################

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -29,9 +29,8 @@ namespace micm
 
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
-    /// @param state Solver state
-    template<template<class> class MatrixPolicy>
-    ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state);
+    /// @param variable_map A mapping of species names to concentration index
+    ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
@@ -72,10 +71,16 @@ namespace micm
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
+
+    /// @brief Returns the set of species used in a set of processes
+    /// @param processes The set of processes
+    /// @return The set of species used in the set of processes
+    static std::set<std::string> SpeciesUsed(const std::vector<Process>& processes);
   };
 
-  template<template<class> class MatrixPolicy>
-  inline ProcessSet::ProcessSet(const std::vector<Process>& processes, const State<MatrixPolicy>& state)
+  inline ProcessSet::ProcessSet(
+      const std::vector<Process>& processes,
+      const std::map<std::string, std::size_t>& variable_map)
       : number_of_reactants_(),
         reactant_ids_(),
         number_of_products_(),
@@ -84,17 +89,29 @@ namespace micm
   {
     for (auto& process : processes)
     {
-      number_of_reactants_.push_back(process.reactants_.size());
-      number_of_products_.push_back(process.products_.size());
+      std::size_t number_of_reactants = 0;
+      std::size_t number_of_products = 0;
       for (auto& reactant : process.reactants_)
       {
-        reactant_ids_.push_back(state.variable_map_.at(reactant.name_));
+        if (reactant.IsParameterized())
+          continue;  // Skip reactants that are parameterizations
+        if (variable_map.count(reactant.name_) < 1)
+          throw std::runtime_error("Reactant '" + reactant.name_ + "' does not exist");
+        reactant_ids_.push_back(variable_map.at(reactant.name_));
+        ++number_of_reactants;
       }
       for (auto& product : process.products_)
       {
-        product_ids_.push_back(state.variable_map_.at(product.first.name_));
+        if (product.first.IsParameterized())
+          continue;  // Skip products that are parameterizations
+        if (variable_map.count(product.first.name_) < 1)
+          throw std::runtime_error("Product '" + product.first.name_ + "' does not exist");
+        product_ids_.push_back(variable_map.at(product.first.name_));
         yields_.push_back(product.second);
+        ++number_of_products;
       }
+      number_of_reactants_.push_back(number_of_reactants);
+      number_of_products_.push_back(number_of_products);
     }
   };
 
@@ -323,5 +340,18 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
+  }
+
+  std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
+  {
+    std::set<std::string> used_species;
+    for (auto& process : processes)
+    {
+      for (auto& reactant : process.reactants_)
+        used_species.insert(reactant.name_);
+      for (auto& product : process.products_)
+        used_species.insert(product.first.name_);
+    }
+    return used_species;
   }
 }  // namespace micm

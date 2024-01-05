@@ -1,4 +1,4 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -32,6 +32,14 @@ namespace micm
     /// @brief Returns the number of custom parameters
     /// @return Number of custom parameters
     virtual std::size_t SizeCustomParameters() const
+    {
+      return 0;
+    }
+
+    /// @brief Calculate the rate constant for a set of conditions
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return The reaction rate constant
+    virtual double calculate(const Conditions& conditions) const
     {
       return 0;
     }

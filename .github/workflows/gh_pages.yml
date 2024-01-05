@@ -51,9 +51,9 @@ jobs:
           set -x
           mkdir -p _build/html/versions
 
-          # create two copies of the documentaiton
+          # create two copies of the documentation
           # 1. the frozen version, represented as vX.X in the version switcher
-          docker build -t micm -f Dockerfile.docs .
+          docker build -t micm -f docker/Dockerfile.docs .
           id=$(docker create micm)
           docker cp $id:/build/docs/sphinx tmpdocs
           docker rm -v $id
@@ -62,18 +62,20 @@ jobs:
 
           # 2. stable, represented as vX.X (stable) in the version switcher
           # edit conf.py to produce a version string that looks like vX.X (stable)
-          docker build -t micm -f Dockerfile.docs --build-arg SUFFIX=" (stable)" .
+          docker build -t micm -f docker/Dockerfile.docs --build-arg SUFFIX=" (stable)" .
           id=$(docker create micm)
           docker cp $id:/build/docs/sphinx tmpdocs
           docker rm -v $id
           mv tmpdocs _build/html/versions/stable
-          mv docs/switcher.json _build/html
           # Delete everything under _gh-pages/ that is from the
           # primary branch deployment.  Excludes the other branches
           # _gh-pages/branch-* paths, and not including
           # _gh-pages itself.
           find _gh-pages/ -mindepth 1 ! -path '_gh-pages/branch*' ! -path '_gh-pages/versions*' -delete
           rsync -a _build/html/versions/stable/* _gh-pages/
+          mkdir -p _gh-pages/versions
+          rsync -a _build/html/versions/* _gh-pages/versions
+          # mv docs/switcher.json _gh-pages
 
       # If a push and not on default branch, then copy the build to
       # _gh-pages/branch/$brname (transforming '/' into '--')
@@ -83,7 +85,7 @@ jobs:
           !contains(github.ref, env.DEFAULT_BRANCH)
         run: |
           set -x
-          docker build -t micm -f Dockerfile.docs .
+          docker build -t micm -f docker/Dockerfile.docs .
           id=$(docker create micm)
           docker cp $id:/build/docs/sphinx tmpdocs
           docker rm -v $id

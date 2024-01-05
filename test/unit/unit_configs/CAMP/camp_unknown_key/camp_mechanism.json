@@ -1,0 +1,30 @@
+{
+  "camp-data" : [
+    {
+      "name" : "Chapman",
+      "type" : "MECHANISM",
+      "reactions" : [
+        {
+          "type" : "PHOTOLYSIS",
+          "reactants" : {
+            "A" : { }
+          },
+          "products" : {
+            "B" : { "yield" : 2.0 }
+          },
+          "MUSICA name" : "R_AB"
+        },
+        {
+          "type" : "UNKNOWN",
+          "reactants" : {
+            "A" : { }
+          },
+          "products" : {
+            "B" : { "yield" : 2.0 }
+          },
+          "MUSICA name" : "UNKNOWN"
+        }
+      ]
+    }
+  ]
+}

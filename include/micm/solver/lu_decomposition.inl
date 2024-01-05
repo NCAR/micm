@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -145,8 +145,16 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+      const
+  {
+    bool is_singular;
+    Decompose<T, SparseMatrixPolicy>(A, L, U, is_singular);
+  }
+
+  template<typename T, template<class> class SparseMatrixPolicy>
+    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
       const
   {
     // Loop over blocks
@@ -164,6 +172,7 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
+      is_singular = false;
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
@@ -189,6 +198,11 @@ namespace micm
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
             ++lkj_uji;
           }
+          if( U_vector[*uii] == 0.0 )
+          {
+            is_singular = true;
+            return;
+          }
           L_vector[lki_nkj->first] /= U_vector[*uii];
           ++lki_nkj;
           ++uii;
@@ -199,10 +213,9 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
       const
   {
-    const std::size_t n_cells = A.GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
     {
@@ -218,6 +231,8 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
+      is_singular = false;
+      const std::size_t n_cells = std::min(A.GroupVectorSize(), A.size() - i_group * A.GroupVectorSize());
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
@@ -256,7 +271,13 @@ namespace micm
             ++lkj_uji;
           }
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          {
+            if (U_vector[*uii + i_cell] == 0.0) {
+              is_singular = true;
+              return;
+            }
             L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
+          }
           ++lki_nkj;
           ++uii;
         }

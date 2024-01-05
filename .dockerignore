@@ -8,6 +8,8 @@
 !libs/
 !test/
 !etc/
+!examples/
 !cmake/
 !packaging
 !include/
+!examples
