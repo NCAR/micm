@@ -92,6 +92,32 @@ struct CudaSparseMatrixParam
   size_t upper_matrix_size_;
 };
 
+/// The host struct that holds the values and size of the 
+/// constatnt data members from the "LuDecomposition" class;
+struct LuDecomposeConstHost
+{
+  std::pair<size_t, size_t>* niLU_;
+  char* do_aik_;
+  size_t* aik_;
+  std::pair<size_t, size_t>* uik_nkj_;
+  std::pair<size_t, size_t>* lij_ujk_;
+  char* do_aki_;
+  size_t* aki_;
+  std::pair<size_t, size_t>* lki_nkj_;
+  std::pair<size_t, size_t>* lkj_uji_;
+  size_t* uii_;
+  size_t niLU_size_;
+  size_t do_aik_size_;
+  size_t aik_size_;
+  size_t uik_nkj_size_;
+  size_t lij_ujk_size_;
+  size_t do_aki_size_;
+  size_t aki_size_;
+  size_t lki_nkj_size_;
+  size_t lkj_uji_size_;
+  size_t uii_size_;
+};
+
 /// The device struct that holds the constatnt data members 
 /// from the "CudaLuDecomposition" class type;
 struct LuDecomposeConstDevice
@@ -106,4 +132,5 @@ struct LuDecomposeConstDevice
   std::pair<size_t, size_t>* d_lki_nkj_;
   std::pair<size_t, size_t>* d_lkj_uji_;
   size_t* d_uii_;
+  size_t d_niLU_size_;
 };

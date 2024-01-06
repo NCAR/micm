@@ -29,7 +29,33 @@ namespace micm
       CudaLuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
           : LuDecomposition(matrix)
       {
-        micm::cuda::CopyConstData(this,this->devptr);
+        /// Passing the class itself as an argument is not support by CUDA;
+        /// Thus we generate a host struct first to save the pointers to 
+        /// the value and size of each constant data member;
+        LuDecomposeConstHost* hostptr = nullptr;
+        hostptr->niLU_         = this->niLU_.data();
+        hostptr->do_aik_       = this->do_aik_.data();
+        hostptr->aik_          = this->aik_.data();
+        hostptr->uik_nkj_      = this->uik_nkj_.data();
+        hostptr->lij_ujk_      = this->lij_ujk_.data();
+        hostptr->do_aki_       = this->do_aki_.data();
+        hostptr->aki_          = this->aki_.data();
+        hostptr->lki_nkj_      = this->lki_nkj_.data();
+        hostptr->lkj_uji_      = this->lkj_uji_.data();
+        hostptr->uii_          = this->uii_.data();
+        hostptr->niLU_size_    = this->niLU_.size();
+        hostptr->do_aik_size_  = this->do_aik_.size();
+        hostptr->aik_size_     = this->aik_.size();
+        hostptr->uik_nkj_size_ = this->uik_nkj_.size();
+        hostptr->lij_ujk_size_ = this->lij_ujk_.size();
+        hostptr->do_aki_size_  = this->do_aki_.size();
+        hostptr->aki_size_     = this->aki_.size();
+        hostptr->lki_nkj_size_ = this->lki_nkj_.size();
+        hostptr->lkj_uji_size_ = this->lkj_uji_.size();
+        hostptr->uii_size_     = this->uii_.size(); 
+
+        micm::cuda::CopyConstData(hostptr,this->devptr);
+        hostptr = nullptr;
       };
 
       /// This is deconstructor that frees the device memory holding 

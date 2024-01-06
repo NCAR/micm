@@ -6,6 +6,9 @@
 #include <vector>
 namespace micm
 {
+  /// This is a forward declaration of class "CudaLuDecomposion";
+  /// The linker will know where the acutual class is defined and used;
+  class CudaLuDecomposition;
   namespace cuda
   {
     /// This is the CPU function that calls the
@@ -16,7 +19,7 @@ namespace micm
 
     /// This is the function to copy the constant data members 
     /// of objects with the "CudaLuDecomposition" type to the device
-    void CopyConstData(CudaLuDecomposition* self, LuDecomposeConstDevice* devptr);
+    void CopyConstData(LuDecomposeConstHost* hostptr, LuDecomposeConstDevice* devptr);
    
     /// This is the function to delete the constant data members 
     /// of objects with the "CudaLuDecomposition" type on the device

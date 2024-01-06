@@ -5,7 +5,6 @@
 #include <iostream>
 #include <micm/util/cuda_param.hpp>
 #include <vector>
-#include <micm/solver/cuda_lu_decomposition.hpp>
 
 namespace micm
 {
@@ -20,8 +19,8 @@ namespace micm
       std::pair<size_t, size_t>* uik_nkj = devptr->d_uik_nkj_;
       std::pair<size_t, size_t>* lij_ujk = devptr->d_lij_ujk_;
       std::pair<size_t, size_t>* lkj_uji = devptr->d_lkj_uji_;
-      std::pair<size_t, size_t>* lki_nkj = device->d_lki_nkj_;
-      size_t niLu_size = devptr->d_niLU_.size();
+      std::pair<size_t, size_t>* lki_nkj = devptr->d_lki_nkj_;
+      size_t niLU_size = devptr->d_niLU_size_;
       size_t do_aik_offset = 0;
       size_t aik_offset = 0;
       size_t uik_nkj_offset = 0;
@@ -38,13 +37,13 @@ namespace micm
         for (size_t i = 0; i < niLU_size; i++)
         {
           // upper triangular matrix
-          auto inLU = device->d_niLU_[i];
+          auto inLU = devptr->d_niLU_[i];
           for (size_t iU = 0; iU < inLU.second; ++iU)
           {
-            if (device->d_do_aik_[do_aik_offset++])
+            if (devptr->d_do_aik_[do_aik_offset++])
             {
               size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
-              size_t A_idx = device->d_aik_[aik_offset++] + tid;
+              size_t A_idx = devptr->d_aik_[aik_offset++] + tid;
               d_U[U_idx] = d_A[A_idx];
             }
 
@@ -64,10 +63,10 @@ namespace micm
 
           for (size_t iL = 0; iL < inLU.first; ++iL)
           {
-            if (device->d_do_aki_[do_aki_offset++])
+            if (devptr->d_do_aki_[do_aki_offset++])
             {
               size_t L_idx = lki_nkj[lki_nkj_offset].first + tid;
-              size_t A_idx = device->d_aki_[aki_offset++] + tid;
+              size_t A_idx = devptr->d_aki_[aki_offset++] + tid;
               d_L[L_idx] = d_A[A_idx];
             }
             for (size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second; ++ikj)
@@ -78,7 +77,7 @@ namespace micm
               d_L[L_idx_1] -= d_L[L_idx_2] * d_U[U_idx];
               ++lkj_uji_offset;
             }
-            d_L[lki_nkj[lki_nkj_offset].first + tid] /= d_U[device->uii_[uii_offset] + tid];
+            d_L[lki_nkj[lki_nkj_offset].first + tid] /= d_U[devptr->d_uii_[uii_offset] + tid];
             ++lki_nkj_offset;
             ++uii_offset;
           }
@@ -88,32 +87,33 @@ namespace micm
 
     /// This is the function that copies the constant data members
     /// of objects with the "CudaLuDecomposition" type to the device
-    void CopyConstData(CudaLuDecomposition* self, LuDecomposeConstDevice* devptr)
+    void CopyConstData(LuDecomposeConstHost* hostptr, LuDecomposeConstDevice* devptr)
     {
       /// allocate device memory for the device struct
-      cudaMalloc(&devptr,               sizeof(LuDecomposeConstDevice));
-      cudaMalloc(&(devptr->d_niLU_),    sizeof(std::pair<size_t, size_t>) * self.niLU_.size());
-      cudaMalloc(&(devptr->d_do_aik_),  sizeof(char) * self.do_aik_.size());
-      cudaMalloc(&(devptr->d_aik_),     sizeof(size_t) * self.aik_.size());
-      cudaMalloc(&(devptr->d_uik_nkj_), sizeof(std::pair<size_t, size_t>) * self.uik_nkj_.size());
-      cudaMalloc(&(devptr->d_lij_ujk_), sizeof(std::pair<size_t, size_t>) * self.lij_ujk_.size());
-      cudaMalloc(&(devptr->d_do_aki_),  sizeof(char) * self.do_aki_.size());
-      cudaMalloc(&(devptr->d_aki_),     sizeof(size_t) * self.aki_.size());
-      cudaMalloc(&(devptr->d_lki_nkj_), sizeof(std::pair<size_t, size_t>) * self.lki_nkj_.size());
-      cudaMalloc(&(devptr->d_lkj_uji_), sizeof(std::pair<size_t, size_t>) * self.lkj_uji_.size());
-      cudaMalloc(&(devptr->d_uii_),     sizeof(size_t) * self.uii_.size());
+      cudaMalloc(&devptr,                sizeof(LuDecomposeConstDevice));
+      cudaMalloc(&(devptr->d_niLU_),     sizeof(std::pair<size_t, size_t>) * hostptr->niLU_size_);
+      cudaMalloc(&(devptr->d_do_aik_),   sizeof(char) * hostptr->do_aik_size_);
+      cudaMalloc(&(devptr->d_aik_),      sizeof(size_t) * hostptr->aik_size_);
+      cudaMalloc(&(devptr->d_uik_nkj_),  sizeof(std::pair<size_t, size_t>) * hostptr->uik_nkj_size_);
+      cudaMalloc(&(devptr->d_lij_ujk_),  sizeof(std::pair<size_t, size_t>) * hostptr->lij_ujk_size_);
+      cudaMalloc(&(devptr->d_do_aki_),   sizeof(char) * hostptr->do_aki_size_);
+      cudaMalloc(&(devptr->d_aki_),      sizeof(size_t) * hostptr->aki_size_);
+      cudaMalloc(&(devptr->d_lki_nkj_),  sizeof(std::pair<size_t, size_t>) * hostptr->lki_nkj_size_);
+      cudaMalloc(&(devptr->d_lkj_uji_),  sizeof(std::pair<size_t, size_t>) * hostptr->lkj_uji_size_);
+      cudaMalloc(&(devptr->d_uii_),      sizeof(size_t) * hostptr->uii_size_);
 
       /// copy the data from host to device
-      cudaMemcpy(&(devptr->d_niLU_),    self.niLU_.data(), sizeof(std::pair<size_t, size_t>) * self.niLU_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_do_aik_),  self.do_aik_.data(), sizeof(char) * self.do_aik_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_aik_),     self.aik_.data(), sizeof(size_t) * self.aik_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_uik_nkj_), self.uik_nkj_.data(), sizeof(std::pair<size_t, size_t>) * self.uik_nkj_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_lij_ujk_), self.lij_ujk_.data(), sizeof(std::pair<size_t, size_t>) * self.lij_ujk_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_do_aki_),  self.do_aki_.data(), sizeof(char) * self.do_aki_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_aki_),     self.aki_.data(), sizeof(size_t) * self.aki_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_lki_nkj_), self.lki_nkj_.data(), sizeof(std::pair<size_t, size_t>) * self.lki_nkj_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_lkj_uji_), self.lkj_uji_.data(), sizeof(std::pair<size_t, size_t>) * self.lkj_uji_.size(), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(devptr->d_uii_),     self.uii_.data(), sizeof(size_t) * self.uii_.size(), cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_niLU_),    hostptr->niLU_,    sizeof(std::pair<size_t, size_t>) * hostptr->niLU_size_,    cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_do_aik_),  hostptr->do_aik_,  sizeof(char) * hostptr->do_aik_size_,                       cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_aik_),     hostptr->aik_,     sizeof(size_t) * hostptr->aik_size_,                        cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_uik_nkj_), hostptr->uik_nkj_, sizeof(std::pair<size_t, size_t>) * hostptr->uik_nkj_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_lij_ujk_), hostptr->lij_ujk_, sizeof(std::pair<size_t, size_t>) * hostptr->lij_ujk_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_do_aki_),  hostptr->do_aki_,  sizeof(char) * hostptr->do_aki_size_,                       cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_aki_),     hostptr->aki_,     sizeof(size_t) * hostptr->aki_size_,                        cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_lki_nkj_), hostptr->lki_nkj_, sizeof(std::pair<size_t, size_t>) * hostptr->lki_nkj_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_lkj_uji_), hostptr->lkj_uji_, sizeof(std::pair<size_t, size_t>) * hostptr->lkj_uji_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(&(devptr->d_uii_),     hostptr->uii_,     sizeof(size_t) * hostptr->uii_size_,                        cudaMemcpyHostToDevice);
+      devptr->d_niLU_size_ = hostptr->niLU_size_;
     }
 
     /// This is the function that deletes the constant data members
