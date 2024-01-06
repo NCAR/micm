@@ -32,7 +32,9 @@ namespace micm
         /// Passing the class itself as an argument is not support by CUDA;
         /// Thus we generate a host struct first to save the pointers to 
         /// the value and size of each constant data member;
-        LuDecomposeConstHost* hostptr = nullptr;
+
+        /// Allocate memory space for ths object
+        LuDecomposeConstHost* hostptr = new LuDecomposeConstHost;
         hostptr->niLU_         = this->niLU_.data();
         hostptr->do_aik_       = this->do_aik_.data();
         hostptr->aik_          = this->aik_.data();
@@ -55,7 +57,19 @@ namespace micm
         hostptr->uii_size_     = this->uii_.size(); 
 
         micm::cuda::CopyConstData(hostptr,this->devptr);
-        hostptr = nullptr;
+
+        /// Release the memory space for the hostptr
+        delete hostptr->niLU_;
+        delete hostptr->do_aik_;
+        delete hostptr->aik_;
+        delete hostptr->uik_nkj_;
+        delete hostptr->lij_ujk_;
+        delete hostptr->do_aki_;
+        delete hostptr->aki_;
+        delete hostptr->lki_nkj_;
+        delete hostptr->lkj_uji_;
+        delete hostptr->uii_;
+        delete hostptr;
       };
 
       /// This is deconstructor that frees the device memory holding 
