@@ -8,7 +8,7 @@ extern "C" {
 
   const char* getMicmVersion()
   {
-    return "3.3.0";
+    return "3.3.1";
   }
   unsigned getMicmVersionMajor()
   {
@@ -20,7 +20,7 @@ extern "C" {
   }
   unsigned getMicmVersionPatch()
   {
-    return 0+0;
+    return 1+0;
   }
   unsigned getMicmVersionTweak()
   {
