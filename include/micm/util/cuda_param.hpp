@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
-#include <vector>
 
 const size_t BLOCK_SIZE = 32;
 // member data of class CudaProcessSet grouped in struct passing to kernel driver function

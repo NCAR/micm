@@ -4,7 +4,6 @@
 #include <chrono>
 #include <iostream>
 #include <micm/util/cuda_param.hpp>
-#include <vector>
 
 namespace micm
 {
