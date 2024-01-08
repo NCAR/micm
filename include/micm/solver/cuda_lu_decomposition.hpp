@@ -11,30 +11,30 @@
 
 namespace micm
 {
+  /// This CudaLuDecomposition class inherits everything from the base class "LuDecomposition"
   class CudaLuDecomposition : public LuDecomposition
   {
     public:
-      /// This is an instance of struct "LuDecomposeConstDevice" that holds
-      /// the constant data of "CudaLuDecomposition" class on the device
-      LuDecomposeConstDevice* devptr;
+      /// This is an instance of struct "LuDecomposeConst" that holds
+      ///   the constant data of "CudaLuDecomposition" class on the device
+      LuDecomposeConst* devptr;
 
       /// This is the default constructor, taking no arguments;
       CudaLuDecomposition(){};
 
       /// This is the overloaded constructor that takes one argument called "matrix";
       /// We need to specify the type (e.g., double, int, etc) and 
-      /// ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
-      /// This CudaLuDecomposition class inherits everything from the base class "LuDecomposition";
+      ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
       template<typename T, typename OrderingPolicy>
       CudaLuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
           : LuDecomposition(matrix)
       {
         /// Passing the class itself as an argument is not support by CUDA;
         /// Thus we generate a host struct first to save the pointers to 
-        /// the value and size of each constant data member;
+        ///   the actual data and size of each constant data member;
 
-        /// Allocate host memory space for ths object
-        LuDecomposeConstHost* hostptr = new LuDecomposeConstHost;
+        /// Allocate host memory space for an object of type "LuDecomposeConst"
+        LuDecomposeConst* hostptr = new LuDecomposeConst;
         hostptr->niLU_         = this->niLU_.data();
         hostptr->do_aik_       = this->do_aik_.data();
         hostptr->aik_          = this->aik_.data();
@@ -56,23 +56,27 @@ namespace micm
         hostptr->lkj_uji_size_ = this->lkj_uji_.size();
         hostptr->uii_size_     = this->uii_.size(); 
         
+        // Copy the data from host struct to device struct
         micm::cuda::CopyConstData(hostptr, devptr);
 
-        /// Release the memory space for the hostptr
+        /// Free the host memory for "hostptr"
         delete hostptr;
       };
 
-      /// This is deconstructor that frees the device memory holding 
-      /// the constant data from the CudaLuDecomposition class
- /*     ~CudaLuDecomposition()
+      /// This is destructor that will free the device memory of
+      ///   the constant data from the class "CudaLuDecomposition"
+      ~CudaLuDecomposition()
       {
+        /// Free the device memory allocated by the members of "devptr"
         micm::cuda::FreeConstData(this->devptr);
+        /// Free the host memory for "devptr"
+        delete devptr;
       };
-*/
+
       /// This is the function to perform an LU decomposition on a given A matrix
-      /// A is the sparse matrix to decompose
-      /// L is the lower triangular matrix created by decomposition
-      /// U is the upper triangular matrix created by decomposition
+      ///   A is the sparse matrix to decompose
+      ///   L is the lower triangular matrix created by decomposition
+      ///   U is the upper triangular matrix created by decomposition
       template<typename T, template<class> typename SparseMatrixPolicy>
       requires VectorizableSparse<SparseMatrixPolicy<T>> std::chrono::nanoseconds
       Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
@@ -84,6 +88,7 @@ namespace micm
       CudaLuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
   const
   {
+    /// Once the CudaMatrix class is generated, we won't need the following lines any more;
     CudaSparseMatrixParam sparseMatrix;
     sparseMatrix.A_ = A.AsVector().data();
     sparseMatrix.A_size_ = A.AsVector().size();
@@ -93,7 +98,8 @@ namespace micm
     sparseMatrix.U_size_ = U.AsVector().size();
     sparseMatrix.n_grids_ = A.size();
 
-    /// calling the DecomposeKernelDriver function that invokes the CUDA kernel to perform LU decomposition
+    /// Call the "DecomposeKernelDriver" function that invokes the
+    ///   CUDA kernel to perform LU decomposition on the device
     return micm::cuda::DecomposeKernelDriver(sparseMatrix, this->devptr);
   }
 }  // end of namespace micm
