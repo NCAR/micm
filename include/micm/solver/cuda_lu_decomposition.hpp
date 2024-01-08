@@ -16,7 +16,7 @@ namespace micm
     public:
       /// This is an instance of struct "LuDecomposeConstDevice" that holds
       /// the constant data of "CudaLuDecomposition" class on the device
-      LuDecomposeConstDevice* devptr = nullptr;
+      LuDecomposeConstDevice* devptr;
 
       /// This is the default constructor, taking no arguments;
       CudaLuDecomposition(){};
@@ -33,7 +33,7 @@ namespace micm
         /// Thus we generate a host struct first to save the pointers to 
         /// the value and size of each constant data member;
 
-        /// Allocate memory space for ths object
+        /// Allocate host memory space for ths object
         LuDecomposeConstHost* hostptr = new LuDecomposeConstHost;
         hostptr->niLU_         = this->niLU_.data();
         hostptr->do_aik_       = this->do_aik_.data();
@@ -55,30 +55,20 @@ namespace micm
         hostptr->lki_nkj_size_ = this->lki_nkj_.size();
         hostptr->lkj_uji_size_ = this->lkj_uji_.size();
         hostptr->uii_size_     = this->uii_.size(); 
-
-        micm::cuda::CopyConstData(hostptr,this->devptr);
+        
+        micm::cuda::CopyConstData(hostptr, devptr);
 
         /// Release the memory space for the hostptr
-        delete hostptr->niLU_;
-        delete hostptr->do_aik_;
-        delete hostptr->aik_;
-        delete hostptr->uik_nkj_;
-        delete hostptr->lij_ujk_;
-        delete hostptr->do_aki_;
-        delete hostptr->aki_;
-        delete hostptr->lki_nkj_;
-        delete hostptr->lkj_uji_;
-        delete hostptr->uii_;
         delete hostptr;
       };
 
       /// This is deconstructor that frees the device memory holding 
       /// the constant data from the CudaLuDecomposition class
-      ~CudaLuDecomposition()
+ /*     ~CudaLuDecomposition()
       {
         micm::cuda::FreeConstData(this->devptr);
       };
-
+*/
       /// This is the function to perform an LU decomposition on a given A matrix
       /// A is the sparse matrix to decompose
       /// L is the lower triangular matrix created by decomposition
