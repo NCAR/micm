@@ -342,7 +342,7 @@ namespace micm
     }
   }
 
-  std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
+  inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
   {
     std::set<std::string> used_species;
     for (auto& process : processes)

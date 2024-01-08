@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(
   micm
-  VERSION 3.3.0
+  VERSION 3.3.1
   LANGUAGES CXX
 )
 

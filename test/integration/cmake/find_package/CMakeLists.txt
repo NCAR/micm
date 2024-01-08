@@ -8,7 +8,7 @@ project(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-find_package(micm 3.3.0 REQUIRED)
+find_package(micm 3.3.1 REQUIRED)
 
 ################################################################################
 # Tests
