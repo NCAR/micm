@@ -17,7 +17,7 @@ namespace micm
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device;
     /// Note that if we want to allocate "devptr" inside this function,
-    ///   it must be declared as "LuDecomposeConstDevice*&"; otherwise,
+    ///   it must be declared as "LuDecomposeConst*&"; otherwise,
     ///   passing "devptr->d_niLU_" as an argument to the CUDA kernel
     ///   will trigger a segmentation fault;
     void CopyConstData(LuDecomposeConst* hostptr, LuDecomposeConst*& devptr);

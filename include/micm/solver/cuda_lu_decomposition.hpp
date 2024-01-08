@@ -57,7 +57,7 @@ namespace micm
         hostptr->uii_size_     = this->uii_.size(); 
         
         // Copy the data from host struct to device struct
-        micm::cuda::CopyConstData(hostptr, devptr);
+        micm::cuda::CopyConstData(hostptr, this->devptr);
 
         /// Free the host memory for "hostptr"
         delete hostptr;
@@ -69,6 +69,7 @@ namespace micm
       {
         /// Free the device memory allocated by the members of "devptr"
         micm::cuda::FreeConstData(this->devptr);
+
         /// Free the host memory for "devptr"
         delete devptr;
       };

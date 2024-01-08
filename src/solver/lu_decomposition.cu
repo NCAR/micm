@@ -104,7 +104,7 @@ namespace micm
       size_t lkj_uji_bytes = sizeof(std::pair<size_t, size_t>) * hostptr->lkj_uji_size_;
       size_t uii_bytes     = sizeof(size_t) * hostptr->uii_size_;
 
-      /// Can not use "cudaMalloc((void**)&devptr, sizeof(LuDecomposeConstDevice))" 
+      /// Can not use "cudaMalloc((void**)&devptr, sizeof(LuDecomposeConst))" 
       ///   because host variable "devptr" will contain addresss in the device memory (which is ok), 
       ///   but "devptr->d_niLU_" becomes illegal since we can not access/deference the address 
       ///   in the device memory from the host code directly; see more discussion from:
