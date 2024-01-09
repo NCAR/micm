@@ -9,7 +9,9 @@ namespace micm
 {
   namespace cuda
   {
-    /// This is the CUDA kernel that performs LU decomposition on the device
+    /// This is the CUDA kernel that performs LU decomposition on the device;
+    /// Note that passing the reference "LuDecomposeConst&" will pass the
+    ///   compilation but the execution of this CUDA test hangs forever
     __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U,
 		                    LuDecomposeConst devstruct,
                                     size_t ngrids)
