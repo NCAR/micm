@@ -11,27 +11,34 @@ namespace micm
   {
     /// This is the CUDA kernel that performs LU decomposition on the device
     __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U,
-                                    std::pair<size_t, size_t>* d_niLU,
-                                    char* d_do_aik, size_t* d_aik,
-                                    std::pair<size_t, size_t>* d_uik_nkj,
-                                    std::pair<size_t, size_t>* d_lij_ujk,
-                                    char* d_do_aki, size_t* d_aki,
-                                    std::pair<size_t, size_t>* d_lki_nkj,
-                                    std::pair<size_t, size_t>* d_lkj_uji,
-                                    size_t* d_uii,
-                                    size_t niLU_size, size_t ngrids)
+		                    LuDecomposeConst devstruct,
+                                    size_t ngrids)
     {
       /// Local device variables
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      size_t do_aik_offset = 0;
-      size_t aik_offset = 0;
+
+      std::pair<size_t, size_t>* d_niLU    = devstruct.niLU_;
+      char* d_do_aik                       = devstruct.do_aik_;
+      size_t* d_aik                        = devstruct.aik_; 
+      std::pair<size_t, size_t>* d_uik_nkj = devstruct.uik_nkj_;
+      std::pair<size_t, size_t>* d_lij_ujk = devstruct.lij_ujk_;
+      char* d_do_aki                       = devstruct.do_aki_;
+      size_t* d_aki                        = devstruct.aki_;
+      std::pair<size_t, size_t>* d_lki_nkj = devstruct.lki_nkj_;
+      std::pair<size_t, size_t>* d_lkj_uji = devstruct.lkj_uji_;
+      size_t* d_uii                        = devstruct.uii_;
+      size_t niLU_size                     = devstruct.niLU_size_;
+
+      size_t do_aik_offset  = 0;
+      size_t aik_offset     = 0;
       size_t uik_nkj_offset = 0;
       size_t lij_ujk_offset = 0;
-      size_t do_aki_offset = 0;
-      size_t aki_offset = 0;
+      size_t do_aki_offset  = 0;
+      size_t aki_offset     = 0;
       size_t lkj_uji_offset = 0;
       size_t lki_nkj_offset = 0;
-      size_t uii_offset = 0;
+      size_t uii_offset     = 0;
+
 
       if (tid < ngrids)
       {
@@ -171,12 +178,7 @@ namespace micm
       /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
       DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U,
-                                                 devstruct.niLU_,
-                                                 devstruct.do_aik_, devstruct.aik_,
-                                                 devstruct.uik_nkj_, devstruct.lij_ujk_,
-                                                 devstruct.do_aki_, devstruct.aki_,
-                                                 devstruct.lki_nkj_, devstruct.lkj_uji_,
-                                                 devstruct.uii_, devstruct.niLU_size_, 
+                                                 devstruct,
                                                  sparseMatrix.n_grids_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
