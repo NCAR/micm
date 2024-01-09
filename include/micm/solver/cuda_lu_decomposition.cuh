@@ -9,21 +9,21 @@ namespace micm
   {
     /// This is the host function that will call the CUDA kernel
     ///   to perform LU decomposition on the device
+    /// Note that referencing "devstruct" as "LuDecomposeConst&"
+    ///   will cause an error like `error: qualifiers dropped in 
+    ///   binding reference of type "LuDecomposeConst &" to 
+    ///   initializer of type "const LuDecomposeConst"`
     std::chrono::nanoseconds DecomposeKernelDriver(
             CudaSparseMatrixParam& sparseMatrix, 
-            LuDecomposeConst* devptr);
+            LuDecomposeConst devstruct);
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device;
-    /// Note that if we want to allocate "devptr" inside this function,
-    ///   it must be declared as "LuDecomposeConst*&"; otherwise,
-    ///   passing "devptr->d_niLU_" as an argument to the CUDA kernel
-    ///   will trigger a segmentation fault;
-    void CopyConstData(LuDecomposeConst* hostptr, LuDecomposeConst*& devptr);
+    LuDecomposeConst CopyConstData(LuDecomposeConst& hoststruct);
    
     /// This is the function that will delete the constant data
     ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeConst*& devptr);
+    void FreeConstData(LuDecomposeConst& devstruct);
 
   }  // end of namespace cuda
 }    // end of namespace micm

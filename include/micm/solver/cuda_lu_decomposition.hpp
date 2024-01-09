@@ -17,7 +17,7 @@ namespace micm
     public:
       /// This is an instance of struct "LuDecomposeConst" that holds
       ///   the constant data of "CudaLuDecomposition" class on the device
-      LuDecomposeConst* devptr;
+      LuDecomposeConst devstruct_;
 
       /// This is the default constructor, taking no arguments;
       CudaLuDecomposition(){};
@@ -34,44 +34,38 @@ namespace micm
         ///   the actual data and size of each constant data member;
 
         /// Allocate host memory space for an object of type "LuDecomposeConst"
-        LuDecomposeConst* hostptr = new LuDecomposeConst;
-        hostptr->niLU_         = this->niLU_.data();
-        hostptr->do_aik_       = this->do_aik_.data();
-        hostptr->aik_          = this->aik_.data();
-        hostptr->uik_nkj_      = this->uik_nkj_.data();
-        hostptr->lij_ujk_      = this->lij_ujk_.data();
-        hostptr->do_aki_       = this->do_aki_.data();
-        hostptr->aki_          = this->aki_.data();
-        hostptr->lki_nkj_      = this->lki_nkj_.data();
-        hostptr->lkj_uji_      = this->lkj_uji_.data();
-        hostptr->uii_          = this->uii_.data();
-        hostptr->niLU_size_    = this->niLU_.size();
-        hostptr->do_aik_size_  = this->do_aik_.size();
-        hostptr->aik_size_     = this->aik_.size();
-        hostptr->uik_nkj_size_ = this->uik_nkj_.size();
-        hostptr->lij_ujk_size_ = this->lij_ujk_.size();
-        hostptr->do_aki_size_  = this->do_aki_.size();
-        hostptr->aki_size_     = this->aki_.size();
-        hostptr->lki_nkj_size_ = this->lki_nkj_.size();
-        hostptr->lkj_uji_size_ = this->lkj_uji_.size();
-        hostptr->uii_size_     = this->uii_.size(); 
+        LuDecomposeConst hoststruct;
+        hoststruct.niLU_         = this->niLU_.data();
+        hoststruct.do_aik_       = this->do_aik_.data();
+        hoststruct.aik_          = this->aik_.data();
+        hoststruct.uik_nkj_      = this->uik_nkj_.data();
+        hoststruct.lij_ujk_      = this->lij_ujk_.data();
+        hoststruct.do_aki_       = this->do_aki_.data();
+        hoststruct.aki_          = this->aki_.data();
+        hoststruct.lki_nkj_      = this->lki_nkj_.data();
+        hoststruct.lkj_uji_      = this->lkj_uji_.data();
+        hoststruct.uii_          = this->uii_.data();
+        hoststruct.niLU_size_    = this->niLU_.size();
+        hoststruct.do_aik_size_  = this->do_aik_.size();
+        hoststruct.aik_size_     = this->aik_.size();
+        hoststruct.uik_nkj_size_ = this->uik_nkj_.size();
+        hoststruct.lij_ujk_size_ = this->lij_ujk_.size();
+        hoststruct.do_aki_size_  = this->do_aki_.size();
+        hoststruct.aki_size_     = this->aki_.size();
+        hoststruct.lki_nkj_size_ = this->lki_nkj_.size();
+        hoststruct.lkj_uji_size_ = this->lkj_uji_.size();
+        hoststruct.uii_size_     = this->uii_.size(); 
         
         // Copy the data from host struct to device struct
-        micm::cuda::CopyConstData(hostptr, this->devptr);
-
-        /// Free the host memory for "hostptr"
-        delete hostptr;
+        this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
       };
 
       /// This is destructor that will free the device memory of
       ///   the constant data from the class "CudaLuDecomposition"
       ~CudaLuDecomposition()
       {
-        /// Free the device memory allocated by the members of "devptr"
-        micm::cuda::FreeConstData(this->devptr);
-
-        /// Free the host memory for "devptr"
-        delete devptr;
+        /// Free the device memory allocated by the members of "devstruct_"
+        micm::cuda::FreeConstData(this->devstruct_);
       };
 
       /// This is the function to perform an LU decomposition on a given A matrix
@@ -101,6 +95,6 @@ namespace micm
 
     /// Call the "DecomposeKernelDriver" function that invokes the
     ///   CUDA kernel to perform LU decomposition on the device
-    return micm::cuda::DecomposeKernelDriver(sparseMatrix, this->devptr);
+    return micm::cuda::DecomposeKernelDriver(sparseMatrix, this->devstruct_);
   }
 }  // end of namespace micm

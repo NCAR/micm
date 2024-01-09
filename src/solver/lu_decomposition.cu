@@ -89,72 +89,67 @@ namespace micm
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device
-    void CopyConstData(LuDecomposeConst* hostptr, LuDecomposeConst*& devptr)
+    LuDecomposeConst CopyConstData(LuDecomposeConst& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      size_t niLU_bytes    = sizeof(std::pair<size_t, size_t>) * hostptr->niLU_size_;
-      size_t do_aik_bytes  = sizeof(char) * hostptr->do_aik_size_;
-      size_t aik_bytes     = sizeof(size_t) * hostptr->aik_size_; 
-      size_t uik_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hostptr->uik_nkj_size_; 
-      size_t lij_ujk_bytes = sizeof(std::pair<size_t, size_t>) * hostptr->lij_ujk_size_;
-      size_t do_aki_bytes  = sizeof(char) * hostptr->do_aki_size_;
-      size_t aki_bytes     = sizeof(size_t) * hostptr->aki_size_;
-      size_t lki_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hostptr->lki_nkj_size_;
-      size_t lkj_uji_bytes = sizeof(std::pair<size_t, size_t>) * hostptr->lkj_uji_size_;
-      size_t uii_bytes     = sizeof(size_t) * hostptr->uii_size_;
+      size_t niLU_bytes    = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
+      size_t do_aik_bytes  = sizeof(char) * hoststruct.do_aik_size_;
+      size_t aik_bytes     = sizeof(size_t) * hoststruct.aik_size_; 
+      size_t uik_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.uik_nkj_size_; 
+      size_t lij_ujk_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lij_ujk_size_;
+      size_t do_aki_bytes  = sizeof(char) * hoststruct.do_aki_size_;
+      size_t aki_bytes     = sizeof(size_t) * hoststruct.aki_size_;
+      size_t lki_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lki_nkj_size_;
+      size_t lkj_uji_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lkj_uji_size_;
+      size_t uii_bytes     = sizeof(size_t) * hoststruct.uii_size_;
 
-      /// Can not use "cudaMalloc((void**)&devptr, sizeof(LuDecomposeConst))" 
-      ///   because host variable "devptr" will contain addresss in the device memory (which is ok), 
-      ///   but "devptr->d_niLU_" becomes illegal since we can not access/deference the address 
-      ///   in the device memory from the host code directly; see more discussion from:
-      ///   https://forums.developer.nvidia.com/t/cudamalloc-and-structs-and-pointers-problem/12266/2
-
-      /// The solution is to keep devptr and its members as host variables,
-      ///   but its members contain the addresses in the device memory.
-      devptr = new LuDecomposeConst;
-      cudaMalloc(&(devptr->niLU_),     niLU_bytes);
-      cudaMalloc(&(devptr->do_aik_),   do_aik_bytes);
-      cudaMalloc(&(devptr->aik_),      aik_bytes);
-      cudaMalloc(&(devptr->uik_nkj_),  uik_nkj_bytes);      
-      cudaMalloc(&(devptr->lij_ujk_),  lij_ujk_bytes);
-      cudaMalloc(&(devptr->do_aki_),   do_aki_bytes);
-      cudaMalloc(&(devptr->aki_),      aki_bytes);
-      cudaMalloc(&(devptr->lki_nkj_),  lki_nkj_bytes);
-      cudaMalloc(&(devptr->lkj_uji_),  lkj_uji_bytes);
-      cudaMalloc(&(devptr->uii_),      uii_bytes);
+      /// Create a struct whose members contain the addresses in the device memory.
+      LuDecomposeConst devstruct;
+      cudaMalloc(&(devstruct.niLU_),     niLU_bytes);
+      cudaMalloc(&(devstruct.do_aik_),   do_aik_bytes);
+      cudaMalloc(&(devstruct.aik_),      aik_bytes);
+      cudaMalloc(&(devstruct.uik_nkj_),  uik_nkj_bytes);      
+      cudaMalloc(&(devstruct.lij_ujk_),  lij_ujk_bytes);
+      cudaMalloc(&(devstruct.do_aki_),   do_aki_bytes);
+      cudaMalloc(&(devstruct.aki_),      aki_bytes);
+      cudaMalloc(&(devstruct.lki_nkj_),  lki_nkj_bytes);
+      cudaMalloc(&(devstruct.lkj_uji_),  lkj_uji_bytes);
+      cudaMalloc(&(devstruct.uii_),      uii_bytes);
 
       /// Copy the data from host to device
-      cudaMemcpy(devptr->niLU_,    hostptr->niLU_,    niLU_bytes,    cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->do_aik_,  hostptr->do_aik_,  do_aik_bytes,  cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->aik_,     hostptr->aik_,     aik_bytes,     cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->uik_nkj_, hostptr->uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->lij_ujk_, hostptr->lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->do_aki_,  hostptr->do_aki_,  do_aki_bytes,  cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->aki_,     hostptr->aki_,     aki_bytes,     cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->lki_nkj_, hostptr->lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->lkj_uji_, hostptr->lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devptr->uii_,     hostptr->uii_,     uii_bytes,     cudaMemcpyHostToDevice);
-      devptr->niLU_size_ = hostptr->niLU_size_;
+      cudaMemcpy(devstruct.niLU_,    hoststruct.niLU_,    niLU_bytes,    cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aik_,  hoststruct.do_aik_,  do_aik_bytes,  cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aik_,     hoststruct.aik_,     aik_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aki_,  hoststruct.do_aki_,  do_aki_bytes,  cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aki_,     hoststruct.aki_,     aki_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.uii_,     hoststruct.uii_,     uii_bytes,     cudaMemcpyHostToDevice);
+      devstruct.niLU_size_ = hoststruct.niLU_size_;
+
+      return devstruct;
     }
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeConst*& devptr)
+    void FreeConstData(LuDecomposeConst& devstruct)
     {
-      cudaFree(devptr->niLU_);
-      cudaFree(devptr->do_aik_);
-      cudaFree(devptr->aik_);
-      cudaFree(devptr->uik_nkj_);      
-      cudaFree(devptr->lij_ujk_);
-      cudaFree(devptr->do_aki_);
-      cudaFree(devptr->aki_);
-      cudaFree(devptr->lki_nkj_);
-      cudaFree(devptr->lkj_uji_);
-      cudaFree(devptr->uii_);
+      cudaFree(devstruct.niLU_);
+      cudaFree(devstruct.do_aik_);
+      cudaFree(devstruct.aik_);
+      cudaFree(devstruct.uik_nkj_);      
+      cudaFree(devstruct.lij_ujk_);
+      cudaFree(devstruct.do_aki_);
+      cudaFree(devstruct.aki_);
+      cudaFree(devstruct.lki_nkj_);
+      cudaFree(devstruct.lkj_uji_);
+      cudaFree(devstruct.uii_);
     }
 
     std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, 
-                                                   LuDecomposeConst* devptr)
+                                                   LuDecomposeConst devstruct)
     {
       /// Create device pointers
       double* d_A;
@@ -176,12 +171,12 @@ namespace micm
       /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
       DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U,
-                                                 devptr->niLU_,
-                                                 devptr->do_aik_, devptr->aik_,
-                                                 devptr->uik_nkj_, devptr->lij_ujk_,
-                                                 devptr->do_aki_, devptr->aki_,
-                                                 devptr->lki_nkj_, devptr->lkj_uji_,
-                                                 devptr->uii_, devptr->niLU_size_, 
+                                                 devstruct.niLU_,
+                                                 devstruct.do_aik_, devstruct.aik_,
+                                                 devstruct.uik_nkj_, devstruct.lij_ujk_,
+                                                 devstruct.do_aki_, devstruct.aki_,
+                                                 devstruct.lki_nkj_, devstruct.lkj_uji_,
+                                                 devstruct.uii_, devstruct.niLU_size_, 
                                                  sparseMatrix.n_grids_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
