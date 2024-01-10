@@ -3,9 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
-#include <vector>
 
-const size_t BLOCK_SIZE = 320;
+const size_t BLOCK_SIZE = 32;
 // member data of class CudaProcessSet grouped in struct passing to kernel driver function
 struct CudaProcessSetParam
 {
@@ -90,4 +89,31 @@ struct CudaSparseMatrixParam
   size_t lower_matrix_size_;
   const double* upper_matrix_;
   size_t upper_matrix_size_;
+};
+
+/// This struct holds the (1) pointer to, and (2) size of
+///   each constatnt data member from the class "LuDecomposition";
+/// This struct could be allocated on the host or device;
+struct LuDecomposeParam
+{
+  std::pair<size_t, size_t>* niLU_;
+  char* do_aik_;
+  size_t* aik_;
+  std::pair<size_t, size_t>* uik_nkj_;
+  std::pair<size_t, size_t>* lij_ujk_;
+  char* do_aki_;
+  size_t* aki_;
+  std::pair<size_t, size_t>* lki_nkj_;
+  std::pair<size_t, size_t>* lkj_uji_;
+  size_t* uii_;
+  size_t niLU_size_;
+  size_t do_aik_size_;
+  size_t aik_size_;
+  size_t uik_nkj_size_;
+  size_t lij_ujk_size_;
+  size_t do_aki_size_;
+  size_t aki_size_;
+  size_t lki_nkj_size_;
+  size_t lkj_uji_size_;
+  size_t uii_size_;
 };

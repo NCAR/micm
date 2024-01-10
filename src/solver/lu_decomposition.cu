@@ -4,190 +4,198 @@
 #include <chrono>
 #include <iostream>
 #include <micm/util/cuda_param.hpp>
-#include <vector>
 
-// grouped parameters passing to DecomposeKernel()
-struct DecomposeDevice
-{
-  double* A_;
-  double* L_;
-  double* U_;
-  char* do_aik_;
-  size_t* aik_;
-  char* do_aki_;
-  size_t* aki_;
-  size_t* uii_;
-  std::pair<size_t, size_t>* niLU_;
-  std::pair<size_t, size_t>* uik_nkj_;
-  std::pair<size_t, size_t>* lij_ujk_;
-  std::pair<size_t, size_t>* lki_nkj_;
-  std::pair<size_t, size_t>* lkj_uji_;
-};
 namespace micm
 {
   namespace cuda
   {
-    __global__ void DecomposeKernel(DecomposeDevice* device, size_t n_grids, size_t niLU_size)
+    /// This is the CUDA kernel that performs LU decomposition on the device
+    /// Note that passing the reference "LuDecomposeParam&" will pass the
+    ///   compilation but the execution of this CUDA test hangs somehow
+    __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U,
+		                    LuDecomposeParam devstruct,
+                                    size_t ngrids)
     {
+      /// Local device variables
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      double* A = device->A_;
-      double* L = device->L_;
-      double* U = device->U_;
-      std::pair<size_t, size_t>* lkj_uji = device->lkj_uji_;
-      std::pair<size_t, size_t>* uik_nkj = device->uik_nkj_;
-      std::pair<size_t, size_t>* lij_ujk = device->lij_ujk_;
-      std::pair<size_t, size_t>* lki_nkj = device->lki_nkj_;
-      size_t do_aik_offset = 0;  // boolean vector
-      size_t aik_offset = 0;
+
+      std::pair<size_t, size_t>* d_niLU    = devstruct.niLU_;
+      char* d_do_aik                       = devstruct.do_aik_;
+      size_t* d_aik                        = devstruct.aik_; 
+      std::pair<size_t, size_t>* d_uik_nkj = devstruct.uik_nkj_;
+      std::pair<size_t, size_t>* d_lij_ujk = devstruct.lij_ujk_;
+      char* d_do_aki                       = devstruct.do_aki_;
+      size_t* d_aki                        = devstruct.aki_;
+      std::pair<size_t, size_t>* d_lki_nkj = devstruct.lki_nkj_;
+      std::pair<size_t, size_t>* d_lkj_uji = devstruct.lkj_uji_;
+      size_t* d_uii                        = devstruct.uii_;
+      size_t niLU_size                     = devstruct.niLU_size_;
+
+      size_t do_aik_offset  = 0;
+      size_t aik_offset     = 0;
       size_t uik_nkj_offset = 0;
       size_t lij_ujk_offset = 0;
-      size_t do_aki_offset = 0;  // boolean vector
-      size_t aki_offset = 0;
-      size_t lki_nkj_offset = 0;
+      size_t do_aki_offset  = 0;
+      size_t aki_offset     = 0;
       size_t lkj_uji_offset = 0;
-      size_t uii_offset = 0;
+      size_t lki_nkj_offset = 0;
+      size_t uii_offset     = 0;
 
-      if (tid < n_grids)
+
+      if (tid < ngrids)
       {
         // loop through every element in niLU
         for (size_t i = 0; i < niLU_size; i++)
         {
           // upper triangular matrix
-          auto inLU = device->niLU_[i];
+          auto inLU = d_niLU[i];
           for (size_t iU = 0; iU < inLU.second; ++iU)
           {
-            if (device->do_aik_[do_aik_offset++])
+            if (d_do_aik[do_aik_offset++])
             {
-              size_t U_idx = uik_nkj[uik_nkj_offset].first + tid;
-              size_t A_idx = device->aik_[aik_offset++] + tid;
-              U[U_idx] = A[A_idx];
+              size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
+              size_t A_idx = d_aik[aik_offset++] + tid;
+              d_U[U_idx] = d_A[A_idx];
             }
 
-            for (size_t ikj = 0; ikj < uik_nkj[uik_nkj_offset].second; ++ikj)
+            for (size_t ikj = 0; ikj < d_uik_nkj[uik_nkj_offset].second; ++ikj)
             {
-              size_t U_idx_1 = uik_nkj[uik_nkj_offset].first + tid;
-              size_t L_idx = lij_ujk[lij_ujk_offset].first + tid;
-              size_t U_idx_2 = lij_ujk[lij_ujk_offset].second + tid;
-              U[U_idx_1] -= L[L_idx] * U[U_idx_2];
+              size_t U_idx_1 = d_uik_nkj[uik_nkj_offset].first + tid;
+              size_t L_idx = d_lij_ujk[lij_ujk_offset].first + tid;
+              size_t U_idx_2 = d_lij_ujk[lij_ujk_offset].second + tid;
+              d_U[U_idx_1] -= d_L[L_idx] * d_U[U_idx_2];
               ++lij_ujk_offset;
             }
             ++uik_nkj_offset;
           }
           // lower triangular matrix
 
-          L[lki_nkj[lki_nkj_offset++].first + tid] = 1.0;
+          d_L[d_lki_nkj[lki_nkj_offset++].first + tid] = 1.0;
 
           for (size_t iL = 0; iL < inLU.first; ++iL)
           {
-            if (device->do_aki_[do_aki_offset++])
+            if (d_do_aki[do_aki_offset++])
             {
-              size_t L_idx = lki_nkj[lki_nkj_offset].first + tid;
-              size_t A_idx = device->aki_[aki_offset++] + tid;
-              L[L_idx] = A[A_idx];
+              size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
+              size_t A_idx = d_aki[aki_offset++] + tid;
+              d_L[L_idx] = d_A[A_idx];
             }
-            for (size_t ikj = 0; ikj < lki_nkj[lki_nkj_offset].second; ++ikj)
+            for (size_t ikj = 0; ikj < d_lki_nkj[lki_nkj_offset].second; ++ikj)
             {
-              size_t L_idx_1 = lki_nkj[lki_nkj_offset].first + tid;
-              size_t L_idx_2 = lkj_uji[lkj_uji_offset].first + tid;
-              size_t U_idx = lkj_uji[lkj_uji_offset].second + tid;
-              L[L_idx_1] -= L[L_idx_2] * U[U_idx];
+              size_t L_idx_1 = d_lki_nkj[lki_nkj_offset].first + tid;
+              size_t L_idx_2 = d_lkj_uji[lkj_uji_offset].first + tid;
+              size_t U_idx = d_lkj_uji[lkj_uji_offset].second + tid;
+              d_L[L_idx_1] -= d_L[L_idx_2] * d_U[U_idx];
               ++lkj_uji_offset;
             }
-            L[lki_nkj[lki_nkj_offset].first + tid] /= U[device->uii_[uii_offset] + tid];
+            d_L[d_lki_nkj[lki_nkj_offset].first + tid] /= d_U[d_uii[uii_offset] + tid];
             ++lki_nkj_offset;
             ++uii_offset;
           }
         }
       }
-    }  // end of kernel
+    }  // end of CUDA kernel
 
-    std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaSolverParam& solver)
+    /// This is the function that will copy the constant data
+    ///   members of class "CudaLuDecomposition" to the device
+    LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
     {
-      // create device pointers and allocate device memory
+      /// Calculate the memory space of each constant data member
+      size_t niLU_bytes    = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
+      size_t do_aik_bytes  = sizeof(char) * hoststruct.do_aik_size_;
+      size_t aik_bytes     = sizeof(size_t) * hoststruct.aik_size_; 
+      size_t uik_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.uik_nkj_size_; 
+      size_t lij_ujk_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lij_ujk_size_;
+      size_t do_aki_bytes  = sizeof(char) * hoststruct.do_aki_size_;
+      size_t aki_bytes     = sizeof(size_t) * hoststruct.aki_size_;
+      size_t lki_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lki_nkj_size_;
+      size_t lkj_uji_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lkj_uji_size_;
+      size_t uii_bytes     = sizeof(size_t) * hoststruct.uii_size_;
+
+      /// Create a struct whose members contain the addresses in the device memory.
+      LuDecomposeParam devstruct;
+      cudaMalloc(&(devstruct.niLU_),     niLU_bytes);
+      cudaMalloc(&(devstruct.do_aik_),   do_aik_bytes);
+      cudaMalloc(&(devstruct.aik_),      aik_bytes);
+      cudaMalloc(&(devstruct.uik_nkj_),  uik_nkj_bytes);      
+      cudaMalloc(&(devstruct.lij_ujk_),  lij_ujk_bytes);
+      cudaMalloc(&(devstruct.do_aki_),   do_aki_bytes);
+      cudaMalloc(&(devstruct.aki_),      aki_bytes);
+      cudaMalloc(&(devstruct.lki_nkj_),  lki_nkj_bytes);
+      cudaMalloc(&(devstruct.lkj_uji_),  lkj_uji_bytes);
+      cudaMalloc(&(devstruct.uii_),      uii_bytes);
+
+      /// Copy the data from host to device
+      cudaMemcpy(devstruct.niLU_,    hoststruct.niLU_,    niLU_bytes,    cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aik_,  hoststruct.do_aik_,  do_aik_bytes,  cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aik_,     hoststruct.aik_,     aik_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aki_,  hoststruct.do_aki_,  do_aki_bytes,  cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aki_,     hoststruct.aki_,     aki_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.uii_,     hoststruct.uii_,     uii_bytes,     cudaMemcpyHostToDevice);
+      devstruct.niLU_size_ = hoststruct.niLU_size_;
+
+      return devstruct;
+    }
+
+    /// This is the function that will delete the constant data
+    ///   members of class "CudaLuDecomposition" on the device
+    void FreeConstData(LuDecomposeParam& devstruct)
+    {
+      cudaFree(devstruct.niLU_);
+      cudaFree(devstruct.do_aik_);
+      cudaFree(devstruct.aik_);
+      cudaFree(devstruct.uik_nkj_);      
+      cudaFree(devstruct.lij_ujk_);
+      cudaFree(devstruct.do_aki_);
+      cudaFree(devstruct.aki_);
+      cudaFree(devstruct.lki_nkj_);
+      cudaFree(devstruct.lkj_uji_);
+      cudaFree(devstruct.uii_);
+    }
+
+    std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, 
+                                                   const LuDecomposeParam& devstruct)
+    {
+      /// Create device pointers
       double* d_A;
       double* d_L;
       double* d_U;
-      bool* d_do_aik;
-      size_t* d_aik;
-      bool* d_do_aki;
-      size_t* d_aki;
-      size_t* d_uii;
-      std::pair<size_t, size_t>* d_niLU;
-      std::pair<size_t, size_t>* d_uik_nkj;
-      std::pair<size_t, size_t>* d_lij_ujk;
-      std::pair<size_t, size_t>* d_lki_nkj;
-      std::pair<size_t, size_t>* d_lkj_uji;
-      DecomposeDevice* device;
 
+      /// Allocate device memory
       cudaMalloc(&d_A, sizeof(double) * sparseMatrix.A_size_);
       cudaMalloc(&d_L, sizeof(double) * sparseMatrix.L_size_);
       cudaMalloc(&d_U, sizeof(double) * sparseMatrix.U_size_);
-      cudaMalloc(&d_do_aik, sizeof(char) * solver.do_aik_size_);
-      cudaMalloc(&d_aik, sizeof(size_t) * solver.aik_size_);
-      cudaMalloc(&d_do_aki, sizeof(char) * solver.do_aki_size_);
-      cudaMalloc(&d_aki, sizeof(size_t) * solver.aki_size_);
-      cudaMalloc(&d_uii, sizeof(size_t) * solver.uii_size_);
-      cudaMalloc(&d_niLU, sizeof(std::pair<size_t, size_t>) * solver.niLU_size_);
-      cudaMalloc(&d_uik_nkj, sizeof(std::pair<size_t, size_t>) * solver.uik_nkj_size_);
-      cudaMalloc(&d_lij_ujk, sizeof(std::pair<size_t, size_t>) * solver.lij_ujk_size_);
-      cudaMalloc(&d_lki_nkj, sizeof(std::pair<size_t, size_t>) * solver.lki_nkj_size_);
-      cudaMalloc(&d_lkj_uji, sizeof(std::pair<size_t, size_t>) * solver.lkj_uji_size_);
-      cudaMalloc(&device, sizeof(DecomposeDevice));
 
-      // transfer data from host to device
+      /// Copy data from host to device
       cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double) * sparseMatrix.A_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_L, sparseMatrix.L_, sizeof(double) * sparseMatrix.L_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_U, sparseMatrix.U_, sizeof(double) * sparseMatrix.U_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_do_aik, solver.do_aik_, sizeof(char) * solver.do_aik_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_aik, solver.aik_, sizeof(size_t) * solver.aik_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_do_aki, solver.do_aki_, sizeof(char) * solver.do_aki_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_aki, solver.aki_, sizeof(size_t) * solver.aki_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_uii, solver.uii_, sizeof(size_t) * solver.uii_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_niLU, solver.niLU_, sizeof(std::pair<size_t, size_t>) * solver.niLU_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_uik_nkj, solver.uik_nkj_, sizeof(std::pair<size_t, size_t>) * solver.uik_nkj_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_lij_ujk, solver.lij_ujk_, sizeof(std::pair<size_t, size_t>) * solver.lij_ujk_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_lki_nkj, solver.lki_nkj_, sizeof(std::pair<size_t, size_t>) * solver.lki_nkj_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_lkj_uji, solver.lkj_uji_, sizeof(std::pair<size_t, size_t>) * solver.lkj_uji_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->A_), &d_A, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->L_), &d_L, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->U_), &d_U, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->do_aik_), &d_do_aik, sizeof(char*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->aik_), &d_aik, sizeof(size_t*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->do_aki_), &d_do_aki, sizeof(char*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->aki_), &d_aki, sizeof(size_t*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->uii_), &d_uii, sizeof(size_t*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->niLU_), &d_niLU, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->uik_nkj_), &d_uik_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->lij_ujk_), &d_lij_ujk, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->lki_nkj_), &d_lki_nkj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->lkj_uji_), &d_lkj_uji, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
 
-      // total number of threads is number of blocks in sparseMatrix A
       size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-      // call kernel
+      /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
-      DecomposeKernel<<<num_block, BLOCK_SIZE>>>(device, sparseMatrix.n_grids_, solver.niLU_size_);
+      DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U,
+                                                 devstruct,
+                                                 sparseMatrix.n_grids_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+
+      /// Copy the data from device to host
       cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double) * sparseMatrix.L_size_, cudaMemcpyDeviceToHost);
       cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double) * sparseMatrix.U_size_, cudaMemcpyDeviceToHost);
-      // clean up
+
+      /// Clean up
       cudaFree(d_A);
       cudaFree(d_L);
       cudaFree(d_U);
-      cudaFree(d_do_aik);
-      cudaFree(d_aik);
-      cudaFree(d_do_aki);
-      cudaFree(d_aki);
-      cudaFree(d_uii);
-      cudaFree(device);
+
       return kernel_duration;
-    }  // end kernelDriver
-  }    // namespace cuda
-}  // namespace micm
+    }  // end of DecomposeKernelDriver
+  }    // end of namespace cuda
+}      // end of namespace micm
