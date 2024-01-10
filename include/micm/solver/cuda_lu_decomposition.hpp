@@ -15,9 +15,9 @@ namespace micm
   class CudaLuDecomposition : public LuDecomposition
   {
     public:
-      /// This is an instance of struct "LuDecomposeConst" that holds
+      /// This is an instance of struct "LuDecomposeParam" that holds
       ///   the constant data of "CudaLuDecomposition" class on the device
-      LuDecomposeConst devstruct_;
+      LuDecomposeParam devstruct_;
 
       /// This is the default constructor, taking no arguments;
       CudaLuDecomposition(){};
@@ -33,8 +33,8 @@ namespace micm
         /// Thus we generate a host struct first to save the pointers to 
         ///   the actual data and size of each constant data member;
 
-        /// Allocate host memory space for an object of type "LuDecomposeConst"
-        LuDecomposeConst hoststruct;
+        /// Allocate host memory space for an object of type "LuDecomposeParam"
+        LuDecomposeParam hoststruct;
         hoststruct.niLU_         = this->niLU_.data();
         hoststruct.do_aik_       = this->do_aik_.data();
         hoststruct.aik_          = this->aik_.data();

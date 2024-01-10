@@ -94,7 +94,7 @@ struct CudaSparseMatrixParam
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "LuDecomposition";
 /// This struct could be allocated on the host or device;
-struct LuDecomposeConst
+struct LuDecomposeParam
 {
   std::pair<size_t, size_t>* niLU_;
   char* do_aik_;

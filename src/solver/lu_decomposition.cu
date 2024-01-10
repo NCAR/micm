@@ -9,11 +9,11 @@ namespace micm
 {
   namespace cuda
   {
-    /// This is the CUDA kernel that performs LU decomposition on the device;
-    /// Note that passing the reference "LuDecomposeConst&" will pass the
-    ///   compilation but the execution of this CUDA test hangs forever
+    /// This is the CUDA kernel that performs LU decomposition on the device
+    /// Note that passing the reference "LuDecomposeParam&" will pass the
+    ///   compilation but the execution of this CUDA test hangs somehow
     __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U,
-		                    LuDecomposeConst devstruct,
+		                    LuDecomposeParam devstruct,
                                     size_t ngrids)
     {
       /// Local device variables
@@ -98,7 +98,7 @@ namespace micm
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device
-    LuDecomposeConst CopyConstData(LuDecomposeConst& hoststruct)
+    LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
       size_t niLU_bytes    = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
@@ -113,7 +113,7 @@ namespace micm
       size_t uii_bytes     = sizeof(size_t) * hoststruct.uii_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
-      LuDecomposeConst devstruct;
+      LuDecomposeParam devstruct;
       cudaMalloc(&(devstruct.niLU_),     niLU_bytes);
       cudaMalloc(&(devstruct.do_aik_),   do_aik_bytes);
       cudaMalloc(&(devstruct.aik_),      aik_bytes);
@@ -143,7 +143,7 @@ namespace micm
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeConst& devstruct)
+    void FreeConstData(LuDecomposeParam& devstruct)
     {
       cudaFree(devstruct.niLU_);
       cudaFree(devstruct.do_aik_);
@@ -158,7 +158,7 @@ namespace micm
     }
 
     std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, 
-                                                   LuDecomposeConst devstruct)
+                                                   const LuDecomposeParam& devstruct)
     {
       /// Create device pointers
       double* d_A;
