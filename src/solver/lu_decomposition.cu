@@ -12,35 +12,32 @@ namespace micm
     /// This is the CUDA kernel that performs LU decomposition on the device
     /// Note that passing the reference "LuDecomposeParam&" will pass the
     ///   compilation but the execution of this CUDA test hangs somehow
-    __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U,
-		                    LuDecomposeParam devstruct,
-                                    size_t ngrids)
+    __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U, LuDecomposeParam devstruct, size_t ngrids)
     {
       /// Local device variables
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-      std::pair<size_t, size_t>* d_niLU    = devstruct.niLU_;
-      char* d_do_aik                       = devstruct.do_aik_;
-      size_t* d_aik                        = devstruct.aik_; 
+      std::pair<size_t, size_t>* d_niLU = devstruct.niLU_;
+      char* d_do_aik = devstruct.do_aik_;
+      size_t* d_aik = devstruct.aik_;
       std::pair<size_t, size_t>* d_uik_nkj = devstruct.uik_nkj_;
       std::pair<size_t, size_t>* d_lij_ujk = devstruct.lij_ujk_;
-      char* d_do_aki                       = devstruct.do_aki_;
-      size_t* d_aki                        = devstruct.aki_;
+      char* d_do_aki = devstruct.do_aki_;
+      size_t* d_aki = devstruct.aki_;
       std::pair<size_t, size_t>* d_lki_nkj = devstruct.lki_nkj_;
       std::pair<size_t, size_t>* d_lkj_uji = devstruct.lkj_uji_;
-      size_t* d_uii                        = devstruct.uii_;
-      size_t niLU_size                     = devstruct.niLU_size_;
+      size_t* d_uii = devstruct.uii_;
+      size_t niLU_size = devstruct.niLU_size_;
 
-      size_t do_aik_offset  = 0;
-      size_t aik_offset     = 0;
+      size_t do_aik_offset = 0;
+      size_t aik_offset = 0;
       size_t uik_nkj_offset = 0;
       size_t lij_ujk_offset = 0;
-      size_t do_aki_offset  = 0;
-      size_t aki_offset     = 0;
+      size_t do_aki_offset = 0;
+      size_t aki_offset = 0;
       size_t lkj_uji_offset = 0;
       size_t lki_nkj_offset = 0;
-      size_t uii_offset     = 0;
-
+      size_t uii_offset = 0;
 
       if (tid < ngrids)
       {
@@ -101,41 +98,41 @@ namespace micm
     LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      size_t niLU_bytes    = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
-      size_t do_aik_bytes  = sizeof(char) * hoststruct.do_aik_size_;
-      size_t aik_bytes     = sizeof(size_t) * hoststruct.aik_size_; 
-      size_t uik_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.uik_nkj_size_; 
+      size_t niLU_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
+      size_t do_aik_bytes = sizeof(char) * hoststruct.do_aik_size_;
+      size_t aik_bytes = sizeof(size_t) * hoststruct.aik_size_;
+      size_t uik_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.uik_nkj_size_;
       size_t lij_ujk_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lij_ujk_size_;
-      size_t do_aki_bytes  = sizeof(char) * hoststruct.do_aki_size_;
-      size_t aki_bytes     = sizeof(size_t) * hoststruct.aki_size_;
+      size_t do_aki_bytes = sizeof(char) * hoststruct.do_aki_size_;
+      size_t aki_bytes = sizeof(size_t) * hoststruct.aki_size_;
       size_t lki_nkj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lki_nkj_size_;
       size_t lkj_uji_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.lkj_uji_size_;
-      size_t uii_bytes     = sizeof(size_t) * hoststruct.uii_size_;
+      size_t uii_bytes = sizeof(size_t) * hoststruct.uii_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
-      cudaMalloc(&(devstruct.niLU_),     niLU_bytes);
-      cudaMalloc(&(devstruct.do_aik_),   do_aik_bytes);
-      cudaMalloc(&(devstruct.aik_),      aik_bytes);
-      cudaMalloc(&(devstruct.uik_nkj_),  uik_nkj_bytes);      
-      cudaMalloc(&(devstruct.lij_ujk_),  lij_ujk_bytes);
-      cudaMalloc(&(devstruct.do_aki_),   do_aki_bytes);
-      cudaMalloc(&(devstruct.aki_),      aki_bytes);
-      cudaMalloc(&(devstruct.lki_nkj_),  lki_nkj_bytes);
-      cudaMalloc(&(devstruct.lkj_uji_),  lkj_uji_bytes);
-      cudaMalloc(&(devstruct.uii_),      uii_bytes);
+      cudaMalloc(&(devstruct.niLU_), niLU_bytes);
+      cudaMalloc(&(devstruct.do_aik_), do_aik_bytes);
+      cudaMalloc(&(devstruct.aik_), aik_bytes);
+      cudaMalloc(&(devstruct.uik_nkj_), uik_nkj_bytes);
+      cudaMalloc(&(devstruct.lij_ujk_), lij_ujk_bytes);
+      cudaMalloc(&(devstruct.do_aki_), do_aki_bytes);
+      cudaMalloc(&(devstruct.aki_), aki_bytes);
+      cudaMalloc(&(devstruct.lki_nkj_), lki_nkj_bytes);
+      cudaMalloc(&(devstruct.lkj_uji_), lkj_uji_bytes);
+      cudaMalloc(&(devstruct.uii_), uii_bytes);
 
       /// Copy the data from host to device
-      cudaMemcpy(devstruct.niLU_,    hoststruct.niLU_,    niLU_bytes,    cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.do_aik_,  hoststruct.do_aik_,  do_aik_bytes,  cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.aik_,     hoststruct.aik_,     aik_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.do_aki_,  hoststruct.do_aki_,  do_aki_bytes,  cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.aki_,     hoststruct.aki_,     aki_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.uii_,     hoststruct.uii_,     uii_bytes,     cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice);
       devstruct.niLU_size_ = hoststruct.niLU_size_;
 
       return devstruct;
@@ -148,7 +145,7 @@ namespace micm
       cudaFree(devstruct.niLU_);
       cudaFree(devstruct.do_aik_);
       cudaFree(devstruct.aik_);
-      cudaFree(devstruct.uik_nkj_);      
+      cudaFree(devstruct.uik_nkj_);
       cudaFree(devstruct.lij_ujk_);
       cudaFree(devstruct.do_aki_);
       cudaFree(devstruct.aki_);
@@ -157,8 +154,7 @@ namespace micm
       cudaFree(devstruct.uii_);
     }
 
-    std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, 
-                                                   const LuDecomposeParam& devstruct)
+    std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, const LuDecomposeParam& devstruct)
     {
       /// Create device pointers
       double* d_A;
@@ -179,9 +175,7 @@ namespace micm
 
       /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
-      DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U,
-                                                 devstruct,
-                                                 sparseMatrix.n_grids_);
+      DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U, devstruct, sparseMatrix.n_grids_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
@@ -198,4 +192,4 @@ namespace micm
       return kernel_duration;
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
-}      // end of namespace micm
+}  // end of namespace micm
