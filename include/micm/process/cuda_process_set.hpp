@@ -13,6 +13,10 @@ namespace micm
   class CudaProcessSet : public ProcessSet
   {
    public:
+    /// This is an instance of struct "ProcessSetParam" that holds
+    ///   the constant data of "ProcessSet" class on the device
+    ProcessSetParam devstruct_;
+
     CudaProcessSet() = default;
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
@@ -28,7 +32,7 @@ namespace micm
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-        std::chrono::nanoseconds AddJacobianTerms(
+        std::chrono::nanoseconds FormJacobianMatrix(
             const MatrixPolicy<double>& rate_constants,
             const MatrixPolicy<double>& state_variables,
             SparseMatrixPolicy<double>& jacobian)
@@ -40,6 +44,29 @@ namespace micm
       const std::map<std::string, std::size_t>& variable_map)
       : ProcessSet(processes, variable_map)
   {
+      /// Passing the class itself as an argument is not support by CUDA;
+      /// Thus we generate a host struct first to save the pointers to
+      ///   the actual data and size of each constant data member;
+
+      /// Allocate host memory space for an object of type "ProcessSetParam"
+      ProcessSetParam hoststruct;
+
+      hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
+      hoststruct.reactant_ids_ = this->reactant_ids_.data();
+      hoststruct.number_of_products_ = this->number_of_products_.data();
+      hoststruct.product_ids_ = this->product_ids_.data();
+      hoststruct.yields_ = this->yields_.data();
+      hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
+
+      hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
+      hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
+      hoststruct.number_of_products_size_ = this->number_of_products_.size();
+      hoststruct.product_ids_size_ = this->product_ids_.size();
+      hoststruct.yields_size_ = this->yields_.size();
+      hoststruct.jacobian_flat_ids_size_ = this->jacobian_flat_ids_.size();
+
+      // Copy the data from host struct to device struct
+      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
   }
 
   template<template<class> class MatrixPolicy>
@@ -57,23 +84,13 @@ namespace micm
     matrix.n_reactions_ = rate_constants[0].size();
     matrix.n_species_ = state_variables[0].size();
 
-    CudaProcessSetParam processSet;
-    processSet.number_of_reactants_ = number_of_reactants_.data();
-    processSet.reactant_ids_ = reactant_ids_.data();
-    processSet.reactant_ids_size_ = reactant_ids_.size();
-    processSet.number_of_products_ = number_of_products_.data();
-    processSet.product_ids_ = product_ids_.data();
-    processSet.product_ids_size_ = product_ids_.size();
-    processSet.yields_ = yields_.data();
-    processSet.yields_size_ = yields_.size();
-
-    std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(matrix, processSet);
+    std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(matrix, this->devstruct_);
     return kernel_duration;  // time performance of kernel function
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
+  inline std::chrono::nanoseconds CudaProcessSet::FormJacobianMatrix(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
@@ -99,7 +116,7 @@ namespace micm
     processSet.jacobian_flat_ids_ = jacobian_flat_ids_.data();
     processSet.jacobian_flat_ids_size_ = jacobian_flat_ids_.size();
 
-    std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(matrix, sparseMatrix, processSet);
+    std::chrono::nanoseconds kernel_duration = micm::cuda::FormJacobianMatrixKernelDriver(matrix, sparseMatrix, processSet);
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
