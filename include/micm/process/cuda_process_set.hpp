@@ -106,17 +106,7 @@ namespace micm
     sparseMatrix.jacobian_ = jacobian.AsVector().data();
     sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
 
-    CudaProcessSetParam processSet;
-    processSet.number_of_reactants_ = number_of_reactants_.data();
-    processSet.reactant_ids_ = reactant_ids_.data();
-    processSet.reactant_ids_size_ = reactant_ids_.size();
-    processSet.number_of_products_ = number_of_products_.data();
-    processSet.yields_ = yields_.data();
-    processSet.yields_size_ = yields_.size();
-    processSet.jacobian_flat_ids_ = jacobian_flat_ids_.data();
-    processSet.jacobian_flat_ids_size_ = jacobian_flat_ids_.size();
-
-    std::chrono::nanoseconds kernel_duration = micm::cuda::FormJacobianMatrixKernelDriver(matrix, sparseMatrix, processSet);
+    std::chrono::nanoseconds kernel_duration = micm::cuda::FormJacobianMatrixKernelDriver(matrix, sparseMatrix, this->devstruct_);
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
