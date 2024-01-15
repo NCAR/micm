@@ -144,12 +144,12 @@ namespace micm
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct)
     {
-      cudaFree(&(devstruct.number_of_reactants_));
-      cudaFree(&(devstruct.reactant_ids_));
-      cudaFree(&(devstruct.number_of_products_));
-      cudaFree(&(devstruct.product_ids_));
-      cudaFree(&(devstruct.yields_));
-      cudaFree(&(devstruct.jacobian_flat_ids_));
+      cudaFree(devstruct.number_of_reactants_);
+      cudaFree(devstruct.reactant_ids_);
+      cudaFree(devstruct.number_of_products_);
+      cudaFree(devstruct.product_ids_);
+      cudaFree(devstruct.yields_);
+      cudaFree(devstruct.jacobian_flat_ids_);
     }
 
     std::chrono::nanoseconds FormJacobianMatrixKernelDriver(CudaMatrixParam& matrixParam, CudaSparseMatrixParam& sparseMatrix,
