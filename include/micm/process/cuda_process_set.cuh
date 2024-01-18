@@ -20,7 +20,7 @@ namespace micm
 
     /// This is the host function that will call the CUDA kernel
     ///   to form the Jacobian matrix
-    std::chrono::nanoseconds FormJacobianMatrixKernelDriver(
+    std::chrono::nanoseconds AddJacobianTermsKernelDriver(
         CudaMatrixParam& matrixParam, 
         CudaSparseMatrixParam& sparseMatrix, 
         const ProcessSetParam& devstruct);

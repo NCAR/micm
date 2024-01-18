@@ -50,7 +50,7 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
     /// This is the CUDA kernel that forms the Jacobian matrix on the device
-    __global__ void FormJacobianMatrixKernel(double* d_rate_constants, double* d_state_variables, double* d_jacobian,
+    __global__ void AddJacobianTermsKernel(double* d_rate_constants, double* d_state_variables, double* d_jacobian,
                                              ProcessSetParam devstruct, size_t n_grids, size_t n_reactions)
     {
       /// Local device variables
@@ -97,7 +97,7 @@ namespace micm
           yields_offset += d_number_of_products[i_rxn];
         }  // end of loop over reactions in a grid
       }    // end of checking a CUDA thread id
-    }      // end of FormJacobianMatrixKernel
+    }      // end of AddJacobianTermsKernel
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaProcessSet" to the device
@@ -152,7 +152,7 @@ namespace micm
       cudaFree(devstruct.jacobian_flat_ids_);
     }
 
-    std::chrono::nanoseconds FormJacobianMatrixKernelDriver(CudaMatrixParam& matrixParam, CudaSparseMatrixParam& sparseMatrix,
+    std::chrono::nanoseconds AddJacobianTermsKernelDriver(CudaMatrixParam& matrixParam, CudaSparseMatrixParam& sparseMatrix,
                                                             const ProcessSetParam& devstruct)
     {
       // create device pointers
@@ -177,7 +177,7 @@ namespace micm
 
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
-      FormJacobianMatrixKernel<<<num_blocks, BLOCK_SIZE>>>(d_rate_constants, d_state_variables, d_jacobian,
+      AddJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(d_rate_constants, d_state_variables, d_jacobian,
                                                            devstruct, n_grids, n_reactions);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();

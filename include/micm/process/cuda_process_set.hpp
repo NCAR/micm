@@ -32,7 +32,7 @@ namespace micm
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-        std::chrono::nanoseconds FormJacobianMatrix(
+        std::chrono::nanoseconds AddJacobianTerms(
             const MatrixPolicy<double>& rate_constants,
             const MatrixPolicy<double>& state_variables,
             SparseMatrixPolicy<double>& jacobian)
@@ -90,7 +90,7 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::FormJacobianMatrix(
+  inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
@@ -106,7 +106,7 @@ namespace micm
     sparseMatrix.jacobian_ = jacobian.AsVector().data();
     sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
 
-    std::chrono::nanoseconds kernel_duration = micm::cuda::FormJacobianMatrixKernelDriver(matrix, sparseMatrix, this->devstruct_);
+    std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(matrix, sparseMatrix, this->devstruct_);
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
