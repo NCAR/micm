@@ -4,7 +4,7 @@
 
 #include <chrono>
 #include <micm/util/cuda_param.hpp>
-
+#include<iostream>
 namespace micm
 {
   namespace cuda
@@ -51,7 +51,7 @@ namespace micm
 
     /// This is the CUDA kernel that forms the Jacobian matrix on the device
     __global__ void AddJacobianTermsKernel(double* d_rate_constants, double* d_state_variables, double* d_jacobian,
-                                             ProcessSetParam devstruct, size_t n_grids, size_t n_reactions)
+                                           ProcessSetParam devstruct, size_t n_grids, size_t n_reactions)
     {
       /// Local device variables
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -63,7 +63,7 @@ namespace micm
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       double* d_yields = devstruct.yields_;
-
+  
       if (tid < n_grids)
       {
         // loop over reactions in a grid
@@ -100,7 +100,8 @@ namespace micm
     }      // end of AddJacobianTermsKernel
 
     /// This is the function that will copy the constant data
-    ///   members of class "CudaProcessSet" to the device
+    ///   members of class "CudaProcessSet" to the device,
+    ///   except for the "jacobian_flat_id" because it is unknown now
     ProcessSetParam CopyConstData(ProcessSetParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
@@ -109,7 +110,6 @@ namespace micm
       size_t number_of_products_bytes = sizeof(size_t) * hoststruct.number_of_products_size_;
       size_t product_ids_bytes = sizeof(size_t) * hoststruct.product_ids_size_;
       size_t yields_bytes = sizeof(double) * hoststruct.yields_size_;
-      size_t jacobian_flat_ids_bytes = sizeof(size_t) * hoststruct.jacobian_flat_ids_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       ProcessSetParam devstruct;
@@ -120,7 +120,6 @@ namespace micm
       cudaMalloc(&(devstruct.number_of_products_), number_of_products_bytes);
       cudaMalloc(&(devstruct.product_ids_), product_ids_bytes);
       cudaMalloc(&(devstruct.yields_), yields_bytes);
-      cudaMalloc(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes);
 
       /// Copy the data from host to device
       cudaMemcpy(devstruct.number_of_reactants_, hoststruct.number_of_reactants_, number_of_reactants_bytes, cudaMemcpyHostToDevice);
@@ -128,16 +127,31 @@ namespace micm
       cudaMemcpy(devstruct.number_of_products_, hoststruct.number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice);
       cudaMemcpy(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice);
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
       devstruct.reactant_ids_size_ = hoststruct.reactant_ids_size_;
       devstruct.number_of_products_size_ = hoststruct.number_of_products_size_;
       devstruct.product_ids_size_ = hoststruct.product_ids_size_;
       devstruct.yields_size_ = hoststruct.yields_size_;
-      devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
 
       return devstruct;
+    }
+
+    /// This is the function that will copy the jacobian_flat_id
+    ///   of class "ProcessSet" to the device, after the matrix
+    ///   structure is known;
+    void CopyJacobiFlatId(ProcessSetParam& hoststruct, ProcessSetParam& devstruct)
+    {
+      /// Calculate the memory space
+      size_t jacobian_flat_ids_bytes = sizeof(size_t) * hoststruct.jacobian_flat_ids_size_;
+
+      /// Allocate memory space on the device
+      cudaMalloc(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes);
+
+      /// Copy the data from host to device
+      cudaMemcpy(devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice);
+
+      devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
     }
 
     /// This is the function that will delete the constant data
@@ -149,7 +163,7 @@ namespace micm
       cudaFree(devstruct.number_of_products_);
       cudaFree(devstruct.product_ids_);
       cudaFree(devstruct.yields_);
-      cudaFree(devstruct.jacobian_flat_ids_);
+      if (devstruct.jacobian_flat_ids_ != nullptr) cudaFree(devstruct.jacobian_flat_ids_);
     }
 
     std::chrono::nanoseconds AddJacobianTermsKernelDriver(CudaMatrixParam& matrixParam, CudaSparseMatrixParam& sparseMatrix,
@@ -178,7 +192,7 @@ namespace micm
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(d_rate_constants, d_state_variables, d_jacobian,
-                                                           devstruct, n_grids, n_reactions);
+                                                         devstruct, n_grids, n_reactions);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);

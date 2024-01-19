@@ -23,6 +23,13 @@ namespace micm
     /// @param variable_map A mapping of species names to concentration index
     CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
+    /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;
+    /// @brief this will override the "SetJacobianFlatIds" function from the "ProcessSet" class
+    /// @param OrderingPolicy 
+    /// @param matrix 
+    template<typename OrderingPolicy>
+    void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
+
     template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> std::chrono::nanoseconds AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
@@ -56,17 +63,30 @@ namespace micm
       hoststruct.number_of_products_ = this->number_of_products_.data();
       hoststruct.product_ids_ = this->product_ids_.data();
       hoststruct.yields_ = this->yields_.data();
-      hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
+      hoststruct.jacobian_flat_ids_ = nullptr;
 
       hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
       hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
       hoststruct.number_of_products_size_ = this->number_of_products_.size();
       hoststruct.product_ids_size_ = this->product_ids_.size();
       hoststruct.yields_size_ = this->yields_.size();
-      hoststruct.jacobian_flat_ids_size_ = this->jacobian_flat_ids_.size();
 
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+  }
+
+  template<typename OrderingPolicy>
+  inline void CudaProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
+  {
+    /// This function sets the "jacobian_flat_ids_" member after the structure of Jacobian matrix is known
+    ProcessSet::SetJacobianFlatIds(matrix);
+
+    ProcessSetParam hoststruct;
+    hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
+    hoststruct.jacobian_flat_ids_size_ = this->jacobian_flat_ids_.size();
+
+    // Copy the data from host struct to device struct
+    micm::cuda::CopyJacobiFlatId(hoststruct, this->devstruct_);
   }
 
   template<template<class> class MatrixPolicy>
