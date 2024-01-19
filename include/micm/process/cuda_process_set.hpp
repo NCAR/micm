@@ -25,8 +25,8 @@ namespace micm
 
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;
     /// @brief this will override the "SetJacobianFlatIds" function from the "ProcessSet" class
-    /// @param OrderingPolicy 
-    /// @param matrix 
+    /// @param OrderingPolicy
+    /// @param matrix
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
@@ -51,28 +51,28 @@ namespace micm
       const std::map<std::string, std::size_t>& variable_map)
       : ProcessSet(processes, variable_map)
   {
-      /// Passing the class itself as an argument is not support by CUDA;
-      /// Thus we generate a host struct first to save the pointers to
-      ///   the actual data and size of each constant data member;
+    /// Passing the class itself as an argument is not support by CUDA;
+    /// Thus we generate a host struct first to save the pointers to
+    ///   the actual data and size of each constant data member;
 
-      /// Allocate host memory space for an object of type "ProcessSetParam"
-      ProcessSetParam hoststruct;
+    /// Allocate host memory space for an object of type "ProcessSetParam"
+    ProcessSetParam hoststruct;
 
-      hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
-      hoststruct.reactant_ids_ = this->reactant_ids_.data();
-      hoststruct.number_of_products_ = this->number_of_products_.data();
-      hoststruct.product_ids_ = this->product_ids_.data();
-      hoststruct.yields_ = this->yields_.data();
-      hoststruct.jacobian_flat_ids_ = nullptr;
+    hoststruct.number_of_reactants_ = this->number_of_reactants_.data();
+    hoststruct.reactant_ids_ = this->reactant_ids_.data();
+    hoststruct.number_of_products_ = this->number_of_products_.data();
+    hoststruct.product_ids_ = this->product_ids_.data();
+    hoststruct.yields_ = this->yields_.data();
+    hoststruct.jacobian_flat_ids_ = nullptr;
 
-      hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
-      hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
-      hoststruct.number_of_products_size_ = this->number_of_products_.size();
-      hoststruct.product_ids_size_ = this->product_ids_.size();
-      hoststruct.yields_size_ = this->yields_.size();
+    hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
+    hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
+    hoststruct.number_of_products_size_ = this->number_of_products_.size();
+    hoststruct.product_ids_size_ = this->product_ids_.size();
+    hoststruct.yields_size_ = this->yields_.size();
 
-      // Copy the data from host struct to device struct
-      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    // Copy the data from host struct to device struct
+    this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
   }
 
   template<typename OrderingPolicy>
@@ -126,7 +126,8 @@ namespace micm
     sparseMatrix.jacobian_ = jacobian.AsVector().data();
     sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
 
-    std::chrono::nanoseconds kernel_duration = micm::cuda::AddJacobianTermsKernelDriver(matrix, sparseMatrix, this->devstruct_);
+    std::chrono::nanoseconds kernel_duration =
+        micm::cuda::AddJacobianTermsKernelDriver(matrix, sparseMatrix, this->devstruct_);
     return kernel_duration;  // time performance of kernel function
   }
 }  // namespace micm
