@@ -5,20 +5,6 @@
 #pragma once
 
 const size_t BLOCK_SIZE = 32;
-// member data of class CudaProcessSet grouped in struct passing to kernel driver function
-struct CudaProcessSetParam
-{
-  const size_t* number_of_reactants_;
-  const size_t* reactant_ids_;
-  size_t reactant_ids_size_;
-  const size_t* number_of_products_;
-  const size_t* product_ids_;
-  size_t product_ids_size_;
-  const double* yields_;
-  size_t yields_size_;
-  const size_t* jacobian_flat_ids_;
-  size_t jacobian_flat_ids_size_;
-};
 
 struct CudaSolverParam
 {
@@ -89,6 +75,25 @@ struct CudaSparseMatrixParam
   size_t lower_matrix_size_;
   const double* upper_matrix_;
   size_t upper_matrix_size_;
+};
+
+/// This struct holds the (1) pointer to, and (2) size of
+///   each constatnt data member from the class "ProcessSet";
+/// This struct could be allocated on the host or device;
+struct ProcessSetParam
+{
+  size_t* number_of_reactants_;
+  size_t* reactant_ids_;
+  size_t* number_of_products_;
+  size_t* product_ids_;
+  double* yields_;
+  size_t* jacobian_flat_ids_;
+  size_t number_of_reactants_size_;
+  size_t reactant_ids_size_;
+  size_t number_of_products_size_;
+  size_t product_ids_size_;
+  size_t yields_size_;
+  size_t jacobian_flat_ids_size_;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
