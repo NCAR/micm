@@ -16,17 +16,47 @@ namespace micm
   class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
-    // constructor
+    /// This is an instance of struct "LinearSolverParam" that holds
+    ///   the constant data of "CudaLinearSolver" class on the device
+    LinearSolverParam devstruct_;
+
+    /// This is the default constructor, taking no arguments;
     CudaLinearSolver(){};
 
+    /// This constructor takes two arguments: a sparse matrix and its values
     CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
-        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value){};
+        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value)
+    {
+      /// Allocate host memory space for an object of type "LinearSolverParam"
+      LinearSolverParam hoststruct;
+
+      hoststruct.nLij_Lii_ = this->nLij_Lii_.data();
+      hoststruct.Lij_yj_ = this->Lij_yj_.data();
+      hoststruct.nUij_Uii_ = this->nUij_Uii_.data();
+      hoststruct.Uij_xj_ = this->Uij_xj_.data();
+
+      hoststruct.nLij_Lii_size_ = this->nLij_Lii_.size();
+      hoststruct.Lij_yj_size_ = this->Lij_yj_.size();
+      hoststruct.nUij_Uii_size_ = this->nUij_Uii_.size();
+      hoststruct.Uij_xj_size_ = this->Uij_xj_.size();
+
+      /// Copy the data from host struct to device struct
+      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    };
 
     CudaLinearSolver(
         const SparseMatrixPolicy<T>& matrix,
         T initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
-        : linearSolver(matrix, initial_value, create_lu_decomp);
+        : LinearSolver(matrix, initial_value, create_lu_decomp);
+
+    /// This is the destructor that will free the device memory of
+    ///   the constant data from the class "CudaLinearSolver"
+    ~CudaLinearSolver()
+    {
+      /// Free the device memory allocated by the members of "devstruct_"
+      micm::cuda::FreeConstData(this->devstruct_);
+    };
 
     template<template<class> class MatrixPolicy>
     requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>) std::chrono::nanoseconds Solve(
@@ -35,17 +65,9 @@ namespace micm
         SparseMatrixPolicy<T>& lower_matrix,
         SparseMatrixPolicy<T>& upper_matrix)
     {
-      CudaLinearSolverParam linearSolver;
       CudaSparseMatrixParam sparseMatrix;
       CudaMatrixParam denseMatrix;
-      linearSolver.nLij_Lii_ = this->nLij_Lii_.data();
-      linearSolver.nLij_Lii_size_ = this->nLij_Lii_.size();
-      linearSolver.Lij_yj_ = this->Lij_yj_.data();
-      linearSolver.Lij_yj_size_ = this->Lij_yj_.size();
-      linearSolver.nUij_Uii_ = this->nUij_Uii_.data();
-      linearSolver.nUij_Uii_size_ = this->nUij_Uii_.size();
-      linearSolver.Uij_xj_ = this->Uij_xj_.data();
-      linearSolver.Uij_xj_size_ = this->Uij_xj_.size();
+
       sparseMatrix.lower_matrix_ = lower_matrix.AsVector().data();
       sparseMatrix.lower_matrix_size_ = lower_matrix.AsVector().size();
       sparseMatrix.upper_matrix_ = upper_matrix.AsVector().data();
@@ -57,8 +79,10 @@ namespace micm
       denseMatrix.n_grids_ = b.size();  // number of grids
       denseMatrix.b_column_counts_ = b[0].size();
       denseMatrix.x_column_counts_ = x[0].size();
-      // calling kernel driver
-      return micm::cuda::SolveKernelDriver(linearSolver, sparseMatrix, denseMatrix);
+
+    /// Call the "SolveKernelDriver" function that invokes the
+    ///   CUDA kernel to perform the "solve" function on the device
+      return micm::cuda::SolveKernelDriver(sparseMatrix, denseMatrix, this->devstruct_);
     };
   };
 }  // namespace micm

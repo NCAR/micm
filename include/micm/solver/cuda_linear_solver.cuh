@@ -4,14 +4,24 @@
 
 #pragma once
 #include <micm/util/cuda_param.hpp>
-#include <vector>
+
 namespace micm
 {
   namespace cuda
   {
+    /// This is the host function that will call the CUDA kernel
+    ///   to perform the "solve" function on the device
     std::chrono::nanoseconds SolveKernelDriver(
-     CudaLinearSolverParam& linearSolver,
-     CudaSparseMatrixParam& sparseMatrix, 
-     CudaMatrixParam& denseMatrix);
+           CudaSparseMatrixParam& sparseMatrix, 
+           CudaMatrixParam& denseMatrix,
+           const LinearSolverParam& devstruct);
+
+    /// This is the function that will copy the constant data
+    ///   members of class "CudaLinearSolver" to the device;
+    LinearSolverParam CopyConstData(LinearSolverParam& hoststruct);
+   
+    /// This is the function that will delete the constant data
+    ///   members of class "CudaLinearSolver" on the device
+    void FreeConstData(LinearSolverParam& devstruct);
   }  // namespace cuda
 }  // namespace micm

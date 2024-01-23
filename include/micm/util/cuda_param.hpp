@@ -30,18 +30,6 @@ struct CudaSolverParam
   size_t uii_size_;
 };
 
-struct CudaLinearSolverParam
-{
-  const std::pair<size_t, size_t>* nLij_Lii_;
-  size_t nLij_Lii_size_;
-  const std::pair<size_t, size_t>* Lij_yj_;
-  size_t Lij_yj_size_;
-  const std::pair<size_t, size_t>* nUij_Uii_;
-  size_t nUij_Uii_size_;
-  const std::pair<size_t, size_t>* Uij_xj_;
-  size_t Uij_xj_size_;
-};
-
 // different matrix data grouped in struct passing to kernel driver function
 struct CudaMatrixParam
 {
@@ -121,4 +109,19 @@ struct LuDecomposeParam
   size_t lki_nkj_size_;
   size_t lkj_uji_size_;
   size_t uii_size_;
+};
+
+/// This struct holds the (1) pointer to, and (2) size of
+///   each constatnt data member from the class "LinearSolver";
+/// This struct could be allocated on the host or device;
+struct LinearSolverParam
+{
+  std::pair<size_t, size_t>* nLij_Lii_;
+  std::pair<size_t, size_t>* Lij_yj_;
+  std::pair<size_t, size_t>* nUij_Uii_;
+  std::pair<size_t, size_t>* Uij_xj_;
+  size_t nLij_Lii_size_;
+  size_t Lij_yj_size_;
+  size_t nUij_Uii_size_;
+  size_t Uij_xj_size_;
 };
