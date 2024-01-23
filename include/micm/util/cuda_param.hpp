@@ -6,30 +6,6 @@
 
 const size_t BLOCK_SIZE = 32;
 
-struct CudaSolverParam
-{
-  const std::pair<size_t, size_t>* niLU_;
-  size_t niLU_size_;
-  const char* do_aik_;
-  size_t do_aik_size_;
-  const size_t* aik_;
-  size_t aik_size_;
-  const std::pair<size_t, size_t>* uik_nkj_;
-  size_t uik_nkj_size_;
-  const std::pair<size_t, size_t>* lij_ujk_;
-  size_t lij_ujk_size_;
-  const char* do_aki_;
-  size_t do_aki_size_;
-  const size_t* aki_;
-  size_t aki_size_;
-  const std::pair<size_t, size_t>* lki_nkj_;
-  size_t lki_nkj_size_;
-  const std::pair<size_t, size_t>* lkj_uji_;
-  size_t lkj_uji_size_;
-  const size_t* uii_;
-  size_t uii_size_;
-};
-
 // different matrix data grouped in struct passing to kernel driver function
 struct CudaMatrixParam
 {
