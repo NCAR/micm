@@ -24,8 +24,18 @@ namespace micm
     CudaLinearSolver(){};
 
     /// This constructor takes two arguments: a sparse matrix and its values
+    /// The base class here takes three arguments: the third argument is
+    ///   a lamda function that creates an instance of LuDecompositionPolicy;
+    ///   in this case, we will use the CudaLuDecomposition specified at line 15;
+    ///   See line 62 of "linear_solver.inl" for more details about how
+    ///   this lamda function works;
     CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
-        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value)
+        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
+          matrix,
+          initial_value,
+          [&](const SparseMatrixPolicy<double> &m) -> LuDecompositionPolicy
+          { return LuDecompositionPolicy(m); }
+        )
     {
       /// Allocate host memory space for an object of type "LinearSolverParam"
       LinearSolverParam hoststruct;
