@@ -31,11 +31,9 @@ namespace micm
     ///   this lamda function works;
     CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
         : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
-          matrix,
-          initial_value,
-          [&](const SparseMatrixPolicy<double> &m) -> LuDecompositionPolicy
-          { return LuDecompositionPolicy(m); }
-        )
+              matrix,
+              initial_value,
+              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); })
     {
       /// Allocate host memory space for an object of type "LinearSolverParam"
       LinearSolverParam hoststruct;
@@ -90,8 +88,8 @@ namespace micm
       denseMatrix.b_column_counts_ = b[0].size();
       denseMatrix.x_column_counts_ = x[0].size();
 
-    /// Call the "SolveKernelDriver" function that invokes the
-    ///   CUDA kernel to perform the "solve" function on the device
+      /// Call the "SolveKernelDriver" function that invokes the
+      ///   CUDA kernel to perform the "solve" function on the device
       return micm::cuda::SolveKernelDriver(sparseMatrix, denseMatrix, this->devstruct_);
     };
   };
