@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <chrono>
-#include <iostream>
 #include <micm/util/cuda_param.hpp>
+
 namespace micm
 {
   namespace cuda
