@@ -46,7 +46,7 @@ namespace micm {
           : VectorMatrix<T,L>(other)
         {}
 
-        ~CudaVectorMatrix()
+        ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
         {
           micm::cuda::free_vector(d_data_);
         }
