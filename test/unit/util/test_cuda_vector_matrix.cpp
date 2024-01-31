@@ -41,6 +41,13 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
 {
   auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
 
+  matrix.CopyToDevice();
+  matrix.GetFromDevice();
+
+  EXPECT_EQ(matrix[1][3], 64.7);
+  EXPECT_EQ(matrix[0][0], 41.2);
+  EXPECT_EQ(matrix[2][4], 102.3);
+
   const std::vector<double>& data = matrix.AsVector();
 
   EXPECT_EQ(data.size(), 4 * 5);
