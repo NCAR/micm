@@ -10,12 +10,18 @@ namespace micm
   namespace cuda
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
-    __global__ void SolveKernel(double* d_lower_matrix, double* d_upper_matrix, 
-                                double* d_b, double* d_x, LinearSolverParam devstruct,
-                                size_t n_grids, size_t b_column_counts, size_t x_column_counts)
+    __global__ void SolveKernel(
+        double* d_lower_matrix,
+        double* d_upper_matrix,
+        double* d_b,
+        double* d_x,
+        LinearSolverParam devstruct,
+        size_t n_grids,
+        size_t b_column_counts,
+        size_t x_column_counts)
     {
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      double* d_y = d_x;         // Alias d_x for consistency with equation, but to reuse memory
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
       std::pair<size_t, size_t>* d_nLij_Lii = devstruct.nLij_Lii_;
       std::pair<size_t, size_t>* d_Lij_yj = devstruct.Lij_yj_;
       std::pair<size_t, size_t>* d_nUij_Uii = devstruct.nUij_Uii_;
@@ -77,7 +83,7 @@ namespace micm
       size_t Lij_yj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Lij_yj_size_;
       size_t nUij_Uii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nUij_Uii_size_;
       size_t Uij_xj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Uij_xj_size_;
-      
+
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverParam devstruct;
       cudaMalloc(&(devstruct.nLij_Lii_), nLij_Lii_bytes);
@@ -109,9 +115,8 @@ namespace micm
       cudaFree(devstruct.Uij_xj_);
     }
 
-    std::chrono::nanoseconds SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, 
-                                               CudaMatrixParam& denseMatrix,
-                                               const LinearSolverParam& devstruct)
+    std::chrono::nanoseconds
+    SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix, const LinearSolverParam& devstruct)
     {
       /// Create device pointers
       double* d_lower_matrix;
@@ -126,10 +131,16 @@ namespace micm
       cudaMalloc(&d_x, sizeof(double) * denseMatrix.x_size_);
 
       /// Copy data from host to device
-      cudaMemcpy(d_lower_matrix, sparseMatrix.lower_matrix_, 
-                 sizeof(double) * sparseMatrix.lower_matrix_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_upper_matrix, sparseMatrix.upper_matrix_,
-                 sizeof(double) * sparseMatrix.upper_matrix_size_, cudaMemcpyHostToDevice);
+      cudaMemcpy(
+          d_lower_matrix,
+          sparseMatrix.lower_matrix_,
+          sizeof(double) * sparseMatrix.lower_matrix_size_,
+          cudaMemcpyHostToDevice);
+      cudaMemcpy(
+          d_upper_matrix,
+          sparseMatrix.upper_matrix_,
+          sizeof(double) * sparseMatrix.upper_matrix_size_,
+          cudaMemcpyHostToDevice);
       cudaMemcpy(d_b, denseMatrix.b_, sizeof(double) * denseMatrix.b_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_x, denseMatrix.x_, sizeof(double) * denseMatrix.x_size_, cudaMemcpyHostToDevice);
 
@@ -137,10 +148,15 @@ namespace micm
 
       /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
-      SolveKernel<<<num_block, BLOCK_SIZE>>>(d_lower_matrix, d_upper_matrix, d_b, d_x,
-                                             devstruct, denseMatrix.n_grids_,
-                                             denseMatrix.b_column_counts_,
-                                             denseMatrix.x_column_counts_);
+      SolveKernel<<<num_block, BLOCK_SIZE>>>(
+          d_lower_matrix,
+          d_upper_matrix,
+          d_b,
+          d_x,
+          devstruct,
+          denseMatrix.n_grids_,
+          denseMatrix.b_column_counts_,
+          denseMatrix.x_column_counts_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
