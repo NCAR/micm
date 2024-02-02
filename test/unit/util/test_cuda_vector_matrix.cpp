@@ -37,7 +37,7 @@ TEST(VectorMatrix, SmallVectorMatrix)
   EXPECT_EQ(data[1 + 2 * 3], 64.7);
 }
 
-TEST(VectorMatrix, SmallConstVectorMatrix)
+TEST(CudaVectorMatrix, SmallConstVectorMatrix)
 {
   auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
 
@@ -59,7 +59,7 @@ TEST(VectorMatrix, SmallConstVectorMatrix)
   EXPECT_EQ(data[1 + 4 * 3], 64.7);
 }
 
-TEST(VectorMatrix, InitializeVectorMatrix)
+TEST(CudaVectorMatrix, InitializeVectorMatrix)
 {
   auto matrix = testInializeMatrix<Group1MatrixAlias>();
   matrix.CopyToDevice();
@@ -70,7 +70,7 @@ TEST(VectorMatrix, InitializeVectorMatrix)
   EXPECT_EQ(matrix[1][2], 12.4);
 }
 
-TEST(VectorMatrix, InitializeConstVectorMatrix)
+TEST(CudaVectorMatrix, InitializeConstVectorMatrix)
 {
   auto matrix = testInializeConstMatrix<Group2MatrixAlias>();
   matrix.CopyToDevice();
@@ -81,7 +81,7 @@ TEST(VectorMatrix, InitializeConstVectorMatrix)
   EXPECT_EQ(matrix[1][2], 12.4);
 }
 
-TEST(VectorMatrix, LoopOverVectorMatrix)
+TEST(CudaVectorMatrix, LoopOverVectorMatrix)
 {
   Group2MatrixAlias<double> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.size(); ++i)
@@ -106,7 +106,7 @@ TEST(VectorMatrix, LoopOverVectorMatrix)
   EXPECT_EQ(matrix[0][3], 3);
 }
 
-TEST(VectorMatrix, LoopOverConstVectorMatrix)
+TEST(CudaVectorMatrix, LoopOverConstVectorMatrix)
 {
   Group2MatrixAlias<double> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.size(); ++i)
@@ -133,7 +133,7 @@ TEST(VectorMatrix, LoopOverConstVectorMatrix)
   EXPECT_EQ(matrix[0][3], 3);
 }
 
-TEST(VectorMatrix, ConversionToVector)
+TEST(CudaVectorMatrix, ConversionToVector)
 {
   auto matrix = testConversionToVector<Group3MatrixAlias>();
   matrix.CopyToDevice();
@@ -146,7 +146,7 @@ TEST(VectorMatrix, ConversionToVector)
   EXPECT_EQ(slice[2], 314.2);
 }
 
-TEST(VectorMatrix, ConstConversionToVector)
+TEST(CudaVectorMatrix, ConstConversionToVector)
 {
   auto matrix = testConstConversionToVector<Group1MatrixAlias>();
   matrix.CopyToDevice();
@@ -159,7 +159,7 @@ TEST(VectorMatrix, ConstConversionToVector)
   EXPECT_EQ(slice[2], 314.2);
 }
 
-TEST(VectorMatrix, ConversionFromVector)
+TEST(CudaVectorMatrix, ConversionFromVector)
 {
   Group2MatrixAlias<double> zero_matrix = std::vector<std::vector<double>>{};
 
@@ -180,7 +180,7 @@ TEST(VectorMatrix, ConversionFromVector)
   EXPECT_EQ(matrix[1][2], 31.2);
 }
 
-TEST(VectorMatrix, AssignmentFromVector)
+TEST(CudaVectorMatrix, AssignmentFromVector)
 {
   auto matrix = testAssignmentFromVector<Group2MatrixAlias>();
   matrix.CopyToDevice();
