@@ -4,9 +4,26 @@
 
 namespace micm {
 
+    /**
+    * @brief Provides a CUDA implemtation to the VectorMatrix functionality.
+    *
+    * This class provides the VectorMatrix API but allows for operations to
+    * be performed via CUDA with the requirement that the caller explicity
+    * move data to and from the device.
+    *
+    * After performing operations with ForEach, the caller must decide
+    * when to syncronize
+    * the host data with GetFromDevice() and any modification of host data
+    * including initialization must be followed by CopyToDevice() otherwise
+    * host and device data will be out of sync.
+    *
+    * CUDA functionality requires T to be of type double, otherwise this
+    * behaves similarily to VectorMatrix.
+    */
     template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
     class CudaVectorMatrix : public VectorMatrix<T, L> {
     private:
+        /// @brief The device pointer (handle) to the allocated memory on the target device.
         double* d_data_;
 
     public:
