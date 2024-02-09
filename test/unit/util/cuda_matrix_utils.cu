@@ -9,7 +9,7 @@ namespace micm
           std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
           if (tid < num_elements)
           {
-              d_data[tid] *= tid;
+              d_data[tid] *= d_data[tid];
           }
       }
 

@@ -78,5 +78,9 @@ namespace micm {
           static_assert(std::is_same_v<T, double>);
           return micm::cuda::CopyToHost(vector_matrix_param_, this->AsVector());
         }
+        CudaVectorMatrixParam AsDeviceParam()
+        {
+          return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+        }
     };
 }

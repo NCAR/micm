@@ -19,7 +19,6 @@ using Group4MatrixAlias = micm::CudaVectorMatrix<T,4>;
 TEST(CudaVectorMatrix, DeviceMemCopy)
 {
   std::vector<double> h_vector {1, 2, 3, 4};
-  double* d_data;
   double* h_data = h_vector.data();
   std::size_t num_elements = h_vector.size();
   CudaVectorMatrixParam param;
@@ -29,10 +28,10 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
   micm::cuda::MutiplyByIndexDriver(param);
   micm::cuda::CopyToHost(param, h_vector);
 
-  EXPECT_EQ(h_vector[0], 0);
-  EXPECT_EQ(h_vector[1], 2);
-  EXPECT_EQ(h_vector[2], 6);
-  EXPECT_EQ(h_vector[3], 12);
+  EXPECT_EQ(h_vector[0], 1*1);
+  EXPECT_EQ(h_vector[1], 2*2);
+  EXPECT_EQ(h_vector[2], 3*3);
+  EXPECT_EQ(h_vector[3], 4*4);
 }
 
 
@@ -41,11 +40,13 @@ TEST(VectorMatrix, SmallVectorMatrix)
   auto matrix = testSmallMatrix<Group2MatrixAlias>();
 
   matrix.CopyToDevice();
+  auto devParam = matrix.AsDeviceParam();
+  micm::cuda::MutiplyByIndexDriver(devParam);
   matrix.GetFromDevice();
 
-  EXPECT_EQ(matrix[1][3], 64.7);
-  EXPECT_EQ(matrix[0][0], 41.2);
-  EXPECT_EQ(matrix[2][4], 102.3);
+  EXPECT_EQ(matrix[1][3], 64.7 * 64.7);
+  EXPECT_EQ(matrix[0][0], 41.2 * 41.2);
+  EXPECT_EQ(matrix[2][4], 102.3 * 102.3);
 
   std::vector<double>& data = matrix.AsVector();
 
@@ -53,9 +54,9 @@ TEST(VectorMatrix, SmallVectorMatrix)
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(), 2);
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(data[0], 41.2);
-  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3);
-  EXPECT_EQ(data[1 + 2 * 3], 64.7);
+  EXPECT_EQ(data[0], 41.2 * 41.2);
+  EXPECT_EQ(data[2 * 5 + 0 + 2 * 4], 102.3 * 102.3);
+  EXPECT_EQ(data[1 + 2 * 3], 64.7 * 64.7);
 }
 
 TEST(CudaVectorMatrix, SmallConstVectorMatrix)
