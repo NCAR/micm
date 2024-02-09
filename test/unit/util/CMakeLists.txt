@@ -14,6 +14,7 @@ create_standard_test(NAME vector_matrix SOURCES test_vector_matrix.cpp)
 add_library(micm_cuda_test_utils)
 target_link_libraries(micm_cuda_test_utils PUBLIC cudart micm)
 target_sources(micm_cuda_test_utils PRIVATE cuda_matrix_utils.cu)
+set_target_properties(micm_cuda_test_utils PROPERTIES LINKER_LANGUAGE CXX)
 
 if(ENABLE_CUDA)
   create_standard_test(NAME cuda_vector_matrix SOURCES test_cuda_vector_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
