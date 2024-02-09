@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <micm/util/cuda_vector_matrix.hpp>
+#include <micm/util/cuda_vector_matrix.cuh>
 
 #include "test_matrix_policy.hpp"
+#include "cuda_matrix_utils.cuh"
 
 template<class T>
 using Group1MatrixAlias = micm::CudaVectorMatrix<T,1>;
@@ -13,6 +15,25 @@ using Group3MatrixAlias = micm::CudaVectorMatrix<T,3>;
 template<class T>
 using Group4MatrixAlias = micm::CudaVectorMatrix<T,4>;
 
+
+TEST(CudaVectorMatrix, DeviceMemCopy)
+{
+  std::vector<double> h_vector {1, 2, 3, 4};
+  double* d_data;
+  double* h_data = h_vector.data();
+  std::size_t num_elements = h_vector.size();
+  CudaVectorMatrixParam param;
+
+  micm::cuda::MallocVector(param, num_elements);
+  micm::cuda::CopyToDevice(param, h_vector);
+  micm::cuda::MutiplyByIndexDriver(param);
+  micm::cuda::CopyToHost(param, h_vector);
+
+  EXPECT_EQ(h_vector[0], 0);
+  EXPECT_EQ(h_vector[1], 2);
+  EXPECT_EQ(h_vector[2], 6);
+  EXPECT_EQ(h_vector[3], 12);
+}
 
 
 TEST(VectorMatrix, SmallVectorMatrix)

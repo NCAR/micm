@@ -1,25 +1,26 @@
 #include <vector>
-//#include <micm/util/cuda_vector_matrix.cuh>
+#include <micm/util/cuda_vector_matrix.cuh>
 
 namespace micm
 {
   namespace cuda
   {
-    int MallocVector(double *d_data, std::size_t num_elements)
+    int MallocVector(CudaVectorMatrixParam& param, std::size_t num_elements)
     {
-      return cudaMalloc(&d_data, sizeof(double) * num_elements);
+      param.num_elements_ = num_elements;
+      return cudaMalloc(&(param.d_data_), sizeof(double) * num_elements);
     }
-    int FreeVector(double *d_data)
+    int FreeVector(CudaVectorMatrixParam& param)
     {
-      return cudaFree(d_data);
+      return cudaFree(param.d_data_);
     }
-    int CopyToDevice(double *d_data, const double *h_data, std::size_t num_elements)
+    int CopyToDevice(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
-      return cudaMemcpy(d_data, h_data, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
+      return cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.num_elements_, cudaMemcpyHostToDevice);
     }
-    int CopyToHost(double* d_data, double *h_data, std::size_t num_elements)
+    int CopyToHost(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
-      return cudaMemcpy(h_data, d_data, sizeof(double) * num_elements, cudaMemcpyDeviceToHost);
+      return cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.num_elements_, cudaMemcpyDeviceToHost);
     }
   }
 }
