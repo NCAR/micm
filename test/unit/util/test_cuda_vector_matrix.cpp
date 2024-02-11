@@ -25,7 +25,7 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
 
   micm::cuda::MallocVector(param, num_elements);
   micm::cuda::CopyToDevice(param, h_vector);
-  micm::cuda::MutiplyByIndexDriver(param);
+  micm::cuda::SquareDriver(param);
   micm::cuda::CopyToHost(param, h_vector);
 
   EXPECT_EQ(h_vector[0], 1*1);
@@ -41,8 +41,8 @@ TEST(VectorMatrix, SmallVectorMatrix)
 
   matrix.CopyToDevice();
   auto devParam = matrix.AsDeviceParam();
-  micm::cuda::MutiplyByIndexDriver(devParam);
-  matrix.GetFromDevice();
+  micm::cuda::SquareDriver(devParam);
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[1][3], 64.7 * 64.7);
   EXPECT_EQ(matrix[0][0], 41.2 * 41.2);
@@ -64,7 +64,7 @@ TEST(CudaVectorMatrix, SmallConstVectorMatrix)
   auto matrix = testSmallConstMatrix<Group4MatrixAlias>();
 
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[1][3], 64.7);
   EXPECT_EQ(matrix[0][0], 41.2);
@@ -85,7 +85,7 @@ TEST(CudaVectorMatrix, InitializeVectorMatrix)
 {
   auto matrix = testInializeMatrix<Group1MatrixAlias>();
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
@@ -96,7 +96,7 @@ TEST(CudaVectorMatrix, InitializeConstVectorMatrix)
 {
   auto matrix = testInializeConstMatrix<Group2MatrixAlias>();
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 12.4);
   EXPECT_EQ(matrix[1][0], 12.4);
@@ -120,7 +120,7 @@ TEST(CudaVectorMatrix, LoopOverVectorMatrix)
   EXPECT_EQ(matrix[0][3], 3);
 
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 0);
   EXPECT_EQ(matrix[1][2], 102);
@@ -147,7 +147,7 @@ TEST(CudaVectorMatrix, LoopOverConstVectorMatrix)
   EXPECT_EQ(const_matrix[0][3], 3);
 
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 0);
   EXPECT_EQ(matrix[1][2], 102);
@@ -159,7 +159,7 @@ TEST(CudaVectorMatrix, ConversionToVector)
 {
   auto matrix = testConversionToVector<Group3MatrixAlias>();
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   auto slice = matrix[1];
 
@@ -172,7 +172,7 @@ TEST(CudaVectorMatrix, ConstConversionToVector)
 {
   auto matrix = testConstConversionToVector<Group1MatrixAlias>();
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   auto slice = matrix[1];
 
@@ -206,7 +206,7 @@ TEST(CudaVectorMatrix, AssignmentFromVector)
 {
   auto matrix = testAssignmentFromVector<Group2MatrixAlias>();
   matrix.CopyToDevice();
-  matrix.GetFromDevice();
+  matrix.CopyToHost();
 
   EXPECT_EQ(matrix[0][0], 0.0);
   EXPECT_EQ(matrix[2][0], 14.3);
@@ -214,3 +214,4 @@ TEST(CudaVectorMatrix, AssignmentFromVector)
   EXPECT_EQ(matrix[2][2], 65.7);
   EXPECT_EQ(matrix[3][0], 0.0);
 }
+

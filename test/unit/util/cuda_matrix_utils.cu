@@ -4,7 +4,7 @@ namespace micm
 {
     namespace cuda
     {
-      __global__ void MultiplyByIndex(double* d_data, std::size_t num_elements)
+      __global__ void Square(double* d_data, std::size_t num_elements)
       {
           std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
           if (tid < num_elements)
@@ -13,9 +13,9 @@ namespace micm
           }
       }
 
-      int MutiplyByIndexDriver(CudaVectorMatrixParam& param)
+      int SquareDriver(CudaVectorMatrixParam& param)
       {
-          MultiplyByIndex<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
+          Square<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
       }
     }
 }

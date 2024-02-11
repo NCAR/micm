@@ -4,6 +4,6 @@ namespace micm
 {
     namespace cuda
     {
-        int MutiplyByIndexDriver(CudaVectorMatrixParam& param);
+        int SquareDriver(CudaVectorMatrixParam& param);
     }
 }

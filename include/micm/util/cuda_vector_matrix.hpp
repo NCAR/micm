@@ -73,7 +73,7 @@ namespace micm {
           static_assert(std::is_same_v<T, double>);
           return micm::cuda::CopyToDevice(vector_matrix_param_, this->AsVector());
         }
-        int GetFromDevice()
+        int CopyToHost()
         {
           static_assert(std::is_same_v<T, double>);
           return micm::cuda::CopyToHost(vector_matrix_param_, this->AsVector());
