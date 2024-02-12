@@ -1,24 +1,23 @@
 #include <gtest/gtest.h>
 
-#include <micm/util/cuda_vector_matrix.hpp>
 #include <micm/util/cuda_vector_matrix.cuh>
+#include <micm/util/cuda_vector_matrix.hpp>
 
-#include "test_matrix_policy.hpp"
 #include "cuda_matrix_utils.cuh"
+#include "test_matrix_policy.hpp"
 
 template<class T>
-using Group1MatrixAlias = micm::CudaVectorMatrix<T,1>;
+using Group1MatrixAlias = micm::CudaVectorMatrix<T, 1>;
 template<class T>
-using Group2MatrixAlias = micm::CudaVectorMatrix<T,2>;
+using Group2MatrixAlias = micm::CudaVectorMatrix<T, 2>;
 template<class T>
-using Group3MatrixAlias = micm::CudaVectorMatrix<T,3>;
+using Group3MatrixAlias = micm::CudaVectorMatrix<T, 3>;
 template<class T>
-using Group4MatrixAlias = micm::CudaVectorMatrix<T,4>;
-
+using Group4MatrixAlias = micm::CudaVectorMatrix<T, 4>;
 
 TEST(CudaVectorMatrix, DeviceMemCopy)
 {
-  std::vector<double> h_vector {1, 2, 3, 4};
+  std::vector<double> h_vector{ 1, 2, 3, 4 };
   double* h_data = h_vector.data();
   std::size_t num_elements = h_vector.size();
   CudaVectorMatrixParam param;
@@ -28,12 +27,11 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
   micm::cuda::SquareDriver(param);
   micm::cuda::CopyToHost(param, h_vector);
 
-  EXPECT_EQ(h_vector[0], 1*1);
-  EXPECT_EQ(h_vector[1], 2*2);
-  EXPECT_EQ(h_vector[2], 3*3);
-  EXPECT_EQ(h_vector[3], 4*4);
+  EXPECT_EQ(h_vector[0], 1 * 1);
+  EXPECT_EQ(h_vector[1], 2 * 2);
+  EXPECT_EQ(h_vector[2], 3 * 3);
+  EXPECT_EQ(h_vector[3], 4 * 4);
 }
-
 
 TEST(VectorMatrix, SmallVectorMatrix)
 {
@@ -214,4 +212,3 @@ TEST(CudaVectorMatrix, AssignmentFromVector)
   EXPECT_EQ(matrix[2][2], 65.7);
   EXPECT_EQ(matrix[3][0], 0.0);
 }
-

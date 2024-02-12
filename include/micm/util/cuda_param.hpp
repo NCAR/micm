@@ -109,4 +109,3 @@ struct CudaVectorMatrixParam
   double* d_data_;
   size_t num_elements_;
 };
-

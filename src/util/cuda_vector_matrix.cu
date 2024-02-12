@@ -1,5 +1,5 @@
-#include <vector>
 #include <micm/util/cuda_vector_matrix.cuh>
+#include <vector>
 
 namespace micm
 {
@@ -22,5 +22,5 @@ namespace micm
     {
       return cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.num_elements_, cudaMemcpyDeviceToHost);
     }
-  }
-}
+  }  // namespace cuda
+}  // namespace micm
