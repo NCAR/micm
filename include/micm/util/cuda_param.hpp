@@ -101,3 +101,12 @@ struct LinearSolverParam
   size_t nUij_Uii_size_;
   size_t Uij_xj_size_;
 };
+
+/// This struct holds (1) pointer to, and (1) size of
+///   data allocated on a device.
+struct CudaVectorMatrixParam
+{
+  double* d_data_;
+  size_t num_elements_;
+};
+

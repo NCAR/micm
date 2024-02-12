@@ -25,7 +25,9 @@ namespace micm
   template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
+protected:
     std::vector<T> data_;
+private:
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
