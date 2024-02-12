@@ -180,6 +180,11 @@ namespace micm
   {
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult result{};
     result.state_ = SolverState::Running;
+    // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
+    auto& lower = state.lower_matrix_.AsVector();
+    auto& upper = state.upper_matrix_.AsVector();
+    for(auto& l : lower) l = 0;
+    for(auto& u : upper) u = 0;
     MatrixPolicy<double> Y(state.variables_);
     MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
     MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
