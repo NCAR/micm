@@ -1,5 +1,6 @@
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <vector>
+#include <cuda_runtime.h>
 
 namespace micm
 {
@@ -16,10 +17,13 @@ namespace micm
     }
     int CopyToDevice(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
-      return cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.num_elements_, cudaMemcpyHostToDevice);
+      cudaError_t err = cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.num_elements_, cudaMemcpyHostToDevice);
+      cudaDeviceSynchronize();
+      return err;
     }
     int CopyToHost(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
+      cudaDeviceSynchronize();
       return cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.num_elements_, cudaMemcpyDeviceToHost);
     }
   }  // namespace cuda
