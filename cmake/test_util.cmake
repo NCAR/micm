@@ -1,7 +1,7 @@
 ################################################################################
 # Utility functions for creating tests
 
-if(ENABLE_MEMCHECK)
+if(MICM_ENABLE_MEMCHECK)
   find_program(MEMORYCHECK_COMMAND "valgrind")
 endif()
 
@@ -37,7 +37,7 @@ endfunction(create_standard_test)
 # Add a test
 
 function(add_micm_test test_name test_binary test_args working_dir test_skip_memcheck)
-  if(ENABLE_MPI)
+  if(MICM_ENABLE_MPI)
     add_test(NAME ${test_name}
       COMMAND mpirun -v -np 2 ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})
@@ -49,11 +49,11 @@ function(add_micm_test test_name test_binary test_args working_dir test_skip_mem
   set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --trace-children=yes --leak-check=full --gen-suppressions=all ${MEMCHECK_SUPPRESS}")
   set(memcheck "${MEMORYCHECK_COMMAND} ${MEMORYCHECK_COMMAND_OPTIONS}")
   separate_arguments(memcheck)
-  if(ENABLE_MPI AND MEMORYCHECK_COMMAND AND ENABLE_MEMCHECK AND NOT test_skip_memcheck)
+  if(MICM_ENABLE_MPI AND MEMORYCHECK_COMMAND AND MICM_ENABLE_MEMCHECK AND NOT test_skip_memcheck)
     add_test(NAME memcheck_${test_name}
       COMMAND mpirun -v -np 2 ${memcheck} ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})
-  elseif(MEMORYCHECK_COMMAND AND ENABLE_MEMCHECK AND NOT test_skip_memcheck)
+  elseif(MEMORYCHECK_COMMAND AND MICM_ENABLE_MEMCHECK AND NOT test_skip_memcheck)
     add_test(NAME memcheck_${test_name}
              COMMAND ${memcheck} ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})

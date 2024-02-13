@@ -30,7 +30,7 @@ If you would like to include the json examples, you must configure micm to build
 
 .. code-block:: console
   
-    $ cmake -DENABLE_JSON=ON ..
+    $ cmake -DMICM_ENABLE_JSON=ON ..
     $ make
     $ ./test_rate_constants_no_user_defined_example_with_config
     $ ./test_rate_constants_user_defined_example_with_config

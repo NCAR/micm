@@ -9,49 +9,51 @@ add_library(musica::micm ALIAS micm)
 
 target_compile_features(micm INTERFACE cxx_std_20)
 
+target_compile_options(DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_MATRIX_SIZE})
+
 target_include_directories(micm
   INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-if(ENABLE_JSON)
+if(MICM_ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
 endif()
 
-if(ENABLE_OPENMP)
+if(MICM_ENABLE_OPENMP)
   target_link_libraries(micm INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
-if(ENABLE_MPI)
+if(MICM_ENABLE_MPI)
   target_link_libraries(micm INTERFACE MPI::MPI_CXX)
 endif()
 
-if(ENABLE_LLVM)
+if(MICM_ENABLE_LLVM)
   target_link_libraries(micm INTERFACE ${llvm_libs})
 endif()
 
-if(ENABLE_OPENACC OR ENABLE_CUDA)
-  if(NOT GPU_TYPE)
-    message(FATAL_ERROR "GPU_TYPE is not set or is empty. Please provide a GPU type.")
+if(MICM_ENABLE_OPENACC OR MICM_ENABLE_CUDA)
+  if(NOT MICM_GPU_TYPE)
+    message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
   endif()
 
   set(GPU_ARCH "")
-  if (GPU_TYPE STREQUAL a100)
+  if (MICM_GPU_TYPE STREQUAL a100)
     set(GPU_ARCH "80")
   endif()
-  if (GPU_TYPE STREQUAL v100)
+  if (MICM_GPU_TYPE STREQUAL v100)
     set(GPU_ARCH "70")
   endif()
 
   if(NOT GPU_ARCH)
-    message(FATAL_ERROR "GPU_TYPE (${GPU_TYPE}) is not recognized. Available options are [a100, v100].")
+    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
   endif()
   
 endif()
 
-if(ENABLE_OPENACC)
+if(MICM_ENABLE_OPENACC)
   add_library(micm_openacc)
   add_library(musica::micm_openacc ALIAS micm_openacc)
 
@@ -69,7 +71,7 @@ if(ENABLE_OPENACC)
   )
 endif()
 
-if(ENABLE_CUDA)
+if(MICM_ENABLE_CUDA)
   message(STATUS "GPU architecture ${GPU_ARCH}")
   set(CMAKE_CUDA_ARCHITECTURES ${GPU_ARCH})
 
