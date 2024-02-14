@@ -127,21 +127,27 @@ endif()
 #
 # TODO: Try to use fetch content for LLVM libraries
 
-if(ENABLE_LLVM)
-  find_package(LLVM REQUIRED CONFIG)
-  if(LLVM_FOUND)
-    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-    message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+if(MICM_ENABLE_LLVM)
+  set(LLVM_VERSION "15.0.7" CACHE STRING "LLVM version")
+  set(LLVM_BUILD_TESTS OFF CACHE BOOL "Build LLVM tests" FORCE)
+  set(LLVM_INCLUDE_TESTS OFF CACHE BOOL "Include LLVM tests" FORCE)
 
-    include_directories(${LLVM_INCLUDE_DIRS})
-    separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-    add_definitions(${LLVM_DEFINITIONS_LIST})
+  FetchContent_Declare(
+    llvm
+    URL "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+    DOWNLOAD_EXTRACT_TIMESTAMP NEW
+  )
 
-    llvm_map_components_to_libnames(llvm_libs support core orcjit native irreader)
-  else()
-    set(LLVM_CMD "llvm-config --cxxflags --ldflags --system-libs --libs support core orcjit native irreader | tr '\\n' ' '")
-    execute_process(COMMAND bash "-c" ${LLVM_CMD}
-                    OUTPUT_VARIABLE llvm_libs)
-    separate_arguments(llvm_libs)
+  FetchContent_GetProperties(llvm)
+  if(NOT llvm_POPULATED)
+    FetchContent_Populate(llvm)
+    
+    # Rename GoogleTest targets to avoid conflicts
+    set_target_properties(gtest PROPERTIES EXCLUDE_FROM_ALL 1)
+    set_target_properties(gtest_main PROPERTIES EXCLUDE_FROM_ALL 1)
+
+    add_subdirectory(${llvm_SOURCE_DIR} ${llvm_BINARY_DIR})
   endif()
+
+  llvm_map_components_to_libnames(llvm_libs support core orcjit native irreader)
 endif()

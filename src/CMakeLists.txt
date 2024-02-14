@@ -30,6 +30,12 @@ endif()
 
 if(ENABLE_LLVM)
   target_link_libraries(micm INTERFACE ${llvm_libs})
+  target_include_directories(micm
+    INTERFACE
+      $<BUILD_INTERFACE:${llvm_BINARY_DIR}/include>
+      $<BUILD_INTERFACE:${llvm_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
 endif()
 
 if(ENABLE_OPENACC OR ENABLE_CUDA)
