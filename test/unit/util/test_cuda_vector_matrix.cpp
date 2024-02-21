@@ -33,6 +33,123 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
   EXPECT_EQ(h_vector[3], 4 * 4);
 }
 
+template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L> matrix)
+{
+  matrix.CopyToDevice();
+  auto matrixParam = matrix.AsDeviceParam();
+  micm::cuda::SquareDriver(matrixParam);
+  matrix.CopyToHost();
+}
+
+TEST(CudaVectorMatrix, CopyConstructor)
+{
+  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
+
+  auto matrix2 = matrix;
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  ModifyAndSyncToHost(matrix);
+  ModifyAndSyncToHost(matrix2);
+
+  EXPECT_EQ(matrix[0][0], 25);
+  EXPECT_EQ(matrix[0][1], 4);
+  EXPECT_EQ(matrix[1][0], 9);
+  EXPECT_EQ(matrix[1][1], 16);
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 4);
+  EXPECT_EQ(matrix2[1][0], 9);
+  EXPECT_EQ(matrix2[1][1], 16);
+}
+
+TEST(CudaVectorMatrix, CopyAssignment)
+{
+  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
+
+  micm::CudaVectorMatrix<double, 2> matrix2;
+  matrix2 = matrix;
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  ModifyAndSyncToHost(matrix);
+  ModifyAndSyncToHost(matrix2);
+
+  EXPECT_EQ(matrix[0][0], 25);
+  EXPECT_EQ(matrix[0][1], 4);
+  EXPECT_EQ(matrix[1][0], 9);
+  EXPECT_EQ(matrix[1][1], 16);
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 4);
+  EXPECT_EQ(matrix2[1][0], 9);
+  EXPECT_EQ(matrix2[1][1], 16);
+}
+
+TEST(CudaVectorMatrix, MoveConstructor)
+{
+  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
+
+  auto matrix2 = std::move(matrix);
+
+  matrix2[0][0] = 5;
+
+  EXPECT_EQ(matrix2[0][0], 5);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  ModifyAndSyncToHost(matrix2);
+
+  EXPECT_EQ(matrix2[0][0], 25);
+  EXPECT_EQ(matrix2[0][1], 4);
+  EXPECT_EQ(matrix2[1][0], 9);
+  EXPECT_EQ(matrix2[1][1], 16);
+}
+
+TEST(CudaVectorMatrix, MoveAssignment)
+{
+  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
+
+  micm::CudaVectorMatrix<double, 2> matrix2;
+  matrix2 = std::move(matrix);
+
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  ModifyAndSyncToHost(matrix2);
+
+  EXPECT_EQ(matrix2[0][0], 1);
+  EXPECT_EQ(matrix2[0][1], 4);
+  EXPECT_EQ(matrix2[1][0], 9);
+  EXPECT_EQ(matrix2[1][1], 16);
+}
+
+
 TEST(VectorMatrix, SmallVectorMatrix)
 {
   auto matrix = testSmallMatrix<Group2MatrixAlias>();

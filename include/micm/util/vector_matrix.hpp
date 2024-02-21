@@ -27,11 +27,10 @@ namespace micm
   {
    protected:
     std::vector<T> data_;
-
-   private:
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
+   private:
     friend class Proxy;
     friend class ConstProxy;
 
