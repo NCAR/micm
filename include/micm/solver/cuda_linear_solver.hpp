@@ -33,8 +33,7 @@ namespace micm
         : CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); })
-    {};
+              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
 
     CudaLinearSolver(
         const SparseMatrixPolicy<T>& matrix,
@@ -42,20 +41,20 @@ namespace micm
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
         : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
-        LinearSolverParam hoststruct;
+      LinearSolverParam hoststruct;
 
-        hoststruct.nLij_Lii_ = this->nLij_Lii_.data();
-        hoststruct.Lij_yj_ = this->Lij_yj_.data();
-        hoststruct.nUij_Uii_ = this->nUij_Uii_.data();
-        hoststruct.Uij_xj_ = this->Uij_xj_.data();
+      hoststruct.nLij_Lii_ = this->nLij_Lii_.data();
+      hoststruct.Lij_yj_ = this->Lij_yj_.data();
+      hoststruct.nUij_Uii_ = this->nUij_Uii_.data();
+      hoststruct.Uij_xj_ = this->Uij_xj_.data();
 
-        hoststruct.nLij_Lii_size_ = this->nLij_Lii_.size();
-        hoststruct.Lij_yj_size_ = this->Lij_yj_.size();
-        hoststruct.nUij_Uii_size_ = this->nUij_Uii_.size();
-        hoststruct.Uij_xj_size_ = this->Uij_xj_.size();
+      hoststruct.nLij_Lii_size_ = this->nLij_Lii_.size();
+      hoststruct.Lij_yj_size_ = this->Lij_yj_.size();
+      hoststruct.nUij_Uii_size_ = this->nUij_Uii_.size();
+      hoststruct.Uij_xj_size_ = this->Uij_xj_.size();
 
-        /// Copy the data from host struct to device struct
-        this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+      /// Copy the data from host struct to device struct
+      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     }
 
     /// This is the destructor that will free the device memory of
