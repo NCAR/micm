@@ -34,7 +34,7 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
 }
 
 template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
-static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L> matrix)
+static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
 {
   matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();

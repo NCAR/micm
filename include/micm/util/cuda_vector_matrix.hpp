@@ -107,12 +107,12 @@ namespace micm
     int CopyToDevice()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToDevice(vector_matrix_param_, this->AsVector());
+      return micm::cuda::CopyToDevice(vector_matrix_param_, this->data_);
     }
     int CopyToHost()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToHost(vector_matrix_param_, this->AsVector());
+      return micm::cuda::CopyToHost(vector_matrix_param_, this->data_);
     }
     CudaVectorMatrixParam AsDeviceParam()
     {
