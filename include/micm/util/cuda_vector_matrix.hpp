@@ -67,15 +67,14 @@ namespace micm
 
     CudaVectorMatrix(const std::vector<std::vector<T>> other)
         : VectorMatrix<T, L>(other)
-    {
-        micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
-    }
+    {}
 
     CudaVectorMatrix(const CudaVectorMatrix& other)
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
       this->data_ = other.data_;
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      this->CopyToDevice();
     }
 
     CudaVectorMatrix(CudaVectorMatrix&& other) noexcept
