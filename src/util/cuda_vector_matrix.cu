@@ -24,7 +24,11 @@ namespace micm
     }
     int CopyToDeviceFromDevice(CudaVectorMatrixParam& vectorMatrixDest, const CudaVectorMatrixParam& vectorMatrixSrc)
     {
-      return cudaMemcpy(vectorMatrixDest.d_data_, vectorMatrixSrc.d_data_, sizeof(double) * vectorMatrixSrc.num_elements_, cudaMemcpyDeviceToDevice);
+      return cudaMemcpy(
+          vectorMatrixDest.d_data_,
+          vectorMatrixSrc.d_data_,
+          sizeof(double) * vectorMatrixSrc.num_elements_,
+          cudaMemcpyDeviceToDevice);
     }
   }  // namespace cuda
 }  // namespace micm
