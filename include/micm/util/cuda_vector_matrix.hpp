@@ -18,6 +18,10 @@ namespace micm
    * including initialization must be followed by CopyToDevice() otherwise
    * host and device data will be out of sync.
    *
+   * Copy/Move constructors/assignment operators are non-synchronizing
+   * operators/constructors so if device and host data is desynchronized,
+   * the copies and moved matrices will remain desynchronized.
+   *
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
    */
@@ -64,9 +68,44 @@ namespace micm
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
     }
+
     CudaVectorMatrix(const std::vector<std::vector<T>> other)
         : VectorMatrix<T, L>(other)
+    {}
+
+    CudaVectorMatrix(const CudaVectorMatrix& other) requires(std::is_same_v<T, double>)
+        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
+      this->data_ = other.data_;
+      micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      micm::cuda::CopyToDeviceFromDevice(vector_matrix_param_, other.vector_matrix_param_);
+    }
+
+    CudaVectorMatrix(const CudaVectorMatrix& other)
+        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+    {
+        this->data_ = other.data_;
+    }
+
+    CudaVectorMatrix(CudaVectorMatrix&& other) noexcept
+        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+    {
+      this->data_ = std::move(other.data_);
+      this->vector_matrix_param_ = std::move(other.vector_matrix_param_);
+    }
+
+    CudaVectorMatrix& operator=(const CudaVectorMatrix& other)
+    {
+      return *this = CudaVectorMatrix(other);
+    }
+
+    CudaVectorMatrix& operator=(CudaVectorMatrix&& other) noexcept
+    {
+      std::swap(this->data_, other.data_);
+      std::swap(this->vector_matrix_param_, other.vector_matrix_param_);
+      this->x_dim_ = other.x_dim_;
+      this->y_dim_ = other.y_dim_;
+      return *this;
     }
 
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
@@ -77,16 +116,16 @@ namespace micm
     int CopyToDevice()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToDevice(vector_matrix_param_, this->AsVector());
+      return micm::cuda::CopyToDevice(vector_matrix_param_, this->data_);
     }
     int CopyToHost()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToHost(vector_matrix_param_, this->AsVector());
+      return micm::cuda::CopyToHost(vector_matrix_param_, this->data_);
     }
-    CudaVectorMatrixParam AsDeviceParam()
+    CudaVectorMatrixParam AsDeviceParam() const
     {
-      return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+      return CudaVectorMatrixParam { vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
     }
   };
 }  // namespace micm
