@@ -80,27 +80,23 @@ namespace micm
     CudaVectorMatrix(const CudaVectorMatrix& other)
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
-        std::cout << "In copy constructor" << std::endl;
         this->data_ = other.data_;
     }
 
     CudaVectorMatrix(CudaVectorMatrix&& other) noexcept
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
-      std::cout << "In move constructor" << std::endl;
       this->data_ = std::move(other.data_);
       this->vector_matrix_param_ = std::move(other.vector_matrix_param_);
     }
 
     CudaVectorMatrix& operator=(const CudaVectorMatrix& other)
     {
-      std::cout << "In copy assignment" << std::endl;
       return *this = CudaVectorMatrix(other);
     }
 
     CudaVectorMatrix& operator=(CudaVectorMatrix&& other) noexcept
     {
-      std::cout << "In move assignment" << std::endl;
       std::swap(this->data_, other.data_);
       std::swap(this->vector_matrix_param_, other.vector_matrix_param_);
       this->x_dim_ = other.x_dim_;
