@@ -18,6 +18,10 @@ namespace micm
    * including initialization must be followed by CopyToDevice() otherwise
    * host and device data will be out of sync.
    *
+   * Copy/Move constructors/assignment operators are non-synchronizing
+   * operators/constructors so if device and host data is desynchronized,
+   * the copies and moved matrices will remain desynchronized.
+   *
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
    */
