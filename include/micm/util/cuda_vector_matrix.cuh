@@ -27,5 +27,11 @@ namespace micm
     /// @param h_data Host data to copy data to
     /// @returns Error code from copying from the device to the host, if any
     int CopyToHost(CudaVectorMatrixParam& vectorMatrix, std::vector<double>& h_data);
+
+    /// @brief Copies data to the destination device memory block from the source device memory block
+    /// @param vectorMatrixDest Struct containing allocated destination device memory to copy to
+    /// @param vectorMatrixSrc Struct containing allocated source device memory to copy from
+    /// @returns Error code from copying to destination device memory from source device memory, if any
+    int CopyToDeviceFromDevice(CudaVectorMatrixParam& vectorMatrixDest, const CudaVectorMatrixParam& vectorMatrixSrc);
   }
 }

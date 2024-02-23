@@ -69,12 +69,18 @@ namespace micm
         : VectorMatrix<T, L>(other)
     {}
 
-    CudaVectorMatrix(const CudaVectorMatrix& other)
+    CudaVectorMatrix(const CudaVectorMatrix& other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
       this->data_ = other.data_;
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
-      this->CopyToDevice();
+      micm::cuda::CopyToDeviceFromDevice(vector_matrix_param_, other.vector_matrix_param_);
+    }
+
+    CudaVectorMatrix(const CudaVectorMatrix& other)
+        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+    {
+        this->data_ = other.data_;
     }
 
     CudaVectorMatrix(CudaVectorMatrix&& other) noexcept
@@ -113,9 +119,9 @@ namespace micm
       static_assert(std::is_same_v<T, double>);
       return micm::cuda::CopyToHost(vector_matrix_param_, this->data_);
     }
-    CudaVectorMatrixParam AsDeviceParam()
+    CudaVectorMatrixParam AsDeviceParam() const
     {
-      return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+      return CudaVectorMatrixParam { vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
     }
   };
 }  // namespace micm
