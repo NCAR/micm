@@ -42,7 +42,65 @@ static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
   matrix.CopyToHost();
 }
 
-TEST(CudaVectorMatrix, CopyConstructorModifyAfterAssignment)
+TEST(CudaVectorMatrix, CopyConstructorVerifyDeviceMemoryEqual)
+{
+  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  matrix.CopyToDevice();
+  auto matrixParam = matrix.AsDeviceParam();
+  micm::cuda::SquareDriver(matrixParam);
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  auto matrix2 = matrix;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  EXPECT_EQ(matrix2[0][0], 5);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  matrix.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 25);
+  EXPECT_EQ(matrix[0][1], 4);
+  EXPECT_EQ(matrix[1][0], 9);
+  EXPECT_EQ(matrix[1][1], 16);
+
+  EXPECT_EQ(matrix2[0][0], 5);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+
+  matrix2.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 25);
+  EXPECT_EQ(matrix[0][1], 4);
+  EXPECT_EQ(matrix[1][0], 9);
+  EXPECT_EQ(matrix[1][1], 16);
+
+  EXPECT_EQ(matrix2[0][0], 25);
+  EXPECT_EQ(matrix2[0][1], 4);
+  EXPECT_EQ(matrix2[1][0], 9);
+  EXPECT_EQ(matrix2[1][1], 16);
+}
+
+TEST(CudaVectorMatrix, CopyConstructorSquareAfterCopyAssignment)
 {
   std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
@@ -84,6 +142,7 @@ TEST(CudaVectorMatrix, CopyConstructorDeSyncedHostDevice)
   EXPECT_EQ(matrix[1][0], 3);
   EXPECT_EQ(matrix[1][1], 4);
 
+  matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();
   micm::cuda::SquareDriver(matrixParam);
 
