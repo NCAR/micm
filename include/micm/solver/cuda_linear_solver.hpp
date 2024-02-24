@@ -30,12 +30,17 @@ namespace micm
     ///   See line 62 of "linear_solver.inl" for more details about how
     ///   this lamda function works;
     CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
-        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
+        : CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); })
+              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
+
+    CudaLinearSolver(
+        const SparseMatrixPolicy<T>& matrix,
+        T initial_value,
+        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
+        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
-      /// Allocate host memory space for an object of type "LinearSolverParam"
       LinearSolverParam hoststruct;
 
       hoststruct.nLij_Lii_ = this->nLij_Lii_.data();
@@ -50,13 +55,7 @@ namespace micm
 
       /// Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
-    };
-
-    CudaLinearSolver(
-        const SparseMatrixPolicy<T>& matrix,
-        T initial_value,
-        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
-        : LinearSolver(matrix, initial_value, create_lu_decomp);
+    }
 
     /// This is the destructor that will free the device memory of
     ///   the constant data from the class "CudaLinearSolver"
