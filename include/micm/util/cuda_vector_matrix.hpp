@@ -122,7 +122,7 @@ namespace micm
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
     {
       micm::cuda::FreeVector(this->vector_matrix_param_);
- //     if (this->handle_ != NULL) cublasDestroy(this->handle_);
+      if (this->handle_ != NULL) cublasDestroy(this->handle_);
     }
 
     int CopyToDevice()
