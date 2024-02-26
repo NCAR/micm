@@ -71,7 +71,8 @@ namespace micm
 
     CudaVectorMatrix(const std::vector<std::vector<T>> other)
         : VectorMatrix<T, L>(other)
-    {}
+    {
+    }
 
     CudaVectorMatrix(const CudaVectorMatrix& other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
@@ -84,7 +85,7 @@ namespace micm
     CudaVectorMatrix(const CudaVectorMatrix& other)
         : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
     {
-        this->data_ = other.data_;
+      this->data_ = other.data_;
     }
 
     CudaVectorMatrix(CudaVectorMatrix&& other) noexcept
@@ -125,7 +126,7 @@ namespace micm
     }
     CudaVectorMatrixParam AsDeviceParam() const
     {
-      return CudaVectorMatrixParam { vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+      return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
     }
   };
 }  // namespace micm

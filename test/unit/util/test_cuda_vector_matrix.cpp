@@ -44,7 +44,7 @@ static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
 
 TEST(CudaVectorMatrix, CopyConstructorVerifyDeviceMemoryEqual)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   matrix[0][0] = 5;
@@ -102,7 +102,7 @@ TEST(CudaVectorMatrix, CopyConstructorVerifyDeviceMemoryEqual)
 
 TEST(CudaVectorMatrix, CopyConstructorSquareAfterCopyAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   auto matrix2 = matrix;
@@ -134,7 +134,7 @@ TEST(CudaVectorMatrix, CopyConstructorSquareAfterCopyAssignment)
 
 TEST(CudaVectorMatrix, CopyConstructorDeSyncedHostDevice)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   EXPECT_EQ(matrix[0][0], 1);
@@ -180,7 +180,7 @@ TEST(CudaVectorMatrix, CopyConstructorDeSyncedHostDevice)
 
 TEST(CudaVectorMatrix, CopyAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   micm::CudaVectorMatrix<double, 2> matrix2;
@@ -212,7 +212,7 @@ TEST(CudaVectorMatrix, CopyAssignment)
 
 TEST(CudaVectorMatrix, MoveConstructor)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   EXPECT_EQ(matrix[0][0], 1);
@@ -222,7 +222,7 @@ TEST(CudaVectorMatrix, MoveConstructor)
 
   matrix.CopyToDevice();
   auto matrixParam = matrix.AsDeviceParam();
-  micm::cuda::SquareDriver(matrixParam);  
+  micm::cuda::SquareDriver(matrixParam);
   matrix[0][0] = 5;
 
   EXPECT_EQ(matrix[0][0], 5);
@@ -247,7 +247,7 @@ TEST(CudaVectorMatrix, MoveConstructor)
 
 TEST(CudaVectorMatrix, MoveAssignment)
 {
-  std::vector<std::vector<double>> h_vector{ {1, 2}, {3, 4} };
+  std::vector<std::vector<double>> h_vector{ { 1, 2 }, { 3, 4 } };
   auto matrix = micm::CudaVectorMatrix<double, 2>(h_vector);
 
   micm::CudaVectorMatrix<double, 2> matrix2;
@@ -265,7 +265,6 @@ TEST(CudaVectorMatrix, MoveAssignment)
   EXPECT_EQ(matrix2[1][0], 9);
   EXPECT_EQ(matrix2[1][1], 16);
 }
-
 
 TEST(VectorMatrix, SmallVectorMatrix)
 {
