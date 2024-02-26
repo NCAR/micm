@@ -17,9 +17,7 @@ namespace micm
     }
     int CopyToDevice(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
-      cudaError_t err = cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.num_elements_, cudaMemcpyHostToDevice);
-      cudaDeviceSynchronize();
-      return err;
+      return cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.num_elements_, cudaMemcpyHostToDevice);
     }
     int CopyToHost(CudaVectorMatrixParam& param, std::vector<double>& h_data)
     {
