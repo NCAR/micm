@@ -4,7 +4,7 @@
 #
 # Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
 #
-FROM nvcr.io/nvidia/nvhpc:23.5-devel-cuda12.1-ubuntu22.04
+FROM nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
 
 RUN apt update \
     && apt -y install \
