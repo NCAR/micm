@@ -36,6 +36,9 @@ RUN mkdir /build \
         ../micm \
       && make -j 8 install
 
+# copy headers needed for cublas to /usr/include
+RUN cp -r /opt/nvidia/hpc_sdk/Linux_aarch64/23.7/cuda/include/* /usr/include/
+
 # build the library and run the tests
 RUN mkdir /cuda_build \
       && cd /cuda_build \ 
