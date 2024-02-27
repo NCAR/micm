@@ -1,6 +1,7 @@
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
+#include "cublas_v2.h"
 
 namespace micm
 {
@@ -31,6 +32,8 @@ namespace micm
    private:
     /// @brief The device pointer (handle) to the allocated memory on the target device.
     CudaVectorMatrixParam vector_matrix_param_;
+    /// @brief The handle to the CUBLAS library
+    cublasHandle_t handle_ = NULL;
 
    public:
     CudaVectorMatrix() requires(std::is_same_v<T, double>)
@@ -57,6 +60,14 @@ namespace micm
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      if (this->handle_ == NULL)
+      {
+        cublasStatus_t stat = cublasCreate(&(this->handle_));
+        if (stat != CUBLAS_STATUS_SUCCESS)
+        {
+          throw std::runtime_error("CUBLAS initialization failed.");
+        }
+      }
     }
     CudaVectorMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
@@ -111,7 +122,8 @@ namespace micm
 
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
     {
-      micm::cuda::FreeVector(vector_matrix_param_);
+      micm::cuda::FreeVector(this->vector_matrix_param_);
+      if (this->handle_ != NULL) cublasDestroy(this->handle_);
     }
 
     int CopyToDevice()
@@ -127,6 +139,25 @@ namespace micm
     CudaVectorMatrixParam AsDeviceParam() const
     {
       return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+    }
+    /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the VectorMatrix x
+    /// @param x The input VectorMatrix
+    /// @param incx The increment for the elements of x
+    /// @param incy The increment for the elements of y
+    /// @return 0 if successful, otherwise an error code
+    void Axpy(const double alpha, const CudaVectorMatrix<T, L> &x, 
+              const int incx, const int incy)
+    {
+      static_assert(std::is_same_v<T, double>);
+      cublasStatus_t stat = cublasDaxpy(this->handle_, x.vector_matrix_param_.num_elements_, 
+                                        &alpha, x.vector_matrix_param_.d_data_, incx, 
+                                        this->vector_matrix_param_.d_data_, incy);
+      if (stat != CUBLAS_STATUS_SUCCESS)
+      {
+         throw std::runtime_error("CUBLAS Daxpy operation failed.");
+      }
     }
   };
 }  // namespace micm

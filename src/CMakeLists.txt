@@ -81,7 +81,7 @@ if(ENABLE_CUDA)
   )
 
   target_link_libraries(micm_cuda 
-    PUBLIC cudart
+    PUBLIC cudart cublas culibos
   )
 
 endif()
