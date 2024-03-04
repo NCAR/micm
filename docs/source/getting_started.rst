@@ -29,7 +29,7 @@ step will simply copy the header files into the normal location required by your
     $ make test
 
 CMake will allow for setting options such as the installation directory
-with CMAKE_INSTALL_PREFIX, or various build flags such as BUILD_DOCS, ENABLE_CUDA, etc.
+with CMAKE_INSTALL_PREFIX, or various build flags such as MICM_BUILD_DOCS, MICM_ENABLE_CUDA, etc.
 
 Options
 -------
@@ -43,13 +43,13 @@ Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
 - JSON configuration support
-  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DENABLE_JSON=ON ..``
+  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DMICM_ENABLE_JSON=ON ..``
 - JIT-compiled chemistry functions 
   - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
   - Coming soon
 - OpenMP
-  - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_OPENMP=ON ..``)
+  - On macOS, you either need to configure cmake to use gcc which ships with OpenMP (either ``CXX=g++ cmake -DMICM_ENABLE_OPENMP=ON ..`` or ``cmake -DCMAKE_CXX_COMPILER=g++ -DMICM_ENABLE_OPENMP=ON ..``)
 
 For more ways to build and install micm, see :ref:`Installation and usage`. If you would like instructions for building
 the docs, see :ref:`Contributing`.

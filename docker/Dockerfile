@@ -18,7 +18,7 @@ RUN mkdir /build \
       && cd /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
-        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
+        -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         ../micm \
       && make install -j 8
 

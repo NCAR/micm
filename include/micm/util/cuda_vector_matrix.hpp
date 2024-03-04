@@ -27,7 +27,7 @@ namespace micm
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
    */
-  template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaVectorMatrix : public VectorMatrix<T, L>
   {
    private:
