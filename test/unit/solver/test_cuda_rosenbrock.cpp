@@ -8,6 +8,7 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/util/cuda_vector_matrix.hpp>
 
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
@@ -138,6 +139,31 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+double testNormalizedError(const size_t nrows, const size_t ncols)
+{
+  auto gpu_solver = getSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      LinearSolverPolicy,
+      micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(nrows * ncols);
+  double atol = gpu_solver.parameters_.absolute_tolerance_;
+  double rtol = gpu_solver.parameters_.relative_tolerance_;
+
+  auto y_old  = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,1.0);
+  auto y_new  = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,2.0);
+  auto errors = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,3.0);
+
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+
+  double error = gpu_solver.NormalizedError(y_old, y_new, errors);
+
+  double denom = atol+rtol*2.0;
+  EXPECT_EQ( error, std::sqrt(3.0*3.0/(denom*denom)) );
+}
+
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<
@@ -156,4 +182,12 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
       Group4VectorMatrix,
       Group4SparseVectorMatrix,
       micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(4);
+}
+
+TEST(RosenbrockSolver, CudaNormalizedError)
+{
+  testNormalizedError<
+      Group4VectorMatrix,
+      Group4SparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(1,1);
 }

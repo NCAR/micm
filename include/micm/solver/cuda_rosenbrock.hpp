@@ -76,5 +76,30 @@ namespace micm
 
       return micm::cuda::AlphaMinusJacobianDriver(sparseMatrix, this->state_parameters_.jacobian_diagonal_elements_, alpha);
     }
+
+    /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
+    /// @param y_old the original vector
+    /// @param y_new the new vector
+    /// @param errors The computed errors
+    /// @return
+    double NormalizedError(CudaVectorMatrix<double>& y_old, 
+                           CudaVectorMatrix<double>& y_new,
+                           CudaVectorMatrix<double>& errors)
+    {
+      double* d_y_old = y_old.vector_matrix_param_.d_data_;
+      double* d_y_new = y_new.vector_matrix_param_.d_data_;
+      double* d_errors = errors.vector_matrix_param_.d_data_;
+      size_t num_elements = y.vector_matrix_param_.num_elements_;
+      double atol = parameters_.absolute_tolerance_;
+      double rtol = parameters_.relative_tolerance_;
+
+      if (y_old.vector_matrix_param_.num_elements_ != y_new.vector_matrix_param_.num_elements_ ||
+          y_old.vector_matrix_param_.num_elements_ != errors.vector_matrix_param_.num_elements_)
+      {
+        throw std::runtime_error("The number of elements in y_old, y_new and errors must be the same.");
+      }
+      return micm::cuda::NormalizedErrorDriver(d_y_old, d_y_new, d_errors, num_elements, atol, rtol);
+    }
+
   };  // end CudaRosenbrockSolver
 }  // namespace micm
