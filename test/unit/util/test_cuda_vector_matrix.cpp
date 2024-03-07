@@ -33,6 +33,66 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
   EXPECT_EQ(h_vector[3], 4 * 4);
 }
 
+TEST(CudaVectorMatrix, IntDataType)
+{
+  std::vector<std::vector<int>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaVectorMatrix<int, 2>(h_vector);
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+}
+
+TEST(CudaVectorMatrix, IntDataTypeCopyAssignment)
+{
+  std::vector<std::vector<int>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaVectorMatrix<int, 2>(h_vector);
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  auto matrix2 = matrix;
+  matrix2[0][0] = 10;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  EXPECT_EQ(matrix2[0][0], 10);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+}
+
+TEST(CudaVectorMatrix, IntDataTypeMoveAssignment)
+{
+  std::vector<std::vector<int>> h_vector{ { 1, 2 }, { 3, 4 } };
+  auto matrix = micm::CudaVectorMatrix<int, 2>(h_vector);
+
+  matrix[0][0] = 5;
+
+  EXPECT_EQ(matrix[0][0], 5);
+  EXPECT_EQ(matrix[0][1], 2);
+  EXPECT_EQ(matrix[1][0], 3);
+  EXPECT_EQ(matrix[1][1], 4);
+
+  auto matrix2 = std::move(matrix);
+  matrix2[0][0] = 10;
+
+  EXPECT_EQ(matrix2[0][0], 10);
+  EXPECT_EQ(matrix2[0][1], 2);
+  EXPECT_EQ(matrix2[1][0], 3);
+  EXPECT_EQ(matrix2[1][1], 4);
+}
+
 template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
 static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
 {

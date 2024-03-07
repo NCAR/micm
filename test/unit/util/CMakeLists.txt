@@ -18,4 +18,5 @@ if(ENABLE_CUDA)
   set_target_properties(micm_cuda_test_utils PROPERTIES LINKER_LANGUAGE CXX)
   
   create_standard_test(NAME cuda_vector_matrix SOURCES test_cuda_vector_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
+  create_standard_test(NAME cuda_sparse_vector_matrix SOURCES test_cuda_sparse_matrix_vector_ordering.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
 endif()
