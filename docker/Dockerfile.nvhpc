@@ -4,7 +4,7 @@
 #
 # Container versions, and sizes, can be found at https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
 #
-FROM nvcr.io/nvidia/nvhpc:23.5-devel-cuda12.1-ubuntu22.04
+FROM nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
 
 RUN apt update \
     && apt -y install \
@@ -36,13 +36,17 @@ RUN mkdir /build \
         ../micm \
       && make -j 8 install
 
+
+# copy headers needed for cublas to /usr/include
+RUN cp -r /opt/nvidia/hpc_sdk/*/23.7/cuda/include/* /usr/include/
+
 # build the library and run the tests
 RUN mkdir /cuda_build \
       && cd /cuda_build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
-        -D ENABLE_CUDA=ON \
-        -D GPU_TYPE="a100" \
+        -D MICM_ENABLE_CUDA=ON \
+        -D MICM_GPU_TYPE="a100" \
         ../micm \
       && make -j 8 install
 

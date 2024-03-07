@@ -3,7 +3,7 @@ include(FetchContent)
 ################################################################################
 # Memory check
 
-if(ENABLE_MEMCHECK)
+if(MICM_ENABLE_MEMCHECK)
   find_file(MEMCHECK_SUPPRESS_FILE
     DOC "Suppression file for memory checking"
     NAMES openmpi-valgrind.supp
@@ -22,7 +22,7 @@ endif()
 ################################################################################
 # OpenMP
 
-if(ENABLE_OPENMP)
+if(MICM_ENABLE_OPENMP)
   if(APPLE)
     # Apple clang by default doesn't include support for openmp
     # but if omp was installed with `brew install libomp`, support can be configured
@@ -65,7 +65,7 @@ endif()
 ################################################################################
 # MPI
 
-if(ENABLE_MPI)
+if(MICM_ENABLE_MPI)
   find_package(MPI REQUIRED)
   message(STATUS "Compiling with MPI support")
 endif()
@@ -94,7 +94,7 @@ endif()
 ################################################################################
 # nlohmann::json
 
-if(ENABLE_JSON)
+if(MICM_ENABLE_JSON)
   FetchContent_Declare(json
       GIT_REPOSITORY https://github.com/nlohmann/json.git
       GIT_TAG v3.11.2
@@ -105,7 +105,7 @@ endif()
 ################################################################################
 # Docs
 
-if(BUILD_DOCS)
+if(MICM_BUILD_DOCS)
   find_package(Doxygen REQUIRED)
   find_package(Sphinx REQUIRED)
 endif()
@@ -113,12 +113,12 @@ endif()
 ################################################################################
 # GPU Support
 
-if(ENABLE_CUDA)
+if(MICM_ENABLE_CUDA)
   find_package(CUDA REQUIRED)
   enable_language(CUDA)
 endif()
 
-if(ENABLE_OPENACC)
+if(MICM_ENABLE_OPENACC)
   find_package(OpenACC REQUIRED)
 endif()
 
@@ -127,7 +127,7 @@ endif()
 #
 # TODO: Try to use fetch content for LLVM libraries
 
-if(ENABLE_LLVM)
+if(MICM_ENABLE_LLVM)
   find_package(LLVM REQUIRED CONFIG)
   if(LLVM_FOUND)
     message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
