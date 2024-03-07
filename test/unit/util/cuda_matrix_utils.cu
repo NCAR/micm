@@ -13,7 +13,7 @@ namespace micm
           }
       }
 
-      int SquareDriver(CudaVectorMatrixParam& param)
+      void SquareDriver(CudaVectorMatrixParam& param)
       {
           Square<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
       }
@@ -27,7 +27,7 @@ namespace micm
           }
       }
 
-      int AddOneDriver(CudaVectorMatrixParam& param)
+      void AddOneDriver(CudaVectorMatrixParam& param)
       {
         AddOne<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
       }

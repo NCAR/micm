@@ -36,22 +36,15 @@ public:
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other) requires(std::is_same_v<T, double>)
-      : SparseMatrix<T, OrderingPolicy>(SparseMatrix<T, OrderingPolicy>::create(other.number_of_blocks_))
+      : SparseMatrix<T, OrderingPolicy>(other)
     {
-      this->data_ = other.data_;
-      this->row_ids_ = other.row_ids_;
-      this->row_start_ = other.row_start_;
       micm::cuda::MallocVector(param_, this->data_.size());
       micm::cuda::CopyToDeviceFromDevice(param_, other.param_);
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
-      : SparseMatrix<T, OrderingPolicy>(SparseMatrix<T, OrderingPolicy>::create(other.number_of_blocks_))
-    {
-      this->data_ = other.data_;
-      this->row_ids_ = other.row_ids_;
-      this->row_start_ = other.row_start_;
-    }
+      : SparseMatrix<T, OrderingPolicy>(other)
+    {}
 
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
       : SparseMatrix<T, OrderingPolicy>(SparseMatrix<T, OrderingPolicy>::create(other.number_of_blocks_))
