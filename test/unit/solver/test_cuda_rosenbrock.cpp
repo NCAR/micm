@@ -28,9 +28,10 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
+// the following alias works for a CudaVectorMatrix with 1 row and any columns
 template<class T>
 using Group1CudaVectorMatrix = micm::CudaVectorMatrix<T, 1>;
-
+// the following alias works for a CudaVectorMatrix with 7 rows and any columns
 template<class T>
 using Group7CudaVectorMatrix = micm::CudaVectorMatrix<T, 7>;
 
@@ -145,8 +146,10 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
+// In this test, all the elements in the same array are identical;
+// thus the calculated RMSE should be the same no matter what the size of the array is. 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-double testNormalizedError(const size_t nrows, const size_t ncols)
+double testNormalizedErrorConst(const size_t nrows, const size_t ncols)
 {
   auto gpu_solver = getSolver<
       MatrixPolicy,
@@ -168,7 +171,49 @@ double testNormalizedError(const size_t nrows, const size_t ncols)
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
   double denom = atol+rtol*2.0;
+  // use the following function instead to avoid tiny numerical differece
   EXPECT_DOUBLE_EQ( error, std::sqrt(3.0*3.0/(denom*denom)) );
+}
+
+// In this test, the elements in the same array are different;
+// thus the calculated RMSE will change when the size of the array changes. 
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+double testNormalizedErrorDiff(const size_t nrows, const size_t ncols)
+{
+  auto gpu_solver = getSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      LinearSolverPolicy,
+      micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(nrows * ncols);
+  
+  double atol = gpu_solver.parameters_.absolute_tolerance_;
+  double rtol = gpu_solver.parameters_.relative_tolerance_;
+
+  auto y_old  = MatrixPolicy<double>(nrows,ncols,7.7);
+  auto y_new  = MatrixPolicy<double>(nrows,ncols,-13.9);
+  auto errors = MatrixPolicy<double>(nrows,ncols,81.57);
+
+  double expected_error = 0.0;
+  for (size_t i = 0; i < nrows; ++i)
+  {
+    for (size_t j = 0; j < ncols; ++j)
+    {
+      y_old[i,j] = y_old[i,j] * i + j;
+      y_new[i,j] = y_old[i,j] / (j+1) - i;
+      errors[i,j] = errors[i,j] / (i+7) / (j+3);
+      double ymax = std::max(std::abs(y_old[i,j]), std::abs(y_new[i,j]));
+      double scale = atol + rtol * ymax;
+      expected_error += std::pow(errors[i,j] / scale, 2);
+    }
+  }
+
+  y_old.CopyToDevice();
+  y_new.CopyToDevice();
+  errors.CopyToDevice();
+
+  double computed_error = gpu_solver.NormalizedError(y_old, y_new, errors);
+
+  EXPECT_DOUBLE_EQ( computed_error, expected_error );
 }
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
@@ -193,13 +238,29 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
+  std::vector<int> row_array = {1, 7};
   std::vector<int> col_array = {1, 7, 23, 35, 63, 79, 101, 27997, 33017, 1000201, 2019377};
 
-  for (auto element : col_array)
+  // tests where RMSE does not change with the size of the array
+  for (auto row : row_array)
   {
-    testNormalizedError<
-        Group1CudaVectorMatrix,
-        Group1SparseVectorMatrix,
-        micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1,element);
+    for (auto col : col_array)
+    {
+      testNormalizedErrorConst<
+          Group1CudaVectorMatrix,
+          Group1SparseVectorMatrix,
+          micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(row,col);
+    }
   }
+  // tests where RMSE changes with the size of the array
+  for (auto row : row_array)
+  {
+    for (auto col : col_array)
+    {
+      testNormalizedErrorConst<
+          Group1CudaVectorMatrix,
+          Group1SparseVectorMatrix,
+          micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(row,col);
+    }
+  }  
 }

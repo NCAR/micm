@@ -4,6 +4,8 @@
 
 #pragma once
 
+// To make the NormalizedError function works properly on GPU, 
+// make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
 const size_t BLOCK_SIZE = 32;
 
 // different matrix data grouped in struct passing to kernel driver function

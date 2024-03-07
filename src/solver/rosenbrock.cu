@@ -154,7 +154,8 @@ namespace micm
       cudaMalloc(&d_errors_tmp, sizeof(double) * num_blocks);
 
       is_first_call = true;
-      // Kernel call: the "d_errors" vector will be overwritten by the reduction operation
+      // Kernel call: the "d_errors" vector will be overwritten by the reduction operation,
+      //              if not desired, then we need another temporary device pointer
       NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors,
                                                                                    d_errors_tmp, num_elements,
                                                                                    atol, rtol, is_first_call);
