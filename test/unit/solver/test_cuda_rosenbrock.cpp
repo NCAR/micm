@@ -239,7 +239,10 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
   std::vector<int> row_array = {1, 7};
-  std::vector<int> col_array = {1, 7, 23, 35, 63, 79, 101, 27997, 33017, 1000201, 2019377};
+  // Based on my experience, assuming we use BLOCK_SIZE = N, it is better to test the length size (L)
+  // of arrays at least within the following ranges for robustness: [L<N, N<L<2N, 2N<L<4N, 4N<L<N^2, N^2<L<N^3];
+  // Trying some odd and weird numbers is always helpful to reveal a potential bug.
+  std::vector<int> col_array = {1, 7, 23, 35, 63, 79, 101, 27997, 33017, 1000201, 2109377, 16975213};
 
   // tests where RMSE does not change with the size of the array
   for (auto row : row_array)
