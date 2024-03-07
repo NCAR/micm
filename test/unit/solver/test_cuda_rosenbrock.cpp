@@ -198,14 +198,16 @@ double testNormalizedErrorDiff(const size_t nrows, const size_t ncols)
   {
     for (size_t j = 0; j < ncols; ++j)
     {
-      y_old[i,j] = y_old[i,j] * i + j;
-      y_new[i,j] = y_old[i,j] / (j+1) - i;
-      errors[i,j] = errors[i,j] / (i+7) / (j+3);
-      double ymax = std::max(std::abs(y_old[i,j]), std::abs(y_new[i,j]));
+      y_old[i][j] = y_old[i][j] * i + j;
+      y_new[i][j] = y_new[i][j] / (j+1) - i;
+      errors[i][j] = errors[i][j] / (i+7) / (j+3);
+      double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
       double scale = atol + rtol * ymax;
-      expected_error += std::pow(errors[i,j] / scale, 2);
+      expected_error += errors[i][j]*errors[i][j] / (scale*scale);
     }
   }
+  double error_min_ = 1.0e-10;
+  expected_error = std::max(std::sqrt(expected_error / (nrows * ncols)), error_min_);
 
   y_old.CopyToDevice();
   y_new.CopyToDevice();
@@ -213,7 +215,15 @@ double testNormalizedErrorDiff(const size_t nrows, const size_t ncols)
 
   double computed_error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
-  EXPECT_DOUBLE_EQ( computed_error, expected_error );
+  auto relative_error = std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
+
+  if ( relative_error > 1.e-11)
+  {
+    std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
+    std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
+    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl; 
+    throw std::runtime_error("Fail to match computed_error and expected_error.\n");
+  }
 }
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
@@ -260,7 +270,7 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   {
     for (auto col : col_array)
     {
-      testNormalizedErrorConst<
+      testNormalizedErrorDiff<
           Group1CudaVectorMatrix,
           Group1SparseVectorMatrix,
           micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(row,col);

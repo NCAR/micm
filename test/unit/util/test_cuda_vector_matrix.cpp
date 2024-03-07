@@ -34,7 +34,7 @@ TEST(CudaVectorMatrix, DeviceMemCopy)
   EXPECT_EQ(h_vector[3], 4 * 4);
 }
 
-template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
 static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
 {
   matrix.CopyToDevice();
