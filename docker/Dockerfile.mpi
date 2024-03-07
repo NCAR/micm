@@ -20,8 +20,8 @@ ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 RUN mkdir /build \
       && cd /build \
       && cmake \
-        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
-        -D ENABLE_MPI:BOOL=TRUE \
+        -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
+        -D MICM_ENABLE_MPI:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

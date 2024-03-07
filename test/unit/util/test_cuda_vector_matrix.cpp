@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <numeric>
 
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <micm/util/cuda_vector_matrix.hpp>
+#include <numeric>
 
 #include "cuda_matrix_utils.cuh"
 #include "test_matrix_policy.hpp"
@@ -452,10 +452,10 @@ TEST(CudaVectorMatrix, Axpy)
   const double alpha = 2.0;
 
   // Generate a 20 x 10 matrix with all elements set to 10.0
-  auto gpu_x = micm::CudaVectorMatrix<double, 10>(20,10,10.0);
-  auto gpu_y = micm::CudaVectorMatrix<double, 10>(20,10,20.0);
-  gpu_x[0][1]  = 20.0;
-  gpu_x[1][1]  = 30.0;
+  auto gpu_x = micm::CudaVectorMatrix<double, 10>(20, 10, 10.0);
+  auto gpu_y = micm::CudaVectorMatrix<double, 10>(20, 10, 20.0);
+  gpu_x[0][1] = 20.0;
+  gpu_x[1][1] = 30.0;
 
   gpu_x.CopyToDevice();
   gpu_y.CopyToDevice();
@@ -467,5 +467,5 @@ TEST(CudaVectorMatrix, Axpy)
   EXPECT_EQ(gpu_y[1][1], 80.0);
 
   double sum = std::accumulate(gpu_y.AsVector().begin(), gpu_y.AsVector().end(), 0);
-  EXPECT_EQ(sum, (10*2.0+20.0)*198 + 20.0*2.0+20.0 + 30.0*2.0+20.0);
+  EXPECT_EQ(sum, (10 * 2.0 + 20.0) * 198 + 20.0 * 2.0 + 20.0 + 30.0 * 2.0 + 20.0);
 }

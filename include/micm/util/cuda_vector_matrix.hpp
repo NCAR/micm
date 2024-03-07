@@ -1,6 +1,7 @@
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
+
 #include "cublas_v2.h"
 
 namespace micm
@@ -26,7 +27,7 @@ namespace micm
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
    */
-  template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaVectorMatrix : public VectorMatrix<T, L>
   {
    private:
@@ -125,7 +126,8 @@ namespace micm
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
     {
       micm::cuda::FreeVector(this->vector_matrix_param_);
-      if (this->handle_ != NULL) cublasDestroy(this->handle_);
+      if (this->handle_ != NULL)
+        cublasDestroy(this->handle_);
     }
 
     int CopyToDevice()
@@ -149,16 +151,20 @@ namespace micm
     /// @param incx The increment for the elements of x
     /// @param incy The increment for the elements of y
     /// @return 0 if successful, otherwise an error code
-    void Axpy(const double alpha, const CudaVectorMatrix<T, L> &x, 
-              const int incx, const int incy)
+    void Axpy(const double alpha, const CudaVectorMatrix<T, L>& x, const int incx, const int incy)
     {
       static_assert(std::is_same_v<T, double>);
-      cublasStatus_t stat = cublasDaxpy(this->handle_, x.vector_matrix_param_.num_elements_, 
-                                        &alpha, x.vector_matrix_param_.d_data_, incx, 
-                                        this->vector_matrix_param_.d_data_, incy);
+      cublasStatus_t stat = cublasDaxpy(
+          this->handle_,
+          x.vector_matrix_param_.num_elements_,
+          &alpha,
+          x.vector_matrix_param_.d_data_,
+          incx,
+          this->vector_matrix_param_.d_data_,
+          incy);
       if (stat != CUBLAS_STATUS_SUCCESS)
       {
-         throw std::runtime_error("CUBLAS Daxpy operation failed.");
+        throw std::runtime_error("CUBLAS Daxpy operation failed.");
       }
     }
   };

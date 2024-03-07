@@ -1,10 +1,10 @@
-if(ENABLE_CUDA)
+if(MICM_ENABLE_CUDA)
   target_sources(micm_cuda
      PRIVATE
      process_set.cu
   )
 endif()
-if(ENABLE_OPENACC)
+if(MICM_ENABLE_OPENACC)
   target_sources(micm_openacc
     PRIVATE
   )

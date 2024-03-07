@@ -1,6 +1,7 @@
+#include <cuda_runtime.h>
+
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <vector>
-#include <cuda_runtime.h>
 
 namespace micm
 {
