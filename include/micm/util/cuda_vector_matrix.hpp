@@ -120,6 +120,8 @@ namespace micm
       return *this;
     }
 
+    ~CudaVectorMatrix() {}
+
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
     {
       micm::cuda::FreeVector(this->vector_matrix_param_);

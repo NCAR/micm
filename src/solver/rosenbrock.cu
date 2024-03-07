@@ -34,7 +34,7 @@ namespace micm
     // No need to synchronize threads in the same warp
     __device__ void warpReduce(volatile double *sdata, size_t tid)
     {
-      sdata[tid] += sdata[tid + 32];
+      if (BLOCK_SIZE >= 64) sdata[tid] += sdata[tid + 32];
       sdata[tid] += sdata[tid + 16];
       sdata[tid] += sdata[tid + 8];
       sdata[tid] += sdata[tid + 4];
@@ -48,7 +48,8 @@ namespace micm
         double* d_y_old,
         double* d_y_new,
         double* d_errors,
-        const size_t num_elements,
+        double* d_errors_tmp,
+        const size_t n,
         const double atol,
         const double rtol,
         bool is_first_call)
@@ -62,7 +63,7 @@ namespace micm
       size_t l_tid = threadIdx.x;
   
       // Global thread ID
-      size_t g_tid = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+      size_t g_tid = blockIdx.x*(BLOCK_SIZE*2) + threadIdx.x;
 
       if (is_first_call)
       {
@@ -73,14 +74,14 @@ namespace micm
         sdata[l_tid] = 0.0;
         for (int i=0; i<2; ++i)
         {
-          if (g_tid < num_elements)
+          if (g_tid < n)
           {
             d_ymax = max(fabs(d_y_old[g_tid]), fabs(d_y_new[g_tid]));
             d_scale = atol + rtol * d_ymax;
             d_errors[g_tid] = d_errors[g_tid] * d_errors[g_tid] / (d_scale * d_scale);
             sdata[l_tid] += d_errors[g_tid];
           }
-          g_tid += blockDim.x;
+          g_tid += BLOCK_SIZE;
         } 
         __syncthreads();
       }
@@ -89,22 +90,21 @@ namespace micm
         // Load two elements by one thread and do first add of reduction
         // Access the d_errors array directly if it is not the first call
         sdata[l_tid] = 0.0;
-        if (g_tid < num_elements) sdata[l_tid] += d_errors[g_tid];
-        g_tid += blockDim.x;
-        if (g_tid < num_elements) sdata[l_tid] += d_errors[g_tid];
+        if (g_tid < n) sdata[l_tid] += d_errors[g_tid];
+        g_tid += BLOCK_SIZE;
+        if (g_tid < n) sdata[l_tid] += d_errors[g_tid];
         __syncthreads();
       }
 
       // Start at 1/2 block stride, do the add, and divide by two each iteration
-      if (blockDim.x >= 2048) { if (l_tid < 1024) { sdata[l_tid] += sdata[l_tid + 1024]; } __syncthreads(); }
-      if (blockDim.x >= 1024) { if (l_tid < 512)  { sdata[l_tid] += sdata[l_tid + 512];  } __syncthreads(); }
-      if (blockDim.x >= 512)  { if (l_tid < 256)  { sdata[l_tid] += sdata[l_tid + 256];  } __syncthreads(); }
-      if (blockDim.x >= 256)  { if (l_tid < 128)  { sdata[l_tid] += sdata[l_tid + 128];  } __syncthreads(); }
-      if (blockDim.x >= 128)  { if (l_tid < 64)   { sdata[l_tid] += sdata[l_tid + 64];   } __syncthreads(); }
+      if (BLOCK_SIZE >= 1024) { if (l_tid < 512)  { sdata[l_tid] += sdata[l_tid + 512];  } __syncthreads(); }
+      if (BLOCK_SIZE >= 512)  { if (l_tid < 256)  { sdata[l_tid] += sdata[l_tid + 256];  } __syncthreads(); }
+      if (BLOCK_SIZE >= 256)  { if (l_tid < 128)  { sdata[l_tid] += sdata[l_tid + 128];  } __syncthreads(); }
+      if (BLOCK_SIZE >= 128)  { if (l_tid < 64)   { sdata[l_tid] += sdata[l_tid + 64];   } __syncthreads(); }
       if (l_tid < 32) warpReduce(sdata, l_tid);
   
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
-      if (l_tid == 0) d_errors[blockIdx.x] = sdata[0];
+      if (l_tid == 0) d_errors_tmp[blockIdx.x] = sdata[0];
     }
 
     std::chrono::nanoseconds AlphaMinusJacobianDriver(
@@ -145,37 +145,43 @@ namespace micm
                                  const double atol, const double rtol)
     {
       size_t num_blocks = std::ceil(std::ceil(num_elements*1.0/BLOCK_SIZE) / 2.0);
-      num_blocks = num_blocks < 1 ? 1 : num_blocks;
+      num_blocks = num_blocks < 1 ? 1 : num_blocks; 
       size_t new_blocks;
       bool is_first_call;
+      
+      // Local device pointer
+      double* d_errors_tmp;
+      cudaMalloc(&d_errors_tmp, sizeof(double) * num_blocks);
 
-      // kernel call
-      // The "d_errors" vector will be overwritten by the reduction operation; need another temporary device vector if this is not desired
       is_first_call = true;
-      NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
-                                                                                   num_elements, atol, rtol, is_first_call);
+      // Kernel call: the "d_errors" vector will be overwritten by the reduction operation
+      NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors,
+                                                                                   d_errors_tmp, num_elements,
+                                                                                   atol, rtol, is_first_call);
 
       is_first_call = false;
       while (num_blocks > 1)
       {
+        std::swap(d_errors, d_errors_tmp);
         // Update grid size
         new_blocks = std::ceil(std::ceil(num_blocks*1.0/BLOCK_SIZE) / 2.0);
         if (new_blocks <= 1)
         {
             NormalizedErrorKernel<<<1, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
-                                                                                num_elements, atol, rtol,
-                                                                                is_first_call);
+                                                                                d_errors_tmp, num_blocks,
+                                                                                atol, rtol, is_first_call);
             break;
         }
         NormalizedErrorKernel<<<new_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
-                                                                                     num_elements, atol, rtol,
-                                                                                     is_first_call);
+                                                                                     d_errors_tmp, num_blocks,
+                                                                                     atol, rtol, is_first_call);
         num_blocks = new_blocks;
       }
       cudaDeviceSynchronize();
 
       double error;
-      cudaMemcpy(&error, &d_errors[0], sizeof(double), cudaMemcpyDeviceToHost);
+      cudaMemcpy(&error, &d_errors_tmp[0], sizeof(double), cudaMemcpyDeviceToHost);
+      cudaFree(d_errors_tmp);
 
       return std::max(std::sqrt(error / num_elements), 1.0e-10);
     }

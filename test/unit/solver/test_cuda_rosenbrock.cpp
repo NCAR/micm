@@ -28,6 +28,12 @@ using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
+template<class T>
+using Group1CudaVectorMatrix = micm::CudaVectorMatrix<T, 1>;
+
+template<class T>
+using Group7CudaVectorMatrix = micm::CudaVectorMatrix<T, 7>;
+
 template<
     template<class>
     class MatrixPolicy,
@@ -147,12 +153,13 @@ double testNormalizedError(const size_t nrows, const size_t ncols)
       SparseMatrixPolicy,
       LinearSolverPolicy,
       micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(nrows * ncols);
+  
   double atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
-  auto y_old  = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,1.0);
-  auto y_new  = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,2.0);
-  auto errors = micm::CudaVectorMatrix<double, ncols>(nrows,ncols,3.0);
+  auto y_old  = MatrixPolicy<double>(nrows,ncols,1.0);
+  auto y_new  = MatrixPolicy<double>(nrows,ncols,2.0);
+  auto errors = MatrixPolicy<double>(nrows,ncols,3.0);
 
   y_old.CopyToDevice();
   y_new.CopyToDevice();
@@ -161,7 +168,7 @@ double testNormalizedError(const size_t nrows, const size_t ncols)
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
   double denom = atol+rtol*2.0;
-  EXPECT_EQ( error, std::sqrt(3.0*3.0/(denom*denom)) );
+  EXPECT_DOUBLE_EQ( error, std::sqrt(3.0*3.0/(denom*denom)) );
 }
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
@@ -186,8 +193,13 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 
 TEST(RosenbrockSolver, CudaNormalizedError)
 {
-  testNormalizedError<
-      Group4VectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(1,1);
+  std::vector<int> col_array = {1, 7, 23, 35, 63, 79, 101, 27997, 33017, 1000201, 2019377};
+
+  for (auto element : col_array)
+  {
+    testNormalizedError<
+        Group1CudaVectorMatrix,
+        Group1SparseVectorMatrix,
+        micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1,element);
+  }
 }

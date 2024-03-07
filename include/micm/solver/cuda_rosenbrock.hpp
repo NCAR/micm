@@ -82,19 +82,19 @@ namespace micm
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
-    double NormalizedError(CudaVectorMatrix<double>& y_old, 
-                           CudaVectorMatrix<double>& y_new,
-                           CudaVectorMatrix<double>& errors)
+    double NormalizedError(MatrixPolicy<double>& y_old, 
+                           MatrixPolicy<double>& y_new,
+                           MatrixPolicy<double>& errors)
     {
-      double* d_y_old = y_old.vector_matrix_param_.d_data_;
-      double* d_y_new = y_new.vector_matrix_param_.d_data_;
-      double* d_errors = errors.vector_matrix_param_.d_data_;
-      size_t num_elements = y.vector_matrix_param_.num_elements_;
-      double atol = parameters_.absolute_tolerance_;
-      double rtol = parameters_.relative_tolerance_;
+      double* d_y_old = y_old.AsDeviceParam().d_data_;
+      double* d_y_new = y_new.AsDeviceParam().d_data_;
+      double* d_errors = errors.AsDeviceParam().d_data_;
+      size_t num_elements = y_old.AsDeviceParam().num_elements_;
+      double atol = this->parameters_.absolute_tolerance_;
+      double rtol = this->parameters_.relative_tolerance_;
 
-      if (y_old.vector_matrix_param_.num_elements_ != y_new.vector_matrix_param_.num_elements_ ||
-          y_old.vector_matrix_param_.num_elements_ != errors.vector_matrix_param_.num_elements_)
+      if (y_old.AsDeviceParam().num_elements_ != y_new.AsDeviceParam().num_elements_ ||
+          y_old.AsDeviceParam().num_elements_ != errors.AsDeviceParam().num_elements_)
       {
         throw std::runtime_error("The number of elements in y_old, y_new and errors must be the same.");
       }
