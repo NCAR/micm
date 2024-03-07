@@ -94,7 +94,7 @@ TEST(CudaVectorMatrix, IntDataTypeMoveAssignment)
   EXPECT_EQ(matrix2[1][1], 4);
 }
 
-template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
 static void ModifyAndSyncToHost(micm::CudaVectorMatrix<T, L>& matrix)
 {
   matrix.CopyToDevice();
