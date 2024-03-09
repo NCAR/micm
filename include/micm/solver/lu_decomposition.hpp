@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+
+#include <micm/debug/profiler.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 namespace micm

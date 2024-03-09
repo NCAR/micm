@@ -1,26 +1,9 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#define TIMED_METHOD(assigned_increment, time_it, method, ...)                                 \
-  {                                                                                            \
-    if constexpr (time_it)                                                                     \
-    {                                                                                          \
-      auto start = std::chrono::high_resolution_clock::now();                                  \
-      method(__VA_ARGS__);                                                                     \
-      auto end = std::chrono::high_resolution_clock::now();                                    \
-      assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
-    }                                                                                          \
-    else                                                                                       \
-    {                                                                                          \
-      method(__VA_ARGS__);                                                                     \
-    }                                                                                          \
-  }
-
 namespace micm
 { 
-  //
-  // RosenbrockSolver
-  //
+
   inline void SolverStats::Reset()
   {
     function_calls = 0;
@@ -94,6 +77,8 @@ namespace micm
         process_set_(),
         linear_solver_()
   {
+    MICM_PROFILE_FUNCTION();
+
     std::map<std::string, std::size_t> variable_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
 
@@ -168,6 +153,8 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetState() const
   {
+    MICM_PROFILE_FUNCTION();
+
     return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };   
   }
 
@@ -178,6 +165,8 @@ namespace micm
       double time_step,
       State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept
   {
+    MICM_PROFILE_FUNCTION();
+    
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult result{};
     result.state_ = SolverState::Running;
     // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
@@ -196,7 +185,8 @@ namespace micm
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
-    TIMED_METHOD(stats.total_update_state_time, time_it, UpdateState, state);
+
+    UpdateState(state);
 
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
       K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
@@ -231,11 +221,11 @@ namespace micm
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the forcing at the beginning of the current time
-      TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
+      CalculateForcing(state.rate_constants_, Y, initial_forcing);
       stats.function_calls += 1;
 
       // compute the jacobian at the beginning of the current time
-      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, state.jacobian_);
+      CalculateJacobian(state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates += 1;
 
       bool accepted = false;
@@ -244,7 +234,8 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        TIMED_METHOD(stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats, state);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
+
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -269,7 +260,8 @@ namespace micm
                 auto a = parameters_.a_[stage_combinations + j];
                 Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
               }
-              TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
+            
+              CalculateForcing(state.rate_constants_, Ynew, forcing);
               stats.function_calls += 1;
             }
           }
@@ -280,7 +272,8 @@ namespace micm
             K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          TIMED_METHOD(stats.total_linear_solve_time, time_it, linear_solver_.template Solve<MatrixPolicy>, temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+
+          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
 
@@ -364,6 +357,8 @@ namespace micm
       const MatrixPolicy<double>& number_densities,
       MatrixPolicy<double>& forcing)
   {
+    MICM_PROFILE_FUNCTION();
+    
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.template AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
   }
@@ -374,6 +369,8 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
+    MICM_PROFILE_FUNCTION();
+
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
     for (std::size_t i_block = 0; i_block < jacobian.size(); ++i_block)
@@ -390,6 +387,8 @@ namespace micm
       const double& alpha) const
     requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
+    MICM_PROFILE_FUNCTION();
+
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
@@ -409,6 +408,8 @@ namespace micm
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.template AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
   }
@@ -428,6 +429,8 @@ namespace micm
       SolverStats& stats, 
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+
     auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
     singular = false;
@@ -461,6 +464,8 @@ namespace micm
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
+    
+    MICM_PROFILE_FUNCTION();
 
     auto _y = Y.AsVector();
     auto _ynew = Ynew.AsVector();

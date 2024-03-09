@@ -6,6 +6,8 @@ namespace micm
   template<template<class> class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {
+    MICM_PROFILE_FUNCTION();
+    
     const std::size_t order = matrix.size();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
@@ -70,6 +72,8 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
+    MICM_PROFILE_FUNCTION();
+
     auto lu = lu_decomp_.GetLUMatrices(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
@@ -107,12 +111,16 @@ namespace micm
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix, bool& is_singular)
   {
+    MICM_PROFILE_FUNCTION();
+
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix, is_singular);
   }
 
@@ -121,6 +129,8 @@ namespace micm
     requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     for (std::size_t i_cell = 0; i_cell < b.size(); ++i_cell)
     {
       auto b_cell = b[i_cell];
@@ -171,6 +181,8 @@ namespace micm
     requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
   inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
   {
+    MICM_PROFILE_FUNCTION();
+    
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)

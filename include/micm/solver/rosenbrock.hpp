@@ -23,6 +23,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <micm/debug/profiler.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/solver/linear_solver.hpp>

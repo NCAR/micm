@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cassert>
+#include <micm/debug/profiler.hpp>
 #include <micm/process/process.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -87,6 +88,8 @@ namespace micm
         product_ids_(),
         yields_()
   {
+    MICM_PROFILE_FUNCTION();
+
     for (auto& process : processes)
     {
       std::size_t number_of_reactants = 0;
@@ -117,6 +120,8 @@ namespace micm
 
   inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
+    MICM_PROFILE_FUNCTION();
+
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
     auto prod_id = product_ids_.begin();
@@ -142,6 +147,8 @@ namespace micm
   template<typename OrderingPolicy>
   inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
     auto prod_id = product_ids_.begin();
@@ -169,6 +176,8 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
+    MICM_PROFILE_FUNCTION();
+
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
     {
@@ -206,6 +215,8 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
@@ -248,6 +259,8 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
+    MICM_PROFILE_FUNCTION();
+
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
@@ -294,6 +307,8 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
@@ -344,6 +359,8 @@ namespace micm
 
   inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::set<std::string> used_species;
     for (auto& process : processes)
     {
