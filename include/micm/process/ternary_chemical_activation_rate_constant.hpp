@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -35,7 +35,6 @@ namespace micm
    public:
     const TernaryChemicalActivationRateConstantParameters parameters_;
 
-   public:
     /// @brief Default constructor
     TernaryChemicalActivationRateConstant();
 
@@ -51,6 +50,11 @@ namespace micm
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
     double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+
+    /// @brief Calculate the rate constant
+    /// @param conditions The current environmental conditions of the chemical system
+    /// @return A rate constant based off of the conditions in the system
+    double calculate(const Conditions& conditions) const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
@@ -75,6 +79,12 @@ namespace micm
     return std::unique_ptr<RateConstant>{ new TernaryChemicalActivationRateConstant{ *this } };
   }
 
+  inline double TernaryChemicalActivationRateConstant::calculate(const Conditions& conditions) const
+  {
+    double val = calculate(conditions.temperature_, conditions.air_density_);
+    return val;
+  }
+
   inline double TernaryChemicalActivationRateConstant::calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
@@ -93,8 +103,7 @@ namespace micm
 
     return k0 / (1.0 + k0 * air_number_density / kinf) *
            std::pow(
-               parameters_.Fc_,
-               1.0 / (1.0 + 1.0 / parameters_.N_ * std::pow(std::log10(k0 * air_number_density / kinf), 2)));
+               parameters_.Fc_, parameters_.N_ / (parameters_.N_ + std::pow(std::log10(k0 * air_number_density / kinf), 2)));
   }
 
 }  // namespace micm

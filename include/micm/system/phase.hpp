@@ -1,9 +1,10 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
+#include <algorithm>
 #include <micm/system/species.hpp>
 #include <vector>
 
@@ -48,6 +49,22 @@ namespace micm
     {
       species_ = other.species_;
       return *this;
+    }
+
+    /// @brief Returns the number of non-parameterized species
+    std::size_t StateSize() const
+    {
+      return std::count_if(species_.begin(), species_.end(), [](const Species& s) { return !s.IsParameterized(); });
+    }
+
+    /// @brief Returns a set of unique names for each non-parameterized species
+    std::vector<std::string> UniqueNames() const
+    {
+      std::vector<std::string> names{};
+      for (const auto& species : species_)
+        if (!species.IsParameterized())
+          names.push_back(species.name_);
+      return names;
     }
   };
 }  // namespace micm

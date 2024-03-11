@@ -1,49 +1,18 @@
+#include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <chrono>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
-void print_header()
+void test_solver_type(auto& solver)
 {
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(10) << "A"
-            << "," << std::setw(10) << "B"
-            << "," << std::setw(10) << "C" << std::endl;
-}
-
-template<template<class> class T>
-void print_state(double time, State<T>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) 
-    << std::setw(10) << state.variables_[0][state.variable_map_["A"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["B"]] << "," 
-    << std::setw(10) << state.variables_[0][state.variable_map_["C"]] 
-    << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
-template<typename T>
-void test_solver_type(T solver)
-{
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
-  state.variables_[0] = {1, 0, 0};
+  state.variables_[0] = { 1, 0, 0 };
 
   double k1 = 0.04;
   double k2 = 3e7;
@@ -63,12 +32,11 @@ void test_solver_type(T solver)
   // choose a timestep and print the initial state
   double time_step = 200;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
-  typename T::SolverStats total_stats;
-  std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();;
-
+  SolverStats total_stats;
+  std::chrono::duration<double, std::nano> total_solve_time = std::chrono::nanoseconds::zero();
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -103,7 +71,7 @@ void test_solver_type(T solver)
       state.variables_ = result.result_;
     }
 
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
   }
   std::cout << "Total solve time: " << total_solve_time.count() << " nanoseconds" << std::endl;
   std::cout << "accepted: " << total_stats.accepted << std::endl;
@@ -150,25 +118,19 @@ int main()
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> two_stage{
-    system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> two_stage{ system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> three_stage{
-    system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> three_stage{ system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> four_stage{
-    system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> four_stage{ system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters() };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> four_stage_da{
-    system, reactions, RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> four_stage_da{ system,
+                                    reactions,
+                                    RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters() };
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> six_stage_da{
-    system, reactions, RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters()
-  };
+  RosenbrockSolver<> six_stage_da{ system,
+                                   reactions,
+                                   RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters() };
 
   std::cout << "Two stages: " << std::endl;
   test_solver_type(two_stage);

@@ -3,6 +3,7 @@ MICM Chemistry
 
 Model Independent Chemical Module. MICM can be used to configure and solve atmospheric chemistry systems.
 
+[![GitHub Releases](https://img.shields.io/github/release/NCAR/micm.svg)](https://github.com/NCAR/micm/releases)
 [![License](https://img.shields.io/github/license/NCAR/micm.svg)](https://github.com/NCAR/micm/blob/master/LICENSE)
 [![Docker builds](https://github.com/NCAR/micm/actions/workflows/docker_and_coverage.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/docker_and_coverage.yml)
 [![Windows](https://github.com/NCAR/micm/actions/workflows/windows.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/windows.yml)
@@ -10,8 +11,20 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![Ubuntu](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/NCAR/micm/actions/workflows/ubuntu.yml)
 [![codecov](https://codecov.io/gh/NCAR/micm/branch/main/graph/badge.svg?token=ATGO4DKTMY)](https://codecov.io/gh/NCAR/micm)
 [![DOI](https://zenodo.org/badge/294492778.svg)](https://zenodo.org/badge/latestdoi/294492778)
+[![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
-Copyright (C) 2018-2023 National Center for Atmospheric Research
+
+Copyright (C) 2018-2024 National Center for Atmospheric Research
+
+
+<p align="center">
+  <img style="border-radius: 100%" src="docs/source/_static/icons/micm.png">
+</p>
+
+> **Note**
+> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers
+and partially implemented features
+
 
 # Getting Started
 
@@ -39,6 +52,14 @@ make test
 If you would later like to uninstall MICM, you can run
 `sudo make uninstall` from the `build/` directory.
 
+## Options
+
+There are multiple options for running micm. You can use [json](https://github.com/nlohmann/json)
+to configure a solver, [llvm](https://llvm.org/) to JIT-compile
+solvers on CPUs or [cuda](https://developer.nvidia.com/cuda-zone)-based solvers to solve chemistry on GPUs.
+Please [read our docs](https://ncar.github.io/micm/getting_started.html) 
+to learn how to enable these options.
+
 ## Running a MICM Docker container
 
 You must have [Docker Desktop](https://www.docker.com/get-started) installed and running.
@@ -65,7 +86,33 @@ cd /build/
 make test
 ```
 
-# Using MICM
+# Using the MICM executable
+
+A simple driver for MICM is built with the library and can be used to solve a
+chemical system for given initial conditions over one time step.
+
+Just pass the driver the path to the folder containing a valid JSON
+mechanism configuration and the path to a CSV file holding the initial
+conditions.
+
+Several example mechanisms and sets of conditions can be found in the
+`/examples/configs/` folder.
+
+You can use them like this:
+
+```
+micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
+```
+
+The output should be:
+
+```
+ time,          O,        O1D,         O2,         O3
+    0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
+   60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
+```
+
+# Using the MICM API
 
 The following example solves the fictitious chemical system:
 
@@ -117,15 +164,12 @@ int main(const int argc, const char *argv[])
   state.conditions_[0].pressure_ = 101319.9;   // Pa
   state.SetConcentration(foo, 20.0);           // mol m-3
 
-  std::cout << "foo,       bar,      baz" << std::endl;
+  state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
     auto result = solver.Solve(500.0, state);
     state.variables_ = result.result_;
-    std::cout << std::fixed << std::setprecision(6)
-              << state.variables_[0][state.variable_map_["Foo"]] << ", "
-              << state.variables_[0][state.variable_map_["Bar"]] << ", "
-              << state.variables_[0][state.variable_map_["Baz"]] << std::endl;
+    state.PrintState(i*500);
   }
 
   return 0;
@@ -134,23 +178,23 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.1.0/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.3.1/include -std=c++20
 ./foo_chem
 ```
 
 Output:
 ```
-time [s],        foo,        bar,        baz
-0.000000,  11.843503,   5.904845,   1.907012
-500.000000,   6.792023,   9.045965,   3.317336
-1000.000000,   3.828700,  10.740589,   4.210461
-1500.000000,   2.138145,  11.663685,   4.739393
-2000.000000,   1.187934,  12.169452,   5.042503
-2500.000000,   0.658129,  12.447502,   5.213261
-3000.000000,   0.363985,  12.600676,   5.308597
-3500.000000,   0.201076,  12.685147,   5.361559
-4000.000000,   0.111028,  12.731727,   5.390884
-4500.000000,   0.061290,  12.757422,   5.407096
+ time,        Bar,        Baz,        Foo
+    0,   5.90e+00,   1.91e+00,   1.18e+01
+  500,   9.05e+00,   3.32e+00,   6.79e+00
+ 1000,   1.07e+01,   4.21e+00,   3.83e+00
+ 1500,   1.17e+01,   4.74e+00,   2.14e+00
+ 2000,   1.22e+01,   5.04e+00,   1.19e+00
+ 2500,   1.24e+01,   5.21e+00,   6.58e-01
+ 3000,   1.26e+01,   5.31e+00,   3.64e-01
+ 3500,   1.27e+01,   5.36e+00,   2.01e-01
+ 4000,   1.27e+01,   5.39e+00,   1.11e-01
+ 4500,   1.28e+01,   5.41e+00,   6.13e-02
 ```
 # Citation
 
@@ -196,8 +240,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2023 National Center for Atmospheric Research
-
-
-> **Note**
-> MICM 3.x.x is part of a refactor and may include breaking changes across minor revision numbers
+Copyright (C) 2018-2024 National Center for Atmospheric Research

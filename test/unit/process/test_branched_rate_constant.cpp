@@ -7,14 +7,15 @@
 
 TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
 {
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
   double temperature = 301.24;
-  state.conditions_[0].temperature_ = temperature;  // [K]
-  state.conditions_[0].air_density_ = 42.2;         // [mol mol-1]
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
+  micm::Conditions conditions = {
+    .temperature_ = temperature,  // [K]
+    .air_density_ = 42.2          // [mol mol-1]
+  };
+
   micm::BranchedRateConstant branched{ micm::BranchedRateConstantParameters{
       .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy, .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2 } };
-  auto k = branched.calculate(state.conditions_[0], params);
+  auto k = branched.calculate(conditions);
   double air_dens_n_cm3 = 42.2 * AVOGADRO_CONSTANT * 1.0e-6;
   double a = 2.0e-22 * std::exp(2) * 2.45e19;
   double b = 0.43 * std::pow((293.0 / 298.0), -8.0);
@@ -28,14 +29,15 @@ TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
 
 TEST(BranchedRateConstant, CalculateNitrateBranchWithAllArugments)
 {
-  micm::State<micm::Matrix> state{ 0, 0, 1 };
   double temperature = 301.24;
-  state.conditions_[0].temperature_ = temperature;  // [K]
-  state.conditions_[0].air_density_ = 42.2;         // [mol mol-1]
-  std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
+  micm::Conditions conditions = {
+    .temperature_ = temperature,  // [K]
+    .air_density_ = 42.2          // [mol mol-1]
+  };
+
   micm::BranchedRateConstant branched{ micm::BranchedRateConstantParameters{
       .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate, .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2 } };
-  auto k = branched.calculate(state.conditions_[0], params);
+  auto k = branched.calculate(conditions);
   double air_dens_n_cm3 = 42.2 * AVOGADRO_CONSTANT * 1.0e-6;
   double a = 2.0e-22 * std::exp(2) * 2.45e19;
   double b = 0.43 * std::pow((293.0 / 298.0), -8.0);

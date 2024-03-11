@@ -1,7 +1,7 @@
 ################################################################################
 # Utility functions for creating tests
 
-if(ENABLE_MEMCHECK)
+if(MICM_ENABLE_MEMCHECK)
   find_program(MEMORYCHECK_COMMAND "valgrind")
 endif()
 
@@ -10,11 +10,12 @@ endif()
 
 function(create_standard_test)
   set(prefix TEST)
+  set(optionalValues SKIP_MEMCHECK)
   set(singleValues NAME WORKING_DIRECTORY)
   set(multiValues SOURCES LIBRARIES)
 
   include(CMakeParseArguments)
-  cmake_parse_arguments(${prefix} " " "${singleValues}" "${multiValues}" ${ARGN})
+  cmake_parse_arguments(${prefix} "${optionalValues}" "${singleValues}" "${multiValues}" ${ARGN})
 
   add_executable(test_${TEST_NAME} ${TEST_SOURCES})
 
@@ -25,26 +26,18 @@ function(create_standard_test)
     target_link_libraries(test_${TEST_NAME} PUBLIC ${library})
   endforeach()
 
-  if(ENABLE_JSON)
-    target_link_libraries(test_${TEST_NAME} PRIVATE nlohmann_json::nlohmann_json)
-  endif()
-
-  if(ENABLE_LLVM)
-    target_link_libraries(test_${TEST_NAME} PRIVATE ${llvm_libs})
-  endif()
-
   if(NOT DEFINED TEST_WORKING_DIRECTORY)
     set(TEST_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
   endif()
 
-  add_micm_test(${TEST_NAME} test_${TEST_NAME} "" ${TEST_WORKING_DIRECTORY})
+  add_micm_test(${TEST_NAME} test_${TEST_NAME} "" ${TEST_WORKING_DIRECTORY} ${TEST_SKIP_MEMCHECK})
 endfunction(create_standard_test)
 
 ################################################################################
 # Add a test
 
-function(add_micm_test test_name test_binary test_args working_dir)
-  if(ENABLE_MPI)
+function(add_micm_test test_name test_binary test_args working_dir test_skip_memcheck)
+  if(MICM_ENABLE_MPI)
     add_test(NAME ${test_name}
       COMMAND mpirun -v -np 2 ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})
@@ -56,11 +49,11 @@ function(add_micm_test test_name test_binary test_args working_dir)
   set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --trace-children=yes --leak-check=full --gen-suppressions=all ${MEMCHECK_SUPPRESS}")
   set(memcheck "${MEMORYCHECK_COMMAND} ${MEMORYCHECK_COMMAND_OPTIONS}")
   separate_arguments(memcheck)
-  if(ENABLE_MPI AND MEMORYCHECK_COMMAND AND ENABLE_MEMCHECK)
+  if(MICM_ENABLE_MPI AND MEMORYCHECK_COMMAND AND MICM_ENABLE_MEMCHECK AND NOT test_skip_memcheck)
     add_test(NAME memcheck_${test_name}
       COMMAND mpirun -v -np 2 ${memcheck} ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})
-  elseif(MEMORYCHECK_COMMAND AND ENABLE_MEMCHECK)
+  elseif(MEMORYCHECK_COMMAND AND MICM_ENABLE_MEMCHECK AND NOT test_skip_memcheck)
     add_test(NAME memcheck_${test_name}
              COMMAND ${memcheck} ${CMAKE_BINARY_DIR}/${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})

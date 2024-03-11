@@ -1,0 +1,10 @@
+{
+  "name": "MICM Development Environment",
+  "dockerFile": "Dockerfile.codespace",
+  "extensions": [
+    "ms-vscode.cpptools"
+  ],
+  "settings": {
+  },
+  "postCreateCommand": "cd /workspaces/micm && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=release -D MICM_ENABLE_LLVM:BOOL=TRUE -D MICM_ENABLE_MEMCHECK:BOOL=TRUE .. && make install -j 2"
+}

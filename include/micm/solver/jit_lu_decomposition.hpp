@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -6,6 +6,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/lu_decomposition.hpp>
+#include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 namespace micm
@@ -15,7 +16,7 @@ namespace micm
   ///
   /// See LuDecomposition class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L = DEFAULT_VECTOR_SIZE>
+  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class JitLuDecomposition : public LuDecomposition
   {
     std::shared_ptr<JitCompiler> compiler_;
@@ -38,6 +39,18 @@ namespace micm
         const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
 
     ~JitLuDecomposition();
+
+    /// @brief Create sparse L and U matrices for a given A matrix
+    /// @param A Sparse matrix that will be decomposed
+    /// @param lower The lower triangular matrix created by decomposition
+    /// @param upper The upper triangular matrix created by decomposition
+    /// @param is_singular Flag that will be set to true if A is singular; false otherwise
+    template<typename T, template<class> class SparseMatrixPolicy>
+    void Decompose(
+        const SparseMatrixPolicy<T> &A,
+        SparseMatrixPolicy<T> &lower,
+        SparseMatrixPolicy<T> &upper,
+        bool &is_singular) const;
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed

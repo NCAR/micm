@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -53,8 +53,9 @@ namespace micm
   template<std::size_t L>
   void JitLuDecomposition<L>::GenerateDecomposeFunction()
   {
+    std::string function_name = "lu_decompose_" + generate_random_string();
     JitFunction func = JitFunction::create(compiler_)
-                           .name("lu_decompose")
+                           .name(function_name)
                            .arguments({ { "A matrix", JitType::DoublePtr },
                                         { "lower matrix", JitType::DoublePtr },
                                         { "upper matrix", JitType::DoublePtr } })
@@ -181,6 +182,17 @@ namespace micm
     auto target = func.Generate();
     decompose_function_ = (void (*)(const double *, double *, double *))(intptr_t)target.second;
     decompose_function_resource_tracker_ = target.first;
+  }
+
+  template<std::size_t L>
+  template<typename T, template<class> class SparseMatrixPolicy>
+  void JitLuDecomposition<L>::Decompose(
+      const SparseMatrixPolicy<T> &A,
+      SparseMatrixPolicy<T> &lower,
+      SparseMatrixPolicy<T> &upper,
+      bool& is_singular) const
+  {
+    LuDecomposition::Decompose<T, SparseMatrixPolicy>(A, lower, upper, is_singular);
   }
 
   template<std::size_t L>

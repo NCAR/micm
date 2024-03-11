@@ -15,43 +15,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
-void print_header()
-{
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(10) << "A"
-            << "," << std::setw(9) << "B"
-            << "," << std::setw(9) << "C"
-            << "," << std::setw(9) << "D"
-            << "," << std::setw(9) << "E"
-            << "," << std::setw(9) << "F"
-            << "," << std::setw(10) << "G" << std::endl;
-}
-
-template<template<class> class T>
-void print_state(double time, State<T>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ", " << std::flush;
-
-  std::cout << std::scientific << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["A"]]
-            << "," << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["B"]] << ","
-            << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["C"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["D"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["E"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["F"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["G"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
 int main(const int argc, const char* argv[])
 {
   SolverConfig solverConfig;
@@ -68,9 +31,7 @@ int main(const int argc, const char* argv[])
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<Matrix, SparseMatrixPolicy> solver{ chemical_system,
-                                                       reactions,
-                                                       RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
 
   State state = solver.GetState();
 
@@ -95,8 +56,8 @@ int main(const int argc, const char* argv[])
   // choose a timestep a print the initial state
   double time_step = 500;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
   double photo_rate = 1e-10;
   double emission_rate = 1e-20;
@@ -120,10 +81,10 @@ int main(const int argc, const char* argv[])
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_[0] = result.result_.AsVector();
+      state.variables_ = result.result_;
     }
 
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
     photo_rate *= 1.5;
   }
 

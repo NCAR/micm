@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -6,11 +6,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <micm/util/exit_codes.hpp>
 #include <vector>
 
-#ifndef DEFAULT_VECTOR_SIZE
-#  define DEFAULT_VECTOR_SIZE 4
+#ifndef MICM_DEFAULT_VECTOR_SIZE
+#  define MICM_DEFAULT_VECTOR_SIZE 4
 #endif
 
 namespace micm
@@ -23,13 +22,15 @@ namespace micm
   ///
   /// The template arguments are the type of the matrix elements and the size of the number
   /// of rows per group.
-  template<class T, std::size_t L = DEFAULT_VECTOR_SIZE>
+  template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
+   protected:
     std::vector<T> data_;
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
+   private:
     friend class Proxy;
     friend class ConstProxy;
 
@@ -52,8 +53,7 @@ namespace micm
       {
         if (other.size() < y_dim_)
         {
-          std::cerr << "Matrix row size mismatch in assignment from vector";
-          std::exit(micm::ExitCodes::InvalidMatrixDimension);
+          throw std::runtime_error("Matrix row size mismatch in assignment from vector.");
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -62,7 +62,7 @@ namespace micm
             [&](T const &elem)
             {
               *iter = elem;
-              // don't iterate passed the end of the vector
+              // don't iterate past the end of the vector
               std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
               iter += std::min(L, remaining_elements);
             });
@@ -75,7 +75,7 @@ namespace micm
         for (auto &elem : vec)
         {
           elem = *iter;
-          // don't iterate passed the end of the vector
+          // don't iterate past the end of the vector
           std::size_t remaining_elements = std::distance(iter, matrix_.data_.end());
           iter += std::min(L, remaining_elements);
         }
@@ -165,14 +165,13 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    std::cerr << "Invalid vector for matrix assignment\n";
-                    std::exit(micm::ExitCodes::InvalidMatrixDimension);
+                    throw std::runtime_error("Invalid vector for matrix assignment");
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)
                   {
                     *iter = elem;
-                    // don't iterate passed the end of the vector
+                    // don't iterate past the end of the vector
                     std::size_t remaining_elements = std::distance(iter, data.end());
                     iter += std::min(L, remaining_elements);
                   }
@@ -212,7 +211,13 @@ namespace micm
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
-    void ForEach(const std::function<void(T &, T &)> f, VectorMatrix &a)
+    VectorMatrix &operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
+      return *this;
+    }
+
+    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
@@ -225,7 +230,7 @@ namespace micm
           f(this_iter[y * L + x], a_iter[y * L + x]);
     }
 
-    void ForEach(const std::function<void(T &, T &, T &)> f, VectorMatrix &a, VectorMatrix &b)
+    void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();

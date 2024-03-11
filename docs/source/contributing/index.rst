@@ -1,3 +1,4 @@
+.. _Contributing:
 
 Contributing
 ============
@@ -40,14 +41,8 @@ of ``clang-format`` enforces some consistency which means moving from file to fi
 Setting up developer environments
 ---------------------------------
 
-macOS
-^^^^^
-
-Linux
-^^^^^
-
-Windows
-^^^^^^^
+Most developers work on micm in VS Code. For instructions on how to setup micm with Xcode or Visual Studio,
+please see the :ref:`Debugging` section of the :ref:`Installation and usage` guide.
 
 Building the documentation
 --------------------------
@@ -68,7 +63,7 @@ From the root directory of micm:
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 
 
@@ -82,7 +77,7 @@ Venv
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 
 
@@ -96,6 +91,6 @@ Conda
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -8,8 +8,10 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <micm/util/random_string.hpp>
 
 #include "jit_compiler.hpp"
+#include "llvm/IR/Attributes.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -156,7 +158,7 @@ namespace micm
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
       : generated_(false),
-        name_(function_builder.name_),
+        name_(function_builder.name_ + generate_random_string()),
         compiler_(function_builder.compiler_),
         context_(std::make_unique<llvm::LLVMContext>()),
         module_(std::make_unique<llvm::Module>(name_ + " module", *context_)),
@@ -184,6 +186,8 @@ namespace micm
       arg.arg_ = arg_iter++;
       arg.arg_->setName(arg.name_);
     }
+    for (unsigned int i = 0; i < arguments_.size(); ++i)
+      function_->addParamAttr(i, llvm::Attribute::NoAlias);
 
     // function body
 

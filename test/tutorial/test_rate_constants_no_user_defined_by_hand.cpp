@@ -14,37 +14,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-void print_header()
-{
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(11) << "A"
-            << "," << std::setw(10) << "B"
-            << "," << std::setw(10) << "C"
-            << "," << std::setw(10) << "D"
-            << "," << std::setw(10) << "E"
-            << "," << std::setw(10) << "F"
-            << "," << std::setw(10) << "G" << std::endl;
-}
-
-template<template<class> class T>
-void print_state(double time, State<T>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ", " << std::flush;
-
-  std::cout << std::scientific << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["A"]]
-            << "," << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["B"]] << ","
-            << std::setw(10) << std::setprecision(2) << state.variables_[0][state.variable_map_["C"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["D"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["E"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["F"]] << "," << std::setw(10)
-            << std::setprecision(2) << state.variables_[0][state.variable_map_["G"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
 int main(const int argc, const char* argv[])
 {
   auto a = Species("A");
@@ -149,8 +118,8 @@ int main(const int argc, const char* argv[])
   // choose a timestep and print the initial state
   double time_step = 500;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -169,7 +138,7 @@ int main(const int argc, const char* argv[])
       state.variables_ = result.result_;
     }
 
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
   }
 
   return 0;

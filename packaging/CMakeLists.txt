@@ -1,4 +1,6 @@
 include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+set(INSTALL_PREFIX "micm-${PROJECT_VERSION}" )
 
 install(
   TARGETS 
@@ -12,7 +14,7 @@ install(
   PUBLIC_HEADER DESTINATION ${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-if(ENABLE_JSON)
+if(MICM_ENABLE_JSON)
   install(TARGETS nlohmann_json EXPORT micm_Exports)
 endif()
 

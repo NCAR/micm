@@ -34,6 +34,7 @@ TEST(EmissionConfig, ParseConfig)
         dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[0].rate_constant_.get());
     EXPECT_EQ(emission_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(emission_rate_constant->CustomParameters()[0], "EMIS.foo");
+    EXPECT_EQ(emission_rate_constant->parameters_.scaling_factor_, 1.0);
   }
 
   // second reaction
@@ -46,5 +47,14 @@ TEST(EmissionConfig, ParseConfig)
         dynamic_cast<micm::UserDefinedRateConstant*>(process_vector[1].rate_constant_.get());
     EXPECT_EQ(emission_rate_constant->SizeCustomParameters(), 1);
     EXPECT_EQ(emission_rate_constant->CustomParameters()[0], "EMIS.bar");
+    EXPECT_EQ(emission_rate_constant->parameters_.scaling_factor_, 2.5);
   }
+}
+
+TEST(EmissionConfig, DetectsNonstandardKeys)
+{
+  micm::SolverConfig solver_config;
+
+  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/emission/contains_nonstandard_key");
+  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
 }

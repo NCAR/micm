@@ -49,14 +49,14 @@ and run the rosenbrock solver.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 29-69
+  :lines: 26-63
 
 The main function simply reads the configuration file, sets the number of threads, and then sets up an OpenMP blcok
 with three threads. The function defined above is called on each thread.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 71-109
+  :lines: 65-107
 
 Running this program should give an output similar to this:
 

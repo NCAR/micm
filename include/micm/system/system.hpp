@@ -1,4 +1,4 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -84,7 +84,7 @@ namespace micm
     std::vector<std::string> UniqueNames() const;
 
     /// @brief Returns a set of unique species names
-    /// @param reordering Function used to apply specific order to unique names
+    /// @param f Function used to apply specific order to unique names
     /// @return vector of unique state variable names
     std::vector<std::string> UniqueNames(
         const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const;
@@ -92,10 +92,10 @@ namespace micm
 
   inline size_t System::StateSize() const
   {
-    size_t state_size = gas_phase_.species_.size();
+    size_t state_size = gas_phase_.StateSize();
     for (const auto& phase : phases_)
     {
-      state_size += phase.second.species_.size();
+      state_size += phase.second.StateSize();
     }
     return state_size;
   }
@@ -108,17 +108,11 @@ namespace micm
   inline std::vector<std::string> System::UniqueNames(
       const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const
   {
-    std::vector<std::string> names{};
-    for (auto& species : gas_phase_.species_)
-    {
-      names.push_back(species.name_);
-    }
+    std::vector<std::string> names = gas_phase_.UniqueNames();
     for (auto& phase : phases_)
     {
-      for (auto& species : phase.second.species_)
-      {
-        names.push_back(phase.first + "." + species.name_);
-      }
+      for (auto& species_name : phase.second.UniqueNames())
+        names.push_back(phase.first + "." + species_name);
     }
     if (f)
     {

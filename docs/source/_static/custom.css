@@ -27,6 +27,10 @@
   transition: background-color 0.3s;
 }
 
+.transparent-image > img {
+  background-color: unset !important;
+}
+
 .download-button:hover {
   background-color: #2980b9;
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 National Center for Atmospheric Research,
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
@@ -227,6 +227,12 @@ namespace micm
     ProxyRow operator[](std::size_t b)
     {
       return ProxyRow(*this, b);
+    }
+
+    SparseMatrix& operator=(T val)
+    {
+      std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto& _) { return val; });
+      return *this;
     }
 
     const std::vector<std::size_t>& RowStartVector() const

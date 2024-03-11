@@ -6,50 +6,6 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-// The Rosenbrock solver can use many matrix ordering types
-// Here, we use the default ordering, but we still need to provide a templated
-// Arguent to the solver so it can use the proper ordering with any data type
-template<class T>
-using SparseMatrixPolicy = SparseMatrix<T>;
-
-void print_header()
-{
-  std::cout << std::setw(5) << "time"
-            << "," << std::setw(5) << "grid"
-            << "," << std::setw(10) << "A"
-            << "," << std::setw(10) << "B"
-            << "," << std::setw(10) << "C" << std::endl;
-}
-
-template<template<class> class T>
-void print_state(double time, State<T>& state)
-{
-  std::ios oldState(nullptr);
-  oldState.copyfmt(std::cout);
-
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "1," << std::setw(10)
-            << state.variables_[0][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[0][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[0][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "2," << std::setw(10)
-            << state.variables_[1][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[1][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[1][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-  std::cout << std::setw(5) << time << ",";
-  std::cout << std::scientific << std::setprecision(2) << std::setw(6) << "3," << std::setw(10)
-            << state.variables_[2][state.variable_map_["A"]] << "," << std::setw(10)
-            << state.variables_[2][state.variable_map_["B"]] << "," << std::setw(10)
-            << state.variables_[2][state.variable_map_["C"]] << std::endl;
-
-  std::cout.copyfmt(oldState);
-}
-
 int main()
 {
   auto a = micm::Species("A");
@@ -76,13 +32,11 @@ int main()
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixPolicy> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3 },
-    micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false)
-  };
+  micm::RosenbrockSolver<> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                   std::vector<micm::Process>{ r1, r2, r3 },
+                                   micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
 
-  State<Matrix> state = solver.GetState();
+  auto state = solver.GetState();
 
   // mol m-3
   state.SetConcentration(a, std::vector<double>{ 1, 2, 0.5 });
@@ -110,8 +64,8 @@ int main()
   // choose a timestep and print the initial state
   double time_step = 200;  // s
 
-  print_header();
-  print_state(0, state);
+  state.PrintHeader();
+  state.PrintState(0);
 
   // solve for ten iterations
   for (int i = 0; i < 10; ++i)
@@ -128,7 +82,6 @@ int main()
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
     }
-
-    print_state(time_step * (i + 1), state);
+    state.PrintState(time_step * (i + 1));
   }
 }

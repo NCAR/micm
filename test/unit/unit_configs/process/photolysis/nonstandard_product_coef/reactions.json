@@ -1,0 +1,21 @@
+{
+  "camp-data": [
+    {
+      "name": "capital Y",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "PHOTOLYSIS",
+          "reactants": {
+            "foo" : { }
+          },
+          "products": {
+            "bar": { "Yield": 1.0 }
+          },
+          "MUSICA name": "jfoo"
+        }
+      ]
+    }
+  ]
+}

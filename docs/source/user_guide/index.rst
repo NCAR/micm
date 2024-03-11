@@ -30,7 +30,7 @@ If you would like to include the json examples, you must configure micm to build
 
 .. code-block:: console
   
-    $ cmake -DENABLE_JSON=ON ..
+    $ cmake -DMICM_ENABLE_JSON=ON ..
     $ make
     $ ./test_rate_constants_no_user_defined_example_with_config
     $ ./test_rate_constants_user_defined_example_with_config
@@ -40,9 +40,12 @@ If you would like to include the json examples, you must configure micm to build
    :maxdepth: 1
    :caption: Contents:
 
+   installation_and_usage
    rate_constant_tutorial
    user_defined_rate_constant_tutorial
    multiple_grid_cells
    solver_configurations
    but_how_fast_is_it
    openmp
+   jit
+   vectorized_matrix_solver

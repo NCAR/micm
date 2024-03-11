@@ -16,9 +16,9 @@ COPY . /micm/
 RUN mkdir /build \
       && cd /build \
       && cmake  \
-        -D ENABLE_CLANG_TIDY:BOOL=FALSE \
-        -D ENABLE_OPENMP:BOOL=TRUE \
-        -D ENABLE_JSON:BOOL=TRUE \
+        -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
+        -D MICM_ENABLE_OPENMP:BOOL=TRUE \
+        -D MICM_ENABLE_JSON:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

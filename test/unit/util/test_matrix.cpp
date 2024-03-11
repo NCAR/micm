@@ -97,3 +97,8 @@ TEST(Matrix, ForEach)
 {
   testForEach<micm::Matrix>();
 }
+
+TEST(Matrix, SetScaler)
+{
+  testSetScalar<micm::Matrix>();
+}

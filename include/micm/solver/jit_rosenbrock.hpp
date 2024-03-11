@@ -1,4 +1,4 @@
-/* Copyright (C) 2023 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -19,8 +19,10 @@
 #include <ctime>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
+#include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -30,8 +32,9 @@ namespace micm
   template<
       template<class> class MatrixPolicy = VectorMatrix,
       template<class> class SparseMatrixPolicy = VectorSparseMatrix,
-      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>>
-  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+      class LinearSolverPolicy = JitLinearSolver<MICM_DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
+      class ProcessSetPolicy = JitProcessSet<MICM_DEFAULT_VECTOR_SIZE>>
+  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
@@ -42,7 +45,7 @@ namespace micm
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(std::move(other)),
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(std::move(other)),
           compiler_(std::move(other.compiler_)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
@@ -52,7 +55,7 @@ namespace micm
 
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
-      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::operator=(std::move(other));
       compiler_ = std::move(other.compiler_);
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
@@ -68,12 +71,16 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
+        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(
               system,
               processes,
               parameters,
               [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
                 return LinearSolverPolicy{ compiler, matrix, initial_value };
+              },
+              [&](const std::vector<Process>& processes,
+                  const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
+                return ProcessSetPolicy{ compiler, processes, variable_map };
               }),
           compiler_(compiler)
     {
@@ -115,20 +122,10 @@ namespace micm
    private:
     void GenerateAlphaMinusJacobian()
     {
+      auto jacobian = this->GetState().jacobian_;
       // save sizes needed throughout the function
-      std::size_t n_cells = this->jacobian_.GroupVectorSize();
-      std::size_t number_of_nonzero_jacobian_elements = this->jacobian_.AsVector().size();
-
-      // Get the current timestamp using std::chrono::high_resolution_clock
-      std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
-      std::chrono::nanoseconds ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch());
-      long long timestamp = ns.count();
-
-      // Convert the timestamp to a string
-      std::string timestampStr = std::to_string(timestamp);
-
-      // Create the function name with the timestamp
-      std::string functionName = "alpha_minus_jacobian_" + timestampStr;
+      std::size_t n_cells = jacobian.GroupVectorSize();
+      std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
 
       // Create the JitFunction with the modified name
       JitFunction func = JitFunction::create(compiler_)
@@ -147,7 +144,7 @@ namespace micm
 
       // iterative over the blocks of the jacobian and add the alpha value
       // jacobian_vector[i_elem + i_cell] += alpha;
-      for (const auto& i_elem : this->jacobian_diagonal_elements_)
+      for (const auto& i_elem : this->state_parameters_.jacobian_diagonal_elements_)
       {
         llvm::Value* ptr_index[1];
 
