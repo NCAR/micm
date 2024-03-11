@@ -23,13 +23,16 @@ jobs:
           - Dockerfile.no_json
           - Dockerfile.nvhpc
           - Dockerfile.openmp
-          # - Dockerfile.intel # intel image is too large for GH action
+          - Dockerfile.intel # intel image is too large for GH action
           # - Dockerfile.mpi
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
 
       - name: Build Docker image
         run: docker build -t micm -f docker/${{ matrix.dockerfile }} .
