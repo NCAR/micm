@@ -38,6 +38,7 @@ jobs:
         run: docker build -t micm -f docker/${{ matrix.dockerfile }} .
 
       - name: Run tests in container
+        # only run this if we are not running coverage tests or have built the cuda files
         if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
 
