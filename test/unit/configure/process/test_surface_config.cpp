@@ -61,7 +61,7 @@ TEST(SurfaceConfig, ParseConfig)
     EXPECT_EQ(surface_rate_constant->CustomParameters()[1], "SURF.kbar.particle number concentration [# m-3]");
     EXPECT_EQ(surface_rate_constant->parameters_.reaction_probability_, 0.5);
     EXPECT_EQ(surface_rate_constant->diffusion_coefficient_, 0.4e-5);
-    EXPECT_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * GAS_CONSTANT / (M_PI * 0.321));
+    EXPECT_DOUBLE_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * GAS_CONSTANT / (M_PI * 0.321));
   }
 }
 

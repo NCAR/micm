@@ -79,7 +79,7 @@ TEST(BranchedConfig, ParseConfig)
     micm::BranchedRateConstant* branched_rate_constant =
         dynamic_cast<micm::BranchedRateConstant*>(process_vector[2].rate_constant_.get());
     auto& params = branched_rate_constant->parameters_;
-    EXPECT_EQ(params.X_, 0.32 * conv);
+    EXPECT_DOUBLE_EQ(params.X_, 0.32 * conv);
     EXPECT_EQ(params.Y_, 2.3e8);
     EXPECT_EQ(params.a0_, 0.423);
     EXPECT_EQ(params.n_, 6);
@@ -97,7 +97,7 @@ TEST(BranchedConfig, ParseConfig)
     micm::BranchedRateConstant* branched_rate_constant =
         dynamic_cast<micm::BranchedRateConstant*>(process_vector[3].rate_constant_.get());
     auto& params = branched_rate_constant->parameters_;
-    EXPECT_EQ(params.X_, 0.32 * conv);
+    EXPECT_DOUBLE_EQ(params.X_, 0.32 * conv);
     EXPECT_EQ(params.Y_, 2.3e8);
     EXPECT_EQ(params.a0_, 0.423);
     EXPECT_EQ(params.n_, 6);

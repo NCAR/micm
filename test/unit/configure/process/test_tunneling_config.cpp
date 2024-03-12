@@ -41,7 +41,7 @@ TEST(TunnelingConfig, ParseConfig)
     micm::TunnelingRateConstant* tunneling_rate_constant =
         dynamic_cast<micm::TunnelingRateConstant*>(process_vector[0].rate_constant_.get());
     auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 1.0 * conv * conv);
+    EXPECT_DOUBLE_EQ(params.A_, 1.0 * conv * conv);
     EXPECT_EQ(params.B_, 0.0);
     EXPECT_EQ(params.C_, 0.0);
   }
@@ -59,7 +59,7 @@ TEST(TunnelingConfig, ParseConfig)
     micm::TunnelingRateConstant* tunneling_rate_constant =
         dynamic_cast<micm::TunnelingRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = tunneling_rate_constant->parameters_;
-    EXPECT_EQ(params.A_, 32.1 * conv);
+    EXPECT_DOUBLE_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, 102.3);
   }
