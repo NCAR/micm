@@ -38,7 +38,7 @@ jobs:
         run: docker build -t micm -f docker/${{ matrix.dockerfile }} .
 
       - name: Run tests in container
-        if: matrix.dockerfile != 'Dockerfile.coverage' and matrix.dockerfile != 'Dockerfile.nvhpc'
+        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
 
       - name: Run coverage tests in container
