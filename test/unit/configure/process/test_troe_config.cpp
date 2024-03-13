@@ -68,7 +68,7 @@ TEST(TroeConfig, ParseConfig)
     EXPECT_DOUBLE_EQ(params.k0_A_, 32.1 * std::pow(conv, 2));
     EXPECT_EQ(params.k0_B_, -2.3);
     EXPECT_EQ(params.k0_C_, 102.3);
-    EXPECT_DOUBLE_EQ(params.kinf_A_, 63.4 * conv);
+    EXPECT_EQ(params.kinf_A_, 63.4 * conv);
     EXPECT_EQ(params.kinf_B_, -1.3);
     EXPECT_EQ(params.kinf_C_, 908.5);
     EXPECT_EQ(params.Fc_, 1.3);

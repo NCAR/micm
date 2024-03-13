@@ -68,7 +68,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
-      EXPECT_DOUBLE_EQ(state.rate_constants_[i_cell][i_rxn], expected_rate_constants[i_cell][i_rxn])
+      EXPECT_EQ(state.rate_constants_[i_cell][i_rxn], expected_rate_constants[i_cell][i_rxn])
           << "grid cell " << i_cell << "; reaction " << i_rxn;
 }
 

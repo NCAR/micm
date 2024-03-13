@@ -43,7 +43,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[0].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_DOUBLE_EQ(params.A_, 1.0 * conv * conv);
+    EXPECT_EQ(params.A_, 1.0 * conv * conv);
     EXPECT_EQ(params.B_, 0.0);
     EXPECT_EQ(params.C_, 0.0);
     EXPECT_EQ(params.D_, 300);
@@ -63,7 +63,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_DOUBLE_EQ(params.A_, 32.1 * conv);
+    EXPECT_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, 102.3);
     EXPECT_EQ(params.D_, 63.4);
@@ -83,7 +83,7 @@ TEST(ArrheniusConfig, ParseConfig)
     micm::ArrheniusRateConstant* ternary_rate_constant =
         dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[2].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_DOUBLE_EQ(params.A_, 32.1 * conv);
+    EXPECT_EQ(params.A_, 32.1 * conv);
     EXPECT_EQ(params.B_, -2.3);
     EXPECT_EQ(params.C_, -1 * 2e23 / BOLTZMANN_CONSTANT);
     EXPECT_EQ(params.D_, 63.4);

@@ -150,11 +150,11 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
     arrhenius_rate_const = dynamic_cast<micm::ArrheniusRateConstant*>(process_vector[i].rate_constant_.get());
 
     EXPECT_TRUE(arrhenius_rate_const != nullptr);
-    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.A_, A_param[i - 3]);
-    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.B_, B_param[i - 3]);
-    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.C_, C_param[i - 3]);
-    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.D_, D_param[i - 3]);
-    EXPECT_DOUBLE_EQ(arrhenius_rate_const->parameters_.E_, E_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.A_, A_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.B_, B_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.C_, C_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.D_, D_param[i - 3]);
+    EXPECT_EQ(arrhenius_rate_const->parameters_.E_, E_param[i - 3]);
   }
 
   // Check the number of custom parameters of 'rate constant' in each 'Process'

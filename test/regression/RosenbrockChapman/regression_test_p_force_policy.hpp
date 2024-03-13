@@ -39,7 +39,7 @@ void testRateConstants(OdeSolverPolicy& solver)
     EXPECT_EQ(state.rate_constants_[i].size(), fixed_state.rate_constants_[0].size());
     for (size_t j{}; j < state.rate_constants_[i].size(); ++j)
     {
-      EXPECT_DOUBLE_EQ(state.rate_constants_[i][j], fixed_state.rate_constants_[0][j]);
+      EXPECT_EQ(state.rate_constants_[i][j], fixed_state.rate_constants_[0][j]);
     }
   }
 }
