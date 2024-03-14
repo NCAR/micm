@@ -144,6 +144,10 @@ namespace micm
     {
       return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
     }
+    cublasHandle_t AsCublasHandel() const
+    {
+      return this->handle_;
+    }
     /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x

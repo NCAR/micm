@@ -5,6 +5,7 @@
 #include <iostream>
 #include <micm/util/cuda_param.hpp>
 #include <vector>
+#include "cublas_v2.h"
 
 namespace micm
 {
@@ -45,14 +46,14 @@ namespace micm
     // CUDA kernel to compute the scaled norm of the vector errors
     // Modified version from NVIDIA's reduction example: https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
     __global__ void NormalizedErrorKernel(
-        double* d_y_old,
-        double* d_y_new,
-        double* d_errors,
-        double* d_errors_tmp,
-        const size_t n,
-        const double atol,
-        const double rtol,
-        bool is_first_call)
+      double* d_y_old,
+      double* d_y_new,
+      double* d_errors,
+      double* d_errors_tmp,
+      const size_t n,
+      const double atol,
+      const double rtol,
+      bool is_first_call)
     {
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
@@ -107,6 +108,29 @@ namespace micm
       if (l_tid == 0) d_errors_tmp[blockIdx.x] = sdata[0];
     }
 
+    // CUDA kernel to compute the scaled vectors; prepare the input for cublas call later
+    __global__ void ScaledErrorKernel(
+      double* d_y_old,
+      double* d_y_new,
+      double* d_errors,
+      const size_t n_grids,
+      const double atol,
+      const double rtol)
+    {
+      // Temporary device variables
+      double d_ymax, d_scale;
+
+      // Global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
+      if (tid < n_grids)
+      {
+        d_ymax = max(fabs(d_y_old[tid]), fabs(d_y_new[tid]));
+        d_scale = atol + rtol * d_ymax;
+        d_errors[tid] = d_errors[tid] / d_scale;
+      }
+    }
+    
     std::chrono::nanoseconds AlphaMinusJacobianDriver(
         CudaSparseMatrixParam& sparseMatrix,
         const std::vector<size_t> jacobian_diagonal_elements,
@@ -142,49 +166,73 @@ namespace micm
 
     double NormalizedErrorDriver(double* d_y_old, double* d_y_new, 
                                  double* d_errors, const size_t num_elements,
-                                 const double atol, const double rtol)
+                                 const double atol, const double rtol,
+                                 cublasHandle_t handle)
     {
-      size_t num_blocks = std::ceil(std::ceil(num_elements*1.0/BLOCK_SIZE) / 2.0);
-      num_blocks = num_blocks < 1 ? 1 : num_blocks; 
-      size_t new_blocks;
-      bool is_first_call;
-      
-      // Local device pointer
-      double* d_errors_tmp;
-      cudaMalloc(&d_errors_tmp, sizeof(double) * num_blocks);
-
-      is_first_call = true;
-      // Kernel call: the "d_errors" vector will be overwritten by the reduction operation,
-      //              if not desired, then we need another temporary device pointer
-      NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors,
-                                                                                   d_errors_tmp, num_elements,
-                                                                                   atol, rtol, is_first_call);
-
-      is_first_call = false;
-      while (num_blocks > 1)
-      {
-        std::swap(d_errors, d_errors_tmp);
-        // Update grid size
-        new_blocks = std::ceil(std::ceil(num_blocks*1.0/BLOCK_SIZE) / 2.0);
-        if (new_blocks <= 1)
-        {
-            NormalizedErrorKernel<<<1, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
-                                                                                d_errors_tmp, num_blocks,
-                                                                                atol, rtol, is_first_call);
-            break;
-        }
-        NormalizedErrorKernel<<<new_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
-                                                                                     d_errors_tmp, num_blocks,
-                                                                                     atol, rtol, is_first_call);
-        num_blocks = new_blocks;
-      }
-      cudaDeviceSynchronize();
-
       double error;
-      cudaMemcpy(&error, &d_errors_tmp[0], sizeof(double), cudaMemcpyDeviceToHost);
-      cudaFree(d_errors_tmp);
 
-      return std::max(std::sqrt(error / num_elements), 1.0e-10);
-    }
+      auto startTime = std::chrono::high_resolution_clock::now();
+      if ( num_elements > 1000000 )
+      {
+        // call cublas APIs
+        size_t num_blocks = (num_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        ScaledErrorKernel<<<num_blocks, BLOCK_SIZE>>>(d_y_old, d_y_new, d_errors, num_elements, atol, rtol);
+        // call cublas function to perform the norm: https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
+        cublasStatus_t stat = cublasDnrm2(handle, num_elements, d_errors, 1, &error);
+        if (stat != CUBLAS_STATUS_SUCCESS) {
+          printf (cublasGetStatusString(stat));
+          throw std::runtime_error("Error while calling cublasDnrm2.");
+        }
+        error = error * std::sqrt(1.0 / num_elements);
+      }
+      else
+      {
+        // call CUDA implementation
+        size_t num_blocks = std::ceil(std::ceil(num_elements*1.0/BLOCK_SIZE) / 2.0);
+        num_blocks = num_blocks < 1 ? 1 : num_blocks; 
+        size_t new_blocks;
+        bool is_first_call;
+        
+        // Local device pointer
+        double* d_errors_tmp;
+        cudaMalloc(&d_errors_tmp, sizeof(double) * num_blocks);
+
+        is_first_call = true;
+        // Kernel call: the "d_errors" vector will be overwritten by the reduction operation,
+        //              if not desired, then we need another temporary device pointer
+        NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors,
+                                                                                    d_errors_tmp, num_elements,
+                                                                                    atol, rtol, is_first_call);
+
+        is_first_call = false;
+        while (num_blocks > 1)
+        {
+          std::swap(d_errors, d_errors_tmp);
+          // Update grid size
+          new_blocks = std::ceil(std::ceil(num_blocks*1.0/BLOCK_SIZE) / 2.0);
+          if (new_blocks <= 1)
+          {
+              NormalizedErrorKernel<<<1, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
+                                                                                  d_errors_tmp, num_blocks,
+                                                                                  atol, rtol, is_first_call);
+              break;
+          }
+          NormalizedErrorKernel<<<new_blocks, BLOCK_SIZE, BLOCK_SIZE*sizeof(double)>>>(d_y_old, d_y_new, d_errors, 
+                                                                                      d_errors_tmp, num_blocks,
+                                                                                      atol, rtol, is_first_call);
+          num_blocks = new_blocks;
+        }
+        cudaDeviceSynchronize();
+
+        cudaMemcpy(&error, &d_errors_tmp[0], sizeof(double), cudaMemcpyDeviceToHost);
+        error = std::sqrt(error / num_elements);
+
+        cudaFree(d_errors_tmp);
+      } // end of if-else for CUDA/CUBLAS implementation
+      auto endTime = std::chrono::high_resolution_clock::now();
+      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+      std::cout << "num_elements = " << num_elements << ", cublas time " << kernel_duration.count() << " ns" << std::endl;
+      return std::max(error, 1.0e-10);
+    } // end of NormalizedErrorDriver function
   }  // namespace cuda
 }  // namespace micm

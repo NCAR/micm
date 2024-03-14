@@ -98,7 +98,9 @@ namespace micm
       {
         throw std::runtime_error("The number of elements in y_old, y_new and errors must be the same.");
       }
-      return micm::cuda::NormalizedErrorDriver(d_y_old, d_y_new, d_errors, num_elements, atol, rtol);
+      // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
+      return micm::cuda::NormalizedErrorDriver(d_y_old, d_y_new, d_errors, num_elements,
+                                               atol, rtol, errors.AsCublasHandel());
     }
 
   };  // end CudaRosenbrockSolver

@@ -4,6 +4,8 @@
 #include <chrono>
 #include <micm/util/cuda_param.hpp>
 #include <vector>
+#include "cublas_v2.h"
+
 namespace micm{
     namespace cuda{
       /// @brief Compute alpha - J[i] for each element i at the diagnoal of matrix J
@@ -23,9 +25,11 @@ namespace micm{
       /// @param num_elements number of elements in the vectors
       /// @param atol absolute tolerance to be used in the error computation for a particular Rosenbrock solver
       /// @param rtol relative tolerance to be used in the error computation for a particular Rosenbrock solver
+      /// @param handle cublas handle
       /// @return the scaled norm of the vector errors
       double NormalizedErrorDriver(double* d_y_old, double* d_y_new, 
                                    double* d_errors, const size_t num_elements,
-                                   const double atol, const double rtol);
+                                   const double atol, const double rtol,
+                                   cublasHandle_t handle);
     }//end cuda
 }//end micm
