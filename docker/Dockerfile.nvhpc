@@ -28,26 +28,17 @@ ENV FC=nvfortran
 # Micm
 COPY . /micm/
 
-# build the library and run the tests
-RUN mkdir /build \
-      && cd /build \ 
-      && cmake \
-        -D CMAKE_BUILD_TYPE=release \
-        ../micm \
-      && make -j 8 install
-
-
 # copy headers needed for cublas to /usr/include
 RUN cp -r /opt/nvidia/hpc_sdk/*/23.7/cuda/include/* /usr/include/
 
 # build the library and run the tests
-RUN mkdir /cuda_build \
-      && cd /cuda_build \ 
+RUN mkdir /build \
+      && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=debug \
         -D MICM_ENABLE_CUDA=ON \
         -D MICM_GPU_TYPE="a100" \
         ../micm \
-      && make -j 8 install
+      && make
 
 WORKDIR /build
