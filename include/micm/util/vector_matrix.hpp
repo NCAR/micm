@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/profiler/instrumentation.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -219,6 +220,8 @@ namespace micm
 
     void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
+      MICM_PROFILE_FUNCTION();
+
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
@@ -232,6 +235,8 @@ namespace micm
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
+      MICM_PROFILE_FUNCTION();
+
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();

@@ -4,8 +4,8 @@
 #pragma once
 
 #include <cassert>
-#include <micm/debug/profiler.hpp>
 #include <micm/process/process.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>

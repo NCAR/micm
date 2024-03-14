@@ -14,11 +14,6 @@ namespace micm
     decompositions = 0;
     solves = 0;
     singular = 0;
-    total_update_state_time = std::chrono::nanoseconds::zero();
-    total_forcing_time = std::chrono::nanoseconds::zero();
-    total_jacobian_time = std::chrono::nanoseconds::zero();
-    total_linear_factor_time = std::chrono::nanoseconds::zero();
-    total_linear_solve_time = std::chrono::nanoseconds::zero();
   }
 
   inline std::string StateToString(const SolverState& state)

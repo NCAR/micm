@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <functional>
-#include <micm/debug/profiler.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>

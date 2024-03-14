@@ -39,6 +39,7 @@ option(MICM_ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
+option(MICM_ENABLE_PROFILE "Build the instrumentation" ON)
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
@@ -114,9 +115,16 @@ if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_EXAMPLES AND MICM_ENABLE_JSON)
 endif()
 
 ################################################################################
+# Command-line profiler
+
+if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_PROFILE AND MICM_ENABLE_JSON)
+  add_subdirectory(profiling)
+endif()
+
+################################################################################
 # Copy configuration data
 
-if(PROJECT_IS_TOP_LEVEL AND (MICM_ENABLE_TESTS OR MICM_ENABLE_EXAMPLES))
+if(PROJECT_IS_TOP_LEVEL AND (MICM_ENABLE_TESTS OR MICM_ENABLE_EXAMPLES OR MICM_ENABLE_PROFILE))
   add_custom_target(copy_example_configs ALL ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/examples/configs ${CMAKE_BINARY_DIR}/examples/configs)
 endif()
