@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: If you use this software, please cite it as below.
-title: NCAR/micm: v3.3.1
+title: Model Independent Chemistry Model (MICM)
 version: v3.3.1
 doi: "10.5281/zenodo.10472189"
 authors:
