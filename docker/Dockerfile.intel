@@ -28,7 +28,6 @@ RUN mkdir /build \
       && cd /build \ 
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
-        # -D CMAKE_CXX_FLAGS_DEBUG="-g -Rno-debug-disables-optimization" \
         ../micm \
       && make -j 8 install
 

@@ -17,6 +17,19 @@ target_include_directories(micm
     $<INSTALL_INTERFACE:include>
 )
 
+# Check for Intel compiler
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  # Set compiler flags for Intel C++
+  if (WIN32)
+    # For Windows
+    target_compile_options(micm INTERFACE "/fp:precise")
+  else ()
+    # For other operating systems (e.g., Linux, macOS)
+    target_compile_options(micm INTERFACE "-ffp-model=precise")
+  endif ()
+endif ()
+
+
 if(MICM_ENABLE_JSON)
   target_link_libraries(micm INTERFACE nlohmann_json::nlohmann_json)
   target_compile_definitions(micm INTERFACE USE_JSON)
