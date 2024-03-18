@@ -5,7 +5,9 @@ version: v3.3.1
 doi: "10.5281/zenodo.10472189"
 authors:
   - family-names: Dawson
-    given-names: Matt
+    given-names: Matthew
+  - family-names: Sun
+    given-names: Jian
   - family-names: Shores
     given-names: Kyle
   - family-names: Fillmore
