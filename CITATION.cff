@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: NCAR/micm: v3.3.1
+version: v3.3.1
+doi: "10.5281/zenodo.10472189"
+authors:
+  - family-names: Dawson
+    given-names: Matt
+  - family-names: Shores
+    given-names: Kyle
+  - family-names: Fillmore
+    given-names: David
+  - family-names: Tan
+    given-names: Qina
+  - family-names: Craig
+    given-names: Cheryl
+  - family-names: Gim
+    given-names: Jiwon
+  - family-names: Vitt
+    given-names: Francis
+  - family-names: Conley
+    given-names: Andrew
+  - family-names: Karsenti
+    given-names: Aharon
+license: Apache-2.0
+url: "https://github.com/NCAR/micm"
