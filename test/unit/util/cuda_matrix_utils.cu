@@ -29,7 +29,7 @@ namespace micm
 
       void AddOneDriver(CudaVectorMatrixParam& param)
       {
-        AddOne<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
+        AddOne<<<param.num_elements_, BLOCK_SIZE>>>(param.d_data_, param.num_elements_);
       }
     }
 }
