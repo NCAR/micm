@@ -80,7 +80,7 @@ public:
     }
     int CopyToHost()
     {
-      return micm::cuda::CopyToDevice(param_, this->data_);
+      return micm::cuda::CopyToHost(param_, this->data_);
     }
     CudaVectorMatrixParam AsDeviceParam()
     {
