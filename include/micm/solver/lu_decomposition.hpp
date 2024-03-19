@@ -41,7 +41,7 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not suppor easy retrieval of memory address using data() function.
+    /// does not support easy retrieval of memory address using data() function.
     std::vector<char> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
