@@ -13,6 +13,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
@@ -110,6 +111,8 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+    
     for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
@@ -133,6 +136,8 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+    
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();

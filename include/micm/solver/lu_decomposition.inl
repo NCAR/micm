@@ -11,6 +11,8 @@ namespace micm
   template<typename T, typename OrderingPolicy>
   inline LuDecomposition::LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::size_t n = matrix[0].size();
     auto LU = GetLUMatrices(matrix, T{});
     const auto& L_row_start = LU.first.RowStartVector();
@@ -87,6 +89,8 @@ namespace micm
       const SparseMatrix<T, OrderingPolicy>& A,
       T initial_value)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::size_t n = A[0].size();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
     const auto& row_start = A.RowStartVector();
@@ -157,6 +161,8 @@ namespace micm
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
       const
   {
+    MICM_PROFILE_FUNCTION();
+
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
     {
@@ -216,6 +222,8 @@ namespace micm
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
       const
   {
+    MICM_PROFILE_FUNCTION();
+
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
     {
