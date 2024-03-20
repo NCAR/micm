@@ -32,8 +32,8 @@ namespace micm
   template<
       template<class> class MatrixPolicy = VectorMatrix,
       template<class> class SparseMatrixPolicy = VectorSparseMatrix,
-      class LinearSolverPolicy = JitLinearSolver<DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
-      class ProcessSetPolicy = JitProcessSet<DEFAULT_VECTOR_SIZE>>
+      class LinearSolverPolicy = JitLinearSolver<MICM_DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
+      class ProcessSetPolicy = JitProcessSet<MICM_DEFAULT_VECTOR_SIZE>>
   class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;

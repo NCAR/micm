@@ -3,43 +3,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <chrono>
-#include <iostream>
 #include <micm/util/cuda_param.hpp>
-#include <vector>
-struct SolveDevice
-{
-  std::pair<size_t, size_t>* nLij_Lii_;
-  std::pair<size_t, size_t>* Lij_yj_;
-  std::pair<size_t, size_t>* nUij_Uii_;
-  std::pair<size_t, size_t>* Uij_xj_;
-  double* lower_matrix_;
-  double* upper_matrix_;
-  double* b_;
-  double* x_;
-};
+
 namespace micm
 {
   namespace cuda
   {
+    /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void SolveKernel(
-        SolveDevice* device,
+        double* d_lower_matrix,
+        double* d_upper_matrix,
+        double* d_b,
+        double* d_x,
+        LinearSolverParam devstruct,
         size_t n_grids,
         size_t b_column_counts,
-        size_t x_column_counts,
-        size_t nLij_Lii_size,
-        size_t nUij_Uii_size)
+        size_t x_column_counts)
     {
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-      double* b = device->b_;
-      double* x = device->x_;
-      double* y = device->x_;  // Alias x for consistency with equation, but to reuse memory
-      double* lower_matrix = device->lower_matrix_;
-      double* upper_matrix = device->upper_matrix_;
-      std::pair<size_t, size_t>* nLij_Lii = device->nLij_Lii_;
-      std::pair<size_t, size_t>* Lij_yj = device->Lij_yj_;
-      std::pair<size_t, size_t>* nUij_Uii = device->nUij_Uii_;
-      std::pair<size_t, size_t>* Uij_xj = device->Uij_xj_;
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
+      std::pair<size_t, size_t>* d_nLij_Lii = devstruct.nLij_Lii_;
+      std::pair<size_t, size_t>* d_Lij_yj = devstruct.Lij_yj_;
+      std::pair<size_t, size_t>* d_nUij_Uii = devstruct.nUij_Uii_;
+      std::pair<size_t, size_t>* d_Uij_xj = devstruct.Uij_xj_;
+      size_t nLij_Lii_size = devstruct.nLij_Lii_size_;
+      size_t nUij_Uii_size = devstruct.nUij_Uii_size_;
 
       if (tid < n_grids)
       {
@@ -53,30 +41,30 @@ namespace micm
 
         for (size_t j = 0; j < nLij_Lii_size; ++j)
         {
-          auto& nLij_Lii_element = nLij_Lii[j];
-          y[y_column_index * n_grids + tid] = b[b_column_index++ * n_grids + tid];
+          auto& nLij_Lii_element = d_nLij_Lii[j];
+          d_y[y_column_index * n_grids + tid] = d_b[b_column_index++ * n_grids + tid];
           for (size_t i = 0; i < nLij_Lii_element.first; ++i)
           {
-            size_t lower_matrix_index = Lij_yj[Lij_yj_index].first + tid;
-            size_t y_index = Lij_yj[Lij_yj_index].second * n_grids + tid;
-            y[y_column_index * n_grids + tid] -= lower_matrix[lower_matrix_index] * y[y_index];
+            size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
+            size_t y_index = d_Lij_yj[Lij_yj_index].second * n_grids + tid;
+            d_y[y_column_index * n_grids + tid] -= d_lower_matrix[lower_matrix_index] * d_y[y_index];
             ++Lij_yj_index;
           }
-          y[y_column_index++ * n_grids + tid] /= lower_matrix[nLij_Lii_element.second + tid];
+          d_y[y_column_index++ * n_grids + tid] /= d_lower_matrix[nLij_Lii_element.second + tid];
         }
 
         for (size_t k = 0; k < nUij_Uii_size; ++k)
         {
-          auto& nUij_Uii_element = nUij_Uii[k];
+          auto& nUij_Uii_element = d_nUij_Uii[k];
 
           for (size_t i = 0; i < nUij_Uii_element.first; ++i)
           {
-            size_t upper_matrix_index = Uij_xj[Uij_xj_index].first + tid;
-            size_t x_index = Uij_xj[Uij_xj_index].second * n_grids + tid;
-            x[x_column_backward_index * n_grids + tid] -= upper_matrix[upper_matrix_index] * x[x_index];
+            size_t upper_matrix_index = d_Uij_xj[Uij_xj_index].first + tid;
+            size_t x_index = d_Uij_xj[Uij_xj_index].second * n_grids + tid;
+            d_x[x_column_backward_index * n_grids + tid] -= d_upper_matrix[upper_matrix_index] * d_x[x_index];
             ++Uij_xj_index;
           }
-          x[x_column_backward_index * n_grids + tid] /= upper_matrix[nUij_Uii_element.second + tid];
+          d_x[x_column_backward_index * n_grids + tid] /= d_upper_matrix[nUij_Uii_element.second + tid];
 
           if (x_column_backward_index != 0)
           {
@@ -85,54 +73,64 @@ namespace micm
         }
       }
     }
-    std::chrono::nanoseconds
-    SolveKernelDriver(CudaLinearSolverParam& linearSolver, CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix)
+
+    /// This is the function that will copy the constant data
+    ///   members of class "CudaLinearSolver" to the device
+    LinearSolverParam CopyConstData(LinearSolverParam& hoststruct)
     {
-      // create device pointer
-      std::pair<size_t, size_t>* d_nLij_Lii;
-      std::pair<size_t, size_t>* d_Lij_yj;
-      std::pair<size_t, size_t>* d_nUij_Uii;
-      std::pair<size_t, size_t>* d_Uij_xj;
+      /// Calculate the memory space of each constant data member
+      size_t nLij_Lii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nLij_Lii_size_;
+      size_t Lij_yj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Lij_yj_size_;
+      size_t nUij_Uii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nUij_Uii_size_;
+      size_t Uij_xj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Uij_xj_size_;
+
+      /// Create a struct whose members contain the addresses in the device memory.
+      LinearSolverParam devstruct;
+      cudaMalloc(&(devstruct.nLij_Lii_), nLij_Lii_bytes);
+      cudaMalloc(&(devstruct.Lij_yj_), Lij_yj_bytes);
+      cudaMalloc(&(devstruct.nUij_Uii_), nUij_Uii_bytes);
+      cudaMalloc(&(devstruct.Uij_xj_), Uij_xj_bytes);
+
+      /// Copy the data from host to device
+      cudaMemcpy(devstruct.nLij_Lii_, hoststruct.nLij_Lii_, nLij_Lii_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.Lij_yj_, hoststruct.Lij_yj_, Lij_yj_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.nUij_Uii_, hoststruct.nUij_Uii_, nUij_Uii_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.Uij_xj_, hoststruct.Uij_xj_, Uij_xj_bytes, cudaMemcpyHostToDevice);
+
+      devstruct.nLij_Lii_size_ = hoststruct.nLij_Lii_size_;
+      devstruct.Lij_yj_size_ = hoststruct.Lij_yj_size_;
+      devstruct.nUij_Uii_size_ = hoststruct.nUij_Uii_size_;
+      devstruct.Uij_xj_size_ = hoststruct.Uij_xj_size_;
+
+      return devstruct;
+    }
+
+    /// This is the function that will delete the constant data
+    ///   members of class "CudaLinearSolver" on the device
+    void FreeConstData(LinearSolverParam& devstruct)
+    {
+      cudaFree(devstruct.nLij_Lii_);
+      cudaFree(devstruct.Lij_yj_);
+      cudaFree(devstruct.nUij_Uii_);
+      cudaFree(devstruct.Uij_xj_);
+    }
+
+    std::chrono::nanoseconds
+    SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix, const LinearSolverParam& devstruct)
+    {
+      /// Create device pointers
       double* d_lower_matrix;
       double* d_upper_matrix;
       double* d_b;
       double* d_x;
-      SolveDevice* device;
 
-      // allocate device memory
-      cudaMalloc(&d_nLij_Lii, sizeof(std::pair<size_t, size_t>) * linearSolver.nLij_Lii_size_);
-      cudaMalloc(&d_Lij_yj, sizeof(std::pair<size_t, size_t>) * linearSolver.Lij_yj_size_);
-      cudaMalloc(&d_nUij_Uii, sizeof(std::pair<size_t, size_t>) * linearSolver.nUij_Uii_size_);
-      cudaMalloc(&d_Uij_xj, sizeof(std::pair<size_t, size_t>) * linearSolver.Uij_xj_size_);
-
+      /// Allocate device memory
       cudaMalloc(&d_lower_matrix, sizeof(double) * sparseMatrix.lower_matrix_size_);
       cudaMalloc(&d_upper_matrix, sizeof(double) * sparseMatrix.upper_matrix_size_);
       cudaMalloc(&d_b, sizeof(double) * denseMatrix.b_size_);
       cudaMalloc(&d_x, sizeof(double) * denseMatrix.x_size_);
-      cudaMalloc(&device, sizeof(SolveDevice));
 
-      // transfer memory from host to device
-      cudaMemcpy(
-          d_nLij_Lii,
-          linearSolver.nLij_Lii_,
-          sizeof(std::pair<size_t, size_t>) * linearSolver.nLij_Lii_size_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_Lij_yj,
-          linearSolver.Lij_yj_,
-          sizeof(std::pair<size_t, size_t>) * linearSolver.Lij_yj_size_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_nUij_Uii,
-          linearSolver.nUij_Uii_,
-          sizeof(std::pair<size_t, size_t>) * linearSolver.nUij_Uii_size_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_Uij_xj,
-          linearSolver.Uij_xj_,
-          sizeof(std::pair<size_t, size_t>) * linearSolver.Uij_xj_size_,
-          cudaMemcpyHostToDevice);
-
+      /// Copy data from host to device
       cudaMemcpy(
           d_lower_matrix,
           sparseMatrix.lower_matrix_,
@@ -146,41 +144,32 @@ namespace micm
       cudaMemcpy(d_b, denseMatrix.b_, sizeof(double) * denseMatrix.b_size_, cudaMemcpyHostToDevice);
       cudaMemcpy(d_x, denseMatrix.x_, sizeof(double) * denseMatrix.x_size_, cudaMemcpyHostToDevice);
 
-      cudaMemcpy(&(device->nLij_Lii_), &d_nLij_Lii, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->Lij_yj_), &d_Lij_yj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->nUij_Uii_), &d_nUij_Uii, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->Uij_xj_), &d_Uij_xj, sizeof(std::pair<size_t, size_t>*), cudaMemcpyHostToDevice);
-
-      cudaMemcpy(&(device->lower_matrix_), &d_lower_matrix, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->upper_matrix_), &d_upper_matrix, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->b_), &d_b, sizeof(double*), cudaMemcpyHostToDevice);
-      cudaMemcpy(&(device->x_), &d_x, sizeof(double*), cudaMemcpyHostToDevice);
-
-      // kernel call
       size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+      /// Call CUDA kernel and measure the execution time
       auto startTime = std::chrono::high_resolution_clock::now();
       SolveKernel<<<num_block, BLOCK_SIZE>>>(
-          device,
+          d_lower_matrix,
+          d_upper_matrix,
+          d_b,
+          d_x,
+          devstruct,
           denseMatrix.n_grids_,
           denseMatrix.b_column_counts_,
-          denseMatrix.x_column_counts_,
-          linearSolver.nLij_Lii_size_,
-          linearSolver.nUij_Uii_size_);
+          denseMatrix.x_column_counts_);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+
+      /// Copy the data from device to host
       cudaMemcpy(denseMatrix.x_, d_x, sizeof(double) * denseMatrix.x_size_, cudaMemcpyDeviceToHost);
 
-      // clean up
-      cudaFree(d_nLij_Lii);
-      cudaFree(d_Lij_yj);
-      cudaFree(d_nUij_Uii);
-      cudaFree(d_Uij_xj);
+      /// Clean up
       cudaFree(d_lower_matrix);
       cudaFree(d_upper_matrix);
       cudaFree(d_b);
       cudaFree(d_x);
-      cudaFree(device);
+
       return kernel_duration;
     }
   }  // namespace cuda

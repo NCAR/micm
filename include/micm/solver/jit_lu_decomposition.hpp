@@ -16,7 +16,7 @@ namespace micm
   ///
   /// See LuDecomposition class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L = DEFAULT_VECTOR_SIZE>
+  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class JitLuDecomposition : public LuDecomposition
   {
     std::shared_ptr<JitCompiler> compiler_;

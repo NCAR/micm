@@ -63,7 +63,7 @@ From the root directory of micm:
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 
 
@@ -77,7 +77,7 @@ Venv
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 
 
@@ -91,6 +91,6 @@ Conda
   cd docs 
   pip install -r requirements.txt
   cd .. && mkdir build && cd build
-  cmake -DBUILD_DOCS=ON ..
+  cmake -DMICM_BUILD_DOCS=ON ..
   make docs
   open docs/sphinx/index.html 
