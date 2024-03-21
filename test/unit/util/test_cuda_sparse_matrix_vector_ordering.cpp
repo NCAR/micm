@@ -8,11 +8,18 @@
 
 TEST(CudaSparseVectorMatrix, ZeroMatrix)
 {
-  auto matrix = testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<2>>();
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
+                     .with_element(0, 0)
+                     .with_element(1, 1)
+                     .initial_value(0.0);
+
+  micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
   matrix.CopyToDevice();
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
+
+  EXPECT_EQ(matrix.AsVector().size(), 2);
 
   for(auto& elem : matrix.AsVector())
   {
@@ -29,11 +36,18 @@ TEST(CudaSparseVectorMatrix, ZeroMatrix)
 
 TEST(CudaSparseVectorMatrix, CopyAssignmentConstZeroMatrix)
 {
-  const auto matrix = testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
+                     .with_element(0, 0)
+                     .with_element(1, 1)
+                     .initial_value(0.0);
+
+  const micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
   auto oneMatrix = matrix;
   oneMatrix.CopyToDevice();
   auto param = oneMatrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
+
+  EXPECT_EQ(matrix.AsVector().size(), 2);
   
   for(auto& elem : matrix.AsVector())
   {
