@@ -16,7 +16,7 @@ TEST(CudaSparseVectorMatrix, ZeroMatrix)
 
   for(auto& elem : matrix.AsVector())
   {
-    EXPECT_EQ(elem, 1.0);
+    EXPECT_EQ(elem, 0.0);
   }
 
   matrix.CopyToHost();
