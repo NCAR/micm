@@ -84,7 +84,7 @@ public:
     }
     CudaVectorMatrixParam AsDeviceParam()
     {
-      return CudaVectorMatrixParam{ param_.d_data_, param_.num_elements_ };
+      return this->param_;
     }
   };
 }
