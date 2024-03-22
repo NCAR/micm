@@ -1,7 +1,7 @@
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
-
+#include <iostream>
 #include "cublas_v2.h"
 
 namespace micm
@@ -66,6 +66,7 @@ namespace micm
         cublasStatus_t stat = cublasCreate(&(this->handle_));
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
+          std::cout << stat << std::endl;
           throw std::runtime_error("CUBLAS initialization failed.");
         }
       }
@@ -142,9 +143,9 @@ namespace micm
     }
     CudaVectorMatrixParam AsDeviceParam() const
     {
-      return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+      return this->vector_matrix_param_;
     }
-    cublasHandle_t AsCublasHandel() const
+    cublasHandle_t AsCublasHandle() const
     {
       return this->handle_;
     }

@@ -39,7 +39,15 @@ namespace micm
   {
     ///@brief Default constructor
    public:
-    CudaRosenbrockSolver();
+    /// This is an instance of struct "CudaRosenbrockSolverParam" that allocates
+    ///   device memory of temporary variables and copy constant data member to device
+    CudaRosenbrockSolverParam devstruct_;
+
+    CudaRosenbrockSolver()
+    {
+      devstruct_.errors_input_ = nullptr;
+      devstruct_.errors_output_ = nullptr;
+    };
 
     CudaRosenbrockSolver(
         const System& system,
@@ -48,7 +56,15 @@ namespace micm
         : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(
               system,
               processes,
-              parameters){};
+              parameters)
+    {
+      CudaRosenbrockSolverParam hoststruct;
+//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
+//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
+      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
+      // Copy the data from host struct to device struct
+      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    };
 
     CudaRosenbrockSolver(
         const System& system,
@@ -62,7 +78,15 @@ namespace micm
               processes,
               parameters,
               create_linear_solver,
-              create_process_set){};
+              create_process_set)
+    {
+      CudaRosenbrockSolverParam hoststruct;
+//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
+//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
+      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize(); 
+      // Copy the data from host struct to device struct
+      this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+    };
 
     std::chrono::nanoseconds AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
         VectorizableSparse<SparseMatrixPolicy<double>>
@@ -81,27 +105,18 @@ namespace micm
     /// @param y_old the original vector
     /// @param y_new the new vector
     /// @param errors The computed errors
-    /// @return
+    /// @return The scaled norm of the errors
     double NormalizedError(MatrixPolicy<double>& y_old, 
                            MatrixPolicy<double>& y_new,
-                           MatrixPolicy<double>& errors)
+                           MatrixPolicy<double>& errors) const
     {
-      double* d_y_old = y_old.AsDeviceParam().d_data_;
-      double* d_y_new = y_new.AsDeviceParam().d_data_;
-      double* d_errors = errors.AsDeviceParam().d_data_;
-      size_t num_elements = y_old.AsDeviceParam().num_elements_;
-      double atol = this->parameters_.absolute_tolerance_;
-      double rtol = this->parameters_.relative_tolerance_;
-
-      if (y_old.AsDeviceParam().num_elements_ != y_new.AsDeviceParam().num_elements_ ||
-          y_old.AsDeviceParam().num_elements_ != errors.AsDeviceParam().num_elements_)
-      {
-        throw std::runtime_error("The number of elements in y_old, y_new and errors must be the same.");
-      }
-      // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
-      return micm::cuda::NormalizedErrorDriver(d_y_old, d_y_new, d_errors, num_elements,
-                                               atol, rtol, errors.AsCublasHandel());
+       // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
+      return micm::cuda::NormalizedErrorDriver(y_old.AsDeviceParam(),
+                                               y_new.AsDeviceParam(), 
+                                               errors.AsDeviceParam(),
+                                               this->parameters_,
+                                               errors.AsCublasHandle(),
+                                               this->devstruct_);
     }
-
   };  // end CudaRosenbrockSolver
 }  // namespace micm
