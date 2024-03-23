@@ -106,9 +106,9 @@ namespace micm
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
-    double NormalizedError(MatrixPolicy<double>& y_old, 
-                           MatrixPolicy<double>& y_new,
-                           MatrixPolicy<double>& errors) const
+    double NormalizedError(const MatrixPolicy<double>& y_old, 
+                           const MatrixPolicy<double>& y_new,
+                           const MatrixPolicy<double>& errors) const
     {
        // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
       return micm::cuda::NormalizedErrorDriver(y_old.AsDeviceParam(),
