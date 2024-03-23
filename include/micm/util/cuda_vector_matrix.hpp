@@ -1,7 +1,6 @@
 #include <micm/util/cuda_vector_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
-#include <iostream>
 #include "cublas_v2.h"
 
 namespace micm
