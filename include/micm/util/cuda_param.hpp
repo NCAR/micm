@@ -4,7 +4,7 @@
 
 #pragma once
 
-// To make the NormalizedError function works properly on GPU, 
+// To make the NormalizedError function works properly on GPU,
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
 const size_t BLOCK_SIZE = 32;
 
@@ -114,12 +114,12 @@ struct CudaVectorMatrixParam
 
 /// This struct holds (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "CudaRosenbrockSolver";
-/// This struct could be allocated on the host or device; 
+/// This struct could be allocated on the host or device;
 struct CudaRosenbrockSolverParam
 {
   double* errors_input_;
   double* errors_output_;
   size_t errors_size_;
-//  size_t* jacobian_diagonal_elements_;
-//  size_t jacobian_diagonal_elements_size_;
+  //  size_t* jacobian_diagonal_elements_;
+  //  size_t jacobian_diagonal_elements_size_;
 };

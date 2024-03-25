@@ -4,11 +4,11 @@
 #include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/cuda_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/cuda_vector_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <micm/util/cuda_vector_matrix.hpp>
 
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
@@ -186,7 +186,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 }
 
 // In this test, all the elements in the same array are identical;
-// thus the calculated RMSE should be the same no matter what the size of the array is. 
+// thus the calculated RMSE should be the same no matter what the size of the array is.
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testNormalizedErrorConst(const size_t num_grid_cells)
 {
@@ -195,14 +195,14 @@ void testNormalizedErrorConst(const size_t num_grid_cells)
       SparseMatrixPolicy,
       LinearSolverPolicy,
       micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(num_grid_cells);
-  
+
   double atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
   auto state = gpu_solver.GetState();
-  auto y_old  = MatrixPolicy<double>(num_grid_cells,state.state_size_,1.0);
-  auto y_new  = MatrixPolicy<double>(num_grid_cells,state.state_size_,2.0);
-  auto errors = MatrixPolicy<double>(num_grid_cells,state.state_size_,3.0);
+  auto y_old = MatrixPolicy<double>(num_grid_cells, state.state_size_, 1.0);
+  auto y_new = MatrixPolicy<double>(num_grid_cells, state.state_size_, 2.0);
+  auto errors = MatrixPolicy<double>(num_grid_cells, state.state_size_, 3.0);
 
   y_old.CopyToDevice();
   y_new.CopyToDevice();
@@ -210,13 +210,13 @@ void testNormalizedErrorConst(const size_t num_grid_cells)
 
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
-  double denom = atol+rtol*2.0;
+  double denom = atol + rtol * 2.0;
   // use the following function instead to avoid tiny numerical differece
-  EXPECT_DOUBLE_EQ( error, std::sqrt(3.0*3.0/(denom*denom)) );
+  EXPECT_DOUBLE_EQ(error, std::sqrt(3.0 * 3.0 / (denom * denom)));
 }
 
 // In this test, the elements in the same array are different;
-// thus the calculated RMSE will change when the size of the array changes. 
+// thus the calculated RMSE will change when the size of the array changes.
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testNormalizedErrorDiff(const size_t num_grid_cells)
 {
@@ -225,14 +225,14 @@ void testNormalizedErrorDiff(const size_t num_grid_cells)
       SparseMatrixPolicy,
       LinearSolverPolicy,
       micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(num_grid_cells);
-  
+
   double atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
   auto state = gpu_solver.GetState();
-  auto y_old  = MatrixPolicy<double>(num_grid_cells,state.state_size_,7.7);
-  auto y_new  = MatrixPolicy<double>(num_grid_cells,state.state_size_,-13.9);
-  auto errors = MatrixPolicy<double>(num_grid_cells,state.state_size_,81.57);
+  auto y_old = MatrixPolicy<double>(num_grid_cells, state.state_size_, 7.7);
+  auto y_new = MatrixPolicy<double>(num_grid_cells, state.state_size_, -13.9);
+  auto errors = MatrixPolicy<double>(num_grid_cells, state.state_size_, 81.57);
 
   double expected_error = 0.0;
   for (size_t i = 0; i < num_grid_cells; ++i)
@@ -240,11 +240,11 @@ void testNormalizedErrorDiff(const size_t num_grid_cells)
     for (size_t j = 0; j < state.state_size_; ++j)
     {
       y_old[i][j] = y_old[i][j] * i + j;
-      y_new[i][j] = y_new[i][j] / (j+1) - i;
-      errors[i][j] = errors[i][j] / (i+7) / (j+3);
+      y_new[i][j] = y_new[i][j] / (j + 1) - i;
+      errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
       double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
       double scale = atol + rtol * ymax;
-      expected_error += errors[i][j]*errors[i][j] / (scale*scale);
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
   double error_min_ = 1.0e-10;
@@ -256,13 +256,14 @@ void testNormalizedErrorDiff(const size_t num_grid_cells)
 
   double computed_error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
-  auto relative_error = std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
+  auto relative_error =
+      std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
 
-  if ( relative_error > 1.e-11)
+  if (relative_error > 1.e-11)
   {
     std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
     std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
-    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl; 
+    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl;
     throw std::runtime_error("Fail to match computed_error and expected_error.\n");
   }
 }
@@ -343,7 +344,7 @@ TEST(RosenbrockSolver, CudaNormalizedError)
       Group3395043CudaVectorMatrix,
       Group3395043SparseVectorMatrix,
       micm::CudaLinearSolver<double, Group3395043SparseVectorMatrix>>(3395043);
-  
+
   // tests where RMSE changes with the size of the array
   testNormalizedErrorDiff<
       Group1CudaVectorMatrix,

@@ -213,8 +213,10 @@ namespace micm
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
-    double
-    NormalizedError(const MatrixPolicy<double>& y, const MatrixPolicy<double>& y_new, const MatrixPolicy<double>& errors) const;
+    double NormalizedError(
+        const MatrixPolicy<double>& y,
+        const MatrixPolicy<double>& y_new,
+        const MatrixPolicy<double>& errors) const;
   };
 
 }  // namespace micm
