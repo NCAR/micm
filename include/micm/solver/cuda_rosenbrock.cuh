@@ -19,14 +19,15 @@ namespace micm{
       void FreeConstData(CudaRosenbrockSolverParam& devstruct);
 
       /// @brief Compute alpha - J[i] for each element i at the diagnoal of matrix J
-      /// @param sparseMatrix struct of sparse matrix (will be replaced by the CudaSparseMatrix class)
-      /// @param jacobian_diagonal_elements location id of the diagonal elements 
+      /// @param h_jacobian sparse matrix on the host (will be replaced by the CudaSparseMatrix class)
+      /// @param num_elements number of elements in the h_jacobian (will be replaced by the CudaSparseMatrix class)
       /// @param alpha scalar variable
+      /// @param devstruct device struct including the locations of diagonal elements of the Jacobian matrix
       /// @return
-      std::chrono::nanoseconds AlphaMinusJacobianDriver(
-                               CudaSparseMatrixParam& sparseMatrix,
-                               const std::vector<size_t> jacobian_diagonal_elements,
-                               double alpha);
+      void AlphaMinusJacobianDriver(double* h_jacobian,
+                                    const size_t num_elements,
+                                    const double alpha,
+                                    const CudaRosenbrockSolverParam& devstruct);
 
       /// @brief Computes the scaled norm of the matrix errors on the GPU; assume all the data are GPU resident already
       /// @param y_old_param matrix on the device
