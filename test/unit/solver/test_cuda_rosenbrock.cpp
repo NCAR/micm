@@ -152,6 +152,10 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
   auto cpu_jacobian = jacobian;
 
+  // Generate minus jacobian matrix (-J) here
+  for (auto& elem : jacobian.AsVector())
+    elem = -elem;
+
   gpu_solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {

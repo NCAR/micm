@@ -167,7 +167,7 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   {
     double a = cpu_jacobian_vector[i];
     double b = gpu_jacobian_vector[i];
-    ASSERT_EQ(a, b);
+    ASSERT_EQ(a, -b);
   }
 }
 

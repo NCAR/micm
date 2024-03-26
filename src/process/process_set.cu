@@ -54,14 +54,15 @@ namespace micm
       }    // end of checking a valid CUDA thread id
     }      // end of AddForcingTerms_kernel
 
-    /// This is the CUDA kernel that forms the Jacobian matrix on the device
+    /// This is the CUDA kernel that forms the minus Jacobian matrix (-J) on the device
     __global__ void AddJacobianTermsKernel(
         double* d_rate_constants,
         double* d_state_variables,
         double* d_jacobian,
         ProcessSetParam devstruct,
-        size_t n_grids,
-        size_t n_reactions)
+        const size_t num_grid_cells,
+        const size_t n_reactions,
+        const size_t num_elments_per_jacobian)
     {
       /// Local device variables
       size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -73,8 +74,9 @@ namespace micm
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       double* d_yields = devstruct.yields_;
+      const size_t jacobian_flat_ids_size = devstruct.jacobian_flat_ids_size_;
 
-      if (tid < n_grids)
+      if (tid < num_grid_cells)
       {
         // loop over reactions in a grid
         for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
@@ -82,12 +84,12 @@ namespace micm
           // loop over reactants in a reaction
           for (size_t i_ind = 0; i_ind < d_number_of_reactants[i_rxn]; ++i_ind)
           {
-            double d_rate_d_ind = d_rate_constants[i_rxn * n_grids + tid];
+            double d_rate_d_ind = d_rate_constants[i_rxn * num_grid_cells + tid];
             for (size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
               {
-                d_rate_d_ind *= d_state_variables[d_reactant_ids[react_ids_offset + i_react] * n_grids + tid];
+                d_rate_d_ind *= d_state_variables[d_reactant_ids[react_ids_offset + i_react] * num_grid_cells + tid];
               }
             }
             for (size_t i_dep = 0; i_dep < d_number_of_reactants[i_rxn]; ++i_dep)
@@ -106,6 +108,11 @@ namespace micm
           react_ids_offset += d_number_of_reactants[i_rxn];
           yields_offset += d_number_of_products[i_rxn];
         }  // end of loop over reactions in a grid
+        // Form the minus Jaocbian matrix (-J)
+        for (size_t idx = 0; idx < num_elments_per_jacobian; ++idx)
+        {
+            d_jacobian[idx*num_grid_cells + tid] = -d_jacobian[idx*num_grid_cells + tid]; 
+        }
       }    // end of checking a CUDA thread id
     }      // end of AddJacobianTermsKernel
 
@@ -193,11 +200,13 @@ namespace micm
       double* d_state_variables;
       double* d_jacobian;
 
+      size_t num_elments_per_jacobian = sparseMatrix.jacobian_size_ / matrixParam.n_grids_;
+
       // allocate device memory
       cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
       cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
       cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_);
-
+      
       // transfer data from host to device
       cudaMemcpy(
           d_rate_constants,
@@ -219,7 +228,7 @@ namespace micm
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
       AddJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(
-          d_rate_constants, d_state_variables, d_jacobian, devstruct, n_grids, n_reactions);
+          d_rate_constants, d_state_variables, d_jacobian, devstruct, n_grids, n_reactions, num_elments_per_jacobian);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
       auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);

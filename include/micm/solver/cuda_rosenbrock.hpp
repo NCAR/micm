@@ -101,11 +101,8 @@ namespace micm
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
         VectorizableSparse<SparseMatrixPolicy<double>>
     {
-      for (auto& element : jacobian.AsVector())
-        element = -element;
       double* h_jacobian = jacobian.AsVector().data();
       size_t num_elements = jacobian.AsVector().size();
-      size_t num_grid_cells = this->parameters_.number_of_grid_cells_;
       micm::cuda::AlphaMinusJacobianDriver(h_jacobian, num_elements,
                                            alpha, this->devstruct_);
     }

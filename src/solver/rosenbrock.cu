@@ -20,13 +20,16 @@ namespace micm
       // Global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
-      if (tid < devstruct.num_grid_cells_)
+      // Local variables
+      size_t quotient, remainder;
+      const size_t num_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
+      const size_t num_grid_cells = devstruct.num_grid_cells_;
+
+      if (tid < num_grid_cells * num_diagonal_elements)
       {
-        for (int j = 0; j < devstruct.jacobian_diagonal_elements_size_; j++)
-        {
-          size_t jacobian_index = devstruct.jacobian_diagonal_elements_[j];
-          d_jacobian[jacobian_index + tid] += alpha;
-        }
+        quotient = tid / num_diagonal_elements;
+        remainder = tid - num_diagonal_elements * quotient; // % operator may be more expensive
+        d_jacobian[devstruct.jacobian_diagonal_elements_[remainder]+quotient] += alpha;
       }
     }
 
@@ -174,6 +177,7 @@ namespace micm
       }
     }
     
+    // Host code that will launch the AlphaMinusJacobian CUDA kernel
     void AlphaMinusJacobianDriver(
         double* h_jacobian,
         const size_t num_elements,
@@ -186,7 +190,7 @@ namespace micm
       cudaMemcpy(d_jacobian, h_jacobian, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
       
       // kernel call
-      size_t num_blocks = (devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      size_t num_blocks = (devstruct.jacobian_diagonal_elements_size_ * devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<num_blocks, BLOCK_SIZE>>>(d_jacobian, alpha, devstruct);
 
       cudaDeviceSynchronize();
@@ -194,6 +198,7 @@ namespace micm
       cudaFree(d_jacobian);
     }
 
+    // Host code that will launch the NormalizedError CUDA kernel
     double NormalizedErrorDriver(const CudaVectorMatrixParam& y_old_param,
                                  const CudaVectorMatrixParam& y_new_param,
                                  const CudaVectorMatrixParam& errors_param,
