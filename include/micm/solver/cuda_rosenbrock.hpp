@@ -59,8 +59,8 @@ namespace micm
               parameters)
     {
       CudaRosenbrockSolverParam hoststruct;
-//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
-//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
+      //      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
+      //      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
       hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
@@ -81,9 +81,9 @@ namespace micm
               create_process_set)
     {
       CudaRosenbrockSolverParam hoststruct;
-//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
-//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
-      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize(); 
+      //      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
+      //      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
+      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
@@ -106,17 +106,19 @@ namespace micm
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
-    double NormalizedError(const MatrixPolicy<double>& y_old, 
-                           const MatrixPolicy<double>& y_new,
-                           const MatrixPolicy<double>& errors) const
+    double NormalizedError(
+        const MatrixPolicy<double>& y_old,
+        const MatrixPolicy<double>& y_new,
+        const MatrixPolicy<double>& errors) const
     {
-       // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
-      return micm::cuda::NormalizedErrorDriver(y_old.AsDeviceParam(),
-                                               y_new.AsDeviceParam(), 
-                                               errors.AsDeviceParam(),
-                                               this->parameters_,
-                                               errors.AsCublasHandle(),
-                                               this->devstruct_);
+      // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
+      return micm::cuda::NormalizedErrorDriver(
+          y_old.AsDeviceParam(),
+          y_new.AsDeviceParam(),
+          errors.AsDeviceParam(),
+          this->parameters_,
+          errors.AsCublasHandle(),
+          this->devstruct_);
     }
   };  // end CudaRosenbrockSolver
 }  // namespace micm
