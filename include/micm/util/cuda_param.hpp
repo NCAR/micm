@@ -122,12 +122,7 @@ struct CudaRosenbrockSolverParam
   double* errors_input_;
   double* errors_output_;
   size_t errors_size_;
-<<<<<<< HEAD
   // for AlphaMinusJacobian function
   size_t* jacobian_diagonal_elements_;
   size_t jacobian_diagonal_elements_size_;
-=======
-  //  size_t* jacobian_diagonal_elements_;
-  //  size_t jacobian_diagonal_elements_size_;
->>>>>>> main
 };
