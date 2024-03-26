@@ -59,9 +59,10 @@ namespace micm
               parameters)
     {
       CudaRosenbrockSolverParam hoststruct;
-//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
-//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
       hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
+      hoststruct.num_grid_cells_ = parameters.number_of_grid_cells_;
+      hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
+      hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
@@ -81,24 +82,32 @@ namespace micm
               create_process_set)
     {
       CudaRosenbrockSolverParam hoststruct;
-//      hoststruct.jacobian_diagonal_elements_ = state_parameters_.jacobian_diagonal_elements_;
-//      hoststruct.jacobian_diagonal_elements_size_ = state_parameters_.jacobian_diagonal_elements_.size();
-      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize(); 
+      hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
+      hoststruct.num_grid_cells_ = parameters.number_of_grid_cells_;
+      hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
+      hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
 
-    std::chrono::nanoseconds AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
+    /// This is the destructor that will free the device memory of
+    ///   the constant data from the class "CudaRosenbrockSolver"
+    ~CudaRosenbrockSolver()
+    {
+      /// Free the device memory allocated by the members of "devstruct_"
+      micm::cuda::FreeConstData(this->devstruct_);
+    };
+
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
         VectorizableSparse<SparseMatrixPolicy<double>>
     {
       for (auto& element : jacobian.AsVector())
         element = -element;
-      CudaSparseMatrixParam sparseMatrix;
-      sparseMatrix.jacobian_ = jacobian.AsVector().data();
-      sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
-      sparseMatrix.n_grids_ = jacobian.size();
-
-      return micm::cuda::AlphaMinusJacobianDriver(sparseMatrix, this->state_parameters_.jacobian_diagonal_elements_, alpha);
+      double* h_jacobian = jacobian.AsVector().data();
+      size_t num_elements = jacobian.AsVector().size();
+      size_t num_grid_cells = this->parameters_.number_of_grid_cells_;
+      micm::cuda::AlphaMinusJacobianDriver(h_jacobian, num_elements,
+                                           alpha, this->devstruct_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already

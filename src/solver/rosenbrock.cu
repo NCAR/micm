@@ -13,18 +13,18 @@ namespace micm
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of matrix J
     __global__ void AlphaMinusJacobianKernel(
-        size_t n_grids,
         double* d_jacobian,
-        size_t* d_jacobian_diagonal_elements,
-        size_t jacobian_diagonal_elements_size,
-        double alpha)
+        const double alpha,
+        CudaRosenbrockSolverParam devstruct)
     {
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      if (tid < n_grids)
+      // Global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
+      if (tid < devstruct.num_grid_cells_)
       {
-        for (int j = 0; j < jacobian_diagonal_elements_size; j++)
+        for (int j = 0; j < devstruct.jacobian_diagonal_elements_size_; j++)
         {
-          size_t jacobian_index = d_jacobian_diagonal_elements[j];
+          size_t jacobian_index = devstruct.jacobian_diagonal_elements_[j];
           d_jacobian[jacobian_index + tid] += alpha;
         }
       }
@@ -35,7 +35,7 @@ namespace micm
     CudaRosenbrockSolverParam CopyConstData(CudaRosenbrockSolverParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-//      size_t jacobian_diagonal_elements_bytes = sizeof(size_t) * hoststruct.jacobian_diagonal_elements_size_;
+      size_t jacobian_diagonal_elements_bytes = sizeof(size_t) * hoststruct.jacobian_diagonal_elements_size_;
 
       /// Calculate the memory space of each temporary variable
       size_t errors_bytes = sizeof(double) * hoststruct.errors_size_;
@@ -44,13 +44,14 @@ namespace micm
       CudaRosenbrockSolverParam devstruct;
       cudaMalloc(&(devstruct.errors_input_), errors_bytes);
       cudaMalloc(&(devstruct.errors_output_), errors_bytes);
-//      cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
+      cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
 
       /// Copy the data from host to device
-//      cudaMemcpy(devstruct.jacobian_diagonal_elements_, hoststruct.jacobian_diagonal_elements_, jacobian_diagonal_elements_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(devstruct.jacobian_diagonal_elements_, hoststruct.jacobian_diagonal_elements_, jacobian_diagonal_elements_bytes, cudaMemcpyHostToDevice);
 
+      devstruct.num_grid_cells_ = hoststruct.num_grid_cells_;
       devstruct.errors_size_ = hoststruct.errors_size_;
-//      devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
+      devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
 
       return devstruct;
     }
@@ -61,7 +62,7 @@ namespace micm
     {
       cudaFree(devstruct.errors_input_);
       cudaFree(devstruct.errors_output_);
-//      cudaFree(devstruct.jacobian_diagonal_elements_);
+      cudaFree(devstruct.jacobian_diagonal_elements_);
     }
 
     // Specific CUDA device function to do reduction within a warp 
@@ -173,37 +174,24 @@ namespace micm
       }
     }
     
-    std::chrono::nanoseconds AlphaMinusJacobianDriver(
-        CudaSparseMatrixParam& sparseMatrix,
-        const std::vector<size_t> jacobian_diagonal_elements,
-        double alpha)
+    void AlphaMinusJacobianDriver(
+        double* h_jacobian,
+        const size_t num_elements,
+        const double alpha,
+        const CudaRosenbrockSolverParam& devstruct)
     {
-      // device pointers
+      // device pointers (will not be needed after adding the CudaSparseMatrix class)
       double* d_jacobian;
-      size_t* d_jacobian_diagonal_elements;
-      cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_);
-      cudaMalloc(&d_jacobian_diagonal_elements, sizeof(size_t) * jacobian_diagonal_elements.size());
-      cudaMemcpy(d_jacobian, sparseMatrix.jacobian_, sizeof(double) * sparseMatrix.jacobian_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_jacobian_diagonal_elements,
-          jacobian_diagonal_elements.data(),
-          sizeof(size_t) * jacobian_diagonal_elements.size(),
-          cudaMemcpyHostToDevice);
-
+      cudaMalloc(&d_jacobian, sizeof(double) * num_elements);
+      cudaMemcpy(d_jacobian, h_jacobian, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
+      
       // kernel call
-      size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      auto startTime = std::chrono::high_resolution_clock::now();
-      AlphaMinusJacobianKernel<<<num_block, BLOCK_SIZE>>>(
-          sparseMatrix.n_grids_, d_jacobian, d_jacobian_diagonal_elements, jacobian_diagonal_elements.size(), alpha);
+      size_t num_blocks = (devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      AlphaMinusJacobianKernel<<<num_blocks, BLOCK_SIZE>>>(d_jacobian, alpha, devstruct);
 
       cudaDeviceSynchronize();
-      auto endTime = std::chrono::high_resolution_clock::now();
-      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-      cudaMemcpy(sparseMatrix.jacobian_, d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_, cudaMemcpyDeviceToHost);
+      cudaMemcpy(h_jacobian, d_jacobian, sizeof(double) * num_elements, cudaMemcpyDeviceToHost);
       cudaFree(d_jacobian);
-      cudaFree(d_jacobian_diagonal_elements);
-
-      return kernel_duration;
     }
 
     double NormalizedErrorDriver(const CudaVectorMatrixParam& y_old_param,
