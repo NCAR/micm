@@ -133,8 +133,6 @@ namespace micm
         cublasDestroy(this->handle_);
     }
 
-    ~CudaVectorMatrix() {}
-
     int CopyToDevice()
     {
       static_assert(std::is_same_v<T, double>);
