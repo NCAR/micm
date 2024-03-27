@@ -8,6 +8,16 @@
 
 TEST(CudaSparseVectorMatrix, ZeroMatrix)
 {
+  auto matrix = testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
+}
+
+TEST(CudaSparseVectorMatrix, ConstZeroMatrix)
+{
+  const auto matrix = testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
+}
+
+TEST(CudaSparseVectorMatrix, CopyAssignmentZeroMatrix)
+{
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
                      .with_element(1, 1)
