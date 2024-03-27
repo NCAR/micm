@@ -98,36 +98,36 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = SparseMatrixPolicy<double>::create(5).number_of_blocks(2).initial_value(100.0);
+  auto builder = SparseMatrixPolicy<double>::create(5).number_of_blocks(2).initial_value(0.0);
   for (auto& elem : non_zero_elements)
     builder = builder.with_element(elem.first, elem.second);
   SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.template AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
-  EXPECT_EQ(jacobian[0][0][0], 100.0 - 10.0 * 0.3);  // foo -> foo
-  EXPECT_EQ(jacobian[1][0][0], 100.0 - 110.0 * 1.3);
-  EXPECT_EQ(jacobian[0][0][1], 100.0 + 20.0);  // foo -> bar
-  EXPECT_EQ(jacobian[1][0][1], 100.0 + 120.0);
-  EXPECT_EQ(jacobian[0][0][2], 100.0 - 10.0 * 0.1);  // foo -> baz
-  EXPECT_EQ(jacobian[1][0][2], 100.0 - 110.0 * 1.1);
-  EXPECT_EQ(jacobian[0][1][0], 100.0 + 10.0 * 0.3);  // bar -> foo
-  EXPECT_EQ(jacobian[1][1][0], 100.0 + 110.0 * 1.3);
-  EXPECT_EQ(jacobian[0][1][1], 100.0 - 20.0);  // bar -> bar
-  EXPECT_EQ(jacobian[1][1][1], 100.0 - 120.0);
-  EXPECT_EQ(jacobian[0][1][2], 100.0 + 10.0 * 0.1);  // bar -> baz
-  EXPECT_EQ(jacobian[1][1][2], 100.0 + 110.0 * 1.1);
-  EXPECT_EQ(jacobian[0][2][0], 100.0 - 10.0 * 0.3);  // baz -> foo
-  EXPECT_EQ(jacobian[1][2][0], 100.0 - 110.0 * 1.3);
-  EXPECT_EQ(jacobian[0][2][2], 100.0 - 10.0 * 0.1);  // baz -> baz
-  EXPECT_EQ(jacobian[1][2][2], 100.0 - 110.0 * 1.1);
-  EXPECT_EQ(jacobian[0][3][1], 100.0 + 1.4 * 20.0);  // quz -> bar
-  EXPECT_EQ(jacobian[1][3][1], 100.0 + 1.4 * 120.0);
-  EXPECT_EQ(jacobian[0][3][3], 100.0 - 30.0);  // quz -> quz
-  EXPECT_EQ(jacobian[1][3][3], 100.0 - 130.0);
-  EXPECT_EQ(jacobian[0][4][0], 100.0 + 2.4 * 10.0 * 0.3);  // quuz -> foo
-  EXPECT_EQ(jacobian[1][4][0], 100.0 + 2.4 * 110.0 * 1.3);
-  EXPECT_EQ(jacobian[0][4][2], 100.0 + 2.4 * 10.0 * 0.1);  // quuz -> baz
-  EXPECT_EQ(jacobian[1][4][2], 100.0 + 2.4 * 110.0 * 1.1);
+  set.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
+  EXPECT_EQ(jacobian[0][0][0], 10.0 * 0.3);  // foo -> foo
+  EXPECT_EQ(jacobian[1][0][0], 110.0 * 1.3);
+  EXPECT_EQ(jacobian[0][0][1], -20.0);  // foo -> bar
+  EXPECT_EQ(jacobian[1][0][1], -120.0);
+  EXPECT_EQ(jacobian[0][0][2], 10.0 * 0.1);  // foo -> baz
+  EXPECT_EQ(jacobian[1][0][2], 110.0 * 1.1);
+  EXPECT_EQ(jacobian[0][1][0], -10.0 * 0.3);  // bar -> foo
+  EXPECT_EQ(jacobian[1][1][0], -110.0 * 1.3);
+  EXPECT_EQ(jacobian[0][1][1], 20.0);  // bar -> bar
+  EXPECT_EQ(jacobian[1][1][1], 120.0);
+  EXPECT_EQ(jacobian[0][1][2], -10.0 * 0.1);  // bar -> baz
+  EXPECT_EQ(jacobian[1][1][2], -110.0 * 1.1);
+  EXPECT_EQ(jacobian[0][2][0], 10.0 * 0.3);  // baz -> foo
+  EXPECT_EQ(jacobian[1][2][0], 110.0 * 1.3);
+  EXPECT_EQ(jacobian[0][2][2], 10.0 * 0.1);  // baz -> baz
+  EXPECT_EQ(jacobian[1][2][2], 110.0 * 1.1);
+  EXPECT_EQ(jacobian[0][3][1], -1.4 * 20.0);  // quz -> bar
+  EXPECT_EQ(jacobian[1][3][1], -1.4 * 120.0);
+  EXPECT_EQ(jacobian[0][3][3], 30.0);  // quz -> quz
+  EXPECT_EQ(jacobian[1][3][3], 130.0);
+  EXPECT_EQ(jacobian[0][4][0], -2.4 * 10.0 * 0.3);  // quuz -> foo
+  EXPECT_EQ(jacobian[1][4][0], -2.4 * 110.0 * 1.3);
+  EXPECT_EQ(jacobian[0][4][2], -2.4 * 10.0 * 0.1);  // quuz -> baz
+  EXPECT_EQ(jacobian[1][4][2], -2.4 * 110.0 * 1.1);
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>

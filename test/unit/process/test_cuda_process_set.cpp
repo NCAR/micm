@@ -96,7 +96,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -147,7 +147,7 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
     elem = get_double();
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(0.0);
   for (auto& elem : non_zero_elements)
     builder = builder.with_element(elem.first, elem.second);
   SparseMatrixPolicy<double> cpu_jacobian{ builder };
@@ -156,8 +156,8 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
-  cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
-  gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
+  cpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
+  gpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
   // checking accuracy of jacobian between CPU and GPU
   std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector();
@@ -167,7 +167,7 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   {
     double a = cpu_jacobian_vector[i];
     double b = gpu_jacobian_vector[i];
-    ASSERT_EQ(a, -b);
+    ASSERT_EQ(a, b);
   }
 }
 

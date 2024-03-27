@@ -55,7 +55,7 @@ namespace micm
     }      // end of AddForcingTerms_kernel
 
     /// This is the CUDA kernel that forms the minus Jacobian matrix (-J) on the device
-    __global__ void AddJacobianTermsKernel(
+    __global__ void SubtractJacobianTermsKernel(
         double* d_rate_constants,
         double* d_state_variables,
         double* d_jacobian,
@@ -114,7 +114,7 @@ namespace micm
             d_jacobian[idx*num_grid_cells + tid] = -d_jacobian[idx*num_grid_cells + tid]; 
         }
       }    // end of checking a CUDA thread id
-    }      // end of AddJacobianTermsKernel
+    }      // end of SubtractJacobianTermsKernel
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaProcessSet" to the device,
@@ -190,7 +190,7 @@ namespace micm
         cudaFree(devstruct.jacobian_flat_ids_);
     }
 
-    std::chrono::nanoseconds AddJacobianTermsKernelDriver(
+    std::chrono::nanoseconds SubtractJacobianTermsKernelDriver(
         CudaMatrixParam& matrixParam,
         CudaSparseMatrixParam& sparseMatrix,
         const ProcessSetParam& devstruct)
@@ -227,7 +227,7 @@ namespace micm
 
       // launch kernel and measure time performance
       auto startTime = std::chrono::high_resolution_clock::now();
-      AddJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(
+      SubtractJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(
           d_rate_constants, d_state_variables, d_jacobian, devstruct, n_grids, n_reactions, num_elments_per_jacobian);
       cudaDeviceSynchronize();
       auto endTime = std::chrono::high_resolution_clock::now();
@@ -242,7 +242,7 @@ namespace micm
       cudaFree(d_jacobian);
 
       return kernel_duration;
-    }  // end of AddJacobian_kernelSetup
+    }  // end of SubtractJacobianTermsKernelDriver
 
     std::chrono::nanoseconds AddForcingTermsKernelDriver(CudaMatrixParam& matrixParam, const ProcessSetParam& devstruct)
     {
