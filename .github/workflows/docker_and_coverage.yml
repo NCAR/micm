@@ -23,19 +23,23 @@ jobs:
           - Dockerfile.no_json
           - Dockerfile.nvhpc
           - Dockerfile.openmp
-          # - Dockerfile.intel # intel image is too large for GH action
+          - Dockerfile.intel
           # - Dockerfile.mpi
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
 
       - name: Build Docker image
         run: docker build -t micm -f docker/${{ matrix.dockerfile }} .
 
       - name: Run tests in container
-        if: matrix.dockerfile != 'Dockerfile.coverage'
+        # only run this if we are not running coverage tests or have built the cuda files
+        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
 
       - name: Run coverage tests in container

@@ -66,6 +66,7 @@ namespace micm
         cublasStatus_t stat = cublasCreate(&(this->handle_));
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
+          std::cout << stat << std::endl;
           throw std::runtime_error("CUBLAS initialization failed.");
         }
       }
@@ -121,6 +122,10 @@ namespace micm
       return *this;
     }
 
+    ~CudaVectorMatrix()
+    {
+    }
+
     ~CudaVectorMatrix() requires(std::is_same_v<T, double>)
     {
       micm::cuda::FreeVector(this->vector_matrix_param_);
@@ -142,7 +147,11 @@ namespace micm
     }
     CudaVectorMatrixParam AsDeviceParam() const
     {
-      return CudaVectorMatrixParam{ vector_matrix_param_.d_data_, vector_matrix_param_.num_elements_ };
+      return this->vector_matrix_param_;
+    }
+    cublasHandle_t AsCublasHandle() const
+    {
+      return this->handle_;
     }
     /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
     ///        where alpha is a scalar constant.

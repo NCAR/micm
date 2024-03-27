@@ -75,7 +75,8 @@ jobs:
           rsync -a _build/html/versions/stable/* _gh-pages/
           mkdir -p _gh-pages/versions
           rsync -a _build/html/versions/* _gh-pages/versions
-          # mv docs/switcher.json _gh-pages
+          ls -l _build/html/versions
+          ls -l _gh-pages/versions
 
       # If a push and not on default branch, then copy the build to
       # _gh-pages/branch/$brname (transforming '/' into '--')

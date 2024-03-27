@@ -23,7 +23,7 @@ author = 'NCAR/UCAR'
 
 suffix = os.getenv("SWITCHER_SUFFIX", "")
 # the suffix is required. This is controlled by the dockerfile that builds the docs
-release = f'v3.3.1{suffix}'
+release = f'v3.4.0{suffix}'
 
 # -- General configuration ---------------------------------------------------
 

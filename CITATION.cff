@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: Model Independent Chemistry Model (MICM)
+version: v3.4.0
+doi: "10.5281/zenodo.10472189"
+authors:
+  - family-names: Dawson
+    given-names: Matthew
+  - family-names: Sun
+    given-names: Jian
+  - family-names: Shores
+    given-names: Kyle
+  - family-names: Fillmore
+    given-names: David
+  - family-names: Tan
+    given-names: Qina
+  - family-names: Craig
+    given-names: Cheryl
+  - family-names: Gim
+    given-names: Jiwon
+  - family-names: Waxmonsky
+    given-names: Michael
+  - family-names: Vitt
+    given-names: Francis
+  - family-names: Conley
+    given-names: Andrew
+  - family-names: Karsenti
+    given-names: Aharon
+license: Apache-2.0
+url: "https://github.com/NCAR/micm"
