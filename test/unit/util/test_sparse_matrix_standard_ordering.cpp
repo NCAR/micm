@@ -9,22 +9,22 @@ using StandardOrdering = micm::SparseMatrixStandardOrdering;
 
 TEST(SparseMatrix, ZeroMatrix)
 {
-  testZeroMatrix<StandardOrdering>();
+  testZeroMatrix<micm::SparseMatrix, StandardOrdering>();
 }
 
 TEST(SparseMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<StandardOrdering>();
+  testConstZeroMatrix<micm::SparseMatrix, StandardOrdering>();
 }
 
 TEST(SparseMatrix, SetScalar)
 {
-  testSetScalar<StandardOrdering>();
+  testSetScalar<micm::SparseMatrix, StandardOrdering>();
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<StandardOrdering>();
+  auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
@@ -42,7 +42,7 @@ TEST(SparseMatrix, SingleBlockMatrix)
 
 TEST(SparseMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<StandardOrdering>();
+  auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 3);
@@ -57,7 +57,7 @@ TEST(SparseMatrix, ConstSingleBlockMatrix)
 
 TEST(SparseMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<StandardOrdering>();
+  auto matrix = testMultiBlockMatrix<micm::SparseMatrix, StandardOrdering>();
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
