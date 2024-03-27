@@ -3,8 +3,8 @@
 #include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
-#include "test_sparse_matrix_policy.hpp"
 #include "cuda_matrix_utils.cuh"
+#include "test_sparse_matrix_policy.hpp"
 
 TEST(CudaSparseVectorMatrix, ZeroMatrix)
 {
@@ -31,14 +31,14 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentZeroMatrix)
 
   EXPECT_EQ(matrix.AsVector().size(), 2);
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   matrix.CopyToHost();
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -60,23 +60,23 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentConstZeroMatrix)
   micm::cuda::AddOneDriver(param);
 
   EXPECT_EQ(matrix.AsVector().size(), 2);
-  
-  for(auto& elem : matrix.AsVector())
+
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -96,7 +96,7 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -106,33 +106,33 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
   EXPECT_EQ(2, matrix.AsVector().size());
   EXPECT_EQ(2, oneMatrix.AsVector().size());
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   matrix.CopyToHost();
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -150,7 +150,7 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentConstZeroMatrix)
   auto oneMatrix = std::move(matrix);
 
   EXPECT_EQ(2, oneMatrix.AsVector().size());
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -159,14 +159,14 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentConstZeroMatrix)
   auto param = oneMatrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -182,7 +182,7 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
   EXPECT_EQ(2, matrix.AsVector().size());
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
@@ -191,21 +191,21 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
   auto param = matrix.AsDeviceParam();
   micm::cuda::AddOneDriver(param);
 
-  for(auto& elem : matrix.AsVector())
+  for (auto& elem : matrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   auto oneMatrix = std::move(matrix);
 
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 0.0);
   }
 
   oneMatrix.CopyToHost();
 
-  for(auto& elem : oneMatrix.AsVector())
+  for (auto& elem : oneMatrix.AsVector())
   {
     EXPECT_EQ(elem, 1.0);
   }
@@ -276,4 +276,3 @@ TEST(CudaSparseVectorMatrix, MultiBlockMatrix)
   EXPECT_EQ(matrix.GroupSize(matrix.FlatBlockSize()), 2 * 4);
   EXPECT_EQ(matrix.NumberOfGroups(4), 2);
 }
-
