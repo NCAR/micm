@@ -22,15 +22,15 @@ namespace micm
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local variables
-      size_t quotient, remainder;
+      size_t quotient, index_as_remainder;
       const size_t num_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
       const size_t num_grid_cells = devstruct.num_grid_cells_;
 
       if (tid < num_grid_cells * num_diagonal_elements)
       {
         quotient = tid / num_diagonal_elements;
-        remainder = tid - num_diagonal_elements * quotient; // % operator may be more expensive
-        d_jacobian[devstruct.jacobian_diagonal_elements_[remainder]+quotient] += alpha;
+        index_as_remainder = tid - num_diagonal_elements * quotient; // % operator may be more expensive
+        d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder]+quotient] += alpha;
       }
     }
 
