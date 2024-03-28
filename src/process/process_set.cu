@@ -74,7 +74,6 @@ namespace micm
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       double* d_yields = devstruct.yields_;
-      const size_t jacobian_flat_ids_size = devstruct.jacobian_flat_ids_size_;
 
       if (tid < num_grid_cells)
       {
