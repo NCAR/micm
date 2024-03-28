@@ -187,7 +187,7 @@ namespace micm
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
-    /// @param jacobian The matrix of partial derivatives
+    /// @param jacobian The matrix of negative partial derivatives
     virtual void CalculateNegativeJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
