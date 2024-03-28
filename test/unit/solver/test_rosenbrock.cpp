@@ -79,7 +79,8 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 
   // Negate the Jacobian matrix
-  for (auto& elem : jacobian.AsVector()) elem = -elem;
+  for (auto& elem : jacobian.AsVector())
+    elem = -elem;
 
   solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)

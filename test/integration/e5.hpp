@@ -134,6 +134,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     jacobian[0][3][3] = -C;
 
     // Negate the jacobian
-    for (auto& elem : jacobian.AsVector()) elem = -elem;
+    for (auto& elem : jacobian.AsVector())
+      elem = -elem;
   }
 };

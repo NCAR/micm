@@ -147,6 +147,7 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     jacobian[0][7][7] = -280.0 * data[6];
 
     // Negate the jacobian
-    for (auto& elem : jacobian.AsVector()) elem = -elem;
+    for (auto& elem : jacobian.AsVector())
+      elem = -elem;
   }
 };

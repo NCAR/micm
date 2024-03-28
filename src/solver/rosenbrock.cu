@@ -13,10 +13,7 @@ namespace micm
   namespace cuda
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of matrix J
-    __global__ void AlphaMinusJacobianKernel(
-        double* d_jacobian,
-        const double alpha,
-        CudaRosenbrockSolverParam devstruct)
+    __global__ void AlphaMinusJacobianKernel(double* d_jacobian, const double alpha, CudaRosenbrockSolverParam devstruct)
     {
       // Global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -29,8 +26,8 @@ namespace micm
       if (tid < num_grid_cells * num_diagonal_elements)
       {
         quotient = tid / num_diagonal_elements;
-        index_as_remainder = tid - num_diagonal_elements * quotient; // % operator may be more expensive
-        d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder]+quotient] += alpha;
+        index_as_remainder = tid - num_diagonal_elements * quotient;  // % operator may be more expensive
+        d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder] + quotient] += alpha;
       }
     }
 
@@ -51,7 +48,11 @@ namespace micm
       cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
 
       /// Copy the data from host to device
-      cudaMemcpy(devstruct.jacobian_diagonal_elements_, hoststruct.jacobian_diagonal_elements_, jacobian_diagonal_elements_bytes, cudaMemcpyHostToDevice);
+      cudaMemcpy(
+          devstruct.jacobian_diagonal_elements_,
+          hoststruct.jacobian_diagonal_elements_,
+          jacobian_diagonal_elements_bytes,
+          cudaMemcpyHostToDevice);
 
       devstruct.num_grid_cells_ = hoststruct.num_grid_cells_;
       devstruct.errors_size_ = hoststruct.errors_size_;
@@ -211,7 +212,7 @@ namespace micm
         d_errors[tid] = d_errors[tid] / d_scale;
       }
     }
-    
+
     // Host code that will launch the AlphaMinusJacobian CUDA kernel
     void AlphaMinusJacobianDriver(
         double* h_jacobian,
@@ -223,9 +224,10 @@ namespace micm
       double* d_jacobian;
       cudaMalloc(&d_jacobian, sizeof(double) * num_elements);
       cudaMemcpy(d_jacobian, h_jacobian, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
-      
+
       // kernel call
-      size_t num_blocks = (devstruct.jacobian_diagonal_elements_size_ * devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      size_t num_blocks =
+          (devstruct.jacobian_diagonal_elements_size_ * devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<num_blocks, BLOCK_SIZE>>>(d_jacobian, alpha, devstruct);
 
       cudaDeviceSynchronize();
@@ -234,12 +236,13 @@ namespace micm
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
-    double NormalizedErrorDriver(const CudaVectorMatrixParam& y_old_param,
-                                 const CudaVectorMatrixParam& y_new_param,
-                                 const CudaVectorMatrixParam& errors_param,
-                                 const RosenbrockSolverParameters& ros_param,
-                                 cublasHandle_t handle,
-                                 CudaRosenbrockSolverParam devstruct)
+    double NormalizedErrorDriver(
+        const CudaVectorMatrixParam& y_old_param,
+        const CudaVectorMatrixParam& y_new_param,
+        const CudaVectorMatrixParam& errors_param,
+        const RosenbrockSolverParameters& ros_param,
+        cublasHandle_t handle,
+        CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
       const size_t num_elements = devstruct.errors_size_;

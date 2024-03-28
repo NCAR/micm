@@ -103,8 +103,7 @@ namespace micm
     {
       double* h_jacobian = jacobian.AsVector().data();
       size_t num_elements = jacobian.AsVector().size();
-      micm::cuda::AlphaMinusJacobianDriver(h_jacobian, num_elements,
-                                           alpha, this->devstruct_);
+      micm::cuda::AlphaMinusJacobianDriver(h_jacobian, num_elements, alpha, this->devstruct_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
