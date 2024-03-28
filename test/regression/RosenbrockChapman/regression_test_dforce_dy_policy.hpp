@@ -26,7 +26,7 @@ void testJacobian(OdeSolverPolicy& solver)
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
 
   auto& jacobian = state.jacobian_;
-  solver.CalculateJacobian(state.rate_constants_, state.variables_, jacobian);
+  solver.CalculateNegativeJacobian(state.rate_constants_, state.variables_, jacobian);
 
   for (std::size_t i{}; i < 3; ++i)
   {
