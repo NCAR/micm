@@ -1,6 +1,7 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+
 namespace micm
 { 
 
@@ -129,6 +130,7 @@ namespace micm
     );
 
     std::vector<std::size_t> jacobian_diagonal_elements;
+    jacobian_diagonal_elements.reserve(jacobian[0].size());
     for (std::size_t i = 0; i < jacobian[0].size(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
@@ -142,7 +144,7 @@ namespace micm
     };
 
     process_set_.SetJacobianFlatIds(jacobian);
-    linear_solver_ = std::move(create_linear_solver(jacobian, 1.0e-30));
+    linear_solver_ = std::move(create_linear_solver(jacobian, 1.0e-30));  // TODO(jiwon) - Does linear solver has move assignment?
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
@@ -150,9 +152,237 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };   
+    return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
   }
 
+  //TODO(jiwon) - Autoformatting?
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
+  inline StateParameters RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetStateParams() const
+  {
+    return state_parameters_;
+  }
+
+#if DEBUG
+   template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
+  template<bool time_it>
+  inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult
+  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::Solve(
+      double time_step,
+      State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept
+  {
+    MICM_PROFILE_FUNCTION();
+
+    typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult result{};
+    result.state_ = SolverState::Running;
+    // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
+    auto& lower = state.lower_matrix_.AsVector();
+    auto& upper = state.upper_matrix_.AsVector();
+    for (auto& l : lower)
+      l = 0;
+    for (auto& u : upper)
+      u = 0;
+    MatrixPolicy<double> Y(state.variables_);
+    std::size_t num_rows = Y.NumRows();
+    std::size_t num_cols = Y.NumColumns();
+    MatrixPolicy<double> Ynew(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> initial_forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
+    std::vector<MatrixPolicy<double>> K{};  // TODO(jiwon): too big for push back to K? std::vector<MatrixPolicy<double*>
+                                            // to avoid reallocate (copy)
+    const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
+    const double h_start =
+        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
+
+    SolverStats stats;
+
+    // TODO(jiwon) Revisit
+    UpdateState(state);
+
+    K.reserve(parameters_.stages_);
+    for (std::size_t i = 0; i < parameters_.stages_; ++i)
+      K.emplace_back(num_rows, num_cols, 0.0);
+
+    double present_time = 0.0;
+    double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
+
+    if (std::abs(H) <= 10 * parameters_.round_off_)
+      H = delta_min_;
+
+    // TODO: the logic above this point should be moved to the constructor and should return an error
+    //       if the parameters are invalid (e.g., h_min > h_max or h_start > h_max)
+
+    bool reject_last_h = false;
+    bool reject_more_h = false;
+
+    int count = 0;
+    while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
+    {
+      count++;
+      if (stats.number_of_steps > parameters_.max_number_of_steps_)
+      {
+        result.state_ = SolverState::ConvergenceExceededMaxSteps;
+        break;
+      }
+
+      if (((present_time + 0.1 * H) == present_time) || (H <= parameters_.round_off_))
+      {
+        result.state_ = SolverState::StepSizeTooSmall;
+        break;
+      }
+
+      //  Limit H if necessary to avoid going beyond the specified chemistry time step
+      H = std::min(H, std::abs(time_step - present_time));
+
+      // compute the forcing at the beginning of the current time
+      CalculateForcing(state.rate_constants_, Y, initial_forcing);
+      stats.function_calls += 1;  //TODO(jiwon)
+
+      // compute the jacobian at the beginning of the current time
+      CalculateJacobian(state.rate_constants_, Y, state.jacobian_);
+      stats.jacobian_updates += 1; //TODO(jiwon)
+
+      bool accepted = false;
+      //  Repeat step calculation until current step accepted
+      while (!accepted)
+      {
+        bool is_singular{ false };
+        // Form and factor the rosenbrock ode jacobian
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state); //TODO(jiwon) remove stats
+
+        if (is_singular)
+        {
+          result.state_ = SolverState::RepeatedlySingularMatrix;
+          break;
+        }
+
+        // Compute the stages
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        {
+          double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
+          if (stage == 0)
+          {
+            forcing = initial_forcing;
+          }
+          else
+          {
+            if (parameters_.new_function_evaluation_[stage])
+            {
+              Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+              for (uint64_t j = 0; j < stage; ++j)
+              {
+                auto a = parameters_.a_[stage_combinations + j];
+                Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
+              }
+
+              CalculateForcing(state.rate_constants_, Ynew, forcing);
+              std::cout << "calculate forcing" << std::endl;
+              stats.function_calls += 1;
+            }
+          }
+          K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
+          for (uint64_t j = 0; j < stage; ++j)
+          {
+            auto HC = parameters_.c_[stage_combinations + j] / H;
+            K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
+          }
+          temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
+
+          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+          std::cout << "linear_solver" << std::endl;
+          stats.solves += 1;
+        }
+
+        // Compute the new solution
+        Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+          Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
+
+        // Compute the error estimation
+        MatrixPolicy<double> Yerror(Y.size(), Y[0].size(), 0);
+        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+          Yerror.ForEach(
+              [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
+
+        auto error = NormalizedError(Y, Ynew, Yerror);
+
+        // New step size is bounded by FacMin <= Hnew/H <= FacMax
+        double fac = std::min(
+            parameters_.factor_max_,
+            std::max(
+                parameters_.factor_min_,
+                parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
+        double Hnew = H * fac;
+
+        stats.number_of_steps += 1;
+
+        // Check the error magnitude and adjust step size
+        if (std::isnan(error))
+        {
+          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          result.state_ = SolverState::NaNDetected;
+          break;
+        }
+        else if ((error < 1) || (H < parameters_.h_min_))
+        {
+          stats.accepted += 1;
+          present_time = present_time + H;
+          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          Hnew = std::max(parameters_.h_min_, std::min(Hnew, h_max));
+          if (reject_last_h)
+          {
+            // No step size increase after a rejected step
+            Hnew = std::min(Hnew, H);
+          }
+          reject_last_h = false;
+          reject_more_h = false;
+          H = Hnew;
+          accepted = true;
+        }
+        else
+        {
+          // Reject step
+          if (reject_more_h)
+          {
+            Hnew = H * parameters_.rejection_factor_decrease_;
+          }
+          reject_more_h = reject_last_h;
+          reject_last_h = true;
+          H = Hnew;
+          if (stats.accepted >= 1)
+          {
+            stats.rejected += 1;
+          }
+        }
+      }
+    }
+
+    std::cout << "Count While Loop: " << count << std::endl;
+
+    if (result.state_ == SolverState::Running)
+    {
+      result.state_ = SolverState::Converged;
+    }
+
+    result.final_time_ = present_time;
+    result.stats_ = stats;
+    result.result_ = Y;
+    return result;
+  }
+
+#else
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   template<bool time_it>
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult
@@ -170,21 +400,31 @@ namespace micm
     for(auto& l : lower) l = 0;
     for(auto& u : upper) u = 0;
     MatrixPolicy<double> Y(state.variables_);
-    MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
-    std::vector<MatrixPolicy<double>> K{};
+    std::size_t num_rows = Y.SizeRows();
+    std::size_t num_cols = Y.SizeColumns();
+    MatrixPolicy<double> Ynew(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> initial_forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
+    std::vector<MatrixPolicy<double>> K{}; // TODO(jiwon): too big for push back to K? std::vector<MatrixPolicy<double*> 
+                                           // to avoid reallocate (copy)
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
 
+    //TODO(jiwon) Revisit
     UpdateState(state);
 
+#if DEBUG
+    K.reserve(parameters_.stages_);
+    for (std::size_t i = 0; i < parameters_.stages_; ++i)
+      K.emplace_back(Y.size(), Y[0].size(), 0.0);
+#else
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
       K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
+#endif
 
     double present_time = 0.0;
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
@@ -257,6 +497,7 @@ namespace micm
               }
             
               CalculateForcing(state.rate_constants_, Ynew, forcing);
+              std::cout << "calculate forcing" << std::endl;
               stats.function_calls += 1;
             }
           }
@@ -269,7 +510,9 @@ namespace micm
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
 
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+          std::cout << "linear_solver" << std::endl;
           stats.solves += 1;
+
         }
 
         // Compute the new solution
@@ -345,6 +588,7 @@ namespace micm
     result.result_ = Y;
     return result;
   }
+#endif
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateForcing(
@@ -387,8 +631,12 @@ namespace micm
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
-     
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
+    
+    std::cout << "jacobian.NumberOfGroups(jacobian.size()): " << jacobian.NumberOfGroups(jacobian.size()) << std::endl;
+    std::cout << "jacobian.GroupSize(jacobian.FlatBlockSize()): " << jacobian.GroupSize(jacobian.FlatBlockSize())
+              << std::endl;
+    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
+    //for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group) //TODO(jiwon) - Naming
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
@@ -415,6 +663,51 @@ namespace micm
     Process::UpdateState(processes_, state);
   }
 
+ #if DEBUG
+  template<
+    template<class>
+    class MatrixPolicy,
+    template<class>
+    class SparseMatrixPolicy,
+    class LinearSolverPolicy,
+    class ProcessSetPolicy>
+inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::LinearFactor(
+    double& H,
+    const double gamma,
+    bool& singular,
+    const MatrixPolicy<double>& number_densities,
+    SolverStats& stats,
+    State<MatrixPolicy, SparseMatrixPolicy>& state)
+  {
+    MICM_PROFILE_FUNCTION();
+
+    auto jacobian = state.jacobian_;
+    uint64_t n_consecutive = 0;
+    singular = false;
+    while (true)
+    {
+      double alpha = 1 / (H * gamma);
+      AlphaMinusJacobian(jacobian, alpha);
+      if (parameters_.check_singularity_)
+      {
+        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
+      }
+      else
+      {
+        singular = false;
+        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
+      }
+      singular = false;  // TODO This should be evaluated in some way //TODO(jiwon) it looks like always signular=False??
+      stats.decompositions += 1; //TODO(jiwon) Remove this
+      if (!singular)
+        break;
+      stats.singular += 1; //TODO(jiwon) Remove this
+      if (++n_consecutive > 5)
+        break;
+      H /= 2;
+    }
+  }
+#else
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::LinearFactor(
       double& H,
@@ -450,6 +743,7 @@ namespace micm
       H /= 2;
     }
   }
+#endif
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(

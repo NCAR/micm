@@ -408,7 +408,8 @@ int OutputDiagnosticData(const std::string file_prefix, const SolverParameters &
     solver_parameters.system_,
     solver_parameters.processes_,
     RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1)};
-  State state = solver.GetState();
+  //State state = solver.GetState();
+  State state = State(solver.GetStateParams());
   SetState(initial_conditions, 1, state);
   solver.UpdateState(state);
   Matrix<double> initial_forcing(state.variables_.size(), state.variables_[0].size(), 0.0);
@@ -479,13 +480,13 @@ int OutputDiagnosticData(const std::string file_prefix, const SolverParameters &
           species.name_, species.parameterize_(state.conditions_[0]),
           0.0));
 
-    int result_code = OutputSpeciesState(file_prefix, species_data);
-    if (result_code != 0)
-      return result_code;
+    //int result_code = OutputSpeciesState(file_prefix, species_data);
+    //if (result_code != 0)
+    //  return result_code;
 
-    result_code = OutputProcessState(file_prefix, reaction_data);
-    if (result_code != 0)
-      return result_code;
+    //result_code = OutputProcessState(file_prefix, reaction_data);
+    //if (result_code != 0)
+    //  return result_code;
 
     return 0;
   }
@@ -513,16 +514,19 @@ void solveAndWriteResults(
     if (species.IsParameterized()) ++nspecies;
   size_t nreactions = solver_params.processes_.size();
 
-  std::string results_file_name = "micm_" + matrix_ordering + "_" + std::to_string(grid_cells) + "_gridcells_" + std::to_string(nspecies) + "_species_" + std::to_string(nreactions) + "_reactions.csv";
-  fs::path results_file_path = results_file_name;
-  std::ofstream results_file(results_file_path);
-  if (!results_file.is_open())
-  {
-    std::cerr << "Failed to open the concentration results file." << std::endl;
-    return;
-  }
+  //std::string results_file_name = "micm_" + matrix_ordering + "_" + std::to_string(grid_cells) + "_gridcells_" + std::to_string(nspecies) + "_species_" + std::to_string(nreactions) + "_reactions.csv";
+  //fs::path results_file_path = results_file_name;
+  //std::ofstream results_file(results_file_path);
+  //if (!results_file.is_open())
+  //{
+  //  std::cerr << "Failed to open the concentration results file." << std::endl;
+  //  return;
+  //}
 
-  State state = solver.GetState();
+  //TODO(jiwon) Solver doesn't own state. GetState() constructs state with state_parameters
+  // And creates in the main stack to avoid copy
+  //State state = solver.GetState();
+  State state = State<MatrixType, SparseMatrixType>(solver.GetStateParams());  // TODO(jiwon)
   SetState(initial_conditions, grid_cells, state);
 
   double time = 0;
@@ -532,7 +536,7 @@ void solveAndWriteResults(
 
   auto startTime = std::chrono::high_resolution_clock::now();
 
-	MICM_PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime-" + matrix_ordering_type + ".json", id);
+  MICM_PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime-" + matrix_ordering_type + ".json", id);
   while (time < timestep)
   {
     result = solver.Solve(timestep - time, state);
@@ -543,25 +547,25 @@ void solveAndWriteResults(
   }
   MICM_PROFILE_END_SESSION();
 
-  auto endTime = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
+  //auto endTime = std::chrono::high_resolution_clock::now();
+  //auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
 
-  csvFile << matrix_ordering << "," << grid_cells << "," << nspecies << "," << nreactions << "," << duration.count() << std::endl;
+  //csvFile << matrix_ordering << "," << grid_cells << "," << nspecies << "," << nreactions << "," << duration.count() << std::endl;
 
-  results_file << "Species";
-  for (int i{}; i<grid_cells; ++i) results_file << ",Cell_" << i;
-  results_file << std::endl;
+  //results_file << "Species";
+  //for (int i{}; i<grid_cells; ++i) results_file << ",Cell_" << i;
+  //results_file << std::endl;
 
-  results_file << std::setprecision(16);
-  auto map = state.variable_map_;
-  for (const auto &pair : map)
-  {
-    results_file << pair.first;
-    for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
-      results_file << "," << state.variables_[cell][pair.second];
-    results_file << std::endl;
-  }
-  results_file.close();
+  //results_file << std::setprecision(16);
+  //auto map = state.variable_map_;
+  //for (const auto &pair : map)
+  //{
+  //  results_file << pair.first;
+  //  for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
+  //    results_file << "," << state.variables_[cell][pair.second];
+  //  results_file << std::endl;
+  //}
+  //results_file.close();
 }
 
 template <class T>
@@ -596,11 +600,12 @@ int main(const int argc, const char *argv[])
 
   int gridSizes[] = {1, 10, 100, 1000};
 
-  fs::path configDir = fs::path(argv[1]);
+  //fs::path configDir = fs::path(argv[1]);
+  std::string configDir{ argv[1] };
   std::string matrix_ordering{argv[2]};
 
   SolverConfig solverConfig;
-  ConfigParseStatus status = solverConfig.ReadAndParse(configDir);
+  ConfigParseStatus status = solverConfig.ReadAndParse(fs::path(configDir));
 
   SolverParameters solver_params = solverConfig.GetSolverParams();
 
@@ -627,7 +632,7 @@ int main(const int argc, const char *argv[])
   std::cout << "  number of reactions: " << nreactions << std::endl;
   std::cout << "  matrix ordering: " << matrix_ordering << std::endl;
 
-  auto initial_conditions = read_initial_conditions(configDir / "initial_conditions.csv");
+  auto initial_conditions = read_initial_conditions(configDir + "./initial_conditions.csv");
 
   const std::string file_prefix = "micm_" + matrix_ordering + "_" + std::to_string(nspecies) + "_species_" + std::to_string(nreactions) + "_reactions_";
 
@@ -638,12 +643,12 @@ int main(const int argc, const char *argv[])
   std::string file_name = file_prefix + "timing_results.csv";
   fs::path csvFilePath = file_name;
   std::ofstream csvFile(csvFilePath);
-  if (!csvFile.is_open())
-  {
-    std::cerr << "Failed to open the CSV file " << csvFilePath << "." << std::endl;
-    return 1;
-  }
-  csvFile << "Matrix,Grid cells,Species,Reactions,Solving Time (nanoseconds)" << std::endl;
+  //if (!csvFile.is_open())
+  //{s
+  //  std::cerr << "Failed to open the CSV file " << csvFilePath << "." << std::endl;
+  //  return 1;
+  //}
+  //csvFile << "Matrix,Grid cells,Species,Reactions,Solving Time (nanoseconds)" << std::endl;
 
   if (matrix_ordering == "standard")
   {
@@ -654,16 +659,17 @@ int main(const int argc, const char *argv[])
   }
   else if (matrix_ordering == "vector")
   {
-    solveAndWriteResults<Vector1MatrixParam, Vector1SparseMatrixParam>
-      (solver_params, initial_conditions, "vector", csvFile, 1, "Vector-1", 20001);
-    solveAndWriteResults<Vector10MatrixParam, Vector10SparseMatrixParam>
-      (solver_params, initial_conditions, "vector", csvFile, 10, "Vector-10", 20010);
-    solveAndWriteResults<Vector100MatrixParam, Vector100SparseMatrixParam>
-      (solver_params, initial_conditions,"vector", csvFile, 100, "Vector-100", 20100);
+    //solveAndWriteResults<Vector1MatrixParam, Vector1SparseMatrixParam>
+    //  (solver_params, initial_conditions, "vector", csvFile, 1, "Vector-1", 20001);
+    //solveAndWriteResults<Vector10MatrixParam, Vector10SparseMatrixParam>
+    //  (solver_params, initial_conditions, "vector", csvFile, 10, "Vector-10", 20010);
+    //solveAndWriteResults<Vector100MatrixParam, Vector100SparseMatrixParam>
+    //  (solver_params, initial_conditions,"vector", csvFile, 100, "Vector-100", 20100);
     solveAndWriteResults<Vector1000MatrixParam, Vector1000SparseMatrixParam>
       (solver_params, initial_conditions, "vector", csvFile, 1000, "Vector-1000", 21000);
   }
+  std::cout << "Done!" << std::endl;
 
-  csvFile.close();
+  //csvFile.close();
   return 0;
 }

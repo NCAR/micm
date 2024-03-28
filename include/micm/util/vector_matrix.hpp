@@ -49,6 +49,21 @@ namespace micm
             row_index_(row_index),
             y_dim_(y_dim)
       {
+        //printf("Copied! Proxy(VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim) \n");
+      }
+      //TODO(jiwon) Move constructor?
+      Proxy(VectorMatrix &&matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
+          : matrix_(std::move(matrix)),
+            group_index_(group_index),
+            row_index_(row_index),
+            y_dim_(y_dim)
+      {
+        //printf("Moved! Proxy(VectorMatrix &matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim) \n");
+      }
+
+      ~Proxy()
+      { 
+        //printf("Destroyed! ~Proxy()\n");
       }
       Proxy &operator=(const std::vector<T> other)
       {
@@ -82,10 +97,18 @@ namespace micm
         }
         return vec;
       }
+      // TODO(jiwon) - Delete this
       std::size_t size() const
       {
         return y_dim_;
       }
+
+      // TODO(jiwon) - Naming
+      std::size_t Size() const
+      {
+        return y_dim_;
+      }
+
       T &operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -150,7 +173,7 @@ namespace micm
     {
     }
 
-    VectorMatrix(const std::vector<std::vector<T>> other)
+    VectorMatrix(const std::vector<std::vector<T>>& other) //TODO(jiwon) check lambda performance, is this constructor used?
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
@@ -182,10 +205,43 @@ namespace micm
               }())
     {
     }
+    // TODO(jiwon) - Naming
+    std::size_t Size() const
+    {
+      return x_dim_;
+    }
+
+    // TODO(jiwon) - Delete
     std::size_t size() const
     {
       return x_dim_;
     }
+    
+    // TODO(jiwon) - Check this again based on the usage (3/27)
+    // I want to provide this. How to name this?
+    std::size_t Shape() const
+    {
+      return y_dim_;
+    }
+
+    //TODO(jiwon)
+    std::size_t NumRows() const
+    {
+      return x_dim_;
+    }
+
+    //TODO(jiwon) - Check this again based on the usage (3/27) 
+    // I want to provide this. How to name this?
+    std::size_t NumColumns() const
+    {
+      return y_dim_;
+    }
+
+    ////TODO(jiwon)
+    //std::pair<std::size_t, size_t> shape() const
+    //{
+    //  return std::make_pair(x_dim_, y_dim_);
+    //}
 
     std::size_t NumberOfGroups() const
     {
@@ -206,7 +262,7 @@ namespace micm
     {
       return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);
     }
-
+    //TODO(jiwon) - The index operator doens't work conventionally and can be confusing (calling constructor and creating a new obj)
     Proxy operator[](std::size_t x)
     {
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
