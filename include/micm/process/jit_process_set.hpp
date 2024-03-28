@@ -58,12 +58,12 @@ namespace micm
         const MatrixPolicy<double> &state_variables,
         MatrixPolicy<double> &forcing) const;
 
-    /// @brief Adds Jacobian terms for the set of processes for the current conditions
+    /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    void AddJacobianTerms(
+    void SubtractJacobianTerms(
         const MatrixPolicy<double> &rate_constants,
         const MatrixPolicy<double> &state_variables,
         SparseMatrixPolicy<double> &jacobian) const;
