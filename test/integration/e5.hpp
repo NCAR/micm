@@ -104,7 +104,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
   /// @param jacobian The matrix of partial derivatives
-  void CalculateJacobian(
+  void CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian) override
@@ -132,5 +132,8 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     jacobian[0][3][1] = 0.0;
     jacobian[0][3][2] = B * data[0];
     jacobian[0][3][3] = -C;
+
+    // Negate the jacobian
+    for (auto& elem : jacobian.AsVector()) elem = -elem;
   }
 };

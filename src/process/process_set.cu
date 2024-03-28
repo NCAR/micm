@@ -54,7 +54,7 @@ namespace micm
       }    // end of checking a valid CUDA thread id
     }      // end of AddForcingTerms_kernel
 
-    /// This is the CUDA kernel that forms the minus Jacobian matrix (-J) on the device
+    /// This is the CUDA kernel that forms the negative Jacobian matrix (-J) on the device
     __global__ void SubtractJacobianTermsKernel(
         double* d_rate_constants,
         double* d_state_variables,
@@ -107,7 +107,7 @@ namespace micm
           react_ids_offset += d_number_of_reactants[i_rxn];
           yields_offset += d_number_of_products[i_rxn];
         }  // end of loop over reactions in a grid
-        // Form the minus Jaocbian matrix (-J)
+        // Negate the Jaocbian matrix (-J)
         for (size_t idx = 0; idx < num_elments_per_jacobian; ++idx)
         {
             d_jacobian[idx*num_grid_cells + tid] = -d_jacobian[idx*num_grid_cells + tid]; 

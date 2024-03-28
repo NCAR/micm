@@ -151,7 +151,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][4] = 1.0;
   }
 
-  // Generate minus jacobian matrix (-J) here
+  // Negate the Jacobian matrix (-J) here
   for (auto& elem : jacobian.AsVector())
     elem = -elem;
 

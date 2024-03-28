@@ -234,8 +234,8 @@ namespace micm
       TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
       stats.function_calls += 1;
 
-      // compute the jacobian at the beginning of the current time
-      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, state.jacobian_);
+      // compute the negative jacobian at the beginning of the current time
+      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateNegativeJacobian, state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates += 1;
 
       bool accepted = false;
@@ -400,7 +400,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateJacobian(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)

@@ -188,7 +188,7 @@ namespace micm
     /// @param rate_constants List of rate constants for each needed species
     /// @param number_densities The number density of each species
     /// @param jacobian The matrix of partial derivatives
-    virtual void CalculateJacobian(
+    virtual void CalculateNegativeJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
         SparseMatrixPolicy<double>& jacobian);
