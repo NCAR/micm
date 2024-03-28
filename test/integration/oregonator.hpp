@@ -120,6 +120,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     jacobian[0][2][2] = -.161;
 
     // Negate the jacobian
-    for (auto& elem : jacobian.AsVector()) elem = -elem;
+    for (auto& elem : jacobian.AsVector())
+      elem = -elem;
   }
 };

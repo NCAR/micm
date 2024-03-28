@@ -200,7 +200,7 @@ namespace micm
       cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
       cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
       cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_);
-      
+
       // transfer data from host to device
       cudaMemcpy(
           d_rate_constants,
