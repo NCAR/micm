@@ -100,10 +100,10 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     forcing[0][2] = forcing[0][1] - forcing[0][3];
   }
 
-  /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
+  /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
-  /// @param jacobian The matrix of partial derivatives
+  /// @param jacobian The matrix of negative partial derivatives
   void CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,

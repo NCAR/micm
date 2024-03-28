@@ -94,24 +94,19 @@ namespace micm
             for (size_t i_dep = 0; i_dep < d_number_of_reactants[i_rxn]; ++i_dep)
             {
               size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + tid;
-              d_jacobian[jacobian_idx] -= d_rate_d_ind;
+              d_jacobian[jacobian_idx] += d_rate_d_ind;
               flat_id_offset++;
             }
             for (size_t i_dep = 0; i_dep < d_number_of_products[i_rxn]; ++i_dep)
             {
               size_t jacobian_idx = d_jacobian_flat_ids[flat_id_offset] + tid;
-              d_jacobian[jacobian_idx] += d_yields[yields_offset + i_dep] * d_rate_d_ind;
+              d_jacobian[jacobian_idx] -= d_yields[yields_offset + i_dep] * d_rate_d_ind;
               flat_id_offset++;
             }
           }  // loop over reactants in a reaction
           react_ids_offset += d_number_of_reactants[i_rxn];
           yields_offset += d_number_of_products[i_rxn];
-        }  // end of loop over reactions in a grid
-        // Negate the Jaocbian matrix (-J)
-        for (size_t idx = 0; idx < num_elments_per_jacobian; ++idx)
-        {
-            d_jacobian[idx*num_grid_cells + tid] = -d_jacobian[idx*num_grid_cells + tid]; 
-        }
+        }  // end of loop over reactions in a grid cell
       }    // end of checking a CUDA thread id
     }      // end of SubtractJacobianTermsKernel
 

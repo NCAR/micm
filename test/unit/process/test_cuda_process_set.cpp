@@ -147,7 +147,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     elem = get_double();
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(0.0);
+  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
   for (auto& elem : non_zero_elements)
     builder = builder.with_element(elem.first, elem.second);
   SparseMatrixPolicy<double> cpu_jacobian{ builder };
