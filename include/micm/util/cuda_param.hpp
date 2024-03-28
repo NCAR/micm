@@ -117,9 +117,12 @@ struct CudaVectorMatrixParam
 /// This struct could be allocated on the host or device;
 struct CudaRosenbrockSolverParam
 {
+  size_t num_grid_cells_;
+  // for NormalizedError function
   double* errors_input_;
   double* errors_output_;
   size_t errors_size_;
-  //  size_t* jacobian_diagonal_elements_;
-  //  size_t jacobian_diagonal_elements_size_;
+  // for AlphaMinusJacobian function
+  size_t* jacobian_diagonal_elements_;
+  size_t jacobian_diagonal_elements_size_;
 };

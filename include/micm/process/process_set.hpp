@@ -57,17 +57,17 @@ namespace micm
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
-    /// @brief Add Jacobian terms for the set of processes for the current conditions
+    /// @brief Subtract Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) void AddJacobianTerms(
+    requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
@@ -240,10 +240,11 @@ namespace micm
     }
   }
 
+  // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires(
       !VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      AddJacobianTerms(
+      SubtractJacobianTerms(
           const MatrixPolicy<double>& rate_constants,
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
@@ -275,9 +276,9 @@ namespace micm
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-            cell_jacobian[*(flat_id++)] -= d_rate_d_ind;
+            cell_jacobian[*(flat_id++)] += d_rate_d_ind;
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-            cell_jacobian[*(flat_id++)] += yield[i_dep] * d_rate_d_ind;
+            cell_jacobian[*(flat_id++)] -= yield[i_dep] * d_rate_d_ind;
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
@@ -287,9 +288,10 @@ namespace micm
     }
   }
 
+  // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      AddJacobianTerms(
+      SubtractJacobianTerms(
           const MatrixPolicy<double>& rate_constants,
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
@@ -326,13 +328,13 @@ namespace micm
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
+              v_jacobian[offset_jacobian + *flat_id + i_cell] += d_rate_d_ind[i_cell];
             ++flat_id;
           }
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
           {
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] += yield[i_dep] * d_rate_d_ind[i_cell];
+              v_jacobian[offset_jacobian + *flat_id + i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
             ++flat_id;
           }
         }

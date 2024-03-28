@@ -58,12 +58,12 @@ namespace micm
         const MatrixPolicy<double> &state_variables,
         MatrixPolicy<double> &forcing) const;
 
-    /// @brief Adds Jacobian terms for the set of processes for the current conditions
+    /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    void AddJacobianTerms(
+    void SubtractJacobianTerms(
         const MatrixPolicy<double> &rate_constants,
         const MatrixPolicy<double> &state_variables,
         SparseMatrixPolicy<double> &jacobian) const;
@@ -222,7 +222,7 @@ namespace micm
   template<std::size_t L>
   void JitProcessSet<L>::GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
-    std::string function_name = "add_jacobian_terms_" + generate_random_string();
+    std::string function_name = "subtract_jacobian_terms_" + generate_random_string();
     JitFunction func = JitFunction::create(compiler_)
                            .name(function_name)
                            .arguments({ { "rate constants", JitType::DoublePtr },
@@ -255,7 +255,7 @@ namespace micm
         func.builder_->CreateStore(rate_const, rate_ptr);
         func.EndLoop(loop);
 
-        // d_rate_d_ind[i_cell] += reactant_concentration for each reactant except ind
+        // d_rate_d_ind[i_cell] *= reactant_concentration for each reactant except ind
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
           if (i_react == i_ind)
@@ -272,7 +272,7 @@ namespace micm
           func.EndLoop(loop);
         }
 
-        // set jacobian terms for each reactant jac[i_react][i_ind][i_cell] -= d_rate_d_ind[i_cell]
+        // set jacobian terms for each reactant jac[i_react][i_ind][i_cell] += d_rate_d_ind[i_cell]
         for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
         {
           loop = func.StartLoop("reactant term", 0, L);
@@ -283,12 +283,12 @@ namespace micm
           array_index[1] = loop.index_;
           rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
           llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
-          dep_jac = func.builder_->CreateFSub(dep_jac, rate, "reactant jacobian term");
+          dep_jac = func.builder_->CreateFAdd(dep_jac, rate, "reactant jacobian term");
           func.builder_->CreateStore(dep_jac, dep_jac_ptr);
           func.EndLoop(loop);
         }
 
-        // set jacobian terms for each product jac[i_prod][i_ind][i_cell] += yield * d_rate_d_ind[i_cell]
+        // set jacobian terms for each product jac[i_prod][i_ind][i_cell] -= yield * d_rate_d_ind[i_cell]
         for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
         {
           loop = func.StartLoop("product term", 0, L);
@@ -301,7 +301,7 @@ namespace micm
           llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
           llvm::Value *yield = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(yields[i_dep]));
           rate = func.builder_->CreateFMul(rate, yield, "product yield");
-          dep_jac = func.builder_->CreateFAdd(dep_jac, rate, "product jacobian term");
+          dep_jac = func.builder_->CreateFSub(dep_jac, rate, "product jacobian term");
           func.builder_->CreateStore(dep_jac, dep_jac_ptr);
           func.EndLoop(loop);
         }
@@ -343,7 +343,7 @@ namespace micm
 
   template<std::size_t L>
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  void JitProcessSet<L>::AddJacobianTerms(
+  void JitProcessSet<L>::SubtractJacobianTerms(
       const MatrixPolicy<double> &rate_constants,
       const MatrixPolicy<double> &state_variables,
       SparseMatrixPolicy<double> &jacobian) const

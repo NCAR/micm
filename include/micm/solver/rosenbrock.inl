@@ -234,8 +234,8 @@ namespace micm
       TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
       stats.function_calls += 1;
 
-      // compute the jacobian at the beginning of the current time
-      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateJacobian, state.rate_constants_, Y, state.jacobian_);
+      // compute the negative jacobian at the beginning of the current time
+      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateNegativeJacobian, state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates += 1;
 
       bool accepted = false;
@@ -374,8 +374,6 @@ namespace micm
       const double& alpha) const
     requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
-    for (auto& elem : jacobian.AsVector())
-      elem = -elem;
     for (std::size_t i_block = 0; i_block < jacobian.size(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
@@ -391,8 +389,6 @@ namespace micm
     requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
-    for (auto& elem : jacobian.AsVector())
-      elem = -elem;
      
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
     {
@@ -404,13 +400,13 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateJacobian(
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
-    process_set_.template AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
+    process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>

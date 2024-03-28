@@ -96,7 +96,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
 }
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
+void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -156,8 +156,8 @@ void testRandomSystemAddJacobianTerms(std::size_t n_cells, std::size_t n_reactio
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
-  cpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
-  gpu_set.AddJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
+  cpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
+  gpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
 
   // checking accuracy of jacobian between CPU and GPU
   std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector();
@@ -183,5 +183,5 @@ TEST(RandomCudaProcessSet, Forcing)
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+  testRandomSystemSubtractJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }
