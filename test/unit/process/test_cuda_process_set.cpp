@@ -183,5 +183,5 @@ TEST(RandomCudaProcessSet, Forcing)
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystemAddJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+  testRandomSystemSubtractJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
 }

@@ -59,8 +59,8 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   EXPECT_EQ(jacobian[0].size(), 5);
   EXPECT_EQ(jacobian[0][0].size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
-  for (auto& elem : jacobian.AsVector())
-    elem = 100.0;
+
+  // Initialize Jacobian matrix
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     jacobian[i_cell][0][0] = 12.2;
@@ -77,6 +77,10 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     jacobian[i_cell][4][2] = 53.6;
     jacobian[i_cell][4][4] = 1.0;
   }
+
+  // Convert to minus Jacobian matrix
+  for (auto& elem : jacobian.AsVector()) elem = -elem;
+
   solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {

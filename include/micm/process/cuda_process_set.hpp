@@ -39,7 +39,7 @@ namespace micm
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-        std::chrono::nanoseconds AddJacobianTerms(
+        std::chrono::nanoseconds SubtractJacobianTerms(
             const MatrixPolicy<double>& rate_constants,
             const MatrixPolicy<double>& state_variables,
             SparseMatrixPolicy<double>& jacobian)
