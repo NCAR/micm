@@ -49,6 +49,7 @@ namespace micm
     SparseMatrixPolicy<double> lower_matrix_;
     SparseMatrixPolicy<double> upper_matrix_;
     size_t state_size_;
+    std::size_t number_of_grid_cells_;
 
     /// @brief
     State();

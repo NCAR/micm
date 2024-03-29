@@ -26,7 +26,8 @@ namespace micm
         jacobian_(),
         lower_matrix_(),
         upper_matrix_(),
-        state_size_(parameters.variable_names_.size())
+        state_size_(parameters.variable_names_.size()),
+        number_of_grid_cells_(parameters.number_of_grid_cells_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
@@ -91,7 +92,7 @@ namespace micm
     if (parameters[0].size() != custom_rate_parameters_[0].size())
       throw std::invalid_argument("The number of custom rate parameters configured for micm does not match the provided number of custom rate parameter values");
 
-    for(size_t i = 0; i < variables_.size(); ++i) {
+    for(size_t i = 0; i < number_of_grid_cells_; ++i) {
       custom_rate_parameters_[i] = parameters[i];
     }
   }
