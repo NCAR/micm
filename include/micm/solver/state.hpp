@@ -67,6 +67,10 @@ namespace micm
     void SetConcentration(const Species& species, double concentration);
     void SetConcentration(const Species& species, const std::vector<double>& concentration);
 
+    /// @brief Set custom parameters assuming the values are properly ordered
+    /// @param parameters map of custom rate parameters
+    void UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters);
+
     /// @brief Set custom parameters for rate constant calculations by label
     /// @param parameters map of custom rate parameters
     void SetCustomRateParameters(const std::unordered_map<std::string, std::vector<double>>& parameters);

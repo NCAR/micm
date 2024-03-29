@@ -82,6 +82,15 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
+      const std::vector<std::vector<double>>& parameters)
+  {
+    for(size_t i = 0; i < variables_.size(); ++i) {
+      custom_rate_parameters_[i] = parameters[i];
+    }
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {

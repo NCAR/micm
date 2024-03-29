@@ -195,3 +195,49 @@ TEST(State, SetCustomRateParameters)
     }
   }
 }
+
+TEST(State, UnsafelySetCustomRateParameterOneCell)
+{
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 1,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
+
+  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3, 0.4, 0.5}};
+
+  state.UnsafelySetCustomRateParameters(parameters);
+  EXPECT_EQ(state.custom_rate_parameters_[0][0], 0.1);
+  EXPECT_EQ(state.custom_rate_parameters_[0][1], 0.2);
+  EXPECT_EQ(state.custom_rate_parameters_[0][2], 0.3);
+  EXPECT_EQ(state.custom_rate_parameters_[0][3], 0.4);
+  EXPECT_EQ(state.custom_rate_parameters_[0][4], 0.5);
+}
+
+TEST(State, UnsafelySetCustomRateParameterMultiCell)
+{
+  uint32_t num_grid_cells = 3;
+
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = num_grid_cells,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
+
+  std::vector<std::vector<double>> parameters = {
+    {0.1, 0.2, 0.3, 0.4, 0.5},
+    {0.1, 0.2, 0.3, 0.4, 0.5},
+    {0.1, 0.2, 0.3, 0.4, 0.5}
+    };
+
+  state.UnsafelySetCustomRateParameters(parameters);
+  for(size_t i = 0; i < num_grid_cells; i++) {
+    EXPECT_EQ(state.custom_rate_parameters_[i][0], 0.1);
+    EXPECT_EQ(state.custom_rate_parameters_[i][1], 0.2);
+    EXPECT_EQ(state.custom_rate_parameters_[i][2], 0.3);
+    EXPECT_EQ(state.custom_rate_parameters_[i][3], 0.4);
+    EXPECT_EQ(state.custom_rate_parameters_[i][4], 0.5);
+  }
+}
