@@ -31,11 +31,10 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> std::chrono::nanoseconds AddForcingTerms(
+    requires VectorizableDense<MatrixPolicy<double>> void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing)
-    const;
+        MatrixPolicy<double>& forcing);
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
@@ -91,21 +90,20 @@ namespace micm
 
   template<template<class> class MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::AddForcingTerms(
+  inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+      MatrixPolicy<double>& forcing)
   {
-    CudaMatrixParam matrix;
-    matrix.rate_constants_ = rate_constants.AsVector().data();
-    matrix.state_variables_ = state_variables.AsVector().data();
-    matrix.forcing_ = forcing.AsVector().data();
-    matrix.n_grids_ = rate_constants.size();
-    matrix.n_reactions_ = rate_constants[0].size();
-    matrix.n_species_ = state_variables[0].size();
+    this->devstruct_.number_of_reactions_ = rate_constants[0].size();
+    this->devstruct_.number_of_species_ = state_variables[0].size();
+    this->devstruct_.number_of_grid_cells_ = rate_constants.size();
 
-    std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(matrix, this->devstruct_);
-    return kernel_duration;  // time performance of kernel function
+    // Local pointer to the input matrix, whose data are already on the device
+    const double* d_rate_constants = rate_constants.AsDeviceParam().d_data_;
+    const double* d_state_variables = state_variables.AsDeviceParam().d_data_;
+    double* d_forcing = forcing.AsDeviceParam().d_data_;
+    micm::cuda::AddForcingTermsKernelDriver(d_rate_constants, d_state_variables, d_forcing, this->devstruct_);
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>

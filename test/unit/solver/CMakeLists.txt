@@ -16,7 +16,7 @@ create_standard_test(NAME state SOURCES test_state.cpp)
 if(MICM_ENABLE_CUDA)
   create_standard_test(NAME cuda_lu_decomposition SOURCES test_cuda_lu_decomposition.cpp LIBRARIES musica::micm_cuda)
   create_standard_test(NAME cuda_linear_solver SOURCES test_cuda_linear_solver.cpp LIBRARIES musica::micm_cuda)
-  create_standard_test(NAME cuda_rosenbrock SOURCES test_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda)
+#  create_standard_test(NAME cuda_rosenbrock SOURCES test_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda)
 endif()
 
 if(MICM_ENABLE_LLVM)

@@ -60,6 +60,9 @@ struct ProcessSetParam
   size_t product_ids_size_;
   size_t yields_size_;
   size_t jacobian_flat_ids_size_;
+  size_t number_of_reactions_;
+  size_t number_of_species_;
+  size_t number_of_grid_cells_;
 };
 
 /// This struct holds the (1) pointer to, and (2) size of

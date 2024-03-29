@@ -49,13 +49,13 @@ namespace micm
     requires(!VectorizableDense<MatrixPolicy<double>>) void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
+        MatrixPolicy<double>& forcing);
     template<template<class> typename MatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
+        MatrixPolicy<double>& forcing);
 
     /// @brief Subtract Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
@@ -167,7 +167,7 @@ namespace micm
   requires(!VectorizableDense<MatrixPolicy<double>>) inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+      MatrixPolicy<double>& forcing)
   {
     // loop over grid cells
     for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
@@ -204,7 +204,7 @@ namespace micm
   inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+      MatrixPolicy<double>& forcing)
   {
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();

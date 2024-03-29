@@ -20,8 +20,10 @@ namespace micm
 
     /// This is the host function that will call the CUDA kernel
     ///   to calculate the forcing terms
-    std::chrono::nanoseconds AddForcingTermsKernelDriver(
-        CudaMatrixParam& matrixParam,
+    void AddForcingTermsKernelDriver(
+        const double* d_rate_constants,
+        const double* d_state_variables,
+        double* d_forcing,
         const ProcessSetParam& devstruct);
 
     /// This is the host function that will call the CUDA kernel
