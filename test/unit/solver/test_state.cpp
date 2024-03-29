@@ -241,3 +241,31 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
     EXPECT_EQ(state.custom_rate_parameters_[i][4], 0.5);
   }
 }
+
+TEST(State, UnsafelySetCustomRateParameterCatchesTooFewGridCells)
+{
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 2,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
+
+  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3, 0.4, 0.5}};
+
+  EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
+}
+
+TEST(State, UnsafelySetCustomRateParameterCatchesTooParameters)
+{
+  micm::State state{ micm::StateParameters{
+      .number_of_grid_cells_ = 2,
+      .number_of_rate_constants_ = 10,
+      .variable_names_{ "foo", "bar", "baz", "quz" },
+      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+  } };
+
+  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3}};
+
+  EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
+}
