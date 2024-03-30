@@ -11,10 +11,10 @@ namespace micm
   {
     /// This is the CUDA kernel that calculates the forcing terms on the device
     __global__ void AddForcingTermsKernel(
-        const double* d_rate_constants,
-        const double* d_state_variables,
-        double* d_forcing,
-        ProcessSetParam devstruct)
+        const CudaVectorMatrixParam rate_constants_param,
+        const CudaVectorMatrixParam state_variables_param,
+        CudaVectorMatrixParam forcing_param,
+        const ProcessSetParam devstruct)
     {
       /// Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -26,8 +26,11 @@ namespace micm
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_product_ids = devstruct.product_ids_;
       double* d_yields = devstruct.yields_;
-      const size_t number_of_grid_cells = devstruct.number_of_grid_cells_;
-      const size_t number_of_reactions = devstruct.number_of_reactions_;
+      const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      const size_t number_of_reactions = rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
+      const double* d_rate_constants = rate_constants_param.d_data_;
+      const double* d_state_variables = state_variables_param.d_data_;
+      double* d_forcing = forcing_param.d_data_;
 
       if (tid < number_of_grid_cells)
       {
@@ -239,13 +242,13 @@ namespace micm
       return kernel_duration;
     }  // end of SubtractJacobianTermsKernelDriver
 
-    void AddForcingTermsKernelDriver(const double* d_rate_constants,
-                                     const double* d_state_variables,
-                                     double* d_forcing,
+    void AddForcingTermsKernelDriver(const CudaVectorMatrixParam& rate_constants_param,
+                                     const CudaVectorMatrixParam& state_variables_param,
+                                     CudaVectorMatrixParam& forcing_param,
                                      const ProcessSetParam& devstruct)
     {
-      size_t number_of_blocks = (devstruct.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      AddForcingTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(d_rate_constants, d_state_variables, d_forcing, devstruct);
+      size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      AddForcingTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(rate_constants_param, state_variables_param, forcing_param, devstruct);
       cudaDeviceSynchronize();
     }  // end of AddForcingTermsKernelDriver
   }    // namespace cuda

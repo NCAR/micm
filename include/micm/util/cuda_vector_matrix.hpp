@@ -151,6 +151,10 @@ namespace micm
     {
       return this->handle_;
     }
+    void SetNumberofGridCells(const std::size_t n)
+    {
+      this->vector_matrix_param_.number_of_grid_cells_ = n;
+    }
     /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
@@ -163,7 +167,7 @@ namespace micm
       static_assert(std::is_same_v<T, double>);
       cublasStatus_t stat = cublasDaxpy(
           this->handle_,
-          x.vector_matrix_param_.num_elements_,
+          x.vector_matrix_param_.number_of_elements_,
           &alpha,
           x.vector_matrix_param_.d_data_,
           incx,

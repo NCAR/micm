@@ -83,6 +83,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   std::ranges::generate(cpu_rate_constants.AsVector(), get_double);
   auto rate_vars = cpu_rate_constants.AsVector();
   gpu_rate_constants.AsVector().assign(rate_vars.begin(), rate_vars.end());
+  gpu_rate_constants.SetNumberofGridCells(n_cells);
   gpu_rate_constants.CopyToDevice();
 
   CPUMatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
