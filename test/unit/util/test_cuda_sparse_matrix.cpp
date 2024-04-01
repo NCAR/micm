@@ -6,17 +6,17 @@
 #include "cuda_matrix_utils.cuh"
 #include "test_sparse_matrix_policy.hpp"
 
-TEST(CudaSparseVectorMatrix, ZeroMatrix)
+TEST(CudaSparseMatrix, ZeroMatrix)
 {
   auto matrix = testZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
 }
 
-TEST(CudaSparseVectorMatrix, ConstZeroMatrix)
+TEST(CudaSparseMatrix, ConstZeroMatrix)
 {
   const auto matrix = testConstZeroMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
 }
 
-TEST(CudaSparseVectorMatrix, CopyAssignmentZeroMatrix)
+TEST(CudaSparseMatrix, CopyAssignmentZeroMatrix)
 {
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
@@ -44,7 +44,7 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentZeroMatrix)
   }
 }
 
-TEST(CudaSparseVectorMatrix, CopyAssignmentConstZeroMatrix)
+TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrix)
 {
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
@@ -82,7 +82,7 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentConstZeroMatrix)
   }
 }
 
-TEST(CudaSparseVectorMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
+TEST(CudaSparseMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
 {
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
@@ -138,7 +138,7 @@ TEST(CudaSparseVectorMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
   }
 }
 
-TEST(CudaSparseVectorMatrix, MoveAssignmentConstZeroMatrix)
+TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrix)
 {
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
@@ -172,7 +172,7 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentConstZeroMatrix)
   }
 }
 
-TEST(CudaSparseVectorMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
+TEST(CudaSparseMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
 {
   auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
                      .with_element(0, 0)
@@ -211,12 +211,12 @@ TEST(CudaSparseVectorMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
   }
 }
 
-TEST(CudaSparseVectorMatrix, SetScalar)
+TEST(CudaSparseMatrix, SetScalar)
 {
   testSetScalar<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
 }
 
-TEST(CudaSparseVectorMatrix, SingleBlockMatrix)
+TEST(CudaSparseMatrix, SingleBlockMatrix)
 {
   auto matrix = testSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<4>>();
 
@@ -237,7 +237,7 @@ TEST(CudaSparseVectorMatrix, SingleBlockMatrix)
   EXPECT_EQ(matrix.NumberOfGroups(1), 1);
 }
 
-TEST(CudaSparseVectorMatrix, ConstSingleBlockMatrix)
+TEST(CudaSparseMatrix, ConstSingleBlockMatrix)
 {
   auto matrix = testConstSingleBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<2>>();
 
@@ -256,7 +256,7 @@ TEST(CudaSparseVectorMatrix, ConstSingleBlockMatrix)
   EXPECT_EQ(matrix.NumberOfGroups(1), 1);
 }
 
-TEST(CudaSparseVectorMatrix, MultiBlockMatrix)
+TEST(CudaSparseMatrix, MultiBlockMatrix)
 {
   auto matrix = testMultiBlockMatrix<micm::CudaSparseMatrix, micm::SparseMatrixVectorOrdering<2>>();
 

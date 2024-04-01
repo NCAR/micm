@@ -116,7 +116,7 @@ namespace micm
     }
 
     std::chrono::nanoseconds
-    SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam& denseMatrix, const LinearSolverParam& devstruct)
+    SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam_to_be_removed& denseMatrix, const LinearSolverParam& devstruct)
     {
       /// Create device pointers
       double* d_lower_matrix;

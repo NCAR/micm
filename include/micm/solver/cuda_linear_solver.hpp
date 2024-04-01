@@ -73,7 +73,7 @@ namespace micm
         SparseMatrixPolicy<T>& upper_matrix)
     {
       CudaSparseMatrixParam sparseMatrix;
-      CudaMatrixParam denseMatrix;
+      CudaMatrixParam_to_be_removed denseMatrix;
 
       sparseMatrix.lower_matrix_ = lower_matrix.AsVector().data();
       sparseMatrix.lower_matrix_size_ = lower_matrix.AsVector().size();

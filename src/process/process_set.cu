@@ -11,9 +11,9 @@ namespace micm
   {
     /// This is the CUDA kernel that calculates the forcing terms on the device
     __global__ void AddForcingTermsKernel(
-        const CudaVectorMatrixParam rate_constants_param,
-        const CudaVectorMatrixParam state_variables_param,
-        CudaVectorMatrixParam forcing_param,
+        const CudaMatrixParam rate_constants_param,
+        const CudaMatrixParam state_variables_param,
+        CudaMatrixParam forcing_param,
         const ProcessSetParam devstruct)
     {
       /// Calculate global thread ID
@@ -190,7 +190,7 @@ namespace micm
     }
 
     std::chrono::nanoseconds SubtractJacobianTermsKernelDriver(
-        CudaMatrixParam& matrixParam,
+        CudaMatrixParam_to_be_removed& matrixParam,
         CudaSparseMatrixParam& sparseMatrix,
         const ProcessSetParam& devstruct)
     {
@@ -244,9 +244,9 @@ namespace micm
     }  // end of SubtractJacobianTermsKernelDriver
 
     void AddForcingTermsKernelDriver(
-        const CudaVectorMatrixParam& rate_constants_param,
-        const CudaVectorMatrixParam& state_variables_param,
-        CudaVectorMatrixParam& forcing_param,
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& forcing_param,
         const ProcessSetParam& devstruct)
     {
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
