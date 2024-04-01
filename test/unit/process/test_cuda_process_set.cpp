@@ -5,11 +5,11 @@
 #include <iostream>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/util/cuda_vector_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <micm/util/cuda_vector_matrix.hpp>
 #include <random>
 #include <vector>
 
