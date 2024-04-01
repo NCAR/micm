@@ -51,6 +51,7 @@ namespace micm
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      this->vector_matrix_param_.number_of_grid_cells_ = x_dim;
     }
     CudaVectorMatrix(std::size_t x_dim, std::size_t y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim)
@@ -61,6 +62,7 @@ namespace micm
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      this->vector_matrix_param_.number_of_grid_cells_ = x_dim;
       if (this->handle_ == NULL)
       {
         cublasStatus_t stat = cublasCreate(&(this->handle_));
@@ -163,7 +165,7 @@ namespace micm
       static_assert(std::is_same_v<T, double>);
       cublasStatus_t stat = cublasDaxpy(
           this->handle_,
-          x.vector_matrix_param_.num_elements_,
+          x.vector_matrix_param_.number_of_elements_,
           &alpha,
           x.vector_matrix_param_.d_data_,
           incx,

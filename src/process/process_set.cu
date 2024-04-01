@@ -11,40 +11,44 @@ namespace micm
   {
     /// This is the CUDA kernel that calculates the forcing terms on the device
     __global__ void AddForcingTermsKernel(
-        double* d_rate_constants,
-        double* d_state_variables,
-        double* d_forcing,
-        ProcessSetParam devstruct,
-        size_t n_grids,
-        size_t n_reactions,
-        size_t n_species)
+        const CudaVectorMatrixParam rate_constants_param,
+        const CudaVectorMatrixParam state_variables_param,
+        CudaVectorMatrixParam forcing_param,
+        const ProcessSetParam devstruct)
     {
+      /// Calculate global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+     
       /// Local device variables
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_id_offset, prod_id_offset, yield_offset;
       size_t* d_number_of_reactants = devstruct.number_of_reactants_;
       size_t* d_reactant_ids = devstruct.reactant_ids_;
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_product_ids = devstruct.product_ids_;
       double* d_yields = devstruct.yields_;
+      const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      const size_t number_of_reactions = rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
+      const double* d_rate_constants = rate_constants_param.d_data_;
+      const double* d_state_variables = state_variables_param.d_data_;
+      double* d_forcing = forcing_param.d_data_;
 
-      if (tid < n_grids)
+      if (tid < number_of_grid_cells)
       {
         react_id_offset = 0;
         prod_id_offset = 0;
         yield_offset = 0;
-        for (std::size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
+        for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
         {
-          double rate = d_rate_constants[i_rxn * n_grids + tid];
+          double rate = d_rate_constants[i_rxn * number_of_grid_cells + tid];
           for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
-            rate *= d_state_variables[d_reactant_ids[react_id_offset + i_react] * n_grids + tid];
+            rate *= d_state_variables[d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells + tid];
           for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
           {
-            d_forcing[d_reactant_ids[react_id_offset + i_react] * n_grids + tid] -= rate;
+            d_forcing[d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells + tid] -= rate;
           }
           for (std::size_t i_prod = 0; i_prod < d_number_of_products[i_rxn]; ++i_prod)
           {
-            size_t index = d_product_ids[prod_id_offset + i_prod] * n_grids + tid;
+            size_t index = d_product_ids[prod_id_offset + i_prod] * number_of_grid_cells + tid;
             d_forcing[index] += d_yields[yield_offset + i_prod] * rate;
           }
           react_id_offset += d_number_of_reactants[i_rxn];
@@ -238,57 +242,14 @@ namespace micm
       return kernel_duration;
     }  // end of SubtractJacobianTermsKernelDriver
 
-    std::chrono::nanoseconds AddForcingTermsKernelDriver(CudaMatrixParam& matrixParam, const ProcessSetParam& devstruct)
+    void AddForcingTermsKernelDriver(const CudaVectorMatrixParam& rate_constants_param,
+                                     const CudaVectorMatrixParam& state_variables_param,
+                                     CudaVectorMatrixParam& forcing_param,
+                                     const ProcessSetParam& devstruct)
     {
-      // device pointer to vectorss
-      double* d_rate_constants;
-      double* d_state_variables;
-      double* d_forcing;
-
-      // allocate device memory
-      cudaMalloc(&d_rate_constants, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_reactions_));
-      cudaMalloc(&d_state_variables, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));
-      cudaMalloc(&d_forcing, sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_));
-
-      // copy data from host memory to device memory
-      cudaMemcpy(
-          d_rate_constants,
-          matrixParam.rate_constants_,
-          sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_reactions_),
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_state_variables,
-          matrixParam.state_variables_,
-          sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_),
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_forcing,
-          matrixParam.forcing_,
-          sizeof(double) * (matrixParam.n_grids_ * matrixParam.n_species_),
-          cudaMemcpyHostToDevice);
-
-      int num_block = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      size_t n_grids = matrixParam.n_grids_;
-      size_t n_reactions = matrixParam.n_reactions_;
-      size_t n_species = matrixParam.n_species_;
-
-      // launch kernel and measure time performance
-      auto startTime = std::chrono::high_resolution_clock::now();
-      AddForcingTermsKernel<<<num_block, BLOCK_SIZE>>>(
-          d_rate_constants, d_state_variables, d_forcing, devstruct, n_grids, n_reactions, n_species);
+      size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      AddForcingTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(rate_constants_param, state_variables_param, forcing_param, devstruct);
       cudaDeviceSynchronize();
-      auto endTime = std::chrono::high_resolution_clock::now();
-      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-
-      // copy data from device memory to host memory
-      cudaMemcpy(matrixParam.forcing_, d_forcing, sizeof(double) * (n_grids * n_species), cudaMemcpyDeviceToHost);
-
-      // clean up
-      cudaFree(d_rate_constants);
-      cudaFree(d_state_variables);
-      cudaFree(d_forcing);
-
-      return kernel_duration;
-    }  // end of AddForcingTerms_kernelSetup
+    }  // end of AddForcingTermsKernelDriver
   }    // namespace cuda
 }  // namespace micm

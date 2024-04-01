@@ -15,7 +15,7 @@ namespace micm
 
       void SquareDriver(CudaVectorMatrixParam& param)
       {
-          Square<<<param.num_elements_, 1>>>(param.d_data_, param.num_elements_);
+          Square<<<param.number_of_elements_, 1>>>(param.d_data_, param.number_of_elements_);
       }
 
       __global__ void AddOne(double* d_data, std::size_t num_elements)
@@ -29,7 +29,7 @@ namespace micm
 
       void AddOneDriver(CudaVectorMatrixParam& param)
       {
-        AddOne<<<param.num_elements_, BLOCK_SIZE>>>(param.d_data_, param.num_elements_);
+        AddOne<<<param.number_of_elements_, BLOCK_SIZE>>>(param.d_data_, param.number_of_elements_);
       }
     }
 }

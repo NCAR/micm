@@ -109,7 +109,8 @@ struct LinearSolverParam
 struct CudaVectorMatrixParam
 {
   double* d_data_;
-  size_t num_elements_;
+  size_t number_of_elements_;
+  size_t number_of_grid_cells_;
 };
 
 /// This struct holds (1) pointer to, and (2) size of

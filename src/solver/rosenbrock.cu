@@ -247,7 +247,7 @@ namespace micm
       double normalized_error;
       const size_t num_elements = devstruct.errors_size_;
 
-      if (devstruct.errors_size_ != errors_param.num_elements_)
+      if (devstruct.errors_size_ != errors_param.number_of_elements_)
       {
         throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
       }

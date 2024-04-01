@@ -9,6 +9,7 @@
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/util/cuda_vector_matrix.hpp>
 #include <random>
 #include <vector>
 
@@ -21,7 +22,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class MatrixPolicy>
+template<template<class> class CPUMatrixPolicy, template<class> class GPUMatrixPolicy>
 void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -38,7 +39,13 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{
+  micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+      .custom_rate_parameter_labels_{},
+  } };
+  micm::State<GPUMatrixPolicy> gpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
@@ -63,25 +70,31 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet cpu_set{ processes, state.variable_map_ };
-  micm::CudaProcessSet gpu_set{ processes, state.variable_map_ };
+  micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
+  micm::CudaProcessSet gpu_set{ processes, gpu_state.variable_map_ };
 
-  for (auto& elem : state.variables_.AsVector())
-    elem = get_double();
+  std::ranges::generate(cpu_state.variables_.AsVector(), get_double);
+  auto state_vars = cpu_state.variables_.AsVector();
+  gpu_state.variables_.AsVector().assign(state_vars.begin(), state_vars.end());
+  gpu_state.variables_.CopyToDevice();
 
-  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
-  for (auto& elem : rate_constants.AsVector())
-    elem = get_double();
+  CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
+  GPUMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
+  std::ranges::generate(cpu_rate_constants.AsVector(), get_double);
+  auto rate_vars = cpu_rate_constants.AsVector();
+  gpu_rate_constants.AsVector().assign(rate_vars.begin(), rate_vars.end());
+  gpu_rate_constants.CopyToDevice();
 
-  MatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
-  MatrixPolicy<double> gpu_forcing{};
-  gpu_forcing = cpu_forcing;
+  CPUMatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
+  GPUMatrixPolicy<double> gpu_forcing{ n_cells, n_species, 1000.0 };
+  gpu_forcing.CopyToDevice();
 
   // kernel function call
-  gpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, gpu_forcing);
+  gpu_set.AddForcingTerms<GPUMatrixPolicy>(gpu_rate_constants, gpu_state.variables_, gpu_forcing);
+  gpu_forcing.CopyToHost();
 
   // CPU function call
-  cpu_set.AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, cpu_forcing);
+  cpu_set.AddForcingTerms<CPUMatrixPolicy>(cpu_rate_constants, cpu_state.variables_, cpu_forcing);
 
   // checking accuracy with comparison between CPU and GPU result
   std::vector<double> cpu_forcing_vector = cpu_forcing.AsVector();
@@ -177,9 +190,12 @@ using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
+template<class T>
+using Group10000CudaVectorMatrix = micm::CudaVectorMatrix<T, 10000>;
+
 TEST(RandomCudaProcessSet, Forcing)
 {
-  testRandomSystemAddForcingTerms<Group10000VectorMatrix>(10000, 500, 400);
+  testRandomSystemAddForcingTerms<Group10000VectorMatrix, Group10000CudaVectorMatrix>(10000, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
