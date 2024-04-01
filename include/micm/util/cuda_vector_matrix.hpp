@@ -51,6 +51,7 @@ namespace micm
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      this->vector_matrix_param_.number_of_grid_cells_ = x_dim;
     }
     CudaVectorMatrix(std::size_t x_dim, std::size_t y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim)
@@ -61,6 +62,7 @@ namespace micm
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       micm::cuda::MallocVector(vector_matrix_param_, this->data_.size());
+      this->vector_matrix_param_.number_of_grid_cells_ = x_dim;
       if (this->handle_ == NULL)
       {
         cublasStatus_t stat = cublasCreate(&(this->handle_));
@@ -150,10 +152,6 @@ namespace micm
     cublasHandle_t AsCublasHandle() const
     {
       return this->handle_;
-    }
-    void SetNumberofGridCells(const std::size_t n)
-    {
-      this->vector_matrix_param_.number_of_grid_cells_ = n;
     }
     /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
     ///        where alpha is a scalar constant.
