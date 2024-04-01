@@ -31,11 +31,11 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> void AddForcingTerms(
+    requires VectorizableDense<MatrixPolicy<double>>
+    void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing)
-    const;
+        MatrixPolicy<double>& forcing) const;
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
@@ -97,7 +97,8 @@ namespace micm
       MatrixPolicy<double>& forcing) const
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
-    micm::cuda::AddForcingTermsKernelDriver(rate_constants.AsDeviceParam(),state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
+    micm::cuda::AddForcingTermsKernelDriver(
+        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
