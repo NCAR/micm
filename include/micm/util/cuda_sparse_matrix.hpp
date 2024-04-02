@@ -1,5 +1,5 @@
-#include <micm/util/cuda_param.hpp>
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
 

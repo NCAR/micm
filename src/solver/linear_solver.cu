@@ -115,8 +115,10 @@ namespace micm
       cudaFree(devstruct.Uij_xj_);
     }
 
-    std::chrono::nanoseconds
-    SolveKernelDriver(CudaSparseMatrixParam& sparseMatrix, CudaMatrixParam_to_be_removed& denseMatrix, const LinearSolverParam& devstruct)
+    std::chrono::nanoseconds SolveKernelDriver(
+        CudaSparseMatrixParam& sparseMatrix,
+        CudaMatrixParam_to_be_removed& denseMatrix,
+        const LinearSolverParam& devstruct)
     {
       /// Create device pointers
       double* d_lower_matrix;
