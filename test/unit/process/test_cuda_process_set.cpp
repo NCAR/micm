@@ -5,7 +5,7 @@
 #include <iostream>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
-#include <micm/util/cuda_vector_matrix.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -191,11 +191,11 @@ template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
 template<class T>
-using Group10000CudaVectorMatrix = micm::CudaVectorMatrix<T, 10000>;
+using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<T, 10000>;
 
 TEST(RandomCudaProcessSet, Forcing)
 {
-  testRandomSystemAddForcingTerms<Group10000VectorMatrix, Group10000CudaVectorMatrix>(10000, 500, 400);
+  testRandomSystemAddForcingTerms<Group10000VectorMatrix, Group10000CudaDenseMatrix>(10000, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {

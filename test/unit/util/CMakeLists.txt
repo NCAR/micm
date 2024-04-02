@@ -17,6 +17,6 @@ if(MICM_ENABLE_CUDA)
   target_sources(micm_cuda_test_utils PRIVATE cuda_matrix_utils.cu)
   set_target_properties(micm_cuda_test_utils PROPERTIES LINKER_LANGUAGE CXX)
   
-  create_standard_test(NAME cuda_vector_matrix SOURCES test_cuda_vector_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
-  create_standard_test(NAME cuda_sparse_vector_matrix SOURCES test_cuda_sparse_matrix_vector_ordering.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
+  create_standard_test(NAME cuda_dense_matrix SOURCES test_cuda_dense_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
+  create_standard_test(NAME cuda_sparse_matrix SOURCES test_cuda_sparse_matrix.cpp LIBRARIES musica::micm_cuda micm_cuda_test_utils)
 endif()

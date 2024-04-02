@@ -21,15 +21,15 @@ namespace micm
     /// This is the host function that will call the CUDA kernel
     ///   to calculate the forcing terms
     void AddForcingTermsKernelDriver(
-        const CudaVectorMatrixParam& rate_constants_param,
-        const CudaVectorMatrixParam& state_variables_param,
-        CudaVectorMatrixParam& forcing_param,
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& forcing_param,
         const ProcessSetParam& devstruct);
 
     /// This is the host function that will call the CUDA kernel
     ///   to form the negative Jacobian matrix (-J)
     std::chrono::nanoseconds SubtractJacobianTermsKernelDriver(
-        CudaMatrixParam& matrixParam, 
+        CudaMatrixParam_to_be_removed& matrixParam, 
         CudaSparseMatrixParam& sparseMatrix, 
         const ProcessSetParam& devstruct);
   }  // namespace cuda

@@ -88,8 +88,8 @@ namespace micm
     // Modified version from NVIDIA's reduction example:
     // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
     __global__ void NormalizedErrorKernel(
-        const CudaVectorMatrixParam y_old_param,
-        const CudaVectorMatrixParam y_new_param,
+        const CudaMatrixParam y_old_param,
+        const CudaMatrixParam y_new_param,
         const RosenbrockSolverParameters ros_param,
         CudaRosenbrockSolverParam devstruct,
         const size_t n,
@@ -189,8 +189,8 @@ namespace micm
 
     // CUDA kernel to compute the scaled vectors; prepare the input for cublas call later
     __global__ void ScaledErrorKernel(
-        const CudaVectorMatrixParam y_old_param,
-        const CudaVectorMatrixParam y_new_param,
+        const CudaMatrixParam y_old_param,
+        const CudaMatrixParam y_new_param,
         const RosenbrockSolverParameters ros_param,
         CudaRosenbrockSolverParam devstruct)
     {
@@ -237,9 +237,9 @@ namespace micm
 
     // Host code that will launch the NormalizedError CUDA kernel
     double NormalizedErrorDriver(
-        const CudaVectorMatrixParam& y_old_param,
-        const CudaVectorMatrixParam& y_new_param,
-        const CudaVectorMatrixParam& errors_param,
+        const CudaMatrixParam& y_old_param,
+        const CudaMatrixParam& y_new_param,
+        const CudaMatrixParam& errors_param,
         const RosenbrockSolverParameters& ros_param,
         cublasHandle_t handle,
         CudaRosenbrockSolverParam devstruct)

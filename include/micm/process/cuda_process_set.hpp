@@ -108,7 +108,7 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
-    CudaMatrixParam matrix;
+    CudaMatrixParam_to_be_removed matrix;
     matrix.rate_constants_ = rate_constants.AsVector().data();
     matrix.state_variables_ = state_variables.AsVector().data();
     matrix.n_grids_ = rate_constants.size();

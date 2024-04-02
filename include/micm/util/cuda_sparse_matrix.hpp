@@ -1,5 +1,5 @@
 #include <micm/util/cuda_param.hpp>
-#include <micm/util/cuda_vector_matrix.cuh>
+#include <micm/util/cuda_matrix.cuh>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
 
@@ -9,7 +9,7 @@ namespace micm
   class CudaSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
    private:
-    CudaVectorMatrixParam param_;
+    CudaMatrixParam param_;
 
    public:
     CudaSparseMatrix() = default;
@@ -88,7 +88,7 @@ namespace micm
     {
       return micm::cuda::CopyToHost(param_, this->data_);
     }
-    CudaVectorMatrixParam AsDeviceParam()
+    CudaMatrixParam AsDeviceParam()
     {
       return this->param_;
     }

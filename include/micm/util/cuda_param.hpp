@@ -9,7 +9,7 @@
 const size_t BLOCK_SIZE = 32;
 
 // different matrix data grouped in struct passing to kernel driver function
-struct CudaMatrixParam
+struct CudaMatrixParam_to_be_removed
 {
   const double* rate_constants_;
   const double* state_variables_;
@@ -106,7 +106,7 @@ struct LinearSolverParam
 
 /// This struct holds (1) pointer to, and (2) size of
 ///   data allocated on a device.
-struct CudaVectorMatrixParam
+struct CudaMatrixParam
 {
   double* d_data_;
   size_t number_of_elements_;
