@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <micm/util/cuda_matrix.cuh>
 #include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_matrix.cuh>
 #include <numeric>
 
 #include "cuda_matrix_utils.cuh"

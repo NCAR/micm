@@ -164,13 +164,7 @@ namespace micm
     {
       static_assert(std::is_same_v<T, double>);
       cublasStatus_t stat = cublasDaxpy(
-          this->handle_,
-          x.param_.number_of_elements_,
-          &alpha,
-          x.param_.d_data_,
-          incx,
-          this->param_.d_data_,
-          incy);
+          this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy);
       if (stat != CUBLAS_STATUS_SUCCESS)
       {
         throw std::runtime_error("CUBLAS Daxpy operation failed.");
