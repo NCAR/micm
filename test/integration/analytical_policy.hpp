@@ -1108,7 +1108,6 @@ void test_analytical_arrhenius(
   times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
-    times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1119,6 +1118,7 @@ void test_analytical_arrhenius(
 
     // Analytical results
     double time = i_time * time_step;
+    times.push_back(time);
 
     double initial_A = analytical_concentrations[0][idx_A];
     analytical_concentrations[i_time][idx_A] = initial_A * std::exp(-(k1)*time);
@@ -1129,8 +1129,8 @@ void test_analytical_arrhenius(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("analytical_concentrations-arrhenius.csv", header, analytical_concentrations, times);
+  writeCSV("model_concentrations-arrhenius.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
