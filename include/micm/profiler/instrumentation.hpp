@@ -200,13 +200,14 @@ namespace micm
 }  // namespace micm
 
 #define DEBUG 1
-#define MICM_PROFILE 0
+#define MICM_PROFILE 1
 #if MICM_PROFILE
   #if defined(__GNUC__) || defined(__ICC)
     #define MICM_FUNC_SIG __func__
     // #define MICM_FUNC_SIG __PRETTY_FUNCTION__
   #elif (defined(__FUNCSIG__) || (_MSC_VER))
-    #define MICM_FUNC_SIG __FUNCSIG__
+    #define MICM_FUNC_SIG __func__
+    //#define MICM_FUNC_SIG __FUNCSIG__
   #else
     #define MICM_FUNC_SIG "MICM_FUNC_SIG unknown!"
   #endif
@@ -219,7 +220,7 @@ namespace micm
   #define MICM_PROFILE_SCOPE(name) MICM_PROFILE_SCOPE_LINE(name, __LINE__)
   #define MICM_PROFILE_FUNCTION() MICM_PROFILE_SCOPE(MICM_FUNC_SIG)
 #else
-  #define MICM_PROFILE_BEGIN_SESSION(name, filepath)
+  #define MICM_PROFILE_BEGIN_SESSION(name, filepath, id)
   #define MICM_PROFILE_END_SESSION()
   #define MICM_PROFILE_SCOPE(name)
   #define MICM_PROFILE_FUNCTION()

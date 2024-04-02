@@ -189,10 +189,8 @@ namespace micm
     // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
     auto& lower = state.lower_matrix_.AsVector();
     auto& upper = state.upper_matrix_.AsVector();
-    for (auto& l : lower)
-      l = 0;
-    for (auto& u : upper)
-      u = 0;
+    for (auto& l : lower) l = 0;
+    for (auto& u : upper) u = 0;
     MatrixPolicy<double> Y(state.variables_);
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
@@ -200,8 +198,8 @@ namespace micm
     MatrixPolicy<double> initial_forcing(num_rows, num_cols, 0.0);
     MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
     MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
-    std::vector<MatrixPolicy<double>> K{};  // TODO(jiwon): too big for push back to K? std::vector<MatrixPolicy<double*>
-                                            // to avoid reallocate (copy)
+    std::vector<MatrixPolicy<double>> K{};
+
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
@@ -227,10 +225,8 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    int count = 0;
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      count++;
       if (stats.number_of_steps > parameters_.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
@@ -248,11 +244,11 @@ namespace micm
 
       // compute the forcing at the beginning of the current time
       CalculateForcing(state.rate_constants_, Y, initial_forcing);
-      stats.function_calls += 1;  //TODO(jiwon)
+      stats.function_calls += 1;
 
       // compute the jacobian at the beginning of the current time
       CalculateJacobian(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates += 1; //TODO(jiwon)
+      stats.jacobian_updates += 1;
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -260,7 +256,8 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state); //TODO(jiwon) remove stats
+
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
 
         if (is_singular)
         {
@@ -288,7 +285,6 @@ namespace micm
               }
 
               CalculateForcing(state.rate_constants_, Ynew, forcing);
-              std::cout << "calculate forcing" << std::endl;
               stats.function_calls += 1;
             }
           }
@@ -301,7 +297,6 @@ namespace micm
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
 
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
-          std::cout << "linear_solver" << std::endl;
           stats.solves += 1;
         }
 
@@ -311,7 +306,7 @@ namespace micm
           Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
 
         // Compute the error estimation
-        MatrixPolicy<double> Yerror(Y.size(), Y[0].size(), 0);
+        MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.ForEach(
               [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
@@ -369,8 +364,6 @@ namespace micm
       }
     }
 
-    std::cout << "Count While Loop: " << count << std::endl;
-
     if (result.state_ == SolverState::Running)
     {
       result.state_ = SolverState::Converged;
@@ -379,6 +372,7 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats;
     result.result_ = Y;
+
     return result;
   }
 
@@ -400,12 +394,10 @@ namespace micm
     for(auto& l : lower) l = 0;
     for(auto& u : upper) u = 0;
     MatrixPolicy<double> Y(state.variables_);
-    std::size_t num_rows = Y.SizeRows();
-    std::size_t num_cols = Y.SizeColumns();
-    MatrixPolicy<double> Ynew(num_rows, num_cols, 0.0);
-    MatrixPolicy<double> initial_forcing(num_rows, num_cols, 0.0);
-    MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
-    MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0);
+    MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0);
+    MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0);
+    MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0);
     std::vector<MatrixPolicy<double>> K{}; // TODO(jiwon): too big for push back to K? std::vector<MatrixPolicy<double*> 
                                            // to avoid reallocate (copy)
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
@@ -497,7 +489,6 @@ namespace micm
               }
             
               CalculateForcing(state.rate_constants_, Ynew, forcing);
-              std::cout << "calculate forcing" << std::endl;
               stats.function_calls += 1;
             }
           }
@@ -510,7 +501,6 @@ namespace micm
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
 
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
-          std::cout << "linear_solver" << std::endl;
           stats.solves += 1;
 
         }
@@ -631,16 +621,12 @@ namespace micm
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (auto& elem : jacobian.AsVector())
       elem = -elem;
-    
-    std::cout << "jacobian.NumberOfGroups(jacobian.size()): " << jacobian.NumberOfGroups(jacobian.size()) << std::endl;
-    std::cout << "jacobian.GroupSize(jacobian.FlatBlockSize()): " << jacobian.GroupSize(jacobian.FlatBlockSize())
-              << std::endl;
+
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
-    //for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group) //TODO(jiwon) - Naming
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+       for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
     }
   }
@@ -663,51 +649,6 @@ namespace micm
     Process::UpdateState(processes_, state);
   }
 
- #if DEBUG
-  template<
-    template<class>
-    class MatrixPolicy,
-    template<class>
-    class SparseMatrixPolicy,
-    class LinearSolverPolicy,
-    class ProcessSetPolicy>
-inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::LinearFactor(
-    double& H,
-    const double gamma,
-    bool& singular,
-    const MatrixPolicy<double>& number_densities,
-    SolverStats& stats,
-    State<MatrixPolicy, SparseMatrixPolicy>& state)
-  {
-    MICM_PROFILE_FUNCTION();
-
-    auto jacobian = state.jacobian_;
-    uint64_t n_consecutive = 0;
-    singular = false;
-    while (true)
-    {
-      double alpha = 1 / (H * gamma);
-      AlphaMinusJacobian(jacobian, alpha);
-      if (parameters_.check_singularity_)
-      {
-        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
-      }
-      else
-      {
-        singular = false;
-        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
-      }
-      singular = false;  // TODO This should be evaluated in some way //TODO(jiwon) it looks like always signular=False??
-      stats.decompositions += 1; //TODO(jiwon) Remove this
-      if (!singular)
-        break;
-      stats.singular += 1; //TODO(jiwon) Remove this
-      if (++n_consecutive > 5)
-        break;
-      H /= 2;
-    }
-  }
-#else
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::LinearFactor(
       double& H,
@@ -729,7 +670,9 @@ inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolic
       if (parameters_.check_singularity_)
       {
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
-      } else {
+      }
+      else
+      {
         singular = false;
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
       }
@@ -743,7 +686,6 @@ inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolic
       H /= 2;
     }
   }
-#endif
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
