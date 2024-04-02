@@ -205,7 +205,7 @@ TEST(State, UnsafelySetCustomRateParameterOneCell)
       .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
   } };
 
-  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3, 0.4, 0.5}};
+  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
   EXPECT_EQ(state.custom_rate_parameters_[0][0], 0.1);
@@ -226,14 +226,13 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
       .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
   } };
 
-  std::vector<std::vector<double>> parameters = {
-    {0.1, 0.2, 0.3, 0.4, 0.5},
-    {0.1, 0.2, 0.3, 0.4, 0.5},
-    {0.1, 0.2, 0.3, 0.4, 0.5}
-    };
+  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 },
+                                                  { 0.1, 0.2, 0.3, 0.4, 0.5 },
+                                                  { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   state.UnsafelySetCustomRateParameters(parameters);
-  for(size_t i = 0; i < num_grid_cells; i++) {
+  for (size_t i = 0; i < num_grid_cells; i++)
+  {
     EXPECT_EQ(state.custom_rate_parameters_[i][0], 0.1);
     EXPECT_EQ(state.custom_rate_parameters_[i][1], 0.2);
     EXPECT_EQ(state.custom_rate_parameters_[i][2], 0.3);
@@ -251,7 +250,7 @@ TEST(State, UnsafelySetCustomRateParameterCatchesTooFewGridCells)
       .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
   } };
 
-  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3, 0.4, 0.5}};
+  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
   EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
 }
@@ -265,7 +264,7 @@ TEST(State, UnsafelySetCustomRateParameterCatchesTooParameters)
       .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
   } };
 
-  std::vector<std::vector<double>> parameters = {{0.1, 0.2, 0.3}};
+  std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3 } };
 
   EXPECT_ANY_THROW(state.UnsafelySetCustomRateParameters(parameters));
 }
