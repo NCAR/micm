@@ -74,16 +74,16 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
   micm::CudaProcessSet gpu_set{ processes, gpu_state.variable_map_ };
 
-  std::ranges::generate(cpu_state.variables_.AsVector(), get_double);
-  auto state_vars = cpu_state.variables_.AsVector();
-  gpu_state.variables_.AsVector().assign(state_vars.begin(), state_vars.end());
+  auto& cpu_state_vars = cpu_state.variables_.AsVector();
+  std::ranges::generate(cpu_state_vars, get_double);
+  gpu_state.variables_.AsVector().assign(cpu_state_vars.begin(), cpu_state_vars.end());
   gpu_state.variables_.CopyToDevice();
 
   CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
   GPUMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
-  std::ranges::generate(cpu_rate_constants.AsVector(), get_double);
-  auto rate_vars = cpu_rate_constants.AsVector();
-  gpu_rate_constants.AsVector().assign(rate_vars.begin(), rate_vars.end());
+  auto& cpu_rate_vars = cpu_rate_constants.AsVector();
+  std::ranges::generate(cpu_rate_vars, get_double);
+  gpu_rate_constants.AsVector().assign(cpu_rate_vars.begin(), cpu_rate_vars.end());
   gpu_rate_constants.CopyToDevice();
 
   CPUMatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
@@ -162,16 +162,16 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
   micm::CudaProcessSet gpu_set{ processes, gpu_state.variable_map_ };
 
-  std::ranges::generate(cpu_state.variables_.AsVector(), get_double);
-  auto state_vars = cpu_state.variables_.AsVector();
-  gpu_state.variables_.AsVector().assign(state_vars.begin(), state_vars.end());
+  auto& cpu_state_vars = cpu_state.variables_.AsVector();
+  std::ranges::generate(cpu_state_vars, get_double);
+  gpu_state.variables_.AsVector().assign(cpu_state_vars.begin(), cpu_state_vars.end());
   gpu_state.variables_.CopyToDevice();
 
   CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
   GPUDenseMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
-  std::ranges::generate(cpu_rate_constants.AsVector(), get_double);
-  auto rate_vars = cpu_rate_constants.AsVector();
-  gpu_rate_constants.AsVector().assign(rate_vars.begin(), rate_vars.end());
+  auto& cpu_rate_vars = cpu_rate_constants.AsVector();
+  std::ranges::generate(cpu_rate_vars, get_double);
+  gpu_rate_constants.AsVector().assign(cpu_rate_vars.begin(), cpu_rate_vars.end());
   gpu_rate_constants.CopyToDevice();
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
