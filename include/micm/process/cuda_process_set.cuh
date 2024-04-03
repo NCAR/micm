@@ -28,9 +28,10 @@ namespace micm
 
     /// This is the host function that will call the CUDA kernel
     ///   to form the negative Jacobian matrix (-J)
-    std::chrono::nanoseconds SubtractJacobianTermsKernelDriver(
-        CudaMatrixParam_to_be_removed& matrixParam, 
-        CudaSparseMatrixParam& sparseMatrix, 
+    void SubtractJacobianTermsKernelDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct);
   }  // namespace cuda
 }  // namespace micm
