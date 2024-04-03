@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include <chrono>
 #include <micm/util/cuda_param.hpp>
 
 namespace micm
@@ -16,10 +15,10 @@ namespace micm
         CudaMatrixParam forcing_param,
         const ProcessSetParam devstruct)
     {
-      /// Calculate global thread ID
+      // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
-      /// Local device variables
+      // Local device variables
       size_t react_id_offset, prod_id_offset, yield_offset;
       size_t* d_number_of_reactants = devstruct.number_of_reactants_;
       size_t* d_reactant_ids = devstruct.reactant_ids_;
@@ -61,16 +60,16 @@ namespace micm
 
     /// This is the CUDA kernel that forms the negative Jacobian matrix (-J) on the device
     __global__ void SubtractJacobianTermsKernel(
-        double* d_rate_constants,
-        double* d_state_variables,
-        double* d_jacobian,
-        ProcessSetParam devstruct,
-        const size_t num_grid_cells,
-        const size_t n_reactions,
-        const size_t num_elments_per_jacobian)
+        const CudaMatrixParam rate_constants_param,
+        const CudaMatrixParam state_variables_param,
+        CudaMatrixParam jacobian_param,
+        const ProcessSetParam devstruct)
     {
+
+      // Calculate global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
       /// Local device variables
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
       size_t react_ids_offset = 0;
       size_t yields_offset = 0;
       size_t flat_id_offset = 0;
@@ -79,21 +78,27 @@ namespace micm
       size_t* d_number_of_products = devstruct.number_of_products_;
       size_t* d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       double* d_yields = devstruct.yields_;
-
-      if (tid < num_grid_cells)
+      const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
+      const size_t number_of_reactions =
+          rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
+      const double* d_rate_constants = rate_constants_param.d_data_;
+      const double* d_state_variables = state_variables_param.d_data_;
+      double* d_jacobian = jacobian_param.d_data_;
+      
+      if (tid < number_of_grid_cells)
       {
         // loop over reactions in a grid
-        for (size_t i_rxn = 0; i_rxn < n_reactions; ++i_rxn)
+        for (size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
         {
           // loop over reactants in a reaction
           for (size_t i_ind = 0; i_ind < d_number_of_reactants[i_rxn]; ++i_ind)
           {
-            double d_rate_d_ind = d_rate_constants[i_rxn * num_grid_cells + tid];
+            double d_rate_d_ind = d_rate_constants[i_rxn * number_of_grid_cells + tid];
             for (size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
               {
-                d_rate_d_ind *= d_state_variables[d_reactant_ids[react_ids_offset + i_react] * num_grid_cells + tid];
+                d_rate_d_ind *= d_state_variables[d_reactant_ids[react_ids_offset + i_react] * number_of_grid_cells + tid];
               }
             }
             for (size_t i_dep = 0; i_dep < d_number_of_reactants[i_rxn]; ++i_dep)
@@ -189,58 +194,16 @@ namespace micm
         cudaFree(devstruct.jacobian_flat_ids_);
     }
 
-    std::chrono::nanoseconds SubtractJacobianTermsKernelDriver(
-        CudaMatrixParam_to_be_removed& matrixParam,
-        CudaSparseMatrixParam& sparseMatrix,
+    void SubtractJacobianTermsKernelDriver(
+        const CudaMatrixParam& rate_constants_param,
+        const CudaMatrixParam& state_variables_param,
+        CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct)
     {
-      // create device pointers
-      double* d_rate_constants;
-      double* d_state_variables;
-      double* d_jacobian;
-
-      size_t num_elments_per_jacobian = sparseMatrix.jacobian_size_ / matrixParam.n_grids_;
-
-      // allocate device memory
-      cudaMalloc(&d_rate_constants, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_);
-      cudaMalloc(&d_state_variables, sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_);
-      cudaMalloc(&d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_);
-
-      // transfer data from host to device
-      cudaMemcpy(
-          d_rate_constants,
-          matrixParam.rate_constants_,
-          sizeof(double) * matrixParam.n_grids_ * matrixParam.n_reactions_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_state_variables,
-          matrixParam.state_variables_,
-          sizeof(double) * matrixParam.n_grids_ * matrixParam.n_species_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(d_jacobian, sparseMatrix.jacobian_, sizeof(double) * sparseMatrix.jacobian_size_, cudaMemcpyHostToDevice);
-
-      // setup kernel
-      size_t num_blocks = (matrixParam.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      size_t n_reactions = matrixParam.n_reactions_;
-      size_t n_grids = matrixParam.n_grids_;
-
-      // launch kernel and measure time performance
-      auto startTime = std::chrono::high_resolution_clock::now();
-      SubtractJacobianTermsKernel<<<num_blocks, BLOCK_SIZE>>>(
-          d_rate_constants, d_state_variables, d_jacobian, devstruct, n_grids, n_reactions, num_elments_per_jacobian);
+      size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      SubtractJacobianTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(
+        rate_constants_param, state_variables_param, jacobian_param, devstruct);
       cudaDeviceSynchronize();
-      auto endTime = std::chrono::high_resolution_clock::now();
-      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-
-      // copy the data from device to host
-      cudaMemcpy(sparseMatrix.jacobian_, d_jacobian, sizeof(double) * sparseMatrix.jacobian_size_, cudaMemcpyDeviceToHost);
-
-      // clean up
-      cudaFree(d_rate_constants);
-      cudaFree(d_state_variables);
-      cudaFree(d_jacobian);
-
-      return kernel_duration;
     }  // end of SubtractJacobianTermsKernelDriver
 
     void AddForcingTermsKernelDriver(

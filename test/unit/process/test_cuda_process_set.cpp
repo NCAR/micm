@@ -6,6 +6,7 @@
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -108,7 +109,8 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   }
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy,
+         template<class> class GPUDenseMatrixPolicy, template<class> class GPUSparseMatrixPolicy >
 void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -125,10 +127,18 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy> state{ micm::StateParameters{
+
+  micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
+      .custom_rate_parameter_labels_{},
+  } };
+  micm::State<GPUDenseMatrixPolicy> gpu_state{ micm::StateParameters{
+      .number_of_grid_cells_ = n_cells,
+      .number_of_rate_constants_ = n_reactions,
+      .variable_names_{ species_names },
+      .custom_rate_parameter_labels_{},
   } };
 
   std::vector<micm::Process> processes{};
@@ -149,28 +159,39 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
 
-  micm::ProcessSet cpu_set{ processes, state.variable_map_ };
-  micm::CudaProcessSet gpu_set{ processes, state.variable_map_ };
+  micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
+  micm::CudaProcessSet gpu_set{ processes, gpu_state.variable_map_ };
 
-  for (auto& elem : state.variables_.AsVector())
-    elem = get_double();
+  std::ranges::generate(cpu_state.variables_.AsVector(), get_double);
+  auto state_vars = cpu_state.variables_.AsVector();
+  gpu_state.variables_.AsVector().assign(state_vars.begin(), state_vars.end());
+  gpu_state.variables_.CopyToDevice();
 
-  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
-  for (auto& elem : rate_constants.AsVector())
-    elem = get_double();
+  CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
+  GPUDenseMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
+  std::ranges::generate(cpu_rate_constants.AsVector(), get_double);
+  auto rate_vars = cpu_rate_constants.AsVector();
+  gpu_rate_constants.AsVector().assign(rate_vars.begin(), rate_vars.end());
+  gpu_rate_constants.CopyToDevice();
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
-  auto builder = SparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+
+  auto cpu_builder = CPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
   for (auto& elem : non_zero_elements)
-    builder = builder.with_element(elem.first, elem.second);
-  SparseMatrixPolicy<double> cpu_jacobian{ builder };
-  SparseMatrixPolicy<double> gpu_jacobian{ builder };
+    cpu_builder = cpu_builder.with_element(elem.first, elem.second);
+  CPUSparseMatrixPolicy<double> cpu_jacobian{ cpu_builder };
+  auto gpu_builder = GPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  for (auto& elem : non_zero_elements)
+    gpu_builder = gpu_builder.with_element(elem.first, elem.second);
+  GPUSparseMatrixPolicy<double> gpu_jacobian{ gpu_builder };
+  gpu_jacobian.CopyToDevice();
 
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
-  cpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, cpu_jacobian);
-  gpu_set.SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, gpu_jacobian);
+  cpu_set.SubtractJacobianTerms<CPUMatrixPolicy, CPUSparseMatrixPolicy>(cpu_rate_constants, cpu_state.variables_, cpu_jacobian);
+  gpu_set.SubtractJacobianTerms<GPUDenseMatrixPolicy, GPUSparseMatrixPolicy>(gpu_rate_constants, gpu_state.variables_, gpu_jacobian);
+  gpu_jacobian.CopyToHost();
 
   // checking accuracy of jacobian between CPU and GPU
   std::vector<double> cpu_jacobian_vector = cpu_jacobian.AsVector();
@@ -193,11 +214,15 @@ using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVec
 template<class T>
 using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<T, 10000>;
 
+template<class T>
+using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+
 TEST(RandomCudaProcessSet, Forcing)
 {
   testRandomSystemAddForcingTerms<Group10000VectorMatrix, Group10000CudaDenseMatrix>(10000, 500, 400);
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystemSubtractJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix>(10000, 500, 400);
+  testRandomSystemSubtractJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix, 
+                                        Group10000CudaDenseMatrix, Group10000CudaSparseMatrix>(10000, 500, 400);
 }

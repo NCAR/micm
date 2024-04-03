@@ -39,7 +39,7 @@ namespace micm
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-        std::chrono::nanoseconds SubtractJacobianTerms(
+    void SubtractJacobianTerms(
             const MatrixPolicy<double>& rate_constants,
             const MatrixPolicy<double>& state_variables,
             SparseMatrixPolicy<double>& jacobian)
@@ -103,24 +103,13 @@ namespace micm
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::SubtractJacobianTerms(
+  inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
-    CudaMatrixParam_to_be_removed matrix;
-    matrix.rate_constants_ = rate_constants.AsVector().data();
-    matrix.state_variables_ = state_variables.AsVector().data();
-    matrix.n_grids_ = rate_constants.size();
-    matrix.n_reactions_ = rate_constants[0].size();
-    matrix.n_species_ = state_variables[0].size();
-
-    CudaSparseMatrixParam sparseMatrix;
-    sparseMatrix.jacobian_ = jacobian.AsVector().data();
-    sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
-
-    std::chrono::nanoseconds kernel_duration =
-        micm::cuda::SubtractJacobianTermsKernelDriver(matrix, sparseMatrix, this->devstruct_);
-    return kernel_duration;  // time performance of kernel function
+    auto jacobian_param = jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
+    micm::cuda::SubtractJacobianTermsKernelDriver(
+        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
   }
 }  // namespace micm
