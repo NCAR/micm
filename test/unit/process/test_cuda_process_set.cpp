@@ -109,8 +109,15 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   }
 }
 
-template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy,
-         template<class> class GPUDenseMatrixPolicy, template<class> class GPUSparseMatrixPolicy >
+template<
+    template<class>
+    class CPUMatrixPolicy,
+    template<class>
+    class CPUSparseMatrixPolicy,
+    template<class>
+    class GPUDenseMatrixPolicy,
+    template<class>
+    class GPUSparseMatrixPolicy>
 void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -189,8 +196,10 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
-  cpu_set.SubtractJacobianTerms<CPUMatrixPolicy, CPUSparseMatrixPolicy>(cpu_rate_constants, cpu_state.variables_, cpu_jacobian);
-  gpu_set.SubtractJacobianTerms<GPUDenseMatrixPolicy, GPUSparseMatrixPolicy>(gpu_rate_constants, gpu_state.variables_, gpu_jacobian);
+  cpu_set.SubtractJacobianTerms<CPUMatrixPolicy, CPUSparseMatrixPolicy>(
+      cpu_rate_constants, cpu_state.variables_, cpu_jacobian);
+  gpu_set.SubtractJacobianTerms<GPUDenseMatrixPolicy, GPUSparseMatrixPolicy>(
+      gpu_rate_constants, gpu_state.variables_, gpu_jacobian);
   gpu_jacobian.CopyToHost();
 
   // checking accuracy of jacobian between CPU and GPU
@@ -223,6 +232,9 @@ TEST(RandomCudaProcessSet, Forcing)
 }
 TEST(RandomCudaProcessSet, Jacobian)
 {
-  testRandomSystemSubtractJacobianTerms<Group10000VectorMatrix, Group10000SparseVectorMatrix, 
-                                        Group10000CudaDenseMatrix, Group10000CudaSparseMatrix>(10000, 500, 400);
+  testRandomSystemSubtractJacobianTerms<
+      Group10000VectorMatrix,
+      Group10000SparseVectorMatrix,
+      Group10000CudaDenseMatrix,
+      Group10000CudaSparseMatrix>(10000, 500, 400);
 }

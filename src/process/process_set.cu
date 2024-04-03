@@ -65,7 +65,6 @@ namespace micm
         CudaMatrixParam jacobian_param,
         const ProcessSetParam devstruct)
     {
-
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
@@ -84,7 +83,7 @@ namespace micm
       const double* d_rate_constants = rate_constants_param.d_data_;
       const double* d_state_variables = state_variables_param.d_data_;
       double* d_jacobian = jacobian_param.d_data_;
-      
+
       if (tid < number_of_grid_cells)
       {
         // loop over reactions in a grid
@@ -202,7 +201,7 @@ namespace micm
     {
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SubtractJacobianTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(
-        rate_constants_param, state_variables_param, jacobian_param, devstruct);
+          rate_constants_param, state_variables_param, jacobian_param, devstruct);
       cudaDeviceSynchronize();
     }  // end of SubtractJacobianTermsKernelDriver
 
