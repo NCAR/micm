@@ -113,7 +113,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
     
-    for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
+    for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
       std::vector<double>::const_iterator custom_parameters_iter = custom_parameters.begin();
@@ -130,7 +130,7 @@ namespace micm
       }
     }
   }
-#if DEBUG
+
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
       const std::vector<Process>& processes,
@@ -141,14 +141,13 @@ namespace micm
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();
-    double fixed_reactants = 1.0;
 
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
     {
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
-      std::size_t rate_const_size = std::min(L, state.rate_constants_.Size() - (i_group * L));
+      std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
 
       for (auto& process : processes)
       {
@@ -161,7 +160,7 @@ namespace micm
             params[i_param] = v_custom_parameters[offset_params + i_param * L + i_cell];
           }
 
-          fixed_reactants = 1.0;
+          double fixed_reactants = 1.0;
           for (auto& reactant : process.reactants_)
             if (reactant.IsParameterized())
               fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
@@ -174,47 +173,6 @@ namespace micm
       }
     }
   }
-#else
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state)
-  {
-    MICM_PROFILE_FUNCTION();
-
-    const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
-    auto& v_rate_constants = state.rate_constants_.AsVector();
-    const std::size_t L = state.rate_constants_.GroupVectorSize();
-    // loop over all rows
-    for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
-    {
-      std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
-      std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
-      for (auto& process : processes)
-      {
-        std::vector<double> params(process.rate_constant_->SizeCustomParameters());
-
-        for (std::size_t i_cell{}; i_cell < std::min(L, state.rate_constants_.Size() - (i_group * L)); ++i_cell)
-        {
-          for (std::size_t i_param = 0; i_param < params.size(); ++i_param)
-          {
-            params[i_param] = v_custom_parameters[offset_params + i_param * L + i_cell];
-          }
-          std::vector<double>::const_iterator custom_parameters_iter = params.begin();
-          double fixed_reactants = 1.0;
-
-          for (auto& reactant : process.reactants_)
-            if (reactant.IsParameterized())
-              fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
-          v_rate_constants[offset_rc + i_cell] =
-              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
-              fixed_reactants;
-        }
-        offset_params += params.size() * L;
-        offset_rc += L;
-      }
-    }
-  }
-#endif
 
   inline ProcessBuilder Process::create()
   {

@@ -63,7 +63,7 @@ namespace micm
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
       throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
-    if (variables_.size() != 1)
+    if (variables_.NumRows() != 1)
       throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
     variables_[0][variable_map_[species.name_]] = concentration;
   }
@@ -74,10 +74,10 @@ namespace micm
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
       throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
-    if (variables_.size() != concentration.size())
+    if (variables_.NumRows() != concentration.size())
       throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
     std::size_t i_species = variable_map_[species.name_];
-    for (std::size_t i = 0; i < variables_.size(); ++i)
+    for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
   }
 
@@ -95,7 +95,7 @@ namespace micm
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
       throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
-    if (custom_rate_parameters_.size() != 1)
+    if (custom_rate_parameters_.NumRows() != 1)
       throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
     custom_rate_parameters_[0][param->second] = value;
   }
@@ -106,9 +106,9 @@ namespace micm
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
       throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
-    if (custom_rate_parameters_.size() != values.size())
+    if (custom_rate_parameters_.NumRows() != values.size())
       throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
-    for (std::size_t i = 0; i < custom_rate_parameters_.size(); ++i)
+    for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
 
@@ -122,7 +122,7 @@ namespace micm
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(6) << "time";
-    if (variables_.size() > 1) {
+    if (variables_.NumRows() > 1) {
       std::cout << "," << std::setw(6) << "grid";
     }
 
@@ -146,10 +146,10 @@ namespace micm
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
 
-    for(size_t i = 0; i < variables_.size(); ++i) {
+    for(size_t i = 0; i < variables_.NumRows(); ++i) {
       std::cout << std::setw(6) << time << ",";
 
-      if (variables_.size() > 1) {
+      if (variables_.NumRows() > 1) {
         std::cout << std::setw(6) << i << ",";
       }
 

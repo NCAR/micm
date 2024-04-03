@@ -179,7 +179,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     // loop over grid cells
-    for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
       auto cell_rate_constants = rate_constants[i_cell];
       auto cell_state = state_variables[i_cell];
@@ -264,7 +264,7 @@ namespace micm
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
-    for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
       auto cell_rate_constants = rate_constants[i_cell];
       auto cell_state = state_variables[i_cell];
@@ -314,8 +314,6 @@ namespace micm
     auto& v_jacobian = jacobian.AsVector();
     assert(rate_constants.GroupVectorSize() == jacobian.GroupVectorSize());
     const std::size_t L = rate_constants.GroupVectorSize();
-
- #if DEBUG
     std::vector<double> d_rate_d_ind(L, 0);
 
     // loop over all rows
@@ -332,7 +330,6 @@ namespace micm
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
-          //std::vector<double> d_rate_d_ind(L, 0);
           std::fill(d_rate_d_ind.begin(), d_rate_d_ind.end(), 0);
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
@@ -360,50 +357,6 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
-#else
-    // loop over all rows
-    for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
-    {
-      auto react_id = reactant_ids_.begin();
-      auto yield = yields_.begin();
-      std::size_t offset_rc = i_group * rate_constants.GroupSize();
-      std::size_t offset_state = i_group * state_variables.GroupSize();
-      std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
-
-      auto flat_id = jacobian_flat_ids_.begin();
-
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
-      {
-        for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
-        {
-          std::vector<double> d_rate_d_ind(L, 0);
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
-          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-          {
-            if (i_react == i_ind)
-              continue;
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-          {
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] -= d_rate_d_ind[i_cell];
-            ++flat_id;
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-          {
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] += yield[i_dep] * d_rate_d_ind[i_cell];
-            ++flat_id;
-          }
-        }
-        react_id += number_of_reactants_[i_rxn];
-        yield += number_of_products_[i_rxn];
-      }
-    }
-#endif
   }
 
   inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)

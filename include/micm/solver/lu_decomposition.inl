@@ -133,13 +133,13 @@ namespace micm
       }
     }
     auto L_builder =
-        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
+        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.with_element(pair.first, pair.second);
     }
     auto U_builder =
-        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.size()).initial_value(initial_value);
+        micm::SparseMatrix<T, OrderingPolicy>::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.with_element(pair.first, pair.second);
@@ -152,7 +152,7 @@ namespace micm
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
       const
   {
-    bool is_singular; //TODO(jiwon) - this needs default value
+    bool is_singular = false;
     Decompose<T, SparseMatrixPolicy>(A, L, U, is_singular);
   }
 
@@ -164,7 +164,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     // Loop over blocks
-    for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
+    for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
     {
       auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
       auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
@@ -236,9 +236,10 @@ namespace micm
     auto lki_nkj = lki_nkj_.begin();
     auto lkj_uji = lkj_uji_.begin();
     auto uii = uii_.begin();
+    std::size_t n_cells = 0;
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
+    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.Size()); ++i_group)
     {
       A_vector = std::next(A.AsVector().begin(), i_group * A.GroupSize(A.FlatBlockSize()));
       L_vector = std::next(L.AsVector().begin(), i_group * L.GroupSize(L.FlatBlockSize()));
@@ -253,15 +254,13 @@ namespace micm
       lkj_uji = lkj_uji_.begin();
       uii = uii_.begin();
       is_singular = false;
-      const std::size_t n_cells = std::min(A.GroupVectorSize(), A.size() - i_group * A.GroupVectorSize());  //TODO(jiwon) Size Name
+      n_cells = std::min(A.GroupVectorSize(), A.Size() - i_group * A.GroupVectorSize());
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
-#if DEBUG
           std::size_t uik_nkj_first = uik_nkj->first;
-
           if (*(do_aik++))
           {
             std::size_t aik_deref = *aik;
@@ -273,7 +272,6 @@ namespace micm
           {
             std::size_t lij_ujk_first = lij_ujk->first;
             std::size_t lij_ujk_second = lij_ujk->second;
-            
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
             ++lij_ujk;
@@ -281,12 +279,10 @@ namespace micm
           ++uik_nkj;
         }
         // Lower triangular matrix
-
         std::size_t lki_nkj_first = lki_nkj->first;
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           L_vector[lki_nkj_first + i_cell] = 1.0;
         ++lki_nkj;
-
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
           if (*(do_aki++))
@@ -302,7 +298,6 @@ namespace micm
             lki_nkj_first = lki_nkj->first;
             std::size_t lkj_uji_first = lkj_uji->first;
             std::size_t lkj_uji_second = lkj_uji->second;
-
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
             ++lkj_uji;
@@ -321,51 +316,6 @@ namespace micm
           ++lki_nkj;
           ++uii;
         }
-#else
-        if (*(do_aik++))
-        {
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            U_vector[uik_nkj->first + i_cell] = A_vector[*aik + i_cell];
-          ++aik;
-        }
-        for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
-        {
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            U_vector[uik_nkj->first + i_cell] -= L_vector[lij_ujk->first + i_cell] * U_vector[lij_ujk->second + i_cell];
-          ++lij_ujk;
-        }
-        ++uik_nkj;
-        }
-        // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[lki_nkj->first + i_cell] = 1.0;
-        ++lki_nkj;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        {
-          if (*(do_aki++))
-          {
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj->first + i_cell] = A_vector[*aki + i_cell];
-            ++aki;
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj->first + i_cell] -= L_vector[lkj_uji->first + i_cell] * U_vector[lkj_uji->second + i_cell];
-            ++lkj_uji;
-          }
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            if (U_vector[*uii + i_cell] == 0.0) {
-              is_singular = true;
-              return;
-            }
-            L_vector[lki_nkj->first + i_cell] /= U_vector[*uii + i_cell];
-          }
-          ++lki_nkj;
-          ++uii;
-        }
-#endif
       }
     }
   }

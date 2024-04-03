@@ -122,7 +122,7 @@ namespace micm
    private:
     void GenerateAlphaMinusJacobian()
     {
-      auto jacobian = this->GetState().jacobian_;
+      auto jacobian = this->CreateState().jacobian_;
       // save sizes needed throughout the function
       std::size_t n_cells = jacobian.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();

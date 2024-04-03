@@ -144,18 +144,13 @@ namespace micm
 
     virtual ~RosenbrockSolver() = default;
 
-    // TODO(jiwon) - It doesn't seem to make sense for Solver to have a State-getter because it doesn't own State
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
-    virtual State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
-
-    // TODO(jiwon) Suggest this
-    StateParameters GetStateParams() const;
+    virtual State<MatrixPolicy, SparseMatrixPolicy> CreateState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    template<bool time_it = false>
     SolverResult Solve(double time_step, State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing

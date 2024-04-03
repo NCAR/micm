@@ -43,20 +43,17 @@ namespace micm
             offset_(offset),
             y_dim_(y_dim)
       {
-        //std::cout << "Copy Proxy" << std::endl;
       }
 
       Proxy &operator=(const std::vector<T> &other)
       {
-        printf("Copied! &operator= \n"); //TODO(jiwon) - Looks like it never gets called?
-
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
         {
           throw std::runtime_error("Matrix row size mismatch in assignment from vector");
         }
         auto other_elem = other.begin();
-        for (auto &elem : *this)  //TODO(jiwon) - v.assign(...)?
+        for (auto &elem : *this)
         {
           elem = *(other_elem++);
         }
@@ -177,26 +174,12 @@ namespace micm
               }())
     {
     }
-   
-    // TODO(jiwon) - delete?
-    std::size_t size() const
-    {
-      return x_dim_;
-    }
-    
-    // TODO(jiwon)
-    std::size_t Size() const
-    {
-      return x_dim_;
-    }
 
-    // TODO(jiwon)
     std::size_t NumRows() const
     {
       return x_dim_;
     }
 
-    // TODO(jiwon)
     std::size_t NumColumns() const
     {
       return y_dim_;

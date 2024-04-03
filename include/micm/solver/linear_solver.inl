@@ -8,7 +8,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
     
-    const std::size_t order = matrix.size();
+    const std::size_t order = matrix.NumRows();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
       perm[i] = i;
@@ -131,7 +131,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    for (std::size_t i_cell = 0; i_cell < b.size(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < b.NumRows(); ++i_cell)
     {
       auto b_cell = b[i_cell];
       auto x_cell = x[i_cell];

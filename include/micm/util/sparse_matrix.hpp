@@ -67,16 +67,9 @@ namespace micm
       {
       }
 
-      //TODO(jiwon) Delete this 
       std::size_t size() const
       {
         return matrix_.row_start_.size() - 1;
-      }
-
-      // TODO(jiwon) Delete this 
-      std::size_t Size() const
-      {
-        return matrix_.row_start_.size() - 1;  //TODO(jiwon) - Is vector size?
       }
 
       T& operator[](std::size_t y)
@@ -99,16 +92,9 @@ namespace micm
       {
       }
 
-      // TODO(jiwon) Delete this 
       std::size_t size() const
       {
         return matrix_.row_start_.size() - 1;
-      }
-
-      // TODO(jiwon) 
-      std::size_t Size() const
-      {
-        return matrix_.row_start_.size() - 1;  // check size()
       }
 
       const T& operator[](std::size_t y) const
@@ -129,13 +115,7 @@ namespace micm
       {
       }
 
-      // TODO(jiwon) delete this 
       std::size_t size() const
-      {
-        return matrix_.row_start_.size() - 1;
-      }
-
-      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -158,14 +138,7 @@ namespace micm
       {
       }
 
-      // TODO(jiwon) - delete this 
       std::size_t size() const
-      {
-        return matrix_.row_start_.size() - 1;
-      }
-
-      // TODO(jiwon)
-      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -236,13 +209,6 @@ namespace micm
       return false;
     }
 
-    //TODO(jiwon) 
-    std::size_t size() const
-    {
-      return number_of_blocks_;
-    }
-
-    //TODO(jiwon)
     std::size_t Size() const
     {
       return number_of_blocks_;
