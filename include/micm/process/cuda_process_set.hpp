@@ -40,10 +40,9 @@ namespace micm
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
     void SubtractJacobianTerms(
-            const MatrixPolicy<double>& rate_constants,
-            const MatrixPolicy<double>& state_variables,
-            SparseMatrixPolicy<double>& jacobian)
-    const;
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrixPolicy<double>& jacobian) const;
   };
 
   inline CudaProcessSet::CudaProcessSet(
@@ -108,7 +107,8 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
-    auto jacobian_param = jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
+    auto jacobian_param =
+        jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
     micm::cuda::SubtractJacobianTermsKernelDriver(
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
   }
