@@ -112,7 +112,7 @@ namespace micm
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
-    
+
     for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
@@ -160,12 +160,13 @@ namespace micm
             params[i_param] = v_custom_parameters[offset_params + i_param * L + i_cell];
           }
 
+          std::vector<double>::const_iterator custom_parameters_iter = params.begin();
           double fixed_reactants = 1.0;
           for (auto& reactant : process.reactants_)
             if (reactant.IsParameterized())
               fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
           v_rate_constants[offset_rc + i_cell] =
-              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], params.begin()) *
+              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter *
               fixed_reactants;
         }
         offset_params += params.size() * L;
