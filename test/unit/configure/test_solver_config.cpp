@@ -82,7 +82,7 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   // Check 'name' and 'properties' in 'Species'
   std::vector<std::pair<std::string, short>> species_name_and_num_properties = {
     std::make_pair("M", 0),   std::make_pair("Ar", 1), std::make_pair("CO2", 1),
-    std::make_pair("H2O", 1), std::make_pair("N2", 1), std::make_pair("O1D", 1),
+    std::make_pair("H2O", 1), std::make_pair("N2", 2), std::make_pair("O1D", 1),
     std::make_pair("O", 1),   std::make_pair("O2", 1), std::make_pair("O3", 1)
   };
 
@@ -90,9 +90,15 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   for (const auto& s : solver_params.system_.gas_phase_.species_)
   {
     EXPECT_EQ(s.name_, species_name_and_num_properties[idx].first);
-    EXPECT_EQ(s.properties_.size(), species_name_and_num_properties[idx].second);
+    EXPECT_EQ(s.properties_double_.size(), species_name_and_num_properties[idx].second);
     idx++;
   }
+  // check some specific properties
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<double>("absolute tolerance"), 1.0e-12);
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<double>("molecular weight [kg mol-1]"), 0.0280134);
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<std::string>("__custom string property"), "foo");
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<bool>("__custom bool property"), true);
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<int>("__custom int property"), 12);
 }
 
 TEST(SolverConfig, ReadAndParseProcessObjects)

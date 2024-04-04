@@ -21,7 +21,10 @@ namespace micm
     std::string name_;
 
     /// @brief A list of properties of this species
-    std::map<std::string, double> properties_;
+    std::map<std::string, std::string> properties_string_;
+    std::map<std::string, double> properties_double_;
+    std::map<std::string, bool> properties_bool_;
+    std::map<std::string, int> properties_int_;
 
     /// @brief A function that if provided will be used to parameterize
     ///        the concentration of this species during solving.
@@ -49,6 +52,14 @@ namespace micm
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
 
+    /// @brief Return the value of a species property
+    template<class T>
+    T GetProperty(const std::string& key) const;
+
+    /// @brief Set the value of a species property
+    template<class T>
+    void SetProperty(const std::string& key, T value);
+
     /// @brief Return a Species instance parameterized on air density
     static Species ThirdBody();
   };
@@ -61,7 +72,10 @@ namespace micm
     }
 
     name_ = other.name_;
-    properties_ = other.properties_;  // This performs a shallow copy
+    properties_string_ = other.properties_string_;
+    properties_double_ = other.properties_double_;
+    properties_int_ = other.properties_int_;
+    properties_bool_ = other.properties_bool_;
     parameterize_ = other.parameterize_;
 
     return *this;
@@ -69,7 +83,10 @@ namespace micm
 
   inline Species::Species(const Species& other)
       : name_(other.name_),
-        properties_(other.properties_),
+        properties_string_(other.properties_string_),
+        properties_double_(other.properties_double_),
+        properties_int_(other.properties_int_),
+        properties_bool_(other.properties_bool_),
         parameterize_(other.parameterize_){};
 
   inline Species::Species(const std::string& name)
@@ -77,11 +94,61 @@ namespace micm
 
   inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
       : name_(name),
-        properties_(properties){};
+        properties_double_(properties){};
 
   inline bool Species::IsParameterized() const
   {
     return parameterize_ != nullptr;
+  }
+
+  template<class T>
+  inline T Species::GetProperty(const std::string& key) const
+  {
+    if constexpr (std::is_same<T, std::string>::value)
+    {
+      return properties_string_.at(key);
+    }
+    else if constexpr (std::is_same<T, double>::value)
+    {
+      return properties_double_.at(key);
+    }
+    else if constexpr (std::is_same<T, bool>::value)
+    {
+      return properties_bool_.at(key);
+    }
+    else if constexpr (std::is_same<T, int>::value)
+    {
+      return properties_int_.at(key);
+    }
+    else
+    {
+      throw std::runtime_error("Invalid type for property");
+    }
+  }
+
+  template<class T>
+  inline void Species::SetProperty(const std::string& key, T value)
+  {
+    if constexpr (std::is_same<T, std::string>::value || std::is_same<T, const char*>::value)
+    {
+      properties_string_[key] = value;
+    }
+    else if constexpr (std::is_same<T, double>::value)
+    {
+      properties_double_[key] = value;
+    }
+    else if constexpr (std::is_same<T, bool>::value)
+    {
+      properties_bool_[key] = value;
+    }
+    else if constexpr (std::is_same<T, int>::value)
+    {
+      properties_int_[key] = value;
+    }
+    else
+    {
+      throw std::runtime_error("Invalid type for property");
+    }
   }
 
   inline Species Species::ThirdBody()

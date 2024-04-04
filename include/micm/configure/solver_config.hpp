@@ -372,10 +372,11 @@ namespace micm
     {
       // required keys
       const std::string NAME = "name";
+      const std::string TYPE = "type";
 
       auto status = ValidateSchema(
           object,
-          { NAME, "type" },
+          { NAME, TYPE },
           { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
       if (status != ConfigParseStatus::Success)
       {
@@ -383,15 +384,24 @@ namespace micm
       }
 
       std::string name = object[NAME].get<std::string>();
+      Species species{ name };
 
       // Load remaining keys as properties
-      std::map<std::string, double> properties{};
       for (auto& [key, value] : object.items())
       {
-        if (value.is_number_float())
-          properties[key] = value;
+        if (key != NAME && key != TYPE)
+          if (value.is_string())
+            species.SetProperty<std::string>(key, value);
+          else if (value.is_number_integer())
+            species.SetProperty<int>(key, value);
+          else if (value.is_number_float())
+            species.SetProperty<double>(key, value);
+          else if (value.is_boolean())
+            species.SetProperty<bool>(key, value);
+          else
+            std::cerr << "Unknown type for property " << key << std::endl;
       }
-      species_arr_.push_back(Species(name, properties));
+      species_arr_.push_back(species);
 
       return ConfigParseStatus::Success;
     }

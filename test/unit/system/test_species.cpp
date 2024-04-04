@@ -17,9 +17,9 @@ TEST(Species, StringAndVectorConstructor)
   micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
 
   EXPECT_EQ(species.name_, "thing");
-  EXPECT_EQ(species.properties_.size(), 2);
-  EXPECT_EQ(species.properties_["name [units]"], 1.0);
-  EXPECT_EQ(species.properties_["name2 [units2]"], 2.0);
+  EXPECT_EQ(species.properties_double_.size(), 2);
+  EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
+  EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
 }
 
 TEST(Species, ThirdBody)
@@ -34,25 +34,37 @@ TEST(Species, CopyConstructor)
 {
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
+    species.SetProperty("foo", "bar");
+    species.SetProperty("baz", 42);
+    species.SetProperty("qux", true);
 
     micm::Species species2(species);
 
     EXPECT_EQ(species2.name_, "thing");
-    EXPECT_EQ(species2.properties_.size(), 2);
-    EXPECT_EQ(species2.properties_["name [units]"], 1.0);
-    EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
+    EXPECT_EQ(species2.properties_double_.size(), 2);
+    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
+    EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
+    EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_FALSE(species2.IsParameterized());
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
     species.parameterize_ = [](const micm::Conditions& c) { return 15.4; };
+    species.SetProperty("foo", "bar");
+    species.SetProperty("baz", 42);
+    species.SetProperty("qux", true);
 
     micm::Species species2(species);
 
     EXPECT_EQ(species2.name_, "thing");
-    EXPECT_EQ(species2.properties_.size(), 2);
-    EXPECT_EQ(species2.properties_["name [units]"], 1.0);
-    EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
+    EXPECT_EQ(species2.properties_double_.size(), 2);
+    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
+    EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
+    EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
     EXPECT_EQ(species.parameterize_({}), 15.4);
   }
@@ -62,25 +74,37 @@ TEST(Species, CopyAssignment)
 {
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
+    species.SetProperty("foo", "bar");
+    species.SetProperty("baz", 42);
+    species.SetProperty("qux", true);
 
     micm::Species species2 = species;
 
     EXPECT_EQ(species2.name_, "thing");
-    EXPECT_EQ(species2.properties_.size(), 2);
-    EXPECT_EQ(species2.properties_["name [units]"], 1.0);
-    EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
+    EXPECT_EQ(species2.properties_double_.size(), 2);
+    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
+    EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
+    EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_FALSE(species2.IsParameterized());
   }
   {
     micm::Species species("thing", { { "name [units]", 1.0 }, { "name2 [units2]", 2.0 } });
     species.parameterize_ = [](const micm::Conditions& c) { return 15.4; };
+    species.SetProperty("foo", "bar");
+    species.SetProperty("baz", 42);
+    species.SetProperty("qux", true);
 
     micm::Species species2 = species;
 
     EXPECT_EQ(species2.name_, "thing");
-    EXPECT_EQ(species2.properties_.size(), 2);
-    EXPECT_EQ(species2.properties_["name [units]"], 1.0);
-    EXPECT_EQ(species2.properties_["name2 [units2]"], 2.0);
+    EXPECT_EQ(species2.properties_double_.size(), 2);
+    EXPECT_EQ(species2.GetProperty<double>("name [units]"), 1.0);
+    EXPECT_EQ(species2.GetProperty<double>("name2 [units2]"), 2.0);
+    EXPECT_EQ(species2.GetProperty<std::string>("foo"), "bar");
+    EXPECT_EQ(species2.GetProperty<int>("baz"), 42);
+    EXPECT_EQ(species2.GetProperty<bool>("qux"), true);
     EXPECT_TRUE(species2.IsParameterized());
     EXPECT_EQ(species.parameterize_({}), 15.4);
   }

@@ -27,7 +27,11 @@
     {
       "name" : "N2",
       "type" : "CHEM_SPEC",
-      "absolute tolerance" : 1.0e-12
+      "absolute tolerance" : 1.0e-12,
+      "molecular weight [kg mol-1]" : 0.0280134,
+      "__custom string property" : "foo",
+      "__custom int property" : 12,
+      "__custom bool property" : true
     },
     {
       "name" : "O1D",
