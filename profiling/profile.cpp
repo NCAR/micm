@@ -408,11 +408,11 @@ int OutputDiagnosticData(const std::string file_prefix, const SolverParameters &
     solver_parameters.system_,
     solver_parameters.processes_,
     RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1)};
-  //State state = solver.GetState();
-  State state = State(solver.GetStateParams());
+
+  State state = solver.GetState();
   SetState(initial_conditions, 1, state);
   solver.UpdateState(state);
-  Matrix<double> initial_forcing(state.variables_.size(), state.variables_[0].size(), 0.0);
+  Matrix<double> initial_forcing(state.variables_.NumRows(), state.variables_[0].size(), 0.0);
   solver.CalculateForcing(state.rate_constants_, state.variables_, initial_forcing);
 
   std::vector<std::tuple<std::string, double>> reaction_data;
@@ -523,10 +523,7 @@ void solveAndWriteResults(
   //  return;
   //}
 
-  //TODO(jiwon) Solver doesn't own state. GetState() constructs state with state_parameters
-  // And creates in the main stack to avoid copy
-  //State state = solver.GetState();
-  State state = State<MatrixType, SparseMatrixType>(solver.GetStateParams());  // TODO(jiwon)
+  State state = solver.GetState();
   SetState(initial_conditions, grid_cells, state);
 
   double time = 0;
@@ -632,7 +629,7 @@ int main(const int argc, const char *argv[])
   std::cout << "  number of reactions: " << nreactions << std::endl;
   std::cout << "  matrix ordering: " << matrix_ordering << std::endl;
 
-  auto initial_conditions = read_initial_conditions(configDir + "./initial_conditions.csv");
+  auto initial_conditions = read_initial_conditions(configDir + "/initial_conditions.csv");
 
   const std::string file_prefix = "micm_" + matrix_ordering + "_" + std::to_string(nspecies) + "_species_" + std::to_string(nreactions) + "_reactions_";
 

@@ -148,7 +148,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CreateState() const
+  inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetState() const
   {
     MICM_PROFILE_FUNCTION();
 

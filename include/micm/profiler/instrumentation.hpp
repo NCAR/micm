@@ -199,7 +199,6 @@ namespace micm
 
 }  // namespace micm
 
-#define DEBUG 1
 #define MICM_PROFILE 1
 #if MICM_PROFILE
   #if defined(__GNUC__) || defined(__ICC)
