@@ -199,7 +199,7 @@ namespace micm
 
 }  // namespace micm
 
-#define MICM_PROFILE 1
+#define MICM_PROFILE 0
 #if MICM_PROFILE
   #if defined(__GNUC__) || defined(__ICC)
     #define MICM_FUNC_SIG __func__
