@@ -193,22 +193,21 @@ namespace micm
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
       auto U_group =
           std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
-      auto y_group = x_group;  // Alias x for consistency with equations, but to reuse memory
+      //TODO(jiwon) test
       {
-        auto b_elem = b_group;
-        auto y_elem = y_group;
+        auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            y_elem[i_cell] = b_elem[i_cell];
-          b_elem += n_cells;
+          std::copy(b_group, b_group + n_cells, y_elem);
+          b_group += n_cells;
+
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             std::size_t Lij_yj_first = (*Lij_yj).first;
             std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * y_group[Lij_yj_second_times_n_cells + i_cell];
+              y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
             ++Lij_yj;
           }
           std::size_t nLij_Lii_second = nLij_Lii.second;
