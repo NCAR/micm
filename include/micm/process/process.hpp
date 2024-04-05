@@ -166,7 +166,7 @@ namespace micm
             if (reactant.IsParameterized())
               fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
           v_rate_constants[offset_rc + i_cell] =
-              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter *
+              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
               fixed_reactants;
         }
         offset_params += params.size() * L;
