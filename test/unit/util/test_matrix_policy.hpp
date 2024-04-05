@@ -71,7 +71,7 @@ template<template<class> class MatrixPolicy>
 MatrixPolicy<int> testLoopOverMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
     {
@@ -91,7 +91,7 @@ template<template<class> class MatrixPolicy>
 const MatrixPolicy<int> testLoopOverConstMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
     {
@@ -151,13 +151,13 @@ MatrixPolicy<double> testConversionFromVector()
 {
   MatrixPolicy<double> zero_matrix = std::vector<std::vector<double>>{};
 
-  EXPECT_EQ(zero_matrix.size(), 0);
+  EXPECT_EQ(zero_matrix.NumRows(), 0);
 
   std::vector<std::vector<double>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
 
   MatrixPolicy<double> matrix = vec;
 
-  EXPECT_EQ(matrix.size(), 2);
+  EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix[0].size(), 3);
   EXPECT_EQ(matrix[0][0], 412.3);
   EXPECT_EQ(matrix[0][1], 32.4);

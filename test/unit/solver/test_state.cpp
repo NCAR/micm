@@ -16,13 +16,13 @@ TEST(State, Constructor)
   EXPECT_EQ(state.variable_map_["bar"], 1);
   EXPECT_EQ(state.variable_map_["baz"], 2);
   EXPECT_EQ(state.variable_map_["quz"], 3);
-  EXPECT_EQ(state.variables_.size(), 3);
+  EXPECT_EQ(state.variables_.NumRows(), 3);
   EXPECT_EQ(state.variables_[0].size(), 4);
   EXPECT_EQ(state.custom_rate_parameter_map_["quux"], 0);
   EXPECT_EQ(state.custom_rate_parameter_map_["corge"], 1);
-  EXPECT_EQ(state.custom_rate_parameters_.size(), 3);
+  EXPECT_EQ(state.custom_rate_parameters_.NumRows(), 3);
   EXPECT_EQ(state.custom_rate_parameters_[0].size(), 2);
-  EXPECT_EQ(state.rate_constants_.size(), 3);
+  EXPECT_EQ(state.rate_constants_.NumRows(), 3);
   EXPECT_EQ(state.rate_constants_[0].size(), 10);
 }
 

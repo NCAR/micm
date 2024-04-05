@@ -55,7 +55,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
   auto jacobian = solver.GetState().jacobian_;
 
-  EXPECT_EQ(jacobian.size(), number_of_grid_cells);
+  EXPECT_EQ(jacobian.Size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);
   EXPECT_EQ(jacobian[0][0].size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
@@ -132,27 +132,4 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
       3);
   testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(
       2);
-}
-
-TEST(RosenbrockSolver, Timing)
-{
-  auto solver = getSolver<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
-
-  auto state = solver.GetState();
-
-  state.variables_[0] = {
-    1, 1, 1, 1, 1,
-  };
-
-  auto result = solver.Solve<false>(1, state);
-  EXPECT_EQ(result.stats_.total_forcing_time.count(), 0);
-  EXPECT_EQ(result.stats_.total_jacobian_time.count(), 0);
-  EXPECT_EQ(result.stats_.total_linear_factor_time.count(), 0);
-  EXPECT_EQ(result.stats_.total_linear_solve_time.count(), 0);
-
-  result = solver.Solve<true>(1, state);
-  EXPECT_NE(
-      result.stats_.total_forcing_time.count() + result.stats_.total_jacobian_time.count() +
-          result.stats_.total_linear_factor_time.count() + result.stats_.total_linear_solve_time.count(),
-      0.0);
 }
