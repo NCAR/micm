@@ -23,7 +23,8 @@ jobs:
 
       - name: Format code
         run: |
-          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format --style=file {} +
-          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format --style=file {} +
-          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) ! -path 'test/tutorial/*' -exec clang-format --style=file {} +
+          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
+          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -i -exec clang-format --style=file {} +
+          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) ! -path 'test/tutorial/*' -i -exec clang-format --style=file {} +
+          git diff
 
