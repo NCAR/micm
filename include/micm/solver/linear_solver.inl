@@ -103,23 +103,35 @@ namespace micm
     }
   };
 
-    
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+      const SparseMatrixPolicy<T>& matrix,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix)
   {
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix, bool& is_singular)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+      const SparseMatrixPolicy<T>& matrix,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix,
+      bool& is_singular)
   {
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix, is_singular);
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  requires(
+      !VectorizableDense<MatrixPolicy<T>> ||
+      !VectorizableSparse<SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
+      Solve(
+          const MatrixPolicy<T>& b,
+          MatrixPolicy<T>& x,
+          SparseMatrixPolicy<T>& lower_matrix,
+          SparseMatrixPolicy<T>& upper_matrix)
   {
     for (std::size_t i_cell = 0; i_cell < b.size(); ++i_cell)
     {
@@ -168,8 +180,13 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<
+           SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
+      Solve(
+          const MatrixPolicy<T>& b,
+          MatrixPolicy<T>& x,
+          SparseMatrixPolicy<T>& lower_matrix,
+          SparseMatrixPolicy<T>& upper_matrix)
   {
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks

@@ -1,5 +1,5 @@
-#include <vector>
 #include <micm/util/cuda_param.hpp>
+#include <vector>
 
 namespace micm
 {
@@ -33,5 +33,5 @@ namespace micm
     /// @param vectorMatrixSrc Struct containing allocated source device memory to copy from
     /// @returns Error code from copying to destination device memory from source device memory, if any
     int CopyToDeviceFromDevice(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
-  }
-}
+  }  // namespace cuda
+}  // namespace micm

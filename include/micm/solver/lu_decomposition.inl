@@ -153,9 +153,11 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
-      const
+  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U,
+      bool& is_singular) const
   {
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
@@ -198,7 +200,7 @@ namespace micm
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
             ++lkj_uji;
           }
-          if( U_vector[*uii] == 0.0 )
+          if (U_vector[*uii] == 0.0)
           {
             is_singular = true;
             return;
@@ -212,9 +214,11 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
-      const
+  requires(VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U,
+      bool& is_singular) const
   {
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.size()); ++i_group)
@@ -272,7 +276,8 @@ namespace micm
           }
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           {
-            if (U_vector[*uii + i_cell] == 0.0) {
+            if (U_vector[*uii + i_cell] == 0.0)
+            {
               is_singular = true;
               return;
             }
