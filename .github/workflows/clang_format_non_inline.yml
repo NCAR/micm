@@ -15,7 +15,7 @@ jobs:
       - name: Install Clang-Format
         run: sudo apt-get update && sudo apt-get install clang-format && clang-format --version
 
-      - name: Check out code, run clang format, push changes
+      - name: Check out code
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
@@ -23,8 +23,8 @@ jobs:
 
       - name: Format code
         run: |
-          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file {} +
-          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -i -exec clang-format --style=file {} +
-          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) ! -path 'test/tutorial/*' -i -exec clang-format --style=file {} +
+          find include -type f \( -name '*.hpp' -o -name '*.h' \) -exec clang-format -i --style=file --verbose {} +
+          find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) -exec clang-format -i --style=file --verbose {} +
+          find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \) ! -path 'test/tutorial/*' -exec clang-format -i --style=file --verbose {} +
           git diff
 
