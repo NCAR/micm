@@ -1,32 +1,29 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-#include <chrono>
-#include <iostream>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
-#include <vector>
-
 #include "cublas_v2.h"
 
 namespace micm
 {
   namespace cuda
   {
-    /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of matrix J
-    __global__ void AlphaMinusJacobianKernel(double* d_jacobian, const double alpha, CudaRosenbrockSolverParam devstruct)
+    /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
+    __global__ void AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaRosenbrockSolverParam devstruct)
     {
-      // Global thread ID
+      // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-
-      // Local variables
+      
+      // Local device variables
+      double* d_jacobian = jacobian_param.d_data_;
       size_t quotient, index_as_remainder;
-      const size_t num_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
-      const size_t num_grid_cells = devstruct.num_grid_cells_;
+      const size_t number_of_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
+      const size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
 
-      if (tid < num_grid_cells * num_diagonal_elements)
+      if (tid < number_of_grid_cells * number_of_diagonal_elements)
       {
-        quotient = tid / num_diagonal_elements;
-        index_as_remainder = tid - num_diagonal_elements * quotient;  // % operator may be more expensive
+        quotient = tid / number_of_diagonal_elements;
+        index_as_remainder = tid - number_of_diagonal_elements * quotient;  // % operator may be more expensive
         d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder] + quotient] += alpha;
       }
     }
@@ -54,7 +51,6 @@ namespace micm
           jacobian_diagonal_elements_bytes,
           cudaMemcpyHostToDevice);
 
-      devstruct.num_grid_cells_ = hoststruct.num_grid_cells_;
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
 
@@ -215,24 +211,14 @@ namespace micm
 
     // Host code that will launch the AlphaMinusJacobian CUDA kernel
     void AlphaMinusJacobianDriver(
-        double* h_jacobian,
-        const size_t num_elements,
+        CudaMatrixParam& jacobian_param,
         const double alpha,
         const CudaRosenbrockSolverParam& devstruct)
     {
-      // device pointers (will not be needed after adding the CudaSparseMatrix class)
-      double* d_jacobian;
-      cudaMalloc(&d_jacobian, sizeof(double) * num_elements);
-      cudaMemcpy(d_jacobian, h_jacobian, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
-
-      // kernel call
-      size_t num_blocks =
-          (devstruct.jacobian_diagonal_elements_size_ * devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      AlphaMinusJacobianKernel<<<num_blocks, BLOCK_SIZE>>>(d_jacobian, alpha, devstruct);
-
+      size_t number_of_blocks =
+          (devstruct.jacobian_diagonal_elements_size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      AlphaMinusJacobianKernel<<<number_of_blocks, BLOCK_SIZE>>>(jacobian_param, alpha, devstruct);
       cudaDeviceSynchronize();
-      cudaMemcpy(h_jacobian, d_jacobian, sizeof(double) * num_elements, cudaMemcpyDeviceToHost);
-      cudaFree(d_jacobian);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel

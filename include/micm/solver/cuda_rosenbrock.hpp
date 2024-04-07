@@ -60,7 +60,6 @@ namespace micm
     {
       CudaRosenbrockSolverParam hoststruct;
       hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
-      hoststruct.num_grid_cells_ = parameters.number_of_grid_cells_;
       hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
       // Copy the data from host struct to device struct
@@ -83,7 +82,6 @@ namespace micm
     {
       CudaRosenbrockSolverParam hoststruct;
       hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
-      hoststruct.num_grid_cells_ = parameters.number_of_grid_cells_;
       hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
       // Copy the data from host struct to device struct
@@ -101,9 +99,8 @@ namespace micm
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
         VectorizableSparse<SparseMatrixPolicy<double>>
     {
-      double* h_jacobian = jacobian.AsVector().data();
-      size_t num_elements = jacobian.AsVector().size();
-      micm::cuda::AlphaMinusJacobianDriver(h_jacobian, num_elements, alpha, this->devstruct_);
+      auto jacobian_param = jacobian.AsDeviceParam(); // we need to update jacobian so it can't be constant and must be an lvalue
+      micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already

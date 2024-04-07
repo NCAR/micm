@@ -18,14 +18,12 @@ namespace micm{
       ///   members of class "CudaRosenbrockSolverParam" on the device
       void FreeConstData(CudaRosenbrockSolverParam& devstruct);
 
-      /// @brief Compute alpha - J[i] for each element i at the diagnoal of matrix J
-      /// @param h_jacobian sparse matrix on the host (will be replaced by the CudaSparseMatrix class)
-      /// @param num_elements number of elements in the h_jacobian (will be replaced by the CudaSparseMatrix class)
+      /// @brief Compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
+      /// @param jacobian_param the data member of Jacobian matrix with type "CudaSparseMatrix"
       /// @param alpha scalar variable
       /// @param devstruct device struct including the locations of diagonal elements of the Jacobian matrix
       /// @return
-      void AlphaMinusJacobianDriver(double* h_jacobian,
-                                    const size_t num_elements,
+      void AlphaMinusJacobianDriver(CudaMatrixParam& jacobian_param,
                                     const double alpha,
                                     const CudaRosenbrockSolverParam& devstruct);
 

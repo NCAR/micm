@@ -11,22 +11,40 @@
 #include <micm/util/vector_matrix.hpp>
 
 template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
+using Group1CPUVectorMatrix = micm::VectorMatrix<T, 1>;
 template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
+using Group2CPUVectorMatrix = micm::VectorMatrix<T, 2>;
 template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
+using Group3CPUVectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+using Group4CPUVectorMatrix = micm::VectorMatrix<T, 4>;
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1GPUVectorMatrix = micm::CudaDenseMatrix<T, 1>;
 template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+using Group2GPUVectorMatrix = micm::CudaDenseMatrix<T, 2>;
 template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+using Group3GPUVectorMatrix = micm::CudaDenseMatrix<T, 3>;
 template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group4GPUVectorMatrix = micm::CudaDenseMatrix<T, 4>;
+
+template<class T>
+using Group1CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+
+template<class T>
+using Group1GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group3GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+template<class T>
+using Group4GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
 // the following alias works for a CudaVectorMatrix with given row and any columns
 template<class T>
@@ -55,6 +73,12 @@ template<class T>
 using Group3395043CudaVectorMatrix = micm::CudaVectorMatrix<T, 3395043>;
 
 // the following alias works for a CudaVectorMatrix with given rows and any columns
+template<class T>
+using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+template<class T>
+using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 template<class T>
 using Group7SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<7>>;
 template<class T>
@@ -119,70 +143,71 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy, class CPULinearSolverPolicy
+         template<class> class GPUMatrixPolicy, template<class> class GPUSparseMatrixPolicy, class GPULinearSolverPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<
-      MatrixPolicy,
-      SparseMatrixPolicy,
-      LinearSolverPolicy,
-      micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(number_of_grid_cells);
-  auto jacobian = gpu_solver.GetState().jacobian_;
-  EXPECT_EQ(jacobian.size(), number_of_grid_cells);
-  EXPECT_EQ(jacobian[0].size(), 5);
-  EXPECT_EQ(jacobian[0][0].size(), 5);
-  EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
-  for (auto& elem : jacobian.AsVector())
+      GPUMatrixPolicy,
+      GPUSparseMatrixPolicy,
+      GPULinearSolverPolicy,
+      micm::CudaRosenbrockSolver<GPUMatrixPolicy, GPUSparseMatrixPolicy, GPULinearSolverPolicy>>(number_of_grid_cells);
+  auto gpu_jacobian = gpu_solver.GetState().jacobian_;
+  EXPECT_EQ(gpu_jacobian.size(), number_of_grid_cells);
+  EXPECT_EQ(gpu_jacobian[0].size(), 5);
+  EXPECT_EQ(gpu_jacobian[0][0].size(), 5);
+  EXPECT_GE(gpu_jacobian.AsVector().size(), 13 * number_of_grid_cells);
+  for (auto& elem : gpu_jacobian.AsVector())
     elem = 100.0;
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    jacobian[i_cell][0][0] = 12.2;
-    jacobian[i_cell][0][1] = 24.3 * (i_cell + 2);
-    jacobian[i_cell][0][2] = 42.3;
-    jacobian[i_cell][1][0] = 0.43;
-    jacobian[i_cell][1][1] = 23.4;
-    jacobian[i_cell][1][2] = 83.4 / (i_cell + 3);
-    jacobian[i_cell][2][0] = 4.74;
-    jacobian[i_cell][2][2] = 6.91;
-    jacobian[i_cell][3][1] = 59.1;
-    jacobian[i_cell][3][3] = 83.4;
-    jacobian[i_cell][4][0] = 78.5;
-    jacobian[i_cell][4][2] = 53.6;
-    jacobian[i_cell][4][4] = 1.0;
+    gpu_jacobian[i_cell][0][0] = 12.2;
+    gpu_jacobian[i_cell][0][1] = 24.3 * (i_cell + 2);
+    gpu_jacobian[i_cell][0][2] = 42.3;
+    gpu_jacobian[i_cell][1][0] = 0.43;
+    gpu_jacobian[i_cell][1][1] = 23.4;
+    gpu_jacobian[i_cell][1][2] = 83.4 / (i_cell + 3);
+    gpu_jacobian[i_cell][2][0] = 4.74;
+    gpu_jacobian[i_cell][2][2] = 6.91;
+    gpu_jacobian[i_cell][3][1] = 59.1;
+    gpu_jacobian[i_cell][3][3] = 83.4;
+    gpu_jacobian[i_cell][4][0] = 78.5;
+    gpu_jacobian[i_cell][4][2] = 53.6;
+    gpu_jacobian[i_cell][4][4] = 1.0;
   }
 
   // Negate the Jacobian matrix (-J) here
-  for (auto& elem : jacobian.AsVector())
+  for (auto& elem : gpu_jacobian.AsVector())
     elem = -elem;
 
-  auto cpu_jacobian = jacobian;
+  auto cpu_jacobian = gpu_jacobian;
 
-  gpu_solver.AlphaMinusJacobian(jacobian, 42.042);
+  gpu_solver.AlphaMinusJacobian(gpu_jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    EXPECT_EQ(jacobian[i_cell][0][0], 42.042 - 12.2);
-    EXPECT_EQ(jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
-    EXPECT_EQ(jacobian[i_cell][0][2], -42.3);
-    EXPECT_EQ(jacobian[i_cell][1][0], -0.43);
-    EXPECT_EQ(jacobian[i_cell][1][1], 42.042 - 23.4);
-    EXPECT_EQ(jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
-    EXPECT_EQ(jacobian[i_cell][2][0], -4.74);
-    EXPECT_EQ(jacobian[i_cell][2][2], 42.042 - 6.91);
-    EXPECT_EQ(jacobian[i_cell][3][1], -59.1);
-    EXPECT_EQ(jacobian[i_cell][3][3], 42.042 - 83.4);
-    EXPECT_EQ(jacobian[i_cell][4][0], -78.5);
-    EXPECT_EQ(jacobian[i_cell][4][2], -53.6);
-    EXPECT_EQ(jacobian[i_cell][4][4], 42.042 - 1.0);
+    EXPECT_EQ(gpu_jacobian[i_cell][0][0], 42.042 - 12.2);
+    EXPECT_EQ(gpu_jacobian[i_cell][0][1], -24.3 * (i_cell + 2));
+    EXPECT_EQ(gpu_jacobian[i_cell][0][2], -42.3);
+    EXPECT_EQ(gpu_jacobian[i_cell][1][0], -0.43);
+    EXPECT_EQ(gpu_jacobian[i_cell][1][1], 42.042 - 23.4);
+    EXPECT_EQ(gpu_jacobian[i_cell][1][2], -83.4 / (i_cell + 3));
+    EXPECT_EQ(gpu_jacobian[i_cell][2][0], -4.74);
+    EXPECT_EQ(gpu_jacobian[i_cell][2][2], 42.042 - 6.91);
+    EXPECT_EQ(gpu_jacobian[i_cell][3][1], -59.1);
+    EXPECT_EQ(gpu_jacobian[i_cell][3][3], 42.042 - 83.4);
+    EXPECT_EQ(gpu_jacobian[i_cell][4][0], -78.5);
+    EXPECT_EQ(gpu_jacobian[i_cell][4][2], -53.6);
+    EXPECT_EQ(gpu_jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 
   auto cpu_solver = getSolver<
-      MatrixPolicy,
-      SparseMatrixPolicy,
-      micm::LinearSolver<double, SparseMatrixPolicy>,
-      micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, micm::LinearSolver<double, SparseMatrixPolicy>>>(
+      CPUMatrixPolicy,
+      CPUSparseMatrixPolicy,
+      micm::LinearSolver<double, CPUSparseMatrixPolicy>,
+      micm::RosenbrockSolver<CPUMatrixPolicy, CPUSparseMatrixPolicy, micm::LinearSolver<double, CPUSparseMatrixPolicy>>>(
       number_of_grid_cells);
   cpu_solver.AlphaMinusJacobian(cpu_jacobian, 42.042);
-  std::vector<double> jacobian_gpu_vector = jacobian.AsVector();
+  std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
   std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
   for (int i = 0; i < jacobian_cpu_vector.size(); i++)
   {
@@ -276,21 +301,33 @@ void testNormalizedErrorDiff(const size_t num_grid_cells)
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1);
+      Group1CPUVectorMatrix,
+      Group1CPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group1CPUSparseVectorMatrix>,
+      Group1GPUVectorMatrix,
+      Group1GPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group1GPUSparseVectorMatrix>>(1);
   testAlphaMinusJacobian<
-      Group2VectorMatrix,
-      Group2SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(2);
+      Group2CPUVectorMatrix,
+      Group2CPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group2CPUSparseVectorMatrix>,
+      Group2GPUVectorMatrix,
+      Group2GPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group2GPUSparseVectorMatrix>>(2);
   testAlphaMinusJacobian<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(3);
+      Group3CPUVectorMatrix,
+      Group3CPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group3CPUSparseVectorMatrix>,
+      Group3GPUVectorMatrix,
+      Group3GPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group3GPUSparseVectorMatrix>>(3);
   testAlphaMinusJacobian<
-      Group4VectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(4);
+      Group4CPUVectorMatrix,
+      Group4CPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group4CPUSparseVectorMatrix>,
+      Group4GPUVectorMatrix,
+      Group4GPUSparseVectorMatrix,
+      micm::CudaLinearSolver<double, Group4GPUSparseVectorMatrix>>(4);
 }
 
 TEST(RosenbrockSolver, CudaNormalizedError)
