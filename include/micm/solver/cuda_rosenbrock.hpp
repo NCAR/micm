@@ -2,12 +2,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <functional>
-#include <iostream>
-#include <limits>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>

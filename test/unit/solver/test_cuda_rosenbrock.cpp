@@ -4,7 +4,8 @@
 #include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/cuda_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include <micm/util/cuda_vector_matrix.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -46,57 +47,57 @@ using Group3GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrix
 template<class T>
 using Group4GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 
-// the following alias works for a CudaVectorMatrix with given row and any columns
+// the following alias works for a CudaDenserMatrix with given row and any columns
 template<class T>
-using Group1CudaVectorMatrix = micm::CudaVectorMatrix<T, 1>;
+using Group1CudaDenseMatrix = micm::CudaDenseMatrix<T, 1>;
 template<class T>
-using Group2CudaVectorMatrix = micm::CudaVectorMatrix<T, 2>;
+using Group2CudaDenseMatrix = micm::CudaDenseMatrix<T, 2>;
 template<class T>
-using Group4CudaVectorMatrix = micm::CudaVectorMatrix<T, 4>;
+using Group4CudaDenseMatrix = micm::CudaDenseMatrix<T, 4>;
 template<class T>
-using Group7CudaVectorMatrix = micm::CudaVectorMatrix<T, 7>;
+using Group7CudaDenseMatrix = micm::CudaDenseMatrix<T, 7>;
 template<class T>
-using Group12CudaVectorMatrix = micm::CudaVectorMatrix<T, 12>;
+using Group12CudaDenseMatrix = micm::CudaDenseMatrix<T, 12>;
 template<class T>
-using Group16CudaVectorMatrix = micm::CudaVectorMatrix<T, 16>;
+using Group16CudaDenseMatrix = micm::CudaDenseMatrix<T, 16>;
 template<class T>
-using Group20CudaVectorMatrix = micm::CudaVectorMatrix<T, 20>;
+using Group20CudaDenseMatrix = micm::CudaDenseMatrix<T, 20>;
 template<class T>
-using Group5599CudaVectorMatrix = micm::CudaVectorMatrix<T, 5599>;
+using Group5599CudaDenseMatrix = micm::CudaDenseMatrix<T, 5599>;
 template<class T>
-using Group6603CudaVectorMatrix = micm::CudaVectorMatrix<T, 6603>;
+using Group6603CudaDenseMatrix = micm::CudaDenseMatrix<T, 6603>;
 template<class T>
-using Group200041CudaVectorMatrix = micm::CudaVectorMatrix<T, 200041>;
+using Group200041CudaDenseMatrix = micm::CudaDenseMatrix<T, 200041>;
 template<class T>
-using Group421875CudaVectorMatrix = micm::CudaVectorMatrix<T, 421875>;
+using Group421875CudaDenseMatrix = micm::CudaDenseMatrix<T, 421875>;
 template<class T>
-using Group3395043CudaVectorMatrix = micm::CudaVectorMatrix<T, 3395043>;
+using Group3395043CudaDenseMatrix = micm::CudaDenseMatrix<T, 3395043>;
 
-// the following alias works for a CudaVectorMatrix with given rows and any columns
+// the following alias works for a CudaSparseMatrix with given rows and any columns
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
 template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+using Group2CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
 template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group4CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 template<class T>
-using Group7SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<7>>;
+using Group7CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<7>>;
 template<class T>
-using Group12SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<12>>;
+using Group12CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<12>>;
 template<class T>
-using Group16SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<16>>;
+using Group16CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<16>>;
 template<class T>
-using Group20SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
+using Group20CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
 template<class T>
-using Group5599SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<5599>>;
+using Group5599CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<5599>>;
 template<class T>
-using Group6603SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<6603>>;
+using Group6603CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<6603>>;
 template<class T>
-using Group200041SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<200041>>;
+using Group200041CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<200041>>;
 template<class T>
-using Group421875SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<421875>>;
+using Group421875CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<421875>>;
 template<class T>
-using Group3395043SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3395043>>;
+using Group3395043CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<3395043>>;
 
 template<
     template<class>
@@ -143,7 +144,7 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
 }
 
-template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy, class CPULinearSolverPolicy
+template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy, class CPULinearSolverPolicy,
          template<class> class GPUMatrixPolicy, template<class> class GPUSparseMatrixPolicy, class GPULinearSolverPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
@@ -209,7 +210,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
       micm::RosenbrockSolver<CPUMatrixPolicy, CPUSparseMatrixPolicy, micm::LinearSolver<double, CPUSparseMatrixPolicy>>>(
       number_of_grid_cells);
   cpu_solver.AlphaMinusJacobian(cpu_jacobian, 42.042);
-  
+
   std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
   std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
   for (int i = 0; i < jacobian_cpu_vector.size(); i++)
@@ -342,101 +343,101 @@ TEST(RosenbrockSolver, CudaNormalizedError)
 
   // tests where RMSE does not change with the size of the array
   testNormalizedErrorConst<
-      Group1CudaVectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1);
+      Group1CudaDenseMatrix,
+      Group1CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(1);
   testNormalizedErrorConst<
-      Group2CudaVectorMatrix,
-      Group2SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(2);
+      Group2CudaDenseMatrix,
+      Group2CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group2CudaSparseMatrix>>(2);
   testNormalizedErrorConst<
-      Group4CudaVectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(4);
+      Group4CudaDenseMatrix,
+      Group4CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group4CudaSparseMatrix>>(4);
   testNormalizedErrorConst<
-      Group7CudaVectorMatrix,
-      Group7SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group7SparseVectorMatrix>>(7);
+      Group7CudaDenseMatrix,
+      Group7CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group7CudaSparseMatrix>>(7);
   testNormalizedErrorConst<
-      Group12CudaVectorMatrix,
-      Group12SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group12SparseVectorMatrix>>(12);
+      Group12CudaDenseMatrix,
+      Group12CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group12CudaSparseMatrix>>(12);
   testNormalizedErrorConst<
-      Group16CudaVectorMatrix,
-      Group16SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group16SparseVectorMatrix>>(16);
+      Group16CudaDenseMatrix,
+      Group16CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group16CudaSparseMatrix>>(16);
   testNormalizedErrorConst<
-      Group20CudaVectorMatrix,
-      Group20SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group20SparseVectorMatrix>>(20);
+      Group20CudaDenseMatrix,
+      Group20CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(20);
   testNormalizedErrorConst<
-      Group5599CudaVectorMatrix,
-      Group5599SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group5599SparseVectorMatrix>>(5599);
+      Group5599CudaDenseMatrix,
+      Group5599CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group5599CudaSparseMatrix>>(5599);
   testNormalizedErrorConst<
-      Group6603CudaVectorMatrix,
-      Group6603SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group6603SparseVectorMatrix>>(6603);
+      Group6603CudaDenseMatrix,
+      Group6603CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group6603CudaSparseMatrix>>(6603);
   testNormalizedErrorConst<
-      Group200041CudaVectorMatrix,
-      Group200041SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group200041SparseVectorMatrix>>(200041);
+      Group200041CudaDenseMatrix,
+      Group200041CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group200041CudaSparseMatrix>>(200041);
   testNormalizedErrorConst<
-      Group421875CudaVectorMatrix,
-      Group421875SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group421875SparseVectorMatrix>>(421875);
+      Group421875CudaDenseMatrix,
+      Group421875CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group421875CudaSparseMatrix>>(421875);
   testNormalizedErrorConst<
-      Group3395043CudaVectorMatrix,
-      Group3395043SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group3395043SparseVectorMatrix>>(3395043);
+      Group3395043CudaDenseMatrix,
+      Group3395043CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group3395043CudaSparseMatrix>>(3395043);
 
   // tests where RMSE changes with the size of the array
   testNormalizedErrorDiff<
-      Group1CudaVectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(1);
+      Group1CudaDenseMatrix,
+      Group1CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(1);
   testNormalizedErrorDiff<
-      Group2CudaVectorMatrix,
-      Group2SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(2);
+      Group2CudaDenseMatrix,
+      Group2CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group2CudaSparseMatrix>>(2);
   testNormalizedErrorDiff<
-      Group4CudaVectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(4);
+      Group4CudaDenseMatrix,
+      Group4CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group4CudaSparseMatrix>>(4);
   testNormalizedErrorDiff<
-      Group7CudaVectorMatrix,
-      Group7SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group7SparseVectorMatrix>>(7);
+      Group7CudaDenseMatrix,
+      Group7CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group7CudaSparseMatrix>>(7);
   testNormalizedErrorDiff<
-      Group12CudaVectorMatrix,
-      Group12SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group12SparseVectorMatrix>>(12);
+      Group12CudaDenseMatrix,
+      Group12CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group12CudaSparseMatrix>>(12);
   testNormalizedErrorDiff<
-      Group16CudaVectorMatrix,
-      Group16SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group16SparseVectorMatrix>>(16);
+      Group16CudaDenseMatrix,
+      Group16CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group16CudaSparseMatrix>>(16);
   testNormalizedErrorDiff<
-      Group20CudaVectorMatrix,
-      Group20SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group20SparseVectorMatrix>>(20);
+      Group20CudaDenseMatrix,
+      Group20CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(20);
   testNormalizedErrorDiff<
-      Group5599CudaVectorMatrix,
-      Group5599SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group5599SparseVectorMatrix>>(5599);
+      Group5599CudaDenseMatrix,
+      Group5599CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group5599CudaSparseMatrix>>(5599);
   testNormalizedErrorDiff<
-      Group6603CudaVectorMatrix,
-      Group6603SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group6603SparseVectorMatrix>>(6603);
+      Group6603CudaDenseMatrix,
+      Group6603CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group6603CudaSparseMatrix>>(6603);
   testNormalizedErrorDiff<
-      Group200041CudaVectorMatrix,
-      Group200041SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group200041SparseVectorMatrix>>(200041);
+      Group200041CudaDenseMatrix,
+      Group200041CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group200041CudaSparseMatrix>>(200041);
   testNormalizedErrorDiff<
-      Group421875CudaVectorMatrix,
-      Group421875SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group421875SparseVectorMatrix>>(421875);
+      Group421875CudaDenseMatrix,
+      Group421875CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group421875CudaSparseMatrix>>(421875);
   testNormalizedErrorDiff<
-      Group3395043CudaVectorMatrix,
-      Group3395043SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group3395043SparseVectorMatrix>>(3395043);
+      Group3395043CudaDenseMatrix,
+      Group3395043CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group3395043CudaSparseMatrix>>(3395043);
 }
