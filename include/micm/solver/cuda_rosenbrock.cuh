@@ -24,7 +24,7 @@ namespace micm{
       /// @param devstruct device struct including the locations of diagonal elements of the Jacobian matrix
       /// @return
       void AlphaMinusJacobianDriver(CudaMatrixParam& jacobian_param,
-                                    const double alpha,
+                                    const double& alpha,
                                     const CudaRosenbrockSolverParam& devstruct);
 
       /// @brief Computes the scaled norm of the matrix errors on the GPU; assume all the data are GPU resident already

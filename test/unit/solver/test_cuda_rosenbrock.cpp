@@ -156,9 +156,9 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   EXPECT_EQ(gpu_jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(gpu_jacobian[0].size(), 5);
   EXPECT_EQ(gpu_jacobian[0][0].size(), 5);
-  EXPECT_GE(gpu_jacobian.AsVector().size(), 13 * number_of_grid_cells);
-  for (auto& elem : gpu_jacobian.AsVector())
-    elem = 100.0;
+  auto gpu_jacobian_vec = gpu_jacobian.AsVector();
+  EXPECT_GE(gpu_jacobian_vec.size(), 13 * number_of_grid_cells);
+  gpu_jacobian_vec.assign(gpu_jacobian_vec.size(), 100.0);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     gpu_jacobian[i_cell][0][0] = 12.2;
@@ -177,12 +177,14 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 
   // Negate the Jacobian matrix (-J) here
-  for (auto& elem : gpu_jacobian.AsVector())
-    elem = -elem;
+  std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
 
   auto cpu_jacobian = gpu_jacobian;
 
+  gpu_jacobian.CopyToDevice();
   gpu_solver.AlphaMinusJacobian(gpu_jacobian, 42.042);
+  gpu_jacobian.CopyToHost();
+
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_EQ(gpu_jacobian[i_cell][0][0], 42.042 - 12.2);
@@ -207,6 +209,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
       micm::RosenbrockSolver<CPUMatrixPolicy, CPUSparseMatrixPolicy, micm::LinearSolver<double, CPUSparseMatrixPolicy>>>(
       number_of_grid_cells);
   cpu_solver.AlphaMinusJacobian(cpu_jacobian, 42.042);
+  
   std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
   std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
   for (int i = 0; i < jacobian_cpu_vector.size(); i++)

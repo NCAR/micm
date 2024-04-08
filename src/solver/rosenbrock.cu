@@ -212,7 +212,7 @@ namespace micm
     // Host code that will launch the AlphaMinusJacobian CUDA kernel
     void AlphaMinusJacobianDriver(
         CudaMatrixParam& jacobian_param,
-        const double alpha,
+        const double& alpha,
         const CudaRosenbrockSolverParam& devstruct)
     {
       size_t number_of_blocks =

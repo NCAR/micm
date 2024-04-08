@@ -96,8 +96,8 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, double alpha) const requires
-        VectorizableSparse<SparseMatrixPolicy<double>>
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+        requires VectorizableSparse<SparseMatrixPolicy<double>>
     {
       auto jacobian_param = jacobian.AsDeviceParam(); // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
