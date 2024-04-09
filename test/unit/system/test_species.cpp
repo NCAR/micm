@@ -32,7 +32,7 @@ TEST(Species, GetProperty)
     try {
       species.GetProperty<std::string>("not there");
     } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property not found");
+      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
       throw;
     }
   }, std::runtime_error);
@@ -40,7 +40,7 @@ TEST(Species, GetProperty)
     try {
       species.GetProperty<double>("not there");
     } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property not found");
+      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
       throw;
     }
   }, std::runtime_error);
@@ -48,7 +48,7 @@ TEST(Species, GetProperty)
     try {
       species.GetProperty<int>("not there");
     } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property not found");
+      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
       throw;
     }
   }, std::runtime_error);
@@ -56,7 +56,7 @@ TEST(Species, GetProperty)
     try {
       species.GetProperty<bool>("not there");
     } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property not found");
+      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
       throw;
     }
   }, std::runtime_error);
