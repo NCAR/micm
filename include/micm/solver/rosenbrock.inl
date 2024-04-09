@@ -133,25 +133,25 @@ namespace micm
         variable_map[name] = index++;
     }
 
+    // std::cout << parameters_.absolute_tolerance_.size() << " " << variable_map.size() << std::endl;
     // set defaults
     if (parameters_.absolute_tolerance_.size() != variable_map.size()) {
       parameters_.absolute_tolerance_.resize(variable_map.size());
       std::fill(parameters_.absolute_tolerance_.begin(), parameters_.absolute_tolerance_.end(), 1.0e-3);
     }
-    else {
-      for (auto& species : system.gas_phase_.species_) {
+    for (auto& species : system.gas_phase_.species_) {
+      if (species.HasProperty("absolute tolerance")) {
+        parameters_.absolute_tolerance_[variable_map[species.name_]] = species.GetProperty<double>("absolute tolerance");
+      }
+    }
+    for (auto& phase : system.phases_) {
+      for (auto& species : phase.second.species_) {
         if (species.HasProperty("absolute tolerance")) {
           parameters_.absolute_tolerance_[variable_map[species.name_]] = species.GetProperty<double>("absolute tolerance");
         }
       }
-      for (auto& phase : system.phases_) {
-        for (auto& species : phase.second.species_) {
-          if (species.HasProperty("absolute tolerance")) {
-            parameters_.absolute_tolerance_[variable_map[phase.first + "." + species.name_]] = species.GetProperty<double>("absolute tolerance");
-          }
-        }
-      }
     }
+    // std::cout << parameters_.absolute_tolerance_.size() << " " << variable_map.size() << std::endl;
     
     // setup the state_parameters
     std::vector<std::string> param_labels{};
