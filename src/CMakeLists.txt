@@ -59,6 +59,9 @@ if(MICM_ENABLE_OPENACC OR MICM_ENABLE_CUDA)
   if (MICM_GPU_TYPE STREQUAL v100)
     set(MICM_GPU_ARCH "70")
   endif()
+  if (MICM_GPU_TYPE STREQUAL 2070)
+    set(MICM_GPU_ARCH "75")
+  endif()
 
   if(NOT MICM_GPU_ARCH)
     message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
@@ -90,15 +93,12 @@ if(MICM_ENABLE_CUDA)
 
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-  set(CMAKE_CUDA_ARCHITECTURES 80)
-  target_link_libraries(micm_cuda 
-    PRIVATE micm
-  )
 
   target_link_libraries(micm_cuda 
-    PUBLIC cudart cublas culibos
+    PUBLIC micm cudart cublas culibos
   )
 
+  target_include_directories(micm_cuda PUBLIC /usr/local/cuda/include)
 endif()
 
 add_subdirectory(process)

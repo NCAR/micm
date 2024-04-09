@@ -292,7 +292,8 @@ int main(const int argc, const char *argv[])
     }
 
     // choose a timestep and print the initial state
-    double time_step = dataMap.environments["time_step"];  // s
+    // double time_step = dataMap.environments["time_step"];  // s
+    double time_step = 2000;  // s
 
     state.PrintHeader();
     state.PrintState(0);
@@ -314,7 +315,7 @@ int main(const int argc, const char *argv[])
         return 1;
       }
     }
-    state.PrintState(time_step);
+    // state.PrintState(time_step);
 
     return 0;
 }

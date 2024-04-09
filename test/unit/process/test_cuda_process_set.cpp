@@ -105,7 +105,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   {
     double a = cpu_forcing_vector[i];
     double b = gpu_forcing_vector[i];
-    EXPECT_EQ(a, b);
+    ASSERT_DOUBLE_EQ(a, b);
   }
 }
 
@@ -210,7 +210,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   {
     double a = cpu_jacobian_vector[i];
     double b = gpu_jacobian_vector[i];
-    ASSERT_EQ(a, b);
+    ASSERT_DOUBLE_EQ(a, b);
   }
 }
 

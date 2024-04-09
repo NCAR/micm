@@ -151,6 +151,9 @@ namespace micm
     std::vector<std::size_t> jacobian_diagonal_elements;
     for (std::size_t i = 0; i < jacobian[0].size(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
+    
+    for(const auto& e: jacobian_diagonal_elements)
+      std::cout << e << std::endl;
 
     state_parameters_ = {
       .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
