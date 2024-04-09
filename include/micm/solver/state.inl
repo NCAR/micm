@@ -42,7 +42,7 @@ namespace micm
       state_size_
     );
     
-    auto lu =  LuDecomposition::GetLUMatrices(jacobian_, 1.0e-30);
+    auto lu =  LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     lower_matrix_ = lower_matrix;

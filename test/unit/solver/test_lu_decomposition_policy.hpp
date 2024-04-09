@@ -98,7 +98,7 @@ void testDenseMatrix(const std::function<LuDecompositionPolicy(const SparseMatri
   A[0][2][2] = 8;
 
   LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
@@ -120,7 +120,7 @@ void testSingularMatrix(const std::function<LuDecompositionPolicy(const SparseMa
   A[0][1][1] = 1;
 
   LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0E-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0E-30);
   bool is_singular{ false };
   lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   EXPECT_TRUE(is_singular);
@@ -152,7 +152,7 @@ void testRandomMatrix(
           A[i_block][i][j] = get_double();
 
   LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
@@ -176,7 +176,7 @@ void testDiagonalMatrix(
       A[i_block][i][i] = get_double();
 
   LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });

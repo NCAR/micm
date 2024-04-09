@@ -55,7 +55,7 @@ namespace micm
       : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [](const SparseMatrixPolicy<T>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); })
+            [](const SparseMatrixPolicy<T>& m) -> LuDecompositionPolicy { return LuDecomposition::Create<T, SparseMatrixPolicy>(m); })
   {
   }
 
@@ -70,7 +70,7 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
-    auto lu = lu_decomp_.GetLUMatrices(matrix, initial_value);
+    auto lu = lu_decomp_.template GetLUMatrices<T, SparseMatrixPolicy>(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (std::size_t i = 0; i < lower_matrix[0].size(); ++i)
