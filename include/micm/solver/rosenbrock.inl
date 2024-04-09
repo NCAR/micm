@@ -132,6 +132,26 @@ namespace micm
       for (auto& name : system.UniqueNames(state_reordering))
         variable_map[name] = index++;
     }
+
+    // set defaults
+    if (parameters_.absolute_tolerance_.size() != variable_map.size()) {
+      parameters_.absolute_tolerance_.resize(variable_map.size());
+      std::fill(parameters_.absolute_tolerance_.begin(), parameters_.absolute_tolerance_.end(), 1.0e-3);
+    }
+    else {
+      for (auto& species : system.gas_phase_.species_) {
+        if (species.HasProperty("absolute tolerance")) {
+          parameters_.absolute_tolerance_[variable_map[species.name_]] = species.GetProperty<double>("absolute tolerance");
+        }
+      }
+      for (auto& phase : system.phases_) {
+        for (auto& species : phase.second.species_) {
+          if (species.HasProperty("absolute tolerance")) {
+            parameters_.absolute_tolerance_[variable_map[phase.first + "." + species.name_]] = species.GetProperty<double>("absolute tolerance");
+          }
+        }
+      }
+    }
     
     // setup the state_parameters
     std::vector<std::string> param_labels{};
@@ -468,7 +488,7 @@ namespace micm
     for (size_t i = 0; i < N; ++i)
     {
       double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
+      double scale = parameters_.absolute_tolerance_[i] + parameters_.relative_tolerance_ * ymax;
       error += std::pow(_errors[i] / scale, 2);
     }
 

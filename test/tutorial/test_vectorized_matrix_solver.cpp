@@ -114,7 +114,9 @@ int main()
   std::cout << std::endl;
 
   solve(solver, state);
+  std::cout << "done 1\n";
   solve(vectorized_solver, vectorized_state);
+  std::cout << "done 2\n";
 
   for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
   {
