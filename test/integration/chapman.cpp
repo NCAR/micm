@@ -17,7 +17,7 @@ template<class T>
 using SparseMatrixTest = micm::SparseMatrix<T>;
 
 #ifdef USE_JSON
-#  include <micm/configure/solver_config.hpp>
+#include <micm/configure/solver_config.hpp>
 
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 {
@@ -40,6 +40,18 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
                                                                  options };
 
   micm::State state = solver.GetState();
+
+  for(size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell) {
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["M"]], 1.0e-3);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["N2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O1D"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O3"]], 1.0e-12);
+  }
 
   // User gives an input of concentrations
   std::unordered_map<std::string, std::vector<double>> concentrations = {
