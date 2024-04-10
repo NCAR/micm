@@ -224,37 +224,29 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto A_vector = A.AsVector().begin();
-    auto L_vector = L.AsVector().begin();
-    auto U_vector = U.AsVector().begin();
-    auto do_aik = do_aik_.begin();
-    auto aik = aik_.begin();
-    auto uik_nkj = uik_nkj_.begin();
-    auto lij_ujk = lij_ujk_.begin();
-    auto do_aki = do_aki_.begin();
-    auto aki = aki_.begin();
-    auto lki_nkj = lki_nkj_.begin();
-    auto lkj_uji = lkj_uji_.begin();
-    auto uii = uii_.begin();
-    std::size_t n_cells = 0;
+    std::size A_Size = A.Size();
+    std::size A_GroupVectorSize = A.GroupVectorSize();
+    std::size A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
+    std::size L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
+    std::size U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A.Size()); ++i_group)
+    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_Size); ++i_group)
     {
-      A_vector = std::next(A.AsVector().begin(), i_group * A.GroupSize(A.FlatBlockSize()));
-      L_vector = std::next(L.AsVector().begin(), i_group * L.GroupSize(L.FlatBlockSize()));
-      U_vector = std::next(U.AsVector().begin(), i_group * U.GroupSize(U.FlatBlockSize()));
-      do_aik = do_aik_.begin();
-      aik = aik_.begin();
-      uik_nkj = uik_nkj_.begin();
-      lij_ujk = lij_ujk_.begin();
-      do_aki = do_aki_.begin();
-      aki = aki_.begin();
-      lki_nkj = lki_nkj_.begin();
-      lkj_uji = lkj_uji_.begin();
-      uii = uii_.begin();
+      auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
+      auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
+      auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
+      auto do_aik = do_aik_.begin();
+      auto aik = aik_.begin();
+      auto uik_nkj = uik_nkj_.begin();
+      auto lij_ujk = lij_ujk_.begin();
+      auto do_aki = do_aki_.begin();
+      auto aki = aki_.begin();
+      auto lki_nkj = lki_nkj_.begin();
+      auto lkj_uji = lkj_uji_.begin();
+      auto uii = uii_.begin();
       is_singular = false;
-      n_cells = std::min(A.GroupVectorSize(), A.Size() - i_group * A.GroupVectorSize());
+      std::size_t n_cells = std::min(A_GroupVectorSize, A_Size - i_group * A_GroupVectorSize);
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
@@ -263,9 +255,11 @@ namespace micm
           std::size_t uik_nkj_first = uik_nkj->first;
           if (*(do_aik++))
           {
-            std::size_t aik_deref = *aik;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              U_vector[uik_nkj_first + i_cell] = A_vector[aik_deref + i_cell];
+            // std::size_t aik_deref = *aik;
+            // for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              // U_vector[uik_nkj_first + i_cell] = A_vector[aik_deref + i_cell]; // TODO test
+            //TODO(jiwon)
+            std::copy(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, A_vector + *aik);
             ++aik;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -281,16 +275,17 @@ namespace micm
         // Lower triangular matrix
         std::size_t lki_nkj_first = lki_nkj->first;
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[lki_nkj_first + i_cell] = 1.0;
+          L_vector[lki_nkj_first + i_cell] = 1.0;  // TODO(jiwon) std assign
         ++lki_nkj;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
           if (*(do_aki++))
           {
             lki_nkj_first = lki_nkj->first;
-            std::size_t aki_deref = *aki;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj_first + i_cell] = A_vector[aki_deref + i_cell];
+            // std::size_t aki_deref = *aki;
+            // for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              // L_vector[lki_nkj_first + i_cell] = A_vector[aki_deref + i_cell]; //TODO(jiwon) std copy - need test
+            std::copy(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, A_vector + *aki) // TODO: check start mid - finish mid
             ++aki;
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
@@ -306,7 +301,7 @@ namespace micm
           std::size_t uii_deref = *uii;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           {
-            if (U_vector[*uii + i_cell] == 0.0)
+            if (U_vector[*uii + i_cell] == 0.0)  // TODO(jiwon) std::assign
             {
               is_singular = true;
               return;

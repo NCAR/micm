@@ -193,7 +193,6 @@ namespace micm
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
       auto U_group =
           std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
-      //TODO(jiwon) test
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
