@@ -16,6 +16,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
@@ -72,16 +73,19 @@ namespace micm
   {
     System system_;
     std::vector<Process> processes_;
+    RosenbrockSolverParameters parameters_;
 
-    SolverParameters(const System& system, std::vector<Process>&& processes)
+    SolverParameters(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters&& parameters)
         : system_(system),
-          processes_(std::move(processes))
+          processes_(processes),
+          parameters_(parameters)
     {
     }
 
-    SolverParameters(System&& system, std::vector<Process>&& processes)
-        : system_(std::move(system)),
-          processes_(std::move(processes))
+    SolverParameters(System&& system, std::vector<Process>&& processes, RosenbrockSolverParameters&& parameters)
+        : system_(system),
+          processes_(processes),
+          parameters_(parameters)
     {
     }
   };
@@ -105,6 +109,7 @@ namespace micm
     Phase gas_phase_;
     std::unordered_map<std::string, Phase> phases_;
     std::vector<Process> processes_;
+    RosenbrockSolverParameters parameters_;
 
     // Common JSON
     static const inline std::string DEFAULT_CONFIG_FILE = "config.json";
@@ -114,6 +119,13 @@ namespace micm
 
     // Error string
     std::stringstream last_json_object_;
+
+    // Constructor
+
+    JsonReaderPolicy(RosenbrockSolverParameters parameters)
+        : parameters_(parameters)
+    {
+    }
 
     // Functions
 
@@ -420,6 +432,14 @@ namespace micm
 
     ConfigParseStatus ParseRelativeTolerance(const json& object)
     {
+      auto status = ValidateSchema(object, { "value", "type" }, {});
+      if (status != ConfigParseStatus::Success)
+      {
+        return status;
+      }
+
+      this->parameters_.relative_tolerance_ = object["value"].get<double>();
+
       return ConfigParseStatus::Success;
     }
 
@@ -1118,6 +1138,10 @@ namespace micm
     ConfigParseStatus last_parse_status_ = ConfigParseStatus::None;
 
    public:
+
+    SolverConfig() : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()) {}
+    SolverConfig(RosenbrockSolverParameters parameters) : ConfigTypePolicy(parameters) {}
+
     /// @brief Reads and parses configures
     /// @param config_dir Path to a the configuration directory
     /// @return an enum indicating the success or failure of the parse
@@ -1140,7 +1164,10 @@ namespace micm
       }
 
       return SolverParameters(
-          std::move(System(std::move(this->gas_phase_), std::move(this->phases_))), std::move(this->processes_));
+          std::move(System(this->gas_phase_, this->phases_)), 
+          std::move(this->processes_),
+          std::move(this->parameters_)
+      );
     }
   };
 }  // namespace micm
