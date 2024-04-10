@@ -40,7 +40,7 @@ int main()
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
   auto params = solver_params.parameters_;
-  params.reorder_ = false;
+  params.reorder_state_ = false;
 
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
