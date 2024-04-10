@@ -63,6 +63,7 @@ namespace micm
       hoststruct.num_grid_cells_ = parameters.number_of_grid_cells_;
       hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
+      hoststruct.absoluate_tolerance_ = parameters.absolute_tolerance_.data();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
