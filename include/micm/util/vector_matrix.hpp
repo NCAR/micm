@@ -240,7 +240,8 @@ namespace micm
       return *this;
     }
 
-    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
+    // TODO(jiwon)
+    void ForEach(const double &coeff, const VectorMatrix &a)
     {
       MICM_PROFILE_FUNCTION();
 
@@ -248,13 +249,14 @@ namespace micm
       auto a_iter = a.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
-        f(*(this_iter++), *(a_iter++));
+        *(this_iter++) += coeff * (*(a_iter++));
       const std::size_t l = x_dim_ % L;
       for (std::size_t y = 0; y < y_dim_; ++y)
         for (std::size_t x = 0; x < l; ++x)
-          f(this_iter[y * L + x], a_iter[y * L + x]);
+          this_iter[y * L + x] += coeff * a_iter[y * L + x];
     }
 
+    //TODO(jiwon) - should update
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       MICM_PROFILE_FUNCTION();

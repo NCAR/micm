@@ -233,8 +233,12 @@ namespace micm
       std::vector<double> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-          rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+        //for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+        //  rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+        std::copy(
+            v_rate_constants.begin() + offset_rc + i_rxn * L,
+            v_rate_constants.begin() + offset_rc + i_rxn * L + L,
+            rate.begin());
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
@@ -331,14 +335,17 @@ namespace micm
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
           std::fill(d_rate_d_ind.begin(), d_rate_d_ind.end(), 0);
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+          std::copy(
+              v_rate_constants.begin() + offset_rc + i_rxn * L,
+              v_rate_constants.begin() + offset_rc + i_rxn * L + L,
+              d_rate_d_ind.begin());
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
             if (i_react == i_ind)
               continue;
+            std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
+              d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {

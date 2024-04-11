@@ -258,8 +258,9 @@ namespace micm
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
               for (uint64_t j = 0; j < stage; ++j)
               {
-                auto a = parameters_.a_[stage_combinations + j];
-                Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
+                //auto a = parameters_.a_[stage_combinations + j];
+                //Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
+                Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
               }
 
               CalculateForcing(state.rate_constants_, Ynew, forcing);
@@ -269,8 +270,9 @@ namespace micm
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
           for (uint64_t j = 0; j < stage; ++j)
           {
-            auto HC = parameters_.c_[stage_combinations + j] / H;
-            K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
+            //auto HC = parameters_.c_[stage_combinations + j] / H;
+            //K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
+            K[stage].ForEach(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
 
@@ -281,14 +283,14 @@ namespace micm
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
-
+          //Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
+          Ynew.ForEach(parameters_.m_[stage], K[stage]);
         // Compute the error estimation
         MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach(
-              [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
-
+          //Yerror.ForEach(
+          //    [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
+          Yerror.ForEach(parameters_.e_[stage], K[stage]);
         auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -472,22 +474,23 @@ namespace micm
     
     MICM_PROFILE_FUNCTION();
 
-    auto _y = Y.AsVector();
-    auto _ynew = Ynew.AsVector();
-    auto _errors = errors.AsVector();
-    size_t N = Y.AsVector().size();
+    auto& _y = Y.AsVector();
+    auto& _ynew = Ynew.AsVector();
+    auto& _errors = errors.AsVector();
+    std::size_t N = Y.AsVector().size();
 
+    double errors_over_scale = 0;
     double error = 0;
 
-    for (size_t i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
-      double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      double scale = parameters_.absolute_tolerance_ + parameters_.relative_tolerance_ * ymax;
-      error += std::pow(_errors[i] / scale, 2);
+      errors_over_scale = _errors[i] / (parameters_.absolute_tolerance_ +
+                                        parameters_.relative_tolerance_ * std::max(std::abs(_y[i]), std::abs(_ynew[i])));
+      error += errors_over_scale * errors_over_scale;
     }
 
-    double error_min_ = 1.0e-10;
-    return std::max(std::sqrt(error / N), error_min_);
+    double error_min = 1.0e-10;
+    return std::max(std::sqrt(error / N), error_min);
   }
 
 }  // namespace micm
