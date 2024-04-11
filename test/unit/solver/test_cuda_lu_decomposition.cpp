@@ -98,8 +98,8 @@ void testRandomMatrix(size_t n_grids)
   check_results<double, SparseMatrixPolicy>(
       A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-  micm::LuDecomposition cpu_lud(A);
-  auto cpu_LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(A);
+  auto cpu_LU = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   cpu_lud.Decompose<double, SparseMatrixPolicy>(A, cpu_LU.first, cpu_LU.second);
 
   // checking GPU result again CPU

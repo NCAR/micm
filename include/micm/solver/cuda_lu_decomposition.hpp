@@ -25,9 +25,9 @@ namespace micm
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
-    template<typename T, typename OrderingPolicy>
-    CudaLuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix)
-        : LuDecomposition(matrix)
+    template<typename SparseMatrixPolicy>
+    CudaLuDecomposition(const SparseMatrixPolicy& matrix)
+        : LuDecomposition(LuDecomposition::Create<double, SparseMatrixPolicy>(matrix))
     {
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to

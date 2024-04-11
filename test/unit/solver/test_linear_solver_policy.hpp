@@ -85,7 +85,7 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
   b[0][2] = 9;
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
@@ -123,7 +123,7 @@ void testRandomMatrix(
       b[i_block][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
@@ -152,7 +152,7 @@ void testDiagonalMatrix(
       A[i_block][i][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
@@ -188,11 +188,11 @@ void testMarkowitzReordering()
         builder = builder.with_element(i, j);
   SparseMatrixPolicy<double> reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition{ orig_jac };
-  auto reordered_LU_calc = micm::LuDecomposition{ reordered_jac };
+  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( orig_jac );
+  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( reordered_jac );
 
-  auto orig_LU = orig_LU_calc.GetLUMatrices(orig_jac, 0.0);
-  auto reordered_LU = reordered_LU_calc.GetLUMatrices(reordered_jac, 0.0);
+  auto orig_LU = orig_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(orig_jac, 0.0);
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(reordered_jac, 0.0);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;
