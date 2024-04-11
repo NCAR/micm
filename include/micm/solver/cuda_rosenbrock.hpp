@@ -1,3 +1,6 @@
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <algorithm>
@@ -16,6 +19,8 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -26,8 +31,8 @@ namespace micm
 {
 
   template<
-      template<class> class MatrixPolicy = Matrix,
-      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
+      template<class> class MatrixPolicy,
+      template<class> class SparseMatrixPolicy,
       class LinearSolverPolicy = CudaLinearSolver<double, SparseMatrixPolicy>,
       class ProcessSetPolicy = CudaProcessSet>
 

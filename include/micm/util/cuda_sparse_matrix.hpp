@@ -1,3 +1,8 @@
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
+#pragma once
+
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -51,9 +56,8 @@ namespace micm
     }
 
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
-        : SparseMatrix<T, OrderingPolicy>(SparseMatrix<T, OrderingPolicy>::create(other.number_of_blocks_))
+        : SparseMatrix<T, OrderingPolicy>(other)
     {
-      this->data_ = std::move(other.data_);
       this->param_ = std::move(other.param_);
     }
 
@@ -64,11 +68,12 @@ namespace micm
 
     CudaSparseMatrix& operator=(CudaSparseMatrix&& other) noexcept
     {
-      std::swap(this->data_, other.data_);
-      std::swap(this->param_, other.param_);
-      std::swap(this->number_of_blocks_, other.number_of_blocks_);
-      std::swap(this->row_ids_, other.row_ids_);
-      std::swap(this->row_start_, other.row_start_);
+      if (this != &other)
+      {
+        SparseMatrix<T, OrderingPolicy>::operator=(std::move(other));
+        std::swap(this->param_, other.param_);
+      }
+      return *this;
     }
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
