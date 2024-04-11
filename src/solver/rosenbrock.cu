@@ -238,7 +238,7 @@ namespace micm
         throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
       }
       cudaError_t err =
-          cudaMemcpy(devstruct.errors_input_, errors_param.d_data_, sizeof(double) * num_elements, cudaMemcpyDeviceToDevice);
+          cudaMemcpy(devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
 
       if (number_of_elements > 1000000)
       {

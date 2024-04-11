@@ -307,28 +307,28 @@ TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
   testAlphaMinusJacobian<
       Group1CPUVectorMatrix,
       Group1CPUSparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group1CPUSparseVectorMatrix>,
+      micm::LinearSolver<double, Group1CPUSparseVectorMatrix>,
       Group1GPUVectorMatrix,
       Group1GPUSparseVectorMatrix,
       micm::CudaLinearSolver<double, Group1GPUSparseVectorMatrix>>(1);
   testAlphaMinusJacobian<
       Group2CPUVectorMatrix,
       Group2CPUSparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group2CPUSparseVectorMatrix>,
+      micm::LinearSolver<double, Group2CPUSparseVectorMatrix>,
       Group2GPUVectorMatrix,
       Group2GPUSparseVectorMatrix,
       micm::CudaLinearSolver<double, Group2GPUSparseVectorMatrix>>(2);
   testAlphaMinusJacobian<
       Group3CPUVectorMatrix,
       Group3CPUSparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group3CPUSparseVectorMatrix>,
+      micm::LinearSolver<double, Group3CPUSparseVectorMatrix>,
       Group3GPUVectorMatrix,
       Group3GPUSparseVectorMatrix,
       micm::CudaLinearSolver<double, Group3GPUSparseVectorMatrix>>(3);
   testAlphaMinusJacobian<
       Group4CPUVectorMatrix,
       Group4CPUSparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group4CPUSparseVectorMatrix>,
+      micm::LinearSolver<double, Group4CPUSparseVectorMatrix>,
       Group4GPUVectorMatrix,
       Group4GPUSparseVectorMatrix,
       micm::CudaLinearSolver<double, Group4GPUSparseVectorMatrix>>(4);
