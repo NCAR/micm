@@ -22,7 +22,8 @@ namespace micm
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      micm::cuda::MallocVector(this->param_, this->data_.size());
     }
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
@@ -33,7 +34,8 @@ namespace micm
         std::is_same_v<T, double>)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      micm::cuda::MallocVector(this->param_, this->data_.size());
       return *this;
     }
 
@@ -46,8 +48,9 @@ namespace micm
     CudaSparseMatrix(const CudaSparseMatrix& other) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
-      micm::cuda::CopyToDeviceFromDevice(param_, other.param_);
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      micm::cuda::MallocVector(this->param_, this->data_.size());
+      micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_);
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
@@ -78,7 +81,7 @@ namespace micm
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
-      micm::cuda::FreeVector(param_);
+      micm::cuda::FreeVector(this->param_);
     }
 
     ~CudaSparseMatrix()
@@ -87,11 +90,11 @@ namespace micm
 
     int CopyToDevice()
     {
-      return micm::cuda::CopyToDevice(param_, this->data_);
+      return micm::cuda::CopyToDevice(this->param_, this->data_);
     }
     int CopyToHost()
     {
-      return micm::cuda::CopyToHost(param_, this->data_);
+      return micm::cuda::CopyToHost(this->param_, this->data_);
     }
     CudaMatrixParam AsDeviceParam()
     {
