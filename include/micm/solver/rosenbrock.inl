@@ -158,28 +158,25 @@ namespace micm
         variable_map[name] = index++;
     }
 
-    MatrixPolicy<double> absolute_tolerances(parameters_.number_of_grid_cells_, variable_map.size(), 1e-3);
+    MatrixPolicy<double> absolute_tolerances(1, variable_map.size(), 1e-3);
     if (parameters_.absolute_tolerance_.size() != absolute_tolerances.AsVector().size())
     {
-      for (size_t n_grid_cell = 0; n_grid_cell < parameters_.number_of_grid_cells_; ++n_grid_cell)
+      for (auto& species : system.gas_phase_.species_)
       {
-        for (auto& species : system.gas_phase_.species_)
+        if (species.HasProperty("absolute tolerance"))
+        {
+          absolute_tolerances[0][variable_map[species.name_]] =
+              species.GetProperty<double>("absolute tolerance");
+        }
+      }
+      for (auto& phase : system.phases_)
+      {
+        for (auto& species : phase.second.species_)
         {
           if (species.HasProperty("absolute tolerance"))
           {
-            absolute_tolerances[n_grid_cell][variable_map[species.name_]] =
+            absolute_tolerances[0][variable_map[species.name_]] =
                 species.GetProperty<double>("absolute tolerance");
-          }
-        }
-        for (auto& phase : system.phases_)
-        {
-          for (auto& species : phase.second.species_)
-          {
-            if (species.HasProperty("absolute tolerance"))
-            {
-              absolute_tolerances[n_grid_cell][variable_map[species.name_]] =
-                  species.GetProperty<double>("absolute tolerance");
-            }
           }
         }
       }
@@ -581,13 +578,14 @@ namespace micm
     auto _ynew = Ynew.AsVector();
     auto _errors = errors.AsVector();
     size_t N = Y.AsVector().size();
+    size_t n_species = Y.size();
 
     double error = 0;
 
     for (size_t i = 0; i < N; ++i)
     {
       double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      double scale = parameters_.absolute_tolerance_[i] + parameters_.relative_tolerance_ * ymax;
+      double scale = parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax;
       error += std::pow(_errors[i] / scale, 2);
     }
 
