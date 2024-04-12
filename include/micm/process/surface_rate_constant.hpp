@@ -64,8 +64,8 @@ namespace micm
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
       : parameters_(parameters),
-        diffusion_coefficient_(parameters.species_.properties_.at(GAS_DIFFUSION_COEFFICIENT)),
-        mean_free_speed_factor_(8.0 * GAS_CONSTANT / (M_PI * parameters.species_.properties_.at(MOLECULAR_WEIGHT)))
+        diffusion_coefficient_(parameters.species_.GetProperty<double>(GAS_DIFFUSION_COEFFICIENT)),
+        mean_free_speed_factor_(8.0 * GAS_CONSTANT / (M_PI * parameters.species_.GetProperty<double>(MOLECULAR_WEIGHT)))
   {
   }
 

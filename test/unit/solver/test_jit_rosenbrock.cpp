@@ -73,23 +73,23 @@ void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit)
   EXPECT_EQ(jacobian[0].size(), 5);
   EXPECT_EQ(jacobian[0][0].size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
-  for (auto& elem : jacobian.AsVector())
-    elem = 100.0;
+
+  // Generate a negative Jacobian matrix
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    jacobian[i_cell][0][0] = 12.2;
-    jacobian[i_cell][0][1] = 24.3 * (i_cell + 2);
-    jacobian[i_cell][0][2] = 42.3;
-    jacobian[i_cell][1][0] = 0.43;
-    jacobian[i_cell][1][1] = 23.4;
-    jacobian[i_cell][1][2] = 83.4 / (i_cell + 3);
-    jacobian[i_cell][2][0] = 4.74;
-    jacobian[i_cell][2][2] = 6.91;
-    jacobian[i_cell][3][1] = 59.1;
-    jacobian[i_cell][3][3] = 83.4;
-    jacobian[i_cell][4][0] = 78.5;
-    jacobian[i_cell][4][2] = 53.6;
-    jacobian[i_cell][4][4] = 1.0;
+    jacobian[i_cell][0][0] = -12.2;
+    jacobian[i_cell][0][1] = -24.3 * (i_cell + 2);
+    jacobian[i_cell][0][2] = -42.3;
+    jacobian[i_cell][1][0] = -0.43;
+    jacobian[i_cell][1][1] = -23.4;
+    jacobian[i_cell][1][2] = -83.4 / (i_cell + 3);
+    jacobian[i_cell][2][0] = -4.74;
+    jacobian[i_cell][2][2] = -6.91;
+    jacobian[i_cell][3][1] = -59.1;
+    jacobian[i_cell][3][3] = -83.4;
+    jacobian[i_cell][4][0] = -78.5;
+    jacobian[i_cell][4][2] = -53.6;
+    jacobian[i_cell][4][4] = -1.0;
   }
   solver.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)

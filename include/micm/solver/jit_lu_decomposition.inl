@@ -29,7 +29,7 @@ namespace micm
   inline JitLuDecomposition<L>::JitLuDecomposition(
       std::shared_ptr<JitCompiler> compiler,
       const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
-      : LuDecomposition(matrix),
+      : LuDecomposition(LuDecomposition::Create<double, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix)),
         compiler_(compiler)
   {
     decompose_function_ = NULL;

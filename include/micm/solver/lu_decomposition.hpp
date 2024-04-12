@@ -77,15 +77,26 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<typename T, typename OrderingPolicy>
-    LuDecomposition(const SparseMatrix<T, OrderingPolicy>& matrix);
+    template<typename T>
+    LuDecomposition(const SparseMatrix<T>& matrix);
+
+    /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
+    /// @param matrix Sparse matrix
+    template<typename T, template<class> class SparseMatrixPolicy>
+    static LuDecomposition Create(const SparseMatrixPolicy<T>& matrix);
+    template<typename T, class SparseMatrixPolicy>
+    static LuDecomposition Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<typename T, typename OrderingPolicy>
-    static std::pair<SparseMatrix<T, OrderingPolicy>, SparseMatrix<T, OrderingPolicy>> GetLUMatrices(
-        const SparseMatrix<T, OrderingPolicy>& A,
+    template<typename T, template <class> class SparseMatrixPolicy>
+    static std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> GetLUMatrices(
+        const SparseMatrixPolicy<T>& A,
+        T initial_value);
+    template<typename T, class SparseMatrixPolicy>
+    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
+        const SparseMatrixPolicy& A,
         T initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
@@ -112,6 +123,13 @@ namespace micm
         SparseMatrixPolicy<T>& L,
         SparseMatrixPolicy<T>& U,
         bool& is_singular) const;
+
+   private:
+
+    /// @brief Initialize arrays for the LU decomposition
+    /// @param A Sparse matrix to decompose
+    template<typename T, class SparseMatrixPolicy>
+    void Initialize(const SparseMatrixPolicy& A, T initial_value);
   };
 
 }  // namespace micm

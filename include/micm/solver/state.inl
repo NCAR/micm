@@ -26,7 +26,8 @@ namespace micm
         jacobian_(),
         lower_matrix_(),
         upper_matrix_(),
-        state_size_(parameters.variable_names_.size())
+        state_size_(parameters.variable_names_.size()),
+        number_of_grid_cells_(parameters.number_of_grid_cells_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
@@ -41,7 +42,7 @@ namespace micm
       state_size_
     );
     
-    auto lu =  LuDecomposition::GetLUMatrices(jacobian_, 1.0e-30);
+    auto lu =  LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     lower_matrix_ = lower_matrix;
@@ -79,6 +80,21 @@ namespace micm
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
+      const std::vector<std::vector<double>>& parameters)
+  {
+    if (parameters.size() != variables_.size())
+      throw std::invalid_argument("The number of grid cells configured for micm does not match the number of custom rate parameter values passed to multi-gridcell State");
+
+    if (parameters[0].size() != custom_rate_parameters_[0].size())
+      throw std::invalid_argument("The number of custom rate parameters configured for micm does not match the provided number of custom rate parameter values");
+
+    for(size_t i = 0; i < number_of_grid_cells_; ++i) {
+      custom_rate_parameters_[i] = parameters[i];
+    }
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>

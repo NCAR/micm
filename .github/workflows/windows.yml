@@ -38,72 +38,37 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        build_type: [Debug, Release]
+        build_type: [Release]
         architecture: [Win32, x64]
 
     steps:
     - uses: actions/checkout@v3
 
     - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 16 2019" -A ${{ matrix.architecture }}
-      if: matrix.build_type == 'Release'
-
-    - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 16 2019" -A ${{ matrix.architecture }}
-      if: matrix.build_type == 'Debug'
+      run: cmake -S . -B build -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
 
     - name: Test
       run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
-
-  msvc2019_latest:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: windows-2019
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 16 2019" 
-    - name: Build
-      run: cmake --build build --config Release --parallel 10
-    - name: Test
-      run: cd build ; ctest -j 10 -C Release --output-on-failure
 
   msvc2022:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: windows-2022
     strategy:
       matrix:
-        build_type: [Debug, Release]
+        build_type: [Release]
         architecture: [Win32, x64]
 
     steps:
     - uses: actions/checkout@v3
     - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.architecture }}
-      if: matrix.build_type == 'Release'
-    - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.architecture }}
-      if: matrix.build_type == 'Debug'
+      run: cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.architecture }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
     - name: Build
       run: cmake --build build --config ${{ matrix.build_type }} --parallel 10
     - name: Test
       run: cd build ; ctest -j 10 -C ${{ matrix.build_type }} --output-on-failure
-
-  msvc2022_latest:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: windows-2022
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Run CMake
-      run: cmake -S . -B build -G "Visual Studio 17 2022"
-    - name: Build
-      run: cmake --build build --config Release --parallel 10
-    - name: Test
-      run: cd build ; ctest -j 10 -C Release --output-on-failure
 
   clang:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name

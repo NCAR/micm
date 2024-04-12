@@ -101,11 +101,11 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     forcing[0][7] = -forcing[0][6];
   }
 
-  /// @brief Compute the derivative of the forcing w.r.t. each chemical, the jacobian
+  /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
-  /// @param jacobian The matrix of partial derivatives
-  void CalculateJacobian(
+  /// @param jacobian The matrix of negative partial derivatives
+  void CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian) override
@@ -145,5 +145,9 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     jacobian[0][7][5] = -280.0 * data[7];
     jacobian[0][7][6] = 1.81;
     jacobian[0][7][7] = -280.0 * data[6];
+
+    // Negate the jacobian
+    for (auto& elem : jacobian.AsVector())
+      elem = -elem;
   }
 };

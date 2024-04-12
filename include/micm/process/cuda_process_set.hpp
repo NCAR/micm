@@ -31,19 +31,18 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> std::chrono::nanoseconds AddForcingTerms(
+    requires VectorizableDense<MatrixPolicy<double>>
+    void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing)
-    const;
+        MatrixPolicy<double>& forcing) const;
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-        std::chrono::nanoseconds AddJacobianTerms(
-            const MatrixPolicy<double>& rate_constants,
-            const MatrixPolicy<double>& state_variables,
-            SparseMatrixPolicy<double>& jacobian)
-    const;
+    void SubtractJacobianTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrixPolicy<double>& jacobian) const;
   };
 
   inline CudaProcessSet::CudaProcessSet(
@@ -91,43 +90,26 @@ namespace micm
 
   template<template<class> class MatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::AddForcingTerms(
+  inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
-    CudaMatrixParam matrix;
-    matrix.rate_constants_ = rate_constants.AsVector().data();
-    matrix.state_variables_ = state_variables.AsVector().data();
-    matrix.forcing_ = forcing.AsVector().data();
-    matrix.n_grids_ = rate_constants.size();
-    matrix.n_reactions_ = rate_constants[0].size();
-    matrix.n_species_ = state_variables[0].size();
-
-    std::chrono::nanoseconds kernel_duration = micm::cuda::AddForcingTermsKernelDriver(matrix, this->devstruct_);
-    return kernel_duration;  // time performance of kernel function
+    auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
+    micm::cuda::AddForcingTermsKernelDriver(
+        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
-  inline std::chrono::nanoseconds CudaProcessSet::AddJacobianTerms(
+  inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       SparseMatrixPolicy<double>& jacobian) const
   {
-    CudaMatrixParam matrix;
-    matrix.rate_constants_ = rate_constants.AsVector().data();
-    matrix.state_variables_ = state_variables.AsVector().data();
-    matrix.n_grids_ = rate_constants.size();
-    matrix.n_reactions_ = rate_constants[0].size();
-    matrix.n_species_ = state_variables[0].size();
-
-    CudaSparseMatrixParam sparseMatrix;
-    sparseMatrix.jacobian_ = jacobian.AsVector().data();
-    sparseMatrix.jacobian_size_ = jacobian.AsVector().size();
-
-    std::chrono::nanoseconds kernel_duration =
-        micm::cuda::AddJacobianTermsKernelDriver(matrix, sparseMatrix, this->devstruct_);
-    return kernel_duration;  // time performance of kernel function
+    auto jacobian_param =
+        jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
+    micm::cuda::SubtractJacobianTermsKernelDriver(
+        rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
   }
 }  // namespace micm

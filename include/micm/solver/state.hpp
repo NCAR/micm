@@ -48,7 +48,8 @@ namespace micm
     std::vector<std::string> variable_names_{};
     SparseMatrixPolicy<double> lower_matrix_;
     SparseMatrixPolicy<double> upper_matrix_;
-    size_t state_size_;
+    std::size_t state_size_;
+    std::size_t number_of_grid_cells_;
 
     /// @brief
     State();
@@ -66,6 +67,10 @@ namespace micm
     /// @param concentration concentration(s) [mol m-3]
     void SetConcentration(const Species& species, double concentration);
     void SetConcentration(const Species& species, const std::vector<double>& concentration);
+
+    /// @brief Set custom parameters assuming the values are properly ordered
+    /// @param parameters map of custom rate parameters
+    void UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters);
 
     /// @brief Set custom parameters for rate constant calculations by label
     /// @param parameters map of custom rate parameters

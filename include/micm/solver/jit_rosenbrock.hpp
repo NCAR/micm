@@ -109,8 +109,6 @@ namespace micm
       double a = alpha;
       if (alpha_minus_jacobian_)
       {
-        for (auto& elem : jacobian.AsVector())
-          elem = -elem;
         alpha_minus_jacobian_(jacobian.AsVector().data(), a);
       }
       else

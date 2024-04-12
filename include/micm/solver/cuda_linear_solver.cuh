@@ -13,7 +13,7 @@ namespace micm
     ///   to perform the "solve" function on the device
     std::chrono::nanoseconds SolveKernelDriver(
            CudaSparseMatrixParam& sparseMatrix, 
-           CudaMatrixParam& denseMatrix,
+           CudaMatrixParam_to_be_removed& denseMatrix,
            const LinearSolverParam& devstruct);
 
     /// This is the function that will copy the constant data

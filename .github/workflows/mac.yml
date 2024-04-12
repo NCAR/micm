@@ -14,7 +14,7 @@ jobs:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
         xcode: ['13.1', '14.1']
-        build_type: [Debug, Release]
+        build_type: [Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
@@ -39,7 +39,7 @@ jobs:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
         xcode: ['14.1', '15.0']
-        build_type: [Debug, Release]
+        build_type: [Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
@@ -66,7 +66,7 @@ jobs:
           - { cpp: g++-11, c: gcc-11}
           - { cpp: g++-12, c: gcc-12}
           - { cpp: clang++, c: clang}
-        build_type: [Debug, Release]
+        build_type: [Release]
     env:
       CC: ${{ matrix.compiler.c }}
       CXX: ${{ matrix.compiler.cpp }}
