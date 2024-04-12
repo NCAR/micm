@@ -201,15 +201,13 @@ namespace micm
       return *this;
     }
 
-    //TODO(jiwon)
-    void ForEach(const double& coeff, const Matrix &a)
+    void ForEach(const double &coeff, const Matrix &a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto &elem : data_)
         elem += coeff * (*(a_iter++));
     }
 
-    // TODO(jiwon)
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const Matrix &a, const Matrix &b)
     {
       auto a_iter = a.AsVector().begin();

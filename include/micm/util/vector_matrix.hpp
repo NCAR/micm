@@ -230,7 +230,6 @@ namespace micm
 
     Proxy operator[](std::size_t x)
     {
-      //printf("Called Proxy operator[](std::size_t x)\n");  // TODO(jiwon)
       return Proxy(*this, std::floor(x / L), x % L, y_dim_);
     }
 
@@ -240,7 +239,6 @@ namespace micm
       return *this;
     }
 
-    // TODO(jiwon)
     void ForEach(const double &coeff, const VectorMatrix &a)
     {
       MICM_PROFILE_FUNCTION();
@@ -256,7 +254,7 @@ namespace micm
           this_iter[y * L + x] += coeff * a_iter[y * L + x];
     }
 
-    //TODO(jiwon) - should update
+    //TODO(jiwon)
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       MICM_PROFILE_FUNCTION();
