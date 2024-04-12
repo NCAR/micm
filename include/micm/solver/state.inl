@@ -86,7 +86,7 @@ namespace micm
   inline void State<MatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
       const std::vector<std::vector<double>>& parameters)
   {
-    if (parameters.size() != variables_.size())
+    if (parameters.size() != variables_.NumRows())
       throw std::invalid_argument("The number of grid cells configured for micm does not match the number of custom rate parameter values passed to multi-gridcell State");
 
     if (parameters[0].size() != custom_rate_parameters_[0].size())
