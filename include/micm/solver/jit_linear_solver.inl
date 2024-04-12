@@ -39,7 +39,7 @@ namespace micm
         compiler_(compiler)
   {
     solve_function_ = NULL;
-    if (matrix.size() != L || matrix.GroupVectorSize() != L)
+    if (matrix.Size() != L || matrix.GroupVectorSize() != L)
     {
       throw std::runtime_error("Invalid matrix for JitLinearSolver. Check the the VectorMatrix template parameters.");
     }
