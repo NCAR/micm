@@ -146,7 +146,7 @@ namespace micm
     {
     }
 
-    Matrix(const std::vector<std::vector<T>> other)
+    Matrix(const std::vector<std::vector<T>> &other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(

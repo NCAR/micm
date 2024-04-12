@@ -63,7 +63,7 @@ namespace micm
       { 
       }
 
-      Proxy &operator=(const std::vector<T> other)
+      Proxy &operator=(const std::vector<T> &other)
       {
         if (other.size() < y_dim_)
         {
@@ -165,7 +165,7 @@ namespace micm
     {
     }
 
-    VectorMatrix(const std::vector<std::vector<T>>& other)
+    VectorMatrix(const std::vector<std::vector<T>> &other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
