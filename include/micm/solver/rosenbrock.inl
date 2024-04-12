@@ -178,11 +178,10 @@ namespace micm
     MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
     MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
     std::vector<MatrixPolicy<double>> K{};
-
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
-
+    
     SolverStats stats;
 
     UpdateState(state);
@@ -236,7 +235,6 @@ namespace micm
         // Form and factor the rosenbrock ode jacobian
 
         LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
-
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -258,8 +256,6 @@ namespace micm
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
               for (uint64_t j = 0; j < stage; ++j)
               {
-                //auto a = parameters_.a_[stage_combinations + j];
-                //Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
                 Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
               }
 
@@ -270,12 +266,9 @@ namespace micm
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
           for (uint64_t j = 0; j < stage; ++j)
           {
-            //auto HC = parameters_.c_[stage_combinations + j] / H;
-            //K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
             K[stage].ForEach(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
@@ -283,14 +276,13 @@ namespace micm
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          //Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
           Ynew.ForEach(parameters_.m_[stage], K[stage]);
+
         // Compute the error estimation
         MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          //Yerror.ForEach(
-          //    [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
           Yerror.ForEach(parameters_.e_[stage], K[stage]);
+        
         auto error = NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax

@@ -254,7 +254,6 @@ namespace micm
           this_iter[y * L + x] += coeff * a_iter[y * L + x];
     }
 
-    //TODO(jiwon)
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
       MICM_PROFILE_FUNCTION();
