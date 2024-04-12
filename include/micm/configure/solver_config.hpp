@@ -122,7 +122,7 @@ namespace micm
 
     // Constructor
 
-    JsonReaderPolicy(RosenbrockSolverParameters parameters)
+    JsonReaderPolicy(const RosenbrockSolverParameters& parameters)
         : parameters_(parameters)
     {
     }
