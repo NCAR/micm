@@ -7,6 +7,7 @@
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
+#include <cuda_runtime.h>
 
 namespace micm
 {
@@ -23,11 +24,7 @@ namespace micm
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      cudaError_t err = micm::cuda::MallocVector(this->param_, this->data_.size());
-      if (err != cudaSuccess)
-      {
-          throw std::runtime_error("cudaMalloc failed: " + std::string(cudaGetErrorString(err)));
-      }
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
     }
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
@@ -39,11 +36,7 @@ namespace micm
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      cudaError_t err = micm::cuda::MallocVector(this->param_, this->data_.size());
-      if (err != cudaSuccess)
-      {
-          throw std::runtime_error("cudaMalloc failed: " + std::string(cudaGetErrorString(err)));
-      }
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
       return *this;
     }
 
@@ -58,8 +51,8 @@ namespace micm
     {
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
-      micm::cuda::MallocVector(this->param_, this->data_.size());
-      micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_);
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), __FILE__, __LINE__, "cudaMemcpyDeviceToDevice");
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
@@ -79,8 +72,8 @@ namespace micm
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
-      micm::cuda::MallocVector(this->param_, this->data_.size());
-      micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_); 
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), __FILE__, __LINE__, "cudaMemcpyDeviceToDevice");
       return *this;
     }
 
@@ -97,11 +90,7 @@ namespace micm
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
-      cudaError_t err = micm::cuda::FreeVector(this->param_);
-      if (err != cudaSuccess)
-      {
-          throw std::runtime_error("cudaFree failed: " + std::string(cudaGetErrorString(err)));
-      }
+       micm::cuda::CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), __FILE__, __LINE__, "cudaFree");
     }
 
     ~CudaSparseMatrix()
@@ -110,20 +99,14 @@ namespace micm
 
     void CopyToDevice()
     {
-      cudaError_t err = micm::cuda::CopyToDevice(this->param_, this->data_);
-      if (err != cudaSuccess)
-      {
-          throw std::runtime_error("cudaMemcpyHostToDevice failed: " + std::string(cudaGetErrorString(err)));
-      }
+       micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), __FILE__, __LINE__, "cudaMemcpyHostToDevice");
     }
+
     void CopyToHost()
     {
-      cudaError_t err = micm::cuda::CopyToHost(this->param_, this->data_);
-      if (err != cudaSuccess)
-      {
-          throw std::runtime_error("cudaMemcpyDeviceToHost failed: " + std::string(cudaGetErrorString(err)));
-      }
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), __FILE__, __LINE__, "cudaMemcpyDeviceToHost");
     }
+
     CudaMatrixParam AsDeviceParam()
     {
       return this->param_;
