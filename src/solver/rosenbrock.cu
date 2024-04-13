@@ -4,6 +4,7 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
 #include "cublas_v2.h"
+#include <iostream>
 
 namespace micm
 {
@@ -23,9 +24,9 @@ namespace micm
 
       if (tid < number_of_grid_cells * number_of_diagonal_elements)
       {
-        quotient = tid / number_of_diagonal_elements;
-        index_as_remainder = tid - number_of_diagonal_elements * quotient;  // % operator may be more expensive
-        d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder] + quotient] += alpha;
+        quotient = tid / number_of_grid_cells;
+        index_as_remainder = tid - number_of_grid_cells * quotient;  // % operator may be more expensive
+        d_jacobian[devstruct.jacobian_diagonal_elements_[quotient] + index_as_remainder] += alpha;
       }
     }
 
