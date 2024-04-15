@@ -104,6 +104,7 @@ namespace micm
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
         : VectorMatrix<T, L>(other)
     {
+      this->param_.d_data_ = nullptr;
       std::swap(this->param_, other.param_);
       std::swap(this->handle_, other.handle_);
     }

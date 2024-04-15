@@ -18,7 +18,11 @@ namespace micm
     CudaMatrixParam param_;
 
    public:
-    CudaSparseMatrix() = default;
+    CudaSparseMatrix()
+        : SparseMatrix<T, OrderingPolicy>()
+    {
+      this->param_.d_data_ = nullptr;
+    }
 
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(builder)
@@ -29,6 +33,7 @@ namespace micm
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
+      this->param_.d_data_ = nullptr;
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(
@@ -43,6 +48,7 @@ namespace micm
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
+      this->param_.d_data_ = nullptr;
       return *this;
     }
 
@@ -58,13 +64,14 @@ namespace micm
     CudaSparseMatrix(const CudaSparseMatrix& other)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
+      this->param_.d_data_ = nullptr;
     }
 
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
         : SparseMatrix<T, OrderingPolicy>(other)
     {
-      this->param_ = std::move(other.param_);
-      other.param_.d_data_ = nullptr;
+      this->param_.d_data_ = nullptr;
+      std::swap(this->param_, other.param_);
     }
 
     CudaSparseMatrix& operator=(const CudaSparseMatrix& other)
@@ -82,19 +89,21 @@ namespace micm
       if (this != &other)
       {
         SparseMatrix<T, OrderingPolicy>::operator=(std::move(other));
-        this->param_ = std::move(other.param_);
-        other.param_.d_data_ = nullptr;
+        std::swap(this->param_, other.param_);
       }
       return *this;
     }
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
-       micm::cuda::CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), __FILE__, __LINE__, "cudaFree");
+      std::cout << "Freeing device memory at address: " << this->param_.d_data_ << std::endl;
+      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), __FILE__, __LINE__, "cudaFree");
+      this->param_.d_data_ = nullptr;
     }
 
     ~CudaSparseMatrix()
     {
+      this->param_.d_data_ = nullptr;
     }
 
     void CopyToDevice()
