@@ -210,7 +210,7 @@ namespace micm
       if (tid < num_elements)
       {
         d_ymax = max(fabs(d_y_old[tid]), fabs(d_y_new[tid]));
-        d_scale = atol[tid % n_species] + rtol * d_ymax;
+        d_scale = atol[tid % number_of_species] + rtol * d_ymax;
         d_errors[tid] = d_errors[tid] / d_scale;
       }
     }
