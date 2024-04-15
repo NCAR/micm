@@ -158,14 +158,15 @@ namespace micm
         variable_map[name] = index++;
     }
 
-    MatrixPolicy<double> absolute_tolerances(1, variable_map.size(), 1e-3);
-    if (parameters_.absolute_tolerance_.size() != absolute_tolerances.AsVector().size())
+    // if the tolerances aren't already set, initialize them and then set based off of information in the system
+    if (parameters_.absolute_tolerance_.size() != variable_map.size())
     {
+      parameters_.absolute_tolerance_ = std::vector<double>(variable_map.size(), 1e-3);
       for (auto& species : system.gas_phase_.species_)
       {
         if (species.HasProperty("absolute tolerance"))
         {
-          absolute_tolerances[0][variable_map[species.name_]] =
+          parameters_.absolute_tolerance_[variable_map[species.name_]] =
               species.GetProperty<double>("absolute tolerance");
         }
       }
@@ -175,12 +176,11 @@ namespace micm
         {
           if (species.HasProperty("absolute tolerance"))
           {
-            absolute_tolerances[0][variable_map[species.name_]] =
+            parameters_.absolute_tolerance_[variable_map[species.name_]] =
                 species.GetProperty<double>("absolute tolerance");
           }
         }
       }
-      parameters_.absolute_tolerance_ = absolute_tolerances.AsVector();
     }
 
     // setup the state_parameters
@@ -200,6 +200,7 @@ namespace micm
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
+                          .number_of_species_ = variable_map.size(),
                           .number_of_rate_constants_ = processes_.size(),
                           .variable_names_ = system.UniqueNames(state_reordering),
                           .custom_rate_parameter_labels_ = param_labels,
@@ -578,7 +579,7 @@ namespace micm
     auto _ynew = Ynew.AsVector();
     auto _errors = errors.AsVector();
     size_t N = Y.AsVector().size();
-    size_t n_species = Y.size();
+    size_t n_species = state_parameters_.number_of_species_;
 
     double error = 0;
 
