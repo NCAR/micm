@@ -34,7 +34,7 @@ namespace micm
     Instrumentor(const Instrumentor&) = delete;
     Instrumentor(Instrumentor&&) = delete;
 
-    void BeginSession(const std::string& name, const std::string& filepath = "results.json", int id=0)
+    void BeginSession(const std::string& name, const std::string& filepath = "results.json")
     {
       std::lock_guard lock(mutex_);
       if (current_session_)
@@ -54,7 +54,6 @@ namespace micm
       {
         std::cerr << "Instrumentor could not open results file '" << filepath << "'." << std::endl;
       }
-      id_ = id;
     }
 
     void EndSession()
@@ -73,7 +72,7 @@ namespace micm
       json << "\"dur\":" << (result.elapsed_time.count()) << ',';
       json << "\"name\":\"" << result.name << "\",";
       json << "\"ph\":\"X\",";
-      json << "\"pid\":\"" << id_<< "\",";
+      json << "\"pid\":\"" << "0\",";
       json << "\"tid\":\"" << result.threadID << "\",";
       json << "\"ts\":" << result.start.count();
       json << "}";
@@ -130,7 +129,6 @@ namespace micm
     std::mutex mutex_;
     InstrumentationSession* current_session_;
     std::ofstream output_stream_;
-    int id_;
   };
 
   class InstrumentationTimer
@@ -209,7 +207,7 @@ namespace micm
     #define MICM_FUNC_SIG "MICM_FUNC_SIG unknown!"
   #endif
 
-  #define MICM_PROFILE_BEGIN_SESSION(name, filepath, id) ::micm::Instrumentor::Get().BeginSession(name, filepath, id)
+  #define MICM_PROFILE_BEGIN_SESSION(name, filepath) ::micm::Instrumentor::Get().BeginSession(name, filepath)
   #define MICM_PROFILE_END_SESSION() ::micm::Instrumentor::Get().EndSession()
   #define MICM_PROFILE_SCOPE_LINE2(name, line) constexpr auto fixedName##line = ::micm::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
                           ::micm::InstrumentationTimer timer##line(fixedName##line.Data)
@@ -217,7 +215,7 @@ namespace micm
   #define MICM_PROFILE_SCOPE(name) MICM_PROFILE_SCOPE_LINE(name, __LINE__)
   #define MICM_PROFILE_FUNCTION() MICM_PROFILE_SCOPE(MICM_FUNC_SIG)
 #else
-  #define MICM_PROFILE_BEGIN_SESSION(name, filepath, id)
+  #define MICM_PROFILE_BEGIN_SESSION(name, filepath)
   #define MICM_PROFILE_END_SESSION()
   #define MICM_PROFILE_SCOPE(name)
   #define MICM_PROFILE_FUNCTION()
