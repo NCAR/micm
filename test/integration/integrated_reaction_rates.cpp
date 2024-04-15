@@ -59,7 +59,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
     auto result = solver.Solve(30.0, state);
     EXPECT_GE(result.result_[0][state.variable_map_.at(irr_1.name_)], state.variables_[0][state.variable_map_.at(irr_1.name_)]);
-    EXPECT_GE(result.result_[0][state.variable_map_.at(irr_1.name_)], state.variables_[0][state.variable_map_.at(irr_1.name_)]);
+    EXPECT_GE(result.result_[0][state.variable_map_.at(irr_2.name_)], state.variables_[0][state.variable_map_.at(irr_2.name_)]);
     state.variables_ = result.result_;
   }
   std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
