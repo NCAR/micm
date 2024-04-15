@@ -104,8 +104,8 @@ namespace micm
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
         : VectorMatrix<T, L>(other)
     {
-      this->param_ = std::move(other.param_);
-      this->handle_ = std::move(other.handle_);
+      std::swap(this->param_, other.param_);
+      std::swap(this->handle_, other.handle_);
     }
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
@@ -124,8 +124,8 @@ namespace micm
       if (this != &other)
       {
         VectorMatrix<T, L>::operator=(other);
-        this->param_ = std::move(other.param_);
-        this->handle_ = std::move(other.handle_);
+        std::swap(this->param_, other.param_);
+        std::swap(this->handle_, other.handle_);
       }
       return *this;
     }
