@@ -22,7 +22,6 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
   {
     this->processes_ = processes;
     this->parameters_ = parameters;
-    this->parameters_.absolute_tolerance_ = std::vector<double>(8, 1.0e-3);
 
     auto builder = SparseMatrixPolicy<double>::create(8).number_of_blocks(1).initial_value(0.0);
     for (int i = 0; i < 8; ++i)

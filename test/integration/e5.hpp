@@ -21,7 +21,6 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   {
     this->processes_ = processes;
     this->parameters_ = parameters;
-    this->parameters_.absolute_tolerance_ = std::vector<double>(4, 1.0e-3);
 
     auto builder = SparseMatrixPolicy<double>::create(4).number_of_blocks(1).initial_value(0.0);
     for (int i = 0; i < 4; ++i)
