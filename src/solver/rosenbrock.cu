@@ -101,7 +101,7 @@ namespace micm
       double* d_errors_output = devstruct.errors_output_;
       const double* atol = devstruct.absolute_tolerance_;
       const double rtol = ros_param.relative_tolerance_;
-      const n_species = devstruct.number_of_elements_;
+      const size_t n_species = devstruct.number_of_elements_;
 
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
@@ -203,7 +203,7 @@ namespace micm
       double* atol = devstruct.absolute_tolerance_;
       double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
-      const n_species = devstruct.number_of_elements_;
+      const size_t n_species = devstruct.number_of_elements_;
 
       // Global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
