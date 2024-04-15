@@ -203,7 +203,7 @@ namespace micm
       double* atol = devstruct.absolute_tolerance_;
       double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
-      const size_t n_species = y_old_param.number_of_elements_;
+      const size_t number_of_species = y_old_param.number_of_elements_;
 
       // Global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
