@@ -122,7 +122,7 @@ namespace micm
 
     // Constructor
 
-    JsonReaderPolicy(RosenbrockSolverParameters parameters)
+    JsonReaderPolicy(const RosenbrockSolverParameters& parameters)
         : parameters_(parameters)
     {
     }
@@ -1140,7 +1140,7 @@ namespace micm
    public:
 
     SolverConfig() : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()) {}
-    SolverConfig(RosenbrockSolverParameters parameters) : ConfigTypePolicy(parameters) {}
+    SolverConfig(const RosenbrockSolverParameters& parameters) : ConfigTypePolicy(parameters) {}
 
     /// @brief Reads and parses configures
     /// @param config_dir Path to a the configuration directory
