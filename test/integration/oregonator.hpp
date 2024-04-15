@@ -22,6 +22,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
   {
     this->processes_ = processes;
     this->parameters_ = parameters;
+    this->parameters_.absolute_tolerance_ = { 1.0e-3, 1.0e-3, 1.0e-3 };
 
     auto builder = SparseMatrixPolicy<double>::create(3).number_of_blocks(1).initial_value(0.0);
     for (int i = 0; i < 3; ++i)
@@ -47,6 +48,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     this->state_parameters_ = {
       .number_of_grid_cells_ = 1,
+      .number_of_species_ = 3,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,
