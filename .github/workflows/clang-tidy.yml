@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Install Clang-Tidy
-        run: sudo apt update && sudo apt install clang clang-tidy cmake nvidia-cuda-toolkit python3 && clang-tidy --version && nvcc --version
+        run: sudo apt update && sudo apt install clang clang-tidy cmake nvidia-cuda-toolkit python3 && clang-tidy --version && nvcc --version && cmake --version
 
       - name: Check out code, generate compile commands
         uses: actions/checkout@v3
