@@ -7,7 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format:
+  tidy:
     name: Run Clang-Tidy
     runs-on: ubuntu-latest
 
