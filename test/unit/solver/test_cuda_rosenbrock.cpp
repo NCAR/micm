@@ -220,7 +220,7 @@ template<template<class> class MatrixPolicy, template<class> class SparseMatrixP
 void testNormalizedErrorConst(const size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);
-  double atol = gpu_solver.parameters_.absolute_tolerance_;
+  std::vector<double> atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
   auto state = gpu_solver.GetState();
@@ -234,7 +234,7 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
 
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
-  double denom = atol + rtol * 2.0;
+  double denom = atol[0] + rtol * 2.0;
   // use the following function instead to avoid tiny numerical differece
   EXPECT_DOUBLE_EQ(error, std::sqrt(3.0 * 3.0 / (denom * denom)));
 }
@@ -245,7 +245,7 @@ template<template<class> class MatrixPolicy, template<class> class SparseMatrixP
 void testNormalizedErrorDiff(const size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);
-  double atol = gpu_solver.parameters_.absolute_tolerance_;
+  std::vector<double> atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
   auto state = gpu_solver.GetState();
@@ -262,7 +262,7 @@ void testNormalizedErrorDiff(const size_t number_of_grid_cells)
       y_new[i][j] = y_new[i][j] / (j + 1) - i;
       errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
       double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
-      double scale = atol + rtol * ymax;
+      double scale = atol[j] + rtol * ymax;
       expected_error += errors[i][j] * errors[i][j] / (scale * scale);
     }
   }
