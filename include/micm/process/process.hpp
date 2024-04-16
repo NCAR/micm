@@ -141,7 +141,6 @@ namespace micm
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();
-
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
     {

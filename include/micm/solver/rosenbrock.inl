@@ -383,7 +383,6 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     const std::size_t n_cells = jacobian.GroupVectorSize();
-
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));

@@ -70,6 +70,7 @@ namespace micm
             });
         return *this;
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -83,10 +84,12 @@ namespace micm
         }
         return vec;
       }
+
       std::size_t size() const
       {
         return y_dim_;
       }
+
       T &operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -108,6 +111,7 @@ namespace micm
             y_dim_(y_dim)
       {
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -119,10 +123,12 @@ namespace micm
         }
         return vec;
       }
+
       std::size_t size() const
       {
         return y_dim_;
       }
+
       const T &operator[](std::size_t y) const
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
