@@ -71,11 +71,11 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     {
       state.SetCustomRateParameter("r2", 0.0);
     }
-    std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
+    std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
     auto result = solver.Solve(30.0, state);
     EXPECT_GE(result.result_[0][irr1_idx], state.variables_[0][irr1_idx]);
     EXPECT_GE(result.result_[0][irr2_idx], state.variables_[0][irr2_idx]);
     state.variables_ = result.result_;
   }
-  std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
+  std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
 }
