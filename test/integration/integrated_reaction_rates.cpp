@@ -50,7 +50,6 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   state.SetCustomRateParameter("r2", 1.0);
 
-  // five species initialized to zero
   size_t a_idx = state.variable_map_.at(a.name_);
   size_t b_idx = state.variable_map_.at(b.name_);
   size_t c_idx = state.variable_map_.at(c.name_);
