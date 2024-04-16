@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 #include "conditions.hpp"

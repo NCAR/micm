@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <algorithm>
 #include <cstdlib>
+#include <stdexcept>
 #include <vector>
 
 namespace micm

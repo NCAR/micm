@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <cstddef>
+#include <set>
+#include <utility>
+
 namespace micm
 {
   // annonymous namespace to hide jacobian builder
