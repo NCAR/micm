@@ -148,18 +148,15 @@ namespace micm
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
       std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
-
       for (auto& process : processes)
       {
         std::vector<double> params(process.rate_constant_->SizeCustomParameters());
-
         for (std::size_t i_cell{}; i_cell < rate_const_size; ++i_cell)
         {
           for (std::size_t i_param = 0; i_param < params.size(); ++i_param)
           {
             params[i_param] = v_custom_parameters[offset_params + i_param * L + i_cell];
           }
-
           std::vector<double>::const_iterator custom_parameters_iter = params.begin();
           double fixed_reactants = 1.0;
           for (auto& reactant : process.reactants_)

@@ -200,7 +200,6 @@ namespace micm
         {
           std::copy(b_group, b_group + n_cells, y_elem);
           b_group += n_cells;
-
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             std::size_t Lij_yj_first = (*Lij_yj).first;

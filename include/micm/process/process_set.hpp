@@ -233,8 +233,6 @@ namespace micm
       std::vector<double> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        //for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-        //  rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
         std::copy(
             v_rate_constants.begin() + offset_rc + i_rxn * L,
             v_rate_constants.begin() + offset_rc + i_rxn * L + L,
@@ -321,7 +319,6 @@ namespace micm
     assert(rate_constants.GroupVectorSize() == jacobian.GroupVectorSize());
     const std::size_t L = rate_constants.GroupVectorSize();
     std::vector<double> d_rate_d_ind(L, 0);
-
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {

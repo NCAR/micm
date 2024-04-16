@@ -51,18 +51,6 @@ namespace micm
       {
       }
 
-      Proxy(VectorMatrix &&matrix, std::size_t group_index, std::size_t row_index, std::size_t y_dim)
-          : matrix_(std::move(matrix)),
-            group_index_(group_index),
-            row_index_(row_index),
-            y_dim_(y_dim)
-      {
-      }
-
-      ~Proxy()
-      { 
-      }
-
       Proxy &operator=(const std::vector<T> &other)
       {
         if (other.size() < y_dim_)
@@ -95,12 +83,10 @@ namespace micm
         }
         return vec;
       }
-
       std::size_t size() const
       {
         return y_dim_;
       }
-
       T &operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
