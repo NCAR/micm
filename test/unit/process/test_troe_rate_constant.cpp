@@ -86,5 +86,12 @@ TEST(TroeRateConstant, AnalyticalTroeExampleBC)
   double k1 = k_0 * 42.2 / (1.0 + k_0 * 42.2 / k_inf) *
               std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * 42.2 / k_inf), 2)));
 
-  EXPECT_EQ(k, k1);
+  auto relative_error = std::abs(k - k1) / std::max(std::abs(k), std::abs(k1));
+  if (relative_error > 1.e-14)
+  {
+    std::cout << "k: " << std::setprecision(15) << k << std::endl;
+    std::cout << "k1: " << std::setprecision(15) << k1 << std::endl;
+    std::cout << "relative_error: " << std::setprecision(15) << relative_error << std::endl;
+    throw std::runtime_error("Fail to match k and k1.\n");
+  }
 }

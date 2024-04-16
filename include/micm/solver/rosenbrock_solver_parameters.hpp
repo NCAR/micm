@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 namespace micm
 {
