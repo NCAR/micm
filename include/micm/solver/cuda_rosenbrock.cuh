@@ -17,7 +17,7 @@ namespace micm{
       void FreeConstData(CudaRosenbrockSolverParam& devstruct);
 
       /// @brief Compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
-      /// @param jacobian_param the data member of Jacobian matrix with type "CudaSparseMatrix"
+      /// @param jacobian_param Dimensions and device data pointers for the Jacobian
       /// @param alpha scalar variable
       /// @param devstruct device struct including the locations of diagonal elements of the Jacobian matrix
       /// @return
