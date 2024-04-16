@@ -109,11 +109,13 @@ namespace micm
 
     void CopyToDevice()
     {
+      static_assert(std::is_same_v<T, double>);
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
 
     void CopyToHost()
     {
+      static_assert(std::is_same_v<T, double>);
       CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
 

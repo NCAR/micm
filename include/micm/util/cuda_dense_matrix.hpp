@@ -48,6 +48,7 @@ namespace micm
     CudaDenseMatrix() requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>()
     {
+      this->param_.number_of_grid_cells_ = 0;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
     }
     CudaDenseMatrix()
@@ -82,6 +83,7 @@ namespace micm
     CudaDenseMatrix(const std::vector<std::vector<T>> other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
+      this->param_.number_of_grid_cells_ = 0;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
       CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
