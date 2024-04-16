@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <cuda_runtime.h>
+
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
-#include <cuda_runtime.h>
 
 #define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 

@@ -106,33 +106,45 @@ namespace micm
   {
     if constexpr (std::is_same<T, std::string>::value)
     {
-      try {
+      try
+      {
         return properties_string_.at(key);
-      } catch (const std::out_of_range& e) {
+      }
+      catch (const std::out_of_range& e)
+      {
         throw std::runtime_error("Species property '" + key + "' not found");
       }
     }
     else if constexpr (std::is_same<T, double>::value)
     {
-      try {
+      try
+      {
         return properties_double_.at(key);
-      } catch (const std::out_of_range& e) {
+      }
+      catch (const std::out_of_range& e)
+      {
         throw std::runtime_error("Species property '" + key + "' not found");
       }
     }
     else if constexpr (std::is_same<T, bool>::value)
     {
-      try {
+      try
+      {
         return properties_bool_.at(key);
-      } catch (const std::out_of_range& e) {
+      }
+      catch (const std::out_of_range& e)
+      {
         throw std::runtime_error("Species property '" + key + "' not found");
       }
     }
     else if constexpr (std::is_same<T, int>::value)
     {
-      try {
+      try
+      {
         return properties_int_.at(key);
-      } catch (const std::out_of_range& e) {
+      }
+      catch (const std::out_of_range& e)
+      {
         throw std::runtime_error("Species property '" + key + "' not found");
       }
     }

@@ -1,21 +1,23 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research,
 //
 // SPDX-License-Identifier: Apache-2.0
+#include <iostream>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
+
 #include "cublas_v2.h"
-#include <iostream>
 
 namespace micm
 {
   namespace cuda
   {
     /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
-    __global__ void AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaRosenbrockSolverParam devstruct)
+    __global__ void
+    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaRosenbrockSolverParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-      
+
       // Local device variables
       double* d_jacobian = jacobian_param.d_data_;
       size_t quotient, index_as_remainder;
@@ -239,8 +241,8 @@ namespace micm
       {
         throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
       }
-      cudaError_t err =
-          cudaMemcpy(devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
+      cudaError_t err = cudaMemcpy(
+          devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
 
       if (number_of_elements > 1000000)
       {
