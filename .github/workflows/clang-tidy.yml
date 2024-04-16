@@ -1,4 +1,4 @@
-name: Clang-Format
+name: Clang-Tidy
 
 on: [push, pull_request]
 
@@ -8,7 +8,7 @@ concurrency:
 
 jobs:
   format:
-    name: Run Clang-Format
+    name: Run Clang-Tidy
     runs-on: ubuntu-latest
 
     steps:
