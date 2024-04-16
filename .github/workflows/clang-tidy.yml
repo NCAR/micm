@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Clang-Format
+      - name: Install Clang-Tidy
         run: sudo apt update && sudo apt install clang clang-tidy cmake nvidia-cuda-toolkit python3 && clang-tidy --version && nvcc --version
 
       - name: Check out code, generate compile commands
@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
         run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B./build -S.
 
-      - name: Format code
+      - name: Scan code
         run: |
           INCLUDE_FILES=$(find include -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cuh' -o -name '*.inl' \) | grep -v jit | grep -v '.inl')
           echo "scanning include files:"
