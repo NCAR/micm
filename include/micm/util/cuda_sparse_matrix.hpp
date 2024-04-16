@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <cuda_runtime.h>
 
+#define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
+
 namespace micm
 {
   template<class T, class OrderingPolicy>
@@ -28,7 +30,7 @@ namespace micm
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
     }
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
@@ -41,7 +43,7 @@ namespace micm
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
       return *this;
     }
 
@@ -57,8 +59,8 @@ namespace micm
     {
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), __FILE__, __LINE__, "cudaMemcpyDeviceToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
@@ -79,8 +81,8 @@ namespace micm
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), __FILE__, __LINE__, "cudaMalloc");
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), __FILE__, __LINE__, "cudaMemcpyDeviceToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
       return *this;
     }
 
@@ -96,8 +98,7 @@ namespace micm
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
-      std::cout << "Freeing device memory at address: " << this->param_.d_data_ << std::endl;
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), __FILE__, __LINE__, "cudaFree");
+      CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_.d_data_ = nullptr;
     }
 
@@ -108,12 +109,12 @@ namespace micm
 
     void CopyToDevice()
     {
-       micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), __FILE__, __LINE__, "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
 
     void CopyToHost()
     {
-      micm::cuda::CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), __FILE__, __LINE__, "cudaMemcpyDeviceToHost");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
 
     CudaMatrixParam AsDeviceParam()
