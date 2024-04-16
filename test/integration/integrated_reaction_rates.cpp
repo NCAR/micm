@@ -35,8 +35,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Process r2 = micm::Process::create()
                          .reactants({ b })
                          .products({ yields(c, 1), yields(irr_2, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant(
-                             micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
+                         .rate_constant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
                          .phase(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
@@ -49,17 +48,33 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   auto state = solver.GetState();
 
-  std::vector<double> concentrations{ 1, 0, 0, 0, 0 };
+  state.SetCustomRateParameter("r2", 1.0);
+
+  // five species initialized to zero
+  size_t a_idx = state.variable_map_.at(a.name_);
+  size_t b_idx = state.variable_map_.at(b.name_);
+  size_t c_idx = state.variable_map_.at(c.name_);
+  size_t irr1_idx = state.variable_map_.at(irr_1.name_);
+  size_t irr2_idx = state.variable_map_.at(irr_2.name_);
+
+  std::vector<double> concentrations(5, 0);
+
+  concentrations[a_idx] = 1.0;
+
   state.variables_[0] = concentrations;
   state.conditions_[0].temperature_ = 273;
   state.conditions_[0].pressure_ = 1000;
 
   for (double t{}; t < 100; ++t)
   {
+    if (t > 50)
+    {
+      state.SetCustomRateParameter("r2", 0.0);
+    }
     std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
     auto result = solver.Solve(30.0, state);
-    EXPECT_GE(result.result_[0][state.variable_map_.at(irr_1.name_)], state.variables_[0][state.variable_map_.at(irr_1.name_)]);
-    EXPECT_GE(result.result_[0][state.variable_map_.at(irr_2.name_)], state.variables_[0][state.variable_map_.at(irr_2.name_)]);
+    EXPECT_GE(result.result_[0][irr1_idx], state.variables_[0][irr1_idx]);
+    EXPECT_GE(result.result_[0][irr2_idx], state.variables_[0][irr2_idx]);
     state.variables_ = result.result_;
   }
   std::cout << state.variables_[0][state.variable_map_.at(irr_1.name_)] << " " << state.variables_[0][state.variable_map_.at(irr_2.name_)] << std::endl;
