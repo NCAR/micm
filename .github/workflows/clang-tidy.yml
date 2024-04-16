@@ -20,6 +20,8 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build compile_commands.json
         run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B./build -S.
 
       - name: Scan code
