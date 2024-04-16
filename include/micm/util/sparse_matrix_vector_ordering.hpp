@@ -4,7 +4,9 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 
+#include "sparse_matrix.hpp"
 #include "vector_matrix.hpp"
 
 namespace micm

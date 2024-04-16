@@ -79,7 +79,7 @@ namespace micm
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy<T>>) std::chrono::nanoseconds
+  requires VectorizableSparse<SparseMatrixPolicy<T>> std::chrono::nanoseconds
       CudaLuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
   const
   {

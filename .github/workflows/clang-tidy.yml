@@ -1,0 +1,40 @@
+name: Clang-Format
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Run Clang-Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Clang-Format
+        run: sudo apt update && sudo apt install clang clang-tidy cmake nvidia-cuda-toolkit python3 && clang-tidy --version && nvcc --version
+
+      - name: Check out code, generate compile commands
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B./build -S.
+
+      - name: Format code
+        run: |
+          INCLUDE_FILES=$(find include -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cuh' -o -name '*.inl' \) | grep -v jit | grep -v '.inl')
+          echo "scanning include files:"
+          echo ${INCLUDE_FILES} | tr " " "\n"
+          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" ${INCLUDE_FILES}
+          SOURCE_FILES=$(find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \))
+          echo "scanning src files:"
+          echo ${SOURCE_FILES} | tr " " "\n"
+          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" ${SOURCE_FILES}
+          TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*')
+          echo "scanning test files:"
+          echo ${TEST_FILES} | tr " " "\n"
+          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" ${TEST_FILES}
+        continue-on-error: true
+

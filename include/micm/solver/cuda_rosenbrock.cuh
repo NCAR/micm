@@ -36,9 +36,9 @@ namespace micm{
       /// @param ros_param struct of Rosenbrock solver parameters
       /// @param handle cublas handle
       /// @return the scaled norm of the matrix errors
-      double NormalizedErrorDriver(const CudaVectorMatrixParam& y_old_param,
-                                   const CudaVectorMatrixParam& y_new_param,
-                                   const CudaVectorMatrixParam& errors_param,
+      double NormalizedErrorDriver(const CudaMatrixParam& y_old_param,
+                                   const CudaMatrixParam& y_new_param,
+                                   const CudaMatrixParam& errors_param,
                                    const RosenbrockSolverParameters& ros_param,
                                    cublasHandle_t handle,
                                    CudaRosenbrockSolverParam devstruct);
