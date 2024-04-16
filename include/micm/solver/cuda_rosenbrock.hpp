@@ -18,8 +18,8 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
-#include <micm/util/cuda_param.hpp>
 #include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_param.hpp>
 #include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
@@ -31,8 +31,10 @@ namespace micm
 {
 
   template<
-      template<class> class MatrixPolicy,
-      template<class> class SparseMatrixPolicy,
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
       class LinearSolverPolicy = CudaLinearSolver<double, SparseMatrixPolicy>,
       class ProcessSetPolicy = CudaProcessSet>
 
@@ -98,10 +100,11 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires VectorizableSparse<SparseMatrixPolicy<double>>
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const requires
+        VectorizableSparse<SparseMatrixPolicy<double>>
     {
-      auto jacobian_param = jacobian.AsDeviceParam(); // we need to update jacobian so it can't be constant and must be an lvalue
+      auto jacobian_param =
+          jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
     }
 

@@ -37,12 +37,9 @@ namespace micm
       custom_rate_parameter_map_[label] = index++;
 
     jacobian_ = build_jacobian<SparseMatrixPolicy>(
-      parameters.nonzero_jacobian_elements_,
-      parameters.number_of_grid_cells_,
-      state_size_
-    );
-    
-    auto lu =  LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
+        parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
+
+    auto lu = LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     lower_matrix_ = lower_matrix;
@@ -70,7 +67,9 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(
+      const Species& species,
+      const std::vector<double>& concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -87,12 +86,17 @@ namespace micm
       const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.size())
-      throw std::invalid_argument("The number of grid cells configured for micm does not match the number of custom rate parameter values passed to multi-gridcell State");
+      throw std::invalid_argument(
+          "The number of grid cells configured for micm does not match the number of custom rate parameter values passed to "
+          "multi-gridcell State");
 
     if (parameters[0].size() != custom_rate_parameters_[0].size())
-      throw std::invalid_argument("The number of custom rate parameters configured for micm does not match the provided number of custom rate parameter values");
+      throw std::invalid_argument(
+          "The number of custom rate parameters configured for micm does not match the provided number of custom rate "
+          "parameter values");
 
-    for(size_t i = 0; i < number_of_grid_cells_; ++i) {
+    for (size_t i = 0; i < number_of_grid_cells_; ++i)
+    {
       custom_rate_parameters_[i] = parameters[i];
     }
   }
@@ -117,7 +121,9 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
+  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(
+      const std::string& label,
+      const std::vector<double>& values)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -131,18 +137,18 @@ namespace micm
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintHeader()
   {
-    auto largest_str_iter = std::max_element(variable_names_.begin(), variable_names_.end(),
-                                  [](const auto& a, const auto& b) {
-                                      return a.size() < b.size();});
+    auto largest_str_iter = std::max_element(
+        variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(6) << "time";
-    if (variables_.size() > 1) {
+    if (variables_.size() > 1)
+    {
       std::cout << "," << std::setw(6) << "grid";
     }
 
-    for(const auto& [species, index] : variable_map_)
+    for (const auto& [species, index] : variable_map_)
     {
       std::cout << "," << std::setw(width) << species;
     }
@@ -155,24 +161,25 @@ namespace micm
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);
 
-    auto largest_str_iter = std::max_element(variable_names_.begin(), variable_names_.end(),
-                                  [](const auto& a, const auto& b) {
-                                      return a.size() < b.size();});
+    auto largest_str_iter = std::max_element(
+        variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
-
-    for(size_t i = 0; i < variables_.size(); ++i) {
+    for (size_t i = 0; i < variables_.size(); ++i)
+    {
       std::cout << std::setw(6) << time << ",";
 
-      if (variables_.size() > 1) {
+      if (variables_.size() > 1)
+      {
         std::cout << std::setw(6) << i << ",";
       }
 
       bool first = true;
-      for(const auto& [species, index] : variable_map_)
+      for (const auto& [species, index] : variable_map_)
       {
-        if (!first) {
+        if (!first)
+        {
           std::cout << ",";
         }
         std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];

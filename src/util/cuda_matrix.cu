@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cuda_runtime.h>
+
 #include <iostream>
 #include <micm/util/cuda_matrix.cuh>
 #include <vector>
@@ -23,7 +24,7 @@ namespace micm
     {
       if (param.d_data_ == nullptr)
       {
-          return cudaError_t::cudaSuccess;
+        return cudaError_t::cudaSuccess;
       }
       cudaError_t err = cudaFree(param.d_data_);
       param.d_data_ = nullptr;
@@ -32,14 +33,16 @@ namespace micm
 
     cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<double>& h_data)
     {
-      cudaError_t err = cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.number_of_elements_, cudaMemcpyHostToDevice);
+      cudaError_t err =
+          cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.number_of_elements_, cudaMemcpyHostToDevice);
       return err;
     }
 
     cudaError_t CopyToHost(CudaMatrixParam& param, std::vector<double>& h_data)
     {
       cudaDeviceSynchronize();
-      cudaError_t err = cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.number_of_elements_, cudaMemcpyDeviceToHost);
+      cudaError_t err =
+          cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.number_of_elements_, cudaMemcpyDeviceToHost);
       return err;
     }
 
@@ -53,21 +56,21 @@ namespace micm
       return err;
     }
 
-    void CheckCudaError(cudaError_t err, const char *file, int line, std::string str)
+    void CheckCudaError(cudaError_t err, const char* file, int line, std::string str)
     {
       if (err != cudaSuccess)
       {
-          std::cout << "CUDA error: " << cudaGetErrorString(err) << " at " << file << ":" << line << std::endl;
-          throw std::runtime_error(str + " failed...");
+        std::cout << "CUDA error: " << cudaGetErrorString(err) << " at " << file << ":" << line << std::endl;
+        throw std::runtime_error(str + " failed...");
       }
     }
 
-    void CheckCublasError(cublasStatus_t err, const char *file, int line, std::string str)
+    void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str)
     {
       if (err != CUBLAS_STATUS_SUCCESS)
       {
-          std::cout << "CUBLAS error: " << err << " at " << file << ":" << line << std::endl;
-          throw std::runtime_error(str);
+        std::cout << "CUBLAS error: " << err << " at " << file << ":" << line << std::endl;
+        throw std::runtime_error(str);
       }
     }
   }  // namespace cuda

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/cuda_rosenbrock.hpp>
@@ -13,7 +14,6 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <iostream>
 
 template<class T>
 using Group1CPUVectorMatrix = micm::VectorMatrix<T, 1>;
@@ -142,11 +142,18 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
       micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
 }
 
-template<template<class> class CPUMatrixPolicy, template<class> class CPUSparseMatrixPolicy,
-         template<class> class GPUMatrixPolicy, template<class> class GPUSparseMatrixPolicy>
+template<
+    template<class>
+    class CPUMatrixPolicy,
+    template<class>
+    class CPUSparseMatrixPolicy,
+    template<class>
+    class GPUMatrixPolicy,
+    template<class>
+    class GPUSparseMatrixPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
-  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<GPUMatrixPolicy,GPUSparseMatrixPolicy>>(number_of_grid_cells);
+  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<GPUMatrixPolicy, GPUSparseMatrixPolicy>>(number_of_grid_cells);
   auto gpu_jacobian = gpu_solver.GetState().jacobian_;
   EXPECT_EQ(gpu_jacobian.size(), number_of_grid_cells);
   EXPECT_EQ(gpu_jacobian[0].size(), 5);
@@ -174,7 +181,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   // Negate the Jacobian matrix (-J) here
   std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
   auto cpu_jacobian = gpu_jacobian;
-  
+
   gpu_jacobian.CopyToDevice();
   gpu_solver.AlphaMinusJacobian(gpu_jacobian, 42.042);
   gpu_jacobian.CopyToHost();
@@ -196,11 +203,11 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
     EXPECT_EQ(gpu_jacobian[i_cell][4][4], 42.042 - 1.0);
   }
 
-  auto cpu_solver = getSolver<micm::RosenbrockSolver<CPUMatrixPolicy,CPUSparseMatrixPolicy>>(number_of_grid_cells);
+  auto cpu_solver = getSolver<micm::RosenbrockSolver<CPUMatrixPolicy, CPUSparseMatrixPolicy>>(number_of_grid_cells);
   cpu_solver.AlphaMinusJacobian(cpu_jacobian, 42.042);
 
-   std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
-   std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
+  std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
+  std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
   for (int i = 0; i < jacobian_cpu_vector.size(); i++)
   {
     EXPECT_EQ(jacobian_cpu_vector[i], jacobian_gpu_vector[i]);
@@ -212,7 +219,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testNormalizedErrorConst(const size_t number_of_grid_cells)
 {
-  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy,SparseMatrixPolicy>>(number_of_grid_cells);
+  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);
   double atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
@@ -237,7 +244,7 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void testNormalizedErrorDiff(const size_t number_of_grid_cells)
 {
-  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy,SparseMatrixPolicy>>(number_of_grid_cells);
+  auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);
   double atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
@@ -312,78 +319,30 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   // Trying some odd and weird numbers is always helpful to reveal a potential bug.
 
   // tests where RMSE does not change with the size of the array
-  testNormalizedErrorConst<
-      Group1CudaDenseMatrix,
-      Group1CudaSparseMatrix>(1);
-  testNormalizedErrorConst<
-      Group2CudaDenseMatrix,
-      Group2CudaSparseMatrix>(2);
-  testNormalizedErrorConst<
-      Group4CudaDenseMatrix,
-      Group4CudaSparseMatrix>(4);
-  testNormalizedErrorConst<
-      Group7CudaDenseMatrix,
-      Group7CudaSparseMatrix>(7);
-  testNormalizedErrorConst<
-      Group12CudaDenseMatrix,
-      Group12CudaSparseMatrix>(12);
-  testNormalizedErrorConst<
-      Group16CudaDenseMatrix,
-      Group16CudaSparseMatrix>(16);
-  testNormalizedErrorConst<
-      Group20CudaDenseMatrix,
-      Group20CudaSparseMatrix>(20);
-  testNormalizedErrorConst<
-      Group5599CudaDenseMatrix,
-      Group5599CudaSparseMatrix>(5599);
-  testNormalizedErrorConst<
-      Group6603CudaDenseMatrix,
-      Group6603CudaSparseMatrix>(6603);
-  testNormalizedErrorConst<
-      Group200041CudaDenseMatrix,
-      Group200041CudaSparseMatrix>(200041);
-  testNormalizedErrorConst<
-      Group421875CudaDenseMatrix,
-      Group421875CudaSparseMatrix>(421875);
-  testNormalizedErrorConst<
-      Group3395043CudaDenseMatrix,
-      Group3395043CudaSparseMatrix>(3395043);
+  testNormalizedErrorConst<Group1CudaDenseMatrix, Group1CudaSparseMatrix>(1);
+  testNormalizedErrorConst<Group2CudaDenseMatrix, Group2CudaSparseMatrix>(2);
+  testNormalizedErrorConst<Group4CudaDenseMatrix, Group4CudaSparseMatrix>(4);
+  testNormalizedErrorConst<Group7CudaDenseMatrix, Group7CudaSparseMatrix>(7);
+  testNormalizedErrorConst<Group12CudaDenseMatrix, Group12CudaSparseMatrix>(12);
+  testNormalizedErrorConst<Group16CudaDenseMatrix, Group16CudaSparseMatrix>(16);
+  testNormalizedErrorConst<Group20CudaDenseMatrix, Group20CudaSparseMatrix>(20);
+  testNormalizedErrorConst<Group5599CudaDenseMatrix, Group5599CudaSparseMatrix>(5599);
+  testNormalizedErrorConst<Group6603CudaDenseMatrix, Group6603CudaSparseMatrix>(6603);
+  testNormalizedErrorConst<Group200041CudaDenseMatrix, Group200041CudaSparseMatrix>(200041);
+  testNormalizedErrorConst<Group421875CudaDenseMatrix, Group421875CudaSparseMatrix>(421875);
+  testNormalizedErrorConst<Group3395043CudaDenseMatrix, Group3395043CudaSparseMatrix>(3395043);
 
   // tests where RMSE changes with the size of the array
-  testNormalizedErrorDiff<
-      Group1CudaDenseMatrix,
-      Group1CudaSparseMatrix>(1);
-  testNormalizedErrorDiff<
-      Group2CudaDenseMatrix,
-      Group2CudaSparseMatrix>(2);
-  testNormalizedErrorDiff<
-      Group4CudaDenseMatrix,
-      Group4CudaSparseMatrix>(4);
-  testNormalizedErrorDiff<
-      Group7CudaDenseMatrix,
-      Group7CudaSparseMatrix>(7);
-  testNormalizedErrorDiff<
-      Group12CudaDenseMatrix,
-      Group12CudaSparseMatrix>(12);
-  testNormalizedErrorDiff<
-      Group16CudaDenseMatrix,
-      Group16CudaSparseMatrix>(16);
-  testNormalizedErrorDiff<
-      Group20CudaDenseMatrix,
-      Group20CudaSparseMatrix>(20);
-  testNormalizedErrorDiff<
-      Group5599CudaDenseMatrix,
-      Group5599CudaSparseMatrix>(5599);
-  testNormalizedErrorDiff<
-      Group6603CudaDenseMatrix,
-      Group6603CudaSparseMatrix>(6603);
-  testNormalizedErrorDiff<
-      Group200041CudaDenseMatrix,
-      Group200041CudaSparseMatrix>(200041);
-  testNormalizedErrorDiff<
-      Group421875CudaDenseMatrix,
-      Group421875CudaSparseMatrix>(421875);
-  testNormalizedErrorDiff<
-      Group3395043CudaDenseMatrix,
-      Group3395043CudaSparseMatrix>(3395043);
+  testNormalizedErrorDiff<Group1CudaDenseMatrix, Group1CudaSparseMatrix>(1);
+  testNormalizedErrorDiff<Group2CudaDenseMatrix, Group2CudaSparseMatrix>(2);
+  testNormalizedErrorDiff<Group4CudaDenseMatrix, Group4CudaSparseMatrix>(4);
+  testNormalizedErrorDiff<Group7CudaDenseMatrix, Group7CudaSparseMatrix>(7);
+  testNormalizedErrorDiff<Group12CudaDenseMatrix, Group12CudaSparseMatrix>(12);
+  testNormalizedErrorDiff<Group16CudaDenseMatrix, Group16CudaSparseMatrix>(16);
+  testNormalizedErrorDiff<Group20CudaDenseMatrix, Group20CudaSparseMatrix>(20);
+  testNormalizedErrorDiff<Group5599CudaDenseMatrix, Group5599CudaSparseMatrix>(5599);
+  testNormalizedErrorDiff<Group6603CudaDenseMatrix, Group6603CudaSparseMatrix>(6603);
+  testNormalizedErrorDiff<Group200041CudaDenseMatrix, Group200041CudaSparseMatrix>(200041);
+  testNormalizedErrorDiff<Group421875CudaDenseMatrix, Group421875CudaSparseMatrix>(421875);
+  testNormalizedErrorDiff<Group3395043CudaDenseMatrix, Group3395043CudaSparseMatrix>(3395043);
 }

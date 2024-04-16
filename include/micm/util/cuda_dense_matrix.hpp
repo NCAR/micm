@@ -3,13 +3,15 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <cuda_runtime.h>
+
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
-#include <cuda_runtime.h>
+
 #include "cublas_v2.h"
 
-#define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
+#define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
 
 namespace micm
@@ -183,7 +185,10 @@ namespace micm
     void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x, const int incx, const int incy)
     {
       static_assert(std::is_same_v<T, double>);
-      CHECK_CUBLAS_ERROR(cublasDaxpy(this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy), "CUBLAS Daxpy operation failed...");
+      CHECK_CUBLAS_ERROR(
+          cublasDaxpy(
+              this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy),
+          "CUBLAS Daxpy operation failed...");
     }
   };
 }  // namespace micm
