@@ -3,9 +3,11 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <vector>
+#include <limits>
 
 namespace micm
 {

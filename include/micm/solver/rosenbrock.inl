@@ -453,8 +453,7 @@ namespace micm
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     for (std::size_t i_block = 0; i_block < jacobian.size(); ++i_block)
     {
@@ -473,8 +472,7 @@ namespace micm
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     const std::size_t n_cells = jacobian.GroupVectorSize();
 
