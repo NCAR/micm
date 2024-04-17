@@ -201,11 +201,22 @@ namespace micm
       return *this;
     }
 
-    void ForEach(const double &coeff, const Matrix &a)
+    /// @brief For each element in the Matrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the Matrix x
+    /// @param x The input Matrix
+    void Axpy(const double &alpha, const Matrix &x)
+    {
+      auto x_iter = x.AsVector().begin();
+      for (auto &y : data_)
+        y += alpha * (*(x_iter++));
+    }
+
+    void ForEach(const std::function<void(T &, const T &)> f, const Matrix &a)
     {
       auto a_iter = a.AsVector().begin();
       for (auto &elem : data_)
-        elem += coeff * (*(a_iter++));
+        f(elem, *(a_iter++));
     }
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const Matrix &a, const Matrix &b)

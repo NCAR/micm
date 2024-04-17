@@ -231,19 +231,36 @@ namespace micm
       return *this;
     }
 
-    void ForEach(const double &coeff, const VectorMatrix &a)
+    /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the VectorMatrix x
+    /// @param x The input VectorMatrix
+    void Axpy(const double &alpha, const VectorMatrix &x)
     {
       MICM_PROFILE_FUNCTION();
 
+      auto y_iter = data_.begin();
+      auto x_iter = x.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i)
+        *(y_iter++) += alpha * (*(x_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t i = 0; i < y_dim_; ++i)
+        for (std::size_t j = 0; j < l; ++j)
+          y_iter[i * L + j] += alpha * x_iter[i * L + j];
+    }
+
+    void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
+    {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
-        *(this_iter++) += coeff * (*(a_iter++));
+        f(*(this_iter++), *(a_iter++));
       const std::size_t l = x_dim_ % L;
       for (std::size_t y = 0; y < y_dim_; ++y)
         for (std::size_t x = 0; x < l; ++x)
-          this_iter[y * L + x] += coeff * a_iter[y * L + x];
+          f(this_iter[y * L + x], a_iter[y * L + x]);
     }
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)

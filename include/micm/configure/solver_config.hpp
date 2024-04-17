@@ -390,6 +390,7 @@ namespace micm
       for (auto& [key, value] : object.items())
       {
         if (key != NAME && key != TYPE)
+        {
           if (value.is_string())
             species.SetProperty<std::string>(key, value);
           else if (value.is_number_integer())
@@ -400,6 +401,7 @@ namespace micm
             species.SetProperty<bool>(key, value);
           else
             std::cerr << "Unknown type for property " << key << std::endl;
+        }
       }
       species_arr_.push_back(species);
 

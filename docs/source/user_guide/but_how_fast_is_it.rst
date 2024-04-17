@@ -1,9 +1,11 @@
-.. _But how fast is it:
+.. _Solver results:
 
-But how fast is it?
+Solver results
 ===================
 
-This tutorial will focus on timing the solver to show how you can measure performance.
+This tutorial will focus on solver result. Solver result is made of a collection of information useful
+to understand convergence of solution. In a 3D model, if certain grid cells fail the solver convergence
+criteraia, solver statistics can be used to diagnose strange behavior.
 We will use a simple 3-reaction 3-species mechanism. The setup here is the same in
 :ref:`Multiple grid cells`. To understand the full setup, read that tutorial. Otherwise,
 we assume that configuring a rosenbrock solver is understood and instead we will focus on timing 
@@ -37,7 +39,7 @@ There are four values returned.
     * This is the final simulation time achieved by the solver. The :cpp:func:`micm::RosenbrockSolver::Solve` function attempts to integrate the passed in state forward a set number of seconds. Often, the solver is able to complete the integration.  However, extremely stiff systems may only solve for a fraction of the time. It is imperative that the ``final_time_`` value is checked. If it is not equal to the amount of time you intended to solve for, call solve again as we do in the tutorials with the difference between what was solved and how long you intended to solve.
 
       .. note::
-        This does **not** represent the amount of time taken by the solve routine. You must measure that yourself(shown below). The ``final_time_`` is simulation time.
+        This does **not** represent the amount of time taken by the solve routine.
 
 #. :cpp:member:`micm::RosenbrockSolver::SolverResult::result_`
 
@@ -49,10 +51,9 @@ There are four values returned.
 
 #. :cpp:member:`micm::RosenbrockSolver::SolverResult::stats_`
 
-    * This is an instance of a :cpp:class:`micm::RosenbrockSolver::SolverStats` struct which contains information about the number of function calls and optionally the total cumulative amount of time spent calling each function. For the time to be collected, you must call the ``Solve`` function with a ``true`` templated parameter. Please see the example below.
+    * This is an instance of a :cpp:class:`micm::RosenbrockSolver::SolverStats` struct which contains information about the number of individual function calls during solving process and the number of accepted or rejected solutions at every time step.
 
-First, let's run the simulation but without collecting the solve time. We'll inspect the solver state and look at what's collected
-in the stats object. 
+Let's run the simulation. We'll inspect the solver state and look at what's collected in the stats object.
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
@@ -70,23 +71,3 @@ in the stats object.
   decompositions: 20
   solves: 60
   singular: 0
-
-To get the total accumulated time of each function call, you need to specify the templated boolean argument to turn the timing on.
-We can also record the total runtime of the ``Solve`` function. Through the magic of templates, the timing information is only
-collected when you use the ``true`` version of the templated function. These values are not even computed, meaning no CPU cycles are 
-wasted, for the ``false`` version.
-
-.. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
-  :language: cpp
-  :lines: 82-90
-
-.. code-block:: bash
-
-  Total solve time: 24416 nanoseconds
-  total_forcing_time: 3167 nanoseconds
-  total_jacobian_time: 1710 nanoseconds
-  total_linear_factor_time: 4584 nanoseconds
-  total_linear_solve_time: 3290 nanoseconds
-
-.. note::
-  Your systems clock may not report the same granularity depending on how accurate your system clock is. 

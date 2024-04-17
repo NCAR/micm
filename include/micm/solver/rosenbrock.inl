@@ -255,7 +255,7 @@ namespace micm
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
               for (uint64_t j = 0; j < stage; ++j)
               {
-                Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
+                Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
               }
               CalculateForcing(state.rate_constants_, Ynew, forcing);
               stats.function_calls += 1;
@@ -264,7 +264,7 @@ namespace micm
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
           for (uint64_t j = 0; j < stage; ++j)
           {
-            K[stage].ForEach(parameters_.c_[stage_combinations + j] / H, K[j]);
+            K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
@@ -274,12 +274,12 @@ namespace micm
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach(parameters_.m_[stage], K[stage]);
+          Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
         // Compute the error estimation
         MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach(parameters_.e_[stage], K[stage]);
+          Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         auto error = NormalizedError(Y, Ynew, Yerror);
 
