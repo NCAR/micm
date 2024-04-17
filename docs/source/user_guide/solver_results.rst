@@ -54,7 +54,7 @@ There are four values returned.
     * This is an instance of a :cpp:class:`micm::RosenbrockSolver::SolverStats` struct which contains information about the number of individual function calls during solving process and the number of accepted or rejected solutions at every time step.
 
 Upon completion of the simulation, we can inspect the solver state and statistics including the number of individual function calls,
-acceptance/rejection of solutions and the existence of singular matrix
+acceptance/rejection of solutions and the existence of singular matrix.
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
