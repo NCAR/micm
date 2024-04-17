@@ -29,11 +29,11 @@ jobs:
           INCLUDE_FILES=$(find include -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cuh' -o -name '*.inl' \) | grep -v jit | grep -v '.inl')
           echo "scanning include files:"
           echo ${INCLUDE_FILES} | tr " " "\n"
-          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" -extra-arg "-std=c++20" -extra-arg "-stdlib=libc++" ${INCLUDE_FILES}
+          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "-stdlib=libc++" ${INCLUDE_FILES}
           SOURCE_FILES=$(find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \))
           echo "scanning src files:"
           echo ${SOURCE_FILES} | tr " " "\n"
-          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" ${SOURCE_FILES}
+          time clang-tidy -p ./build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "-stdlib=libc++" ${SOURCE_FILES} -- -Iinclude/
           TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*')
           echo "scanning test files:"
           echo ${TEST_FILES} | tr " " "\n"
