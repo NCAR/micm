@@ -121,7 +121,7 @@ struct CudaRosenbrockSolverParam
   // for NormalizedError function
   double* errors_input_;
   double* errors_output_;
-  double* absolute_tolerance_;
+  const double* absolute_tolerance_;
   size_t absolute_tolerance_size_;
   size_t errors_size_;
   // for AlphaMinusJacobian function
