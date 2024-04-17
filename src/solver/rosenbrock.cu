@@ -111,7 +111,7 @@ namespace micm
       double* d_errors_output = devstruct.errors_output_;
       const double* atol = devstruct.absolute_tolerance_;
       const double rtol = ros_param.relative_tolerance_;
-      const size_t number_of_species = y_old_param.number_of_elements_;
+      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
@@ -136,7 +136,7 @@ namespace micm
           if (g_tid < n)
           {
             d_ymax = max(fabs(d_y_old[g_tid]), fabs(d_y_new[g_tid]));
-            d_scale = atol[g_tid % number_of_species] + rtol * d_ymax;
+            d_scale = atol[g_tid / number_of_grid_cells] + rtol * d_ymax;
             d_errors_input[g_tid] = d_errors_input[g_tid] * d_errors_input[g_tid] / (d_scale * d_scale);
             sdata[l_tid] += d_errors_input[g_tid];
           }
@@ -213,14 +213,14 @@ namespace micm
       const double* atol = devstruct.absolute_tolerance_;
       double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
-      const size_t number_of_species = y_old_param.number_of_elements_;
+      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
       if (tid < num_elements)
       {
         d_ymax = max(fabs(d_y_old[tid]), fabs(d_y_new[tid]));
-        d_scale = atol[tid % number_of_species] + rtol * d_ymax;
+        d_scale = atol[tid / number_of_grid_cells] + rtol * d_ymax;
         d_errors[tid] = d_errors[tid] / d_scale;
       }
     }

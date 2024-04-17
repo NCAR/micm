@@ -119,6 +119,12 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
   auto quz = micm::Species("quz");
   auto quuz = micm::Species("quuz");
 
+  foo.SetProperty("absolute tolerance", 1.0e-03);
+  bar.SetProperty("absolute tolerance", 1.0e-05);
+  baz.SetProperty("absolute tolerance", 1.0e-07);
+  quz.SetProperty("absolute tolerance", 1.0e-08);
+  quuz.SetProperty("absolute tolerance", 1.0e-10);
+
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
   micm::Process r1 = micm::Process::create()
@@ -234,9 +240,26 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
 
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
 
-  double denom = atol[0] + rtol * 2.0;
+  auto expected_error = 0.0;
+  for (size_t i = 0; i < state.state_size_; ++i)
+  {
+    double ymax = std::max(std::abs(y_old[0][i]), std::abs(y_new[0][i]));
+    double scale = atol[i] + rtol * ymax;
+    expected_error += errors[0][i] * errors[0][i] / (scale * scale);
+  }
+  double error_min_ = 1.0e-10;
+  expected_error = std::max(std::sqrt(expected_error / state.state_size_), error_min_);
+
   // use the following function instead to avoid tiny numerical differece
-  EXPECT_DOUBLE_EQ(error, std::sqrt(3.0 * 3.0 / (denom * denom)));
+  auto relative_error =
+      std::abs(error - expected_error) / std::max(std::abs(error), std::abs(expected_error));
+  if (relative_error > 1.e-14)
+  {
+    std::cout << "error: " << std::setprecision(12) << error << std::endl;
+    std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
+    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl;
+    throw std::runtime_error("Fail to match error and expected_error.\n");
+  }
 }
 
 // In this test, the elements in the same array are different;
