@@ -188,8 +188,8 @@ void testMarkowitzReordering()
         builder = builder.with_element(i, j);
   SparseMatrixPolicy<double> reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( orig_jac );
-  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( reordered_jac );
+  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(orig_jac);
+  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(reordered_jac);
 
   auto orig_LU = orig_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(orig_jac, 0.0);
   auto reordered_LU = reordered_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(reordered_jac, 0.0);

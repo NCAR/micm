@@ -57,7 +57,8 @@ namespace micm
       : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [](const SparseMatrixPolicy<T>& m) -> LuDecompositionPolicy { return LuDecomposition::Create<T, SparseMatrixPolicy>(m); })
+            [](const SparseMatrixPolicy<T>& m) -> LuDecompositionPolicy
+            { return LuDecomposition::Create<T, SparseMatrixPolicy>(m); })
   {
   }
 
@@ -107,9 +108,11 @@ namespace micm
     }
   };
 
-    
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+      const SparseMatrixPolicy<T>& matrix,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -117,7 +120,11 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix, bool& is_singular)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+      const SparseMatrixPolicy<T>& matrix,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix,
+      bool& is_singular)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -126,8 +133,14 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  requires(
+      !VectorizableDense<MatrixPolicy<T>> ||
+      !VectorizableSparse<SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
+      Solve(
+          const MatrixPolicy<T>& b,
+          MatrixPolicy<T>& x,
+          SparseMatrixPolicy<T>& lower_matrix,
+          SparseMatrixPolicy<T>& upper_matrix)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -178,8 +191,13 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix)
+  requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<
+           SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
+      Solve(
+          const MatrixPolicy<T>& b,
+          MatrixPolicy<T>& x,
+          SparseMatrixPolicy<T>& lower_matrix,
+          SparseMatrixPolicy<T>& upper_matrix)
   {
     MICM_PROFILE_FUNCTION();
     

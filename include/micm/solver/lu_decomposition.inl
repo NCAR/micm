@@ -14,7 +14,7 @@ namespace micm
     Initialize<T, SparseMatrix>(matrix);
   }
 
-  template<typename T, template <class> class SparseMatrixPolicy>
+  template<typename T, template<class> class SparseMatrixPolicy>
   inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy<T>& matrix)
   {
     LuDecomposition lu_decomp{};
@@ -106,14 +106,14 @@ namespace micm
     }
   }
 
-  template<typename T, template <class> class SparseMatrixPolicy>
+  template<typename T, template<class> class SparseMatrixPolicy>
   inline std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> LuDecomposition::GetLUMatrices(
       const SparseMatrixPolicy<T>& A,
       T initial_value)
   {
     return GetLUMatrices<T, SparseMatrixPolicy<T>>(A, initial_value);
   }
-  
+
   template<typename T, class SparseMatrixPolicy>
   inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::GetLUMatrices(
       const SparseMatrixPolicy& A,
@@ -185,9 +185,11 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
-      const
+  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U,
+      bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -232,7 +234,7 @@ namespace micm
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
             ++lkj_uji;
           }
-          if( U_vector[*uii] == 0.0 )
+          if (U_vector[*uii] == 0.0)
           {
             is_singular = true;
             return;
@@ -246,9 +248,11 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
-      const
+  requires(VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy<T>& A,
+      SparseMatrixPolicy<T>& L,
+      SparseMatrixPolicy<T>& U,
+      bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();
 

@@ -32,7 +32,13 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::RosenbrockSolver()
       : processes_(),
         parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
@@ -42,7 +48,13 @@ namespace micm
   {
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::RosenbrockSolver(
       const System& system,
       const std::vector<Process>& processes,
@@ -54,19 +66,27 @@ namespace micm
             [](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
               return LinearSolverPolicy{ matrix, initial_value };
             },
-            [](const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
+            [](const std::vector<Process>& processes,
+               const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
               return ProcessSetPolicy{ processes, variable_map };
             })
   {
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::RosenbrockSolver(
       const System& system,
       const std::vector<Process>& processes,
       const RosenbrockSolverParameters& parameters,
       const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
-      const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)> create_process_set)
+      const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
+          create_process_set)
       : processes_(processes),
         parameters_(parameters),
         state_parameters_(),
@@ -83,11 +103,16 @@ namespace micm
     auto available_species = system.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
     std::set<std::string> unused_species;
-    std::set_difference(available_species.begin(), available_species.end(), used_species.begin(), used_species.end(), std::inserter(unused_species, unused_species.begin()));
+    std::set_difference(
+        available_species.begin(),
+        available_species.end(),
+        used_species.begin(),
+        used_species.end(),
+        std::inserter(unused_species, unused_species.begin()));
     if (unused_species.size() > 0 && !parameters_.ignore_unused_species_)
     {
       std::string err_msg = "Unused species in chemical system:";
-      for (auto& species: unused_species)
+      for (auto& species : unused_species)
         err_msg += " '" + species + "'";
       err_msg += ". Set solver parameter ignore_unused_species_ to allow unused species in solve.";
       throw std::runtime_error(err_msg);
@@ -113,7 +138,30 @@ namespace micm
       for (auto& name : system.UniqueNames(state_reordering))
         variable_map[name] = index++;
     }
-    
+
+    // if the tolerances aren't already set, initialize them and then set based off of information in the system
+    if (parameters_.absolute_tolerance_.size() != variable_map.size())
+    {
+      parameters_.absolute_tolerance_ = std::vector<double>(variable_map.size(), 1e-3);
+      for (auto& species : system.gas_phase_.species_)
+      {
+        if (species.HasProperty("absolute tolerance"))
+        {
+          parameters_.absolute_tolerance_[variable_map[species.name_]] = species.GetProperty<double>("absolute tolerance");
+        }
+      }
+      for (auto& phase : system.phases_)
+      {
+        for (auto& species : phase.second.species_)
+        {
+          if (species.HasProperty("absolute tolerance"))
+          {
+            parameters_.absolute_tolerance_[variable_map[species.name_]] = species.GetProperty<double>("absolute tolerance");
+          }
+        }
+      }
+    }
+
     // setup the state_parameters
     std::vector<std::string> param_labels{};
     for (const auto& process : processes_)
@@ -124,38 +172,45 @@ namespace micm
     process_set_ = std::move(create_process_set(processes, variable_map));
 
     auto jacobian = build_jacobian<SparseMatrixPolicy>(
-      process_set_.NonZeroJacobianElements(),
-      parameters_.number_of_grid_cells_,
-      system.StateSize()
-    );
+        process_set_.NonZeroJacobianElements(), parameters_.number_of_grid_cells_, system.StateSize());
 
     std::vector<std::size_t> jacobian_diagonal_elements;
     jacobian_diagonal_elements.reserve(jacobian[0].size());
     for (std::size_t i = 0; i < jacobian[0].size(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
-    state_parameters_ = {
-      .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-      .number_of_rate_constants_ = processes_.size(),
-      .variable_names_ = system.UniqueNames(state_reordering),
-      .custom_rate_parameter_labels_ = param_labels,
-      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
-      .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements()
-    };
+    state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
+                          .number_of_species_ = variable_map.size(),
+                          .number_of_rate_constants_ = processes_.size(),
+                          .variable_names_ = system.UniqueNames(state_reordering),
+                          .custom_rate_parameter_labels_ = param_labels,
+                          .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
+                          .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements() };
 
     process_set_.SetJacobianFlatIds(jacobian);
     linear_solver_ = std::move(create_linear_solver(jacobian, 1.0e-30));
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy> RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetState() const
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
+  inline State<MatrixPolicy, SparseMatrixPolicy>
+  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetState() const
   {
-    MICM_PROFILE_FUNCTION();
-
     return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::Solve(
       double time_step,
@@ -168,8 +223,10 @@ namespace micm
     // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
     auto& lower = state.lower_matrix_.AsVector();
     auto& upper = state.upper_matrix_.AsVector();
-    for(auto& l : lower) l = 0;
-    for(auto& u : upper) u = 0;
+    for (auto& l : lower)
+      l = 0;
+    for (auto& u : upper)
+      u = 0;
     MatrixPolicy<double> Y(state.variables_);
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
@@ -346,7 +403,13 @@ namespace micm
     return result;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateForcing(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
@@ -358,11 +421,16 @@ namespace micm
     process_set_.template AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -374,11 +442,16 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const
-    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -392,8 +465,15 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateNegativeJacobian(
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
+  inline void
+  RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)
@@ -401,22 +481,36 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
-    process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, number_densities, jacobian);
+    process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(
+        rate_constants, number_densities, jacobian);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::UpdateState(State<MatrixPolicy, SparseMatrixPolicy>& state)
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
+  inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::UpdateState(
+      State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::LinearFactor(
       double& H,
       const double gamma,
       bool& singular,
       const MatrixPolicy<double>& number_densities,
-      SolverStats& stats, 
+      SolverStats& stats,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
@@ -448,7 +542,13 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  template<
+      template<class>
+      class MatrixPolicy,
+      template<class>
+      class SparseMatrixPolicy,
+      class LinearSolverPolicy,
+      class ProcessSetPolicy>
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
@@ -463,18 +563,21 @@ namespace micm
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
     std::size_t N = Y.AsVector().size();
+    size_t n_species = state_parameters_.number_of_species_;
 
+    double ymax = 0;
     double errors_over_scale = 0;
     double error = 0;
 
     for (std::size_t i = 0; i < N; ++i)
     {
-      errors_over_scale = _errors[i] / (parameters_.absolute_tolerance_ +
-                                        parameters_.relative_tolerance_ * std::max(std::abs(_y[i]), std::abs(_ynew[i])));
+      ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
+      errors_over_scale = _errors[i] / (parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
     double error_min = 1.0e-10;
+    
     return std::max(std::sqrt(error / N), error_min);
   }
 

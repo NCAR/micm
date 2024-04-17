@@ -1,7 +1,16 @@
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
+#pragma once
+
+#include <cuda_runtime.h>
+
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
+
+#define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 
 namespace micm
 {
@@ -12,82 +21,105 @@ namespace micm
     CudaMatrixParam param_;
 
    public:
-    CudaSparseMatrix() = default;
+    CudaSparseMatrix()
+        : SparseMatrix<T, OrderingPolicy>()
+    {
+      this->param_.d_data_ = nullptr;
+    }
 
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
     }
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
+      this->param_.d_data_ = nullptr;
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(
         std::is_same_v<T, double>)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
       return *this;
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
+      this->param_.d_data_ = nullptr;
       return *this;
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
-      micm::cuda::CopyToDeviceFromDevice(param_, other.param_);
+      this->param_ = other.param_;
+      this->param_.d_data_ = nullptr;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
+      this->param_.d_data_ = nullptr;
     }
 
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
-        : SparseMatrix<T, OrderingPolicy>(SparseMatrix<T, OrderingPolicy>::create(other.number_of_blocks_))
+        : SparseMatrix<T, OrderingPolicy>(other)
     {
-      this->data_ = std::move(other.data_);
-      this->param_ = std::move(other.param_);
+      this->param_.d_data_ = nullptr;
+      std::swap(this->param_, other.param_);
     }
 
     CudaSparseMatrix& operator=(const CudaSparseMatrix& other)
     {
-      return *this = CudaSparseMatrix(other);
+      SparseMatrix<T, OrderingPolicy>::operator=(other);
+      this->param_ = other.param_;
+      this->param_.d_data_ = nullptr;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      return *this;
     }
 
     CudaSparseMatrix& operator=(CudaSparseMatrix&& other) noexcept
     {
-      std::swap(this->data_, other.data_);
-      std::swap(this->param_, other.param_);
-      std::swap(this->number_of_blocks_, other.number_of_blocks_);
-      std::swap(this->row_ids_, other.row_ids_);
-      std::swap(this->row_start_, other.row_start_);
+      if (this != &other)
+      {
+        SparseMatrix<T, OrderingPolicy>::operator=(std::move(other));
+        std::swap(this->param_, other.param_);
+      }
+      return *this;
     }
 
     ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
-      micm::cuda::FreeVector(param_);
+      CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
+      this->param_.d_data_ = nullptr;
     }
 
     ~CudaSparseMatrix()
     {
+      this->param_.d_data_ = nullptr;
     }
 
-    int CopyToDevice()
+    void CopyToDevice()
     {
-      return micm::cuda::CopyToDevice(param_, this->data_);
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
-    int CopyToHost()
+
+    void CopyToHost()
     {
-      return micm::cuda::CopyToHost(param_, this->data_);
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
+
     CudaMatrixParam AsDeviceParam()
     {
       return this->param_;
