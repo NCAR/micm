@@ -66,7 +66,11 @@ namespace micm
       hoststruct.errors_size_ = parameters.number_of_grid_cells_ * system.StateSize();
       hoststruct.jacobian_diagonal_elements_ = this->state_parameters_.jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->state_parameters_.jacobian_diagonal_elements_.size();
-      hoststruct.absoluate_tolerance_ = parameters.absolute_tolerance_.data();
+
+      hoststruct.absolute_tolerance_ = new double[parameters.absolute_tolerance_.size()];
+      for(std::size_t i = 0; i < parameters.absolute_tolerance_.size(); ++i)
+        hoststruct.absolute_tolerance_[i] = parameters.absolute_tolerance_[i];
+
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
