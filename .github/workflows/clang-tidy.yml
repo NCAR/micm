@@ -48,6 +48,6 @@ jobs:
           TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*')
           echo "scanning test files:"
           echo ${TEST_FILES} | tr " " "\n"
-          time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "-stdlib=libc++" ${TEST_FILES -- -Iinclude/
+          time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "-stdlib=libc++" ${TEST_FILES} -- -Iinclude/
         continue-on-error: true
 
