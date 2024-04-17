@@ -562,10 +562,9 @@ namespace micm
     const size_t L = Y.GroupVectorSize();
     
     if (remaining_blocks > 0){
-      for(std::size_t y = 0; y < Y.GroupSize(); ++y) {
+      for(std::size_t y = 0; y < Y.NumColumns(); ++y) {
         for(std::size_t x = 0; x < remaining_blocks; ++x) {
           size_t idx = y * L + x;
-          std::cout << "idx: " << idx << std::endl;
           errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_ +
                                               parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
@@ -574,11 +573,7 @@ namespace micm
     }
 
     double error_min = 1.0e-10;
-    auto val = std::max(std::sqrt(error / N), error_min);
-    if(std::isinf(val) == 1) {
-      std::cout << "is inf" << std::endl;
-    }
-    return val;
+    return std::max(std::sqrt(error / N), error_min);
   }
 
 }  // namespace micm
