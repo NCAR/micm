@@ -28,6 +28,7 @@ namespace micm
       case SolverState::StepSizeTooSmall: return "Step Size Too Small";
       case SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
       case SolverState::NaNDetected: return "NaNDetected";
+      case SolverState::InfDetected: return "InfDetected";
       default: return "Unknown";
     }
   }
@@ -333,11 +334,18 @@ namespace micm
 
         stats.number_of_steps += 1;
 
+        std::cout << "Error: " << error << " " << std::isinf(error) << std::endl;
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           result.state_ = SolverState::NaNDetected;
+          break;
+        }
+        else if (std::isinf(error) == 1) {
+          std::cout << "Infinity detected!" << std::endl;
+          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          result.state_ = SolverState::InfDetected;
           break;
         }
         else if ((error < 1) || (H < parameters_.h_min_))
@@ -493,6 +501,7 @@ namespace micm
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
       const MatrixPolicy<double>& errors) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -512,6 +521,53 @@ namespace micm
       errors_over_scale = _errors[i] / (parameters_.absolute_tolerance_ +
                                         parameters_.relative_tolerance_ * std::max(std::abs(_y[i]), std::abs(_ynew[i])));
       error += errors_over_scale * errors_over_scale;
+    }
+
+    double error_min = 1.0e-10;
+    return std::max(std::sqrt(error / N), error_min);
+  }
+
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy, class ProcessSetPolicy>
+  inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
+      const MatrixPolicy<double>& Y,
+      const MatrixPolicy<double>& Ynew,
+      const MatrixPolicy<double>& errors) const
+    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+  {
+    // Solving Ordinary Differential Equations II, page 123
+    // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
+    
+    MICM_PROFILE_FUNCTION();
+
+    auto y_iter = Y.AsVector().begin();
+    auto ynew_iter = Ynew.AsVector().begin();
+    auto errors_iter = errors.AsVector().begin();
+    std::size_t N = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
+
+    double errors_over_scale = 0;
+    double error = 0;
+
+    // compute the error over the blocks which fit exactly into the L parameter
+    for(std::size_t i = 0; i < N; ++i) {
+      errors_over_scale = *errors_iter / (parameters_.absolute_tolerance_ +
+                                          parameters_.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
+      error += errors_over_scale * errors_over_scale;
+      ++y_iter;
+      ++ynew_iter;
+      ++errors_iter;
+    }
+
+    // compute the error over the remaining elements that are in the next group but didn't fill a full group
+    N = Y.NumRows() % Y.GroupVectorSize();
+    const size_t L = Y.GroupVectorSize();
+
+    for(std::size_t y = 0; y < Y.NumColumns(); ++y) {
+      for(std::size_t x = 0; x < N; ++x) {
+        size_t idx = y * L + x;
+        errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_ +
+                                            parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
+        error += errors_over_scale * errors_over_scale;
+      }
     }
 
     double error_min = 1.0e-10;

@@ -55,7 +55,9 @@ namespace micm
     /// @brief Matrices that are singular more than once will set this value. At present, this should never be returned
     RepeatedlySingularMatrix,
     /// @brief Mostly this value is returned by systems that tend toward chemical explosions
-    NaNDetected
+    NaNDetected,
+    /// @brief Can happen when unititialized memory is used in the solver
+    InfDetected
   };
 
   std::string StateToString(const SolverState& state);
@@ -206,7 +208,13 @@ namespace micm
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const;
+        const MatrixPolicy<double>& errors) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+    double NormalizedError(
+        const MatrixPolicy<double>& y,
+        const MatrixPolicy<double>& y_new,
+        const MatrixPolicy<double>& errors) const
+    requires(VectorizableSparse<SparseMatrixPolicy<double>>);
   };
 
 }  // namespace micm
