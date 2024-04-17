@@ -39,9 +39,8 @@ void solve(auto& solver, auto& state)
 
   double time_step = 100;  // s
 
-  auto result = solver.Solve(time_step, state);
-
-  for (int i = 0; i < 10; ++i)
+  SolverState solver_state = SolverState::Converged;
+  for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
   {
     double elapsed_solve_time = 0;
     while (elapsed_solve_time < time_step)
@@ -49,7 +48,16 @@ void solve(auto& solver, auto& state)
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
+      solver_state = result.state_;
+      if (solver_state != SolverState::Converged)
+      {
+        break;
+      }
     }
+  }
+  if (solver_state != SolverState::Converged)
+  {
+    throw "Solver did not converge";
   }
 }
 

@@ -334,7 +334,6 @@ namespace micm
 
         stats.number_of_steps += 1;
 
-        std::cout << "Error: " << error << " " << std::isinf(error) << std::endl;
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
@@ -343,7 +342,6 @@ namespace micm
           break;
         }
         else if (std::isinf(error) == 1) {
-          std::cout << "Infinity detected!" << std::endl;
           Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
           result.state_ = SolverState::InfDetected;
           break;
@@ -542,13 +540,15 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
-    std::size_t N = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
+    std::size_t N = Y.AsVector().size();
+
+    std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
 
     double errors_over_scale = 0;
     double error = 0;
 
     // compute the error over the blocks which fit exactly into the L parameter
-    for(std::size_t i = 0; i < N; ++i) {
+    for(std::size_t i = 0; i < whole_blocks; ++i) {
       errors_over_scale = *errors_iter / (parameters_.absolute_tolerance_ +
                                           parameters_.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
@@ -558,20 +558,27 @@ namespace micm
     }
 
     // compute the error over the remaining elements that are in the next group but didn't fill a full group
-    N = Y.NumRows() % Y.GroupVectorSize();
+    size_t remaining_blocks = Y.NumRows() % Y.GroupVectorSize();
     const size_t L = Y.GroupVectorSize();
-
-    for(std::size_t y = 0; y < Y.NumColumns(); ++y) {
-      for(std::size_t x = 0; x < N; ++x) {
-        size_t idx = y * L + x;
-        errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_ +
-                                            parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
-        error += errors_over_scale * errors_over_scale;
+    
+    if (remaining_blocks > 0){
+      for(std::size_t y = 0; y < Y.GroupSize(); ++y) {
+        for(std::size_t x = 0; x < remaining_blocks; ++x) {
+          size_t idx = y * L + x;
+          std::cout << "idx: " << idx << std::endl;
+          errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_ +
+                                              parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
+          error += errors_over_scale * errors_over_scale;
+        }
       }
     }
 
     double error_min = 1.0e-10;
-    return std::max(std::sqrt(error / N), error_min);
+    auto val = std::max(std::sqrt(error / N), error_min);
+    if(std::isinf(val) == 1) {
+      std::cout << "is inf" << std::endl;
+    }
+    return val;
   }
 
 }  // namespace micm
