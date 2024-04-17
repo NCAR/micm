@@ -253,18 +253,38 @@ namespace micm
             if (parameters_.new_function_evaluation_[stage])
             {
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
-              for (uint64_t j = 0; j < stage; ++j)
+              // for (uint64_t j = 0; j < stage; ++j)
+              // {
+              //   Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
+              // }
+              for (uint64_t j = 0; j <= stage; ++j)
               {
-                Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
+                auto k_iter = K[j].AsVector().begin();
+                auto a = parameters_.a_[stage_combinations + j];
+                assert(Ynew.AsVector().size() == K[j].AsVector().size());
+                for (auto& iynew : Ynew.AsVector())
+                {
+                  iynew += a * (*(k_iter++));
+                }
               }
               CalculateForcing(state.rate_constants_, Ynew, forcing);
               stats.function_calls += 1;
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
+          // for (uint64_t j = 0; j < stage; ++j)
+          // {
+          //   K[stage].ForEach(parameters_.c_[stage_combinations + j] / H, K[j]);
+          // }
           for (uint64_t j = 0; j < stage; ++j)
           {
-            K[stage].ForEach(parameters_.c_[stage_combinations + j] / H, K[j]);
+            auto HC = parameters_.c_[stage_combinations + j] / H;
+            auto k_iter = K[j].AsVector().begin();
+            assert(K[stage].AsVector().size() == K[j].AsVector().size());
+            for(auto& k : K[stage].AsVector())
+            {
+              k += HC * (*(k_iter++));
+            }
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
@@ -273,13 +293,33 @@ namespace micm
 
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+        // for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        //   Ynew.ForEach(parameters_.m_[stage], K[stage]);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach(parameters_.m_[stage], K[stage]);
+        {
+          auto k_iter = K[stage].AsVector().begin();
+          auto m = parameters_.m_[stage];
+          assert(Ynew.AsVector().size() == K[stage].AsVector().size());
+          for(auto& ynew : Ynew.AsVector())
+          {
+            ynew += m * (*(k_iter++));
+          }
+        }
 
         // Compute the error estimation
         MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
+        // for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        //   Yerror.ForEach(parameters_.e_[stage], K[stage]);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach(parameters_.e_[stage], K[stage]);
+        {
+          auto e = parameters_.e_[stage];
+          auto k_iter = K[stage].AsVector().begin();
+          assert(Yerror.AsVector().size() == K[stage].AsVector().size());
+          for(auto& yerror : Yerror.AsVector())
+          {
+            yerror += e * (*(k_iter++));
+          }
+        }
 
         auto error = NormalizedError(Y, Ynew, Yerror);
 
