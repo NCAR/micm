@@ -32,9 +32,7 @@ namespace micm
       if (tid < n_grids)
       {
         size_t b_column_index = 0;
-        size_t x_column_index = 0;
         size_t y_column_index = 0;
-        size_t b_column_backward_index = b_column_counts - 1;
         size_t x_column_backward_index = x_column_counts - 1;
         size_t Lij_yj_index = 0;
         size_t Uij_xj_index = 0;

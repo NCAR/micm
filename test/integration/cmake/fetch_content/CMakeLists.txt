@@ -12,7 +12,7 @@ include(FetchContent)
 
 FetchContent_Declare(micm
   GIT_REPOSITORY https://github.com/NCAR/micm.git
-  GIT_TAG        0996e5848b097e77ccbb2819f22c49844154f3e3
+  GIT_TAG        bed20158d8c907109cb8e39d2c534faf54d48384
 )
 
 FetchContent_MakeAvailable(micm)

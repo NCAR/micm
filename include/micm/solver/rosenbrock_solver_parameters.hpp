@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
+#include <vector>
 #include <limits>
 
 namespace micm
@@ -53,7 +54,7 @@ namespace micm
     // Gamma_i = \sum_j  gamma_{i,j}
     std::array<double, 6> gamma_{};
 
-    double absolute_tolerance_{ 1e-3 };
+    std::vector<double> absolute_tolerance_;
     double relative_tolerance_{ 1e-4 };
 
     size_t number_of_grid_cells_{ 1 };     // Number of grid cells to solve simultaneously
@@ -146,7 +147,11 @@ namespace micm
     for (double val : gamma_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "absolute_tolerance_: " << absolute_tolerance_ << std::endl;
+    std::cout << "absolute_tolerance_: ";
+    for(auto& val : absolute_tolerance_) {
+      std::cout << val << " ";
+    }
+    std::cout << std::endl;
     std::cout << "relative_tolerance_: " << relative_tolerance_ << std::endl;
     std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
   }

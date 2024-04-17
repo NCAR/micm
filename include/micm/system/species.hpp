@@ -52,6 +52,8 @@ namespace micm
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
 
+    bool HasProperty(const std::string& key) const;
+
     /// @brief Return the value of a species property
     template<class T>
     T GetProperty(const std::string& key) const;
@@ -99,6 +101,14 @@ namespace micm
   inline bool Species::IsParameterized() const
   {
     return parameterize_ != nullptr;
+  }
+
+  inline bool Species::HasProperty(const std::string& key) const
+  {
+    return properties_string_.find(key) != properties_string_.end() ||
+           properties_double_.find(key) != properties_double_.end() ||
+           properties_bool_.find(key) != properties_bool_.end() ||
+           properties_int_.find(key) != properties_int_.end();
   }
 
   template<class T>
