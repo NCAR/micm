@@ -210,7 +210,7 @@ namespace micm
       double* d_y_old = y_old_param.d_data_;
       double* d_y_new = y_new_param.d_data_;
       double* d_errors = devstruct.errors_input_;
-      double* atol = devstruct.absolute_tolerance_;
+      const double* atol = devstruct.absolute_tolerance_;
       double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
       const size_t number_of_species = y_old_param.number_of_elements_;
