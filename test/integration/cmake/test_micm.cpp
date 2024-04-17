@@ -45,9 +45,7 @@ int main()
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<> solver{ chemical_system,
-                             reactions,
-                             params };
+  RosenbrockSolver<> solver{ chemical_system, reactions, params };
   State<Matrix> state = solver.GetState();
 
   // mol m-3

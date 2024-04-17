@@ -162,7 +162,8 @@ TEST(RosenbrockSolver, Timing)
       0.0);
 }
 
-TEST(RosenbrockSolver, CanSetTolerances) {
+TEST(RosenbrockSolver, CanSetTolerances)
+{
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
 
@@ -177,7 +178,8 @@ TEST(RosenbrockSolver, CanSetTolerances) {
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  for(size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells) {
+  for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
+  {
     auto solver = micm::RosenbrockSolver<>(
         micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
         std::vector<micm::Process>{ r1 },
@@ -188,7 +190,8 @@ TEST(RosenbrockSolver, CanSetTolerances) {
   }
 }
 
-TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters) {
+TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
+{
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
 
@@ -203,12 +206,12 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters) {
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  for(size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells) {
+  for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
+  {
     auto params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells);
     params.absolute_tolerance_ = { 1.0e-01, 1.0e-02 };
     auto solver = micm::RosenbrockSolver<>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::vector<micm::Process>{ r1 }, params);
+        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1 }, params);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_.size(), 2);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[0], 1.0e-01);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[1], 1.0e-02);

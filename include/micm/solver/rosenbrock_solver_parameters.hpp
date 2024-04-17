@@ -6,8 +6,8 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
-#include <vector>
 #include <limits>
+#include <vector>
 
 namespace micm
 {
@@ -148,7 +148,8 @@ namespace micm
       std::cout << val << " ";
     std::cout << std::endl;
     std::cout << "absolute_tolerance_: ";
-    for(auto& val : absolute_tolerance_) {
+    for (auto& val : absolute_tolerance_)
+    {
       std::cout << val << " ";
     }
     std::cout << std::endl;
