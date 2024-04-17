@@ -257,7 +257,7 @@ namespace micm
               // {
               //   Ynew.ForEach(parameters_.a_[stage_combinations + j], K[j]);
               // }
-              for (uint64_t j = 0; j <= stage; ++j)
+              for (uint64_t j = 0; j < stage; ++j)
               {
                 auto k_iter = K[j].AsVector().begin();
                 auto a = parameters_.a_[stage_combinations + j];
