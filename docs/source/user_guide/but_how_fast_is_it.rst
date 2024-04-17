@@ -36,7 +36,7 @@ There are four values returned.
 
 #. :cpp:member:`micm::RosenbrockSolver::SolverResult::final_time_`
 
-    * This is the final simulation time achieved by the solver. The :cpp:func:`micm::RosenbrockSolver::Solve` function attempts to integrate the passed in state forward a set number of seconds. Often, the solver is able to complete the integration.  However, extremely stiff systems may only solve for a fraction of the time. It is imperative that the ``final_time_`` value is checked. If it is not equal to the amount of time you intended to solve for, call solve again as we do in the tutorials with the difference between what was solved and how long you intended to solve.
+    * This is the final simulation time achieved by the solver. The :cpp:func:`micm::RosenbrockSolver::Solve` function attempts to integrate the passed in state forward a set number of seconds. Often, the solver is able to complete the integration.  However, extremely stiff systems may only solve for a fraction of the time. It is imperative that the ``final_time_`` value is checked. If it is not equal to the amount of time you intended to solve for, call Solve again as we do in the tutorials with the difference between what was solved and how long you intended to solve.
 
       .. note::
         This does **not** represent the amount of time taken by the solve routine.
@@ -47,13 +47,14 @@ There are four values returned.
 
 #. :cpp:member:`micm::RosenbrockSolver::SolverResult::state_`
 
-    * There are many possible reasons for the solver to return. This value is one of the possible enum values define on the :cpp:enum:`micm::SolverState`. Hopefully, you receive a :cpp:enumerator:`micm::SolverState::Converged` state. But, it is good to always check this to ensure the solver really did converge. You can print this value using the :cpp:func:`micm::StateToString` function.
+    * There are many possible reasons for the solver to return. This value is one of the possible enum values defined on the :cpp:enum:`micm::SolverState`. Hopefully, you receive a :cpp:enumerator:`micm::SolverState::Converged` state. But, it is good to always check this to ensure the solver really did converge. You can print this value using the :cpp:func:`micm::StateToString` function.
 
 #. :cpp:member:`micm::RosenbrockSolver::SolverResult::stats_`
 
     * This is an instance of a :cpp:class:`micm::RosenbrockSolver::SolverStats` struct which contains information about the number of individual function calls during solving process and the number of accepted or rejected solutions at every time step.
 
-Let's run the simulation. We'll inspect the solver state and look at what's collected in the stats object.
+Upon completion of the simulation, we can inspect the solver state and statistics including the number of individual function calls,
+acceptance/rejection of solutions and the existence of singular matrix
 
 .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
   :language: cpp
