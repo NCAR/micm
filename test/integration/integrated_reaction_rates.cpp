@@ -21,7 +21,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   auto a = micm::Species("a");
   auto b = micm::Species("b");
   auto c = micm::Species("c");
-  auto irr_1  = micm::Species("irr_1");
+  auto irr_1 = micm::Species("irr_1");
   auto irr_2 = micm::Species("irr_2");
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, irr_1, irr_2 } };
@@ -32,18 +32,17 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ b })
-                         .products({ yields(c, 1), yields(irr_2, 1) })
-                         .rate_constant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
-                         .phase(gas_phase);
+  micm::Process r2 =
+      micm::Process::create()
+          .reactants({ b })
+          .products({ yields(c, 1), yields(irr_2, 1) })
+          .rate_constant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
+          .phase(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2  },
-    options
+    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, options
   };
 
   auto state = solver.GetState();
