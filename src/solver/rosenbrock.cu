@@ -56,12 +56,8 @@ namespace micm
           hoststruct.jacobian_diagonal_elements_,
           jacobian_diagonal_elements_bytes,
           cudaMemcpyHostToDevice);
-      
-      cudaMemcpy(
-          devstruct.absolute_tolerance_,
-          hoststruct.absolute_tolerance_,
-          tolerance_bytes,
-          cudaMemcpyHostToDevice);
+
+      cudaMemcpy(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice);
 
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;

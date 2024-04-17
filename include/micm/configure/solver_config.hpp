@@ -1138,9 +1138,14 @@ namespace micm
     ConfigParseStatus last_parse_status_ = ConfigParseStatus::None;
 
    public:
-
-    SolverConfig() : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()) {}
-    SolverConfig(const RosenbrockSolverParameters& parameters) : ConfigTypePolicy(parameters) {}
+    SolverConfig()
+        : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters())
+    {
+    }
+    SolverConfig(const RosenbrockSolverParameters& parameters)
+        : ConfigTypePolicy(parameters)
+    {
+    }
 
     /// @brief Reads and parses configures
     /// @param config_dir Path to a the configuration directory
@@ -1164,10 +1169,7 @@ namespace micm
       }
 
       return SolverParameters(
-          std::move(System(this->gas_phase_, this->phases_)), 
-          std::move(this->processes_),
-          std::move(this->parameters_)
-      );
+          std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_));
     }
   };
 }  // namespace micm

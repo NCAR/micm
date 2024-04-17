@@ -251,8 +251,7 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
   expected_error = std::max(std::sqrt(expected_error / state.state_size_), error_min_);
 
   // use the following function instead to avoid tiny numerical differece
-  auto relative_error =
-      std::abs(error - expected_error) / std::max(std::abs(error), std::abs(expected_error));
+  auto relative_error = std::abs(error - expected_error) / std::max(std::abs(error), std::abs(expected_error));
   if (relative_error > 1.e-14)
   {
     std::cout << "error: " << std::setprecision(12) << error << std::endl;

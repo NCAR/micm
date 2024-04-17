@@ -22,7 +22,7 @@ namespace micm
   struct StateParameters
   {
     std::size_t number_of_grid_cells_{ 1 };
-    std::size_t number_of_species_ { 0 };
+    std::size_t number_of_species_{ 0 };
     std::size_t number_of_rate_constants_{ 0 };
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};

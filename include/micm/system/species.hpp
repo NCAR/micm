@@ -107,8 +107,7 @@ namespace micm
   {
     return properties_string_.find(key) != properties_string_.end() ||
            properties_double_.find(key) != properties_double_.end() ||
-           properties_bool_.find(key) != properties_bool_.end() ||
-           properties_int_.find(key) != properties_int_.end();
+           properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
   }
 
   template<class T>
