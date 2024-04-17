@@ -70,9 +70,11 @@ namespace micm
       hoststruct.absolute_tolerance_ = new double[parameters.absolute_tolerance_.size()];
       for(std::size_t i = 0; i < parameters.absolute_tolerance_.size(); ++i)
         hoststruct.absolute_tolerance_[i] = parameters.absolute_tolerance_[i];
+      hoststruct.absolute_tolerance_size_ = parameters.absolute_tolerance_.size();
 
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
+      delete hoststruct.absolute_tolerance_;
     };
 
     CudaRosenbrockSolver(

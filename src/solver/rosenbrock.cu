@@ -41,12 +41,14 @@ namespace micm
 
       /// Calculate the memory space of each temporary variable
       size_t errors_bytes = sizeof(double) * hoststruct.errors_size_;
+      size_t tolerance_bytes = sizeof(double) * hoststruct.absolute_tolerance_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
       cudaMalloc(&(devstruct.errors_input_), errors_bytes);
       cudaMalloc(&(devstruct.errors_output_), errors_bytes);
       cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
+      cudaMalloc(&(devstruct.absolute_tolerance_), tolerance_bytes);
 
       /// Copy the data from host to device
       cudaMemcpy(
@@ -54,9 +56,16 @@ namespace micm
           hoststruct.jacobian_diagonal_elements_,
           jacobian_diagonal_elements_bytes,
           cudaMemcpyHostToDevice);
+      
+      cudaMemcpy(
+          devstruct.absolute_tolerance_,
+          hoststruct.absolute_tolerance_,
+          tolerance_bytes,
+          cudaMemcpyHostToDevice);
 
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
+      devstruct.absolute_tolerance_size_ = hoststruct.absolute_tolerance_size_;
 
       return devstruct;
     }
@@ -68,6 +77,7 @@ namespace micm
       cudaFree(devstruct.errors_input_);
       cudaFree(devstruct.errors_output_);
       cudaFree(devstruct.jacobian_diagonal_elements_);
+      cudaFree(devstruct.absolute_tolerance_);
     }
 
     // Specific CUDA device function to do reduction within a warp
