@@ -161,7 +161,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<GPUMatrixPolicy, GPUSparseMatrixPolicy>>(number_of_grid_cells);
   auto gpu_jacobian = gpu_solver.GetState().jacobian_;
-  EXPECT_EQ(gpu_jacobian.size(), number_of_grid_cells);
+  EXPECT_EQ(gpu_jacobian.Size(), number_of_grid_cells);
   EXPECT_EQ(gpu_jacobian[0].size(), 5);
   EXPECT_EQ(gpu_jacobian[0][0].size(), 5);
   auto& gpu_jacobian_vec = gpu_jacobian.AsVector();
