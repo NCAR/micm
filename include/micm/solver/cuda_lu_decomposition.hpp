@@ -73,28 +73,18 @@ namespace micm
     ///   L is the lower triangular matrix created by decomposition
     ///   U is the upper triangular matrix created by decomposition
     template<typename T, template<class> typename SparseMatrixPolicy>
-    requires VectorizableSparse<SparseMatrixPolicy<T>> std::chrono::nanoseconds
-    Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+    requires VectorizableSparse<SparseMatrixPolicy<T>>
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
     const;
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy<T>>) std::chrono::nanoseconds
-      CudaLuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+  requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+  void CudaLuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
   const
   {
-    /// Once the CudaMatrix class is generated, we won't need the following lines any more;
-    CudaSparseMatrixParam sparseMatrix;
-    sparseMatrix.A_ = A.AsVector().data();
-    sparseMatrix.A_size_ = A.AsVector().size();
-    sparseMatrix.L_ = L.AsVector().data();
-    sparseMatrix.L_size_ = L.AsVector().size();
-    sparseMatrix.U_ = U.AsVector().data();
-    sparseMatrix.U_size_ = U.AsVector().size();
-    sparseMatrix.n_grids_ = A.size();
-
-    /// Call the "DecomposeKernelDriver" function that invokes the
-    ///   CUDA kernel to perform LU decomposition on the device
-    return micm::cuda::DecomposeKernelDriver(sparseMatrix, this->devstruct_);
+    auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
+    auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
+    micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_);
   }
 }  // end of namespace micm
