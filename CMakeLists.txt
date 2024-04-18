@@ -39,7 +39,7 @@ option(MICM_ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
-option(MICM_ENABLE_PROFILE "Profile MICM Solver" ON)
+option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
