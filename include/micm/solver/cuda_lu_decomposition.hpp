@@ -7,6 +7,7 @@
 #include <micm/solver/cuda_lu_decomposition.cuh>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 #include <stdexcept>
 
 namespace micm
@@ -73,13 +74,13 @@ namespace micm
     ///   L is the lower triangular matrix created by decomposition
     ///   U is the upper triangular matrix created by decomposition
     template<typename T, template<class> typename SparseMatrixPolicy>
-    requires VectorizableSparse<SparseMatrixPolicy<T>>
+    requires(CudaSparseMatrices<SparseMatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
     void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
     const;
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+  requires(CudaSparseMatrices<SparseMatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
   void CudaLuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
   const
   {
