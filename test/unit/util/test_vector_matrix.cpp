@@ -85,10 +85,10 @@ TEST(VectorMatrix, AssignmentFromVector)
 
 TEST(VectorMatrix, Axpy)
 {
-  testForEach<Group1MatrixAlias>();
-  testForEach<Group2MatrixAlias>();
-  testForEach<Group3MatrixAlias>();
-  testForEach<Group4MatrixAlias>();
+  testAxpy<Group1MatrixAlias>();
+  testAxpy<Group2MatrixAlias>();
+  testAxpy<Group3MatrixAlias>();
+  testAxpy<Group4MatrixAlias>();
 }
 
 TEST(VectorMatrix, ForEach)

@@ -95,7 +95,7 @@ TEST(Matrix, AssignmentFromVector)
 
 TEST(Matrix, Axpy)
 {
-  testForEach<micm::Matrix>();
+  testAxpy<micm::Matrix>();
 }
 
 TEST(Matrix, ForEach)
