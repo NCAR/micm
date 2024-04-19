@@ -87,14 +87,14 @@ namespace micm
     requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix);
+        const SparseMatrixPolicy<T>& lower_matrix,
+        const SparseMatrixPolicy<T>& upper_matrix);
     template<template<class> class MatrixPolicy>
     requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix);
+        const SparseMatrixPolicy<T>& lower_matrix,
+        const SparseMatrixPolicy<T>& upper_matrix);
   };
 
 }  // namespace micm

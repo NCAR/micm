@@ -11,17 +11,16 @@ namespace micm
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void SolveKernel(
-        double* d_lower_matrix,
-        double* d_upper_matrix,
-        double* d_b,
-        double* d_x,
-        LinearSolverParam devstruct,
-        size_t n_grids,
-        size_t b_column_counts,
-        size_t x_column_counts)
+      const CudaMatrixParam b_param,
+      CudaMatrixParam x_param,
+      const CudaMatrixParam L_param,
+      const CudaMatrixParam U_param,
+      const LinearSolverParam devstruct)
     {
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
+      // Calculate global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+
+      // Local device variables
       std::pair<size_t, size_t>* d_nLij_Lii = devstruct.nLij_Lii_;
       std::pair<size_t, size_t>* d_Lij_yj = devstruct.Lij_yj_;
       std::pair<size_t, size_t>* d_nUij_Uii = devstruct.nUij_Uii_;
@@ -29,7 +28,14 @@ namespace micm
       size_t nLij_Lii_size = devstruct.nLij_Lii_size_;
       size_t nUij_Uii_size = devstruct.nUij_Uii_size_;
 
-      if (tid < n_grids)
+      double* d_L = L_param.d_data_;
+      double* d_U = U_param.d_data_;
+      double* d_b = b_param.d_data_;
+      double* d_x = x_param.d_data_;
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory 
+      size_t number_of_grid_cells = b_param.number_of_grid_cells_;
+
+      if (tid < number_of_grid_cells)
       {
         size_t b_column_index = 0;
         size_t y_column_index = 0;
@@ -45,10 +51,10 @@ namespace micm
           {
             size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
             size_t y_index = d_Lij_yj[Lij_yj_index].second * n_grids + tid;
-            d_y[y_column_index * n_grids + tid] -= d_lower_matrix[lower_matrix_index] * d_y[y_index];
+            d_y[y_column_index * n_grids + tid] -= d_L[lower_matrix_index] * d_y[y_index];
             ++Lij_yj_index;
           }
-          d_y[y_column_index++ * n_grids + tid] /= d_lower_matrix[nLij_Lii_element.second + tid];
+          d_y[y_column_index++ * n_grids + tid] /= d_L[nLij_Lii_element.second + tid];
         }
 
         for (size_t k = 0; k < nUij_Uii_size; ++k)
@@ -59,10 +65,10 @@ namespace micm
           {
             size_t upper_matrix_index = d_Uij_xj[Uij_xj_index].first + tid;
             size_t x_index = d_Uij_xj[Uij_xj_index].second * n_grids + tid;
-            d_x[x_column_backward_index * n_grids + tid] -= d_upper_matrix[upper_matrix_index] * d_x[x_index];
+            d_x[x_column_backward_index * n_grids + tid] -= d_U[upper_matrix_index] * d_x[x_index];
             ++Uij_xj_index;
           }
-          d_x[x_column_backward_index * n_grids + tid] /= d_upper_matrix[nUij_Uii_element.second + tid];
+          d_x[x_column_backward_index * n_grids + tid] /= d_U[nUij_Uii_element.second + tid];
 
           if (x_column_backward_index != 0)
           {
@@ -113,64 +119,16 @@ namespace micm
       cudaFree(devstruct.Uij_xj_);
     }
 
-    std::chrono::nanoseconds SolveKernelDriver(
-        CudaSparseMatrixParam& sparseMatrix,
-        CudaMatrixParam_to_be_removed& denseMatrix,
-        const LinearSolverParam& devstruct)
+    void SolveKernelDriver(
+      const CudaMatrixParam& b_param,
+      CudaMatrixParam& x_param,
+      const CudaMatrixParam& L_param,
+      const CudaMatrixParam& U_param,
+      const LinearSolverParam& devstruct)
     {
-      /// Create device pointers
-      double* d_lower_matrix;
-      double* d_upper_matrix;
-      double* d_b;
-      double* d_x;
-
-      /// Allocate device memory
-      cudaMalloc(&d_lower_matrix, sizeof(double) * sparseMatrix.lower_matrix_size_);
-      cudaMalloc(&d_upper_matrix, sizeof(double) * sparseMatrix.upper_matrix_size_);
-      cudaMalloc(&d_b, sizeof(double) * denseMatrix.b_size_);
-      cudaMalloc(&d_x, sizeof(double) * denseMatrix.x_size_);
-
-      /// Copy data from host to device
-      cudaMemcpy(
-          d_lower_matrix,
-          sparseMatrix.lower_matrix_,
-          sizeof(double) * sparseMatrix.lower_matrix_size_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          d_upper_matrix,
-          sparseMatrix.upper_matrix_,
-          sizeof(double) * sparseMatrix.upper_matrix_size_,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(d_b, denseMatrix.b_, sizeof(double) * denseMatrix.b_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_x, denseMatrix.x_, sizeof(double) * denseMatrix.x_size_, cudaMemcpyHostToDevice);
-
-      size_t num_block = (denseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-      /// Call CUDA kernel and measure the execution time
-      auto startTime = std::chrono::high_resolution_clock::now();
-      SolveKernel<<<num_block, BLOCK_SIZE>>>(
-          d_lower_matrix,
-          d_upper_matrix,
-          d_b,
-          d_x,
-          devstruct,
-          denseMatrix.n_grids_,
-          denseMatrix.b_column_counts_,
-          denseMatrix.x_column_counts_);
+      size_t number_of_blocks = (b_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(b_param, x_param, L_param, U_param, devstruct);
       cudaDeviceSynchronize();
-      auto endTime = std::chrono::high_resolution_clock::now();
-      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-
-      /// Copy the data from device to host
-      cudaMemcpy(denseMatrix.x_, d_x, sizeof(double) * denseMatrix.x_size_, cudaMemcpyDeviceToHost);
-
-      /// Clean up
-      cudaFree(d_lower_matrix);
-      cudaFree(d_upper_matrix);
-      cudaFree(d_b);
-      cudaFree(d_x);
-
-      return kernel_duration;
     }
   }  // namespace cuda
 }  // namespace micm
