@@ -5,9 +5,9 @@
 #include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/cuda_sparse_matrix.hpp>
 #include <random>
 #include <vector>
 
@@ -73,7 +73,7 @@ void testRandomMatrix(size_t n_grids)
           cpu_A[i_block][i][j] = get_double();
           gpu_A[i_block][i][j] = cpu_A[i_block][i][j];
         }
-  
+
   micm::CudaLuDecomposition gpu_lud(gpu_A);
   auto gpu_LU = micm::CudaLuDecomposition::GetLUMatrices(gpu_A, 1.0e-30);
   gpu_A.CopyToDevice();

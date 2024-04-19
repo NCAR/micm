@@ -10,10 +10,11 @@ namespace micm
   namespace cuda
   {
     /// This is the CUDA kernel that performs LU decomposition on the device
-    __global__ void DecomposeKernel(const CudaMatrixParam A_param,
-                                    CudaMatrixParam L_param,
-                                    CudaMatrixParam U_param,
-                                    const LuDecomposeParam devstruct)
+    __global__ void DecomposeKernel(
+        const CudaMatrixParam A_param,
+        CudaMatrixParam L_param,
+        CudaMatrixParam U_param,
+        const LuDecomposeParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -161,10 +162,11 @@ namespace micm
       cudaFree(devstruct.uii_);
     }
 
-    void DecomposeKernelDriver(const CudaMatrixParam& A_param,
-                               CudaMatrixParam& L_param,
-                               CudaMatrixParam& U_param,
-                               const LuDecomposeParam& devstruct)
+    void DecomposeKernelDriver(
+        const CudaMatrixParam& A_param,
+        CudaMatrixParam& L_param,
+        CudaMatrixParam& U_param,
+        const LuDecomposeParam& devstruct)
     {
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct);

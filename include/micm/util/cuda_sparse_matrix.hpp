@@ -18,12 +18,15 @@ namespace micm
   template<typename T>
   concept CudaSparseMatrices = requires(T t)
   {
-    { t.CopyToDevice() }
-    ->std::same_as<void>;
-    { t.CopyToHost() }
-    ->std::same_as<void>;
-    { t.AsDeviceParam() }
-    ->std::same_as<CudaMatrixParam>;
+    {
+      t.CopyToDevice()
+      } -> std::same_as<void>;
+    {
+      t.CopyToHost()
+      } -> std::same_as<void>;
+    {
+      t.AsDeviceParam()
+      } -> std::same_as<CudaMatrixParam>;
   };
 
   template<class T, class OrderingPolicy>
