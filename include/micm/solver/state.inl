@@ -143,7 +143,8 @@ namespace micm
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(6) << "time";
-    if (variables_.NumRows() > 1) {
+    if (variables_.NumRows() > 1)
+    {
       std::cout << "," << std::setw(6) << "grid";
     }
 

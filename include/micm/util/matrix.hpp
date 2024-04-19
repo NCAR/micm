@@ -184,7 +184,7 @@ namespace micm
     {
       return y_dim_;
     }
-  
+
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, x * y_dim_, y_dim_);
