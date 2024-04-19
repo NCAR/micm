@@ -16,10 +16,7 @@ struct InitialConditions
 
   bool empty()
   {
-    if (!environments.empty())
-      return false;
-    else
-      return true;
+    return environments.empty();
   }
 
   bool is_incomplete()
@@ -163,9 +160,9 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.custom_rate_params[key + ".effective radius [m]"].emplace_back(value);
       }
-      catch(const std::exception& e)
+      catch(std::invalid_argument)
       {
-        std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
@@ -175,9 +172,9 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.custom_rate_params[key + ".particle number concentration [# m-3]"].emplace_back(value);
       }
-      catch(const std::exception& e)
+      catch(std::invalid_argument)
       {
-        std::cerr << e.what() << ": Parsing Error: Unable to convert string to double for the value of '" << value_string << "'" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }

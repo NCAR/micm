@@ -563,7 +563,7 @@ namespace micm
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
     std::size_t N = Y.AsVector().size();
-    size_t n_species = state_parameters_.number_of_species_;
+    std::size_t n_species = state_parameters_.number_of_species_;
 
     double ymax = 0;
     double errors_over_scale = 0;
