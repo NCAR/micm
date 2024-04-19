@@ -26,6 +26,8 @@ void TestTerminator(
 {
   auto cl2 = micm::Species("Cl2");
   auto cl = micm::Species("Cl");
+  cl.SetProperty("absolute tolerance", 1.0e-20);
+  cl2.SetProperty("absolute tolerance", 1.0e-20);
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ cl2, cl } };
 

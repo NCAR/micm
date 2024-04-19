@@ -79,8 +79,7 @@ int main(const int argc, const char *argv[])
     auto chemical_system = solver_params.system_;
     auto reactions = solver_params.processes_;
 
-    auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
-    params.relative_tolerance_ = 0.1;
+    auto params = solver_params.parameters_;
     RosenbrockSolver<> solver{ chemical_system, reactions, params};
 
     State state = solver.GetState();
