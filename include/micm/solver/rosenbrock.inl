@@ -603,7 +603,7 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
-    std::size_t N = Y.AsVector().size();
+    std::size_t N = Y.NumRows() * Y.NumColumns();
     const size_t L = Y.GroupVectorSize();
     size_t n_species = state_parameters_.number_of_species_;
 

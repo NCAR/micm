@@ -249,15 +249,15 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
 
 TEST(RosenbrockSolver, NormalizedError) {
   // Exact fits
-  testNormalizedErrorDiff<Group1VectorMatrix, Group1SparseVectorMatrix>(1);
-  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix>(2);
-  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix>(3);
-  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix>(4);
+  testNormalizedErrorDiff<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(4);
 
   // Inexact fits
-  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix>(1);
-  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix>(2);
-  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix>(3);
-  testNormalizedErrorDiff<Group8VectorMatrix, Group8SparseVectorMatrix>(5);
-  testNormalizedErrorDiff<Group10VectorMatrix, Group10SparseVectorMatrix>(3);
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group8VectorMatrix, Group8SparseVectorMatrix, micm::LinearSolver<double, Group8SparseVectorMatrix>>(5);
+  testNormalizedErrorDiff<Group10VectorMatrix, Group10SparseVectorMatrix, micm::LinearSolver<double, Group10SparseVectorMatrix>>(3);
 }

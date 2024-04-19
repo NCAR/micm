@@ -199,7 +199,6 @@ namespace micm
         SolverStats& stats,
         State<MatrixPolicy, SparseMatrixPolicy>& state);
 
-   protected:
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
     /// @param y_new the new vector
