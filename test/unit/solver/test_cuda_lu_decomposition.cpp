@@ -98,11 +98,11 @@ void testRandomMatrix(size_t n_grids)
   std::vector<double> cpu_U_vector = cpu_LU.second.AsVector();
   for (int i = 0; i < L_size; ++i)
   {
-    EXPECT_EQ(gpu_L_vector[i], cpu_L_vector[i]);
+    EXPECT_DOUBLE_EQ(gpu_L_vector[i], cpu_L_vector[i]);
   };
   for (int j = 0; j < U_size; ++j)
   {
-    EXPECT_EQ(gpu_U_vector[j], cpu_U_vector[j]);
+    EXPECT_DOUBLE_EQ(gpu_U_vector[j], cpu_U_vector[j]);
   };
 }
 
