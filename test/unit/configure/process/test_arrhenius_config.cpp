@@ -7,20 +7,28 @@ TEST(ArrheniusConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_reactants");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
-  status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_products");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
-  status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/mutually_exclusive");
-  EXPECT_EQ(micm::ConfigParseStatus::MutuallyExclusiveOption, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_reactants");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_products");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/mutually_exclusive");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::MutuallyExclusiveOption));
+  }
 }
 
 TEST(ArrheniusConfig, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/valid");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solver_config.ReadAndParse("./unit_configs/process/arrhenius/valid"));
 
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
 
@@ -95,22 +103,31 @@ TEST(ArrheniusConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/contains_nonstandard_key");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/contains_nonstandard_key");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }
 
 TEST(ArrheniusConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }
 
 TEST(ArrheniusConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }

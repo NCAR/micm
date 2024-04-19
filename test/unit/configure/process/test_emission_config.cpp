@@ -7,18 +7,23 @@ TEST(EmissionConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/emission/missing_products");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
-  status = solver_config.ReadAndParse("./unit_configs/process/emission/missing_MUSICA_name");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/emission/missing_products");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/emission/missing_MUSICA_name");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
 }
 
 TEST(EmissionConfig, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/emission/valid");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solver_config.ReadAndParse("./unit_configs/process/emission/valid"));
 
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
 
@@ -55,6 +60,9 @@ TEST(EmissionConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/emission/contains_nonstandard_key");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try {
+    solver_config.ReadAndParse("./unit_configs/process/emission/contains_nonstandard_key");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }

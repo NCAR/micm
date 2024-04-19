@@ -232,12 +232,7 @@ int main(const int argc, const char *argv[])
 
     // Read configure files
     SolverConfig solverConfig;
-    ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-    if (status != ConfigParseStatus::Success) 
-    {
-        std::cout << "Error: Parsing configuration data failed" << std::endl; 
-        return 1;
-    }
+    solverConfig.ReadAndParse(config_path);
 
     // Read csv file containing initial conditions 
     auto dataMap = readCSVToMap(initial_conditions_file);
