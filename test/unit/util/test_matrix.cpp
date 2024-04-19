@@ -93,6 +93,11 @@ TEST(Matrix, AssignmentFromVector)
   testAssignmentFromVector<micm::Matrix>();
 }
 
+TEST(Matrix, Axpy)
+{
+  testAxpy<micm::Matrix>();
+}
+
 TEST(Matrix, ForEach)
 {
   testForEach<micm::Matrix>();

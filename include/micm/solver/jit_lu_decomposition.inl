@@ -33,7 +33,7 @@ namespace micm
         compiler_(compiler)
   {
     decompose_function_ = NULL;
-    if (matrix.size() > L)
+    if (matrix.Size() > L)
     {
       throw std::runtime_error("Invalid matrix for JitLuDecomposition. Check the the VectorMatrix template parameters.");
     }

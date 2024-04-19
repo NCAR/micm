@@ -1,26 +1,9 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#define TIMED_METHOD(assigned_increment, time_it, method, ...)                                 \
-  {                                                                                            \
-    if constexpr (time_it)                                                                     \
-    {                                                                                          \
-      auto start = std::chrono::high_resolution_clock::now();                                  \
-      method(__VA_ARGS__);                                                                     \
-      auto end = std::chrono::high_resolution_clock::now();                                    \
-      assigned_increment += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start); \
-    }                                                                                          \
-    else                                                                                       \
-    {                                                                                          \
-      method(__VA_ARGS__);                                                                     \
-    }                                                                                          \
-  }
-
 namespace micm
 {
-  //
-  // RosenbrockSolver
-  //
+
   inline void SolverStats::Reset()
   {
     function_calls = 0;
@@ -31,11 +14,6 @@ namespace micm
     decompositions = 0;
     solves = 0;
     singular = 0;
-    total_update_state_time = std::chrono::nanoseconds::zero();
-    total_forcing_time = std::chrono::nanoseconds::zero();
-    total_jacobian_time = std::chrono::nanoseconds::zero();
-    total_linear_factor_time = std::chrono::nanoseconds::zero();
-    total_linear_solve_time = std::chrono::nanoseconds::zero();
   }
 
   inline std::string StateToString(const SolverState& state)
@@ -114,6 +92,8 @@ namespace micm
         process_set_(),
         linear_solver_()
   {
+    MICM_PROFILE_FUNCTION();
+
     std::map<std::string, std::size_t> variable_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
 
@@ -194,6 +174,7 @@ namespace micm
         process_set_.NonZeroJacobianElements(), parameters_.number_of_grid_cells_, system.StateSize());
 
     std::vector<std::size_t> jacobian_diagonal_elements;
+    jacobian_diagonal_elements.reserve(jacobian[0].size());
     for (std::size_t i = 0; i < jacobian[0].size(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
@@ -229,12 +210,13 @@ namespace micm
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
-  template<bool time_it>
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::Solve(
       double time_step,
       State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept
   {
+    MICM_PROFILE_FUNCTION();
+
     typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult result{};
     result.state_ = SolverState::Running;
     // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
@@ -245,20 +227,24 @@ namespace micm
     for (auto& u : upper)
       u = 0;
     MatrixPolicy<double> Y(state.variables_);
-    MatrixPolicy<double> Ynew(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> initial_forcing(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> forcing(Y.size(), Y[0].size(), 0.0);
-    MatrixPolicy<double> temp(Y.size(), Y[0].size(), 0.0);
+    std::size_t num_rows = Y.NumRows();
+    std::size_t num_cols = Y.NumColumns();
+    MatrixPolicy<double> Ynew(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> initial_forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> forcing(num_rows, num_cols, 0.0);
+    MatrixPolicy<double> temp(num_rows, num_cols, 0.0);
     std::vector<MatrixPolicy<double>> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
-    TIMED_METHOD(stats.total_update_state_time, time_it, UpdateState, state);
 
+    UpdateState(state);
+
+    K.reserve(parameters_.stages_);
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
-      K.push_back(MatrixPolicy<double>(Y.size(), Y[0].size(), 0.0));
+      K.emplace_back(num_rows, num_cols, 0.0);
 
     double present_time = 0.0;
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
@@ -290,11 +276,11 @@ namespace micm
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the forcing at the beginning of the current time
-      TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Y, initial_forcing);
+      CalculateForcing(state.rate_constants_, Y, initial_forcing);
       stats.function_calls += 1;
 
       // compute the negative jacobian at the beginning of the current time
-      TIMED_METHOD(stats.total_jacobian_time, time_it, CalculateNegativeJacobian, state.rate_constants_, Y, state.jacobian_);
+      CalculateNegativeJacobian(state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates += 1;
 
       bool accepted = false;
@@ -303,8 +289,7 @@ namespace micm
       {
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        TIMED_METHOD(
-            stats.total_linear_factor_time, time_it, LinearFactor, H, parameters_.gamma_[0], is_singular, Y, stats, state);
+        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
         if (is_singular)
         {
           result.state_ = SolverState::RepeatedlySingularMatrix;
@@ -326,41 +311,31 @@ namespace micm
               Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
               for (uint64_t j = 0; j < stage; ++j)
               {
-                auto a = parameters_.a_[stage_combinations + j];
-                Ynew.ForEach([&](double& iYnew, const double& iKj) { iYnew += a * iKj; }, K[j]);
+                Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
               }
-              TIMED_METHOD(stats.total_forcing_time, time_it, CalculateForcing, state.rate_constants_, Ynew, forcing);
+              CalculateForcing(state.rate_constants_, Ynew, forcing);
               stats.function_calls += 1;
             }
           }
           K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
           for (uint64_t j = 0; j < stage; ++j)
           {
-            auto HC = parameters_.c_[stage_combinations + j] / H;
-            K[stage].ForEach([&](double& iKstage, const double& iKj) { iKstage += HC * iKj; }, K[j]);
+            K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
           temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
-          TIMED_METHOD(
-              stats.total_linear_solve_time,
-              time_it,
-              linear_solver_.template Solve<MatrixPolicy>,
-              temp,
-              K[stage],
-              state.lower_matrix_,
-              state.upper_matrix_);
+          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
 
         // Compute the new solution
         Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.ForEach([&](double& iYnew, const double& iKstage) { iYnew += parameters_.m_[stage] * iKstage; }, K[stage]);
+          Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
         // Compute the error estimation
-        MatrixPolicy<double> Yerror(Y.size(), Y[0].size(), 0);
+        MatrixPolicy<double> Yerror(num_rows, num_cols, 0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.ForEach(
-              [&](double& iYerror, const double& iKstage) { iYerror += parameters_.e_[stage] * iKstage; }, K[stage]);
+          Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         auto error = NormalizedError(Y, Ynew, Yerror);
 
@@ -423,6 +398,7 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats;
     result.result_ = Y;
+
     return result;
   }
 
@@ -438,6 +414,8 @@ namespace micm
       const MatrixPolicy<double>& number_densities,
       MatrixPolicy<double>& forcing)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.template AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
   }
@@ -453,7 +431,9 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian,
       const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
-    for (std::size_t i_block = 0; i_block < jacobian.size(); ++i_block)
+    MICM_PROFILE_FUNCTION();
+
+    for (std::size_t i_block = 0; i_block < jacobian.Size(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
@@ -472,9 +452,10 @@ namespace micm
       SparseMatrixPolicy<double>& jacobian,
       const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
-    const std::size_t n_cells = jacobian.GroupVectorSize();
+    MICM_PROFILE_FUNCTION();
 
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.size()); ++i_group)
+    const std::size_t n_cells = jacobian.GroupVectorSize();
+    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
@@ -496,6 +477,8 @@ namespace micm
       const MatrixPolicy<double>& number_densities,
       SparseMatrixPolicy<double>& jacobian)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(
         rate_constants, number_densities, jacobian);
@@ -529,6 +512,8 @@ namespace micm
       SolverStats& stats,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+
     auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
     singular = false;
@@ -571,23 +556,29 @@ namespace micm
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
 
-    auto _y = Y.AsVector();
-    auto _ynew = Ynew.AsVector();
-    auto _errors = errors.AsVector();
-    size_t N = Y.AsVector().size();
-    size_t n_species = state_parameters_.number_of_species_;
+    MICM_PROFILE_FUNCTION();
 
+    auto& _y = Y.AsVector();
+    auto& _ynew = Ynew.AsVector();
+    auto& _errors = errors.AsVector();
+    std::size_t N = Y.AsVector().size();
+    std::size_t n_species = state_parameters_.number_of_species_;
+
+    double ymax = 0;
+    double errors_over_scale = 0;
     double error = 0;
 
-    for (size_t i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
-      double ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      double scale = parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax;
-      error += std::pow(_errors[i] / scale, 2);
+      ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
+      errors_over_scale =
+          _errors[i] / (parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax);
+      error += errors_over_scale * errors_over_scale;
     }
 
-    double error_min_ = 1.0e-10;
-    return std::max(std::sqrt(error / N), error_min_);
+    double error_min = 1.0e-10;
+
+    return std::max(std::sqrt(error / N), error_min);
   }
 
 }  // namespace micm

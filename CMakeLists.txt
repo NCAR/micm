@@ -32,13 +32,14 @@ option(MICM_ENABLE_MPI "Enable MPI parallel support" OFF)
 option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
-option(MICM_ENABLE_JSON "Enable json configureation file reading" ON)
+option(MICM_ENABLE_JSON "Enable json configuration file reading" ON)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_CUDA "Build with Cuda support" OFF)
 option(MICM_ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
+option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
@@ -107,16 +108,16 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STR
 endif()
 
 ################################################################################
-# Command-line driver examples
+# Command-line driver examples / Command-line profiler
 
-if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_EXAMPLES AND MICM_ENABLE_JSON)
+if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_JSON AND (MICM_ENABLE_EXAMPLES OR MICM_ENABLE_PROFILE))
   add_subdirectory(examples)
 endif()
 
 ################################################################################
 # Copy configuration data
 
-if(PROJECT_IS_TOP_LEVEL AND (MICM_ENABLE_TESTS OR MICM_ENABLE_EXAMPLES))
+if(PROJECT_IS_TOP_LEVEL AND (MICM_ENABLE_TESTS OR MICM_ENABLE_EXAMPLES OR MICM_ENABLE_PROFILE))
   add_custom_target(copy_example_configs ALL ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/examples/configs ${CMAKE_BINARY_DIR}/examples/configs)
 endif()

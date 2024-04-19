@@ -54,7 +54,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
 
   ProcessSetPolicy set = create_set(std::vector<micm::Process>{ r1, r2, r3 }, state);
 
-  EXPECT_EQ(state.variables_.size(), 2);
+  EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_[0].size(), 6);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
