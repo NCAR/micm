@@ -91,7 +91,7 @@ namespace micm
     sparseMatrix.L_size_ = L.AsVector().size();
     sparseMatrix.U_ = U.AsVector().data();
     sparseMatrix.U_size_ = U.AsVector().size();
-    sparseMatrix.n_grids_ = A.size();
+    sparseMatrix.n_grids_ = A.Size();
 
     /// Call the "DecomposeKernelDriver" function that invokes the
     ///   CUDA kernel to perform LU decomposition on the device

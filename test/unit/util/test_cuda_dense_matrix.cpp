@@ -398,9 +398,9 @@ TEST(CudaDenseMatrix, InitializeConstVectorMatrix)
 TEST(CudaDenseMatrix, LoopOverVectorMatrix)
 {
   Group2MatrixAlias<double> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix[i].size(); ++j)
+    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
@@ -423,9 +423,9 @@ TEST(CudaDenseMatrix, LoopOverVectorMatrix)
 TEST(CudaDenseMatrix, LoopOverConstVectorMatrix)
 {
   Group2MatrixAlias<double> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix[i].size(); ++j)
+    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
@@ -477,13 +477,14 @@ TEST(CudaDenseMatrix, ConversionFromVector)
 {
   Group2MatrixAlias<double> zero_matrix = std::vector<std::vector<double>>{};
 
-  EXPECT_EQ(zero_matrix.size(), 0);
+  EXPECT_EQ(zero_matrix.NumRows(), 0);
 
   std::vector<std::vector<double>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
 
   Group2MatrixAlias<double> matrix = vec;
 
-  EXPECT_EQ(matrix.size(), 2);
+  EXPECT_EQ(matrix.NumRows(), 2);
+  EXPECT_EQ(matrix.NumColumns(), 3);
   EXPECT_EQ(matrix[0].size(), 3);
   EXPECT_EQ(matrix[0][0], 412.3);
   EXPECT_EQ(matrix[0][1], 32.4);

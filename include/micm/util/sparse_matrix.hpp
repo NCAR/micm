@@ -211,7 +211,7 @@ namespace micm
       return false;
     }
 
-    std::size_t size() const
+    std::size_t Size() const
     {
       return number_of_blocks_;
     }

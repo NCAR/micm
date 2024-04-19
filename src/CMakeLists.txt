@@ -101,6 +101,10 @@ if(MICM_ENABLE_CUDA)
 
 endif()
 
+if (MICM_ENABLE_PROFILE)
+  target_compile_definitions(micm INTERFACE MICM_PROFILE)
+endif()
+
 add_subdirectory(process)
 add_subdirectory(solver)
 add_subdirectory(util)

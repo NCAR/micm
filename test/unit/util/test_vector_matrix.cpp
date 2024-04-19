@@ -83,6 +83,14 @@ TEST(VectorMatrix, AssignmentFromVector)
   testAssignmentFromVector<Group2MatrixAlias>();
 }
 
+TEST(VectorMatrix, Axpy)
+{
+  testAxpy<Group1MatrixAlias>();
+  testAxpy<Group2MatrixAlias>();
+  testAxpy<Group3MatrixAlias>();
+  testAxpy<Group4MatrixAlias>();
+}
+
 TEST(VectorMatrix, ForEach)
 {
   testForEach<Group1MatrixAlias>();

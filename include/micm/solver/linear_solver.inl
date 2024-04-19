@@ -6,7 +6,9 @@ namespace micm
   template<template<class> class MatrixPolicy>
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {
-    const std::size_t order = matrix.size();
+    MICM_PROFILE_FUNCTION();
+    
+    const std::size_t order = matrix.NumRows();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
       perm[i] = i;
@@ -71,6 +73,8 @@ namespace micm
         Uij_xj_(),
         lu_decomp_(create_lu_decomp(matrix))
   {
+    MICM_PROFILE_FUNCTION();
+
     auto lu = lu_decomp_.template GetLUMatrices<T, SparseMatrixPolicy>(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
@@ -110,6 +114,8 @@ namespace micm
       SparseMatrixPolicy<T>& lower_matrix,
       SparseMatrixPolicy<T>& upper_matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
@@ -120,6 +126,8 @@ namespace micm
       SparseMatrixPolicy<T>& upper_matrix,
       bool& is_singular)
   {
+    MICM_PROFILE_FUNCTION();
+
     lu_decomp_.template Decompose<T, SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix, is_singular);
   }
 
@@ -134,7 +142,9 @@ namespace micm
           SparseMatrixPolicy<T>& lower_matrix,
           SparseMatrixPolicy<T>& upper_matrix)
   {
-    for (std::size_t i_cell = 0; i_cell < b.size(); ++i_cell)
+    MICM_PROFILE_FUNCTION();
+
+    for (std::size_t i_cell = 0; i_cell < b.NumRows(); ++i_cell)
     {
       auto b_cell = b[i_cell];
       auto x_cell = x[i_cell];
@@ -189,6 +199,8 @@ namespace micm
           SparseMatrixPolicy<T>& lower_matrix,
           SparseMatrixPolicy<T>& upper_matrix)
   {
+    MICM_PROFILE_FUNCTION();
+    
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
@@ -199,24 +211,24 @@ namespace micm
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
       auto U_group =
           std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
-      auto y_group = x_group;  // Alias x for consistency with equations, but to reuse memory
       {
-        auto b_elem = b_group;
-        auto y_elem = y_group;
+        auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            y_elem[i_cell] = b_elem[i_cell];
-          b_elem += n_cells;
+          std::copy(b_group, b_group + n_cells, y_elem);
+          b_group += n_cells;
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
+            std::size_t Lij_yj_first = (*Lij_yj).first;
+            std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              y_elem[i_cell] -= L_group[(*Lij_yj).first + i_cell] * y_group[(*Lij_yj).second * n_cells + i_cell];
+              y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
             ++Lij_yj;
           }
+          std::size_t nLij_Lii_second = nLij_Lii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            y_elem[i_cell] /= L_group[nLij_Lii.second + i_cell];
+            y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
           y_elem += n_cells;
         }
       }
@@ -228,12 +240,15 @@ namespace micm
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
+            std::size_t Uij_xj_first = (*Uij_xj).first;
+            std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              x_elem[i_cell] -= U_group[(*Uij_xj).first + i_cell] * x_group[(*Uij_xj).second * n_cells + i_cell];
+              x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
             ++Uij_xj;
           }
+          std::size_t nUij_Uii_second = nUij_Uii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            x_elem[i_cell] /= U_group[nUij_Uii.second + i_cell];
+            x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
 
           // don't iterate before the beginning of the vector
           std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);

@@ -44,7 +44,8 @@ namespace micm
             y_dim_(y_dim)
       {
       }
-      Proxy &operator=(const std::vector<T> other)
+
+      Proxy &operator=(const std::vector<T> &other)
       {
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
@@ -145,7 +146,7 @@ namespace micm
     {
     }
 
-    Matrix(const std::vector<std::vector<T>> other)
+    Matrix(const std::vector<std::vector<T>> &other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
@@ -174,11 +175,16 @@ namespace micm
     {
     }
 
-    std::size_t size() const
+    std::size_t NumRows() const
     {
       return x_dim_;
     }
 
+    std::size_t NumColumns() const
+    {
+      return y_dim_;
+    }
+  
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, x * y_dim_, y_dim_);
@@ -193,6 +199,17 @@ namespace micm
     {
       std::transform(data_.begin(), data_.end(), data_.begin(), [&](auto &_) { return val; });
       return *this;
+    }
+
+    /// @brief For each element in the Matrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the Matrix x
+    /// @param x The input Matrix
+    void Axpy(const double &alpha, const Matrix &x)
+    {
+      auto x_iter = x.AsVector().begin();
+      for (auto &y : data_)
+        y += alpha * (*(x_iter++));
     }
 
     void ForEach(const std::function<void(T &, const T &)> f, const Matrix &a)

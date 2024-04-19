@@ -50,7 +50,7 @@ void test_solver_type(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
-      auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
 
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
@@ -62,10 +62,6 @@ void test_solver_type(auto& solver)
       total_stats.decompositions += result.stats_.decompositions;
       total_stats.solves += result.stats_.solves;
       total_stats.singular += result.stats_.singular;
-      total_stats.total_forcing_time += result.stats_.total_forcing_time;
-      total_stats.total_jacobian_time += result.stats_.total_jacobian_time;
-      total_stats.total_linear_factor_time += result.stats_.total_linear_factor_time;
-      total_stats.total_linear_solve_time += result.stats_.total_linear_solve_time;
 
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
@@ -83,10 +79,6 @@ void test_solver_type(auto& solver)
   std::cout << "decompositions: " << total_stats.decompositions << std::endl;
   std::cout << "solves: " << total_stats.solves << std::endl;
   std::cout << "singular: " << total_stats.singular << std::endl;
-  std::cout << "total_forcing_time: " << total_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_jacobian_time: " << total_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_factor_time: " << total_stats.total_linear_factor_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_solve_time: " << total_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl;
 }
 
 int main()

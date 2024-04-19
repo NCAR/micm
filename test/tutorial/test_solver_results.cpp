@@ -77,14 +77,4 @@ int main()
   std::cout << "solves: " << result.stats_.solves << std::endl;
   std::cout << "singular: " << result.stats_.singular << std::endl;
   std::cout << "final simulation time: " << result.final_time_ << std::endl;
-
-  auto start = std::chrono::high_resolution_clock::now();
-  result = solver.Solve<true>(time_step, state);
-  auto end = std::chrono::high_resolution_clock::now();
-  auto solve_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-  std::cout << "Total solve time: " << solve_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_forcing_time: " << result.stats_.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_jacobian_time: " << result.stats_.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_factor_time: " << result.stats_.total_linear_factor_time.count() << " nanoseconds" << std::endl;
-  std::cout << "total_linear_solve_time: " << result.stats_.total_linear_solve_time.count() << " nanoseconds" << std::endl;
 }
