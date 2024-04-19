@@ -235,7 +235,7 @@ namespace micm
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + i_rxn * L;
-        rate.assign(v_rate_subrange_begin , v_rate_subrange_begin + L);
+        rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];

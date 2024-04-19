@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <micm/profiler/instrumentation.hpp>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
