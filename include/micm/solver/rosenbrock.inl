@@ -604,6 +604,7 @@ namespace micm
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
     std::size_t N = Y.AsVector().size();
+    const size_t L = Y.GroupVectorSize();
     size_t n_species = state_parameters_.number_of_species_;
 
     std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
@@ -613,7 +614,7 @@ namespace micm
 
     // compute the error over the blocks which fit exactly into the L parameter
     for(std::size_t i = 0; i < whole_blocks; ++i) {
-      errors_over_scale = *errors_iter / (parameters_.absolute_tolerance_[i % n_species] +
+      errors_over_scale = *errors_iter / (parameters_.absolute_tolerance_[(i / L) % n_species] +
                                           parameters_.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
       ++y_iter;
@@ -622,14 +623,13 @@ namespace micm
     }
 
     // compute the error over the remaining elements that are in the next group but didn't fill a full group
-    size_t remaining_blocks = Y.NumRows() % Y.GroupVectorSize();
-    const size_t L = Y.GroupVectorSize();
+    size_t remaining_rows = Y.NumRows() % Y.GroupVectorSize();
     
-    if (remaining_blocks > 0){
+    if (remaining_rows > 0){
       for(std::size_t y = 0; y < Y.NumColumns(); ++y) {
-        for(std::size_t x = 0; x < remaining_blocks; ++x) {
+        for(std::size_t x = 0; x < remaining_rows; ++x) {
           size_t idx = y * L + x;
-          errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_[idx % n_species] +
+          errors_over_scale = errors_iter[idx] / (parameters_.absolute_tolerance_[y] +
                                               parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
         }
