@@ -333,7 +333,6 @@ namespace micm
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
-          std::fill(d_rate_d_ind.begin(), d_rate_d_ind.end(), 0);
           std::copy(
               v_rate_constants.begin() + offset_rc + i_rxn * L,
               v_rate_constants.begin() + offset_rc + i_rxn * L + L,
@@ -358,6 +357,7 @@ namespace micm
               v_jacobian[offset_jacobian + *flat_id + i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
             ++flat_id;
           }
+          std::fill(d_rate_d_ind.begin(), d_rate_d_ind.end(), 0);
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
