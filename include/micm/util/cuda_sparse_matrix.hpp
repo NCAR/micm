@@ -14,6 +14,18 @@
 
 namespace micm
 {
+  /// Concept for Cuda Spase matrices
+  template<typename T>
+  concept CudaSparseMatrices = requires(T t)
+  {
+    { t.CopyToDevice() }
+    ->std::same_as<void>;
+    { t.CopyToHost() }
+    ->std::same_as<void>;
+    { t.AsDeviceParam() }
+    ->std::same_as<CudaMatrixParam>;
+  };
+
   template<class T, class OrderingPolicy>
   class CudaSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
@@ -120,7 +132,7 @@ namespace micm
       CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
 
-    CudaMatrixParam AsDeviceParam()
+    CudaMatrixParam AsDeviceParam() const
     {
       return this->param_;
     }
