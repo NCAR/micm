@@ -177,7 +177,7 @@ namespace micm
       // Look for CAMP config path
       if (!std::filesystem::exists(config_path))
       {
-        return ConfigParseStatus{ MicmConfigErrc::InvalidCAMPFilePath, config_path };
+        return ConfigParseStatus{ MicmConfigErrc::InvalidCAMPFilePath, config_path.string() };
       }
 
       std::filesystem::path config_dir;
@@ -196,13 +196,11 @@ namespace micm
         config_file = config_path;
       }
 
-      // std::cout << "config_file " << config_file << std::endl;
-
       // Load the CAMP file list JSON
       json camp_data = json::parse(std::ifstream(config_file));
       if (!camp_data.contains(CAMP_FILES))
       {
-        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesSectionNotFound, config_file };
+        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesSectionNotFound, config_file.string() };
       }
 
       // Build a list of individual CAMP config files
@@ -220,7 +218,7 @@ namespace micm
       // No config files found
       if (camp_files.size() < 1)
       {
-        return ConfigParseStatus{ MicmConfigErrc::NoConfigFilesFound, config_file };
+        return ConfigParseStatus{ MicmConfigErrc::NoConfigFilesFound, config_file.string() };
       }
 
       std::vector<json> species_objects;
@@ -261,7 +259,7 @@ namespace micm
         }
         else
         {
-          return ConfigParseStatus{ MicmConfigErrc::CAMPDataSectionNotFound, config_path };
+          return ConfigParseStatus{ MicmConfigErrc::CAMPDataSectionNotFound, config_path.string() };
         }
       }
 

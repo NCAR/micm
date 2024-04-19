@@ -69,11 +69,7 @@ int main()
   SolverConfig solverConfig;
 
   std::string config_path = "./configs/robertson";
-  ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  if (status != micm::ConfigParseStatus::Success)
-  {
-    throw "Parsing failed";
-  }
+  solverConfig.ReadAndParse(config_path);
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
