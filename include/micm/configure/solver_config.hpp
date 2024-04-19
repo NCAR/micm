@@ -177,7 +177,7 @@ namespace micm
       // Look for CAMP config path
       if (!std::filesystem::exists(config_path))
       {
-        return { MicmConfigErrc::InvalidCAMPFilePath, config_path };
+        return ConfigParseStatus{ MicmConfigErrc::InvalidCAMPFilePath, config_path };
       }
 
       std::filesystem::path config_dir;
@@ -202,7 +202,7 @@ namespace micm
       json camp_data = json::parse(std::ifstream(config_file));
       if (!camp_data.contains(CAMP_FILES))
       {
-        return { MicmConfigErrc::CAMPFilesSectionNotFound, config_file };
+        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesSectionNotFound, config_file };
       }
 
       // Build a list of individual CAMP config files
@@ -220,7 +220,7 @@ namespace micm
       // No config files found
       if (camp_files.size() < 1)
       {
-        return { MicmConfigErrc::NoConfigFilesFound, config_file };
+        return ConfigParseStatus{ MicmConfigErrc::NoConfigFilesFound, config_file };
       }
 
       std::vector<json> species_objects;
@@ -242,7 +242,7 @@ namespace micm
               if (!object.contains(TYPE))
               {
                 std::string msg = "object: " + object.dump() + "; type: " + TYPE;
-                return { MicmConfigErrc::ObjectTypeNotFound, msg };
+                return ConfigParseStatus{ MicmConfigErrc::ObjectTypeNotFound, msg };
               }
               // Sort into object arrays by type
               std::string type = object[TYPE].get<std::string>();
@@ -261,7 +261,7 @@ namespace micm
         }
         else
         {
-          return { MicmConfigErrc::CAMPDataSectionNotFound, config_path };
+          return ConfigParseStatus{ MicmConfigErrc::CAMPDataSectionNotFound, config_path };
         }
       }
 
@@ -315,7 +315,7 @@ namespace micm
           }
         }
       }
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseMechanismArray(const std::vector<json>& objects)
@@ -371,7 +371,7 @@ namespace micm
         }
         else
         {
-          return { MicmConfigErrc::UnknownKey, type };
+          return ConfigParseStatus{ MicmConfigErrc::UnknownKey, type };
         }
         if (status.error_code_ != MicmConfigErrc::Success) break;
       }
@@ -409,16 +409,16 @@ namespace micm
           else if (value.is_boolean())
             species.SetProperty<bool>(key, value);
           else
-            return { MicmConfigErrc::InvalidType, key };
+            return ConfigParseStatus{ MicmConfigErrc::InvalidType, key };
       }
       species_arr_.push_back(species);
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseRelativeTolerance(const json& object)
     {
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseMechanism(const json& object)
@@ -522,7 +522,7 @@ namespace micm
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseArrhenius(const json& object)
@@ -576,7 +576,7 @@ namespace micm
       {
         if (parameters.C_ != 0)
         {
-          return { MicmConfigErrc::MutuallyExclusiveOption, "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
+          return ConfigParseStatus{ MicmConfigErrc::MutuallyExclusiveOption, "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
         }
         // Calculate 'C' using 'Ea'
         parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
@@ -588,7 +588,7 @@ namespace micm
 
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseTroe(const json& object)
@@ -660,7 +660,7 @@ namespace micm
 
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
@@ -733,7 +733,7 @@ namespace micm
 
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseBranched(const json& object)
@@ -791,7 +791,7 @@ namespace micm
       rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
       processes_.push_back(Process(reactants.second, nitrate_products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseTunneling(const json& object)
@@ -840,7 +840,7 @@ namespace micm
 
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseEmission(const json& object)
@@ -881,7 +881,7 @@ namespace micm
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseFirstOrderLoss(const json& object)
@@ -921,7 +921,7 @@ namespace micm
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseUserDefined(const json& object)
@@ -959,7 +959,7 @@ namespace micm
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     ConfigParseStatus ParseSurface(const json& object)
@@ -1014,7 +1014,7 @@ namespace micm
       std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
       processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
 
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
@@ -1035,7 +1035,7 @@ namespace micm
 
       if (!object.empty() && object.begin().value().is_null())
       {
-        return { MicmConfigErrc::Success };
+        return ConfigParseStatus{ MicmConfigErrc::Success };
       }
 
       std::vector<std::string> sorted_object_keys;
@@ -1072,7 +1072,7 @@ namespace micm
         for (auto& key : missing_keys)
           msg += "Missing required key '" + key + "' in object: " + object.dump();
 
-        return { MicmConfigErrc::RequiredKeyNotFound, msg };
+        return ConfigParseStatus{ MicmConfigErrc::RequiredKeyNotFound, msg };
       }
 
       std::vector<std::string> remaining;
@@ -1090,10 +1090,10 @@ namespace micm
         {
           std::string msg = "Non-standard key '" + key + "' found in object" + object.dump();
 
-          return { MicmConfigErrc::ContainsNonStandardKey, msg };
+          return ConfigParseStatus{ MicmConfigErrc::ContainsNonStandardKey, msg };
         }
       }
-      return { MicmConfigErrc::Success };
+      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
   };
 
