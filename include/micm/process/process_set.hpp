@@ -9,6 +9,48 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
+enum class MicmProcessSetErrc
+{
+  ReactantDoesNotExist = 1,  // Specified reactant does not exist in the system
+  ProductDoesNotExist = 2,   // Specified product does not exist in the system
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmProcessSetErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmProcessSetErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override { return "MICM Process Set"; }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmProcessSetErrc>(ev))
+      {
+        case MicmProcessSetErrc::ReactantDoesNotExist:
+          return "Reactant does not exist";
+        case MicmProcessSetErrc::ProductDoesNotExist:
+          return "Product does not exist";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmProcessSetErrorCategory micmProcessSetErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmProcessSetErrc e)
+{
+  return {static_cast<int>(e), micmProcessSetErrorCategory};
+}
+
 namespace micm
 {
 
@@ -96,7 +138,7 @@ namespace micm
         if (reactant.IsParameterized())
           continue;  // Skip reactants that are parameterizations
         if (variable_map.count(reactant.name_) < 1)
-          throw std::runtime_error("Reactant '" + reactant.name_ + "' does not exist");
+          throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
         reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
@@ -105,7 +147,7 @@ namespace micm
         if (product.first.IsParameterized())
           continue;  // Skip products that are parameterizations
         if (variable_map.count(product.first.name_) < 1)
-          throw std::runtime_error("Product '" + product.first.name_ + "' does not exist");
+          throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
         product_ids_.push_back(variable_map.at(product.first.name_));
         yields_.push_back(product.second);
         ++number_of_products;

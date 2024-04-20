@@ -8,6 +8,51 @@
 #include <iostream>
 #include <vector>
 
+enum class MicmMatrixErrc
+{
+  RowSizeMismatch = 1,
+  InvalidVector = 2,
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmMatrixErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmMatrixErrorCategory : public std::error_category
+  {
+   public:
+    const char *name() const noexcept override
+    {
+      return "MICM Matrix";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmMatrixErrc>(ev))
+      {
+        case MicmMatrixErrc::RowSizeMismatch:
+          return "Matrix row size mismatch in assignment from vector";
+        case MicmMatrixErrc::InvalidVector:
+          return "Invalid vector for matrix assignment";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmMatrixErrorCategory micmMatrixErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmMatrixErrc e)
+{
+  return {static_cast<int>(e), micmMatrixErrorCategory};
+}
+
 namespace micm
 {
 
@@ -49,7 +94,7 @@ namespace micm
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
         {
-          throw std::runtime_error("Matrix row size mismatch in assignment from vector");
+          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), "");
         }
         auto other_elem = other.begin();
         for (auto &elem : *this)
@@ -162,7 +207,7 @@ namespace micm
                   // check that this row matches the expected rectangular matrix dimensions
                   if (other[x].size() != y_dim)
                   {
-                    throw std::runtime_error("Invalid vector for matrix assignment");
+                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), "");
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {

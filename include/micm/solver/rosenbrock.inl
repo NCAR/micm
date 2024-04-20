@@ -16,6 +16,48 @@
     }                                                                                          \
   }
 
+enum class MicmRosenbrockErrc
+{
+  UnusedSpecies = 1, // Unused species present in the chemical system
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmRosenbrockErrc> : true_type
+  {
+  };
+} // namespace std
+
+namespace
+{
+  class RosenbrockErrorCategory : public std::error_category
+  {
+  public:
+    const char* name() const noexcept override
+    {
+      return "MICM Rosenbrock";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmRosenbrockErrc>(ev))
+      {
+        case MicmRosenbrockErrc::UnusedSpecies:
+          return "Unused species present in the chemical system. Use the ignore_unused_species_ parameter to allow unused species in the solve.";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const RosenbrockErrorCategory rosenbrockErrorCategory{};
+} // namespace
+
+std::error_code make_error_code(MicmRosenbrockErrc e)
+{
+  return { static_cast<int>(e), rosenbrockErrorCategory };
+}
+
 namespace micm
 { 
   //
@@ -108,8 +150,8 @@ namespace micm
       std::string err_msg = "Unused species in chemical system:";
       for (auto& species: unused_species)
         err_msg += " '" + species + "'";
-      err_msg += ". Set solver parameter ignore_unused_species_ to allow unused species in solve.";
-      throw std::runtime_error(err_msg);
+      err_msg += ".";
+      throw std::system_error(make_error_code(MicmRosenbrockErrc::UnusedSpecies), err_msg);
     }
     for (auto& name : system.UniqueNames())
       variable_map[name] = index++;

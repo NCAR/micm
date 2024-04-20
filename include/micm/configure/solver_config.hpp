@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iostream>
 #include <system_error>
-#include <micm/error.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/process.hpp>
@@ -43,8 +42,6 @@ enum class MicmConfigErrc
   ContainsNonStandardKey,
   MutuallyExclusiveOption
 };
-
-std::error_condition make_error_condition(MicmConfigErrc e);
 
 namespace std
 {

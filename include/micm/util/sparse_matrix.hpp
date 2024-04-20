@@ -11,6 +11,51 @@
 #include <utility>
 #include <vector>
 
+enum class MicmSparseMatrixErrc
+{
+  ElementOutOfRange = 1,
+  MissingBlockIndex = 2,
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmSparseMatrixErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmSparseMatrixErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM Sparse Matrix";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmSparseMatrixErrc>(ev))
+      {
+        case MicmSparseMatrixErrc::ElementOutOfRange:
+          return "SparseMatrix element out of range";
+        case MicmSparseMatrixErrc::MissingBlockIndex:
+          return "SparseMatrix block index required for multi-block access";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmSparseMatrixErrorCategory micmSparseMatrixErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmSparseMatrixErrc e)
+{
+  return { static_cast<int>(e), micmSparseMatrixErrorCategory };
+}
+
 namespace micm
 {
   /// Concept for vectorizable matrices
@@ -195,14 +240,14 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
+        throw std::system_error(make_error_code(MicmSparseMatrixErrc::MissingBlockIndex));
       return VectorIndex(0, row, column);
     }
 
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmSparseMatrixErrc::ElementOutOfRange));
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
@@ -279,7 +324,7 @@ namespace micm
     SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmSparseMatrixErrc::ElementOutOfRange));
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

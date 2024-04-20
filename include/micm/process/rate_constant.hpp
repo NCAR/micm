@@ -10,6 +10,51 @@
 #include <micm/system/conditions.hpp>
 #include <vector>
 
+enum class MicmRateConstantErrc
+{
+  MissingArgumentsForSurfaceRateConstant = 1, // Missing arguments for surface reaction
+  MissingArgumentsForUserDefinedRateConstant = 2, // Missing arguments for user-defined rate constant
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmRateConstantErrc> : true_type
+  {
+  };
+} // namespace std
+
+namespace
+{
+  class RateConstantErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM Rate Constant";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmRateConstantErrc>(ev))
+      {
+        case MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant:
+          return "Missing arguments for surface reaction";
+        case MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant:
+          return "Missing arguments for user-defined rate constant";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const RateConstantErrorCategory rateConstantErrorCategory{};
+} // namespace micm
+
+std::error_code make_error_code(MicmRateConstantErrc e)
+{
+  return { static_cast<int>(e), rateConstantErrorCategory };
+}
+
 namespace micm
 {
   /// @brief A base class for any type of rate constant

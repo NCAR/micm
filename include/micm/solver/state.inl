@@ -1,6 +1,59 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
+enum class MicmStateErrc
+{
+  UnknownSpecies = 1, // Unknown species
+  UnknownRateConstantParameter = 2, // Unknown rate constant parameter
+  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3, // Incorrect number of concentration values
+  IncorrectNumberOfCustomRateParameterValues = 4, // Incorrect number of custom rate parameter values
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5, // Incorrect number of grid cells
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmStateErrc> : true_type
+  {
+  };
+} // namespace std
+
+namespace
+{
+
+  class MicmStateErrorCategory : public std::error_category
+  {
+  public:
+    const char* name() const noexcept override { return "MICM State"; }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmStateErrc>(ev))
+      {
+      case MicmStateErrc::UnknownSpecies:
+        return "Unknown species";
+      case MicmStateErrc::UnknownRateConstantParameter:
+        return "Unknown rate constant parameter";
+      case MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState:
+        return "Incorrect number of concentration values for multi-gridcell State";
+      case MicmStateErrc::IncorrectNumberOfCustomRateParameterValues:
+        return "Incorrect number of custom rate parameter values per grid cell";
+      case MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState:
+        return "Incorrect number of custom rate parameter values for multi-gridcell State";
+      default:
+        return "Unknown error";
+      }
+    }
+  };
+
+  const MicmStateErrorCategory micmStateErrorCategory{};
+
+} // namespace
+
+std::error_code make_error_code(MicmStateErrc e)
+{
+  return {static_cast<int>(e), micmStateErrorCategory};
+}
+
 namespace micm
 {
 
@@ -63,9 +116,9 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
     if (variables_.size() != 1)
-      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
@@ -74,9 +127,9 @@ namespace micm
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
     if (variables_.size() != concentration.size())
-      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     std::size_t i_species = variable_map_[species.name_];
     for (std::size_t i = 0; i < variables_.size(); ++i)
       variables_[i][i_species] = concentration[i];
@@ -87,10 +140,10 @@ namespace micm
       const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.size())
-      throw std::invalid_argument("The number of grid cells configured for micm does not match the number of custom rate parameter values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
 
     if (parameters[0].size() != custom_rate_parameters_[0].size())
-      throw std::invalid_argument("The number of custom rate parameters configured for micm does not match the provided number of custom rate parameter values");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues));
 
     for(size_t i = 0; i < number_of_grid_cells_; ++i) {
       custom_rate_parameters_[i] = parameters[i];
@@ -110,9 +163,9 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
     if (custom_rate_parameters_.size() != 1)
-      throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -121,9 +174,9 @@ namespace micm
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
     if (custom_rate_parameters_.size() != values.size())
-      throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     for (std::size_t i = 0; i < custom_rate_parameters_.size(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }

@@ -4,6 +4,48 @@
 
 #include "cublas_v2.h"
 
+enum class MicmCudaDenseMatrixErrc
+{
+  CUBLASOperationFailure = 1,  // cuBLAS operation failed
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmCudaDenseMatrixErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmCudaDenseMatrixErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM Cuda Dense Matrix";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmCudaDenseMatrixErrc>(ev))
+      {
+        case MicmCudaDenseMatrixErrc::CUBLASOperationFailure:
+          return "cuBLAS operation failure";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmCudaDenseMatrixErrorCategory micmCudaDenseMatrixErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmCudaDenseMatrixErrc e)
+{
+  return { static_cast<int>(e), micmCudaDenseMatrixErrorCategory };
+}
+
 namespace micm
 {
 
@@ -69,7 +111,7 @@ namespace micm
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
           std::cout << stat << std::endl;
-          throw std::runtime_error("CUBLAS initialization failed.");
+          throw std::system_error(make_error_code(MicmCudaDenseMatrixErrc::CUBLASOperationFailure), "Inialization of cuBLAS failed.");
         }
       }
     }
@@ -167,7 +209,7 @@ namespace micm
           this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy);
       if (stat != CUBLAS_STATUS_SUCCESS)
       {
-        throw std::runtime_error("CUBLAS Daxpy operation failed.");
+        throw std::system_error(make_error_code(MicmCudaDenseMatrixErrc::CUBLASOperationFailure), "Daxpy operation failed.");
       }
     }
   };

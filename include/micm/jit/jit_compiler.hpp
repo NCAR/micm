@@ -34,6 +34,51 @@
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Vectorize.h"
 
+enum class MicmJitErrc
+{
+  InvalidMatrix = 1, // Invalid matrix for JIT compiled operation
+  MissingJitFunction = 2, // Missing JIT function
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmJitErrc> : true_type
+  {
+  };
+} // namespace std
+
+namespace
+{
+  class JitErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM JIT";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmJitErrc>(ev))
+      {
+        case MicmJitErrc::InvalidMatrix:
+          return "Invalid matrix for JIT compiled operation. Ensure matrix is Vector-ordered with vector dimension equal to the nubmer of grid cells.";
+        case MicmJitErrc::MissingJitFunction:
+          return "Missing JIT-compiled function";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const JitErrorCategory jitErrorCategory{};
+} // namespace micm
+
+std::error_code make_error_code(MicmJitErrc e)
+{
+  return { static_cast<int>(e), jitErrorCategory };
+}
+
 namespace micm
 {
 

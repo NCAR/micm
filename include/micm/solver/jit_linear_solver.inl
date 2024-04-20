@@ -41,7 +41,7 @@ namespace micm
     solve_function_ = NULL;
     if (matrix.size() != L || matrix.GroupVectorSize() != L)
     {
-      throw std::runtime_error("Invalid matrix for JitLinearSolver. Check the the VectorMatrix template parameters.");
+      throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), "");
     }
     GenerateSolveFunction();
   }

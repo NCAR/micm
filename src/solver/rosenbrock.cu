@@ -8,6 +8,47 @@
 
 #include "cublas_v2.h"
 
+enum class MicmCudaRosenbrockSolverErrc
+{ 
+  ParameterMismatch = 1,
+  CublasError = 2,
+};
+
+namespace std
+{
+  template <>
+  struct is_error_code_enum<MicmCudaRosenbrockSolverErrc> : public true_type
+  {
+  };
+}  // namespace std
+
+namespace {
+  class MicmCudaRosenbrockSolverErrorCategory : public std::error_category
+  {
+  public:
+    const char* name() const noexcept override { return "MicmCudaRosenbrockSolverErrorCategory"; }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmCudaRosenbrockSolverErrc>(ev))
+      {
+        case MicmCudaRosenbrockSolverErrc::ParameterMismatch:
+          return "Parameter mismatch between devstruct.errors_input_ and errors_param.";
+        case MicmCudaRosenbrockSolverErrc::CublasError:
+          return "Error while calling cuBLAS Dnrm2.";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmCudaRosenbrockSolverErrorCategory theMicmCudaRosenbrockSolverErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmCudaRosenbrockSolverErrc e)
+{
+  return {static_cast<int>(e), theMicmCudaRosenbrockSolverErrorCategory};
+}
+
 namespace micm
 {
   namespace cuda
@@ -249,7 +290,7 @@ namespace micm
 
       if (devstruct.errors_size_ != errors_param.number_of_elements_)
       {
-        throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
+        throw std::system_error(make_error_code(MicmCudaRosenbrockSolverErrc::ParameterMismatch), "");
       }
       cudaError_t err =
           cudaMemcpy(devstruct.errors_input_, errors_param.d_data_, sizeof(double) * num_elements, cudaMemcpyDeviceToDevice);
@@ -265,7 +306,7 @@ namespace micm
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
           printf(cublasGetStatusString(stat));
-          throw std::runtime_error("Error while calling cublasDnrm2.");
+          throw std::system_error(make_error_code(MicmCudaRosenbrockSolverErrc::CublasError), "");
         }
         normalized_error = normalized_error * std::sqrt(1.0 / num_elements);
       }

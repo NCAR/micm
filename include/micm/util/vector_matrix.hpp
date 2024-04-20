@@ -12,6 +12,51 @@
 #  define MICM_DEFAULT_VECTOR_SIZE 4
 #endif
 
+enum class MicmVectorMatrixErrc
+{
+  RowSizeMismatch = 1,
+  InvalidVector = 2,
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmVectorMatrixErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmVectorMatrixErrorCategory : public std::error_category
+  {
+   public:
+    const char *name() const noexcept override
+    {
+      return "MICM Vector Matrix";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmVectorMatrixErrc>(ev))
+      {
+        case MicmVectorMatrixErrc::RowSizeMismatch:
+          return "Matrix row size mismatch in assignment from vector";
+        case MicmVectorMatrixErrc::InvalidVector:
+          return "Invalid vector for matrix assignment";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const MicmVectorMatrixErrorCategory micmVectorMatrixErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmVectorMatrixErrc e)
+{
+  return {static_cast<int>(e), micmVectorMatrixErrorCategory};
+}
+
 namespace micm
 {
 
@@ -53,7 +98,7 @@ namespace micm
       {
         if (other.size() < y_dim_)
         {
-          throw std::runtime_error("Matrix row size mismatch in assignment from vector.");
+          throw std::system_error(make_error_code(MicmVectorMatrixErrc::RowSizeMismatch), "");
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -165,7 +210,7 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    throw std::runtime_error("Invalid vector for matrix assignment");
+                    throw std::system_error(make_error_code(MicmVectorMatrixErrc::InvalidVector), "");
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)

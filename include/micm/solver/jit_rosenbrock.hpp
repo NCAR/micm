@@ -87,7 +87,7 @@ namespace micm
       MatrixPolicy<double> temp{};
       if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
       {
-        throw std::runtime_error("Number of grid cells for JitRosenbrockSolver must match template parameter.");
+        throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), "");
       }
       this->GenerateAlphaMinusJacobian();
     }
@@ -113,7 +113,7 @@ namespace micm
       }
       else
       {
-        throw std::runtime_error("Failed to generate the alpha minus jacobia JIT function.");
+        throw std::system_error(make_error_code(MicmJitErrc::MissingJitFunction), "AlphaMinusJacobian");
       }
     }
 
