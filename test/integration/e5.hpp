@@ -46,6 +46,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     this->state_parameters_ = {
       .number_of_grid_cells_ = 1,
+      .number_of_species_ = 4,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = system.UniqueNames(state_reordering),
       .custom_rate_parameter_labels_ = param_labels,

@@ -1,8 +1,18 @@
+// Copyright (C) 2023-2024 National Center for Atmospheric Research,
+//
+// SPDX-License-Identifier: Apache-2.0
+#pragma once
+
+#include <cuda_runtime.h>
+
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
 
 #include "cublas_v2.h"
+
+#define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
+#define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
 
 enum class MicmCudaDenseMatrixErrc
 {
@@ -82,7 +92,8 @@ namespace micm
     CudaDenseMatrix() requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>()
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = 0;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
     }
     CudaDenseMatrix()
         : VectorMatrix<T, L>()
@@ -92,7 +103,8 @@ namespace micm
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
       this->param_.number_of_grid_cells_ = x_dim;
     }
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
@@ -103,17 +115,9 @@ namespace micm
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
       this->param_.number_of_grid_cells_ = x_dim;
-      if (this->handle_ == NULL)
-      {
-        cublasStatus_t stat = cublasCreate(&(this->handle_));
-        if (stat != CUBLAS_STATUS_SUCCESS)
-        {
-          std::cout << stat << std::endl;
-          throw std::system_error(make_error_code(MicmCudaDenseMatrixErrc::CUBLASOperationFailure), "Inialization of cuBLAS failed.");
-        }
-      }
+      CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
@@ -123,7 +127,9 @@ namespace micm
     CudaDenseMatrix(const std::vector<std::vector<T>> other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
-      micm::cuda::MallocVector(param_, this->data_.size());
+      this->param_.number_of_grid_cells_ = 0;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
 
     CudaDenseMatrix(const std::vector<std::vector<T>> other)
@@ -132,37 +138,47 @@ namespace micm
     }
 
     CudaDenseMatrix(const CudaDenseMatrix& other) requires(std::is_same_v<T, double>)
-        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+        : VectorMatrix<T, L>(other)
     {
-      this->data_ = other.data_;
-      micm::cuda::MallocVector(param_, this->data_.size());
-      micm::cuda::CopyToDeviceFromDevice(param_, other.param_);
+      this->param_ = other.param_;
+      this->param_.d_data_ = nullptr;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
 
     CudaDenseMatrix(const CudaDenseMatrix& other)
-        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+        : VectorMatrix<T, L>(other)
     {
-      this->data_ = other.data_;
     }
 
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
-        : VectorMatrix<T, L>(other.x_dim_, other.y_dim_)
+        : VectorMatrix<T, L>(other)
     {
-      this->data_ = std::move(other.data_);
-      this->param_ = std::move(other.param_);
+      this->param_.d_data_ = nullptr;
+      std::swap(this->param_, other.param_);
+      std::swap(this->handle_, other.handle_);
     }
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
-      return *this = CudaDenseMatrix(other);
+      VectorMatrix<T, L>::operator=(other);
+      this->param_ = other.param_;
+      this->param_.d_data_ = nullptr;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
+      return *this;
     }
 
     CudaDenseMatrix& operator=(CudaDenseMatrix&& other) noexcept
     {
-      std::swap(this->data_, other.data_);
-      std::swap(this->param_, other.param_);
-      this->x_dim_ = other.x_dim_;
-      this->y_dim_ = other.y_dim_;
+      if (this != &other)
+      {
+        VectorMatrix<T, L>::operator=(other);
+        std::swap(this->param_, other.param_);
+        std::swap(this->handle_, other.handle_);
+      }
       return *this;
     }
 
@@ -172,29 +188,35 @@ namespace micm
 
     ~CudaDenseMatrix() requires(std::is_same_v<T, double>)
     {
-      micm::cuda::FreeVector(this->param_);
+      CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       if (this->handle_ != NULL)
         cublasDestroy(this->handle_);
+      this->param_.d_data_ = nullptr;
+      this->handle_ = NULL;
     }
 
-    int CopyToDevice()
+    void CopyToDevice()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToDevice(param_, this->data_);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
-    int CopyToHost()
+
+    void CopyToHost()
     {
       static_assert(std::is_same_v<T, double>);
-      return micm::cuda::CopyToHost(param_, this->data_);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
+
     CudaMatrixParam AsDeviceParam() const
     {
       return this->param_;
     }
+
     cublasHandle_t AsCublasHandle() const
     {
       return this->handle_;
     }
+
     /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
@@ -205,12 +227,10 @@ namespace micm
     void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x, const int incx, const int incy)
     {
       static_assert(std::is_same_v<T, double>);
-      cublasStatus_t stat = cublasDaxpy(
-          this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy);
-      if (stat != CUBLAS_STATUS_SUCCESS)
-      {
-        throw std::system_error(make_error_code(MicmCudaDenseMatrixErrc::CUBLASOperationFailure), "Daxpy operation failed.");
-      }
+      CHECK_CUBLAS_ERROR(
+          cublasDaxpy(
+              this->handle_, x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy),
+          "CUBLAS Daxpy operation failed...");
     }
   };
 }  // namespace micm

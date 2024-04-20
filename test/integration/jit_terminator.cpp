@@ -33,7 +33,6 @@ void RunTerminatorTest()
           EXPECT_TRUE(false);
         }
         auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
-        solver_params.absolute_tolerance_ = 1.0e-20;
         solver_params.relative_tolerance_ = 1.0e-8;
         solver_params.max_number_of_steps_ = 100000;
         return micm::JitRosenbrockSolver<

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <micm/profiler/instrumentation.hpp>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
@@ -94,7 +95,8 @@ namespace micm
             y_dim_(y_dim)
       {
       }
-      Proxy &operator=(const std::vector<T> other)
+
+      Proxy &operator=(const std::vector<T> &other)
       {
         if (other.size() < y_dim_)
         {
@@ -113,6 +115,7 @@ namespace micm
             });
         return *this;
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -126,10 +129,12 @@ namespace micm
         }
         return vec;
       }
+
       std::size_t size() const
       {
         return y_dim_;
       }
+
       T &operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -151,6 +156,7 @@ namespace micm
             y_dim_(y_dim)
       {
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -162,10 +168,12 @@ namespace micm
         }
         return vec;
       }
+
       std::size_t size() const
       {
         return y_dim_;
       }
+
       const T &operator[](std::size_t y) const
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -194,7 +202,7 @@ namespace micm
     {
     }
 
-    VectorMatrix(const std::vector<std::vector<T>> other)
+    VectorMatrix(const std::vector<std::vector<T>> &other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
@@ -226,9 +234,15 @@ namespace micm
               }())
     {
     }
-    std::size_t size() const
+
+    std::size_t NumRows() const
     {
       return x_dim_;
+    }
+
+    std::size_t NumColumns() const
+    {
+      return y_dim_;
     }
 
     std::size_t NumberOfGroups() const
@@ -262,6 +276,25 @@ namespace micm
       return *this;
     }
 
+    /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the VectorMatrix x
+    /// @param x The input VectorMatrix
+    void Axpy(const double &alpha, const VectorMatrix &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      auto y_iter = data_.begin();
+      auto x_iter = x.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i)
+        *(y_iter++) += alpha * (*(x_iter++));
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t i = 0; i < y_dim_; ++i)
+        for (std::size_t j = 0; j < l; ++j)
+          y_iter[i * L + j] += alpha * x_iter[i * L + j];
+    }
+
     void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
@@ -277,6 +310,8 @@ namespace micm
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
+      MICM_PROFILE_FUNCTION();
+
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();

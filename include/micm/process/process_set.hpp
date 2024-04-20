@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <micm/process/process.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
@@ -129,6 +130,8 @@ namespace micm
         product_ids_(),
         yields_()
   {
+    MICM_PROFILE_FUNCTION();
+
     for (auto& process : processes)
     {
       std::size_t number_of_reactants = 0;
@@ -159,6 +162,8 @@ namespace micm
 
   inline std::set<std::pair<std::size_t, std::size_t>> ProcessSet::NonZeroJacobianElements() const
   {
+    MICM_PROFILE_FUNCTION();
+
     std::set<std::pair<std::size_t, std::size_t>> ids;
     auto react_id = reactant_ids_.begin();
     auto prod_id = product_ids_.begin();
@@ -184,6 +189,8 @@ namespace micm
   template<typename OrderingPolicy>
   inline void ProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
+    MICM_PROFILE_FUNCTION();
+
     jacobian_flat_ids_.clear();
     auto react_id = reactant_ids_.begin();
     auto prod_id = product_ids_.begin();
@@ -211,8 +218,10 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
+    MICM_PROFILE_FUNCTION();
+
     // loop over grid cells
-    for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
       auto cell_rate_constants = rate_constants[i_cell];
       auto cell_state = state_variables[i_cell];
@@ -248,10 +257,13 @@ namespace micm
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
     const std::size_t L = rate_constants.GroupVectorSize();
+    auto v_rate_constants_begin = v_rate_constants.begin();
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
@@ -264,8 +276,8 @@ namespace micm
       std::vector<double> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-          rate[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + i_rxn * L;
+        rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
@@ -291,10 +303,12 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
+    MICM_PROFILE_FUNCTION();
+
     auto cell_jacobian = jacobian.AsVector().begin();
 
     // loop over grid cells
-    for (std::size_t i_cell = 0; i_cell < state_variables.size(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < state_variables.NumRows(); ++i_cell)
     {
       auto cell_rate_constants = rate_constants[i_cell];
       auto cell_state = state_variables[i_cell];
@@ -338,11 +352,15 @@ namespace micm
           const MatrixPolicy<double>& state_variables,
           SparseMatrixPolicy<double>& jacobian) const
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
     assert(rate_constants.GroupVectorSize() == jacobian.GroupVectorSize());
     const std::size_t L = rate_constants.GroupVectorSize();
+    std::vector<double> d_rate_d_ind(L, 0);
+    auto v_rate_constants_begin = v_rate_constants.begin();
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
@@ -351,21 +369,21 @@ namespace micm
       std::size_t offset_rc = i_group * rate_constants.GroupSize();
       std::size_t offset_state = i_group * state_variables.GroupSize();
       std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
-
       auto flat_id = jacobian_flat_ids_.begin();
+
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
-          std::vector<double> d_rate_d_ind(L, 0);
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            d_rate_d_ind[i_cell] = v_rate_constants[offset_rc + i_rxn * L + i_cell];
+          auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + i_rxn * L;
+          d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
             if (i_react == i_ind)
               continue;
+            std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              d_rate_d_ind[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
+              d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
@@ -388,6 +406,8 @@ namespace micm
 
   inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
   {
+    MICM_PROFILE_FUNCTION();
+
     std::set<std::string> used_species;
     for (auto& process : processes)
     {

@@ -13,6 +13,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
@@ -151,7 +152,9 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
-    for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
+    MICM_PROFILE_FUNCTION();
+
+    for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
       std::vector<double>::const_iterator custom_parameters_iter = custom_parameters.begin();
@@ -174,6 +177,8 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();
@@ -182,10 +187,11 @@ namespace micm
     {
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
+      std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
       for (auto& process : processes)
       {
         std::vector<double> params(process.rate_constant_->SizeCustomParameters());
-        for (std::size_t i_cell{}; i_cell < std::min(L, state.rate_constants_.size() - (i_group * L)); ++i_cell)
+        for (std::size_t i_cell{}; i_cell < rate_const_size; ++i_cell)
         {
           for (std::size_t i_param = 0; i_param < params.size(); ++i_param)
           {

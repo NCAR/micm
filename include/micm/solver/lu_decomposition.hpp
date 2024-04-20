@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 namespace micm
@@ -39,7 +41,7 @@ namespace micm
     std::vector<std::pair<std::size_t, std::size_t>> niLU_;
     /// True when A[i][k] is non-zero for each iteration of the middle (k) loop for the upper
     /// triangular matrix; False otherwise. Used data type char instead of bool because vector<bool> representation
-    /// does not suppor easy retrieval of memory address using data() function.
+    /// does not support easy retrieval of memory address using data() function.
     std::vector<char> do_aik_;
     /// Index in A.data_ for A[i][k] for each iteration of the middle (k) loop for the upper
     /// triangular matrix when A[i][k] is non-zero
@@ -88,14 +90,12 @@ namespace micm
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<typename T, template <class> class SparseMatrixPolicy>
+    template<typename T, template<class> class SparseMatrixPolicy>
     static std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> GetLUMatrices(
         const SparseMatrixPolicy<T>& A,
         T initial_value);
     template<typename T, class SparseMatrixPolicy>
-    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
-        const SparseMatrixPolicy& A,
-        T initial_value);
+    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(const SparseMatrixPolicy& A, T initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
@@ -123,7 +123,6 @@ namespace micm
         bool& is_singular) const;
 
    private:
-
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
     template<typename T, class SparseMatrixPolicy>

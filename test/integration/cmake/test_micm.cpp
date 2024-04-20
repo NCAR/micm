@@ -35,13 +35,13 @@ int main()
   solverConfig.ReadAndParse(config_path);
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  auto params = solver_params.parameters_;
+  params.reorder_state_ = false;
 
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<> solver{ chemical_system,
-                             reactions,
-                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(1, false) };
+  RosenbrockSolver<> solver{ chemical_system, reactions, params };
   State<Matrix> state = solver.GetState();
 
   // mol m-3

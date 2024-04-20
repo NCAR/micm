@@ -33,7 +33,7 @@ namespace micm
         compiler_(compiler)
   {
     decompose_function_ = NULL;
-    if (matrix.size() > L)
+    if (matrix.Size() > L)
     {
       throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), "");
     }
@@ -190,7 +190,7 @@ namespace micm
       const SparseMatrixPolicy<T> &A,
       SparseMatrixPolicy<T> &lower,
       SparseMatrixPolicy<T> &upper,
-      bool& is_singular) const
+      bool &is_singular) const
   {
     LuDecomposition::Decompose<T, SparseMatrixPolicy>(A, lower, upper, is_singular);
   }

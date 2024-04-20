@@ -69,7 +69,7 @@ void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit)
   // return;
   auto jacobian = solver.GetState().jacobian_;
 
-  EXPECT_EQ(jacobian.size(), number_of_grid_cells);
+  EXPECT_EQ(jacobian.Size(), number_of_grid_cells);
   EXPECT_EQ(jacobian[0].size(), 5);
   EXPECT_EQ(jacobian[0][0].size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);

@@ -94,6 +94,8 @@ namespace micm
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
 
+    bool HasProperty(const std::string& key) const;
+
     /// @brief Return the value of a species property
     template<class T>
     T GetProperty(const std::string& key) const;
@@ -143,12 +145,20 @@ namespace micm
     return parameterize_ != nullptr;
   }
 
+  inline bool Species::HasProperty(const std::string& key) const
+  {
+    return properties_string_.find(key) != properties_string_.end() ||
+           properties_double_.find(key) != properties_double_.end() ||
+           properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
+  }
+
   template<class T>
   inline T Species::GetProperty(const std::string& key) const
   {
     if constexpr (std::is_same<T, std::string>::value)
     {
-      try {
+      try
+      {
         return properties_string_.at(key);
       } catch (const std::out_of_range& e) {
         throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
@@ -156,7 +166,8 @@ namespace micm
     }
     else if constexpr (std::is_same<T, double>::value)
     {
-      try {
+      try
+      {
         return properties_double_.at(key);
       } catch (const std::out_of_range& e) {
         throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
@@ -164,7 +175,8 @@ namespace micm
     }
     else if constexpr (std::is_same<T, bool>::value)
     {
-      try {
+      try
+      {
         return properties_bool_.at(key);
       } catch (const std::out_of_range& e) {
         throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
@@ -172,7 +184,8 @@ namespace micm
     }
     else if constexpr (std::is_same<T, int>::value)
     {
-      try {
+      try
+      {
         return properties_int_.at(key);
       } catch (const std::out_of_range& e) {
         throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
