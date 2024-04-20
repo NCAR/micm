@@ -425,7 +425,10 @@ namespace micm
             species.SetProperty<bool>(key, value);
           }
           else
+          {
             return ConfigParseStatus{ MicmConfigErrc::InvalidType, key };
+          }
+        }
       }
       species_arr_.push_back(species);
 
@@ -435,7 +438,7 @@ namespace micm
     ConfigParseStatus ParseRelativeTolerance(const json& object)
     {
       auto status = ValidateSchema(object, { "value", "type" }, {});
-      if (status != ConfigParseStatus::Success)
+      if (status.error_code_ != MicmConfigErrc::Success)
       {
         return status;
       }
