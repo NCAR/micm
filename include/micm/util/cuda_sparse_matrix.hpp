@@ -4,8 +4,8 @@
 #pragma once
 
 #include <cuda_runtime.h>
-
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_dense_matrix.hpp>     // include this for CudaMatrix concept
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <type_traits>
@@ -14,21 +14,6 @@
 
 namespace micm
 {
-  /// Concept for Cuda Spase matrices
-  template<typename T>
-  concept CudaSparseMatrices = requires(T t)
-  {
-    {
-      t.CopyToDevice()
-      } -> std::same_as<void>;
-    {
-      t.CopyToHost()
-      } -> std::same_as<void>;
-    {
-      t.AsDeviceParam()
-      } -> std::same_as<CudaMatrixParam>;
-  };
-
   template<class T, class OrderingPolicy>
   class CudaSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {

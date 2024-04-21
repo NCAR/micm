@@ -33,28 +33,29 @@ namespace micm
       double* d_b = b_param.d_data_;
       double* d_x = x_param.d_data_;
       double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory 
-      size_t number_of_grid_cells = b_param.number_of_grid_cells_;
+      const size_t number_of_grid_cells = b_param.number_of_grid_cells_;
+      const size_t number_of_species = b_param.number_of_elements_ / number_of_grid_cells;
 
       if (tid < number_of_grid_cells)
       {
         size_t b_column_index = 0;
         size_t y_column_index = 0;
-        size_t x_column_backward_index = x_column_counts - 1;
+        size_t x_column_backward_index = number_of_species - 1;
         size_t Lij_yj_index = 0;
         size_t Uij_xj_index = 0;
 
         for (size_t j = 0; j < nLij_Lii_size; ++j)
         {
           auto& nLij_Lii_element = d_nLij_Lii[j];
-          d_y[y_column_index * n_grids + tid] = d_b[b_column_index++ * n_grids + tid];
+          d_y[y_column_index * number_of_grid_cells + tid] = d_b[b_column_index++ * number_of_grid_cells + tid];
           for (size_t i = 0; i < nLij_Lii_element.first; ++i)
           {
             size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
-            size_t y_index = d_Lij_yj[Lij_yj_index].second * n_grids + tid;
-            d_y[y_column_index * n_grids + tid] -= d_L[lower_matrix_index] * d_y[y_index];
+            size_t y_index = d_Lij_yj[Lij_yj_index].second * number_of_grid_cells + tid;
+            d_y[y_column_index * number_of_grid_cells + tid] -= d_L[lower_matrix_index] * d_y[y_index];
             ++Lij_yj_index;
           }
-          d_y[y_column_index++ * n_grids + tid] /= d_L[nLij_Lii_element.second + tid];
+          d_y[y_column_index++ * number_of_grid_cells + tid] /= d_L[nLij_Lii_element.second + tid];
         }
 
         for (size_t k = 0; k < nUij_Uii_size; ++k)
@@ -64,11 +65,11 @@ namespace micm
           for (size_t i = 0; i < nUij_Uii_element.first; ++i)
           {
             size_t upper_matrix_index = d_Uij_xj[Uij_xj_index].first + tid;
-            size_t x_index = d_Uij_xj[Uij_xj_index].second * n_grids + tid;
-            d_x[x_column_backward_index * n_grids + tid] -= d_U[upper_matrix_index] * d_x[x_index];
+            size_t x_index = d_Uij_xj[Uij_xj_index].second * number_of_grid_cells + tid;
+            d_x[x_column_backward_index * number_of_grid_cells + tid] -= d_U[upper_matrix_index] * d_x[x_index];
             ++Uij_xj_index;
           }
-          d_x[x_column_backward_index * n_grids + tid] /= d_U[nUij_Uii_element.second + tid];
+          d_x[x_column_backward_index * number_of_grid_cells + tid] /= d_U[nUij_Uii_element.second + tid];
 
           if (x_column_backward_index != 0)
           {

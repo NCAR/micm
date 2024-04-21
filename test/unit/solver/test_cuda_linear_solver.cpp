@@ -26,6 +26,9 @@ template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 
 template<class T>
+using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<T, 10000>;
+
+template<class T>
 using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
 template<class T>
 using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
@@ -35,6 +38,9 @@ template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+
+template<class T>
+using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 std::vector<double> linearSolverGenerator(
@@ -87,12 +93,12 @@ void gpuValidation()
       10000);
 
   std::vector<double> gpu_x = linearSolverGenerator<
-      Group10000VectorMatrix,
-      Group10000SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>>(
-      [](const Group10000SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group10000SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group10000SparseVectorMatrix>{ matrix, initial_value };
+      Group10000CudaDenseMatrix,
+      Group10000CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group10000CudaSparseMatrix>>(
+      [](const Group10000CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group10000CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group10000CudaSparseMatrix>{ matrix, initial_value };
       },
       10000);
 
