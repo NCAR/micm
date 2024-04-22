@@ -101,6 +101,50 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   }
 }
 
+// In this test, the elements in the same array are different;
+// thus the calculated RMSE will change when the size of the array changes.
+template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+void testNormalizedErrorDiff(const size_t number_of_grid_cells)
+{
+  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
+  std::vector<double> atol = solver.parameters_.absolute_tolerance_;
+  double rtol = solver.parameters_.relative_tolerance_;
+
+  auto state = solver.GetState();
+  auto y_old = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 7.7);
+  auto y_new = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, -13.9);
+  auto errors = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 81.57);
+
+  double expected_error = 0.0;
+  for (size_t i = 0; i < number_of_grid_cells; ++i)
+  {
+    for (size_t j = 0; j < state.state_size_; ++j)
+    {
+      y_old[i][j] = y_old[i][j] * i + j;
+      y_new[i][j] = y_new[i][j] / (j + 1) - i;
+      errors[i][j] = errors[i][j] / (i + 7) / (j + 3);
+      double ymax = std::max(std::abs(y_old[i][j]), std::abs(y_new[i][j]));
+      double scale = atol[j] + rtol * ymax;
+      expected_error += errors[i][j] * errors[i][j] / (scale * scale);
+    }
+  }
+  double error_min_ = 1.0e-10;
+  expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
+
+  double computed_error = solver.NormalizedError(y_old, y_new, errors);
+
+  auto relative_error =
+      std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
+
+  if (relative_error > 1.e-11)
+  {
+    std::cout << "computed_error: " << std::setprecision(12) << computed_error << std::endl;
+    std::cout << "expected_error: " << std::setprecision(12) << expected_error << std::endl;
+    std::cout << "relative_error: " << std::setprecision(12) << relative_error << std::endl;
+    throw std::runtime_error("Fail to match computed_error and expected_error.\n");
+  }
+}
+
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
   testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
@@ -117,6 +161,10 @@ template<class T>
 using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
+template<class T>
+using Group8VectorMatrix = micm::VectorMatrix<T, 8>;
+template<class T>
+using Group10VectorMatrix = micm::VectorMatrix<T, 10>;
 
 template<class T>
 using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
@@ -126,6 +174,10 @@ template<class T>
 using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
 template<class T>
 using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+template<class T>
+using Group8SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<8>>;
+template<class T>
+using Group10SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10>>;
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
@@ -193,4 +245,19 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[0], 1.0e-01);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[1], 1.0e-02);
   }
+}
+
+TEST(RosenbrockSolver, NormalizedError) {
+  // Exact fits
+  testNormalizedErrorDiff<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(4);
+
+  // Inexact fits
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group8VectorMatrix, Group8SparseVectorMatrix, micm::LinearSolver<double, Group8SparseVectorMatrix>>(5);
+  testNormalizedErrorDiff<Group10VectorMatrix, Group10SparseVectorMatrix, micm::LinearSolver<double, Group10SparseVectorMatrix>>(3);
 }
