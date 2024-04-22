@@ -278,7 +278,7 @@ namespace micm
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
       is_singular = false;
-      std::size_t n_cells = std::min(A_GroupVectorSize, A_Size - i_group * A_GroupVectorSize);
+      const std::size_t n_cells = std::min(A_GroupVectorSize, A_Size - i_group * A_GroupVectorSize);
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix

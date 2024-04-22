@@ -208,23 +208,28 @@ MatrixPolicy<double> testAssignmentFromVector()
 template<template<class> class MatrixPolicy>
 MatrixPolicy<double> testAxpy()
 {
-  MatrixPolicy<double> matrix{ 4, 3, 100.0 };
-  MatrixPolicy<double> other{ 4, 3, 200.0 };
+  std::size_t num_rows = 4;
+  std::size_t num_columns = 3;
+  MatrixPolicy<double> matrix{ num_rows, num_columns, 100.0 };
+  MatrixPolicy<double> other{ num_rows, num_columns, 200.0 };
   double alpha = 1.39;
   double sum = 0.0;
   double result = 0.0;
 
-  for (int i = 0; i < 4; ++i)
-    for (int j = 0; j < 3; ++j)
+  for (int i = 0; i < num_rows; ++i)
+    for (int j = 0; j < num_columns; ++j)
     {
-      matrix[i][j] = i * 10.3 + j * 100.5;
-      other[i][j] = i * 1.7 + j * 10.2;
-      sum += i * 10.3 + j * 100.5 + alpha * (i * 1.7 + j * 10.2);
+      auto y = i * 10.3 + j * 100.5;
+      auto x = i * 1.7 + j * 10.2;
+      matrix[i][j] = y;
+      other[i][j] = x;
+      sum += y + alpha * x;
     }
 
   matrix.Axpy(alpha, other);
-  for (int i = 0; i < 4; ++i)
-    for (int j = 0; j < 3; ++j)
+
+  for (int i = 0; i < num_rows; ++i)
+    for (int j = 0; j < num_columns; ++j)
       result += matrix[i][j];
   EXPECT_NEAR(sum, result, 1.0e-5);
 

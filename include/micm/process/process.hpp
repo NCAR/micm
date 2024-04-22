@@ -137,7 +137,6 @@ namespace micm
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
-    
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();

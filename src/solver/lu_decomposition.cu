@@ -10,13 +10,16 @@ namespace micm
   namespace cuda
   {
     /// This is the CUDA kernel that performs LU decomposition on the device
-    /// Note that passing the reference "LuDecomposeParam&" will pass the
-    ///   compilation but the execution of this CUDA test hangs somehow
-    __global__ void DecomposeKernel(const double* d_A, double* d_L, double* d_U, LuDecomposeParam devstruct, size_t ngrids)
+    __global__ void DecomposeKernel(
+        const CudaMatrixParam A_param,
+        CudaMatrixParam L_param,
+        CudaMatrixParam U_param,
+        const LuDecomposeParam devstruct)
     {
-      /// Local device variables
-      size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+      // Calculate global thread ID
+      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
+      // Local device variables
       std::pair<size_t, size_t>* d_niLU = devstruct.niLU_;
       char* d_do_aik = devstruct.do_aik_;
       size_t* d_aik = devstruct.aik_;
@@ -39,7 +42,12 @@ namespace micm
       size_t lki_nkj_offset = 0;
       size_t uii_offset = 0;
 
-      if (tid < ngrids)
+      double* d_A = A_param.d_data_;
+      double* d_L = L_param.d_data_;
+      double* d_U = U_param.d_data_;
+      size_t number_of_grid_cells = A_param.number_of_grid_cells_;
+
+      if (tid < number_of_grid_cells)
       {
         // loop through every element in niLU
         for (size_t i = 0; i < niLU_size; i++)
@@ -154,42 +162,15 @@ namespace micm
       cudaFree(devstruct.uii_);
     }
 
-    std::chrono::nanoseconds DecomposeKernelDriver(CudaSparseMatrixParam& sparseMatrix, const LuDecomposeParam& devstruct)
+    void DecomposeKernelDriver(
+        const CudaMatrixParam& A_param,
+        CudaMatrixParam& L_param,
+        CudaMatrixParam& U_param,
+        const LuDecomposeParam& devstruct)
     {
-      /// Create device pointers
-      double* d_A;
-      double* d_L;
-      double* d_U;
-
-      /// Allocate device memory
-      cudaMalloc(&d_A, sizeof(double) * sparseMatrix.A_size_);
-      cudaMalloc(&d_L, sizeof(double) * sparseMatrix.L_size_);
-      cudaMalloc(&d_U, sizeof(double) * sparseMatrix.U_size_);
-
-      /// Copy data from host to device
-      cudaMemcpy(d_A, sparseMatrix.A_, sizeof(double) * sparseMatrix.A_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_L, sparseMatrix.L_, sizeof(double) * sparseMatrix.L_size_, cudaMemcpyHostToDevice);
-      cudaMemcpy(d_U, sparseMatrix.U_, sizeof(double) * sparseMatrix.U_size_, cudaMemcpyHostToDevice);
-
-      size_t num_block = (sparseMatrix.n_grids_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-      /// Call CUDA kernel and measure the execution time
-      auto startTime = std::chrono::high_resolution_clock::now();
-      DecomposeKernel<<<num_block, BLOCK_SIZE>>>(d_A, d_L, d_U, devstruct, sparseMatrix.n_grids_);
+      size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct);
       cudaDeviceSynchronize();
-      auto endTime = std::chrono::high_resolution_clock::now();
-      auto kernel_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime);
-
-      /// Copy the data from device to host
-      cudaMemcpy(sparseMatrix.L_, d_L, sizeof(double) * sparseMatrix.L_size_, cudaMemcpyDeviceToHost);
-      cudaMemcpy(sparseMatrix.U_, d_U, sizeof(double) * sparseMatrix.U_size_, cudaMemcpyDeviceToHost);
-
-      /// Clean up
-      cudaFree(d_A);
-      cudaFree(d_L);
-      cudaFree(d_U);
-
-      return kernel_duration;
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

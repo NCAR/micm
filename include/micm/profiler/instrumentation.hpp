@@ -5,10 +5,10 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <string>
-#include <thread>
 #include <mutex>
 #include <sstream>
+#include <string>
+#include <thread>
 
 namespace micm
 {
@@ -30,7 +30,7 @@ namespace micm
 
   class Instrumentor
   {
-  public:
+   public:
     Instrumentor(const Instrumentor&) = delete;
     Instrumentor(Instrumentor&&) = delete;
 
@@ -39,7 +39,8 @@ namespace micm
       std::lock_guard lock(mutex_);
       if (current_session_)
       {
-        std::cerr << "Instrumentor::BeginSession('" << name << "') when session '"<< current_session_->name << "' already open." << std::endl;
+        std::cerr << "Instrumentor::BeginSession('" << name << "') when session '" << current_session_->name
+                  << "' already open." << std::endl;
         InternalEndSession();
       }
 
@@ -47,7 +48,7 @@ namespace micm
 
       if (output_stream_.is_open())
       {
-        current_session_ = new InstrumentationSession({name});
+        current_session_ = new InstrumentationSession({ name });
         WriteHeader();
       }
       else
@@ -72,7 +73,8 @@ namespace micm
       json << "\"dur\":" << (result.elapsed_time.count()) << ',';
       json << "\"name\":\"" << result.name << "\",";
       json << "\"ph\":\"X\",";
-      json << "\"pid\":\"" << "0\",";
+      json << "\"pid\":\""
+           << "0\",";
       json << "\"tid\":\"" << result.threadID << "\",";
       json << "\"ts\":" << result.start.count();
       json << "}";
@@ -91,9 +93,9 @@ namespace micm
       return instance;
     }
 
-  private:
+   private:
     Instrumentor()
-      : current_session_(nullptr)
+        : current_session_(nullptr)
     {
     }
 
@@ -125,7 +127,7 @@ namespace micm
       }
     }
 
-  private:
+   private:
     std::mutex mutex_;
     InstrumentationSession* current_session_;
     std::ofstream output_stream_;
@@ -133,9 +135,10 @@ namespace micm
 
   class InstrumentationTimer
   {
-  public:
+   public:
     InstrumentationTimer(const char* name)
-      : name_(name), stopped_(false)
+        : name_(name),
+          stopped_(false)
     {
       start_time_point_ = std::chrono::steady_clock::now();
     }
@@ -150,15 +153,15 @@ namespace micm
     {
       auto end_time_point = std::chrono::steady_clock::now();
       auto start = FloatingPointMicroseconds{ start_time_point_.time_since_epoch() };
-      auto elapsed_time = std::chrono::time_point_cast<std::chrono::microseconds>(end_time_point).time_since_epoch() 
-                        - std::chrono::time_point_cast<std::chrono::microseconds>(start_time_point_).time_since_epoch();
+      auto elapsed_time = std::chrono::time_point_cast<std::chrono::microseconds>(end_time_point).time_since_epoch() -
+                          std::chrono::time_point_cast<std::chrono::microseconds>(start_time_point_).time_since_epoch();
 
-      Instrumentor::Get().WriteProfile({name_, start, elapsed_time, std::this_thread::get_id()});
+      Instrumentor::Get().WriteProfile({ name_, start, elapsed_time, std::this_thread::get_id() });
 
       stopped_ = true;
     }
 
-  private:
+   private:
     const char* name_;
     std::chrono::time_point<std::chrono::steady_clock> start_time_point_;
     bool stopped_;
@@ -166,14 +169,14 @@ namespace micm
 
   namespace InstrumentorUtils
   {
-    template <size_t N>
+    template<size_t N>
     struct ChangeResult
     {
       char Data[N];
     };
 
-    template <size_t N, size_t K>
-    constexpr auto CleanupOutputString(const char(&expr)[N], const char(&remove)[K])
+    template<size_t N, size_t K>
+    constexpr auto CleanupOutputString(const char (&expr)[N], const char (&remove)[K])
     {
       ChangeResult<N> result = {};
 
@@ -192,31 +195,32 @@ namespace micm
 
       return result;
     }
-  }
+  }  // namespace InstrumentorUtils
 
 }  // namespace micm
 
 #if MICM_PROFILE
-  #if defined(__GNUC__) || defined(__ICC)
-    #define MICM_FUNC_SIG __func__
-    // #define MICM_FUNC_SIG __PRETTY_FUNCTION__
-  #elif (defined(__FUNCSIG__) || (_MSC_VER))
-    #define MICM_FUNC_SIG __func__
-    //#define MICM_FUNC_SIG __FUNCSIG__
-  #else
-    #define MICM_FUNC_SIG "MICM_FUNC_SIG unknown!"
-  #endif
+#  if defined(__GNUC__) || defined(__ICC)
+#    define MICM_FUNC_SIG __func__
+   // #define MICM_FUNC_SIG __PRETTY_FUNCTION__
+#  elif (defined(__FUNCSIG__) || (_MSC_VER))
+#    define MICM_FUNC_SIG __func__
+   //#define MICM_FUNC_SIG __FUNCSIG__
+#  else
+#    define MICM_FUNC_SIG "MICM_FUNC_SIG unknown!"
+#  endif
 
-  #define MICM_PROFILE_BEGIN_SESSION(name, filepath) ::micm::Instrumentor::Get().BeginSession(name, filepath)
-  #define MICM_PROFILE_END_SESSION() ::micm::Instrumentor::Get().EndSession()
-  #define MICM_PROFILE_SCOPE_LINE2(name, line) constexpr auto fixedName##line = ::micm::InstrumentorUtils::CleanupOutputString(name, "__cdecl ");\
-                          ::micm::InstrumentationTimer timer##line(fixedName##line.Data)
-  #define MICM_PROFILE_SCOPE_LINE(name, line) MICM_PROFILE_SCOPE_LINE2(name, line)
-  #define MICM_PROFILE_SCOPE(name) MICM_PROFILE_SCOPE_LINE(name, __LINE__)
-  #define MICM_PROFILE_FUNCTION() MICM_PROFILE_SCOPE(MICM_FUNC_SIG)
+#  define MICM_PROFILE_BEGIN_SESSION(name, filepath) ::micm::Instrumentor::Get().BeginSession(name, filepath)
+#  define MICM_PROFILE_END_SESSION()                 ::micm::Instrumentor::Get().EndSession()
+#  define MICM_PROFILE_SCOPE_LINE2(name, line)                                                         \
+    constexpr auto fixedName##line = ::micm::InstrumentorUtils::CleanupOutputString(name, "__cdecl "); \
+    ::micm::InstrumentationTimer timer##line(fixedName##line.Data)
+#  define MICM_PROFILE_SCOPE_LINE(name, line) MICM_PROFILE_SCOPE_LINE2(name, line)
+#  define MICM_PROFILE_SCOPE(name)            MICM_PROFILE_SCOPE_LINE(name, __LINE__)
+#  define MICM_PROFILE_FUNCTION()             MICM_PROFILE_SCOPE(MICM_FUNC_SIG)
 #else
-  #define MICM_PROFILE_BEGIN_SESSION(name, filepath)
-  #define MICM_PROFILE_END_SESSION()
-  #define MICM_PROFILE_SCOPE(name)
-  #define MICM_PROFILE_FUNCTION()
+#  define MICM_PROFILE_BEGIN_SESSION(name, filepath)
+#  define MICM_PROFILE_END_SESSION()
+#  define MICM_PROFILE_SCOPE(name)
+#  define MICM_PROFILE_FUNCTION()
 #endif

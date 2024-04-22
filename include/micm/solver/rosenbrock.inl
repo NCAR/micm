@@ -1,9 +1,8 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-
 namespace micm
-{ 
+{
 
   inline void SolverStats::Reset()
   {
@@ -422,7 +421,6 @@ namespace micm
       MatrixPolicy<double>& forcing)
   {
     MICM_PROFILE_FUNCTION();
-    
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
     process_set_.template AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
   }
@@ -566,11 +564,13 @@ namespace micm
     
     MICM_PROFILE_FUNCTION();
 
+    MICM_PROFILE_FUNCTION();
+
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
     std::size_t N = Y.AsVector().size();
-    size_t n_species = state_parameters_.number_of_species_;
+    std::size_t n_species = state_parameters_.number_of_species_;
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -579,7 +579,8 @@ namespace micm
     for (std::size_t i = 0; i < N; ++i)
     {
       ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      errors_over_scale = _errors[i] / (parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax);
+      errors_over_scale =
+          _errors[i] / (parameters_.absolute_tolerance_[i % n_species] + parameters_.relative_tolerance_ * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
