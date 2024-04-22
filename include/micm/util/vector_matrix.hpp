@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/profiler/instrumentation.hpp>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <micm/profiler/instrumentation.hpp>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
@@ -274,7 +274,8 @@ namespace micm
       for (std::size_t i = 0; i < n; ++i)
         f(*(this_iter++), *(a_iter++), *(b_iter++));
       const std::size_t l = x_dim_ % L;
-      if (l > 0) {
+      if (l > 0)
+      {
         for (std::size_t y = 0; y < y_dim_; ++y)
           for (std::size_t x = 0; x < l; ++x)
             f(this_iter[y * L + x], a_iter[y * L + x], b_iter[y * L + x]);
