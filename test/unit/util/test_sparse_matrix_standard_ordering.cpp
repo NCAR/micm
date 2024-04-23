@@ -76,25 +76,19 @@ TEST(SparseMatrix, MultiBlockMatrix)
 TEST(SparseMatrixBuilder, BadConfiguration)
 {
   EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(3, 0);
-      } catch (const std::system_error& e) {
+      try { auto builder = micm::SparseMatrix<double>::create(3).with_element(3, 0); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
       std::system_error);
   EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(2, 4);
-      } catch (const std::system_error& e) {
+      try { auto builder = micm::SparseMatrix<double>::create(3).with_element(2, 4); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
       std::system_error);
   EXPECT_THROW(
-      try {
-        auto builder = micm::SparseMatrix<double>::create(3).with_element(6, 7);
-      } catch (const std::system_error& e) {
+      try { auto builder = micm::SparseMatrix<double>::create(3).with_element(6, 7); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },

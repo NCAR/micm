@@ -6,9 +6,8 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <vector>
-
 #include <micm/util/matrix_error.hpp>
+#include <vector>
 
 namespace micm
 {
@@ -52,7 +51,8 @@ namespace micm
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
         {
-          std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) + " elements, but expected " + std::to_string(y_dim_);
+          std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
+                            " elements, but expected " + std::to_string(y_dim_);
           throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
         }
         auto other_elem = other.begin();
@@ -166,7 +166,8 @@ namespace micm
                   // check that this row matches the expected rectangular matrix dimensions
                   if (other[x].size() != y_dim)
                   {
-                    std::string msg = "In matrix constructor from std::vector<std::vector>. Got " + std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
+                    std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
+                                      std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
                     throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), "");
                   }
                   for (std::size_t y{}; y < y_dim; ++y)

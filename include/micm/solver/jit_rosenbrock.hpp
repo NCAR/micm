@@ -17,7 +17,6 @@
 
 #include <chrono>
 #include <ctime>
-#include <source_location>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/jit_process_set.hpp>
@@ -26,6 +25,7 @@
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <source_location>
 
 namespace micm
 {
@@ -88,7 +88,10 @@ namespace micm
       MatrixPolicy<double> temp{};
       if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
       {
-        std::string msg = "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, currently: " + std::to_string(temp.GroupVectorSize());
+        std::string msg =
+            "JIT functions require the number of grid cells solved together to match the vector dimension template "
+            "parameter, currently: " +
+            std::to_string(temp.GroupVectorSize());
         throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
       }
       this->GenerateAlphaMinusJacobian();
@@ -115,7 +118,8 @@ namespace micm
       }
       else
       {
-        throw std::system_error(make_error_code(MicmJitErrc::MissingJitFunction), std::source_location::current().function_name());
+        throw std::system_error(
+            make_error_code(MicmJitErrc::MissingJitFunction), std::source_location::current().function_name());
       }
     }
 

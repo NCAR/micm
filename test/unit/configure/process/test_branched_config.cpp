@@ -6,19 +6,28 @@ TEST(BranchedConfig, DetectsInvalidConfig)
 {
   // Read and parse the configure files
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/missing_reactants");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/missing_alkoxy_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/missing_nitrate_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
 }
@@ -114,9 +123,12 @@ TEST(BranchedConfig, ParseConfig)
 TEST(BranchedConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/contains_nonstandard_key");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -124,14 +136,20 @@ TEST(BranchedConfig, DetectsNonstandardKeys)
 TEST(BranchedConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_alkoxy_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_nitrate_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -139,9 +157,12 @@ TEST(BranchedConfig, DetectsNonstandardProductCoefficient)
 TEST(BranchedConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/branched/nonstandard_reactant_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }

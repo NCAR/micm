@@ -4,8 +4,8 @@
 #pragma once
 
 #include <cmath>
-
 #include <micm/util/matrix_error.hpp>
+
 #include "vector_matrix.hpp"
 
 namespace micm

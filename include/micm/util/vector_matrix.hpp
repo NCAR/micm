@@ -56,7 +56,8 @@ namespace micm
       {
         if (other.size() < y_dim_)
         {
-          std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) + " elements, but expected " + std::to_string(y_dim_);
+          std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
+                            " elements, but expected " + std::to_string(y_dim_);
           throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
@@ -175,7 +176,8 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " + std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
+                    std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " +
+                                      std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
                     throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);

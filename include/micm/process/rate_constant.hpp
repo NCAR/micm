@@ -19,11 +19,11 @@ enum class MicmRateConstantErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmRateConstantErrc> : true_type
   {
   };
-} // namespace std
+}  // namespace std
 
 namespace
 {
@@ -38,18 +38,16 @@ namespace
     {
       switch (static_cast<MicmRateConstantErrc>(ev))
       {
-        case MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant:
-          return "Missing arguments for surface reaction";
+        case MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant: return "Missing arguments for surface reaction";
         case MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant:
           return "Missing arguments for user-defined rate constant";
-        default:
-          return "Unknown error";
+        default: return "Unknown error";
       }
     }
   };
 
   const RateConstantErrorCategory rateConstantErrorCategory{};
-} // namespace micm
+}  // namespace
 
 std::error_code make_error_code(MicmRateConstantErrc e)
 {

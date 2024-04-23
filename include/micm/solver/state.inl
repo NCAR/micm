@@ -3,55 +3,55 @@
 
 enum class MicmStateErrc
 {
-  UnknownSpecies = 1, // Unknown species
-  UnknownRateConstantParameter = 2, // Unknown rate constant parameter
-  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3, // Incorrect number of concentration values
-  IncorrectNumberOfCustomRateParameterValues = 4, // Incorrect number of custom rate parameter values
-  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5, // Incorrect number of grid cells
+  UnknownSpecies = 1,                                                   // Unknown species
+  UnknownRateConstantParameter = 2,                                     // Unknown rate constant parameter
+  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3,        // Incorrect number of concentration values
+  IncorrectNumberOfCustomRateParameterValues = 4,                       // Incorrect number of custom rate parameter values
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5,  // Incorrect number of grid cells
 };
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmStateErrc> : true_type
   {
   };
-} // namespace std
+}  // namespace std
 
 namespace
 {
 
   class MicmStateErrorCategory : public std::error_category
   {
-  public:
-    const char* name() const noexcept override { return "MICM State"; }
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM State";
+    }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmStateErrc>(ev))
       {
-      case MicmStateErrc::UnknownSpecies:
-        return "Unknown species";
-      case MicmStateErrc::UnknownRateConstantParameter:
-        return "Unknown rate constant parameter";
-      case MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState:
-        return "Incorrect number of concentration values for multi-gridcell State";
-      case MicmStateErrc::IncorrectNumberOfCustomRateParameterValues:
-        return "Incorrect number of custom rate parameter values per grid cell";
-      case MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState:
-        return "Incorrect number of custom rate parameter values for multi-gridcell State";
-      default:
-        return "Unknown error";
+        case MicmStateErrc::UnknownSpecies: return "Unknown species";
+        case MicmStateErrc::UnknownRateConstantParameter: return "Unknown rate constant parameter";
+        case MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState:
+          return "Incorrect number of concentration values for multi-gridcell State";
+        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValues:
+          return "Incorrect number of custom rate parameter values per grid cell";
+        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState:
+          return "Incorrect number of custom rate parameter values for multi-gridcell State";
+        default: return "Unknown error";
       }
     }
   };
 
   const MicmStateErrorCategory micmStateErrorCategory{};
 
-} // namespace
+}  // namespace
 
 std::error_code make_error_code(MicmStateErrc e)
 {
-  return {static_cast<int>(e), micmStateErrorCategory};
+  return { static_cast<int>(e), micmStateErrorCategory };
 }
 
 namespace micm
@@ -139,7 +139,8 @@ namespace micm
       const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
 
     if (parameters[0].size() != custom_rate_parameters_.NumColumns())
       throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues));
@@ -165,7 +166,8 @@ namespace micm
     if (param == custom_rate_parameter_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
     if (custom_rate_parameters_.NumRows() != 1)
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     custom_rate_parameters_[0][param->second] = value;
   }
 
@@ -178,7 +180,8 @@ namespace micm
     if (param == custom_rate_parameter_map_.end())
       throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
     if (custom_rate_parameters_.NumRows() != values.size())
-      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }

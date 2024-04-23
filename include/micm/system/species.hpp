@@ -19,7 +19,7 @@ enum class MicmSpeciesErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmSpeciesErrc> : true_type
   {
   };
@@ -30,17 +30,17 @@ namespace
   class MicmSpeciesErrorCategory : public std::error_category
   {
    public:
-    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_SPECIES; }
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_SPECIES;
+    }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmSpeciesErrc>(ev))
       {
-        case MicmSpeciesErrc::PropertyNotFound:
-          return "Property not found";
-        case MicmSpeciesErrc::InvalidTypeForProperty:
-          return "Invalid type for property";
-        default:
-          return "Unknown error";
+        case MicmSpeciesErrc::PropertyNotFound: return "Property not found";
+        case MicmSpeciesErrc::InvalidTypeForProperty: return "Invalid type for property";
+        default: return "Unknown error";
       }
     }
   };
@@ -161,8 +161,11 @@ namespace micm
       try
       {
         return properties_string_.at(key);
-      } catch (const std::out_of_range& e) {
-        throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, double>::value)
@@ -170,8 +173,11 @@ namespace micm
       try
       {
         return properties_double_.at(key);
-      } catch (const std::out_of_range& e) {
-        throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, bool>::value)
@@ -179,8 +185,11 @@ namespace micm
       try
       {
         return properties_bool_.at(key);
-      } catch (const std::out_of_range& e) {
-        throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else if constexpr (std::is_same<T, int>::value)
@@ -188,8 +197,11 @@ namespace micm
       try
       {
         return properties_int_.at(key);
-      } catch (const std::out_of_range& e) {
-        throw std::system_error(make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
       }
     }
     else

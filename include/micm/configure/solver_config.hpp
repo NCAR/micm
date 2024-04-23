@@ -8,7 +8,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <system_error>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/process.hpp>
@@ -25,6 +24,7 @@
 #include <micm/util/error.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
+#include <system_error>
 
 enum class MicmConfigErrc
 {
@@ -45,56 +45,45 @@ enum class MicmConfigErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmConfigErrc> : true_type
   {
   };
-} // namespace std
+}  // namespace std
 
-namespace {
+namespace
+{
   class MicmConfigErrorCategory : public std::error_category
   {
-  public:
-    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_CONFIGURATION; }
+   public:
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_CONFIGURATION;
+    }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmConfigErrc>(ev))
       {
-        case MicmConfigErrc::InvalidKey:
-          return "Invalid key";
-        case MicmConfigErrc::UnknownKey:
-          return "Unknown key";
-        case MicmConfigErrc::InvalidFilePath:
-          return "Invalid file path";
-        case MicmConfigErrc::NoConfigFilesFound:
-          return "No config files found";
-        case MicmConfigErrc::CAMPFilesNotFound:
-          return "CAMP files not found";
-        case MicmConfigErrc::CAMPDataNotFound:
-          return "CAMP data not found";
-        case MicmConfigErrc::InvalidSpecies:
-          return "Invalid species";
-        case MicmConfigErrc::InvalidMechanism:
-          return "Invalid mechanism";
-        case MicmConfigErrc::InvalidType:
-          return "Invalid type";
-        case MicmConfigErrc::ObjectTypeNotFound:
-          return "Object type not found";
-        case MicmConfigErrc::RequiredKeyNotFound:
-          return "Required key not found";
-        case MicmConfigErrc::ContainsNonStandardKey:
-          return "Contains non-standard key";
-        case MicmConfigErrc::MutuallyExclusiveOption:
-          return "Mutually exclusive option";
-        default:
-          return "Unknown error";
+        case MicmConfigErrc::InvalidKey: return "Invalid key";
+        case MicmConfigErrc::UnknownKey: return "Unknown key";
+        case MicmConfigErrc::InvalidFilePath: return "Invalid file path";
+        case MicmConfigErrc::NoConfigFilesFound: return "No config files found";
+        case MicmConfigErrc::CAMPFilesNotFound: return "CAMP files not found";
+        case MicmConfigErrc::CAMPDataNotFound: return "CAMP data not found";
+        case MicmConfigErrc::InvalidSpecies: return "Invalid species";
+        case MicmConfigErrc::InvalidMechanism: return "Invalid mechanism";
+        case MicmConfigErrc::InvalidType: return "Invalid type";
+        case MicmConfigErrc::ObjectTypeNotFound: return "Object type not found";
+        case MicmConfigErrc::RequiredKeyNotFound: return "Required key not found";
+        case MicmConfigErrc::ContainsNonStandardKey: return "Contains non-standard key";
+        case MicmConfigErrc::MutuallyExclusiveOption: return "Mutually exclusive option";
+        default: return "Unknown error";
       }
-
     }
   };
 
   const MicmConfigErrorCategory micmConfigErrorCategory{};
-} // namespace
+}  // namespace
 
 std::error_code make_error_code(MicmConfigErrc e)
 {
@@ -271,7 +260,7 @@ namespace micm
 
       // Parse species object array
       ParseSpeciesArray(species_objects);
-      
+
       // Assign the parsed 'Species' to 'Phase'
       gas_phase_ = Phase(species_arr_);
 
@@ -481,7 +470,7 @@ namespace micm
       const std::string PRODUCTS = "products";
 
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
 
@@ -511,7 +500,8 @@ namespace micm
       {
         if (parameters.C_ != 0)
         {
-          throw std::system_error{ make_error_code(MicmConfigErrc::MutuallyExclusiveOption), "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
+          throw std::system_error{ make_error_code(MicmConfigErrc::MutuallyExclusiveOption),
+                                   "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
         }
         // Calculate 'C' using 'Ea'
         parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
@@ -519,7 +509,6 @@ namespace micm
       arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
-
     }
 
     void ParseTroe(const json& object)
@@ -529,7 +518,7 @@ namespace micm
 
       ValidateSchema(
           object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
 
@@ -582,7 +571,7 @@ namespace micm
 
       ValidateSchema(
           object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
 
@@ -641,7 +630,7 @@ namespace micm
       const std::string N = "n";
 
       ValidateSchema(object, { "type", REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N }, {});
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
       auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
@@ -673,7 +662,7 @@ namespace micm
       const std::string PRODUCTS = "products";
 
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C" });
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
 
@@ -706,7 +695,7 @@ namespace micm
       const std::string SCALING_FACTOR = "scaling factor";
 
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR, PRODUCTS });
-      
+
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
@@ -729,7 +718,7 @@ namespace micm
       const std::string SCALING_FACTOR = "scaling factor";
 
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
-      
+
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
@@ -753,7 +742,7 @@ namespace micm
       const std::string SCALING_FACTOR = "scaling factor";
 
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
-      
+
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
@@ -773,7 +762,7 @@ namespace micm
       const std::string PROBABILITY = "reaction probability";
 
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
-      
+
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
       reactants_object[species_name] = {};

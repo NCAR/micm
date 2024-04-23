@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/error.hpp>
 #include <string>
 #include <system_error>
-#include <micm/util/error.hpp>
 
 enum class MicmMatrixErrc
 {
@@ -18,7 +18,7 @@ enum class MicmMatrixErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmMatrixErrc> : true_type
   {
   };
@@ -37,18 +37,12 @@ namespace
     {
       switch (static_cast<MicmMatrixErrc>(ev))
       {
-        case MicmMatrixErrc::RowSizeMismatch:
-          return "Matrix row size mismatch in assignment from vector";
-        case MicmMatrixErrc::InvalidVector:
-          return "Invalid vector for matrix assignment";
-        case MicmMatrixErrc::ElementOutOfRange:
-          return "Element out of range";
-        case MicmMatrixErrc::MissingBlockIndex:
-          return "Missing block index";
-        case MicmMatrixErrc::ZeroElementAccess:
-          return "Zero element access";
-        default:
-          return "Unknown error";
+        case MicmMatrixErrc::RowSizeMismatch: return "Matrix row size mismatch in assignment from vector";
+        case MicmMatrixErrc::InvalidVector: return "Invalid vector for matrix assignment";
+        case MicmMatrixErrc::ElementOutOfRange: return "Element out of range";
+        case MicmMatrixErrc::MissingBlockIndex: return "Missing block index";
+        case MicmMatrixErrc::ZeroElementAccess: return "Zero element access";
+        default: return "Unknown error";
       }
     }
   };
@@ -58,5 +52,5 @@ namespace
 
 std::error_code make_error_code(MicmMatrixErrc e)
 {
-  return {static_cast<int>(e), micmMatrixErrorCategory};
+  return { static_cast<int>(e), micmMatrixErrorCategory };
 }

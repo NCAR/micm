@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <micm/util/error.hpp>
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/LoopAccessAnalysis.h"
@@ -33,7 +34,6 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Vectorize.h"
-#include <micm/util/error.hpp>
 
 enum class MicmJitErrc
 {
@@ -43,18 +43,18 @@ enum class MicmJitErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmJitErrc> : true_type
   {
   };
-} // namespace std
+}  // namespace std
 
 namespace
 {
   class JitErrorCategory : public std::error_category
   {
    public:
-    const char* name() const noexcept override
+    const char *name() const noexcept override
     {
       return MICM_ERROR_CATEGORY_JIT;
     }
@@ -63,17 +63,16 @@ namespace
       switch (static_cast<MicmJitErrc>(ev))
       {
         case MicmJitErrc::InvalidMatrix:
-          return "Invalid matrix for JIT compiled operation. Ensure matrix is Vector-ordered with vector dimension equal to the nubmer of grid cells.";
-        case MicmJitErrc::MissingJitFunction:
-          return "Missing JIT-compiled function";
-        default:
-          return "Unknown error";
+          return "Invalid matrix for JIT compiled operation. Ensure matrix is Vector-ordered with vector dimension equal to "
+                 "the nubmer of grid cells.";
+        case MicmJitErrc::MissingJitFunction: return "Missing JIT-compiled function";
+        default: return "Unknown error";
       }
     }
   };
 
   const JitErrorCategory jitErrorCategory{};
-} // namespace micm
+}  // namespace
 
 std::error_code make_error_code(MicmJitErrc e)
 {

@@ -5,9 +5,12 @@
 TEST(SolverConfig, DetectsInvalidConfigFile)
 {
   micm::SolverConfig solverConfig{};
-  try {
+  try
+  {
     solverConfig.ReadAndParse("not_a_config_file");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::InvalidFilePath));
   }
 }
@@ -15,9 +18,12 @@ TEST(SolverConfig, DetectsInvalidConfigFile)
 TEST(SolverConfig, NoConfigFilesFound)
 {
   micm::SolverConfig solverConfig{};
-  try {
+  try
+  {
     solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config.json");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::NoConfigFilesFound));
   }
 }
@@ -25,9 +31,12 @@ TEST(SolverConfig, NoConfigFilesFound)
 TEST(SolverConfig, CAMPFilesNotFound)
 {
   micm::SolverConfig solverConfig{};
-  try {
+  try
+  {
     solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config_missing_file.json");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::CAMPFilesNotFound));
   }
 }
@@ -35,15 +44,19 @@ TEST(SolverConfig, CAMPFilesNotFound)
 TEST(SolverConfig, UnknownKey)
 {
   micm::SolverConfig solverConfig{};
-  try {
+  try
+  {
     solverConfig.ReadAndParse("./unit_configs/CAMP/camp_unknown_key/config.json");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
   try
   {
     micm::SolverParameters solver_params = solverConfig.GetSolverParams();
-  } catch (const std::system_error& e)
+  }
+  catch (const std::system_error& e)
   {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
@@ -52,15 +65,20 @@ TEST(SolverConfig, UnknownKey)
 TEST(SolverConfig, BadType)
 {
   micm::SolverConfig solverConfig{};
-  try {
+  try
+  {
     solverConfig.ReadAndParse("./unit_configs/CAMP/camp_bad_type/config.json");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
   try
   {
     micm::SolverParameters solver_params = solverConfig.GetSolverParams();
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
 }
