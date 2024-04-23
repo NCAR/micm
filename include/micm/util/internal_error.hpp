@@ -6,7 +6,7 @@
 #include <system_error>
 #include <micm/util/error.hpp>
 
-#define INTERNAL_ERROR(msg) ThrowInternalError(MicmInternalErrc::General, __FILE__, __LINE__, msg);
+#define INTERNAL_ERROR(msg) micm::ThrowInternalError(MicmInternalErrc::General, __FILE__, __LINE__, msg);
 
 enum class MicmInternalErrc
 {
@@ -51,13 +51,17 @@ namespace
   const MicmInternalErrorCategory micmInternalErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmInternalErrc e)
+inline std::error_code make_error_code(MicmInternalErrc e)
 {
   return {static_cast<int>(e), micmInternalErrorCategory};
 }
 
-void ThrowInternalError(MicmInternalErrc e, const char *file, int line, const char *msg)
+namespace micm
 {
-  std::string message = std::string("Please file a bug report at https://github.com/NCAR/micm. Error detail: (") + file + ":" + std::to_string(line) + ") " + msg;
-  throw std::system_error(make_error_code(e), message);
+  inline void ThrowInternalError(MicmInternalErrc e, const char *file, int line, const char *msg)
+  {
+    std::string message = std::string("Please file a bug report at https://github.com/NCAR/micm. Error detail: (") + file +
+                          ":" + std::to_string(line) + ") " + msg;
+    throw std::system_error(make_error_code(e), message);
+  }
 }

@@ -4,49 +4,9 @@
 #include <iostream>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/internal_error.hpp>
 
 #include "cublas_v2.h"
-
-enum class MicmCudaRosenbrockSolverErrc
-{ 
-  ParameterMismatch = 1,
-  CublasError = 2,
-};
-
-namespace std
-{
-  template <>
-  struct is_error_code_enum<MicmCudaRosenbrockSolverErrc> : public true_type
-  {
-  };
-}  // namespace std
-
-namespace {
-  class MicmCudaRosenbrockSolverErrorCategory : public std::error_category
-  {
-  public:
-    const char* name() const noexcept override { return "MicmCudaRosenbrockSolverErrorCategory"; }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmCudaRosenbrockSolverErrc>(ev))
-      {
-        case MicmCudaRosenbrockSolverErrc::ParameterMismatch:
-          return "Parameter mismatch between devstruct.errors_input_ and errors_param.";
-        case MicmCudaRosenbrockSolverErrc::CublasError:
-          return "Error while calling cuBLAS Dnrm2.";
-        default:
-          return "Unknown error";
-      }
-    }
-  };
-
-  const MicmCudaRosenbrockSolverErrorCategory theMicmCudaRosenbrockSolverErrorCategory{};
-}  // namespace
-
-std::error_code make_error_code(MicmCudaRosenbrockSolverErrc e)
-{
-  return {static_cast<int>(e), theMicmCudaRosenbrockSolverErrorCategory};
-}
 
 namespace micm
 {
@@ -288,7 +248,9 @@ namespace micm
 
       if (number_of_elements != errors_param.number_of_elements_)
       {
-        throw std::system_error(make_error_code(MicmCudaRosenbrockSolverErrc::ParameterMismatch), "");
+        std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
+                          " but got: " + std::to_string(errors_param.number_of_elements_);
+        INTERNAL_ERROR(msg.c_str());
       }
       cudaError_t err = cudaMemcpy(
           devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
@@ -303,8 +265,7 @@ namespace micm
         cublasStatus_t stat = cublasDnrm2(handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
-          printf(cublasGetStatusString(stat));
-          throw std::system_error(make_error_code(MicmCudaRosenbrockSolverErrc::CublasError), "");
+          ThrowInternalError(MicmInternalErrc::Cublas, __FILE__, __LINE__, cublasGetStatusString(stat));
         }
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
       }
