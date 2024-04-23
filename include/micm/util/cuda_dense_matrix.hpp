@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
 
@@ -13,48 +14,6 @@
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
-
-enum class MicmCudaDenseMatrixErrc
-{
-  CUBLASOperationFailure = 1,  // cuBLAS operation failed
-};
-
-namespace std
-{
-  template <>
-  struct is_error_condition_enum<MicmCudaDenseMatrixErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmCudaDenseMatrixErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return "MICM Cuda Dense Matrix";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmCudaDenseMatrixErrc>(ev))
-      {
-        case MicmCudaDenseMatrixErrc::CUBLASOperationFailure:
-          return "cuBLAS operation failure";
-        default:
-          return "Unknown error";
-      }
-    }
-  };
-
-  const MicmCudaDenseMatrixErrorCategory micmCudaDenseMatrixErrorCategory{};
-}  // namespace
-
-std::error_code make_error_code(MicmCudaDenseMatrixErrc e)
-{
-  return { static_cast<int>(e), micmCudaDenseMatrixErrorCategory };
-}
 
 namespace micm
 {

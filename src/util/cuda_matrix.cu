@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/internal_error.hpp>
 #include <vector>
 
 namespace micm
@@ -60,8 +61,8 @@ namespace micm
     {
       if (err != cudaSuccess)
       {
-        std::cout << "CUDA error: " << cudaGetErrorString(err) << " at " << file << ":" << line << std::endl;
-        throw std::runtime_error(str + " failed...");
+        std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
+        ThrowInternalError(MicmInternalErrc::Cuda, file, line, msg.c_str());
       }
     }
 
@@ -69,8 +70,8 @@ namespace micm
     {
       if (err != CUBLAS_STATUS_SUCCESS)
       {
-        std::cout << "CUBLAS error: " << err << " at " << file << ":" << line << std::endl;
-        throw std::runtime_error(str);
+        std::string msg = std::to_string(err) + " : " + str;
+        ThrowInternalError(MicmInternalErrc::Cublas, file, line, msg.c_str());
       }
     }
   }  // namespace cuda

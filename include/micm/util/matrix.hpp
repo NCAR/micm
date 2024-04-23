@@ -8,50 +8,7 @@
 #include <iostream>
 #include <vector>
 
-enum class MicmMatrixErrc
-{
-  RowSizeMismatch = 1,
-  InvalidVector = 2,
-};
-
-namespace std
-{
-  template <>
-  struct is_error_condition_enum<MicmMatrixErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmMatrixErrorCategory : public std::error_category
-  {
-   public:
-    const char *name() const noexcept override
-    {
-      return "MICM Matrix";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmMatrixErrc>(ev))
-      {
-        case MicmMatrixErrc::RowSizeMismatch:
-          return "Matrix row size mismatch in assignment from vector";
-        case MicmMatrixErrc::InvalidVector:
-          return "Invalid vector for matrix assignment";
-        default:
-          return "Unknown error";
-      }
-    }
-  };
-
-  const MicmMatrixErrorCategory micmMatrixErrorCategory{};
-}  // namespace
-
-std::error_code make_error_code(MicmMatrixErrc e)
-{
-  return {static_cast<int>(e), micmMatrixErrorCategory};
-}
+#include <micm/util/matrix_error.hpp>
 
 namespace micm
 {

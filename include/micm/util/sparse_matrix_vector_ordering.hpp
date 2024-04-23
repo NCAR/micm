@@ -5,52 +5,8 @@
 
 #include <cmath>
 
+#include <micm/util/matrix_error.hpp>
 #include "vector_matrix.hpp"
-
-enum class MicmSparseMatrixVectorOrderingErrc
-{
-  ElementOutOfRange = 1,
-  ZeroElementAccess = 2,
-};
-
-namespace std
-{
-  template <>
-  struct is_error_condition_enum<MicmSparseMatrixVectorOrderingErrc> : true_type
-  {
-  };
-}  // namespace std
-
-namespace
-{
-  class MicmSparseMatrixVectorOrderingErrorCategory : public std::error_category
-  {
-   public:
-    const char* name() const noexcept override
-    {
-      return "MICM Sparse Matrix Vector Ordering";
-    }
-    std::string message(int ev) const override
-    {
-      switch (static_cast<MicmSparseMatrixVectorOrderingErrc>(ev))
-      {
-        case MicmSparseMatrixVectorOrderingErrc::ElementOutOfRange:
-          return "SparseMatrix element out of range";
-        case MicmSparseMatrixVectorOrderingErrc::ZeroElementAccess:
-          return "SparseMatrix zero element access not allowed";
-        default:
-          return "Unknown error";
-      }
-    }
-  };
-
-  const MicmSparseMatrixVectorOrderingErrorCategory micmSparseMatrixVectorOrderingErrorCategory{};
-}  // namespace
-
-std::error_code make_error_code(MicmSparseMatrixVectorOrderingErrc e)
-{
-  return { static_cast<int>(e), micmSparseMatrixVectorOrderingErrorCategory };
-}
 
 namespace micm
 {
@@ -84,12 +40,12 @@ namespace micm
         std::size_t column) const
     {
       if (row >= row_start.size() - 1 || column >= row_start.size() - 1 || block >= number_of_blocks)
-        throw std::system_error(make_error_code(MicmSparseMatrixVectorOrderingErrc::ElementOutOfRange));
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
       auto begin = std::next(row_ids.begin(), row_start[row]);
       auto end = std::next(row_ids.begin(), row_start[row + 1]);
       auto elem = std::find(begin, end, column);
       if (elem == end)
-        throw std::system_error(make_error_code(MicmSparseMatrixVectorOrderingErrc::ZeroElementAccess));
+        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
       return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * L * row_ids.size() };
     };
 

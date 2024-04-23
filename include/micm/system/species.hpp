@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <map>
+#include <micm/util/error.hpp>
 #include <string>
 #include <vector>
 
@@ -12,8 +13,8 @@
 
 enum class MicmSpeciesErrc
 {
-  PropertyNotFound = 1,  // Missing property
-  InvalidTypeForProperty = 2, // Invalid type for property
+  PropertyNotFound = MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+  InvalidTypeForProperty = MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY
 };
 
 namespace std
@@ -29,7 +30,7 @@ namespace
   class MicmSpeciesErrorCategory : public std::error_category
   {
    public:
-    const char* name() const noexcept override { return "MICM Species"; }
+    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_SPECIES; }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmSpeciesErrc>(ev))

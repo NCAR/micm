@@ -17,12 +17,13 @@
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/error.hpp>
 #include <utility>
 #include <vector>
 
 enum class MicmProcessErrc
 {
-  TooManyReactantsForSurfaceReaction = 1,  // A surface rate constant can only have one reactant
+  TooManyReactantsForSurfaceReaction = MICM_PROCESS_ERROR_CODE_TOO_MANY_REACTANTS_FOR_SURFACE_REACTION
 };
 
 namespace std
@@ -39,7 +40,7 @@ namespace {
    public:
     const char* name() const noexcept override
     {
-      return "MICM Process";
+      return MICM_ERROR_CATEGORY_PROCESS;
     }
     std::string message(int ev) const override
     {

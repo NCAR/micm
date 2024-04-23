@@ -33,11 +33,12 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Vectorize.h"
+#include <micm/util/error.hpp>
 
 enum class MicmJitErrc
 {
-  InvalidMatrix = 1, // Invalid matrix for JIT compiled operation
-  MissingJitFunction = 2, // Missing JIT function
+  InvalidMatrix = MICM_JIT_ERROR_CODE_INVALID_MATRIX,
+  MissingJitFunction = MICM_JIT_ERROR_CODE_MISSING_JIT_FUNCTION
 };
 
 namespace std
@@ -55,7 +56,7 @@ namespace
    public:
     const char* name() const noexcept override
     {
-      return "MICM JIT";
+      return MICM_ERROR_CATEGORY_JIT;
     }
     std::string message(int ev) const override
     {

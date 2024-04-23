@@ -7,13 +7,14 @@
 #include <micm/process/process.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/util/error.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <vector>
 
 enum class MicmProcessSetErrc
 {
-  ReactantDoesNotExist = 1,  // Specified reactant does not exist in the system
-  ProductDoesNotExist = 2,   // Specified product does not exist in the system
+  ReactantDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_REACTANT_DOES_NOT_EXIST,
+  ProductDoesNotExist = MICM_PROCESS_SET_ERROR_CODE_PRODUCT_DOES_NOT_EXIST
 };
 
 namespace std
@@ -29,7 +30,7 @@ namespace
   class MicmProcessSetErrorCategory : public std::error_category
   {
    public:
-    const char* name() const noexcept override { return "MICM Process Set"; }
+    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_PROCESS_SET; }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmProcessSetErrc>(ev))

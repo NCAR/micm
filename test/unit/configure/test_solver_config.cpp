@@ -8,7 +8,7 @@ TEST(SolverConfig, DetectsInvalidConfigFile)
   try {
     solverConfig.ReadAndParse("not_a_config_file");
   } catch (const std::system_error& e) {
-    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::InvalidCAMPFilePath));
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::InvalidFilePath));
   }
 }
 

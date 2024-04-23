@@ -22,26 +22,26 @@
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/util/error.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
 enum class MicmConfigErrc
 {
-  Success,
-  None,
-  InvalidKey,
-  UnknownKey,
-  InvalidCAMPFilePath,
-  NoConfigFilesFound,
-  CAMPFilesSectionNotFound,
-  CAMPDataSectionNotFound,
-  InvalidSpecies,
-  InvalidMechanism,
-  InvalidType,
-  ObjectTypeNotFound,
-  RequiredKeyNotFound,
-  ContainsNonStandardKey,
-  MutuallyExclusiveOption
+  Success = MICM_CONFIGURATION_ERROR_CODE_SUCCESS,
+  InvalidKey = MICM_CONFIGURATION_ERROR_CODE_INVALID_KEY,
+  UnknownKey = MICM_CONFIGURATION_ERROR_CODE_UNKNOWN_KEY,
+  InvalidFilePath = MICM_CONFIGURATION_ERROR_CODE_INVALID_FILE_PATH,
+  NoConfigFilesFound = MICM_CONFIGURATION_ERROR_CODE_NO_CONFIG_FILES_FOUND,
+  CAMPFilesNotFound = MICM_CONFIGURATION_ERROR_CODE_CAMP_FILES_NOT_FOUND,
+  CAMPDataNotFound = MICM_CONFIGURATION_ERROR_CODE_CAMP_DATA_NOT_FOUND,
+  InvalidSpecies = MICM_CONFIGURATION_ERROR_CODE_INVALID_SPECIES,
+  InvalidMechanism = MICM_CONFIGURATION_ERROR_CODE_INVALID_MECHANISM,
+  InvalidType = MICM_CONFIGURATION_ERROR_CODE_INVALID_TYPE,
+  ObjectTypeNotFound = MICM_CONFIGURATION_ERROR_CODE_OBJECT_TYPE_NOT_FOUND,
+  RequiredKeyNotFound = MICM_CONFIGURATION_ERROR_CODE_REQUIRED_KEY_NOT_FOUND,
+  ContainsNonStandardKey = MICM_CONFIGURATION_ERROR_CODE_CONTAINS_NON_STANDARD_KEY,
+  MutuallyExclusiveOption = MICM_CONFIGURATION_ERROR_CODE_MUTUALLY_EXCLUSIVE_OPTION
 };
 
 namespace std
@@ -56,27 +56,25 @@ namespace {
   class MicmConfigErrorCategory : public std::error_category
   {
   public:
-    const char* name() const noexcept override { return "MICM Configuration"; }
+    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_CONFIGURATION; }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmConfigErrc>(ev))
       {
         case MicmConfigErrc::Success:
           return "Success";
-        case MicmConfigErrc::None:
-          return "None";
         case MicmConfigErrc::InvalidKey:
           return "Invalid key";
         case MicmConfigErrc::UnknownKey:
           return "Unknown key";
-        case MicmConfigErrc::InvalidCAMPFilePath:
-          return "Invalid CAMP file path";
+        case MicmConfigErrc::InvalidFilePath:
+          return "Invalid file path";
         case MicmConfigErrc::NoConfigFilesFound:
           return "No config files found";
-        case MicmConfigErrc::CAMPFilesSectionNotFound:
-          return "CAMP files section not found";
-        case MicmConfigErrc::CAMPDataSectionNotFound:
-          return "CAMP data section not found";
+        case MicmConfigErrc::CAMPFilesNotFound:
+          return "CAMP files not found";
+        case MicmConfigErrc::CAMPDataNotFound:
+          return "CAMP data not found";
         case MicmConfigErrc::InvalidSpecies:
           return "Invalid species";
         case MicmConfigErrc::InvalidMechanism:
@@ -186,7 +184,7 @@ namespace micm
       // Look for CAMP config path
       if (!std::filesystem::exists(config_path))
       {
-        return ConfigParseStatus{ MicmConfigErrc::InvalidCAMPFilePath, config_path.string() };
+        return ConfigParseStatus{ MicmConfigErrc::InvalidFilePath, config_path.string() };
       }
 
       std::filesystem::path config_dir;
@@ -209,7 +207,7 @@ namespace micm
       json camp_data = json::parse(std::ifstream(config_file));
       if (!camp_data.contains(CAMP_FILES))
       {
-        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesSectionNotFound, config_file.string() };
+        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesNotFound, config_file.string() };
       }
 
       // Build a list of individual CAMP config files
@@ -268,7 +266,7 @@ namespace micm
         }
         else
         {
-          return ConfigParseStatus{ MicmConfigErrc::CAMPDataSectionNotFound, config_path.string() };
+          return ConfigParseStatus{ MicmConfigErrc::CAMPDataNotFound, config_path.string() };
         }
       }
 

@@ -8,12 +8,13 @@
 #include <iterator>
 #include <memory>
 #include <micm/system/conditions.hpp>
+#include <micm/util/error.hpp>
 #include <vector>
 
 enum class MicmRateConstantErrc
 {
-  MissingArgumentsForSurfaceRateConstant = 1, // Missing arguments for surface reaction
-  MissingArgumentsForUserDefinedRateConstant = 2, // Missing arguments for user-defined rate constant
+  MissingArgumentsForSurfaceRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT,
+  MissingArgumentsForUserDefinedRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_USER_DEFINED_RATE_CONSTANT
 };
 
 namespace std
@@ -31,7 +32,7 @@ namespace
    public:
     const char* name() const noexcept override
     {
-      return "MICM Rate Constant";
+      return MICM_ERROR_CATEGORY_RATE_CONSTANT;
     }
     std::string message(int ev) const override
     {
