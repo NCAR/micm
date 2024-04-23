@@ -28,7 +28,6 @@
 
 enum class MicmConfigErrc
 {
-  Success = MICM_CONFIGURATION_ERROR_CODE_SUCCESS,
   InvalidKey = MICM_CONFIGURATION_ERROR_CODE_INVALID_KEY,
   UnknownKey = MICM_CONFIGURATION_ERROR_CODE_UNKNOWN_KEY,
   InvalidFilePath = MICM_CONFIGURATION_ERROR_CODE_INVALID_FILE_PATH,
@@ -61,8 +60,6 @@ namespace {
     {
       switch (static_cast<MicmConfigErrc>(ev))
       {
-        case MicmConfigErrc::Success:
-          return "Success";
         case MicmConfigErrc::InvalidKey:
           return "Invalid key";
         case MicmConfigErrc::UnknownKey:
@@ -108,12 +105,6 @@ namespace micm
 {
 
   constexpr double MolesM3ToMoleculesCm3 = 1.0e-6 * 6.02214076e23;
-
-  struct ConfigParseStatus
-  {
-    MicmConfigErrc error_code_ = MicmConfigErrc::Success;
-    std::string msg_ = "";
-  };
 
   // Solver parameters
   struct SolverParameters
@@ -178,13 +169,12 @@ namespace micm
 
     /// @brief Parse configures
     /// @param config_path Path to a the CAMP configuration directory or file
-    /// @return True for successful parsing
-    ConfigParseStatus Parse(const std::filesystem::path& config_path)
+    void Parse(const std::filesystem::path& config_path)
     {
       // Look for CAMP config path
       if (!std::filesystem::exists(config_path))
       {
-        return ConfigParseStatus{ MicmConfigErrc::InvalidFilePath, config_path.string() };
+        throw std::system_error{ make_error_code(MicmConfigErrc::InvalidFilePath), config_path.string() };
       }
 
       std::filesystem::path config_dir;
@@ -207,7 +197,7 @@ namespace micm
       json camp_data = json::parse(std::ifstream(config_file));
       if (!camp_data.contains(CAMP_FILES))
       {
-        return ConfigParseStatus{ MicmConfigErrc::CAMPFilesNotFound, config_file.string() };
+        throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), config_file.string() };
       }
 
       // Build a list of individual CAMP config files
@@ -215,17 +205,17 @@ namespace micm
       for (const auto& element : camp_data[CAMP_FILES])
       {
         std::filesystem::path camp_file = config_dir / element.get<std::string>();
-        if (std::filesystem::exists(camp_file))
+        if (!std::filesystem::exists(camp_file))
         {
-          camp_files.push_back(camp_file);
+          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), camp_file.string() };
         }
-        // Error return here if CAMP files list has a missing file?
+        camp_files.push_back(camp_file);
       }
 
       // No config files found
       if (camp_files.size() < 1)
       {
-        return ConfigParseStatus{ MicmConfigErrc::NoConfigFilesFound, config_file.string() };
+        throw std::system_error{ make_error_code(MicmConfigErrc::NoConfigFilesFound), config_file.string() };
       }
 
       std::vector<json> species_objects;
@@ -236,37 +226,34 @@ namespace micm
       {
         json config_subset = json::parse(std::ifstream(camp_file));
 
-        if (config_subset.contains(CAMP_DATA))
+        if (!config_subset.contains(CAMP_DATA))
         {
-          // Iterate JSON objects from CAMP data entry
-          for (const auto& object : config_subset[CAMP_DATA])
+          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), config_subset.dump() };
+        }
+        // Iterate JSON objects from CAMP data entry
+        for (const auto& object : config_subset[CAMP_DATA])
+        {
+          if (!object.is_null())
           {
-            if (!object.is_null())
+            // Require object to have a type entry
+            if (!object.contains(TYPE))
             {
-              // Require object to have a type entry
-              if (!object.contains(TYPE))
-              {
-                std::string msg = "object: " + object.dump() + "; type: " + TYPE;
-                return ConfigParseStatus{ MicmConfigErrc::ObjectTypeNotFound, msg };
-              }
-              // Sort into object arrays by type
-              std::string type = object[TYPE].get<std::string>();
-              // CHEM_SPEC and RELATIVE_TOLERANCE parsed first by ParseSpeciesArray
-              if ((type == "CHEM_SPEC") || (type == "RELATIVE_TOLERANCE"))
-              {
-                species_objects.push_back(object);
-              }
-              // All other objects will be parsed by ParseMechanismArray
-              else
-              {
-                mechanism_objects.push_back(object);
-              }
+              std::string msg = "object: " + object.dump() + "; type: " + TYPE;
+              throw std::system_error{ make_error_code(MicmConfigErrc::ObjectTypeNotFound), msg };
+            }
+            // Sort into object arrays by type
+            std::string type = object[TYPE].get<std::string>();
+            // CHEM_SPEC and RELATIVE_TOLERANCE parsed first by ParseSpeciesArray
+            if ((type == "CHEM_SPEC") || (type == "RELATIVE_TOLERANCE"))
+            {
+              species_objects.push_back(object);
+            }
+            // All other objects will be parsed by ParseMechanismArray
+            else
+            {
+              mechanism_objects.push_back(object);
             }
           }
-        }
-        else
-        {
-          return ConfigParseStatus{ MicmConfigErrc::CAMPDataNotFound, config_path.string() };
         }
       }
 
@@ -283,21 +270,17 @@ namespace micm
       processes_.clear();
 
       // Parse species object array
-      auto status = ParseSpeciesArray(species_objects);
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ParseSpeciesArray(species_objects);
+      
       // Assign the parsed 'Species' to 'Phase'
       gas_phase_ = Phase(species_arr_);
 
       // Parse mechanism object array
-      return ParseMechanismArray(mechanism_objects);
+      ParseMechanismArray(mechanism_objects);
     }
 
    private:
-    ConfigParseStatus ParseSpeciesArray(const std::vector<json>& objects)
+    void ParseSpeciesArray(const std::vector<json>& objects)
     {
       for (const auto& object : objects)
       {
@@ -305,98 +288,82 @@ namespace micm
 
         if (type == "CHEM_SPEC")
         {
-          auto status = ParseChemicalSpecies(object);
-          if (status.error_code_ != MicmConfigErrc::Success)
-          {
-            return status;
-          }
+          ParseChemicalSpecies(object);
         }
         else if (type == "RELATIVE_TOLERANCE")
         {
-          auto status = ParseRelativeTolerance(object);
-          if (status.error_code_ != MicmConfigErrc::Success)
-          {
-            return status;
-          }
+          ParseRelativeTolerance(object);
         }
       }
-      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
-    ConfigParseStatus ParseMechanismArray(const std::vector<json>& objects)
+    void ParseMechanismArray(const std::vector<json>& objects)
     {
-      ConfigParseStatus status;
       for (const auto& object : objects)
       {
         std::string type = object[TYPE].get<std::string>();
 
         if (type == "MECHANISM")
         {
-          status = ParseMechanism(object);
+          ParseMechanism(object);
         }
         else if (type == "PHOTOLYSIS")
         {
-          status = ParsePhotolysis(object);
+          ParsePhotolysis(object);
         }
         else if (type == "EMISSION")
         {
-          status = ParseEmission(object);
+          ParseEmission(object);
         }
         else if (type == "FIRST_ORDER_LOSS")
         {
-          status = ParseFirstOrderLoss(object);
+          ParseFirstOrderLoss(object);
         }
         else if (type == "ARRHENIUS")
         {
-          status = ParseArrhenius(object);
+          ParseArrhenius(object);
         }
         else if (type == "TROE")
         {
-          status = ParseTroe(object);
+          ParseTroe(object);
         }
         else if (type == "TERNARY_CHEMICAL_ACTIVATION")
         {
-          status = ParseTernaryChemicalActivation(object);
+          ParseTernaryChemicalActivation(object);
         }
         else if (type == "BRANCHED" || type == "WENNBERG_NO_RO2")
         {
-          status = ParseBranched(object);
+          ParseBranched(object);
         }
         else if (type == "TUNNELING" || type == "WENNBERG_TUNNELING")
         {
-          status = ParseTunneling(object);
+          ParseTunneling(object);
         }
         else if (type == "SURFACE")
         {
-          status = ParseSurface(object);
+          ParseSurface(object);
         }
         else if (type == "USER_DEFINED")
         {
-          status = ParseUserDefined(object);
+          ParseUserDefined(object);
         }
         else
         {
-          return ConfigParseStatus{ MicmConfigErrc::UnknownKey, type };
+          throw std::system_error{ make_error_code(MicmConfigErrc::UnknownKey), type };
         }
-        if (status.error_code_ != MicmConfigErrc::Success) break;
       }
-      return status;
     }
 
-    ConfigParseStatus ParseChemicalSpecies(const json& object)
+    void ParseChemicalSpecies(const json& object)
     {
       // required keys
       const std::string NAME = "name";
       const std::string TYPE = "type";
 
-      auto status = ValidateSchema(
+      ValidateSchema(
           object,
           { NAME, TYPE },
           { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
 
       std::string name = object[NAME].get<std::string>();
       Species species{ name };
@@ -424,46 +391,31 @@ namespace micm
           }
           else
           {
-            return ConfigParseStatus{ MicmConfigErrc::InvalidType, key };
+            throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
           }
         }
       }
       species_arr_.push_back(species);
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
-    ConfigParseStatus ParseRelativeTolerance(const json& object)
+    void ParseRelativeTolerance(const json& object)
     {
-      auto status = ValidateSchema(object, { "value", "type" }, {});
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "value", "type" }, {});
       this->parameters_.relative_tolerance_ = object["value"].get<double>();
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
-    ConfigParseStatus ParseMechanism(const json& object)
+    void ParseMechanism(const json& object)
     {
-      auto status = ValidateSchema(object, { "name", "reactions", "type" }, {});
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "name", "reactions", "type" }, {});
       std::vector<json> objects;
       for (const auto& element : object["reactions"])
       {
         objects.push_back(element);
       }
-
-      return ParseMechanismArray(objects);
+      ParseMechanismArray(objects);
     }
 
-    std::pair<ConfigParseStatus, std::vector<Species>> ParseReactants(const json& object)
+    std::vector<Species> ParseReactants(const json& object)
     {
       const std::string QTY = "qty";
       std::vector<Species> reactants;
@@ -471,21 +423,16 @@ namespace micm
       for (auto& [key, value] : object.items())
       {
         std::size_t qty = 1;
-        auto status = ValidateSchema(value, {}, { "qty" });
-        if (status.error_code_ != MicmConfigErrc::Success)
-        {
-          return std::make_pair(status, reactants);
-        }
+        ValidateSchema(value, {}, { "qty" });
         if (value.contains(QTY))
           qty = value[QTY];
         for (std::size_t i = 0; i < qty; ++i)
           reactants.push_back(Species(key));
       }
-      ConfigParseStatus status;
-      return std::make_pair(status, reactants);
+      return reactants;
     }
 
-    std::pair<ConfigParseStatus, std::vector<std::pair<Species, double>>> ParseProducts(const json& object)
+    std::vector<std::pair<Species, double>> ParseProducts(const json& object)
     {
       const std::string YIELD = "yield";
 
@@ -493,11 +440,7 @@ namespace micm
       std::vector<std::pair<Species, double>> products;
       for (auto& [key, value] : object.items())
       {
-        auto status = ValidateSchema(value, {}, { "yield" });
-        if (status.error_code_ != MicmConfigErrc::Success)
-        {
-          return std::make_pair(status, products);
-        }
+        ValidateSchema(value, {}, { "yield" });
         if (value.contains(YIELD))
         {
           products.push_back(std::make_pair(Species(key), value[YIELD]));
@@ -507,36 +450,20 @@ namespace micm
           products.push_back(std::make_pair(Species(key), DEFAULT_YIELD));
         }
       }
-      ConfigParseStatus status;
-      return std::make_pair(status, products);
+      return products;
     }
 
-    ConfigParseStatus ParsePhotolysis(const json& object)
+    void ParsePhotolysis(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
+      ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
-
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
@@ -545,42 +472,25 @@ namespace micm
 
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseArrhenius(const json& object)
+    void ParseArrhenius(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status =
-          ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C", "D", "E", "Ea", "MUSICA name" });
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
 
       ArrheniusRateConstantParameters parameters;
       if (object.contains("A"))
       {
         parameters.A_ = object["A"].get<double>();
       }
-      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 1);
+      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
       if (object.contains("B"))
       {
         parameters.B_ = object["B"].get<double>();
@@ -601,45 +511,27 @@ namespace micm
       {
         if (parameters.C_ != 0)
         {
-          return ConfigParseStatus{ MicmConfigErrc::MutuallyExclusiveOption, "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
+          throw std::system_error{ make_error_code(MicmConfigErrc::MutuallyExclusiveOption), "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
         }
         // Calculate 'C' using 'Ea'
         parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
       }
-
       arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
-
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
 
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
 
-    ConfigParseStatus ParseTroe(const json& object)
+    void ParseTroe(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status = ValidateSchema(
+      ValidateSchema(
           object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
 
       TroeRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -647,7 +539,7 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].get<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size());
+      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size());
       if (object.contains("k0_B"))
       {
         parameters.k0_B_ = object["k0_B"].get<double>();
@@ -661,7 +553,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].get<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 1);
+      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
       if (object.contains("kinf_B"))
       {
         parameters.kinf_B_ = object["kinf_B"].get<double>();
@@ -678,40 +570,21 @@ namespace micm
       {
         parameters.N_ = object["N"].get<double>();
       }
-
       troe_rate_arr_.push_back(TroeRateConstant(parameters));
-
       std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
-
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseTernaryChemicalActivation(const json& object)
+    void ParseTernaryChemicalActivation(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status = ValidateSchema(
+      ValidateSchema(
           object, { "type", REACTANTS, PRODUCTS }, { "k0_A", "k0_B", "k0_C", "kinf_A", "kinf_B", "kinf_C", "Fc", "N" });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
 
       TernaryChemicalActivationRateConstantParameters parameters;
       if (object.contains("k0_A"))
@@ -719,7 +592,7 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].get<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 1);
+      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
       if (object.contains("k0_B"))
       {
         parameters.k0_B_ = object["k0_B"].get<double>();
@@ -733,7 +606,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].get<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 2);
+      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 2);
       if (object.contains("kinf_B"))
       {
         parameters.kinf_B_ = object["kinf_B"].get<double>();
@@ -752,16 +625,12 @@ namespace micm
       }
 
       ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
-
       std::unique_ptr<TernaryChemicalActivationRateConstant> rate_ptr =
           std::make_unique<TernaryChemicalActivationRateConstant>(parameters);
-
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseBranched(const json& object)
+    void ParseBranched(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string ALKOXY_PRODUCTS = "alkoxy products";
@@ -771,35 +640,16 @@ namespace micm
       const std::string A0 = "a0";
       const std::string N = "n";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N }, {});
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", REACTANTS, ALKOXY_PRODUCTS, NITRATE_PRODUCTS, X, Y, A0, N }, {});
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto alkoxy_products = ParseProducts(object[ALKOXY_PRODUCTS]);
       auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
 
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (alkoxy_products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return alkoxy_products.first;
-      }
-
-      if (nitrate_products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return nitrate_products.first;
-      }
-
       BranchedRateConstantParameters parameters;
       parameters.X_ = object[X].get<double>();
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.X_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 1);
+      parameters.X_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
       parameters.Y_ = object[Y].get<double>();
       parameters.a0_ = object[A0].get<double>();
       parameters.n_ = object[N].get<int>();
@@ -808,40 +658,24 @@ namespace micm
       parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
       branched_rate_arr_.push_back(BranchedRateConstant(parameters));
       std::unique_ptr<BranchedRateConstant> rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-      processes_.push_back(Process(reactants.second, alkoxy_products.second, std::move(rate_ptr), gas_phase_));
+      processes_.push_back(Process(reactants, alkoxy_products, std::move(rate_ptr), gas_phase_));
 
       // Nitrate branch
       parameters.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
       branched_rate_arr_.push_back(BranchedRateConstant(parameters));
       rate_ptr = std::make_unique<BranchedRateConstant>(parameters);
-      processes_.push_back(Process(reactants.second, nitrate_products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseTunneling(const json& object)
+    void ParseTunneling(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C" });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", REACTANTS, PRODUCTS }, { "A", "B", "C" });
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
 
       TunnelingRateConstantParameters parameters;
       if (object.contains("A"))
@@ -849,7 +683,7 @@ namespace micm
         parameters.A_ = object["A"].get<double>();
       }
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.second.size() - 1);
+      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
       if (object.contains("B"))
       {
         parameters.B_ = object["B"].get<double>();
@@ -860,162 +694,92 @@ namespace micm
       }
 
       tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
-
       std::unique_ptr<TunnelingRateConstant> rate_ptr = std::make_unique<TunnelingRateConstant>(parameters);
-
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseEmission(const json& object)
+    void ParseEmission(const json& object)
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string PRODUCTS = "products";
       const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR, PRODUCTS });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR, PRODUCTS });
+      
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
       products_object[species] = { { "yield", 1.0 } };
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
-
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
-
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
-
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseFirstOrderLoss(const json& object)
+    void ParseFirstOrderLoss(const json& object)
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
+      
       std::string species = object["species"].get<std::string>();
       json reactants_object{};
       json products_object{};
       reactants_object[species] = {};
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
-
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
-
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
-
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseUserDefined(const json& object)
+    void ParseUserDefined(const json& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string SCALING_FACTOR = "scaling factor";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { SCALING_FACTOR });
+      
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
-
       double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
 
       std::string name = "USER." + object[MUSICA_NAME].get<std::string>();
-
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
-
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    ConfigParseStatus ParseSurface(const json& object)
+    void ParseSurface(const json& object)
     {
       const std::string REACTANTS = "gas-phase reactant";
       const std::string PRODUCTS = "gas-phase products";
       const std::string MUSICA_NAME = "MUSICA name";
       const std::string PROBABILITY = "reaction probability";
 
-      auto status = ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
-      if (status.error_code_ != MicmConfigErrc::Success)
-      {
-        return status;
-      }
-
+      ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
+      
       std::string species_name = object[REACTANTS].get<std::string>();
       json reactants_object{};
       reactants_object[species_name] = {};
 
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(object[PRODUCTS]);
-
-      if (reactants.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return reactants.first;
-      }
-
-      if (products.first.error_code_ != MicmConfigErrc::Success)
-      {
-        return products.first;
-      }
 
       Species reactant_species = Species("");
       for (auto& species : species_arr_)
@@ -1035,19 +799,15 @@ namespace micm
       }
 
       surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
-
       std::unique_ptr<SurfaceRateConstant> rate_ptr = std::make_unique<SurfaceRateConstant>(parameters);
-      processes_.push_back(Process(reactants.second, products.second, std::move(rate_ptr), gas_phase_));
-
-      return ConfigParseStatus{ MicmConfigErrc::Success };
+      processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
     /// @param object the object whose keys need to be validated
     /// @param required_keys The required keys
     /// @param optional_keys The optional keys
-    /// @return true if only standard keys are found
-    ConfigParseStatus ValidateSchema(
+    void ValidateSchema(
         const json& object,
         const std::vector<std::string>& required_keys,
         const std::vector<std::string>& optional_keys)
@@ -1060,7 +820,7 @@ namespace micm
 
       if (!object.empty() && object.begin().value().is_null())
       {
-        return ConfigParseStatus{ MicmConfigErrc::Success };
+        return;
       }
 
       std::vector<std::string> sorted_object_keys;
@@ -1097,7 +857,7 @@ namespace micm
         for (auto& key : missing_keys)
           msg += "Missing required key '" + key + "' in object: " + object.dump();
 
-        return ConfigParseStatus{ MicmConfigErrc::RequiredKeyNotFound, msg };
+        throw std::system_error{ make_error_code(MicmConfigErrc::RequiredKeyNotFound), msg };
       }
 
       std::vector<std::string> remaining;
@@ -1114,11 +874,9 @@ namespace micm
         if (!key.starts_with("__"))
         {
           std::string msg = "Non-standard key '" + key + "' found in object" + object.dump();
-
-          return ConfigParseStatus{ MicmConfigErrc::ContainsNonStandardKey, msg };
+          throw std::system_error{ make_error_code(MicmConfigErrc::ContainsNonStandardKey), msg };
         }
       }
-      return ConfigParseStatus{ MicmConfigErrc::Success };
     }
   };
 
@@ -1126,9 +884,6 @@ namespace micm
   template<class ConfigTypePolicy = JsonReaderPolicy>
   class SolverConfig : public ConfigTypePolicy
   {
-   private:
-    ConfigParseStatus last_parse_status_;
-
    public:
     SolverConfig()
         : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters())
@@ -1143,21 +898,13 @@ namespace micm
     /// @param config_dir Path to a the configuration directory
     void ReadAndParse(const std::filesystem::path& config_dir)
     {
-      last_parse_status_ = this->Parse(config_dir);
-      if (last_parse_status_.error_code_ != MicmConfigErrc::Success)
-      {
-        throw std::system_error(make_error_code(last_parse_status_.error_code_), last_parse_status_.msg_);
-      }
+      this->Parse(config_dir);
     }
 
     /// @brief Creates and returns SolverParameters
     /// @return SolverParameters that contains 'System' and a collection of 'Process'
     SolverParameters GetSolverParams()
     {
-      if (last_parse_status_.error_code_ != MicmConfigErrc::Success)
-      {
-        throw std::system_error(make_error_code(last_parse_status_.error_code_), last_parse_status_.msg_);
-      }
       return SolverParameters(
           std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_));
     }

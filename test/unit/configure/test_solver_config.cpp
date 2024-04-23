@@ -22,6 +22,16 @@ TEST(SolverConfig, NoConfigFilesFound)
   }
 }
 
+TEST(SolverConfig, CAMPFilesNotFound)
+{
+  micm::SolverConfig solverConfig{};
+  try {
+    solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config_missing_file.json");
+  } catch (const std::system_error& e) {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::CAMPFilesNotFound));
+  }
+}
+
 TEST(SolverConfig, UnknownKey)
 {
   micm::SolverConfig solverConfig{};
