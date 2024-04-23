@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <type_traits>
 

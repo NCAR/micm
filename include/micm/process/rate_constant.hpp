@@ -8,7 +8,53 @@
 #include <iterator>
 #include <memory>
 #include <micm/system/conditions.hpp>
+#include <micm/util/error.hpp>
 #include <vector>
+
+enum class MicmRateConstantErrc
+{
+  MissingArgumentsForSurfaceRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_SURFACE_RATE_CONSTANT,
+  MissingArgumentsForUserDefinedRateConstant = MICM_RATE_CONSTANT_ERROR_CODE_MISSING_ARGUMENTS_FOR_USER_DEFINED_RATE_CONSTANT
+};
+
+namespace std
+{
+  template <>
+  struct is_error_condition_enum<MicmRateConstantErrc> : true_type
+  {
+  };
+} // namespace std
+
+namespace
+{
+  class RateConstantErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_RATE_CONSTANT;
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmRateConstantErrc>(ev))
+      {
+        case MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant:
+          return "Missing arguments for surface reaction";
+        case MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant:
+          return "Missing arguments for user-defined rate constant";
+        default:
+          return "Unknown error";
+      }
+    }
+  };
+
+  const RateConstantErrorCategory rateConstantErrorCategory{};
+} // namespace micm
+
+std::error_code make_error_code(MicmRateConstantErrc e)
+{
+  return { static_cast<int>(e), rateConstantErrorCategory };
+}
 
 namespace micm
 {

@@ -20,10 +20,11 @@ int main(const int argc, const char* argv[])
   SolverConfig solverConfig;
 
   std::string config_path = "./configs/rate_constants_user_defined";
-  ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  if (status != micm::ConfigParseStatus::Success)
-  {
-    throw "Parsing failed";
+  try {
+    solverConfig.ReadAndParse(config_path);
+  } catch (const std::system_error& e) {
+    std::cerr << "Error reading and parsing config file: " << e.what() << std::endl;
+    return 1;
   }
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();

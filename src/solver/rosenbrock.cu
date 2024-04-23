@@ -4,6 +4,7 @@
 #include <iostream>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/internal_error.hpp>
 
 #include "cublas_v2.h"
 
@@ -247,7 +248,9 @@ namespace micm
 
       if (number_of_elements != errors_param.number_of_elements_)
       {
-        throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
+        std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
+                          " but got: " + std::to_string(errors_param.number_of_elements_);
+        INTERNAL_ERROR(msg.c_str());
       }
       cudaError_t err = cudaMemcpy(
           devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
@@ -262,8 +265,7 @@ namespace micm
         cublasStatus_t stat = cublasDnrm2(handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
-          printf(cublasGetStatusString(stat));
-          throw std::runtime_error("Error while calling cublasDnrm2.");
+          ThrowInternalError(MicmInternalErrc::Cublas, __FILE__, __LINE__, cublasGetStatusString(stat));
         }
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
       }

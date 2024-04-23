@@ -22,71 +22,71 @@ MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2.0; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][0][4] = 2.0; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[1][0][0] = 2.0; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[1][0][0] = 2.0; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][3][0] = 2.0; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][3][0] = 2.0; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2.0; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { matrix[0][1][1] = 2.0; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   return matrix;
 }
 
@@ -110,47 +110,47 @@ MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
   EXPECT_EQ(matrix.FlatBlockSize(), 0);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(0, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(6, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(6, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(6, 0); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(1, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { bool isZero = matrix.IsZero(6, 3); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   return matrix;
 }
 
@@ -217,59 +217,59 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][0][4] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[1][0][0] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[1][0][0] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][5][0] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { matrix[0][1][1] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   return matrix;
 }
 
@@ -322,35 +322,35 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
   EXPECT_EQ(matrix[0][2][1], 45);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(4, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 5); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(1, 0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   return matrix;
 }
 
@@ -397,65 +397,65 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
   EXPECT_EQ(matrix[2][2][3], 64);
 
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(2, 1, 5); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(4, 0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { std::size_t elem = matrix.VectorIndex(4, 0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1, 1); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(1, 1, 1); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { std::size_t elem = matrix.VectorIndex(2, 0, 2); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "Multi-block SparseMatrix access must specify block index");
+      try { std::size_t elem = matrix.VectorIndex(0, 1); } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::MissingBlockIndex));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][0][4] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][0][4] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[3][0][0] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[3][0][0] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][5][0] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix element out of range");
+      try { matrix[0][5][0] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ElementOutOfRange));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2; } catch (const std::invalid_argument& e) {
-        EXPECT_STREQ(e.what(), "SparseMatrix zero element access not allowed");
+      try { matrix[0][1][1] = 2; } catch (const std::system_error& e) {
+        EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
-      std::invalid_argument);
+      std::system_error);
   return matrix;
 }
 

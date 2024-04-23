@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cmath>
 #include <micm/profiler/instrumentation.hpp>
+#include <micm/util/matrix_error.hpp>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
@@ -55,7 +56,8 @@ namespace micm
       {
         if (other.size() < y_dim_)
         {
-          throw std::runtime_error("Matrix row size mismatch in assignment from vector.");
+          std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) + " elements, but expected " + std::to_string(y_dim_);
+          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -173,7 +175,8 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    throw std::runtime_error("Invalid vector for matrix assignment");
+                    std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " + std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
+                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)

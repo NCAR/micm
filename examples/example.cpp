@@ -53,12 +53,7 @@ int main(const int argc, const char *argv[])
 
     // Read configure files
     SolverConfig solverConfig;
-    ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-    if (status != ConfigParseStatus::Success)
-    {
-        std::cout << "Error: Parsing configuration data failed" << std::endl;
-        return 1;
-    }
+    solverConfig.ReadAndParse(config_path);
 
     SolverParameters solver_params = solverConfig.GetSolverParams();
 

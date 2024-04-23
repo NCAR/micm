@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/matrix_error.hpp>
+
 namespace micm
 {
 
@@ -30,12 +32,12 @@ namespace micm
         std::size_t column) const
     {
       if (row >= row_start.size() - 1 || column >= row_start.size() - 1 || block >= number_of_blocks)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
       auto begin = std::next(row_ids.begin(), row_start[row]);
       auto end = std::next(row_ids.begin(), row_start[row + 1]);
       auto elem = std::find(begin, end, column);
       if (elem == end)
-        throw std::invalid_argument("SparseMatrix zero element access not allowed");
+        throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
       return std::size_t{ (elem - row_ids.begin()) + block * row_ids.size() };
     };
   };
