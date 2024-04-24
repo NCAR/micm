@@ -38,8 +38,8 @@ namespace micm
    */
 
     /// Concept for Cuda Matrix
-  template<typename T>
-  concept CudaMatrix = requires(T t)
+  template<typename MatrixType>
+  concept CudaMatrix = requires(MatrixType t)
   {
     {
       t.CopyToDevice()

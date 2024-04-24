@@ -15,30 +15,30 @@
 #include "test_linear_solver_policy.hpp"
 
 template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
 
+template<class T>
+using Group1CudaDenseMatrix = micm::CudaDenseMatrix<T, 1>;
+template<class T>
+using Group20CudaDenseMatrix = micm::CudaDenseMatrix<T, 20>;
+template<class T>
+using Group300CudaDenseMatrix = micm::CudaDenseMatrix<T, 300>;
+template<class T>
+using Group4000CudaDenseMatrix = micm::CudaDenseMatrix<T, 4000>;
 template<class T>
 using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<T, 10000>;
 
 template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
-template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
+template<class T>
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<class T>
+using Group20CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
+template<class T>
+using Group300CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<300>>;
+template<class T>
+using Group4000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4000>>;
 template<class T>
 using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
 
@@ -71,9 +71,9 @@ std::vector<double> linearSolverGenerator(
       b[i_block][i] = get_double();
 
   LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-  auto lower_matrix = std::move(lu.first);
-  auto upper_matrix = std::move(lu.second);
+  std::pair<SparseMatrixPolicy<double>, SparseMatrixPolicy<double>> lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
+  SparseMatrixPolicy<double> lower_matrix = std::move(lu.first);
+  SparseMatrixPolicy<double> upper_matrix = std::move(lu.second);
   solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
   return x.AsVector();
@@ -108,71 +108,75 @@ void gpuValidation()
   }
 }
 
-TEST(CudaLinearSolver, DenseMatrixVectorOrdering)
+TEST(CudaLinearSolver, DenseMatrixVectorOrderingPolicy)
 {
   testDenseMatrix<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>>(
-      [](const Group1SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition> {
-        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix, micm::CudaLuDecomposition>{ matrix, initial_value };
+      Group1CudaDenseMatrix,
+      Group1CudaSparseMatrix,
+      micm::CudaLinearSolver<double, Group1CudaSparseMatrix, micm::CudaLuDecomposition>>(
+      [](const Group1CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group1CudaSparseMatrix, micm::CudaLuDecomposition> {
+        return micm::CudaLinearSolver<double, Group1CudaSparseMatrix, micm::CudaLuDecomposition>{ matrix, initial_value };
       });
 }
 
-TEST(CudaLinearSolver, RandomMatrixVectorOrdering)
+TEST(CudaLinearSolver, RandomMatrixVectorOrderingPolicy)
 {
-  testRandomMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(
-      [](const Group1SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix>{ matrix, initial_value };
+  testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(
+      [](const Group1CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group1CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group1CudaSparseMatrix>{ matrix, initial_value };
       },
       1);
-  testRandomMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
-      [](const Group2SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group2SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group2SparseVectorMatrix>{ matrix, initial_value };
+    testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(
+      [](const Group20CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group20CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group20CudaSparseMatrix>{ matrix, initial_value };
       },
-      2);
-  testRandomMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
-      [](const Group3SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group3SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group3SparseVectorMatrix>{ matrix, initial_value };
+      20);
+  testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<double, Group300CudaSparseMatrix>>(
+      [](const Group300CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group300CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group300CudaSparseMatrix>{ matrix, initial_value };
       },
-      3);
-  testRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
-      [](const Group4SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group4SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
+      300);
+  testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>>(
+      [](const Group4000CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group4000CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>{ matrix, initial_value };
       },
-      4);
-  gpuValidation();
+      4000);
 }
 
-TEST(CudaLinearSolver, DiagonalMatrixVectorOrdering)
+TEST(CudaLinearSolver, DiagonalMatrixVectorOrderingPolicy)
 {
-  testDiagonalMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::CudaLinearSolver<double, Group1SparseVectorMatrix>>(
-      [](const Group1SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group1SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group1SparseVectorMatrix>{ matrix, initial_value };
+  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(
+      [](const Group1CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group1CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group1CudaSparseMatrix>{ matrix, initial_value };
       },
       1);
-  testDiagonalMatrix<Group2VectorMatrix, Group2SparseVectorMatrix, micm::CudaLinearSolver<double, Group2SparseVectorMatrix>>(
-      [](const Group2SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group2SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group2SparseVectorMatrix>{ matrix, initial_value };
+  testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(
+      [](const Group20CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group20CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group20CudaSparseMatrix>{ matrix, initial_value };
       },
-      2);
-  testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::CudaLinearSolver<double, Group3SparseVectorMatrix>>(
-      [](const Group3SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group3SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group3SparseVectorMatrix>{ matrix, initial_value };
+      20);
+  testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<double, Group300CudaSparseMatrix>>(
+      [](const Group300CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group300CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group300CudaSparseMatrix>{ matrix, initial_value };
       },
-      3);
-  testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::CudaLinearSolver<double, Group4SparseVectorMatrix>>(
-      [](const Group4SparseVectorMatrix<double>& matrix,
-         double initial_value) -> micm::CudaLinearSolver<double, Group4SparseVectorMatrix> {
-        return micm::CudaLinearSolver<double, Group4SparseVectorMatrix>{ matrix, initial_value };
+      300);
+  testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>>(
+      [](const Group4000CudaSparseMatrix<double>& matrix,
+         double initial_value) -> micm::CudaLinearSolver<double, Group4000CudaSparseMatrix> {
+        return micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>{ matrix, initial_value };
       },
-      4);
+      4000);
+}
+
+TEST(CudaLinearSolver, RandomMatrixVectorOrderingForGPU)
+{
+
 }

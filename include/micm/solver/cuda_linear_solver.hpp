@@ -66,7 +66,7 @@ namespace micm
     };
 
     template<template<class> class MatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy<T>> && CudaMatrix<T> && VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
+    requires(CudaMatrix<SparseMatrixPolicy<T>> && CudaMatrix<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
         const SparseMatrixPolicy<T>& L,
