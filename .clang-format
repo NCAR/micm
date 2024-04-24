@@ -24,3 +24,17 @@ SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: 'true'
 SpaceInEmptyBlock: true
 Standard: 'Latest'
+IncludeBlocks: Regroup
+IncludeCategories:
+  # MICM project headers
+  - Regex:           '^((<|")(micm)/)'
+    Priority:        2
+  # External libraries headers
+  - Regex:           '<([[:alnum:].\Q/-_\E]+)\/'
+    Priority:        3
+  # System headers
+  - Regex:           '<[[:alnum:].\Q/-_\E]+>'
+    Priority:        4
+  # Main, local, private headers
+  - Regex:           '.*'
+    Priority:        1
