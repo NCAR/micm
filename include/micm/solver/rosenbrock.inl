@@ -3,22 +3,22 @@
 
 enum class MicmRosenbrockErrc
 {
-  UnusedSpecies = 1, // Unused species present in the chemical system
+  UnusedSpecies = 1,  // Unused species present in the chemical system
 };
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmRosenbrockErrc> : true_type
   {
   };
-} // namespace std
+}  // namespace std
 
 namespace
 {
   class RosenbrockErrorCategory : public std::error_category
   {
-  public:
+   public:
     const char* name() const noexcept override
     {
       return "MICM Rosenbrock";
@@ -28,15 +28,15 @@ namespace
       switch (static_cast<MicmRosenbrockErrc>(ev))
       {
         case MicmRosenbrockErrc::UnusedSpecies:
-          return "Unused species present in the chemical system. Use the ignore_unused_species_ parameter to allow unused species in the solve.";
-        default:
-          return "Unknown error";
+          return "Unused species present in the chemical system. Use the ignore_unused_species_ parameter to allow unused "
+                 "species in the solve.";
+        default: return "Unknown error";
       }
     }
   };
 
   const RosenbrockErrorCategory rosenbrockErrorCategory{};
-} // namespace
+}  // namespace
 
 std::error_code make_error_code(MicmRosenbrockErrc e)
 {

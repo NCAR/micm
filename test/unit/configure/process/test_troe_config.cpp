@@ -7,14 +7,20 @@ TEST(TroeConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/troe/missing_reactants");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/troe/missing_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
 }
@@ -85,9 +91,12 @@ TEST(TroeConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/troe/contains_nonstandard_key");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -96,9 +105,12 @@ TEST(TroeConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/troe/nonstandard_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -107,9 +119,12 @@ TEST(TroeConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/troe/nonstandard_reactant_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }

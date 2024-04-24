@@ -6,14 +6,20 @@ TEST(TernaryChemicalActivationConfig, DetectsInvalidConfig)
 {
   // Read and parse the configure files
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/missing_reactants");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/missing_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
 }
@@ -81,9 +87,12 @@ TEST(TernaryChemicalActivationConfig, ParseConfig)
 TEST(TernaryChemicalActivationConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/contains_nonstandard_key");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -91,9 +100,12 @@ TEST(TernaryChemicalActivationConfig, DetectsNonstandardKeys)
 TEST(TernaryChemicalActivationConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/nonstandard_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -101,9 +113,12 @@ TEST(TernaryChemicalActivationConfig, DetectsNonstandardProductCoefficient)
 TEST(TernaryChemicalActivationConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/ternary_chemical_activation/nonstandard_reactant_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }

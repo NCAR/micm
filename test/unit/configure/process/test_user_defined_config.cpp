@@ -7,19 +7,28 @@ TEST(UserDefinedConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_reactants");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/missing_MUSICA_name");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
 }
@@ -72,9 +81,12 @@ TEST(PhotolysisConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/contains_nonstandard_key");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -83,9 +95,12 @@ TEST(PhotolysisConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -94,9 +109,12 @@ TEST(PhotolysisConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/user_defined/nonstandard_reactant_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }

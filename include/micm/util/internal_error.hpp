@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <system_error>
 #include <micm/util/error.hpp>
+#include <system_error>
 
 #define INTERNAL_ERROR(msg) micm::ThrowInternalError(MicmInternalErrc::General, __FILE__, __LINE__, msg);
 
@@ -17,7 +17,7 @@ enum class MicmInternalErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmInternalErrc> : true_type
   {
   };
@@ -36,14 +36,10 @@ namespace
     {
       switch (static_cast<MicmInternalErrc>(ev))
       {
-        case MicmInternalErrc::General:
-          return "Internal error";
-        case MicmInternalErrc::Cuda:
-          return "CUDA error";
-        case MicmInternalErrc::Cublas:
-          return "cuBLAS error";
-        default:
-          return "Unknown error";
+        case MicmInternalErrc::General: return "Internal error";
+        case MicmInternalErrc::Cuda: return "CUDA error";
+        case MicmInternalErrc::Cublas: return "cuBLAS error";
+        default: return "Unknown error";
       }
     }
   };
@@ -53,7 +49,7 @@ namespace
 
 inline std::error_code make_error_code(MicmInternalErrc e)
 {
-  return {static_cast<int>(e), micmInternalErrorCategory};
+  return { static_cast<int>(e), micmInternalErrorCategory };
 }
 
 namespace micm
@@ -64,4 +60,4 @@ namespace micm
                           ":" + std::to_string(line) + ") " + msg;
     throw std::system_error(make_error_code(e), message);
   }
-}
+}  // namespace micm

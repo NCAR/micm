@@ -7,19 +7,28 @@ TEST(ArrheniusConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_reactants");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/missing_products");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
   }
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/mutually_exclusive");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::MutuallyExclusiveOption));
   }
 }
@@ -103,9 +112,12 @@ TEST(ArrheniusConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/contains_nonstandard_key");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -114,9 +126,12 @@ TEST(ArrheniusConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }
@@ -125,9 +140,12 @@ TEST(ArrheniusConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  try {
+  try
+  {
     solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
-  } catch (const std::system_error& e) {
+  }
+  catch (const std::system_error& e)
+  {
     EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
   }
 }

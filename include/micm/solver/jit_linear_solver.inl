@@ -41,7 +41,10 @@ namespace micm
     solve_function_ = NULL;
     if (matrix.Size() != L || matrix.GroupVectorSize() != L)
     {
-      std::string msg = "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, currently: " + std::to_string(L);
+      std::string msg =
+          "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, "
+          "currently: " +
+          std::to_string(L);
       throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
     }
     GenerateSolveFunction();

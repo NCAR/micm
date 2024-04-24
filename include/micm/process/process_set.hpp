@@ -19,7 +19,7 @@ enum class MicmProcessSetErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmProcessSetErrc> : true_type
   {
   };
@@ -30,17 +30,17 @@ namespace
   class MicmProcessSetErrorCategory : public std::error_category
   {
    public:
-    const char* name() const noexcept override { return MICM_ERROR_CATEGORY_PROCESS_SET; }
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_PROCESS_SET;
+    }
     std::string message(int ev) const override
     {
       switch (static_cast<MicmProcessSetErrc>(ev))
       {
-        case MicmProcessSetErrc::ReactantDoesNotExist:
-          return "Reactant does not exist";
-        case MicmProcessSetErrc::ProductDoesNotExist:
-          return "Product does not exist";
-        default:
-          return "Unknown error";
+        case MicmProcessSetErrc::ReactantDoesNotExist: return "Reactant does not exist";
+        case MicmProcessSetErrc::ProductDoesNotExist: return "Product does not exist";
+        default: return "Unknown error";
       }
     }
   };
@@ -50,7 +50,7 @@ namespace
 
 std::error_code make_error_code(MicmProcessSetErrc e)
 {
-  return {static_cast<int>(e), micmProcessSetErrorCategory};
+  return { static_cast<int>(e), micmProcessSetErrorCategory };
 }
 
 namespace micm

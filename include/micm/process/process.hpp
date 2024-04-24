@@ -28,13 +28,14 @@ enum class MicmProcessErrc
 
 namespace std
 {
-  template <>
+  template<>
   struct is_error_condition_enum<MicmProcessErrc> : true_type
   {
   };
 }  // namespace std
 
-namespace {
+namespace
+{
   class MicmProcessErrorCategory : public std::error_category
   {
    public:
@@ -46,16 +47,14 @@ namespace {
     {
       switch (static_cast<MicmProcessErrc>(ev))
       {
-        case MicmProcessErrc::TooManyReactantsForSurfaceReaction:
-          return "A surface reaction can only have one reactant";
-        default:
-          return "Unknown error";
+        case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
+        default: return "Unknown error";
       }
     }
   };
 
   const MicmProcessErrorCategory micmProcessErrorCategory{};
-}
+}  // namespace
 
 std::error_code make_error_code(MicmProcessErrc e)
 {
