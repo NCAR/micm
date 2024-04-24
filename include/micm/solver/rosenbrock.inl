@@ -38,7 +38,7 @@ namespace
   const RosenbrockErrorCategory rosenbrockErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmRosenbrockErrc e)
+inline std::error_code make_error_code(MicmRosenbrockErrc e)
 {
   return { static_cast<int>(e), rosenbrockErrorCategory };
 }

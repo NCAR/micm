@@ -49,7 +49,7 @@ namespace
 
 }  // namespace
 
-std::error_code make_error_code(MicmStateErrc e)
+inline std::error_code make_error_code(MicmStateErrc e)
 {
   return { static_cast<int>(e), micmStateErrorCategory };
 }

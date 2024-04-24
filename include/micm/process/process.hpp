@@ -56,7 +56,7 @@ namespace
   const MicmProcessErrorCategory micmProcessErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmProcessErrc e)
+inline std::error_code make_error_code(MicmProcessErrc e)
 {
   return { static_cast<int>(e), micmProcessErrorCategory };
 }

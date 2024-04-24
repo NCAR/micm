@@ -85,7 +85,7 @@ namespace
   const MicmConfigErrorCategory micmConfigErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmConfigErrc e)
+inline std::error_code make_error_code(MicmConfigErrc e)
 {
   return { static_cast<int>(e), micmConfigErrorCategory };
 }
