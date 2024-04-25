@@ -27,14 +27,17 @@ Standard: 'Latest'
 IncludeBlocks: Regroup
 IncludeCategories:
   # MICM project headers
-  - Regex:           '^((<|")(micm)/)'
+  - Regex:           '<(micm)\/'
     Priority:        2
   # External libraries headers
   - Regex:           '<([[:alnum:].\Q/-_\E]+)\/'
     Priority:        3
-  # System headers
-  - Regex:           '<[[:alnum:].\Q/-_\E]+>'
+  # CUDA related headers
+  - Regex:           '<(cuda|cublas)[[:alnum:].\Q/-_\E]+.>'
     Priority:        4
+  # System headers
+  - Regex:           '<[[:alnum:].\Q/-_\E]+.>'
+    Priority:        5
   # Main, local, private headers
-  - Regex:           '.*'
+  - Regex:           '".*'
     Priority:        1
