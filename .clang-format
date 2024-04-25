@@ -29,15 +29,15 @@ IncludeCategories:
   # MICM project headers
   - Regex:           '<(micm)\/'
     Priority:        2
+  # CUDA, cuBLAS, LLVM, OpenMP headers
+  - Regex:           '(<|")(cuda|cublas|llvm|omp).*'
+    Priority:        3
   # External libraries headers
   - Regex:           '<([[:alnum:].\Q/-_\E]+)\/'
     Priority:        3
-  # CUDA related headers
-  - Regex:           '<(cuda|cublas)[[:alnum:].\Q/-_\E]+.>'
-    Priority:        4
   # System headers
-  - Regex:           '<[[:alnum:].\Q/-_\E]+.>'
-    Priority:        5
+  - Regex:           '<[[:alnum:].\Q/-_\E]+>'
+    Priority:        4
   # Main, local, private headers
   - Regex:           '".*'
     Priority:        1
