@@ -28,46 +28,71 @@ TEST(Species, GetProperty)
 
   EXPECT_EQ(species.GetProperty<double>("name [units]"), 1.0);
   EXPECT_EQ(species.GetProperty<double>("name2 [units2]"), 2.0);
-  EXPECT_THROW({
-    try {
-      species.GetProperty<std::string>("not there");
-    } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
-      throw;
-    }
-  }, std::runtime_error);
-  EXPECT_THROW({
-    try {
-      species.GetProperty<double>("not there");
-    } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
-      throw;
-    }
-  }, std::runtime_error);
-  EXPECT_THROW({
-    try {
-      species.GetProperty<int>("not there");
-    } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
-      throw;
-    }
-  }, std::runtime_error);
-  EXPECT_THROW({
-    try {
-      species.GetProperty<bool>("not there");
-    } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Species property 'not there' not found");
-      throw;
-    }
-  }, std::runtime_error);
-  EXPECT_THROW({
-    try {
-      species.GetProperty<long double>("name [units]");
-    } catch(std::runtime_error& e) {
-      EXPECT_STREQ(e.what(), "Invalid type for species property");
-      throw;
-    }
-  }, std::runtime_error);
+  EXPECT_THROW(
+      {
+        try
+        {
+          species.GetProperty<std::string>("not there");
+        }
+        catch (std::system_error& e)
+        {
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          throw;
+        }
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        try
+        {
+          species.GetProperty<double>("not there");
+        }
+        catch (std::system_error& e)
+        {
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          throw;
+        }
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        try
+        {
+          species.GetProperty<int>("not there");
+        }
+        catch (std::system_error& e)
+        {
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          throw;
+        }
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        try
+        {
+          species.GetProperty<bool>("not there");
+        }
+        catch (std::system_error& e)
+        {
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
+          throw;
+        }
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        try
+        {
+          species.GetProperty<long double>("name [units]");
+        }
+        catch (std::system_error& e)
+        {
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::InvalidTypeForProperty));
+          throw;
+        }
+      },
+      std::runtime_error);
 }
 
 TEST(Species, ThirdBody)

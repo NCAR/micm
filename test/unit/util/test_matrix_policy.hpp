@@ -71,7 +71,7 @@ template<template<class> class MatrixPolicy>
 MatrixPolicy<int> testLoopOverMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
     {
@@ -91,7 +91,7 @@ template<template<class> class MatrixPolicy>
 const MatrixPolicy<int> testLoopOverConstMatrix()
 {
   MatrixPolicy<int> matrix(3, 4, 0);
-  for (std::size_t i{}; i < matrix.size(); ++i)
+  for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
     for (std::size_t j{}; j < matrix[i].size(); ++j)
     {
@@ -151,13 +151,14 @@ MatrixPolicy<double> testConversionFromVector()
 {
   MatrixPolicy<double> zero_matrix = std::vector<std::vector<double>>{};
 
-  EXPECT_EQ(zero_matrix.size(), 0);
+  EXPECT_EQ(zero_matrix.NumRows(), 0);
 
   std::vector<std::vector<double>> vec = { { 412.3, 32.4, 41.3 }, { 5.33, -0.3, 31.2 } };
 
   MatrixPolicy<double> matrix = vec;
 
-  EXPECT_EQ(matrix.size(), 2);
+  EXPECT_EQ(matrix.NumRows(), 2);
+  EXPECT_EQ(matrix.NumColumns(), 3);
   EXPECT_EQ(matrix[0].size(), 3);
   EXPECT_EQ(matrix[0][0], 412.3);
   EXPECT_EQ(matrix[0][1], 32.4);
@@ -200,6 +201,37 @@ MatrixPolicy<double> testAssignmentFromVector()
   EXPECT_EQ(matrix[3][0], 0.0);
 
   EXPECT_ANY_THROW(matrix[2] = small_other);
+
+  return matrix;
+}
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testAxpy()
+{
+  std::size_t num_rows = 4;
+  std::size_t num_columns = 3;
+  MatrixPolicy<double> matrix{ num_rows, num_columns, 100.0 };
+  MatrixPolicy<double> other{ num_rows, num_columns, 200.0 };
+  double alpha = 1.39;
+  double sum = 0.0;
+  double result = 0.0;
+
+  for (int i = 0; i < num_rows; ++i)
+    for (int j = 0; j < num_columns; ++j)
+    {
+      auto y = i * 10.3 + j * 100.5;
+      auto x = i * 1.7 + j * 10.2;
+      matrix[i][j] = y;
+      other[i][j] = x;
+      sum += y + alpha * x;
+    }
+
+  matrix.Axpy(alpha, other);
+
+  for (int i = 0; i < num_rows; ++i)
+    for (int j = 0; j < num_columns; ++j)
+      result += matrix[i][j];
+  EXPECT_NEAR(sum, result, 1.0e-5);
 
   return matrix;
 }

@@ -45,7 +45,7 @@ auto run_solver(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
-      auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
       elapsed_solve_time = result.final_time_;
@@ -59,11 +59,6 @@ auto run_solver(auto& solver)
       total_stats.decompositions += result.stats_.decompositions;
       total_stats.solves += result.stats_.solves;
       total_stats.singular += result.stats_.singular;
-      total_stats.total_update_state_time += result.stats_.total_update_state_time;
-      total_stats.total_forcing_time += result.stats_.total_forcing_time;
-      total_stats.total_jacobian_time += result.stats_.total_jacobian_time;
-      total_stats.total_linear_factor_time += result.stats_.total_linear_factor_time;
-      total_stats.total_linear_solve_time += result.stats_.total_linear_solve_time;
     }
   }
 
@@ -134,13 +129,6 @@ int main(const int argc, const char* argv[])
   std::cout << "\tdecompositions: " << result_stats.decompositions << std::endl;
   std::cout << "\tsolves: " << result_stats.solves << std::endl;
   std::cout << "\tsingular: " << result_stats.singular << std::endl;
-  std::cout << "\ttotal_update_state_time: " << result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_forcing_time: " << result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_jacobian_time: " << result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl
-            << std::endl;
 
   auto jit_result_stats = std::get<1>(jit_result_tuple);
   std::cout << "JIT solve stats: " << std::endl;
@@ -153,14 +141,6 @@ int main(const int argc, const char* argv[])
   std::cout << "\tdecompositions: " << jit_result_stats.decompositions << std::endl;
   std::cout << "\tsolves: " << jit_result_stats.solves << std::endl;
   std::cout << "\tsingular: " << jit_result_stats.singular << std::endl;
-  std::cout << "\ttotal_update_state_time: " << jit_result_stats.total_update_state_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_forcing_time: " << jit_result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_jacobian_time: " << jit_result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_factor_time: " << jit_result_stats.total_linear_factor_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_linear_solve_time: " << jit_result_stats.total_linear_solve_time.count() << " nanoseconds"
-            << std::endl;
 
   auto result = std::get<0>(result_tuple);
   auto jit_result = std::get<0>(jit_result_tuple);

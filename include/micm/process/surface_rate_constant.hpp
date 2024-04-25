@@ -76,8 +76,7 @@ namespace micm
 
   inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
   {
-    throw std::runtime_error(
-        "Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
+    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant), "");
   }
 
   inline double SurfaceRateConstant::calculate(

@@ -25,6 +25,7 @@
 #include <limits>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/state.hpp>
@@ -54,7 +55,9 @@ namespace micm
     /// @brief Matrices that are singular more than once will set this value. At present, this should never be returned
     RepeatedlySingularMatrix,
     /// @brief Mostly this value is returned by systems that tend toward chemical explosions
-    NaNDetected
+    NaNDetected,
+    /// @brief Can happen when unititialized memory is used in the solver
+    InfDetected
   };
 
   std::string StateToString(const SolverState& state);
@@ -78,16 +81,6 @@ namespace micm
     /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
     /// is never singular
     uint64_t singular{};
-    /// @brief The cumulative amount of time spent updating the state (including rate constant calculations)
-    std::chrono::duration<double, std::nano> total_update_state_time{};
-    /// @brief The cumulative amount of time spent calculating the forcing function
-    std::chrono::duration<double, std::nano> total_forcing_time{};
-    /// @brief The cumulative amount of time spent calculating the jacobian
-    std::chrono::duration<double, std::nano> total_jacobian_time{};
-    /// @brief The cumulative amount of time spent calculating the linear factorization
-    std::chrono::duration<double, std::nano> total_linear_factor_time{};
-    /// @brief The cumulative amount of time spent calculating the linear solve
-    std::chrono::duration<double, std::nano> total_linear_solve_time{};
 
     /// @brief Set all member variables to zero
     void Reset();
@@ -160,7 +153,6 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    template<bool time_it = false>
     SolverResult Solve(double time_step, State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
@@ -207,7 +199,6 @@ namespace micm
         SolverStats& stats,
         State<MatrixPolicy, SparseMatrixPolicy>& state);
 
-   protected:
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
     /// @param y_new the new vector
@@ -216,7 +207,11 @@ namespace micm
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const;
+        const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+    double NormalizedError(
+        const MatrixPolicy<double>& y,
+        const MatrixPolicy<double>& y_new,
+        const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>);
   };
 
 }  // namespace micm

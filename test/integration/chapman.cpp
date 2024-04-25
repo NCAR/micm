@@ -26,20 +26,34 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   // Read and parse the configure files
   // If parsing fails, it could throw exceptions - we probably want to catch them.
   std::string config_path = "./unit_configs/chapman";
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  EXPECT_EQ(status, micm::ConfigParseStatus::Success);
+  EXPECT_NO_THROW(solverConfig.ReadAndParse(config_path));
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+  auto options = solver_params.parameters_;
   options.ignore_unused_species_ = true;
+
+  EXPECT_EQ(options.relative_tolerance_, 1.0e-4);
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
                                                                  std::move(solver_params.processes_),
                                                                  options };
 
   micm::State state = solver.GetState();
+
+  for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
+  {
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["M"]], 1.0e-3);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["N2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O1D"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O2"]], 1.0e-12);
+    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O3"]], 1.0e-12);
+  }
 
   // User gives an input of concentrations
   std::unordered_map<std::string, std::vector<double>> concentrations = {

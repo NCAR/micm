@@ -7,18 +7,29 @@ TEST(TunnelingConfig, DetectsInvalidConfig)
   micm::SolverConfig solver_config;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_reactants");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
-  status = solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_products");
-  EXPECT_EQ(micm::ConfigParseStatus::RequiredKeyNotFound, status);
+  try
+  {
+    solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_reactants");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
+  try
+  {
+    solver_config.ReadAndParse("./unit_configs/process/tunneling/missing_products");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::RequiredKeyNotFound));
+  }
 }
 
 TEST(TunnelingConfig, ParseConfig)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/valid");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solver_config.ReadAndParse("./unit_configs/process/tunneling/valid"));
 
   micm::SolverParameters solver_params = solver_config.GetSolverParams();
 
@@ -69,22 +80,40 @@ TEST(TunnelingConfig, DetectsNonstandardKeys)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/tunneling/contains_nonstandard_key");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try
+  {
+    solver_config.ReadAndParse("./unit_configs/process/tunneling/contains_nonstandard_key");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }
 
 TEST(TunnelingConfig, DetectsNonstandardProductCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try
+  {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_product_coef");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }
 
 TEST(TunnelingConfig, DetectsNonstandardReactantCoefficient)
 {
   micm::SolverConfig solver_config;
 
-  micm::ConfigParseStatus status = solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
-  EXPECT_EQ(micm::ConfigParseStatus::ContainsNonStandardKey, status);
+  try
+  {
+    solver_config.ReadAndParse("./unit_configs/process/arrhenius/nonstandard_reactant_coef");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::ContainsNonStandardKey));
+  }
 }

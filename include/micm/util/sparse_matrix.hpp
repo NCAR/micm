@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <micm/util/matrix_error.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <set>
 #include <stdexcept>
@@ -195,14 +196,14 @@ namespace micm
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
+        throw std::system_error(make_error_code(MicmMatrixErrc::MissingBlockIndex));
       return VectorIndex(0, row, column);
     }
 
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
@@ -211,7 +212,7 @@ namespace micm
       return false;
     }
 
-    std::size_t size() const
+    std::size_t Size() const
     {
       return number_of_blocks_;
     }
@@ -279,7 +280,7 @@ namespace micm
     SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }

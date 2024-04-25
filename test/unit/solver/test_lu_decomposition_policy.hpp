@@ -13,9 +13,9 @@ void check_results(
     const SparseMatrixPolicy<T>& U,
     const std::function<void(const T, const T)> f)
 {
-  EXPECT_EQ(A.size(), L.size());
-  EXPECT_EQ(A.size(), U.size());
-  for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
+  EXPECT_EQ(A.Size(), L.Size());
+  EXPECT_EQ(A.Size(), U.Size());
+  for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
   {
     for (std::size_t i = 0; i < A[i_block].size(); ++i)
     {

@@ -5,42 +5,81 @@
 TEST(SolverConfig, DetectsInvalidConfigFile)
 {
   micm::SolverConfig solverConfig{};
-  auto status = solverConfig.ReadAndParse("not_a_config_file");
-  EXPECT_EQ(micm::ConfigParseStatus::InvalidCAMPFilePath, status);
+  try
+  {
+    solverConfig.ReadAndParse("not_a_config_file");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::InvalidFilePath));
+  }
 }
 
 TEST(SolverConfig, NoConfigFilesFound)
 {
   micm::SolverConfig solverConfig{};
-  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::NoConfigFilesFound, status);
+  try
+  {
+    solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config.json");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::NoConfigFilesFound));
+  }
+}
+
+TEST(SolverConfig, CAMPFilesNotFound)
+{
+  micm::SolverConfig solverConfig{};
+  try
+  {
+    solverConfig.ReadAndParse("./unit_configs/CAMP/camp_invalid/config_missing_file.json");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::CAMPFilesNotFound));
+  }
 }
 
 TEST(SolverConfig, UnknownKey)
 {
   micm::SolverConfig solverConfig{};
-  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_unknown_key/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::UnknownKey, status);
+  try
+  {
+    solverConfig.ReadAndParse("./unit_configs/CAMP/camp_unknown_key/config.json");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
+  }
   try
   {
     micm::SolverParameters solver_params = solverConfig.GetSolverParams();
   }
-  catch (std::runtime_error)
+  catch (const std::system_error& e)
   {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
 }
 
 TEST(SolverConfig, BadType)
 {
   micm::SolverConfig solverConfig{};
-  auto status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_bad_type/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::UnknownKey, status);
+  try
+  {
+    solverConfig.ReadAndParse("./unit_configs/CAMP/camp_bad_type/config.json");
+  }
+  catch (const std::system_error& e)
+  {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
+  }
   try
   {
     micm::SolverParameters solver_params = solverConfig.GetSolverParams();
   }
-  catch (std::runtime_error)
+  catch (const std::system_error& e)
   {
+    EXPECT_EQ(e.code().value(), static_cast<int>(MicmConfigErrc::UnknownKey));
   }
 }
 
@@ -49,8 +88,7 @@ TEST(SolverConfig, ReadAndParseCAMPFiles)
   micm::SolverConfig solverConfig{};
 
   // Read and parse the CAMP configure file
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid/config.json"));
 }
 
 TEST(SolverConfig, ReadAndParseCAMPFilesFromDir)
@@ -58,8 +96,7 @@ TEST(SolverConfig, ReadAndParseCAMPFilesFromDir)
   micm::SolverConfig solverConfig{};
 
   // Read and parse the CAMP configure file
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/CAMP/camp_valid"));
 }
 
 TEST(SolverConfig, ReadAndParseSystemObject)
@@ -67,8 +104,7 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   micm::SolverConfig solverConfig;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/chapman/config.json"));
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -106,8 +142,7 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
 
   // Read and parse the configure files
-  micm::ConfigParseStatus status = solverConfig.ReadAndParse("./unit_configs/chapman/config.json");
-  EXPECT_EQ(micm::ConfigParseStatus::Success, status);
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/chapman/config.json"));
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();

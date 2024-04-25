@@ -222,7 +222,7 @@ TEST(AnalyticalExamples, Oregonator)
 
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-4;
-  params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
+  params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, params);
 
@@ -354,7 +354,7 @@ TEST(AnalyticalExamples, Oregonator2)
 
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-4;
-  params.absolute_tolerance_ = 1e-6 * params.relative_tolerance_;
+  params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
@@ -505,7 +505,7 @@ TEST(AnalyticalExamples, HIRES)
 
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-3;
-  params.absolute_tolerance_ = params.relative_tolerance_ * 1e-4;
+  params.absolute_tolerance_ = std::vector<double>(8, 1e-4 * params.relative_tolerance_);
   HIRES<micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8 },
@@ -615,7 +615,7 @@ TEST(AnalyticalExamples, E5)
 
   auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
   params.relative_tolerance_ = 1e-2;
-  params.absolute_tolerance_ = 1.7e-24;
+  params.absolute_tolerance_ = std::vector<double>(4, 1.7e-24);
   E5<micm::Matrix, SparseMatrixTest> solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4 }, params);
 

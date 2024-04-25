@@ -13,11 +13,53 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/error.hpp>
 #include <utility>
 #include <vector>
+
+enum class MicmProcessErrc
+{
+  TooManyReactantsForSurfaceReaction = MICM_PROCESS_ERROR_CODE_TOO_MANY_REACTANTS_FOR_SURFACE_REACTION
+};
+
+namespace std
+{
+  template<>
+  struct is_error_condition_enum<MicmProcessErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmProcessErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_PROCESS;
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmProcessErrc>(ev))
+      {
+        case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
+        default: return "Unknown error";
+      }
+    }
+  };
+
+  const MicmProcessErrorCategory micmProcessErrorCategory{};
+}  // namespace
+
+std::error_code make_error_code(MicmProcessErrc e)
+{
+  return { static_cast<int>(e), micmProcessErrorCategory };
+}
 
 namespace micm
 {
@@ -70,7 +112,7 @@ namespace micm
       {
         if (reactants_.size() > 1)
         {
-          throw std::runtime_error("A surface rate constant can only have one reactant");
+          throw std::system_error(make_error_code(MicmProcessErrc::TooManyReactantsForSurfaceReaction), "");
         }
       }
     }
@@ -110,7 +152,9 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
-    for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
+    MICM_PROFILE_FUNCTION();
+
+    for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
       std::vector<double>::const_iterator custom_parameters_iter = custom_parameters.begin();
@@ -133,6 +177,7 @@ namespace micm
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();
@@ -141,10 +186,11 @@ namespace micm
     {
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
+      std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
       for (auto& process : processes)
       {
         std::vector<double> params(process.rate_constant_->SizeCustomParameters());
-        for (std::size_t i_cell{}; i_cell < std::min(L, state.rate_constants_.size() - (i_group * L)); ++i_cell)
+        for (std::size_t i_cell{}; i_cell < rate_const_size; ++i_cell)
         {
           for (std::size_t i_param = 0; i_param < params.size(); ++i_param)
           {

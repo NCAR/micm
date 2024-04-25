@@ -12,9 +12,9 @@ void check_results(
     const std::function<void(const T, const T)> f)
 {
   T result;
-  EXPECT_EQ(A.size(), b.size());
-  EXPECT_EQ(A.size(), x.size());
-  for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
+  EXPECT_EQ(A.Size(), b.NumRows());
+  EXPECT_EQ(A.Size(), x.NumRows());
+  for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
   {
     for (std::size_t i = 0; i < A[i_block].size(); ++i)
     {
@@ -30,7 +30,7 @@ void check_results(
 template<typename T, template<class> class SparseMatrixPolicy>
 void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 {
-  for (std::size_t i_block = 0; i_block < matrix.size(); ++i_block)
+  for (std::size_t i_block = 0; i_block < matrix.Size(); ++i_block)
   {
     std::cout << "block: " << i_block << std::endl;
     for (std::size_t i = 0; i < matrix[i_block].size(); ++i)
@@ -188,8 +188,8 @@ void testMarkowitzReordering()
         builder = builder.with_element(i, j);
   SparseMatrixPolicy<double> reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( orig_jac );
-  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>( reordered_jac );
+  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(orig_jac);
+  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(reordered_jac);
 
   auto orig_LU = orig_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(orig_jac, 0.0);
   auto reordered_LU = reordered_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(reordered_jac, 0.0);

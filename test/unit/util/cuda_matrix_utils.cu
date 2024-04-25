@@ -2,34 +2,34 @@
 
 namespace micm
 {
-    namespace cuda
+  namespace cuda
+  {
+    __global__ void Square(double* d_data, std::size_t num_elements)
     {
-      __global__ void Square(double* d_data, std::size_t num_elements)
+      std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+      if (tid < num_elements)
       {
-          std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-          if (tid < num_elements)
-          {
-              d_data[tid] *= d_data[tid];
-          }
-      }
-
-      void SquareDriver(CudaMatrixParam& param)
-      {
-          Square<<<param.number_of_elements_, 1>>>(param.d_data_, param.number_of_elements_);
-      }
-
-      __global__ void AddOne(double* d_data, std::size_t num_elements)
-      {
-          std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-          if (tid < num_elements)
-          {
-              d_data[tid] += 1.0;
-          }
-      }
-
-      void AddOneDriver(CudaMatrixParam& param)
-      {
-        AddOne<<<param.number_of_elements_, BLOCK_SIZE>>>(param.d_data_, param.number_of_elements_);
+        d_data[tid] *= d_data[tid];
       }
     }
-}
+
+    void SquareDriver(CudaMatrixParam& param)
+    {
+      Square<<<param.number_of_elements_, 1>>>(param.d_data_, param.number_of_elements_);
+    }
+
+    __global__ void AddOne(double* d_data, std::size_t num_elements)
+    {
+      std::size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+      if (tid < num_elements)
+      {
+        d_data[tid] += 1.0;
+      }
+    }
+
+    void AddOneDriver(CudaMatrixParam& param)
+    {
+      AddOne<<<param.number_of_elements_, BLOCK_SIZE>>>(param.d_data_, param.number_of_elements_);
+    }
+  }  // namespace cuda
+}  // namespace micm

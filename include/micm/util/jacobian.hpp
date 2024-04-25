@@ -7,6 +7,8 @@
 #include <set>
 #include <utility>
 
+#include <micm/profiler/instrumentation.hpp>
+
 namespace micm
 {
   // annonymous namespace to hide jacobian builder
@@ -16,6 +18,8 @@ namespace micm
       size_t number_of_grid_cells,
       size_t state_size)
   {
+    MICM_PROFILE_FUNCTION();
+
     auto builder = SparseMatrixPolicy<double>::create(state_size).number_of_blocks(number_of_grid_cells);
     for (auto& elem : nonzero_jacobian_elements)
       builder = builder.with_element(elem.first, elem.second);
