@@ -140,7 +140,7 @@ namespace micm
           const MatrixPolicy<T>& b,
           MatrixPolicy<T>& x,
           const SparseMatrixPolicy<T>& lower_matrix,
-          const SparseMatrixPolicy<T>& upper_matrix)
+          const SparseMatrixPolicy<T>& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -197,7 +197,7 @@ namespace micm
           const MatrixPolicy<T>& b,
           MatrixPolicy<T>& x,
           const SparseMatrixPolicy<T>& lower_matrix,
-          const SparseMatrixPolicy<T>& upper_matrix)
+          const SparseMatrixPolicy<T>& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 

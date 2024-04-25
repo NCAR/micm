@@ -70,10 +70,20 @@ namespace micm
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
         const SparseMatrixPolicy<T>& L,
-        const SparseMatrixPolicy<T>& U)
+        const SparseMatrixPolicy<T>& U) const
     {
        auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
        micm::cuda::SolveKernelDriver(b.AsDeviceParam(), x_param, L.AsDeviceParam(), U.AsDeviceParam(), this->devstruct_);
+    };
+
+    template<template<class> class MatrixPolicy>
+    requires(!CudaMatrix<SparseMatrixPolicy<T>> && !CudaMatrix<MatrixPolicy<T>>) void Solve(
+        const MatrixPolicy<T>& b,
+        MatrixPolicy<T>& x,
+        const SparseMatrixPolicy<T>& L,
+        const SparseMatrixPolicy<T>& U) const
+    {
+      LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve<MatrixPolicy>(b, x, L, U);
     };
   };
 }  // namespace micm
