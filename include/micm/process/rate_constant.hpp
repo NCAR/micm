@@ -49,7 +49,7 @@ namespace
   const RateConstantErrorCategory rateConstantErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmRateConstantErrc e)
+inline std::error_code make_error_code(MicmRateConstantErrc e)
 {
   return { static_cast<int>(e), rateConstantErrorCategory };
 }

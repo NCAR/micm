@@ -74,7 +74,7 @@ namespace
   const JitErrorCategory jitErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmJitErrc e)
+inline std::error_code make_error_code(MicmJitErrc e)
 {
   return { static_cast<int>(e), jitErrorCategory };
 }

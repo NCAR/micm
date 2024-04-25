@@ -48,7 +48,7 @@ namespace
   const MicmSpeciesErrorCategory micmSpeciesErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmSpeciesErrc e)
+inline std::error_code make_error_code(MicmSpeciesErrc e)
 {
   return { static_cast<int>(e), micmSpeciesErrorCategory };
 }
