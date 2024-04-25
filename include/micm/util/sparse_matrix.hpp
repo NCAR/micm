@@ -1,12 +1,14 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
+
+#include <micm/util/matrix_error.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
 
 #include <algorithm>
 #include <cassert>
-#include <micm/util/matrix_error.hpp>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <set>
 #include <stdexcept>
 #include <utility>
@@ -16,8 +18,7 @@ namespace micm
 {
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableSparse = requires(T t)
-  {
+  concept VectorizableSparse = requires(T t) {
     t.GroupSize(0);
     t.GroupVectorSize();
     t.NumberOfGroups(0);

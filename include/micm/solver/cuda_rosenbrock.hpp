@@ -1,13 +1,9 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstddef>
-#include <functional>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
@@ -24,6 +20,12 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -102,8 +104,8 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const requires
-        VectorizableSparse<SparseMatrixPolicy<double>>
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+      requires VectorizableSparse<SparseMatrixPolicy<double>>
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue

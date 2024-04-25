@@ -4,9 +4,10 @@
  */
 #pragma once
 
-#include <functional>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>

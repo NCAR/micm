@@ -205,7 +205,7 @@ namespace micm
    // #define MICM_FUNC_SIG __PRETTY_FUNCTION__
 #  elif (defined(__FUNCSIG__) || (_MSC_VER))
 #    define MICM_FUNC_SIG __func__
-   //#define MICM_FUNC_SIG __FUNCSIG__
+   // #define MICM_FUNC_SIG __FUNCSIG__
 #  else
 #    define MICM_FUNC_SIG "MICM_FUNC_SIG unknown!"
 #  endif

@@ -1,16 +1,17 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <math.h>
-
-#include <cmath>
 #include <micm/process/rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/property_keys.hpp>
+
+#include <cmath>
+#include <math.h>
 #include <string>
 
 namespace micm

@@ -4,11 +4,12 @@
  */
 #pragma once
 
+#include <micm/system/conditions.hpp>
+#include <micm/util/error.hpp>
+
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <micm/system/conditions.hpp>
-#include <micm/util/error.hpp>
 #include <vector>
 
 enum class MicmRateConstantErrc

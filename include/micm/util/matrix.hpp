@@ -1,12 +1,14 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
+
+#include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <micm/util/matrix_error.hpp>
 #include <vector>
 
 namespace micm
@@ -14,8 +16,7 @@ namespace micm
 
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableDense = requires(T t)
-  {
+  concept VectorizableDense = requires(T t) {
     t.GroupSize();
     t.GroupVectorSize();
     t.NumberOfGroups();

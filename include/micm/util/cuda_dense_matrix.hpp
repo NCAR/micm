@@ -1,16 +1,17 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
-
-#include <cuda_runtime.h>
 
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <type_traits>
 
-#include "cublas_v2.h"
+#include <cublas_v2.h>
+#include <cuda_runtime.h>
+
+#include <type_traits>
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
@@ -48,7 +49,8 @@ namespace micm
     cublasHandle_t handle_ = NULL;
 
    public:
-    CudaDenseMatrix() requires(std::is_same_v<T, double>)
+    CudaDenseMatrix()
+      requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>()
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -59,7 +61,8 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
+      requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
@@ -71,7 +74,8 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
+      requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
@@ -83,7 +87,8 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(const std::vector<std::vector<T>> other) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const std::vector<std::vector<T>> other)
+      requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -96,7 +101,8 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(const CudaDenseMatrix& other) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const CudaDenseMatrix& other)
+      requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
       this->param_ = other.param_;
@@ -145,7 +151,8 @@ namespace micm
     {
     }
 
-    ~CudaDenseMatrix() requires(std::is_same_v<T, double>)
+    ~CudaDenseMatrix()
+      requires(std::is_same_v<T, double>)
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       if (this->handle_ != NULL)

@@ -1,14 +1,16 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <cassert>
 #include <micm/process/process.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/sparse_matrix.hpp>
+
+#include <cassert>
 #include <vector>
 
 enum class MicmProcessSetErrc
@@ -90,12 +92,13 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<template<class> typename MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>) void AddForcingTerms(
+      requires(!VectorizableDense<MatrixPolicy<double>>)
+    void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+      requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -106,12 +109,14 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) void SubtractJacobianTerms(
+      requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
+    void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) void SubtractJacobianTerms(
+      requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
@@ -214,7 +219,8 @@ namespace micm
   }
 
   template<template<class> typename MatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>) inline void ProcessSet::AddForcingTerms(
+    requires(!VectorizableDense<MatrixPolicy<double>>)
+  inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
       MatrixPolicy<double>& forcing) const
@@ -252,7 +258,7 @@ namespace micm
   };
 
   template<template<class> typename MatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>>
   inline void ProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -297,12 +303,11 @@ namespace micm
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      SubtractJacobianTerms(
-          const MatrixPolicy<double>& rate_constants,
-          const MatrixPolicy<double>& state_variables,
-          SparseMatrixPolicy<double>& jacobian) const
+    requires(!VectorizableDense<MatrixPolicy<double>> || !VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::SubtractJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -347,11 +352,11 @@ namespace micm
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>) inline void ProcessSet::
-      SubtractJacobianTerms(
-          const MatrixPolicy<double>& rate_constants,
-          const MatrixPolicy<double>& state_variables,
-          SparseMatrixPolicy<double>& jacobian) const
+    requires(VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+  inline void ProcessSet::SubtractJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
   {
     MICM_PROFILE_FUNCTION();
 

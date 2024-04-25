@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include <memory>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
@@ -18,6 +17,8 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/error.hpp>
+
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -85,13 +86,11 @@ namespace micm
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
-        const std::vector<Process>& processes,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
+      requires(!VectorizableDense<MatrixPolicy<double>>)
+    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state);
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
-        const std::vector<Process>& processes,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
+      requires(VectorizableDense<MatrixPolicy<double>>)
+    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
@@ -148,9 +147,8 @@ namespace micm
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
-      const std::vector<Process>& processes,
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+    requires(!VectorizableDense<MatrixPolicy<double>>)
+  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -173,9 +171,8 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
-      const std::vector<Process>& processes,
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+    requires(VectorizableDense<MatrixPolicy<double>>)
+  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();

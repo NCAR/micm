@@ -1,15 +1,20 @@
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <algorithm>
-#include <cstddef>
-#include <iomanip>
-#include <map>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+
+#include <algorithm>
+#include <cstddef>
+#include <iomanip>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
