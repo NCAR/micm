@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <system_error>
 #include <vector>
 
 enum class MicmSpeciesErrc

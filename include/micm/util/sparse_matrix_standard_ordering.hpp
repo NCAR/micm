@@ -6,6 +6,8 @@
 
 #include <micm/util/matrix_error.hpp>
 
+#include <vector>
+
 namespace micm
 {
 

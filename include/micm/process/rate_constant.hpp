@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <system_error>
 #include <vector>
 
 enum class MicmRateConstantErrc
