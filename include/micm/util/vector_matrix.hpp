@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
