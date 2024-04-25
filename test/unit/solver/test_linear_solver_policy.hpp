@@ -3,24 +3,27 @@
 #include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <random>
-#include <micm/util/cuda_dense_matrix.hpp>
-#include <micm/util/cuda_sparse_matrix.hpp>
 
-// Define the functions that only work for the CudaMatrix
+// Define the functions that only work for the CudaMatrix; the if constexpr statement is evalauted at compile-time 
 template<typename T, template<class> class MatrixPolicy>
 void CopyToDeviceDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr (micm::CudaMatrix<MatrixPolicy<T>>) matrix.CopyToDevice();
+  if constexpr(requires(MatrixPolicy<T> matrix){ {matrix.CopyToDevice()} -> std::same_as<void>; })
+    matrix.CopyToDevice();
 }
+
 template<typename T, template<class> class SparseMatrixPolicy>
 void CopyToDeviceSparse(SparseMatrixPolicy<T>& matrix)
 {
-  if constexpr (micm::CudaMatrix<SparseMatrixPolicy<T>>) matrix.CopyToDevice();
+  if constexpr(requires(SparseMatrixPolicy<T> matrix){ {matrix.CopyToDevice()} -> std::same_as<void>; })
+    matrix.CopyToDevice();
 }
+
 template<typename T, template<class> class MatrixPolicy>
 void CopyToHostDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr (micm::CudaMatrix<MatrixPolicy<T>>) matrix.CopyToHost();
+  if constexpr(requires(MatrixPolicy<T> matrix){ {matrix.CopyToHost()} -> std::same_as<void>; })
+    matrix.CopyToHost();
 }
 
 template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
