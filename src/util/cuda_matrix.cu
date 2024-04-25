@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-#pragma once
-
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/internal_error.hpp>
 
