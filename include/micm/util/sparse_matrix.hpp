@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <set>
 #include <stdexcept>
 #include <utility>
