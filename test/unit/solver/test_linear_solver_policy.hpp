@@ -4,25 +4,26 @@
 #include <micm/solver/lu_decomposition.hpp>
 #include <random>
 
-// Define the functions that only work for the CudaMatrix; the if constexpr statement is evalauted at compile-time 
+// Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at compile-time
+// Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/ 
 template<typename T, template<class> class MatrixPolicy>
 void CopyToDeviceDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr(requires(MatrixPolicy<T> matrix){ {matrix.CopyToDevice()} -> std::same_as<void>; })
+  if constexpr(requires{ { matrix.CopyToDevice() } -> std::same_as<void>; })
     matrix.CopyToDevice();
 }
 
 template<typename T, template<class> class SparseMatrixPolicy>
 void CopyToDeviceSparse(SparseMatrixPolicy<T>& matrix)
 {
-  if constexpr(requires(SparseMatrixPolicy<T> matrix){ {matrix.CopyToDevice()} -> std::same_as<void>; })
+  if constexpr(requires{ { matrix.CopyToDevice() } -> std::same_as<void>; })
     matrix.CopyToDevice();
 }
 
 template<typename T, template<class> class MatrixPolicy>
 void CopyToHostDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr(requires(MatrixPolicy<T> matrix){ {matrix.CopyToHost()} -> std::same_as<void>; })
+  if constexpr(requires{ { matrix.CopyToHost() } -> std::same_as<void>; })  
     matrix.CopyToHost();
 }
 
