@@ -13,6 +13,7 @@
 #include <micm/util/vector_matrix.hpp>
 #include <random>
 #include <vector>
+#include <algorithm>
 
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
