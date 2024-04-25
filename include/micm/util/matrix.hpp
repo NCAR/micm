@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <micm/util/matrix_error.hpp>
 #include <vector>
 
 namespace micm
@@ -50,7 +51,9 @@ namespace micm
         // check that this row matches the expected rectangular matrix dimensions
         if (other.size() < y_dim_)
         {
-          throw std::runtime_error("Matrix row size mismatch in assignment from vector");
+          std::string msg = "In matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
+                            " elements, but expected " + std::to_string(y_dim_);
+          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
         }
         auto other_elem = other.begin();
         for (auto &elem : *this)
@@ -163,7 +166,9 @@ namespace micm
                   // check that this row matches the expected rectangular matrix dimensions
                   if (other[x].size() != y_dim)
                   {
-                    throw std::runtime_error("Invalid vector for matrix assignment");
+                    std::string msg = "In matrix constructor from std::vector<std::vector>. Got " +
+                                      std::to_string(other[x].size()) + " columns, but expected " + std::to_string(y_dim);
+                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), "");
                   }
                   for (std::size_t y{}; y < y_dim; ++y)
                   {
@@ -184,7 +189,6 @@ namespace micm
     {
       return y_dim_;
     }
-
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, x * y_dim_, y_dim_);

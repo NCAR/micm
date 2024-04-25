@@ -73,7 +73,7 @@ endif()
 ################################################################################
 # google test
 
-if(PROJECT_IS_TOP_LEVEL)
+if(MICM_ENABLE_TESTS)
   FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG be03d00f5f0cc3a997d1a368bee8a1fe93651f48

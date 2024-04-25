@@ -34,9 +34,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<std::string>("not there");
         }
-        catch (std::runtime_error& e)
+        catch (std::system_error& e)
         {
-          EXPECT_STREQ(e.what(), "Species property 'not there' not found");
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
           throw;
         }
       },
@@ -47,9 +47,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<double>("not there");
         }
-        catch (std::runtime_error& e)
+        catch (std::system_error& e)
         {
-          EXPECT_STREQ(e.what(), "Species property 'not there' not found");
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
           throw;
         }
       },
@@ -60,9 +60,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<int>("not there");
         }
-        catch (std::runtime_error& e)
+        catch (std::system_error& e)
         {
-          EXPECT_STREQ(e.what(), "Species property 'not there' not found");
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
           throw;
         }
       },
@@ -73,9 +73,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<bool>("not there");
         }
-        catch (std::runtime_error& e)
+        catch (std::system_error& e)
         {
-          EXPECT_STREQ(e.what(), "Species property 'not there' not found");
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::PropertyNotFound));
           throw;
         }
       },
@@ -86,9 +86,9 @@ TEST(Species, GetProperty)
         {
           species.GetProperty<long double>("name [units]");
         }
-        catch (std::runtime_error& e)
+        catch (std::system_error& e)
         {
-          EXPECT_STREQ(e.what(), "Invalid type for species property");
+          EXPECT_EQ(e.code().value(), static_cast<int>(MicmSpeciesErrc::InvalidTypeForProperty));
           throw;
         }
       },

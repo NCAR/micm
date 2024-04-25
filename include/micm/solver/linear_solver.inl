@@ -7,7 +7,6 @@ namespace micm
   inline std::vector<std::size_t> DiagonalMarkowitzReorder(const MatrixPolicy<int>& matrix)
   {
     MICM_PROFILE_FUNCTION();
-
     const std::size_t order = matrix.NumRows();
     std::vector<std::size_t> perm(order);
     for (std::size_t i = 0; i < order; ++i)
@@ -200,7 +199,6 @@ namespace micm
           const SparseMatrixPolicy<T>& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
-
     const std::size_t n_cells = b.GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
