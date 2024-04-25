@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "terminator.hpp"
 
 #include <micm/process/process.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
@@ -7,7 +7,7 @@
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-#include "terminator.hpp"
+#include <gtest/gtest.h>
 
 template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 void RunTerminatorTest()

@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "regression_test_dforce_dy_policy.hpp"
 
 #include <micm/solver/rosenbrock.hpp>
 
-#include "regression_test_dforce_dy_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(RegressionRosenbrock, Jacobian)
 {

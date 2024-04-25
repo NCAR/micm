@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include "jit_util.hpp"
+#include "regression_test_solve_policy.hpp"
 
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
 
-#include "jit_util.hpp"
-#include "regression_test_solve_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(RegressionJitRosenbrock, TwoStageSolve)
 {

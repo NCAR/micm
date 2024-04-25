@@ -1,7 +1,8 @@
+#include <micm/solver/lu_decomposition.hpp>
+
 #include <gtest/gtest.h>
 
 #include <functional>
-#include <micm/solver/lu_decomposition.hpp>
 #include <random>
 
 template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>

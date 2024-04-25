@@ -1,9 +1,10 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-// SPDX-License-Identifier: Apache-2.0
-//
-// A function hard-coded to calculate forcing for a toy chemistry system.
-// This can be used to compare with the corresponding JITed function
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * A function hard-coded to calculate forcing for a toy chemistry system.
+ * This can be used to compare with the corresponding JITed function
+ */
 #include "forcing_calculation.hpp"
 
 #define SPEC_A 0

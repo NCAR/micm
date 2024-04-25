@@ -1,9 +1,9 @@
-#include <gtest/gtest.h>
+#include "test_sparse_matrix_policy.hpp"
 
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
-#include "test_sparse_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(SparseVectorMatrix, ZeroMatrix)
 {

@@ -1,10 +1,11 @@
-#include <gtest/gtest.h>
-#include <omp.h>
+#include "run_solver.hpp"
 
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
-#include "run_solver.hpp"
+#include <gtest/gtest.h>
+
+#include <omp.h>
 
 using namespace micm;
 

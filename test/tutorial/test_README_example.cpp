@@ -1,7 +1,8 @@
-#include <iomanip>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+
+#include <iomanip>
+#include <iostream>
 
 using namespace micm;
 

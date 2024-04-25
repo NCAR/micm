@@ -1,21 +1,23 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-// SPDX-License-Identifier: Apache-2.0
-//
-// A comparison of the JITed forcing function with a hard-coded equivalent
-// for a small chemical system.
-//
-// This code can be used as a test and a way to compare the IR of the
-// JITed function with an optimized compilation of the hard-coded function
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * A comparison of the JITed forcing function with a hard-coded equivalent
+ * for a small chemical system.
+ *
+ * This code can be used as a test and a way to compare the IR of the
+ * JITed function with an optimized compilation of the hard-coded function
+ */
+#include "forcing_calculation.hpp"
 
-#include <gtest/gtest.h>
-
-#include <chrono>
 #include <micm/process/jit_process_set.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-#include "forcing_calculation.hpp"
+#include <gtest/gtest.h>
+
+#include <chrono>
 
 #define NUM_ITERATIONS 100
 

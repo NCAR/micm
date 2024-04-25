@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include "test_lu_decomposition_policy.hpp"
 
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
-#include "test_lu_decomposition_policy.hpp"
+#include <gtest/gtest.h>
 
 template<class T>
 using SparseMatrixTest = micm::SparseMatrix<T>;

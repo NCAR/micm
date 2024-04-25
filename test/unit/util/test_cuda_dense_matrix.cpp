@@ -1,11 +1,12 @@
-#include <gtest/gtest.h>
+#include "cuda_matrix_utils.cuh"
+#include "test_matrix_policy.hpp"
 
 #include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/cuda_matrix.cuh>
-#include <numeric>
 
-#include "cuda_matrix_utils.cuh"
-#include "test_matrix_policy.hpp"
+#include <gtest/gtest.h>
+
+#include <numeric>
 
 template<class T>
 using Group1MatrixAlias = micm::CudaDenseMatrix<T, 1>;

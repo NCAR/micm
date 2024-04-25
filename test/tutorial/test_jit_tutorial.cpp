@@ -1,8 +1,9 @@
-#include <chrono>
-#include <iostream>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
+
+#include <chrono>
+#include <iostream>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;

@@ -4,14 +4,15 @@
  */
 #pragma once
 
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/state.hpp>
+
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <limits>
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/state.hpp>
 #include <string>
 #include <vector>
 

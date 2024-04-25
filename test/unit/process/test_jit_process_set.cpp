@@ -1,12 +1,13 @@
-#include <gtest/gtest.h>
+#include "test_process_set_policy.hpp"
 
 #include <micm/process/jit_process_set.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <random>
 
-#include "test_process_set_policy.hpp"
+#include <gtest/gtest.h>
+
+#include <random>
 
 template<class T>
 using Group2VectorMatrix = micm::VectorMatrix<T, 2>;

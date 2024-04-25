@@ -1,8 +1,3 @@
-#include <gtest/gtest.h>
-
-#include <chrono>
-#include <functional>
-#include <iostream>
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_dense_matrix.hpp>
@@ -11,6 +6,12 @@
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <functional>
+#include <iostream>
 #include <random>
 #include <vector>
 
