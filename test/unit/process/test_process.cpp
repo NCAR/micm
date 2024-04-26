@@ -1,13 +1,12 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-// SPDX-License-Identifier: Apache-2.0
-#include <gtest/gtest.h>
-
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/process.hpp>
 #include <micm/process/surface_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
+
 #include <random>
 
 template<template<class> class MatrixPolicy>

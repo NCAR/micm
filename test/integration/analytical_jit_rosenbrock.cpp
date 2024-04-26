@@ -1,9 +1,9 @@
-#include <gtest/gtest.h>
+#include "analytical_policy.hpp"
+#include "analytical_surface_rxn_policy.hpp"
 
 #include <micm/solver/jit_rosenbrock.hpp>
 
-#include "analytical_policy.hpp"
-#include "analytical_surface_rxn_policy.hpp"
+#include <gtest/gtest.h>
 
 template<class T>
 using DefaultVectorMatrix = micm::VectorMatrix<T, 1>;

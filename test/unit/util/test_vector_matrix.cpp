@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "test_matrix_policy.hpp"
 
 #include <micm/util/vector_matrix.hpp>
 
-#include "test_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 template<class T>
 using Group1MatrixAlias = micm::VectorMatrix<T, 1>;

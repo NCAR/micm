@@ -1,9 +1,3 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
-#include <gtest/gtest.h>
-
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/cuda_rosenbrock.hpp>
@@ -14,6 +8,10 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
+
+#include <iostream>
 
 template<class T>
 using Group1CPUVectorMatrix = micm::VectorMatrix<T, 1>;

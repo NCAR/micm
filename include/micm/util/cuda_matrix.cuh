@@ -1,14 +1,16 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
+#include <micm/util/cuda_param.hpp>
+
+#include <cublas_v2.h>
 #include <cuda_runtime.h>
 
-#include <micm/util/cuda_param.hpp>
+#include <string>
 #include <vector>
-
-#include "cublas_v2.h"
 
 namespace micm
 {

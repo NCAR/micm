@@ -1,6 +1,7 @@
+#include <micm/process/process.hpp>
+
 #include <gtest/gtest.h>
 
-#include <micm/process/process.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;

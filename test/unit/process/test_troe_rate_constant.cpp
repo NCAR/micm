@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
-
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(TroeRateConstant, CalculateWithMinimalArugments)
 {

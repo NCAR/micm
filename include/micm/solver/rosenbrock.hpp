@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -15,14 +15,6 @@
  */
 #pragma once
 
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <cstddef>
-#include <functional>
-#include <iostream>
-#include <limits>
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/profiler/instrumentation.hpp>
@@ -33,6 +25,15 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+
+#include <algorithm>
+#include <cassert>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <functional>
+#include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -168,9 +169,9 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -207,11 +208,13 @@ namespace micm
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        const MatrixPolicy<double>& errors) const
+      requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        const MatrixPolicy<double>& errors) const
+      requires(VectorizableSparse<SparseMatrixPolicy<double>>);
   };
 
 }  // namespace micm

@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
+
+#include <gtest/gtest.h>
 
 // This test creates a function that adds two integers and returns the sum
 TEST(JitFunction, SimpleInt32Function)

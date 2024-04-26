@@ -1,6 +1,7 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
-// SPDX-License-Identifier: Apache-2.0
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 namespace micm
 {
   template<template<class> class MatrixPolicy>
@@ -132,14 +133,12 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy<T>> ||
-      !VectorizableSparse<SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          const MatrixPolicy<T>& b,
-          MatrixPolicy<T>& x,
-          SparseMatrixPolicy<T>& lower_matrix,
-          SparseMatrixPolicy<T>& upper_matrix)
+    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
+      const MatrixPolicy<T>& b,
+      MatrixPolicy<T>& x,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -190,13 +189,12 @@ namespace micm
 
   template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<template<class> class MatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<
-           SparseMatrixPolicy<T>>) inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          const MatrixPolicy<T>& b,
-          MatrixPolicy<T>& x,
-          SparseMatrixPolicy<T>& lower_matrix,
-          SparseMatrixPolicy<T>& upper_matrix)
+    requires(VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>)
+  inline void LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
+      const MatrixPolicy<T>& b,
+      MatrixPolicy<T>& x,
+      SparseMatrixPolicy<T>& lower_matrix,
+      SparseMatrixPolicy<T>& upper_matrix)
   {
     MICM_PROFILE_FUNCTION();
     const std::size_t n_cells = b.GroupVectorSize();

@@ -1,6 +1,7 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
 #include <micm/process/cuda_process_set.cuh>
@@ -31,14 +32,14 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+      requires VectorizableDense<MatrixPolicy<double>>
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+      requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
     void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -89,7 +90,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>>
   inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -101,7 +102,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
   inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,

@@ -1,6 +1,7 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
-// SPDX-License-Identifier: Apache-2.0
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
@@ -110,17 +111,13 @@ namespace micm
     /// @param U The upper triangular matrix created by decomposition
     /// @param is_singular Flag that is set to true if A is singular; false otherwise
     template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U,
-        bool& is_singular) const;
+      requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
+        const;
     template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U,
-        bool& is_singular) const;
+      requires(VectorizableSparse<SparseMatrixPolicy<T>>)
+    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U, bool& is_singular)
+        const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition

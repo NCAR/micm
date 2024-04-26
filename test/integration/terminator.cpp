@@ -1,7 +1,5 @@
 #include "terminator.hpp"
 
-#include <gtest/gtest.h>
-
 #include <micm/process/process.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/system/system.hpp>
@@ -9,6 +7,8 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
 
 template<class T>
 using SparseMatrixTest = micm::SparseMatrix<T>;

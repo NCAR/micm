@@ -1,6 +1,7 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
-// SPDX-License-Identifier: Apache-2.0
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 enum class MicmRosenbrockErrc
 {
   UnusedSpecies = 1,  // Unused species present in the chemical system
@@ -477,7 +478,8 @@ namespace micm
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -498,7 +500,8 @@ namespace micm
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const double& alpha) const
+    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -599,7 +602,8 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const
+    requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -639,7 +643,8 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const
+    requires(VectorizableSparse<SparseMatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

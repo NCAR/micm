@@ -1,12 +1,13 @@
-#include <chrono>
-#include <iomanip>
-#include <iostream>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <chrono>
+#include <iomanip>
+#include <iostream>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;

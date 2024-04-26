@@ -1,12 +1,14 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
-#include <iostream>
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/internal_error.hpp>
 
-#include "cublas_v2.h"
+#include <cublas_v2.h>
+
+#include <iostream>
 
 namespace micm
 {
