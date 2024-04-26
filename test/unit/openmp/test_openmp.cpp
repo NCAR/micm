@@ -4,7 +4,6 @@
 #include <micm/solver/rosenbrock.hpp>
 
 #include <gtest/gtest.h>
-
 #include <omp.h>
 
 using namespace micm;

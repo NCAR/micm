@@ -30,7 +30,7 @@ IncludeCategories:
   - Regex:           '<(micm)\/'
     Priority:        2
   # CUDA, cuBLAS, LLVM, OpenMP headers
-  - Regex:           '(<|")(cuda|cublas|llvm|omp).*'
+  - Regex:           '(<(cuda|cublas|llvm|omp).*'
     Priority:        3
   # External libraries headers
   - Regex:           '<([[:alnum:].\Q/-_\E]+)\/'
