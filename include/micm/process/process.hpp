@@ -86,11 +86,13 @@ namespace micm
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-      requires(!VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state);
+    requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy, SparseMatrixPolicy>& state);
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy<double>>)
-    static void UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state);
+    requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        const std::vector<Process>& processes,
+        State<MatrixPolicy, SparseMatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder create();
@@ -147,8 +149,9 @@ namespace micm
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state)
+  requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -171,8 +174,9 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>)
-  void Process::UpdateState(const std::vector<Process>& processes, State<MatrixPolicy, SparseMatrixPolicy>& state)
+  requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+      const std::vector<Process>& processes,
+      State<MatrixPolicy, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();

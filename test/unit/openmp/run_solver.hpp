@@ -1,8 +1,7 @@
 #pragma once
 
-#include <omp.h>
-
 #include <iostream>
+#include <omp.h>
 #include <vector>
 
 std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)

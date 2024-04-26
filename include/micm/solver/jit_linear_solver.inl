@@ -16,8 +16,8 @@ namespace micm
   }
 
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy> &
-  JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
+  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>
+      &JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
   {
     LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
     compiler_ = std::move(other.compiler_);

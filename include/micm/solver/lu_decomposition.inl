@@ -186,8 +186,7 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(
+  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy<T>& A,
       SparseMatrixPolicy<T>& L,
       SparseMatrixPolicy<T>& U,
@@ -250,8 +249,7 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>)
-  inline void LuDecomposition::Decompose(
+  requires(VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy<T>& A,
       SparseMatrixPolicy<T>& L,
       SparseMatrixPolicy<T>& U,
