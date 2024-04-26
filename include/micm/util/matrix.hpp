@@ -17,8 +17,7 @@ namespace micm
 
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableDense = requires(T t)
-  {
+  concept VectorizableDense = requires(T t) {
     t.GroupSize();
     t.GroupVectorSize();
     t.NumberOfGroups();

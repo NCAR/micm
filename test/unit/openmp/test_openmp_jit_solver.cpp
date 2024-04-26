@@ -6,7 +6,6 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <gtest/gtest.h>
-
 #include <omp.h>
 
 using namespace micm;
