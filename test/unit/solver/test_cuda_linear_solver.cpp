@@ -1,7 +1,7 @@
 #pragma once
-#include <gtest/gtest.h>
+#include "test_linear_solver_policy.hpp"
 
-#include <functional>
+
 #include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/cuda_linear_solver.hpp>
@@ -12,8 +12,11 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
+
+#include <functional>
 #include <random>
-#include "test_linear_solver_policy.hpp"
 
 template<class T>
 using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;

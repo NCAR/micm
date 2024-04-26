@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "test_matrix_policy.hpp"
 
 #include <micm/util/matrix.hpp>
 
-#include "test_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(Matrix, SmallMatrix)
 {

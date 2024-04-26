@@ -1,12 +1,13 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <cmath>
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/vector_matrix.hpp>
 
-#include "vector_matrix.hpp"
+#include <cmath>
 
 namespace micm
 {

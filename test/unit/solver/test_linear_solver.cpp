@@ -1,13 +1,14 @@
-#include <gtest/gtest.h>
+#include "test_linear_solver_policy.hpp"
 
-#include <functional>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
-#include "test_linear_solver_policy.hpp"
+#include <gtest/gtest.h>
+
+#include <functional>
 
 template<class T>
 using SparseMatrixTest = micm::SparseMatrix<T>;

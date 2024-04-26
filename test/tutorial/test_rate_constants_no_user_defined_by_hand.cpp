@@ -1,7 +1,3 @@
-#include <iomanip>
-#include <iostream>
-#include <map>
-
 // Each rate constant is in its own header file
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
@@ -10,6 +6,10 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+
+#include <iomanip>
+#include <iostream>
+#include <map>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;

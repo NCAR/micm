@@ -1,12 +1,12 @@
-#include <gtest/gtest.h>
-#include <omp.h>
+#include "run_solver.hpp"
 
 #include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
-#include "run_solver.hpp"
+#include <gtest/gtest.h>
+#include <omp.h>
 
 using namespace micm;
 

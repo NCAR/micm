@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <micm/solver/state.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(State, Constructor)
 {

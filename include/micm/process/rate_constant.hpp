@@ -1,14 +1,16 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
+#include <micm/system/conditions.hpp>
+#include <micm/util/error.hpp>
+
 #include <cstddef>
 #include <iterator>
 #include <memory>
-#include <micm/system/conditions.hpp>
-#include <micm/util/error.hpp>
+#include <system_error>
 #include <vector>
 
 enum class MicmRateConstantErrc
@@ -49,7 +51,7 @@ namespace
   const RateConstantErrorCategory rateConstantErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmRateConstantErrc e)
+inline std::error_code make_error_code(MicmRateConstantErrc e)
 {
   return { static_cast<int>(e), rateConstantErrorCategory };
 }
