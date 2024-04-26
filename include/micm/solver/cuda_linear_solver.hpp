@@ -69,8 +69,7 @@ namespace micm
     };
 
     template<template<class> class MatrixPolicy>
-      requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>)
-    std::chrono::nanoseconds Solve(
+    requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>) std::chrono::nanoseconds Solve(
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
         SparseMatrixPolicy<T>& lower_matrix,

@@ -9,7 +9,6 @@
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cuda_runtime.h>
-
 #include <type_traits>
 
 #define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
@@ -18,16 +17,17 @@ namespace micm
 {
   /// Concept for Cuda Spase matrices
   template<typename T>
-  concept CudaSparseMatrices = requires(T t) {
+  concept CudaSparseMatrices = requires(T t)
+  {
     {
       t.CopyToDevice()
-    } -> std::same_as<void>;
+      } -> std::same_as<void>;
     {
       t.CopyToHost()
-    } -> std::same_as<void>;
+      } -> std::same_as<void>;
     {
       t.AsDeviceParam()
-    } -> std::same_as<CudaMatrixParam>;
+      } -> std::same_as<CudaMatrixParam>;
   };
 
   template<class T, class OrderingPolicy>
@@ -43,8 +43,7 @@ namespace micm
       this->param_.d_data_ = nullptr;
     }
 
-    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
-      requires(std::is_same_v<T, double>)
+    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
@@ -56,8 +55,8 @@ namespace micm
       this->param_.d_data_ = nullptr;
     }
 
-    CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
-      requires(std::is_same_v<T, double>)
+    CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(
+        std::is_same_v<T, double>)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
@@ -72,8 +71,7 @@ namespace micm
       return *this;
     }
 
-    CudaSparseMatrix(const CudaSparseMatrix& other)
-      requires(std::is_same_v<T, double>)
+    CudaSparseMatrix(const CudaSparseMatrix& other) requires(std::is_same_v<T, double>)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
       this->param_ = other.param_;
@@ -115,8 +113,7 @@ namespace micm
       return *this;
     }
 
-    ~CudaSparseMatrix()
-      requires(std::is_same_v<T, double>)
+    ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_.d_data_ = nullptr;
