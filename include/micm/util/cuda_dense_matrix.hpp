@@ -49,8 +49,7 @@ namespace micm
     cublasHandle_t handle_ = NULL;
 
    public:
-    CudaDenseMatrix()
-      requires(std::is_same_v<T, double>)
+    CudaDenseMatrix() requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>()
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -61,8 +60,7 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
-      requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
@@ -74,8 +72,7 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
-      requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
@@ -87,8 +84,7 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(const std::vector<std::vector<T>> other)
-      requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const std::vector<std::vector<T>> other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -101,8 +97,7 @@ namespace micm
     {
     }
 
-    CudaDenseMatrix(const CudaDenseMatrix& other)
-      requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const CudaDenseMatrix& other) requires(std::is_same_v<T, double>)
         : VectorMatrix<T, L>(other)
     {
       this->param_ = other.param_;
@@ -151,8 +146,7 @@ namespace micm
     {
     }
 
-    ~CudaDenseMatrix()
-      requires(std::is_same_v<T, double>)
+    ~CudaDenseMatrix() requires(std::is_same_v<T, double>)
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       if (this->handle_ != NULL)
