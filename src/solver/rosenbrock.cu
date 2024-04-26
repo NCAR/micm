@@ -7,6 +7,7 @@
 #include <micm/util/internal_error.hpp>
 
 #include <cublas_v2.h>
+
 #include <iostream>
 
 namespace micm

@@ -6,6 +6,7 @@
 #include <micm/util/internal_error.hpp>
 
 #include <cuda_runtime.h>
+
 #include <iostream>
 #include <vector>
 
