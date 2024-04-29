@@ -16,13 +16,13 @@ int main(const int argc, const char *argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::create()
+  Process r1 = Process::Create()
                    .reactants({ foo })
                    .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
                    .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
                    .phase(gas_phase);
 
-  Process r2 = Process::create()
+  Process r2 = Process::Create()
                    .reactants({ foo, bar })
                    .products({ Yield(baz, 1) })
                    .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))

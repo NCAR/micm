@@ -67,7 +67,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     std::vector<yields> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }
@@ -162,7 +162,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     std::vector<yields> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
   }

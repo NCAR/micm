@@ -205,17 +205,17 @@ TEST(AnalyticalExamples, Oregonator)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
@@ -323,31 +323,31 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a, b })
-                         .products({ yields(b, 1 - std::pow((1 / 77.27), 2)) })
+                         .products({ Yields(b, 1 - std::pow((1 / 77.27), 2)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ c })
-                         .products({ yields(b, 1 / (0.161 * 77.27)) })
+                         .products({ Yields(b, 1 / (0.161 * 77.27)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(a, std::pow(77.27, 2)) })
+                         .products({ Yields(a, std::pow(77.27, 2)) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(a, 2), yields(c, 0.161 / 77.27) })
+                         .products({ Yields(a, 2), Yields(c, 0.161 / 77.27) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a, a })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
                          .phase(gas_phase);
@@ -470,35 +470,35 @@ TEST(AnalyticalExamples, HIRES)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4, y5, y6, y7, y8 } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ y1 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ y2 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ y3 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ y4 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .phase(gas_phase);
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ y5 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
                          .phase(gas_phase);
-  micm::Process r6 = micm::Process::create()
+  micm::Process r6 = micm::Process::Create()
                          .reactants({ y6 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
                          .phase(gas_phase);
-  micm::Process r7 = micm::Process::create()
+  micm::Process r7 = micm::Process::Create()
                          .reactants({ y7 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
                          .phase(gas_phase);
-  micm::Process r8 = micm::Process::create()
+  micm::Process r8 = micm::Process::Create()
                          .reactants({ y8 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
                          .phase(gas_phase);
@@ -596,19 +596,19 @@ TEST(AnalyticalExamples, E5)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4 } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ y1 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ y2 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ y3 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ y4 })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                          .phase(gas_phase);

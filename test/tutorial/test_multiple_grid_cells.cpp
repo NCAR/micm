@@ -15,21 +15,21 @@ int main()
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b, b })
-                         .products({ yields(b, 1), yields(c, 1) })
+                         .products({ Yields(b, 1), Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b, c })
-                         .products({ yields(a, 1), yields(c, 1) })
+                         .products({ Yields(a, 1), Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 

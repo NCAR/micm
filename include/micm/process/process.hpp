@@ -68,7 +68,7 @@ namespace micm
   /// @brief An alias that allows making products easily
   using Yield = std::pair<micm::Species, double>;
 
-  inline Yield yields(micm::Species species, double yield)
+  inline Yield Yields(const micm::Species& species, double yield)
   {
     return Yield(species, yield);
   };
@@ -95,7 +95,7 @@ namespace micm
         State<MatrixPolicy, SparseMatrixPolicy>& state);
 
     friend class ProcessBuilder;
-    static ProcessBuilder create();
+    static ProcessBuilder Create();
     Process(ProcessBuilder& builder);
     Process(const Process& other);
 
@@ -122,7 +122,7 @@ namespace micm
     {
       reactants_ = other.reactants_;
       products_ = other.products_;
-      rate_constant_ = other.rate_constant_->clone();
+      rate_constant_ = other.rate_constant_->Clone();
       phase_ = other.phase_;
 
       return *this;
@@ -167,7 +167,7 @@ namespace micm
           if (reactant.IsParameterized())
             fixed_reactants *= reactant.parameterize_(state.conditions_[i]);
         state.rate_constants_[i][(i_rate_constant++)] =
-            process.rate_constant_->calculate(state.conditions_[i], custom_parameters_iter) * fixed_reactants;
+            process.rate_constant_->Calculate(state.conditions_[i], custom_parameters_iter) * fixed_reactants;
         custom_parameters_iter += process.rate_constant_->SizeCustomParameters();
       }
     }
@@ -203,7 +203,7 @@ namespace micm
             if (reactant.IsParameterized())
               fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
           v_rate_constants[offset_rc + i_cell] =
-              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
+              process.rate_constant_->Calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
               fixed_reactants;
         }
         offset_params += params.size() * L;
@@ -212,7 +212,7 @@ namespace micm
     }
   }
 
-  inline ProcessBuilder Process::create()
+  inline ProcessBuilder Process::Create()
   {
     return ProcessBuilder{};
   };
@@ -225,7 +225,7 @@ namespace micm
   inline Process::Process(const Process& other)
       : reactants_(other.reactants_),
         products_(other.products_),
-        rate_constant_(other.rate_constant_ ? other.rate_constant_->clone() : nullptr),
+        rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr),
         phase_(other.phase_)
   {
   }
@@ -244,7 +244,7 @@ namespace micm
 
   inline ProcessBuilder& ProcessBuilder::rate_constant(const RateConstant& rate_constant)
   {
-    rate_constant_ = rate_constant.clone();
+    rate_constant_ = rate_constant.Clone();
     return *this;
   }
 

@@ -90,15 +90,15 @@ void test_analytical_troe(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TroeRateConstant({ .k0_A_ = 4.0e-10 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
                                                                  .k0_B_ = 167,
                                                                  .k0_C_ = 3,
@@ -209,21 +209,21 @@ void test_analytical_stiff_troe(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TroeRateConstant({ .k0_A_ = 4.0e-10 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TroeRateConstant({ .k0_A_ = 4.0e-10 }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
                                                                  .k0_B_ = 167,
                                                                  .k0_C_ = 3,
@@ -234,15 +234,15 @@ void test_analytical_stiff_troe(
                                                                  .N_ = 0.8 }))
                          .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -344,15 +344,15 @@ void test_analytical_photolysis(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoA" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .phase(gas_phase);
 
@@ -453,33 +453,33 @@ void test_analytical_stiff_photolysis(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoA1B" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoA2B" }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -581,15 +581,15 @@ void test_analytical_ternary_chemical_activation(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
                                                                                       .k0_B_ = 167,
                                                                                       .k0_C_ = 3,
@@ -700,21 +700,21 @@ void test_analytical_stiff_ternary_chemical_activation(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
                                                                                       .k0_B_ = 167,
                                                                                       .k0_C_ = 3,
@@ -725,15 +725,15 @@ void test_analytical_stiff_ternary_chemical_activation(
                                                                                       .N_ = 0.8 }))
                          .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -836,15 +836,15 @@ void test_analytical_tunneling(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .phase(gas_phase);
 
@@ -942,33 +942,33 @@ void test_analytical_stiff_tunneling(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 4.0e-3 }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b })
-                         .products({ yields(c, 1) })
+                         .products({ Yields(c, 1) })
                          .rate_constant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -1066,16 +1066,16 @@ void test_analytical_arrhenius(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ b })
-          .products({ yields(c, 1) })
+          .products({ Yields(c, 1) })
           .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .phase(gas_phase);
 
@@ -1173,34 +1173,34 @@ void test_analytical_stiff_arrhenius(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e-3, .C_ = 50 }))
                          .phase(gas_phase);
 
   micm::Process r3 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ b })
-          .products({ yields(c, 1) })
+          .products({ Yields(c, 1) })
           .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -1300,9 +1300,9 @@ void test_analytical_branched(
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
   micm::Process r1 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ a })
-          .products({ yields(b, 1) })
+          .products({ Yields(b, 1) })
           .rate_constant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                       .X_ = 1.2,
                                                       .Y_ = 204.3,
@@ -1311,9 +1311,9 @@ void test_analytical_branched(
           .phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ b })
-          .products({ yields(c, 1) })
+          .products({ Yields(c, 1) })
           .rate_constant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
                                                       .X_ = 1.2,
                                                       .Y_ = 204.3,
@@ -1431,9 +1431,9 @@ void test_analytical_stiff_branched(
   micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, b, c } };
 
   micm::Process r1 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ a1 })
-          .products({ yields(b, 1) })
+          .products({ Yields(b, 1) })
           .rate_constant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                       .X_ = 1.2,
                                                       .Y_ = 204.3,
@@ -1442,9 +1442,9 @@ void test_analytical_stiff_branched(
           .phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ a2 })
-          .products({ yields(b, 1) })
+          .products({ Yields(b, 1) })
           .rate_constant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
                                                       .X_ = 1.2,
                                                       .Y_ = 204.3,
@@ -1453,9 +1453,9 @@ void test_analytical_stiff_branched(
           .phase(gas_phase);
 
   micm::Process r3 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ b })
-          .products({ yields(c, 1) })
+          .products({ Yields(c, 1) })
           .rate_constant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
                                                       .X_ = 1.2,
                                                       .Y_ = 204.3,
@@ -1463,15 +1463,15 @@ void test_analytical_stiff_branched(
                                                       .n_ = 2 }))
           .phase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
+  micm::Process r4 = micm::Process::Create()
                          .reactants({ a1 })
-                         .products({ yields(a2, 1) })
+                         .products({ Yields(a2, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 4.0e10 }))
                          .phase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
+  micm::Process r5 = micm::Process::Create()
                          .reactants({ a2 })
-                         .products({ yields(a1, 1) })
+                         .products({ Yields(a1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .phase(gas_phase);
 
@@ -1591,21 +1591,21 @@ void test_analytical_robertson(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1) })
+                         .products({ Yields(b, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
                          .phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ b, b })
-                         .products({ yields(b, 1), yields(c, 1) })
+                         .products({ Yields(b, 1), Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
+  micm::Process r3 = micm::Process::Create()
                          .reactants({ b, c })
-                         .products({ yields(a, 1), yields(c, 1) })
+                         .products({ Yields(a, 1), Yields(c, 1) })
                          .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .phase(gas_phase);
 

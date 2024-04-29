@@ -90,21 +90,21 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::create()
+  Process r1 = Process::Create()
                    .reactants({ a })
-                   .products({ yields(b, 1) })
+                   .products({ Yields(b, 1) })
                    .rate_constant(UserDefinedRateConstant({ .label_ = "r1" }))
                    .phase(gas_phase);
 
-  Process r2 = Process::create()
+  Process r2 = Process::Create()
                    .reactants({ b, b })
-                   .products({ yields(b, 1), yields(c, 1) })
+                   .products({ Yields(b, 1), Yields(c, 1) })
                    .rate_constant(UserDefinedRateConstant({ .label_ = "r2" }))
                    .phase(gas_phase);
 
-  Process r3 = Process::create()
+  Process r3 = Process::Create()
                    .reactants({ b, c })
-                   .products({ yields(a, 1), yields(c, 1) })
+                   .products({ Yields(a, 1), Yields(c, 1) })
                    .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
                    .phase(gas_phase);
 

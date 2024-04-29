@@ -76,24 +76,24 @@ Then setup the reaction which will use this rate constant:
 
         .. code-block:: diff
 
-             Process r7 = Process::create()
+             Process r7 = Process::Create()
                              .reactants({ f })
-                             .products({ yields(g, 1) })
+                             .products({ Yields(g, 1) })
                              .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                              .phase(gas_phase);
 
-            + Process r8 = Process::create()
+            + Process r8 = Process::Create()
             +                 .reactants({ c })
-            +                 .products({ yields(g, 1) })
+            +                 .products({ Yields(g, 1) })
             +                 .rate_constant(UserDefinedRateConstant({.label_="my rate"}))
             +                 .phase(gas_phase);
 
-            + Process r9 = Process::create()
-            +                 .products({ yields(a, 1) })
+            + Process r9 = Process::Create()
+            +                 .products({ Yields(a, 1) })
             +                 .rate_constant(UserDefinedRateConstant({.label_="my emission rate"}))
             +                 .phase(gas_phase);
 
-            + Process r10 = Process::create()
+            + Process r10 = Process::Create()
             +                 .reactants({ b })
             +                 .rate_constant(UserDefinedRateConstant({.label_="my loss rate"}))
             +                 .phase(gas_phase);

@@ -38,14 +38,14 @@ TEST(JitProcessSet, ForcingFunction)
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "A", "B", "C", "D", "E", "F" } });
 
-  micm::Process r1 = micm::Process::create().reactants({ a, b }).products({ micm::Yield{ d, 3.2 } }).phase(gas_phase);
+  micm::Process r1 = micm::Process::Create().reactants({ a, b }).products({ micm::Yield{ d, 3.2 } }).phase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ e, c })
                          .products({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
                          .phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create().reactants({ c, b }).products({ micm::Yield{ a, 1.0 } }).phase(gas_phase);
+  micm::Process r3 = micm::Process::Create().reactants({ c, b }).products({ micm::Yield{ a, 1.0 } }).phase(gas_phase);
 
   std::vector<micm::Process> processes{ r1, r2, r3 };
 

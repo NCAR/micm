@@ -35,48 +35,48 @@ micm::Phase createGasPhase()
 std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 {
   micm::Process r1 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ micm::Species("O1D"), micm::Species("N2") })
-          .products({ yields(micm::Species("O"), 1), yields(micm::Species("N2"), 1) })
+          .products({ Yields(micm::Species("O"), 1), Yields(micm::Species("N2"), 1) })
           .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 2.15e-11, .C_ = 110 }))
           .phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ micm::Species("O1D"), micm::Species("O2") })
-          .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
+          .products({ Yields(micm::Species("O"), 1), Yields(micm::Species("O2"), 1) })
           .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .C_ = 55 }))
           .phase(gas_phase);
 
   micm::Process r3 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ micm::Species("O"), micm::Species("O3") })
-          .products({ yields(micm::Species("O2"), 2) })
+          .products({ Yields(micm::Species("O2"), 2) })
           .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .C_ = -2060 }))
           .phase(gas_phase);
 
   micm::Process r4 =
-      micm::Process::create()
+      micm::Process::Create()
           .reactants({ micm::Species("O"), micm::Species("O2"), micm::Species("M") })
-          .products({ yields(micm::Species("O3"), 1), yields(micm::Species("M"), 1) })
+          .products({ Yields(micm::Species("O3"), 1), Yields(micm::Species("M"), 1) })
           .rate_constant(micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 2.4 }))
           .phase(gas_phase);
 
-  micm::Process photo_1 = micm::Process::create()
+  micm::Process photo_1 = micm::Process::Create()
                               .reactants({ micm::Species("O2") })
-                              .products({ yields(micm::Species("O"), 2) })
+                              .products({ Yields(micm::Species("O"), 2) })
                               .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
                               .phase(gas_phase);
 
-  micm::Process photo_2 = micm::Process::create()
+  micm::Process photo_2 = micm::Process::Create()
                               .reactants({ micm::Species("O3") })
-                              .products({ yields(micm::Species("O1D"), 1), yields(micm::Species("O2"), 1) })
+                              .products({ Yields(micm::Species("O1D"), 1), Yields(micm::Species("O2"), 1) })
                               .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
                               .phase(gas_phase);
 
-  micm::Process photo_3 = micm::Process::create()
+  micm::Process photo_3 = micm::Process::Create()
                               .reactants({ micm::Species("O3") })
-                              .products({ yields(micm::Species("O"), 1), yields(micm::Species("O2"), 1) })
+                              .products({ Yields(micm::Species("O"), 1), Yields(micm::Species("O2"), 1) })
                               .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
                               .phase(gas_phase);
 

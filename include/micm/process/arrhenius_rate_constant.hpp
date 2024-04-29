@@ -40,20 +40,20 @@ namespace micm
     ArrheniusRateConstant(const ArrheniusRateConstantParameters& parameters);
 
     /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    std::unique_ptr<RateConstant> Clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions) const override;
+    double Calculate(const Conditions& conditions) const override;
 
-    double calculate(const double& temperature, const double& pressure) const;
+    double Calculate(const double& temperature, const double& pressure) const;
   };
 
   inline ArrheniusRateConstant::ArrheniusRateConstant()
@@ -66,24 +66,24 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> ArrheniusRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> ArrheniusRateConstant::Clone() const
   {
     return std::unique_ptr<RateConstant>{ new ArrheniusRateConstant{ *this } };
   }
 
-  inline double ArrheniusRateConstant::calculate(
+  inline double ArrheniusRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return calculate(conditions.temperature_, conditions.pressure_);
+    return Calculate(conditions.temperature_, conditions.pressure_);
   }
 
-  inline double ArrheniusRateConstant::calculate(const Conditions& conditions) const
+  inline double ArrheniusRateConstant::Calculate(const Conditions& conditions) const
   {
-    return calculate(conditions.temperature_, conditions.pressure_);
+    return Calculate(conditions.temperature_, conditions.pressure_);
   }
 
-  inline double ArrheniusRateConstant::calculate(const double& temperature, const double& pressure) const
+  inline double ArrheniusRateConstant::Calculate(const double& temperature, const double& pressure) const
   {
     return parameters_.A_ * std::exp(parameters_.C_ / temperature) * std::pow(temperature / parameters_.D_, parameters_.B_) *
            (1.0 + parameters_.E_ * pressure);

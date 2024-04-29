@@ -25,19 +25,19 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ foo, baz })
-                         .products({ yields(bar, 1), yields(quuz, 2.4) })
+                         .products({ Yields(bar, 1), Yields(quuz, 2.4) })
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  micm::Process r2 = micm::Process::create()
+  micm::Process r2 = micm::Process::Create()
                          .reactants({ bar })
-                         .products({ yields(foo, 1), yields(quz, 1.4) })
+                         .products({ Yields(foo, 1), Yields(quz, 1.4) })
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
+  micm::Process r3 = micm::Process::Create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
@@ -201,9 +201,9 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ foo })
-                         .products({ yields(bar, 1) })
+                         .products({ Yields(bar, 1) })
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
@@ -229,9 +229,9 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ foo })
-                         .products({ yields(bar, 1) })
+                         .products({ Yields(bar, 1) })
                          .phase(gas_phase)
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 

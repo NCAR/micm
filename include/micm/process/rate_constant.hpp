@@ -66,7 +66,7 @@ namespace micm
     virtual ~RateConstant(){};
 
     /// @brief Deep copy
-    virtual std::unique_ptr<RateConstant> clone() const = 0;
+    virtual std::unique_ptr<RateConstant> Clone() const = 0;
 
     /// @brief Returns a set of labels for user-defined rate constant parameters
     /// @return Vector of custom parameter labels
@@ -85,7 +85,7 @@ namespace micm
     /// @brief Calculate the rate constant for a set of conditions
     /// @param conditions The current environmental conditions of the chemical system
     /// @return The reaction rate constant
-    virtual double calculate(const Conditions& conditions) const
+    virtual double Calculate(const Conditions& conditions) const
     {
       return 0;
     }
@@ -94,7 +94,7 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User defined rate constant parameters
     /// @return The reaction rate constant
-    virtual double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const
+    virtual double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const
     {
       return 0;
     }

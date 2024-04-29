@@ -27,16 +27,16 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, irr_1, irr_2 } };
 
-  micm::Process r1 = micm::Process::create()
+  micm::Process r1 = micm::Process::Create()
                          .reactants({ a })
-                         .products({ yields(b, 1), yields(irr_1, 1) })
+                         .products({ Yields(b, 1), Yields(irr_1, 1) })
                          .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .phase(gas_phase);
 
   micm::Process r2 =
       micm::Process::create()
           .reactants({ b })
-          .products({ yields(c, 1), yields(irr_2, 1) })
+          .products({ Yields(c, 1), Yields(irr_2, 1) })
           .rate_constant(micm::UserDefinedRateConstant(micm::UserDefinedRateConstantParameters{ .label_ = "r2" }))
           .phase(gas_phase);
 

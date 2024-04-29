@@ -35,12 +35,12 @@ void testProcessSet(const std::function<ProcessSetPolicy(
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
   micm::Process r1 =
-      micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
+      micm::Process::Create().reactants({ foo, baz }).products({ Yields(bar, 1), Yields(quuz, 2.4) }).phase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::create().reactants({ bar, qux }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
+      micm::Process::Create().reactants({ bar, qux }).products({ Yields(foo, 1), Yields(quz, 1.4) }).phase(gas_phase);
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
+  micm::Process r3 = micm::Process::Create().reactants({ quz }).products({}).phase(gas_phase);
 
   auto used_species = ProcessSetPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
 
@@ -171,9 +171,9 @@ void testRandomSystem(
     std::vector<yields> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::Process(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    auto proc = micm::Process(micm::Process::Create().reactants(reactants).products(products).phase(gas_phase));
     processes.push_back(proc);
   }
   ProcessSetPolicy set = create_set(processes, state);

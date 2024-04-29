@@ -39,7 +39,7 @@ namespace micm
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
 
     /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    std::unique_ptr<RateConstant> Clone() const override;
 
     /// @brief Returns labels for the surface rate constant parameters:
     ///        aerosol effective radius [m]
@@ -55,12 +55,12 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions) const override;
+    double Calculate(const Conditions& conditions) const override;
   };
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
@@ -70,17 +70,17 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> SurfaceRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
   {
     return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
   }
 
-  inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
+  inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
   {
     throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant), "");
   }
 
-  inline double SurfaceRateConstant::calculate(
+  inline double SurfaceRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {

@@ -29,9 +29,9 @@ int main(const int argc, const char* argv[])
 
   Phase gas_phase{ std::vector<Species>{ a, b, c, d, e, f, g } };
 
-  Process r1 = Process::create()
+  Process r1 = Process::Create()
                    .reactants({ a })
-                   .products({ yields(b, 1) })
+                   .products({ Yields(b, 1) })
                    .rate_constant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
                    .phase(gas_phase);
 
@@ -40,30 +40,30 @@ int main(const int argc, const char* argv[])
   auto branched_params = BranchedRateConstantParameters{ .X_ = 1.2, .Y_ = 204.3, .a0_ = 1.0e-3, .n_ = 2 };
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
 
-  Process r2 = Process::create()
+  Process r2 = Process::Create()
                    .reactants({ b })
-                   .products({ yields(c, 1) })
+                   .products({ Yields(c, 1) })
                    .rate_constant(BranchedRateConstant(branched_params))
                    .phase(gas_phase);
 
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
-  Process r3 = Process::create()
+  Process r3 = Process::Create()
                    .reactants({ b })
-                   .products({ yields(d, 1) })
+                   .products({ Yields(d, 1) })
                    .rate_constant(BranchedRateConstant(branched_params))
                    .phase(gas_phase);
 
   // A surface rate constant also needs to know the effective radius and particle number concentration
   // we will set those later
-  Process r4 = Process::create()
+  Process r4 = Process::Create()
                    .reactants({ c })
-                   .products({ yields(e, 1) })
+                   .products({ Yields(e, 1) })
                    .rate_constant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
                    .phase(gas_phase);
 
-  Process r5 = Process::create()
+  Process r5 = Process::Create()
                    .reactants({ d })
-                   .products({ yields(f, 2) })
+                   .products({ Yields(f, 2) })
                    .rate_constant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
                                                                           .k0_B_ = 2.3,
                                                                           .k0_C_ = 302.3,
@@ -76,9 +76,9 @@ int main(const int argc, const char* argv[])
 
   // to have a stoichiemetric coefficient of more than one for reactants,
   // list the reactant that many times
-  Process r6 = Process::create()
+  Process r6 = Process::Create()
                    .reactants({ e, e })
-                   .products({ yields(g, 1) })
+                   .products({ Yields(g, 1) })
                    .rate_constant(TroeRateConstant({ .k0_A_ = 1.2e4,
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
@@ -89,9 +89,9 @@ int main(const int argc, const char* argv[])
                                                      .N_ = 0.8 }))
                    .phase(gas_phase);
 
-  Process r7 = Process::create()
+  Process r7 = Process::Create()
                    .reactants({ f })
-                   .products({ yields(g, 1) })
+                   .products({ Yields(g, 1) })
                    .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                    .phase(gas_phase);
 

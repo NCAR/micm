@@ -20,9 +20,9 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   micm::SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
   micm::UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  micm::Process r1 = micm::Process::create().rate_constant(rc1).reactants({ foo, bar });
-  micm::Process r2 = micm::Process::create().rate_constant(rc2);
-  micm::Process r3 = micm::Process::create().rate_constant(rc3);
+  micm::Process r1 = micm::Process::Create().rate_constant(rc1).reactants({ foo, bar });
+  micm::Process r2 = micm::Process::Create().rate_constant(rc2);
+  micm::Process r3 = micm::Process::Create().rate_constant(rc3);
   std::vector<micm::Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
@@ -55,11 +55,11 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     state.custom_rate_parameters_[i_cell][state.custom_rate_parameter_map_["bar_user"]] = params[2];
     std::vector<double>::const_iterator param_iter = params.begin();
     expected_rate_constants[i_cell][0] =
-        rc1.calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
+        rc1.Calculate(state.conditions_[i_cell], param_iter) * (state.conditions_[i_cell].air_density_ * 0.82);
     param_iter += rc1.SizeCustomParameters();
-    expected_rate_constants[i_cell][1] = rc2.calculate(state.conditions_[i_cell], param_iter);
+    expected_rate_constants[i_cell][1] = rc2.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc2.SizeCustomParameters();
-    expected_rate_constants[i_cell][2] = rc3.calculate(state.conditions_[i_cell], param_iter);
+    expected_rate_constants[i_cell][2] = rc3.Calculate(state.conditions_[i_cell], param_iter);
     param_iter += rc3.SizeCustomParameters();
   }
 
@@ -99,9 +99,9 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
   micm::Species e("e");
 
   micm::Phase gas_phase({ c, e });
-  EXPECT_ANY_THROW(micm::Process r = micm::Process::create()
+  EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
                                          .reactants({ c, c })
-                                         .products({ yields(e, 1) })
+                                         .products({ Yields(e, 1) })
                                          .rate_constant(micm::SurfaceRateConstant(
                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
                                          .phase(gas_phase););
