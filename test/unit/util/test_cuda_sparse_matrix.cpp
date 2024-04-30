@@ -197,6 +197,10 @@ TEST(CudaSparseMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
   }
 
   auto oneMatrix = std::move(matrix);
+  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  {
+    throw std::runtime_error("The 'd_data_' pointer of oneMatrix is not initialized to a null pointer in the move constructor.");
+  }
 
   for (auto& elem : oneMatrix.AsVector())
   {

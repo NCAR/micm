@@ -293,7 +293,10 @@ TEST(CudaDenseMatrix, MoveConstructor)
   EXPECT_EQ(matrix[1][1], 4);
 
   auto matrix2 = std::move(matrix);
-
+  if (matrix.AsDeviceParam().d_data_ != nullptr)
+  {
+    throw std::runtime_error("The 'd_data_' pointer of matrix2 is not initialized to a null pointer in the move constructor.");
+  }
   EXPECT_EQ(matrix2[0][0], 5);
   EXPECT_EQ(matrix2[0][1], 2);
   EXPECT_EQ(matrix2[1][0], 3);
