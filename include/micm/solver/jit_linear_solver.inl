@@ -95,7 +95,7 @@ namespace micm
   template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::GenerateSolveFunction()
   {
-    std::string function_name = "linear_solve_" + generate_random_string();
+    std::string function_name = "linear_solve_" + GenerateRandomString();
     JitFunction func = JitFunction::create(compiler_)
                            .name(function_name)
                            .arguments({ { "b", JitType::DoublePtr },

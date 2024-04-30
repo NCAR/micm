@@ -163,12 +163,12 @@ namespace micm
         }
       }
     }
-    auto L_builder = SparseMatrixPolicy::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
+    auto L_builder = SparseMatrixPolicy::create(n).NumberOfBlocks(A.Size()).initial_value(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.with_element(pair.first, pair.second);
     }
-    auto U_builder = SparseMatrixPolicy::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
+    auto U_builder = SparseMatrixPolicy::create(n).NumberOfBlocks(A.Size()).initial_value(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.with_element(pair.first, pair.second);

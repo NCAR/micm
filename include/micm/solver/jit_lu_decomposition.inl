@@ -58,7 +58,7 @@ namespace micm
   template<std::size_t L>
   void JitLuDecomposition<L>::GenerateDecomposeFunction()
   {
-    std::string function_name = "lu_decompose_" + generate_random_string();
+    std::string function_name = "lu_decompose_" + GenerateRandomString();
     JitFunction func = JitFunction::create(compiler_)
                            .name(function_name)
                            .arguments({ { "A matrix", JitType::DoublePtr },

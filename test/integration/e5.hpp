@@ -22,7 +22,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     this->processes_ = processes;
     this->parameters_ = parameters;
 
-    auto builder = SparseMatrixPolicy<double>::create(4).number_of_blocks(1).initial_value(0.0);
+    auto builder = SparseMatrixPolicy<double>::create(4).NumberOfBlocks(1).initial_value(0.0);
     for (int i = 0; i < 4; ++i)
     {
       for (int j = 0; j < 4; ++j)
@@ -64,7 +64,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   {
     auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
 
-    state.jacobian_ = micm::build_jacobian<SparseMatrixPolicy>(
+    state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
         nonzero_jacobian_elements_,
         this->state_parameters_.number_of_grid_cells_,
         this->state_parameters_.variable_names_.size());

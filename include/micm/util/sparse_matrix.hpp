@@ -274,7 +274,7 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
-    SparseMatrixBuilder& number_of_blocks(std::size_t n)
+    SparseMatrixBuilder& NumberOfBlocks(std::size_t n)
     {
       number_of_blocks_ = n;
       return *this;

@@ -138,7 +138,7 @@ void testRandomMatrix(
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::create(10).NumberOfBlocks(number_of_blocks).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
@@ -166,7 +166,7 @@ void testDiagonalMatrix(
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(6).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::create(6).NumberOfBlocks(number_of_blocks).initial_value(1.0e-30);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.with_element(i, i);
 

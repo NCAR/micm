@@ -364,7 +364,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
                      .with_element(2, 3)
                      .with_element(2, 1)
                      .initial_value(24)
-                     .number_of_blocks(3);
+                     .NumberOfBlocks(3);
   // 0 X 0 0
   // 0 0 0 0
   // 0 X 0 X

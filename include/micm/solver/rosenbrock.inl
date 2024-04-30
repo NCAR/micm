@@ -214,7 +214,7 @@ namespace micm
 
     process_set_ = std::move(create_process_set(processes, variable_map));
 
-    auto jacobian = build_jacobian<SparseMatrixPolicy>(
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(
         process_set_.NonZeroJacobianElements(), parameters_.number_of_grid_cells_, system.StateSize());
 
     std::vector<std::size_t> jacobian_diagonal_elements;

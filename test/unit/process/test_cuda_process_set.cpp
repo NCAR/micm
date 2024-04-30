@@ -184,11 +184,11 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
 
-  auto cpu_builder = CPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  auto cpu_builder = CPUSparseMatrixPolicy<double>::create(n_species).NumberOfBlocks(n_cells).initial_value(100.0);
   for (auto& elem : non_zero_elements)
     cpu_builder = cpu_builder.with_element(elem.first, elem.second);
   CPUSparseMatrixPolicy<double> cpu_jacobian{ cpu_builder };
-  auto gpu_builder = GPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  auto gpu_builder = GPUSparseMatrixPolicy<double>::create(n_species).NumberOfBlocks(n_cells).initial_value(100.0);
   for (auto& elem : non_zero_elements)
     gpu_builder = gpu_builder.with_element(elem.first, elem.second);
   GPUSparseMatrixPolicy<double> gpu_jacobian{ gpu_builder };

@@ -24,7 +24,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->parameters_ = parameters;
     this->parameters_.absolute_tolerance_ = std::vector<double>(3, 1.0e-3);
 
-    auto builder = SparseMatrixPolicy<double>::create(3).number_of_blocks(1).initial_value(0.0);
+    auto builder = SparseMatrixPolicy<double>::create(3).NumberOfBlocks(1).initial_value(0.0);
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
@@ -66,7 +66,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
   {
     auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
 
-    state.jacobian_ = micm::build_jacobian<SparseMatrixPolicy>(
+    state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
         nonzero_jacobian_elements_,
         this->state_parameters_.number_of_grid_cells_,
         this->state_parameters_.variable_names_.size());
