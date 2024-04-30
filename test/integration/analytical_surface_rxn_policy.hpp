@@ -1,11 +1,11 @@
-#include <gtest/gtest.h>
-
 #include <micm/process/surface_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+
+#include <gtest/gtest.h>
 
 template<class OdeSolverPolicy>
 void test_analytical_surface_rxn(

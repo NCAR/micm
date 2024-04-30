@@ -1,9 +1,11 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
 #include <micm/util/error.hpp>
+
 #include <string>
 #include <system_error>
 
@@ -50,7 +52,7 @@ namespace
   const MicmMatrixErrorCategory micmMatrixErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmMatrixErrc e)
+inline std::error_code make_error_code(MicmMatrixErrc e)
 {
   return { static_cast<int>(e), micmMatrixErrorCategory };
 }

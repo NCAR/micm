@@ -1,11 +1,11 @@
-#include <gtest/gtest.h>
-
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
 
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver(std::size_t number_of_grid_cells)

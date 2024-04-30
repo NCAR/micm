@@ -1,13 +1,9 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <array>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/process.hpp>
@@ -22,7 +18,13 @@
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/error.hpp>
+
 #include <nlohmann/json.hpp>
+
+#include <array>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <sstream>
 #include <system_error>
 
@@ -85,7 +87,7 @@ namespace
   const MicmConfigErrorCategory micmConfigErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmConfigErrc e)
+inline std::error_code make_error_code(MicmConfigErrc e)
 {
   return { static_cast<int>(e), micmConfigErrorCategory };
 }

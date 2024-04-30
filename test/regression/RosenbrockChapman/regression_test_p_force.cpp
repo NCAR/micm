@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "regression_test_p_force_policy.hpp"
 
 #include <micm/solver/rosenbrock.hpp>
 
-#include "regression_test_p_force_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(RegressionRosenbrock, RateConstants)
 {

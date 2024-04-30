@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#include "test_process_set_policy.hpp"
 
 #include <micm/process/process_set.hpp>
 #include <micm/util/matrix.hpp>
@@ -6,9 +6,10 @@
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <random>
 
-#include "test_process_set_policy.hpp"
+#include <gtest/gtest.h>
+
+#include <random>
 
 template<class T>
 using SparseMatrixTest = micm::SparseMatrix<T>;

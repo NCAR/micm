@@ -1,6 +1,7 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
-// SPDX-License-Identifier: Apache-2.0
-
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 enum class MicmRosenbrockErrc
 {
   UnusedSpecies = 1,  // Unused species present in the chemical system
@@ -38,7 +39,7 @@ namespace
   const RosenbrockErrorCategory rosenbrockErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmRosenbrockErrc e)
+inline std::error_code make_error_code(MicmRosenbrockErrc e)
 {
   return { static_cast<int>(e), rosenbrockErrorCategory };
 }

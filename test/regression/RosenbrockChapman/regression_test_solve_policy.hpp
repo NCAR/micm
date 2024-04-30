@@ -1,11 +1,12 @@
+#include "chapman_ode_solver.hpp"
+#include "util.hpp"
+
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
-#include <random>
 
-#include "chapman_ode_solver.hpp"
-#include "util.hpp"
+#include <random>
 
 template<class OdeSolverPolicy>
 void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)

@@ -1,14 +1,17 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
-#include <chrono>
-#include <functional>
+
 #include <micm/solver/cuda_linear_solver.cuh>
 #include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
+
+#include <chrono>
+#include <functional>
 
 namespace micm
 {

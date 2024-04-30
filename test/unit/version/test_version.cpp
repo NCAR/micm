@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <micm/version.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(Version, FullVersion)
 {

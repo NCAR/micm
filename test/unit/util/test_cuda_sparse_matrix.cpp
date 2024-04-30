@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include "cuda_matrix_utils.cuh"
+#include "test_sparse_matrix_policy.hpp"
 
 #include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
-#include "cuda_matrix_utils.cuh"
-#include "test_sparse_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(CudaSparseMatrix, ZeroMatrix)
 {

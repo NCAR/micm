@@ -1,16 +1,18 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
+
+#include <micm/profiler/instrumentation.hpp>
+#include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
-#include <micm/profiler/instrumentation.hpp>
-#include <micm/util/matrix_error.hpp>
-#include <vector>
 #include <functional>
+#include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
 #  define MICM_DEFAULT_VECTOR_SIZE 4

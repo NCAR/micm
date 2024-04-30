@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(Phase, ConstructorWithVector)
 {

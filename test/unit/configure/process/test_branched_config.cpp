@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <micm/configure/solver_config.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(BranchedConfig, DetectsInvalidConfig)
 {

@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <micm/system/species.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(Species, StringConstructor)
 {
