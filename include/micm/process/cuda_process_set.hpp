@@ -33,29 +33,29 @@ namespace micm
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
-    template<typename T, template<class> typename MatrixPolicy>
-    requires ( CudaMatrix<MatrixPolicy<T>> && VectorizableDense<MatrixPolicy<double>> )
+    template<template<class> typename MatrixPolicy>
+    requires ( CudaMatrix<MatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> )
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
-    template<typename T, template<class> typename MatrixPolicy>
-    requires(!CudaMatrix<MatrixPolicy<T>>)
+    template<template<class> typename MatrixPolicy>
+    requires(!CudaMatrix<MatrixPolicy<double>>)
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
-    template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(CudaMatrix<MatrixPolicy<T>> && CudaMatrix<SparseMatrixPolicy<T>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires(CudaMatrix<MatrixPolicy<double>> && CudaMatrix<SparseMatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
     void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         SparseMatrixPolicy<double>& jacobian) const;
 
-    template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!CudaMatrix<MatrixPolicy<T>> && !CudaMatrix<SparseMatrixPolicy<T>>)
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires(!CudaMatrix<MatrixPolicy<double>> && !CudaMatrix<SparseMatrixPolicy<double>>)
     void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -105,8 +105,8 @@ namespace micm
     micm::cuda::CopyJacobiFlatId(hoststruct, this->devstruct_);
   }
 
-  template<typename T, template<class> class MatrixPolicy>
-  requires(CudaMatrix<MatrixPolicy<T>> && VectorizableDense<MatrixPolicy<double>>)
+  template<template<class> class MatrixPolicy>
+  requires(CudaMatrix<MatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>>)
   inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -118,8 +118,8 @@ namespace micm
   }
 
   // call the function from the base class
-  template<typename T, template<class> class MatrixPolicy>
-  requires(!CudaMatrix<MatrixPolicy<T>>)
+  template<template<class> class MatrixPolicy>
+  requires(!CudaMatrix<MatrixPolicy<double>>)
   inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -128,8 +128,8 @@ namespace micm
     AddForcingTerms(rate_constants, state_variables, forcing);
   }
 
-  template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(CudaMatrix<MatrixPolicy<T>> && CudaMatrix<SparseMatrixPolicy<T>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  requires(CudaMatrix<MatrixPolicy<double>> && CudaMatrix<SparseMatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
   inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -142,8 +142,8 @@ namespace micm
   }
 
   // call the function from the base class
-  template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(!CudaMatrix<MatrixPolicy<T>> && !CudaMatrix<SparseMatrixPolicy<T>>)
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  requires(!CudaMatrix<MatrixPolicy<double>> && !CudaMatrix<SparseMatrixPolicy<double>>)
   inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
