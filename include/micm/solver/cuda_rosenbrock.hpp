@@ -104,12 +104,19 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const requires
-        VectorizableSparse<SparseMatrixPolicy<double>>
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const 
+    requires(CudaMatrix<SparseMatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<double>>)
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
+    }
+
+    // call the function from the base class
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+    requires(!CudaMatrix<SparseMatrixPolicy<T>>)
+    {
+      AlphaMinusJacobian(jacobian, alpha);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
@@ -121,6 +128,7 @@ namespace micm
         const MatrixPolicy<double>& y_old,
         const MatrixPolicy<double>& y_new,
         const MatrixPolicy<double>& errors) const
+    requires(CudaMatrix<MatrixPolicy<T>> &&  VectorizableDense<MatrixPolicy<double>>)
     {
       // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
       return micm::cuda::NormalizedErrorDriver(
@@ -131,5 +139,16 @@ namespace micm
           errors.AsCublasHandle(),
           this->devstruct_);
     }
+
+    // call the function from the base class
+    double NormalizedError(
+        const MatrixPolicy<double>& y_old,
+        const MatrixPolicy<double>& y_new,
+        const MatrixPolicy<double>& errors) const
+    requires(!CudaMatrix<MatrixPolicy<T>>)
+    {
+      return NormalizedErrorDriver(y_old, y_new, errors);
+    }
+
   };  // end CudaRosenbrockSolver
 }  // namespace micm

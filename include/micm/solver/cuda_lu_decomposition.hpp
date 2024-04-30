@@ -89,7 +89,7 @@ namespace micm
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(CudaSparseMatrices<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void CudaLuDecomposition::
+  requires(CudaSparseMatrices<SparseMatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>) void CudaLuDecomposition::
       Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
@@ -97,6 +97,7 @@ namespace micm
     micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_);
   }
 
+  // call the function from the base class
   template<typename T, template<class> class SparseMatrixPolicy>
   requires(!CudaSparseMatrices<SparseMatrixPolicy<T>>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy<T>& A,
