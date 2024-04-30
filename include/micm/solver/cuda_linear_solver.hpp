@@ -69,30 +69,24 @@ namespace micm
     };
 
     template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>> || VectorizableSparse<SparseMatrixPolicy<T>>) std::chrono::nanoseconds Solve(
+    requires(CudaMatrix<SparseMatrixPolicy<T>> && CudaMatrix<MatrixPolicy<T>> && VectorizableDense<MatrixPolicy<T>> && VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
         const MatrixPolicy<T>& b,
         MatrixPolicy<T>& x,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix)
+        const SparseMatrixPolicy<T>& L,
+        const SparseMatrixPolicy<T>& U) const
     {
-      CudaSparseMatrixParam sparseMatrix;
-      CudaMatrixParam_to_be_removed denseMatrix;
+       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
+       micm::cuda::SolveKernelDriver(b.AsDeviceParam(), x_param, L.AsDeviceParam(), U.AsDeviceParam(), this->devstruct_);
+    };
 
-      sparseMatrix.lower_matrix_ = lower_matrix.AsVector().data();
-      sparseMatrix.lower_matrix_size_ = lower_matrix.AsVector().size();
-      sparseMatrix.upper_matrix_ = upper_matrix.AsVector().data();
-      sparseMatrix.upper_matrix_size_ = upper_matrix.AsVector().size();
-      denseMatrix.b_ = b.AsVector().data();
-      denseMatrix.x_ = x.AsVector().data();
-      denseMatrix.b_size_ = b.AsVector().size();
-      denseMatrix.x_size_ = x.AsVector().size();
-      denseMatrix.n_grids_ = b.NumRows();  // number of grids
-      denseMatrix.b_column_counts_ = b[0].size();
-      denseMatrix.x_column_counts_ = x[0].size();
-
-      /// Call the "SolveKernelDriver" function that invokes the
-      ///   CUDA kernel to perform the "solve" function on the device
-      return micm::cuda::SolveKernelDriver(sparseMatrix, denseMatrix, this->devstruct_);
+    template<template<class> class MatrixPolicy>
+    requires(!CudaMatrix<SparseMatrixPolicy<T>> && !CudaMatrix<MatrixPolicy<T>>) void Solve(
+        const MatrixPolicy<T>& b,
+        MatrixPolicy<T>& x,
+        const SparseMatrixPolicy<T>& L,
+        const SparseMatrixPolicy<T>& U) const
+    {
+      LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::Solve<MatrixPolicy>(b, x, L, U);
     };
   };
 }  // namespace micm
