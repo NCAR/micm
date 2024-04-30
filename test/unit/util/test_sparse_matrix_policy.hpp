@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include <micm/util/sparse_matrix.hpp>
+
+#include <gtest/gtest.h>
 
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testZeroMatrix()

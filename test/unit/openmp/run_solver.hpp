@@ -1,5 +1,10 @@
 #pragma once
 
+#include <omp.h>
+
+#include <iostream>
+#include <vector>
+
 std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& state)
 {
   std::cout << "Running solver on thread " << omp_get_thread_num() << std::endl;

@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -29,8 +30,8 @@ struct InitialConditions
     status_ = false;
   }
 
-  private:
-    bool status_ = true;
+ private:
+  bool status_ = true;
 };
 
 /// @brief Reads CSV file and creates InitialConditions object
@@ -65,7 +66,8 @@ InitialConditions readCSVToMap(const std::string& filename)
 
   while (std::getline(file, line))
   {
-    if (line.empty()) continue;
+    if (line.empty())
+      continue;
 
     // Find concentrations
     else if (line.find(CONC_PREFIX) != std::string::npos)
@@ -84,9 +86,10 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.concentrations[key].emplace_back(value);
       }
-      catch(std::invalid_argument)
+      catch (std::invalid_argument)
       {
-        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "
+                  << "\"" << value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
@@ -109,18 +112,18 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.environments[key] = value;
       }
-      catch(std::invalid_argument)
+      catch (std::invalid_argument)
       {
-        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "
+                  << "\"" << value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
     }
     // Find custom rate constants that use UserDefinedRateConstant class
-    else if (line.find(PHOTO_PREFIX) != std::string::npos
-            || line.find(EMIS_PREFIX) != std::string::npos
-            || line.find(LOSS_PREFIX) != std::string::npos
-            || line.find(USER_PREFIX) != std::string::npos)
+    else if (
+        line.find(PHOTO_PREFIX) != std::string::npos || line.find(EMIS_PREFIX) != std::string::npos ||
+        line.find(LOSS_PREFIX) != std::string::npos || line.find(USER_PREFIX) != std::string::npos)
     {
       delimiter_pos = line.find_last_of(',');
       if (delimiter_pos == std::string::npos)
@@ -136,9 +139,10 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.custom_rate_params[key].emplace_back(value);
       }
-      catch(std::invalid_argument)
+      catch (std::invalid_argument)
       {
-        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "
+                  << "\"" << value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
@@ -146,7 +150,7 @@ InitialConditions readCSVToMap(const std::string& filename)
     else if (line.find(SURF_PREFIX) != std::string::npos)
     {
       auto last_delimiter_pos = line.find_last_of(',');
-      auto second_last_delimiter_pos = line.substr(0,last_delimiter_pos-1).find_last_of(',');
+      auto second_last_delimiter_pos = line.substr(0, last_delimiter_pos - 1).find_last_of(',');
       if (last_delimiter_pos == std::string::npos || second_last_delimiter_pos == std::string::npos)
       {
         std::cerr << "Error: Unable to find both delimiters ',' in \"" << line << "\"" << std::endl;
@@ -160,9 +164,10 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.custom_rate_params[key + ".effective radius [m]"].emplace_back(value);
       }
-      catch(std::invalid_argument)
+      catch (std::invalid_argument)
       {
-        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "
+                  << "\"" << value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
@@ -172,9 +177,10 @@ InitialConditions readCSVToMap(const std::string& filename)
         value = std::stod(value_string);
         dataMap.custom_rate_params[key + ".particle number concentration [# m-3]"].emplace_back(value);
       }
-      catch(std::invalid_argument)
+      catch (std::invalid_argument)
       {
-        std::cerr << "Parsing Error: Unable to convert string to double for the value of "<< "\""<< value_string << "\"" << std::endl;
+        std::cerr << "Parsing Error: Unable to convert string to double for the value of "
+                  << "\"" << value_string << "\"" << std::endl;
         dataMap.incomplete_parsing();
         return dataMap;
       }
@@ -187,5 +193,5 @@ InitialConditions readCSVToMap(const std::string& filename)
     }
   }
 
-    return dataMap;
+  return dataMap;
 }

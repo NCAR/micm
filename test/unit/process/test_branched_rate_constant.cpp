@@ -1,9 +1,9 @@
-#include <gtest/gtest.h>
-
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+
+#include <gtest/gtest.h>
 
 TEST(BranchedRateConstant, CalculateAlkoxyBranchWithAllArugments)
 {

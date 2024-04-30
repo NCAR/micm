@@ -1,7 +1,7 @@
-#include <omp.h>
-
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
+
+#include <omp.h>
 
 using namespace micm;
 

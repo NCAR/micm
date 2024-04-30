@@ -1,14 +1,16 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
-// SPDX-License-Identifier: Apache-2.0
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #pragma once
 
-#include <cassert>
 #include <micm/process/process.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/util/error.hpp>
 #include <micm/util/sparse_matrix.hpp>
+
+#include <cassert>
 #include <vector>
 
 enum class MicmProcessSetErrc
@@ -48,7 +50,7 @@ namespace
   const MicmProcessSetErrorCategory micmProcessSetErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmProcessSetErrc e)
+inline std::error_code make_error_code(MicmProcessSetErrc e)
 {
   return { static_cast<int>(e), micmProcessSetErrorCategory };
 }

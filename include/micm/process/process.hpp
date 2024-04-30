@@ -1,10 +1,9 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
 
-#include <memory>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
@@ -18,6 +17,8 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/error.hpp>
+
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -56,7 +57,7 @@ namespace
   const MicmProcessErrorCategory micmProcessErrorCategory{};
 }  // namespace
 
-std::error_code make_error_code(MicmProcessErrc e)
+inline std::error_code make_error_code(MicmProcessErrc e)
 {
   return { static_cast<int>(e), micmProcessErrorCategory };
 }

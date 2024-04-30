@@ -1,6 +1,6 @@
-#include <micm/solver/jit_rosenbrock.hpp>
-
 #include "util.hpp"
+
+#include <micm/solver/jit_rosenbrock.hpp>
 
 template<
     template<class>

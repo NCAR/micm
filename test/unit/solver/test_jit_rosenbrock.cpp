@@ -1,5 +1,3 @@
-#include <gtest/gtest.h>
-
 #include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
@@ -9,6 +7,8 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <gtest/gtest.h>
 
 template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
 micm::JitRosenbrockSolver<

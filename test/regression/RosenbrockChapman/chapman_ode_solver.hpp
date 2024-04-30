@@ -1,8 +1,7 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 #pragma once
+
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/state.hpp>
 
 #include <algorithm>
 #include <array>
@@ -10,8 +9,6 @@
 #include <functional>
 #include <iostream>
 #include <limits>
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/state.hpp>
 #include <string>
 #include <vector>
 

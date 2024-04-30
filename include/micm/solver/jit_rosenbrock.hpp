@@ -1,4 +1,4 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
+/* Copyright (C) 2023-2024 National Center for Atmospheric Research
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -15,8 +15,6 @@
  */
 #pragma once
 
-#include <chrono>
-#include <ctime>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/jit_process_set.hpp>
@@ -25,6 +23,9 @@
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
+#include <chrono>
+#include <ctime>
 #include <source_location>
 
 namespace micm

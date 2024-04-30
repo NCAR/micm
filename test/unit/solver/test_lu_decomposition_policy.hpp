@@ -1,9 +1,10 @@
-#include <gtest/gtest.h>
-
-#include <functional>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+
+#include <gtest/gtest.h>
+
+#include <functional>
 #include <random>
 
 template<typename T, template<class> class SparseMatrixPolicy>

@@ -1,6 +1,3 @@
-#include <fstream>
-#include <functional>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/process.hpp>
@@ -8,10 +5,17 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+
+#include <gtest/gtest.h>
+
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <utility>
 #include <vector>
 
