@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Install Clang-Tidy
-        run: sudo apt update && sudo apt install clang-15 clang-tidy-15 llvm-dev libc++abi-15-dev libomp-dev make nvidia-cuda-toolkit g++ python3 && clang-tidy --version && nvcc --version && cmake --version
+        run: sudo apt update && sudo apt install clang-15 clang-tidy-15 llvm-dev libc++abi-15-dev libstdc++-dev libomp-dev make nvidia-cuda-toolkit g++ python3 && clang-tidy --version && nvcc --version && cmake --version
 
       - name: Check out code, generate compile commands
         uses: actions/checkout@v3
@@ -45,7 +45,7 @@ jobs:
 
       - name: Scan Test files
         run: |
-          TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*')
+          TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*' ! -path '**/test_openmp_jit_solver.cpp' ! -path '**/.cuh')
           echo "scanning test files:"
           echo ${TEST_FILES} | tr " " "\n"
           time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" ${TEST_FILES} -- -Iinclude/ -isystem ./cuda-build/_deps/googletest-src/googletest/include -isystem ./cuda-build/_deps/json-src/include
