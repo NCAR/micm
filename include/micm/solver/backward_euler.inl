@@ -64,7 +64,7 @@ namespace micm
     Tenth
   };
 
-  inline void BackwardEuler::Solve(double time_step, auto y, auto state, auto linear_solver, auto process_set)
+  inline void BackwardEuler::Solve(double time_step, auto state, auto linear_solver, auto process_set)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H f(t_{n+1}, y_{n+1})
@@ -80,8 +80,10 @@ namespace micm
     double H = time_step;
     double t = 0.0;
     double tol = 1.0e-6;
+    auto y = state.variables_;
     auto temp = y;
     auto forcing = y;
+    auto residual = y;
     enum LastTimeStepCut last_time_step_cut = LastTimeStepCut::None;
 
     auto Yn = y;
@@ -97,8 +99,8 @@ namespace micm
 
       do {
         // calculate jacobian
-        std::fill(state.jacobian.AsVector().begin(), state.jacobian.AsVector().end(), 0.0);
-        process_set.SubtractJacobianTerms(state.rate_constants_, Yn, state.jacobian);
+        std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
+        process_set.SubtractJacobianTerms(state.rate_constants_, Yn, state.jacobian_);
 
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
@@ -108,21 +110,35 @@ namespace micm
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
-        linear_solver.Factor(state.jacobian, state.lower_matrix_, state.upper_matrix_, singular);
+        linear_solver.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
 
+        auto yn1_iter = Yn1.begin();
+        auto yn_iter = Yn.begin();
+        auto residual_iter = residual.begin();
+        auto forcing_iter = forcing.begin();
         // forcing_blk in camchem
-        auto residual = (Yn1 - Yn) / H - forcing;
+        // residual = (Yn1 - Yn) / H - forcing;
+        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++residual_iter, ++forcing_iter) {
+          *residual_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
+        }
 
         // the result of the linear solver will be stored in temp
         // this represnts the change in the solution
         linear_solver.Solve(residual, temp, state.lower_matrix_, state.upper_matrix_);
 
         // solution_blk in camchem
-        Yn1 = Yn + temp;
+        // Yn1 = Yn + temp;
+        auto temp_iter = temp.begin();
+        yn1_iter = Yn1.begin();
+        yn_iter = Yn.begin();
+
+        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter, ++yn_iter) {
+          *yn1_iter = *yn_iter + *temp_iter;
+        }
 
         // check for convergence
-        auto temp_iter = temp.begin();
-        auto yn1_iter = Yn1.begin();
+        temp_iter = temp.begin();
+        yn1_iter = Yn1.begin();
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution

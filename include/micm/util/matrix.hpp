@@ -243,6 +243,27 @@ namespace micm
     {
       return data_;
     }
+
+    // add begin and end iterators
+    typename std::vector<T>::iterator begin() noexcept
+    {
+      return data_.begin();
+    }
+    
+    typename std::vector<T>::const_iterator begin() const noexcept
+    {
+      return data_.cbegin();
+    }
+
+    typename std::vector<T>::iterator end() noexcept
+    {
+      return data_.end();
+    }
+
+    typename std::vector<T>::const_iterator end() const noexcept
+    {
+      return data_.cend();
+    }
   };
 
 }  // namespace micm
