@@ -1,0 +1,33 @@
+FROM ubuntu:24.04
+
+RUN apt -y update \
+    && apt -y install \
+        cmake \
+        g++ \
+        git \
+        make \
+        nvidia-cuda-toolkit \
+        clang \
+        clang-tidy \
+        llvm-dev \
+        libomp-dev \
+        build-essential \
+    && dnf clean all
+
+RUN  clang-tidy --version && nvcc --version && cmake --version
+
+# copy the MICM code
+COPY . /micm/
+
+# build the library and run the tests
+RUN cd /micm \
+    && cmake \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DMICM_ENABLE_CUDA=ON \
+      -DMICM_GPU_TYPE=v100 \
+      -DCMAKE_CUDA_ARCHITECTURES=70 \
+      -B./cuda-build \
+      -S.
+
+WORKDIR /micm
+
