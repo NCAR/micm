@@ -67,7 +67,7 @@ namespace micm
   inline void BackwardEuler::Solve(double time_step, auto state, auto linear_solver, auto process_set)
   {
     // A fully implicit euler implementation is given by the following equation:
-    // y_{n+1} = y_n + H f(t_{n+1}, y_{n+1})
+    // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
     // This is a root finding problem because you need to know y_{n+1} to compute f(t_{n+1}, y_{n+1})
     // you need to solve the equation y_{n+1} - y_n - H f(t_{n+1}, y_{n+1}) = 0
     // We will also use the same logic used by cam-chem to determine the time step
@@ -167,5 +167,7 @@ namespace micm
         }
       } while(!converged);
     }
+
+    state.variables_ = Yn1;
   }
 }
