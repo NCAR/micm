@@ -12,9 +12,9 @@ RUN apt -y update \
         llvm-dev \
         libomp-dev \
         build-essential \
-    && dnf clean all
+    && apt clean all
 
-RUN  clang-tidy --version && nvcc --version && cmake --version
+RUN clang-tidy --version && nvcc --version && cmake --version
 
 # copy the MICM code
 COPY . /micm/
