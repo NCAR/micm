@@ -218,8 +218,8 @@ namespace micm
         process_set_.NonZeroJacobianElements(), parameters_.number_of_grid_cells_, system.StateSize());
 
     std::vector<std::size_t> jacobian_diagonal_elements;
-    jacobian_diagonal_elements.reserve(jacobian[0].size());
-    for (std::size_t i = 0; i < jacobian[0].size(); ++i)
+    jacobian_diagonal_elements.reserve(jacobian.NumRows());
+    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
@@ -482,7 +482,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    for (std::size_t i_block = 0; i_block < jacobian.Size(); ++i_block)
+    for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)

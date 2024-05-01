@@ -255,7 +255,7 @@ namespace micm
       const std::size_t l = x_dim_ % L;
       for (std::size_t i = 0; i < y_dim_; ++i)
         for (std::size_t j = 0; j < l; ++j)
-          y_iter[i * L + j] += alpha * x_iter[i * L + j];
+          y_iter[(i * L) + j] += alpha * x_iter[(i * L) + j];
     }
 
     void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
@@ -268,7 +268,7 @@ namespace micm
       const std::size_t l = x_dim_ % L;
       for (std::size_t y = 0; y < y_dim_; ++y)
         for (std::size_t x = 0; x < l; ++x)
-          f(this_iter[y * L + x], a_iter[y * L + x]);
+          f(this_iter[(y * L) + x], a_iter[(y * L) + x]);
     }
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
@@ -286,7 +286,7 @@ namespace micm
       {
         for (std::size_t y = 0; y < y_dim_; ++y)
           for (std::size_t x = 0; x < l; ++x)
-            f(this_iter[y * L + x], a_iter[y * L + x], b_iter[y * L + x]);
+            f(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
       }
     }
 

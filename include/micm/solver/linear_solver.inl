@@ -78,7 +78,7 @@ namespace micm
     auto lu = lu_decomp_.template GetLUMatrices<T, SparseMatrixPolicy>(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
-    for (std::size_t i = 0; i < lower_matrix[0].size(); ++i)
+    for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
     {
       std::size_t nLij = 0;
       for (std::size_t j_id = lower_matrix.RowStartVector()[i]; j_id < lower_matrix.RowStartVector()[i + 1]; ++j_id)
@@ -92,7 +92,7 @@ namespace micm
       // There must always be a non-zero element on the diagonal
       nLij_Lii_.push_back(std::make_pair(nLij, lower_matrix.VectorIndex(0, i, i)));
     }
-    for (std::size_t i = upper_matrix[0].size() - 1; i != static_cast<std::size_t>(-1); --i)
+    for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
     {
       std::size_t nUij = 0;
       for (std::size_t j_id = upper_matrix.RowStartVector()[i]; j_id < upper_matrix.RowStartVector()[i + 1]; ++j_id)

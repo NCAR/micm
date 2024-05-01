@@ -27,13 +27,13 @@ namespace micm
       return number_of_blocks * row_ids.size();
     };
 
-    std::size_t VectorIndex(
+    static std::size_t VectorIndex(
         std::size_t number_of_blocks,
         const std::vector<std::size_t>& row_ids,
         const std::vector<std::size_t>& row_start,
         std::size_t block,
         std::size_t row,
-        std::size_t column) const
+        std::size_t column)
     {
       if (row >= row_start.size() - 1 || column >= row_start.size() - 1 || block >= number_of_blocks)
         throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
