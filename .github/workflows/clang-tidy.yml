@@ -34,7 +34,7 @@ jobs:
           SOURCE_FILES=$(find src -type f \( -name '*.cu' -o -name '*.hpp' -o -name '*.h' -o -name '*.cpp' \))
           echo "scanning src files:"
           echo ${SOURCE_FILES} | tr " " "\n"
-          docker run --name include-scans -t micm-clang-tidy bash -c 'time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "--cuda-gpu-arch=sm_70" ${SOURCE_FILES} -- -Iinclude/ -isystem ./cuda-build/_deps/googletest-src/googletest/include -isystem ./cuda-build/_deps/json-src/include'
+          docker run --name source-scans -t micm-clang-tidy bash -c 'time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "--cuda-gpu-arch=sm_70" ${SOURCE_FILES} -- -Iinclude/ -isystem ./cuda-build/_deps/googletest-src/googletest/include -isystem ./cuda-build/_deps/json-src/include'
         continue-on-error: true
 
       - name: Scan Test files
@@ -42,6 +42,6 @@ jobs:
           TEST_FILES=$(find test -type f \( -name '*.hpp' -o -name '*.h' -o -name '*.cpp' -o -name '*.cuh' -o -name '*.cu' \) ! -path 'test/tutorial/*'  ! -path '**/*.cuh' ! -path '**/*jit*' )
           echo "scanning test files:"
           echo ${TEST_FILES} | tr " " "\n"
-          docker run --name include-scans -t micm-clang-tidy bash -c 'time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "--cuda-gpu-arch=sm_70" ${TEST_FILES} -- -Iinclude/ -isystem ./cuda-build/_deps/googletest-src/googletest/include -isystem ./cuda-build/_deps/json-src/include'
+          docker run --name test-scans -t micm-clang-tidy bash -c 'time clang-tidy -p ./cuda-build/ -checks=-*,bugprone-* -header-filter=$(pwd)/include/.* --extra-arg "-lcudart_static" --extra-arg "-std=c++20" --extra-arg "--cuda-gpu-arch=sm_70" ${TEST_FILES} -- -Iinclude/ -isystem ./cuda-build/_deps/googletest-src/googletest/include -isystem ./cuda-build/_deps/json-src/include'
         continue-on-error: true
 
