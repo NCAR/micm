@@ -30,8 +30,6 @@ namespace micm
   class BackwardEuler
   {
    public:
-    std::vector<Process> processes_;
-
     /// @brief Default constructor
     BackwardEuler();
 
@@ -48,7 +46,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    void Solve(double time_step, auto state, auto linear_solver, auto process_set);
+    void Solve(double time_step, auto& state, auto linear_solver, auto process_set, const std::vector<micm::Process>& processes, auto jacobian_diagonal_elements);
   };
 
 }  // namespace micm

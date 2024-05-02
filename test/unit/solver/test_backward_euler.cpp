@@ -46,6 +46,7 @@ TEST(BackwardEuler, CanCallSolve) {
   auto state = rosenbrock.GetState();
   auto linear_solver = rosenbrock.linear_solver_;
   auto process_set = rosenbrock.process_set_;
+  auto processes = std::vector<micm::Process>{ r1, r2 };
 
-  EXPECT_NO_THROW(be.Solve(time_step, state, linear_solver, process_set));
+  EXPECT_NO_THROW(be.Solve(time_step, state, linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
 }

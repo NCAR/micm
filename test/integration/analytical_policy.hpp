@@ -110,8 +110,9 @@ void test_analytical_troe(
                                                                  .N_ = 0.8 }))
                          .phase(gas_phase);
 
+  auto processes = std::vector<micm::Process>{ r1, r2 };
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes);
 
   micm::BackwardEuler be;
   auto be_state = solver.GetState();
@@ -164,7 +165,7 @@ void test_analytical_troe(
     times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
-    be.Solve(time_step, be_state, linear_solver, process_set);
+    be.Solve(time_step, be_state, linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);

@@ -4,7 +4,7 @@
  */
 enum class MicmBackwardEulerErrc
 {
-  SubStepTooSmall = 1,
+  FailedToConverge = 1
 };
 
 namespace std
@@ -28,8 +28,8 @@ namespace
     {
       switch (static_cast<MicmBackwardEulerErrc>(ev))
       {
-        case MicmBackwardEulerErrc::SubStepTooSmall:
-          return "Substep too small";
+        case MicmBackwardEulerErrc::FailedToConverge:
+          return "Failed to converge";
         default: return "Unknown error";
       }
     }
@@ -46,25 +46,10 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   inline BackwardEuler::BackwardEuler()
-      : processes_()
   {
   }
 
-  inline BackwardEuler::BackwardEuler(
-        const System& system,
-        const std::vector<Process>& processes)
-      : processes_()
-  {
-  }
-
-  enum class LastTimeStepCut
-  {
-    None,
-    Half,
-    Tenth
-  };
-
-  inline void BackwardEuler::Solve(double time_step, auto state, auto linear_solver, auto process_set)
+  inline void BackwardEuler::Solve(double time_step, auto& state, auto linear_solver, auto process_set, const std::vector<micm::Process>& processes, auto jacobian_diagonal_elements)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -79,32 +64,49 @@ namespace micm
 
     double H = time_step;
     double t = 0.0;
-    double tol = 1.0e-6;
+    double tol = 1e-16;
+    double small = 1.0e-40;
     auto y = state.variables_;
     auto temp = y;
     auto forcing = y;
     auto residual = y;
-    enum LastTimeStepCut last_time_step_cut = LastTimeStepCut::None;
+    bool singular = false;
+    std::size_t max_iter = 11;
+    std::size_t n_successful_integrations = 0;
+    std::size_t n_convergence_failures = 0;
+    std::size_t cut_in_half_limit = 4;
+    std::size_t cut_in_tenth_limit = 1;
 
     auto Yn = y;
     auto Yn1 = y;
 
-    Process::UpdateState(processes_, state);
-
-    bool singular = false;
+    Process::UpdateState(processes, state);
 
     while(t < time_step) {
-
       bool converged = true;
+      std::size_t iterations = 0;
 
       do {
+        // calculate forcing
+        std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
+        process_set.AddForcingTerms(state.rate_constants_, Yn, forcing);
+
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
         process_set.SubtractJacobianTerms(state.rate_constants_, Yn, state.jacobian_);
 
-        // calculate forcing
-        std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-        process_set.AddForcingTerms(state.rate_constants_, Yn, forcing);
+        // subtract the inverse of the time step from the diagonal
+        // TODO: handle vectorized jacobian matrix
+        for(auto& jac : state.jacobian_.AsVector()) {
+          jac *= -1;
+        }
+
+        for (std::size_t i_block = 0; i_block < state.jacobian_.Size(); ++i_block)
+        {
+          auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
+          for (const auto& i_elem : jacobian_diagonal_elements)
+            jacobian_vector[i_elem] -= 1 / H;
+        }
 
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
@@ -127,45 +129,83 @@ namespace micm
         linear_solver.Solve(residual, temp, state.lower_matrix_, state.upper_matrix_);
 
         // solution_blk in camchem
-        // Yn1 = Yn + temp;
+        // Yn1 = Yn1 + temp;
         auto temp_iter = temp.begin();
         yn1_iter = Yn1.begin();
-        yn_iter = Yn.begin();
 
-        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter, ++yn_iter) {
-          *yn1_iter = *yn_iter + *temp_iter;
+        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
+          *yn1_iter += *temp_iter;
+        }
+
+        // always make sure the solution is positive regardless of which iteration we are on
+        // remove negatives, accept this solution and continue
+        yn1_iter = Yn1.begin();
+        yn_iter = Yn.begin();
+        for(; yn1_iter != Yn1.end(); ++yn1_iter) {
+          *yn_iter = *yn1_iter = std::max(0.0, *yn1_iter);
+        }
+
+        if (iterations == 0) {
+          // we always want to accept the first iteration
+          continue;
         }
 
         // check for convergence
         temp_iter = temp.begin();
         yn1_iter = Yn1.begin();
 
+        converged = true;
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
         for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
-          if (std::abs(*temp_iter) > tol * std::abs(*yn1_iter)) {
-            converged = false;
+          if (std::abs(*temp_iter) > small) {
+            if (std::abs(*temp_iter) > tol * std::abs(*yn1_iter)) {
+              converged = false;
+              break;
+            }
           }
         }
 
-        if (!converged) {
-          switch (last_time_step_cut) {
-            case LastTimeStepCut::None:
-              last_time_step_cut = LastTimeStepCut::Half;
-              H /= 2.0;
-              break;
-            case LastTimeStepCut::Half:
-              last_time_step_cut = LastTimeStepCut::Tenth;
-              H /= 10;
-              break;
-            case LastTimeStepCut::Tenth:
-              throw std::system_error(make_error_code(MicmBackwardEulerErrc::SubStepTooSmall));
-          }
+        ++iterations;
+        // correct this check
+      } while(!converged && iterations < max_iter);
+
+      if (!converged) {
+        // cut the timestep in half a number of times
+        // after that cut the timestep in tenths a number of times
+        // after that, accept the solution
+        ++n_convergence_failures;
+        n_successful_integrations = 0;
+
+        if (n_convergence_failures < cut_in_half_limit) {
+          H /= 2.0;
+        }
+        else if ((n_convergence_failures - cut_in_half_limit) < cut_in_tenth_limit) {
+          H /= 10.0;
         }
         else {
+          // we have failed to converge, accept the solution
+          // TODO: continue on with the current solution to get the full solution
+          n_convergence_failures = 0;
           t += H;
+          throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
+          break;
         }
-      } while(!converged);
+      }
+      else {
+        // when we accept two solutions in a row, we can increase the time step
+        n_successful_integrations++;
+        n_convergence_failures = 0;
+        if (n_successful_integrations >= 2) {
+          H *= 2.0;
+        }
+      }
+
+      // calculate the total amount of time we have solved for so far
+      t += H;
+
+      // Don't let H go past the time step
+      H = std::min(H, time_step - t);
     }
 
     state.variables_ = Yn1;
