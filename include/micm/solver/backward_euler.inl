@@ -64,7 +64,7 @@ namespace micm
 
     double H = time_step;
     double t = 0.0;
-    double tol = 1e-16;
+    double tol = 1e-4;
     double small = 1.0e-40;
     auto y = state.variables_;
     auto temp = y;
@@ -141,7 +141,7 @@ namespace micm
         // remove negatives, accept this solution and continue
         yn1_iter = Yn1.begin();
         yn_iter = Yn.begin();
-        for(; yn1_iter != Yn1.end(); ++yn1_iter) {
+        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter) {
           *yn_iter = *yn1_iter = std::max(0.0, *yn1_iter);
         }
 
