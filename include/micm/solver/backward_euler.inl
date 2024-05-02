@@ -193,6 +193,9 @@ namespace micm
         }
       }
       else {
+        // calculate the total amount of time we have solved for so far
+        t += H;
+
         // when we accept two solutions in a row, we can increase the time step
         n_successful_integrations++;
         n_convergence_failures = 0;
@@ -200,9 +203,6 @@ namespace micm
           H *= 2.0;
         }
       }
-
-      // calculate the total amount of time we have solved for so far
-      t += H;
 
       // Don't let H go past the time step
       H = std::min(H, time_step - t);
