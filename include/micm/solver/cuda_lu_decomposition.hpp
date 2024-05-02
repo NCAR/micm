@@ -76,20 +76,20 @@ namespace micm
     ///   L is the lower triangular matrix created by decomposition
     ///   U is the upper triangular matrix created by decomposition
     template<typename T, template<class> typename SparseMatrixPolicy>
-    requires(CudaSparseMatrices<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
+    requires(CudaMatrix<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
         const SparseMatrixPolicy<T>& A,
         SparseMatrixPolicy<T>& L,
         SparseMatrixPolicy<T>& U) const;
 
     template<typename T, template<class> typename SparseMatrixPolicy>
-    requires(!CudaSparseMatrices<SparseMatrixPolicy<T>>) void Decompose(
+    requires(!CudaMatrix<SparseMatrixPolicy<T>>) void Decompose(
         const SparseMatrixPolicy<T>& A,
         SparseMatrixPolicy<T>& L,
         SparseMatrixPolicy<T>& U) const;
   };
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(CudaSparseMatrices<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void CudaLuDecomposition::
+  requires(CudaMatrix<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void CudaLuDecomposition::
       Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
@@ -98,7 +98,7 @@ namespace micm
   }
 
   template<typename T, template<class> class SparseMatrixPolicy>
-  requires(!CudaSparseMatrices<SparseMatrixPolicy<T>>) void CudaLuDecomposition::Decompose(
+  requires(!CudaMatrix<SparseMatrixPolicy<T>>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy<T>& A,
       SparseMatrixPolicy<T>& L,
       SparseMatrixPolicy<T>& U) const
