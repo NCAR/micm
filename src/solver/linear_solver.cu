@@ -12,11 +12,11 @@ namespace micm
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void SolveKernel(
-      const CudaMatrixParam b_param,
-      CudaMatrixParam x_param,
-      const CudaMatrixParam L_param,
-      const CudaMatrixParam U_param,
-      const LinearSolverParam devstruct)
+        const CudaMatrixParam b_param,
+        CudaMatrixParam x_param,
+        const CudaMatrixParam L_param,
+        const CudaMatrixParam U_param,
+        const LinearSolverParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -33,7 +33,7 @@ namespace micm
       double* d_U = U_param.d_data_;
       double* d_b = b_param.d_data_;
       double* d_x = x_param.d_data_;
-      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory 
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
       const size_t number_of_grid_cells = b_param.number_of_grid_cells_;
       const size_t number_of_species = b_param.number_of_elements_ / number_of_grid_cells;
 
@@ -122,11 +122,11 @@ namespace micm
     }
 
     void SolveKernelDriver(
-      const CudaMatrixParam& b_param,
-      CudaMatrixParam& x_param,
-      const CudaMatrixParam& L_param,
-      const CudaMatrixParam& U_param,
-      const LinearSolverParam& devstruct)
+        const CudaMatrixParam& b_param,
+        CudaMatrixParam& x_param,
+        const CudaMatrixParam& L_param,
+        const CudaMatrixParam& U_param,
+        const LinearSolverParam& devstruct)
     {
       size_t number_of_blocks = (b_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(b_param, x_param, L_param, U_param, devstruct);

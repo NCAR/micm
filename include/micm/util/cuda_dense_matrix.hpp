@@ -39,7 +39,7 @@ namespace micm
    * behaves similarily to VectorMatrix.
    */
 
-    /// Concept for Cuda Matrix
+  /// Concept for Cuda Matrix
   template<typename MatrixType>
   concept CudaMatrix = requires(MatrixType t)
   {

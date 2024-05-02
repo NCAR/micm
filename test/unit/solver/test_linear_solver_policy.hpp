@@ -6,26 +6,38 @@
 #include <functional>
 #include <random>
 
-// Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at compile-time
-// Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/ 
+// Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
+// compile-time Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/
 template<typename T, template<class> class MatrixPolicy>
 void CopyToDeviceDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr(requires{ { matrix.CopyToDevice() } -> std::same_as<void>; })
+  if constexpr (requires {
+                  {
+                    matrix.CopyToDevice()
+                    } -> std::same_as<void>;
+                })
     matrix.CopyToDevice();
 }
 
 template<typename T, template<class> class SparseMatrixPolicy>
 void CopyToDeviceSparse(SparseMatrixPolicy<T>& matrix)
 {
-  if constexpr(requires{ { matrix.CopyToDevice() } -> std::same_as<void>; })
+  if constexpr (requires {
+                  {
+                    matrix.CopyToDevice()
+                    } -> std::same_as<void>;
+                })
     matrix.CopyToDevice();
 }
 
 template<typename T, template<class> class MatrixPolicy>
 void CopyToHostDense(MatrixPolicy<T>& matrix)
 {
-  if constexpr(requires{ { matrix.CopyToHost() } -> std::same_as<void>; })  
+  if constexpr (requires {
+                  {
+                    matrix.CopyToHost()
+                    } -> std::same_as<void>;
+                })
     matrix.CopyToHost();
 }
 
@@ -118,7 +130,7 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
   auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
-  
+
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<double, SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<double, SparseMatrixPolicy>(upper_matrix);
