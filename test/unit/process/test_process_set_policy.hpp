@@ -99,7 +99,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = SparseMatrixPolicy<double>::Create(5).NumberOfBlocks(2).InitialValue(100.0);
+  auto builder = SparseMatrixPolicy<double>::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy<double> jacobian{ builder };

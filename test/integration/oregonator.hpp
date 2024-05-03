@@ -24,7 +24,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->parameters_ = parameters;
     this->parameters_.absolute_tolerance_ = std::vector<double>(3, 1.0e-3);
 
-    auto builder = SparseMatrixPolicy<double>::Create(3).NumberOfBlocks(1).InitialValue(0.0);
+    auto builder = SparseMatrixPolicy<double>::Create(3).SetNumberOfBlocks(1).InitialValue(0.0);
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)

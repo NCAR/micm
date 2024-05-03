@@ -23,7 +23,7 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
     this->processes_ = processes;
     this->parameters_ = parameters;
 
-    auto builder = SparseMatrixPolicy<double>::Create(8).NumberOfBlocks(1).InitialValue(0.0);
+    auto builder = SparseMatrixPolicy<double>::Create(8).SetNumberOfBlocks(1).InitialValue(0.0);
     for (int i = 0; i < 8; ++i)
     {
       for (int j = 0; j < 8; ++j)

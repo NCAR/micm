@@ -364,7 +364,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
                      .WithElement(2, 3)
                      .WithElement(2, 1)
                      .InitialValue(24)
-                     .NumberOfBlocks(3);
+                     .SetNumberOfBlocks(3);
   // 0 X 0 0
   // 0 0 0 0
   // 0 X 0 X

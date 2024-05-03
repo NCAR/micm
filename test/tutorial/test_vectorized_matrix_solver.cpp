@@ -143,7 +143,7 @@ int main()
                                                      .WithElement(2, 1)
                                                      .WithElement(2, 3)
                                                      .WithElement(3, 2)
-                                                     .NumberOfBlocks(3) };
+                                                     .SetNumberOfBlocks(3) };
 
   micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>> sparse_vector_matrix{
     micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::Create(4)
@@ -151,7 +151,7 @@ int main()
         .WithElement(2, 1)
         .WithElement(2, 3)
         .WithElement(3, 2)
-        .NumberOfBlocks(3)
+        .SetNumberOfBlocks(3)
   };
 
   sparse_matrix[0][0][1] = sparse_vector_matrix[0][0][1] = "0.0.1";

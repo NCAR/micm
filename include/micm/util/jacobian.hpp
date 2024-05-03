@@ -17,7 +17,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto builder = SparseMatrixPolicy<double>::Create(state_size).NumberOfBlocks(number_of_grid_cells);
+    auto builder = SparseMatrixPolicy<double>::Create(state_size).SetNumberOfBlocks(number_of_grid_cells);
     for (auto& elem : nonzero_jacobian_elements)
       builder = builder.WithElement(elem.first, elem.second);
     // Always include diagonal elements
