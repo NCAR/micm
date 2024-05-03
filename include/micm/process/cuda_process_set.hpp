@@ -38,7 +38,7 @@ namespace micm
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    template<class MatrixPolicy, class SparseMatrixPolicy>
     requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
     void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
@@ -101,7 +101,7 @@ namespace micm
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
   inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,

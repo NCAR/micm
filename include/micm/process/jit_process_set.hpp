@@ -63,7 +63,7 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    template<class MatrixPolicy, class SparseMatrixPolicy>
     void SubtractJacobianTerms(
         const MatrixPolicy<double> &rate_constants,
         const MatrixPolicy<double> &state_variables,
@@ -343,7 +343,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   void JitProcessSet<L>::SubtractJacobianTerms(
       const MatrixPolicy<double> &rate_constants,
       const MatrixPolicy<double> &state_variables,
