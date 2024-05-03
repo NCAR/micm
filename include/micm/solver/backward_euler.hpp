@@ -22,6 +22,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace micm
 {

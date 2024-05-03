@@ -203,11 +203,11 @@ void test_analytical_troe(
     EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
 
-    EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-4)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
     
   }

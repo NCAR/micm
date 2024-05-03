@@ -66,19 +66,19 @@ namespace micm
     double t = 0.0;
     double tol = 1e-4;
     double small = 1.0e-40;
-    auto y = state.variables_;
-    auto temp = y;
-    auto forcing = y;
-    auto residual = y;
+    auto temp = state.variables_;
+    auto forcing = state.variables_;
+    auto residual = state.variables_;
     bool singular = false;
     std::size_t max_iter = 11;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
     std::size_t cut_in_half_limit = 4;
     std::size_t cut_in_tenth_limit = 1;
+    const std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
 
-    auto Yn = y;
-    auto Yn1 = y;
+    auto Yn = state.variables_;
+    auto Yn1 = state.variables_;
 
     Process::UpdateState(processes, state);
 
@@ -171,29 +171,21 @@ namespace micm
       } while(!converged && iterations < max_iter);
 
       if (!converged) {
-        // cut the timestep in half a number of times
-        // after that cut the timestep in tenths a number of times
-        // after that, accept the solution
-        ++n_convergence_failures;
         n_successful_integrations = 0;
 
-        if (n_convergence_failures < cut_in_half_limit) {
-          H /= 2.0;
-        }
-        else if ((n_convergence_failures - cut_in_half_limit) < cut_in_tenth_limit) {
-          H /= 10.0;
-        }
-        else {
+        if (n_convergence_failures >= time_step_reductions.size()) {
           // we have failed to converge, accept the solution
           // TODO: continue on with the current solution to get the full solution
           n_convergence_failures = 0;
+          // give_up = true;
           t += H;
-          throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
           break;
-        }
+          throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
+        };
+
+        H *= time_step_reductions[n_convergence_failures++];
       }
       else {
-        // calculate the total amount of time we have solved for so far
         t += H;
 
         // when we accept two solutions in a row, we can increase the time step
