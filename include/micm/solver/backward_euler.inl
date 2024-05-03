@@ -85,7 +85,6 @@ namespace micm
       bool converged = false;
       std::size_t iterations = 0;
 
-      auto original_Yn = Yn;
       Yn1 = Yn;
 
       do {
@@ -143,6 +142,7 @@ namespace micm
         }
 
         // if this is the first iteration, we don't need to check for convergence
+        converged = false;
         if (iterations++ == 0) continue;
 
         // check for convergence
@@ -151,7 +151,6 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
-        converged = false;
         for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           if (std::abs(*temp_iter) > small) {
@@ -182,7 +181,6 @@ namespace micm
           break;
         };
 
-        Yn = original_Yn;
         H *= time_step_reductions[n_convergence_failures++];
       }
       else {
