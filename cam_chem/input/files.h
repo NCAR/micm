@@ -1,9 +1,0 @@
-#define SETRXTFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_setrxt.F
-#define ADJRXTFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_adjrxt.F
-#define PHTADJFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_phtadj.F
-#define RXTMODFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_rxt_mod.F
-#define GRPVMRFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_make_grp_vmr.F
-#define SETDATFILE /Users/kshores/Documents/MUSICA-Performance-Comparison/configs/TS1/cam_chem/tmp/mo_sim_dat.F
-#define EXPSLVPATH /Users/kshores/Documents/CHEM_PREPROCESSOR/bin/procfiles/cam
-#define IMPSLVPATH /Users/kshores/Documents/CHEM_PREPROCESSOR/bin/procfiles/cam
-#define MODSPATH /Users/kshores/Documents/CHEM_PREPROCESSOR/bin/procfiles/cam
