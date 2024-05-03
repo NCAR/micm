@@ -56,16 +56,16 @@ void test_analytical_surface_rxn(
 
   // Process
   micm::Process surface_process = micm::Process::Create()
-                                      .reactants({ foo })
-                                      .products({ micm::Yields(bar, bar_yield), micm::Yields(baz, baz_yield) })
-                                      .rate_constant(surface)
-                                      .phase(gas_phase);
+                                      .SetReactants({ foo })
+                                      .SetProducts({ micm::Yields(bar, bar_yield), micm::Yields(baz, baz_yield) })
+                                      .SetRateConstant(surface)
+                                      .SetPhase(gas_phase);
 
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
   // micm::RosenbrockSolver<> solver{
-  //   chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  //   chemical_system, reactions, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
   // };
 
   // Solver

@@ -284,6 +284,7 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
+    // TODO(jiwon) - Name SetNumberOfBlocks
     SparseMatrixBuilder& NumberOfBlocks(std::size_t n)
     {
       number_of_blocks_ = n;

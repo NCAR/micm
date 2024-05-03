@@ -77,26 +77,26 @@ Then setup the reaction which will use this rate constant:
         .. code-block:: diff
 
              Process r7 = Process::Create()
-                             .reactants({ f })
-                             .products({ Yields(g, 1) })
-                             .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                             .phase(gas_phase);
+                             .SetReactants({ f })
+                             .SetProducts({ Yields(g, 1) })
+                             .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
+                             .SetPhase(gas_phase);
 
             + Process r8 = Process::Create()
-            +                 .reactants({ c })
-            +                 .products({ Yields(g, 1) })
-            +                 .rate_constant(UserDefinedRateConstant({.label_="my rate"}))
-            +                 .phase(gas_phase);
+            +                 .SetReactants({ c })
+            +                 .SetProducts({ Yields(g, 1) })
+            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
+            +                 .SetPhase(gas_phase);
 
             + Process r9 = Process::Create()
-            +                 .products({ Yields(a, 1) })
-            +                 .rate_constant(UserDefinedRateConstant({.label_="my emission rate"}))
-            +                 .phase(gas_phase);
+            +                 .SetProducts({ Yields(a, 1) })
+            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
+            +                 .SetPhase(gas_phase);
 
             + Process r10 = Process::Create()
-            +                 .reactants({ b })
-            +                 .rate_constant(UserDefinedRateConstant({.label_="my loss rate"}))
-            +                 .phase(gas_phase);
+            +                 .SetReactants({ b })
+            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
+            +                 .SetPhase(gas_phase);
 
              auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
             - auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };

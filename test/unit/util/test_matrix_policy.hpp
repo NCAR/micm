@@ -73,7 +73,7 @@ MatrixPolicy<int> testLoopOverMatrix()
   MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix[i].size(); ++j)
+    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
@@ -93,7 +93,7 @@ const MatrixPolicy<int> testLoopOverConstMatrix()
   MatrixPolicy<int> matrix(3, 4, 0);
   for (std::size_t i{}; i < matrix.NumRows(); ++i)
   {
-    for (std::size_t j{}; j < matrix[i].size(); ++j)
+    for (std::size_t j{}; j < matrix.NumColumns(); ++j)
     {
       matrix[i][j] = i * 100 + j;
     }
@@ -159,11 +159,11 @@ MatrixPolicy<double> testConversionFromVector()
 
   EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix.NumColumns(), 3);
-  EXPECT_EQ(matrix[0].size(), 3);
+  EXPECT_EQ(matrix[0].Size(), 3);
   EXPECT_EQ(matrix[0][0], 412.3);
   EXPECT_EQ(matrix[0][1], 32.4);
   EXPECT_EQ(matrix[0][2], 41.3);
-  EXPECT_EQ(matrix[1].size(), 3);
+  EXPECT_EQ(matrix[1].Size(), 3);
   EXPECT_EQ(matrix[1][0], 5.33);
   EXPECT_EQ(matrix[1][1], -0.3);
   EXPECT_EQ(matrix[1][2], 31.2);

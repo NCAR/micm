@@ -82,7 +82,7 @@ namespace micm
     // Specific CUDA device function to do reduction within a warp
     // Use volatile to prevent compiler optimization (caching in registers)
     // No need to synchronize threads in the same warp
-    __device__ void warpReduce(volatile double* sdata, size_t tid)
+    __device__ void WarpReduce(volatile double* sdata, size_t tid)
     {
       if (BLOCK_SIZE >= 64)
         sdata[tid] += sdata[tid + 32];
@@ -190,7 +190,7 @@ namespace micm
         __syncthreads();
       }
       if (l_tid < 32)
-        warpReduce(sdata, l_tid);
+        WarpReduce(sdata, l_tid);
 
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
       if (l_tid == 0)

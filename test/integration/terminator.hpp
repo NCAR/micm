@@ -33,17 +33,17 @@ void TestTerminator(
   micm::Phase gas_phase{ std::vector<micm::Species>{ cl2, cl } };
 
   micm::Process toy_r1 = micm::Process::Create()
-                             .reactants({ cl2 })
-                             .products({ micm::Yield(cl, 2.0) })
-                             .phase(gas_phase)
-                             .rate_constant(micm::UserDefinedRateConstant({ .label_ = "toy_k1" }));
+                             .SetReactants({ cl2 })
+                             .SetProducts({ micm::Yield(cl, 2.0) })
+                             .SetPhase(gas_phase)
+                             .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "toy_k1" }));
 
   constexpr double k2 = 1.0;
   micm::Process toy_r2 = micm::Process::Create()
-                             .reactants({ cl, cl })
-                             .products({ micm::Yield(cl2, 1.0) })
-                             .phase(gas_phase)
-                             .rate_constant(micm::ArrheniusRateConstant({ .A_ = k2 }));
+                             .SetReactants({ cl, cl })
+                             .SetProducts({ micm::Yield(cl2, 1.0) })
+                             .SetPhase(gas_phase)
+                             .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k2 }));
 
   auto solver = create_solver(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ toy_r1, toy_r2 });

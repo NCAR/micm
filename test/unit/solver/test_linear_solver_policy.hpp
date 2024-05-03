@@ -14,14 +14,14 @@ void check_results(
     const std::function<void(const T, const T)> f)
 {
   T result;
-  EXPECT_EQ(A.Size(), b.NumRows());
-  EXPECT_EQ(A.Size(), x.NumRows());
-  for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
+  EXPECT_EQ(A.NumberOfBlocks(), b.NumRows());
+  EXPECT_EQ(A.NumberOfBlocks(), x.NumRows());
+  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A[i_block].size(); ++i)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
     {
       result = 0.0;
-      for (std::size_t j = 0; j < A[i_block].size(); ++j)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
         if (!A.IsZero(i, j))
           result += A[i_block][i][j] * x[i_block][j];
       f(b[i_block][i], result);
@@ -32,12 +32,12 @@ void check_results(
 template<typename T, template<class> class SparseMatrixPolicy>
 void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 {
-  for (std::size_t i_block = 0; i_block < matrix.Size(); ++i_block)
+  for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
     std::cout << "block: " << i_block << std::endl;
-    for (std::size_t i = 0; i < matrix[i_block].size(); ++i)
+    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < matrix[i_block][i].size(); ++j)
+      for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
       {
         if (matrix.IsZero(i, j))
         {
@@ -58,17 +58,17 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
 void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(3)
-                                                                .initial_value(1.0e-30)
-                                                                .with_element(0, 0)
-                                                                .with_element(0, 1)
-                                                                .with_element(0, 2)
-                                                                .with_element(1, 0)
-                                                                .with_element(1, 1)
-                                                                .with_element(1, 2)
-                                                                .with_element(2, 0)
-                                                                .with_element(2, 1)
-                                                                .with_element(2, 2));
+  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::Create(3)
+                                                                .InitialValue(1.0e-30)
+                                                                .WithElement(0, 0)
+                                                                .WithElement(0, 1)
+                                                                .WithElement(0, 2)
+                                                                .WithElement(1, 0)
+                                                                .WithElement(1, 1)
+                                                                .WithElement(1, 2)
+                                                                .WithElement(2, 0)
+                                                                .WithElement(2, 1)
+                                                                .WithElement(2, 2));
   MatrixPolicy<double> b(1, 3, 0.0);
   MatrixPolicy<double> x(1, 3, 100.0);
 
@@ -104,11 +104,11 @@ void testRandomMatrix(
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(10).NumberOfBlocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::Create(10).NumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
 
   SparseMatrixPolicy<double> A(builder);
   MatrixPolicy<double> b(number_of_blocks, 10, 0.0);
@@ -141,9 +141,9 @@ void testDiagonalMatrix(
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(6).NumberOfBlocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy<double>::Create(6).NumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 6; ++i)
-    builder = builder.with_element(i, i);
+    builder = builder.WithElement(i, i);
 
   SparseMatrixPolicy<double> A(builder);
   MatrixPolicy<double> b(number_of_blocks, 6, 0.0);
@@ -176,18 +176,18 @@ void testMarkowitzReordering()
 
   auto reorder_map = micm::DiagonalMarkowitzReorder<MatrixPolicy>(orig);
 
-  auto builder = SparseMatrixPolicy<double>::create(50);
+  auto builder = SparseMatrixPolicy<double>::Create(50);
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
       if (orig[i][j] != 0)
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
   SparseMatrixPolicy<double> orig_jac{ builder };
 
-  builder = SparseMatrixPolicy<double>::create(50);
+  builder = SparseMatrixPolicy<double>::Create(50);
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
       if (orig[reorder_map[i]][reorder_map[j]] != 0)
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
   SparseMatrixPolicy<double> reordered_jac{ builder };
 
   auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(orig_jac);

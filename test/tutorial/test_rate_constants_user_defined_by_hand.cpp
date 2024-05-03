@@ -31,10 +31,10 @@ int main(const int argc, const char* argv[])
   Phase gas_phase{ std::vector<Species>{ a, b, c, d, e, f, g } };
 
   Process r1 = Process::Create()
-                   .reactants({ a })
-                   .products({ Yields(b, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
-                   .phase(gas_phase);
+                   .SetReactants({ a })
+                   .SetProducts({ Yields(b, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
+                   .SetPhase(gas_phase);
 
   // a branched reaction has two output pathways
   // this is represnted internal to micm as two different reactions
@@ -42,30 +42,30 @@ int main(const int argc, const char* argv[])
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
 
   Process r2 = Process::Create()
-                   .reactants({ b })
-                   .products({ Yields(c, 1) })
-                   .rate_constant(BranchedRateConstant(branched_params))
-                   .phase(gas_phase);
+                   .SetReactants({ b })
+                   .SetProducts({ Yields(c, 1) })
+                   .SetRateConstant(BranchedRateConstant(branched_params))
+                   .SetPhase(gas_phase);
 
   branched_params.branch_ = BranchedRateConstantParameters::Branch::Nitrate;
   Process r3 = Process::Create()
-                   .reactants({ b })
-                   .products({ Yields(d, 1) })
-                   .rate_constant(BranchedRateConstant(branched_params))
-                   .phase(gas_phase);
+                   .SetReactants({ b })
+                   .SetProducts({ Yields(d, 1) })
+                   .SetRateConstant(BranchedRateConstant(branched_params))
+                   .SetPhase(gas_phase);
 
   // A surface rate constant also needs to know the effective radius and particle number concentration
   // we will set those later
   Process r4 = Process::Create()
-                   .reactants({ c })
-                   .products({ Yields(e, 1) })
-                   .rate_constant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
-                   .phase(gas_phase);
+                   .SetReactants({ c })
+                   .SetProducts({ Yields(e, 1) })
+                   .SetRateConstant(SurfaceRateConstant({ .label_ = "C", .species_ = c, .reaction_probability_ = 0.90 }))
+                   .SetPhase(gas_phase);
 
   Process r5 = Process::Create()
-                   .reactants({ d })
-                   .products({ Yields(f, 2) })
-                   .rate_constant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
+                   .SetReactants({ d })
+                   .SetProducts({ Yields(f, 2) })
+                   .SetRateConstant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
                                                                           .k0_B_ = 2.3,
                                                                           .k0_C_ = 302.3,
                                                                           .kinf_A_ = 2.6,
@@ -73,14 +73,14 @@ int main(const int argc, const char* argv[])
                                                                           .kinf_C_ = 402.1,
                                                                           .Fc_ = 0.9,
                                                                           .N_ = 1.2 }))
-                   .phase(gas_phase);
+                   .SetPhase(gas_phase);
 
   // to have a stoichiemetric coefficient of more than one for reactants,
   // list the reactant that many times
   Process r6 = Process::Create()
-                   .reactants({ e, e })
-                   .products({ Yields(g, 1) })
-                   .rate_constant(TroeRateConstant({ .k0_A_ = 1.2e4,
+                   .SetReactants({ e, e })
+                   .SetProducts({ Yields(g, 1) })
+                   .SetRateConstant(TroeRateConstant({ .k0_A_ = 1.2e4,
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
                                                      .kinf_A_ = 136.0,
@@ -88,34 +88,34 @@ int main(const int argc, const char* argv[])
                                                      .kinf_C_ = 24.0,
                                                      .Fc_ = 0.9,
                                                      .N_ = 0.8 }))
-                   .phase(gas_phase);
+                   .SetPhase(gas_phase);
 
   Process r7 = Process::Create()
-                   .reactants({ f })
-                   .products({ Yields(g, 1) })
-                   .rate_constant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
-                   .phase(gas_phase);
+                   .SetReactants({ f })
+                   .SetProducts({ Yields(g, 1) })
+                   .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
+                   .SetPhase(gas_phase);
 
   Process r8 = Process::Create()
-                   .reactants({ c })
-                   .products({ Yields(g, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
-                   .phase(gas_phase);
+                   .SetReactants({ c })
+                   .SetProducts({ Yields(g, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "my photolysis rate" }))
+                   .SetPhase(gas_phase);
 
   Process r9 = Process::Create()
-                   .products({ Yields(a, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
-                   .phase(gas_phase);
+                   .SetProducts({ Yields(a, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "my emission rate" }))
+                   .SetPhase(gas_phase);
 
   Process r10 = Process::Create()
-                    .reactants({ b })
-                    .rate_constant(UserDefinedRateConstant({ .label_ = "my loss rate" }))
-                    .phase(gas_phase);
+                    .SetReactants({ b })
+                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "my loss rate" }))
+                    .SetPhase(gas_phase);
 
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K

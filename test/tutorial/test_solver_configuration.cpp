@@ -91,39 +91,39 @@ int main()
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
   Process r1 = Process::Create()
-                   .reactants({ a })
-                   .products({ Yields(b, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .phase(gas_phase);
+                   .SetReactants({ a })
+                   .SetProducts({ Yields(b, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetPhase(gas_phase);
 
   Process r2 = Process::Create()
-                   .reactants({ b, b })
-                   .products({ Yields(b, 1), Yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .phase(gas_phase);
+                   .SetReactants({ b, b })
+                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetPhase(gas_phase);
 
   Process r3 = Process::Create()
-                   .reactants({ b, c })
-                   .products({ Yields(a, 1), Yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .phase(gas_phase);
+                   .SetReactants({ b, c })
+                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetPhase(gas_phase);
 
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<> two_stage{ system, reactions, RosenbrockSolverParameters::two_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> two_stage{ system, reactions, RosenbrockSolverParameters::TwoStageRosenbrockParameters() };
 
-  RosenbrockSolver<> three_stage{ system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> three_stage{ system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
 
-  RosenbrockSolver<> four_stage{ system, reactions, RosenbrockSolverParameters::four_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> four_stage{ system, reactions, RosenbrockSolverParameters::FourStageRosenbrockParameters() };
 
   RosenbrockSolver<> four_stage_da{ system,
                                     reactions,
-                                    RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters() };
+                                    RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters() };
 
   RosenbrockSolver<> six_stage_da{ system,
                                    reactions,
-                                   RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters() };
+                                   RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters() };
 
   std::cout << "Two stages: " << std::endl;
   test_solver_type(two_stage);

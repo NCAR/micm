@@ -65,41 +65,41 @@ namespace micm
     bool ignore_unused_species_{ false };  // Allow unused species to be included in state and solve
 
     // Print RosenbrockSolverParameters to console
-    void print() const;
+    void Print() const;
 
     /// @brief an L-stable method, 2 stages, order 2
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
-    static RosenbrockSolverParameters two_stage_rosenbrock_parameters(
+    static RosenbrockSolverParameters TwoStageRosenbrockParameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief an L-stable method, 3 stages, order 3, 2 function evaluations
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
-    static RosenbrockSolverParameters three_stage_rosenbrock_parameters(
+    static RosenbrockSolverParameters ThreeStageRosenbrockParameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief L-stable rosenbrock method of order 4, with 4 stages
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
-    static RosenbrockSolverParameters four_stage_rosenbrock_parameters(
+    static RosenbrockSolverParameters FourStageRosenbrockParameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief A stiffly-stable method, 4 stages, order 3
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
-    static RosenbrockSolverParameters four_stage_differential_algebraic_rosenbrock_parameters(
+    static RosenbrockSolverParameters FourStageDifferentialAlgebraicRosenbrockParameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
-    static RosenbrockSolverParameters six_stage_differential_algebraic_rosenbrock_parameters(
+    static RosenbrockSolverParameters SixStageDifferentialAlgebraicRosenbrockParameters(
         size_t number_of_grid_cells = 1,
         bool reorder_state = true);
 
@@ -107,7 +107,7 @@ namespace micm
     RosenbrockSolverParameters() = default;
   };
 
-  inline void RosenbrockSolverParameters::print() const
+  inline void RosenbrockSolverParameters::Print() const
   {
     std::cout << "stages_: " << stages_ << std::endl;
     std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
@@ -159,7 +159,7 @@ namespace micm
     std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
   }
 
-  inline RosenbrockSolverParameters RosenbrockSolverParameters::two_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::TwoStageRosenbrockParameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -203,7 +203,7 @@ namespace micm
     return parameters;
   }
 
-  inline RosenbrockSolverParameters RosenbrockSolverParameters::three_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::ThreeStageRosenbrockParameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -259,7 +259,7 @@ namespace micm
     return parameters;
   }
 
-  inline RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::FourStageRosenbrockParameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -328,7 +328,7 @@ namespace micm
     return parameters;
   }
 
-  inline RosenbrockSolverParameters RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {
@@ -383,7 +383,7 @@ namespace micm
     return parameters;
   }
 
-  inline RosenbrockSolverParameters RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(
+  inline RosenbrockSolverParameters RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(
       size_t number_of_grid_cells,
       bool reorder_state)
   {

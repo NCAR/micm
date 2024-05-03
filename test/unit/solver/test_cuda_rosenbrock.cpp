@@ -126,24 +126,24 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
   micm::Process r1 = micm::Process::Create()
-                         .reactants({ foo, baz })
-                         .products({ Yields(bar, 1), Yields(quuz, 2.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
   micm::Process r2 = micm::Process::Create()
-                         .reactants({ bar })
-                         .products({ Yields(foo, 1), Yields(quz, 1.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
+                         .SetReactants({ bar })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::Create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return RosenbrockPolicy(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
 }
 
 template<

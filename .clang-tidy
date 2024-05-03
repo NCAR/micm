@@ -1,7 +1,29 @@
-
 ---
-Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm-*,-llvmlibc-*,-bugprone-easily-swappable-parameters'
-CheckOptions: [{ key: misc-non-private-member-variables-in-classes, value: IgnoreClassesWithAllMemberVariablesBeingPublic }]
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle: none
+Checks: >
+  -*,
+  readability-*,
+  -readability-named-parameter,
+  -readability-identifier-length,
+  -readability-convert-member-functions-to-static,
+  -readability-braces-around-statements,
+  -readability-math-missing-parentheses,
+  -readability-avoid-const-params-in-decls,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-make-member-function-const,
+  -readability-implicit-bool-conversion,
+  -readability-simplify-boolean-expr,
+  -readability-magic-numbers,-warnings-as-errors,
+  -readability-non-const-parameter,
+  -readability-isolate-declaration, 
+
+WarningsAsErrors: '*'
+
+CheckOptions:
+  - key:             readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.FunctionIgnoredRegexp
+    value:           'name|message|make_error_code'
+  - key:             readability-implicit-bool-conversion.AllowIntegerConditions
+    value:           1
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           1

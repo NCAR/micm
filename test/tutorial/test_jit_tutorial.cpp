@@ -77,24 +77,24 @@ int main(const int argc, const char* argv[])
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
   Process r1 = Process::Create()
-                   .reactants({ foo })
-                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .phase(gas_phase);
+                   .SetReactants({ foo })
+                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetPhase(gas_phase);
 
   Process r2 = Process::Create()
-                   .reactants({ foo, bar })
-                   .products({ Yield(baz, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .phase(gas_phase);
+                   .SetReactants({ foo, bar })
+                   .SetProducts({ Yield(baz, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetPhase(gas_phase);
 
   std::vector<Process> reactions{ r1, r2 };
 
-  auto solver_parameters = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(n_grid_cells);
+  auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters(n_grid_cells);
 
   RosenbrockSolver<GroupVectorMatrix, GroupSparseVectorMatrix> solver{ chemical_system, reactions, solver_parameters };
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
 
   auto start = std::chrono::high_resolution_clock::now();
   JitRosenbrockSolver<

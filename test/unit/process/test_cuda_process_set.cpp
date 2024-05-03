@@ -69,7 +69,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     {
       products.push_back(Yields(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -164,7 +164,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
     {
       products.push_back(Yields(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -184,13 +184,13 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
 
-  auto cpu_builder = CPUSparseMatrixPolicy<double>::create(n_species).NumberOfBlocks(n_cells).initial_value(100.0);
+  auto cpu_builder = CPUSparseMatrixPolicy<double>::Create(n_species).NumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    cpu_builder = cpu_builder.with_element(elem.first, elem.second);
+    cpu_builder = cpu_builder.WithElement(elem.first, elem.second);
   CPUSparseMatrixPolicy<double> cpu_jacobian{ cpu_builder };
-  auto gpu_builder = GPUSparseMatrixPolicy<double>::create(n_species).NumberOfBlocks(n_cells).initial_value(100.0);
+  auto gpu_builder = GPUSparseMatrixPolicy<double>::Create(n_species).NumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    gpu_builder = gpu_builder.with_element(elem.first, elem.second);
+    gpu_builder = gpu_builder.WithElement(elem.first, elem.second);
   GPUSparseMatrixPolicy<double> gpu_jacobian{ gpu_builder };
   gpu_jacobian.CopyToDevice();
 

@@ -91,7 +91,7 @@ namespace micm
     JitFunction() = delete;
 
     friend class JitFunctionBuilder;
-    static JitFunctionBuilder create(std::shared_ptr<JitCompiler> compiler);
+    static JitFunctionBuilder Create(std::shared_ptr<JitCompiler> compiler);
     JitFunction(JitFunctionBuilder& function_builder);
 
     /// @brief Generates the function
@@ -147,12 +147,12 @@ namespace micm
    public:
     JitFunctionBuilder() = delete;
     JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
-    JitFunctionBuilder& name(std::string name);
-    JitFunctionBuilder& arguments(const std::vector<std::pair<std::string, JitType>>& arguments);
-    JitFunctionBuilder& return_type(JitType type);
+    JitFunctionBuilder& Name(const std::string& name);
+    JitFunctionBuilder& Arguments(const std::vector<std::pair<std::string, JitType>>& arguments);
+    JitFunctionBuilder& ReturnType(JitType type);
   };
 
-  inline JitFunctionBuilder JitFunction::create(std::shared_ptr<JitCompiler> compiler)
+  inline JitFunctionBuilder JitFunction::Create(std::shared_ptr<JitCompiler> compiler)
   {
     return JitFunctionBuilder{ compiler };
   }
@@ -297,19 +297,19 @@ namespace micm
   inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
       : compiler_(compiler){};
 
-  inline JitFunctionBuilder& JitFunctionBuilder::name(std::string name)
+  inline JitFunctionBuilder& JitFunctionBuilder::Name(const std::string& name)
   {
     name_ = name;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::arguments(const std::vector<std::pair<std::string, JitType>>& arguments)
+  inline JitFunctionBuilder& JitFunctionBuilder::Arguments(const std::vector<std::pair<std::string, JitType>>& arguments)
   {
     arguments_ = arguments;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::return_type(JitType type)
+  inline JitFunctionBuilder& JitFunctionBuilder::ReturnType(JitType type)
   {
     return_type_ = type;
     return *this;

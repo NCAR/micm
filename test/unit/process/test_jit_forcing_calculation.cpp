@@ -38,18 +38,18 @@ TEST(JitProcessSet, ForcingFunction)
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "A", "B", "C", "D", "E", "F" } });
 
-  micm::Process r1 = micm::Process::Create().reactants({ a, b }).products({ micm::Yield{ d, 3.2 } }).phase(gas_phase);
+  micm::Process r1 = micm::Process::Create().SetReactants({ a, b }).SetProducts({ micm::Yield{ d, 3.2 } }).SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
-                         .reactants({ e, c })
-                         .products({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
-                         .phase(gas_phase);
+                         .SetReactants({ e, c })
+                         .SetProducts({ micm::Yield{ a, 1.0 }, micm::Yield{ f, 2.0 } })
+                         .SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::Create().reactants({ c, b }).products({ micm::Yield{ a, 1.0 } }).phase(gas_phase);
+  micm::Process r3 = micm::Process::Create().SetReactants({ c, b }).SetProducts({ micm::Yield{ a, 1.0 } }).SetPhase(gas_phase);
 
   std::vector<micm::Process> processes{ r1, r2, r3 };
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");

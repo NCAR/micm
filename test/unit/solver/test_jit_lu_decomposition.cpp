@@ -17,7 +17,7 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(JitLuDecomposition, DenseMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -43,7 +43,7 @@ TEST(JitLuDecomposition, DenseMatrixVectorOrdering)
 
 TEST(JitLuDecomposition, SingularMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -69,7 +69,7 @@ TEST(JitLuDecomposition, SingularMatrixVectorOrdering)
 
 TEST(JitLuDecomposition, RandomMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -99,7 +99,7 @@ TEST(JitLuDecomposition, RandomMatrixVectorOrdering)
 
 TEST(JitLuDecomposition, DiagonalMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");

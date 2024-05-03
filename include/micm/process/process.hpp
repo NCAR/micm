@@ -142,10 +142,10 @@ namespace micm
     {
       return Process(*this);
     }
-    ProcessBuilder& reactants(const std::vector<Species>& reactants);
-    ProcessBuilder& products(const std::vector<Yield>& products);
-    ProcessBuilder& rate_constant(const RateConstant& rate_constant);
-    ProcessBuilder& phase(const Phase& phase);
+    ProcessBuilder& SetReactants(const std::vector<Species>& reactants);
+    ProcessBuilder& SetProducts(const std::vector<Yield>& products);
+    ProcessBuilder& SetRateConstant(const RateConstant& rate_constant);
+    ProcessBuilder& SetPhase(const Phase& phase);
   };
 
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
@@ -230,25 +230,25 @@ namespace micm
   {
   }
 
-  inline ProcessBuilder& ProcessBuilder::reactants(const std::vector<Species>& reactants)
+  inline ProcessBuilder& ProcessBuilder::SetReactants(const std::vector<Species>& reactants)
   {
     reactants_ = reactants;
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::products(const std::vector<Yield>& products)
+  inline ProcessBuilder& ProcessBuilder::SetProducts(const std::vector<Yield>& products)
   {
     products_ = products;
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::rate_constant(const RateConstant& rate_constant)
+  inline ProcessBuilder& ProcessBuilder::SetRateConstant(const RateConstant& rate_constant)
   {
     rate_constant_ = rate_constant.Clone();
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::phase(const Phase& phase)
+  inline ProcessBuilder& ProcessBuilder::SetPhase(const Phase& phase)
   {
     phase_ = phase;
     return *this;

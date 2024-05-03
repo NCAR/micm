@@ -78,7 +78,7 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+  auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.relative_tolerance_ = 0.1;
   RosenbrockSolver<> solver{ chemical_system, reactions, params };
 

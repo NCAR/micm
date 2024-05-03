@@ -5,7 +5,7 @@
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::create(3);
+  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -93,7 +93,7 @@ MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::create(3);
+  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
@@ -157,12 +157,12 @@ MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
 {
-  auto builder = MatrixPolicy<int, OrderingPolicy>::create(4)
-                     .with_element(0, 1)
-                     .with_element(3, 2)
-                     .with_element(0, 1)
-                     .with_element(2, 3)
-                     .with_element(2, 1);
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(3, 2)
+                     .WithElement(0, 1)
+                     .WithElement(2, 3)
+                     .WithElement(2, 1);
   // 0 X 0 0
   // 0 0 0 0
   // 0 X 0 X
@@ -276,12 +276,12 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
 {
-  auto builder = MatrixPolicy<int, OrderingPolicy>::create(4)
-                     .with_element(0, 1)
-                     .with_element(3, 2)
-                     .with_element(0, 1)
-                     .with_element(2, 3)
-                     .with_element(2, 1);
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(3, 2)
+                     .WithElement(0, 1)
+                     .WithElement(2, 3)
+                     .WithElement(2, 1);
   // 0 X 0 0
   // 0 0 0 0
   // 0 X 0 X
@@ -357,13 +357,13 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
 {
-  auto builder = MatrixPolicy<int, OrderingPolicy>::create(4)
-                     .with_element(0, 1)
-                     .with_element(3, 2)
-                     .with_element(0, 1)
-                     .with_element(2, 3)
-                     .with_element(2, 1)
-                     .initial_value(24)
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(3, 2)
+                     .WithElement(0, 1)
+                     .WithElement(2, 3)
+                     .WithElement(2, 1)
+                     .InitialValue(24)
                      .NumberOfBlocks(3);
   // 0 X 0 0
   // 0 0 0 0
@@ -462,7 +462,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
 template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testSetScalar()
 {
-  auto builder = MatrixPolicy<double, OrderingPolicy>::create(3);
+  auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
 
   MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 

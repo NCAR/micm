@@ -486,11 +486,11 @@ TEST(CudaDenseMatrix, ConversionFromVector)
 
   EXPECT_EQ(matrix.NumRows(), 2);
   EXPECT_EQ(matrix.NumColumns(), 3);
-  EXPECT_EQ(matrix[0].size(), 3);
+  EXPECT_EQ(matrix[0].Size(), 3);
   EXPECT_EQ(matrix[0][0], 412.3);
   EXPECT_EQ(matrix[0][1], 32.4);
   EXPECT_EQ(matrix[0][2], 41.3);
-  EXPECT_EQ(matrix[1].size(), 3);
+  EXPECT_EQ(matrix[1].Size(), 3);
   EXPECT_EQ(matrix[1][0], 5.33);
   EXPECT_EQ(matrix[1][1], -0.3);
   EXPECT_EQ(matrix[1][2], 31.2);

@@ -91,7 +91,7 @@ namespace micm
         return vec;
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return y_dim_;
       }
@@ -130,7 +130,7 @@ namespace micm
         return vec;
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return y_dim_;
       }

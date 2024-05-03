@@ -98,51 +98,51 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   micm::Phase gas_phase{ std::vector<micm::Species>{ o, o1d, o2, o3, m, ar, n2, h2o, co2 } };
 
   micm::Process r1 = micm::Process::Create()
-                         .reactants({ o1d, n2 })
-                         .products({ Yields(o, 1), Yields(n2, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
-                         .phase(gas_phase);
+                         .SetReactants({ o1d, n2 })
+                         .SetProducts({ Yields(o, 1), Yields(n2, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                         .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
-                         .reactants({ o1d, o2 })
-                         .products({ Yields(o, 1), Yields(o2, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant(
+                         .SetReactants({ o1d, o2 })
+                         .SetProducts({ Yields(o, 1), Yields(o2, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
-                         .phase(gas_phase);
+                         .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create()
-                         .reactants({ o, o3 })
-                         .products({ Yields(o2, 2) })
-                         .rate_constant(micm::ArrheniusRateConstant(
+                         .SetReactants({ o, o3 })
+                         .SetProducts({ Yields(o2, 2) })
+                         .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 8e-12, .B_ = 0, .C_ = -2060 }))
-                         .phase(gas_phase);
+                         .SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()
-                         .reactants({ o, o2, m })
-                         .products({ Yields(o3, 1), Yields(m, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant(
+                         .SetReactants({ o, o2, m })
+                         .SetProducts({ Yields(o3, 1), Yields(m, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 6.0e-34, .B_ = 0, .C_ = 2.4 }))
-                         .phase(gas_phase);
+                         .SetPhase(gas_phase);
 
   micm::Process photo_1 = micm::Process::Create()
-                              .reactants({ o2 })
-                              .products({ Yields(o, 2) })
-                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
-                              .phase(gas_phase);
+                              .SetReactants({ o2 })
+                              .SetProducts({ Yields(o, 2) })
+                              .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO2" }))
+                              .SetPhase(gas_phase);
 
   micm::Process photo_2 = micm::Process::Create()
-                              .reactants({ o3 })
-                              .products({ Yields(o1d, 1), Yields(o2, 1) })
-                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
-                              .phase(gas_phase);
+                              .SetReactants({ o3 })
+                              .SetProducts({ Yields(o1d, 1), Yields(o2, 1) })
+                              .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3a" }))
+                              .SetPhase(gas_phase);
 
   micm::Process photo_3 = micm::Process::Create()
-                              .reactants({ o3 })
-                              .products({ Yields(o, 1), Yields(o2, 1) })
-                              .rate_constant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
-                              .phase(gas_phase);
+                              .SetReactants({ o3 })
+                              .SetProducts({ Yields(o, 1), Yields(o2, 1) })
+                              .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "jO3b" }))
+                              .SetPhase(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   options.ignore_unused_species_ = true;
 
   micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{

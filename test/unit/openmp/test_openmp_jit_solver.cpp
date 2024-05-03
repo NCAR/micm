@@ -35,13 +35,13 @@ TEST(OpenMP, JITOneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   JitRosenbrockSolver<
       Group1VectorMatrix,
       Group1SparseVectorMatrix,
       JitLinearSolver<1, Group1SparseVectorMatrix>,
       micm::JitProcessSet<1>>
-      solver(jit.get(), chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters());
+      solver(jit.get(), chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 #pragma omp parallel num_threads(n_threads)
   {

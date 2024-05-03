@@ -35,12 +35,12 @@ void testProcessSet(const std::function<ProcessSetPolicy(
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
   micm::Process r1 =
-      micm::Process::Create().reactants({ foo, baz }).products({ Yields(bar, 1), Yields(quuz, 2.4) }).phase(gas_phase);
+      micm::Process::Create().SetReactants({ foo, baz }).SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) }).SetPhase(gas_phase);
 
   micm::Process r2 =
-      micm::Process::Create().reactants({ bar, qux }).products({ Yields(foo, 1), Yields(quz, 1.4) }).phase(gas_phase);
+      micm::Process::Create().SetReactants({ bar, qux }).SetProducts({ Yields(foo, 1), Yields(quz, 1.4) }).SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::Create().reactants({ quz }).products({}).phase(gas_phase);
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
   auto used_species = ProcessSetPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
 
@@ -56,7 +56,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   ProcessSetPolicy set = create_set(std::vector<micm::Process>{ r1, r2, r3 }, state);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
-  EXPECT_EQ(state.variables_[0].size(), 6);
+  EXPECT_EQ(state.variables_.NumColumns(), 6);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
   MatrixPolicy<double> rate_constants{ 2, 3 };
@@ -99,9 +99,9 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = SparseMatrixPolicy<double>::create(5).NumberOfBlocks(2).initial_value(100.0);
+  auto builder = SparseMatrixPolicy<double>::Create(5).NumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    builder = builder.with_element(elem.first, elem.second);
+    builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   set.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
@@ -171,9 +171,9 @@ void testRandomSystem(
     std::vector<yields> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::Process(micm::Process::Create().reactants(reactants).products(products).phase(gas_phase));
+    auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
     processes.push_back(proc);
   }
   ProcessSetPolicy set = create_set(processes, state);

@@ -23,7 +23,7 @@ using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(JitProcessSet, VectorMatrix)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -38,7 +38,7 @@ TEST(JitProcessSet, VectorMatrix)
 
 TEST(RandomJitProcessSet, VectorMatrix)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");

@@ -20,9 +20,9 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   micm::SurfaceRateConstant rc2({ .label_ = "foo_surf", .species_ = foo });
   micm::UserDefinedRateConstant rc3({ .label_ = "bar_user" });
 
-  micm::Process r1 = micm::Process::Create().rate_constant(rc1).reactants({ foo, bar });
-  micm::Process r2 = micm::Process::Create().rate_constant(rc2);
-  micm::Process r3 = micm::Process::Create().rate_constant(rc3);
+  micm::Process r1 = micm::Process::Create().SetRateConstant(rc1).SetReactants({ foo, bar });
+  micm::Process r2 = micm::Process::Create().SetRateConstant(rc2);
+  micm::Process r3 = micm::Process::Create().SetRateConstant(rc3);
   std::vector<micm::Process> processes = { r1, r2, r3 };
 
   std::vector<std::string> param_labels{};
@@ -100,9 +100,9 @@ TEST(Process, SurfaceRateConstantOnlyHasOneReactant)
 
   micm::Phase gas_phase({ c, e });
   EXPECT_ANY_THROW(micm::Process r = micm::Process::Create()
-                                         .reactants({ c, c })
-                                         .products({ Yields(e, 1) })
-                                         .rate_constant(micm::SurfaceRateConstant(
+                                         .SetReactants({ c, c })
+                                         .SetProducts({ Yields(e, 1) })
+                                         .SetRateConstant(micm::SurfaceRateConstant(
                                              { .label_ = "c", .species_ = c, .reaction_probability_ = 0.90 }))
-                                         .phase(gas_phase););
+                                         .SetPhase(gas_phase););
 }

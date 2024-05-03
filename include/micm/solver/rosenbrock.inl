@@ -84,7 +84,7 @@ namespace micm
       class ProcessSetPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::RosenbrockSolver()
       : processes_(),
-        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        parameters_(RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
         state_parameters_(),
         process_set_(),
         linear_solver_()
@@ -504,7 +504,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     const std::size_t n_cells = jacobian.GroupVectorSize();
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
+    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)

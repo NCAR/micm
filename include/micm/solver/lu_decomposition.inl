@@ -257,14 +257,14 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    std::size_t A_Size = A.Size();
+    std::size_t A_BlockSize = A.NumberOfBlocks();
     std::size_t A_GroupVectorSize = A.GroupVectorSize();
     std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
     std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
     std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_Size); ++i_group)
+    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
     {
       auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
       auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
@@ -279,7 +279,7 @@ namespace micm
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
       is_singular = false;
-      const std::size_t n_cells = std::min(A_GroupVectorSize, A_Size - i_group * A_GroupVectorSize);
+      const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix

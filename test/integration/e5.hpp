@@ -22,19 +22,19 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     this->processes_ = processes;
     this->parameters_ = parameters;
 
-    auto builder = SparseMatrixPolicy<double>::create(4).NumberOfBlocks(1).initial_value(0.0);
+    auto builder = SparseMatrixPolicy<double>::Create(4).NumberOfBlocks(1).InitialValue(0.0);
     for (int i = 0; i < 4; ++i)
     {
       for (int j = 0; j < 4; ++j)
       {
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
         nonzero_jacobian_elements_.insert(std::make_pair(i, j));
       }
     }
     SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
 
     std::vector<std::size_t> jacobian_diagonal_elements;
-    for (std::size_t i = 0; i < jacobian[0].size(); ++i)
+    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     std::vector<std::string> param_labels{};
