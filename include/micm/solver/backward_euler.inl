@@ -100,7 +100,6 @@ namespace micm
         for(auto& jac : state.jacobian_.AsVector()) {
           jac *= -1;
         }
-
         for (std::size_t i_block = 0; i_block < state.jacobian_.Size(); ++i_block)
         {
           auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
@@ -158,6 +157,7 @@ namespace micm
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
         for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
+          // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           if (std::abs(*temp_iter) > small) {
             if (std::abs(*temp_iter) > tol * std::abs(*yn1_iter)) {
               converged = false;
