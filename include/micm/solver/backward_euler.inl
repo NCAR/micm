@@ -149,9 +149,9 @@ namespace micm
         temp_iter = temp.begin();
         yn1_iter = Yn1.begin();
 
-        converged = true;
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
+        converged = false;
         for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           if (std::abs(*temp_iter) > small) {
@@ -161,7 +161,9 @@ namespace micm
               std::cout << "failed to converge within the newton iteration\n";
               break;
             }
+            else { converged = true; }
           }
+          else { converged = true; }
         }
         // correct this check
       } while(!converged && iterations < max_iter);
