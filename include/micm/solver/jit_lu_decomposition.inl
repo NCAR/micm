@@ -34,7 +34,7 @@ namespace micm
         compiler_(compiler)
   {
     decompose_function_ = NULL;
-    if (matrix.Size() > L)
+    if (matrix.NumberOfBlocks() > L)
     {
       std::string msg =
           "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, "
@@ -59,12 +59,12 @@ namespace micm
   void JitLuDecomposition<L>::GenerateDecomposeFunction()
   {
     std::string function_name = "lu_decompose_" + GenerateRandomString();
-    JitFunction func = JitFunction::create(compiler_)
-                           .name(function_name)
-                           .arguments({ { "A matrix", JitType::DoublePtr },
+    JitFunction func = JitFunction::Create(compiler_)
+                           .SetName(function_name)
+                           .SetArguments({ { "A matrix", JitType::DoublePtr },
                                         { "lower matrix", JitType::DoublePtr },
                                         { "upper matrix", JitType::DoublePtr } })
-                           .return_type(JitType::Void);
+                           .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
     auto do_aik = do_aik_.begin();

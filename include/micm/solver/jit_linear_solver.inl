@@ -40,7 +40,7 @@ namespace micm
         compiler_(compiler)
   {
     solve_function_ = NULL;
-    if (matrix.Size() != L || matrix.GroupVectorSize() != L)
+    if (matrix.NumberOfBlocks() != L || matrix.GroupVectorSize() != L)
     {
       std::string msg =
           "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, "
@@ -96,13 +96,13 @@ namespace micm
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::GenerateSolveFunction()
   {
     std::string function_name = "linear_solve_" + GenerateRandomString();
-    JitFunction func = JitFunction::create(compiler_)
-                           .name(function_name)
-                           .arguments({ { "b", JitType::DoublePtr },
-                                        { "x", JitType::DoublePtr },
-                                        { "L", JitType::DoublePtr },
-                                        { "U", JitType::DoublePtr } })
-                           .return_type(JitType::Void);
+    JitFunction func = JitFunction::Create(compiler_)
+                           .SetName(function_name)
+                           .SetArguments({ { "b", JitType::DoublePtr },
+                                           { "x", JitType::DoublePtr },
+                                           { "L", JitType::DoublePtr },
+                                           { "U", JitType::DoublePtr } })
+                           .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     auto Lij_yj = LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Lij_yj_.begin();
     auto Uij_xj = LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Uij_xj_.begin();

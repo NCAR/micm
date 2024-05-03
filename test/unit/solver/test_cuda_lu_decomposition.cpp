@@ -20,16 +20,16 @@ void check_results(
     const SparseMatrixPolicy<T>& U,
     const std::function<void(const T, const T)> f)
 {
-  EXPECT_EQ(A.Size(), L.Size());
-  EXPECT_EQ(A.Size(), U.Size());
-  for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
+  EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
+  EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
+  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A[i_block].size(); ++i)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A[i_block].size(); ++j)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
       {
         T result{};
-        for (std::size_t k = 0; k < A[i_block].size(); ++k)
+        for (std::size_t k = 0; k < A.NumRows(); ++k)
         {
           if (!(L.IsZero(i, k) || U.IsZero(k, j)))
           {

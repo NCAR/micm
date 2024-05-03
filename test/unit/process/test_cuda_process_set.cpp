@@ -15,7 +15,6 @@
 #include <random>
 #include <vector>
 
-using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
@@ -64,10 +63,10 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }
@@ -159,10 +158,10 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(Yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
     processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }

@@ -87,8 +87,8 @@ namespace micm
       denseMatrix.b_size_ = b.AsVector().size();
       denseMatrix.x_size_ = x.AsVector().size();
       denseMatrix.n_grids_ = b.NumRows();  // number of grids
-      denseMatrix.b_column_counts_ = b[0].size();
-      denseMatrix.x_column_counts_ = x[0].size();
+      denseMatrix.b_column_counts_ = b.NumColumns();
+      denseMatrix.x_column_counts_ = x.NumColumns();
 
       /// Call the "SolveKernelDriver" function that invokes the
       ///   CUDA kernel to perform the "solve" function on the device

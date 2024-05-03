@@ -147,9 +147,9 @@ namespace micm
    public:
     JitFunctionBuilder() = delete;
     JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
-    JitFunctionBuilder& Name(const std::string& name);
-    JitFunctionBuilder& Arguments(const std::vector<std::pair<std::string, JitType>>& arguments);
-    JitFunctionBuilder& ReturnType(JitType type);
+    JitFunctionBuilder& SetName(const std::string& name);
+    JitFunctionBuilder& SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments);
+    JitFunctionBuilder& SetReturnType(JitType type);
   };
 
   inline JitFunctionBuilder JitFunction::Create(std::shared_ptr<JitCompiler> compiler)
@@ -297,19 +297,19 @@ namespace micm
   inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
       : compiler_(compiler){};
 
-  inline JitFunctionBuilder& JitFunctionBuilder::Name(const std::string& name)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {
     name_ = name;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::Arguments(const std::vector<std::pair<std::string, JitType>>& arguments)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments)
   {
     arguments_ = arguments;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::ReturnType(JitType type)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetReturnType(JitType type)
   {
     return_type_ = type;
     return *this;

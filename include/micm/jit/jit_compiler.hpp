@@ -124,7 +124,7 @@ namespace micm
         execution_session_->reportError(std::move(Err));
     }
 
-    static llvm::Expected<std::shared_ptr<JitCompiler>> create()
+    static llvm::Expected<std::shared_ptr<JitCompiler>> Create()
     {
       llvm::InitializeNativeTarget();
       llvm::InitializeNativeTargetAsmPrinter();
