@@ -39,11 +39,11 @@ namespace micm
         MatrixPolicy<double>& forcing) const;
 
     template<class MatrixPolicy, class SparseMatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+    requires VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>
     void SubtractJacobianTerms(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& state_variables,
-        SparseMatrixPolicy<double>& jacobian) const;
+        const MatrixPolicy& rate_constants,
+        const MatrixPolicy& state_variables,
+        SparseMatrixPolicy& jacobian) const;
   };
 
   inline CudaProcessSet::CudaProcessSet(
@@ -102,11 +102,11 @@ namespace micm
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+  requires VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>
   inline void CudaProcessSet::SubtractJacobianTerms(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& state_variables,
-      SparseMatrixPolicy<double>& jacobian) const
+      const MatrixPolicy& rate_constants,
+      const MatrixPolicy& state_variables,
+      SparseMatrixPolicy& jacobian) const
   {
     auto jacobian_param =
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
