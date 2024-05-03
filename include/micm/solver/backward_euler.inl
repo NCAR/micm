@@ -70,7 +70,7 @@ namespace micm
     auto forcing = state.variables_;
     auto residual = state.variables_;
     bool singular = false;
-    std::size_t max_iter = 15;
+    std::size_t max_iter = 11;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
     const std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
