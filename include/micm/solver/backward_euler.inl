@@ -58,9 +58,9 @@ namespace micm
     // We will also use the same logic used by cam-chem to determine the time step
     // That scheme is this: 
     // Start with H = time_step
-    // if that fails, try H = H/2
-    // if that fails, try H = H/10
-    // if that fails, return whatever the current integration with the current H is
+    // if that fails, try H = H/2 several time
+    // if that fails, try H = H/10 once
+    // if that fails, accept the current integration and move on. Continue on with the current H until the end of the time step
 
     double H = time_step;
     double t = 0.0;
@@ -70,11 +70,9 @@ namespace micm
     auto forcing = state.variables_;
     auto residual = state.variables_;
     bool singular = false;
-    std::size_t max_iter = 11;
+    std::size_t max_iter = 15;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
-    std::size_t cut_in_half_limit = 4;
-    std::size_t cut_in_tenth_limit = 1;
     const std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
 
     auto Yn = state.variables_;
@@ -83,17 +81,24 @@ namespace micm
     Process::UpdateState(processes, state);
 
     while(t < time_step) {
-      bool converged = true;
+      // std::cout << "H: " << H << " t: " << t << std::endl;
+      bool converged = false;
       std::size_t iterations = 0;
 
+      auto original_Yn = Yn;
+      Yn1 = Yn;
+
       do {
+        // the first time Yn1 is equal to Yn
+        // after the first iteration Yn1 is updated to the new solution
+        // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-        process_set.AddForcingTerms(state.rate_constants_, Yn, forcing);
+        process_set.AddForcingTerms(state.rate_constants_, Yn1, forcing);
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
-        process_set.SubtractJacobianTerms(state.rate_constants_, Yn, state.jacobian_);
+        process_set.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
@@ -129,25 +134,16 @@ namespace micm
 
         // solution_blk in camchem
         // Yn1 = Yn1 + temp;
-        auto temp_iter = temp.begin();
-        yn1_iter = Yn1.begin();
-
-        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
-          *yn1_iter += *temp_iter;
-        }
-
         // always make sure the solution is positive regardless of which iteration we are on
         // remove negatives, accept this solution and continue
+        auto temp_iter = temp.begin();
         yn1_iter = Yn1.begin();
-        yn_iter = Yn.begin();
-        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter) {
-          *yn_iter = *yn1_iter = std::max(0.0, *yn1_iter);
+        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
+          *yn1_iter = std::max(0.0, *yn1_iter + *temp_iter);
         }
 
-        if (iterations == 0) {
-          // we always want to accept the first iteration
-          continue;
-        }
+        // if this is the first iteration, we don't need to check for convergence
+        if (iterations++ == 0) continue;
 
         // check for convergence
         temp_iter = temp.begin();
@@ -159,18 +155,19 @@ namespace micm
         for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           if (std::abs(*temp_iter) > small) {
+            // std::cout << "temp: " << *temp_iter << " yn1: " << *yn1_iter << " tol: " << tol * std::abs(*yn1_iter) << "\n";
             if (std::abs(*temp_iter) > tol * std::abs(*yn1_iter)) {
               converged = false;
+              std::cout << "failed to converge within the newton iteration\n";
               break;
             }
           }
         }
-
-        ++iterations;
         // correct this check
       } while(!converged && iterations < max_iter);
 
       if (!converged) {
+        std::cout << "failed to converge\n";
         n_successful_integrations = 0;
 
         if (n_convergence_failures >= time_step_reductions.size()) {
@@ -179,19 +176,21 @@ namespace micm
           n_convergence_failures = 0;
           // give_up = true;
           t += H;
-          break;
           throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
+          break;
         };
 
+        Yn = original_Yn;
         H *= time_step_reductions[n_convergence_failures++];
       }
       else {
         t += H;
+        Yn = Yn1;
 
         // when we accept two solutions in a row, we can increase the time step
         n_successful_integrations++;
-        n_convergence_failures = 0;
         if (n_successful_integrations >= 2) {
+          n_successful_integrations = 0;
           H *= 2.0;
         }
       }
