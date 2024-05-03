@@ -65,9 +65,9 @@ namespace micm
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
     template<class MatrixPolicy, class SparseMatrixPolicy>
     void SubtractJacobianTerms(
-        const MatrixPolicy<double> &rate_constants,
-        const MatrixPolicy<double> &state_variables,
-        SparseMatrixPolicy<double> &jacobian) const;
+        const MatrixPolicy &rate_constants,
+        const MatrixPolicy &state_variables,
+        SparseMatrixPolicy &jacobian) const;
 
    private:
     /// @brief Generates a function to calculate forcing terms
@@ -345,9 +345,9 @@ namespace micm
   template<std::size_t L>
   template<class MatrixPolicy, class SparseMatrixPolicy>
   void JitProcessSet<L>::SubtractJacobianTerms(
-      const MatrixPolicy<double> &rate_constants,
-      const MatrixPolicy<double> &state_variables,
-      SparseMatrixPolicy<double> &jacobian) const
+      const MatrixPolicy &rate_constants,
+      const MatrixPolicy &state_variables,
+      SparseMatrixPolicy &jacobian) const
   {
     jacobian_function_(rate_constants.AsVector().data(), state_variables.AsVector().data(), jacobian.AsVector().data());
   }
