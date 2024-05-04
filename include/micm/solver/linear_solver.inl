@@ -139,8 +139,8 @@ namespace micm
       Solve(
           const MatrixPolicy<T>& b,
           MatrixPolicy<T>& x,
-          SparseMatrixPolicy<T>& lower_matrix,
-          SparseMatrixPolicy<T>& upper_matrix)
+          const SparseMatrixPolicy<T>& lower_matrix,
+          const SparseMatrixPolicy<T>& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -196,8 +196,8 @@ namespace micm
       Solve(
           const MatrixPolicy<T>& b,
           MatrixPolicy<T>& x,
-          SparseMatrixPolicy<T>& lower_matrix,
-          SparseMatrixPolicy<T>& upper_matrix)
+          const SparseMatrixPolicy<T>& lower_matrix,
+          const SparseMatrixPolicy<T>& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
     const std::size_t n_cells = b.GroupVectorSize();

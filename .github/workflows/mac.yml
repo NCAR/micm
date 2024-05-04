@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
-        xcode: ['13.1', '14.1']
+        xcode: ['14.1']
         build_type: [Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
