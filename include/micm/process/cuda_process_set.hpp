@@ -7,6 +7,8 @@
 #include <micm/process/cuda_process_set.cuh>
 #include <micm/process/process_set.hpp>
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/util/cuda_sparse_matrix.hpp>
 
 namespace micm
 {
@@ -32,14 +34,28 @@ namespace micm
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
     template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+    requires ( CudaMatrix<MatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> )
+    void AddForcingTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        MatrixPolicy<double>& forcing) const;
+
+    template<template<class> typename MatrixPolicy>
+    requires(!CudaMatrix<MatrixPolicy<double>>)
     void AddForcingTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
         MatrixPolicy<double>& forcing) const;
 
     template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+    requires(CudaMatrix<MatrixPolicy<double>> && CudaMatrix<SparseMatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    void SubtractJacobianTerms(
+        const MatrixPolicy<double>& rate_constants,
+        const MatrixPolicy<double>& state_variables,
+        SparseMatrixPolicy<double>& jacobian) const;
+
+    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    requires(!CudaMatrix<MatrixPolicy<double>> && !CudaMatrix<SparseMatrixPolicy<double>>)
     void SubtractJacobianTerms(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& state_variables,
@@ -90,7 +106,7 @@ namespace micm
   }
 
   template<template<class> class MatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>
+  requires(CudaMatrix<MatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>>)
   inline void CudaProcessSet::AddForcingTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -101,8 +117,19 @@ namespace micm
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
+  // call the function from the base class
+  template<template<class> class MatrixPolicy>
+  requires(!CudaMatrix<MatrixPolicy<double>>)
+  inline void CudaProcessSet::AddForcingTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      MatrixPolicy<double>& forcing) const
+  {
+    AddForcingTerms(rate_constants, state_variables, forcing);
+  }
+
   template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>
+  requires(CudaMatrix<MatrixPolicy<double>> && CudaMatrix<SparseMatrixPolicy<double>> && VectorizableDense<MatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
   inline void CudaProcessSet::SubtractJacobianTerms(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& state_variables,
@@ -112,5 +139,16 @@ namespace micm
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
     micm::cuda::SubtractJacobianTermsKernelDriver(
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
+  }
+
+  // call the function from the base class
+  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  requires(!CudaMatrix<MatrixPolicy<double>> && !CudaMatrix<SparseMatrixPolicy<double>>)
+  inline void CudaProcessSet::SubtractJacobianTerms(
+      const MatrixPolicy<double>& rate_constants,
+      const MatrixPolicy<double>& state_variables,
+      SparseMatrixPolicy<double>& jacobian) const
+  {
+    SubtractJacobianTerms(rate_constants, state_variables, jacobian);
   }
 }  // namespace micm
