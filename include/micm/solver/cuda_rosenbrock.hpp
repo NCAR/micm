@@ -104,8 +104,8 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const 
-    requires(CudaMatrix<SparseMatrixPolicy<double>> && VectorizableSparse<SparseMatrixPolicy<double>>)
+    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+        requires(CudaMatrix<SparseMatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>)
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
@@ -114,7 +114,7 @@ namespace micm
 
     // call the function from the base class
     void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-    requires(!CudaMatrix<SparseMatrixPolicy<double>>)
+        requires(!CudaMatrix<SparseMatrixPolicy<double>>)
     {
       AlphaMinusJacobian(jacobian, alpha);
     }
@@ -129,7 +129,7 @@ namespace micm
         const MatrixPolicy<double>& y_old,
         const MatrixPolicy<double>& y_new,
         const MatrixPolicy<double>& errors) const
-    requires(CudaMatrix<MatrixPolicy<double>> &&  VectorizableDense<MatrixPolicy<double>>)
+        requires(CudaMatrix<MatrixPolicy<double>>&& VectorizableDense<MatrixPolicy<double>>)
     {
       // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
       return micm::cuda::NormalizedErrorDriver(
@@ -145,8 +145,7 @@ namespace micm
     double NormalizedError(
         const MatrixPolicy<double>& y_old,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const
-    requires(!CudaMatrix<MatrixPolicy<double>>)
+        const MatrixPolicy<double>& errors) const requires(!CudaMatrix<MatrixPolicy<double>>)
     {
       return NormalizedErrorDriver(y_old, y_new, errors);
     }
