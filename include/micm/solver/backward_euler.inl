@@ -58,17 +58,14 @@ namespace micm
     // We will also use the same logic used by cam-chem to determine the time step
     // That scheme is this: 
     // Start with H = time_step
-    // if that fails, try H = H/2 several time
+    // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
-    // if that fails, accept the current integration and move on. Continue on with the current H until the end of the time step
+    // if that fails, accept the current H but do not update the Yn vector
 
     double H = time_step;
     double t = 0.0;
     double tol = 1e-4;
     double small = 1.0e-40;
-    auto temp = state.variables_;
-    auto forcing = state.variables_;
-    auto residual = state.variables_;
     bool singular = false;
     std::size_t max_iter = 11;
     std::size_t n_successful_integrations = 0;
@@ -77,6 +74,7 @@ namespace micm
 
     auto Yn = state.variables_;
     auto Yn1 = state.variables_;
+    auto forcing = state.variables_;
 
     Process::UpdateState(processes, state);
 
@@ -119,26 +117,25 @@ namespace micm
 
         auto yn1_iter = Yn1.begin();
         auto yn_iter = Yn.begin();
-        auto residual_iter = residual.begin();
         auto forcing_iter = forcing.begin();
         // forcing_blk in camchem
         // residual = (Yn1 - Yn) / H - forcing;
-        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++residual_iter, ++forcing_iter) {
-          *residual_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
+        // since forcing is only used once, we can reuse it to store the residual
+        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++forcing_iter) {
+          *forcing_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
         }
 
-        // the result of the linear solver will be stored in temp
-        // this represnts the change in the solution
-        linear_solver.Solve(residual, temp, state.lower_matrix_, state.upper_matrix_);
+        // the result of the linear solver will be stored in forcing
+        // this represents the change in the solution
+        linear_solver.Solve(forcing, forcing, state.lower_matrix_, state.upper_matrix_);
 
         // solution_blk in camchem
-        // Yn1 = Yn1 + temp;
+        // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        // remove negatives, accept this solution and continue
-        auto temp_iter = temp.begin();
+        forcing_iter = forcing.begin();
         yn1_iter = Yn1.begin();
-        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
-          *yn1_iter = std::max(0.0, *yn1_iter + *temp_iter);
+        for(; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
+          *yn1_iter = std::max(0.0, *yn1_iter + *forcing_iter);
         }
 
         // if this is the first iteration, we don't need to check for convergence
@@ -146,16 +143,15 @@ namespace micm
         if (iterations++ == 0) continue;
 
         // check for convergence
-        temp_iter = temp.begin();
+        forcing_iter = forcing.begin();
         yn1_iter = Yn1.begin();
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
-        for(; temp_iter != temp.end(); ++temp_iter, ++yn1_iter) {
+        for(; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          if (std::abs(*temp_iter) > small) {
-            // std::cout << "temp: " << *temp_iter << " yn1: " << *yn1_iter << " tol: " << tol * std::abs(*yn1_iter) << "\n";
-            if (std::abs(*temp_iter) > tol * std::abs(*yn1_iter)) {
+          if (std::abs(*forcing_iter) > small) {
+            if (std::abs(*forcing_iter) > tol * std::abs(*yn1_iter)) {
               converged = false;
               std::cout << "failed to converge within the newton iteration\n";
               break;
@@ -164,7 +160,6 @@ namespace micm
           }
           else { converged = true; }
         }
-        // correct this check
       } while(!converged && iterations < max_iter);
 
       if (!converged) {

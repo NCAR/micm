@@ -34,10 +34,9 @@ namespace micm
     /// @brief Default constructor
     BackwardEuler();
 
-    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
+    /// @brief Builds a backward eulder solver for the given system and processes
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    /// @param parameters Rosenbrock algorithm parameters
     BackwardEuler(
         const System& system,
         const std::vector<Process>& processes);
@@ -46,6 +45,11 @@ namespace micm
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
+    /// @param state The state to advance
+    /// @param linear_solver The linear solver to use
+    /// @param process_set The process set to use
+    /// @param processes The collection of chemical processes that will be applied during solving
+    /// @param jacobian_diagonal_elements The diagonal elements of the jacobian matrix
     /// @return A struct containing results and a status code
     void Solve(double time_step, auto& state, auto linear_solver, auto process_set, const std::vector<micm::Process>& processes, auto jacobian_diagonal_elements);
   };
