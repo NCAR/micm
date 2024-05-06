@@ -138,8 +138,6 @@ namespace micm
         }
 
         // if this is the first iteration, we don't need to check for convergence
-        // for the while loop to continue, we need converged to be false
-        converged = false;
         if (iterations++ == 0) continue;
 
         // check for convergence
