@@ -138,6 +138,7 @@ namespace micm
         }
 
         // if this is the first iteration, we don't need to check for convergence
+        // for the while loop to continue, we need converged to be false
         converged = false;
         if (iterations++ == 0) continue;
 
@@ -147,15 +148,13 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
-        for(; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
+        converged = true;
+        for(; converged && forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          if (std::abs(*forcing_iter) > small) {
-            converged = std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter);
-            if (!converged) {
-              std::cout << "failed to converge within the newton iteration\n";
-              break;
-            }
-          }
+          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter));
+        }
+        if (!converged) {
+          std::cout << "failed to converge within the newton iteration\n";
         }
       } while(!converged && iterations < max_iter);
 
