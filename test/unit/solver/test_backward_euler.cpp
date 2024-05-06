@@ -44,6 +44,12 @@ TEST(BackwardEuler, CanCallSolve) {
   };
 
   auto state = rosenbrock.GetState();
+
+  state.variables_[0] = { 1.0, 0.0, 0.0 };
+  state.conditions_[0].temperature_ = 272.5;
+  state.conditions_[0].pressure_ = 101253.3;
+  state.conditions_[0].air_density_ = 1e6;
+
   auto linear_solver = rosenbrock.linear_solver_;
   auto process_set = rosenbrock.process_set_;
   auto processes = std::vector<micm::Process>{ r1, r2 };
