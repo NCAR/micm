@@ -150,14 +150,12 @@ namespace micm
         for(; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           if (std::abs(*forcing_iter) > small) {
-            if (std::abs(*forcing_iter) > tol * std::abs(*yn1_iter)) {
-              converged = false;
+            converged = std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter);
+            if (!converged) {
               std::cout << "failed to converge within the newton iteration\n";
               break;
             }
-            else { converged = true; }
           }
-          else { converged = true; }
         }
       } while(!converged && iterations < max_iter);
 
