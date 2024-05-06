@@ -79,7 +79,6 @@ namespace micm
     Process::UpdateState(processes, state);
 
     while(t < time_step) {
-      // std::cout << "H: " << H << " t: " << t << std::endl;
       bool converged = false;
       std::size_t iterations = 0;
 
