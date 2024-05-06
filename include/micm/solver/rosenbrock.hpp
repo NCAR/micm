@@ -208,11 +208,11 @@ namespace micm
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
+        const MatrixPolicy<double>& errors) const requires(!VectorizableDense<MatrixPolicy<double>>);
     double NormalizedError(
         const MatrixPolicy<double>& y,
         const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+        const MatrixPolicy<double>& errors) const requires(VectorizableDense<MatrixPolicy<double>>);
   };
 
 }  // namespace micm

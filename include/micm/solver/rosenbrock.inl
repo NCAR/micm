@@ -599,7 +599,7 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const requires(!VectorizableDense<MatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -639,7 +639,7 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const requires(VectorizableDense<MatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
