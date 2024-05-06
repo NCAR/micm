@@ -148,11 +148,12 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
-        converged = true;
-        for(; converged && forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
-          // changes that are much smaller than the tolerance are negligible and we assume can be accepted
+        do {
           converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter));
+          ++forcing_iter, ++yn1_iter;
         }
+        while (converged && forcing_iter != forcing.end());
+
         if (!converged) {
           std::cout << "failed to converge within the newton iteration\n";
         }
