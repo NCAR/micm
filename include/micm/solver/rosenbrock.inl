@@ -352,7 +352,7 @@ namespace micm
           {
             if (parameters_.new_function_evaluation_[stage])
             {
-              Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+              Ynew.Copy(Y);
               for (uint64_t j = 0; j < stage; ++j)
               {
                 Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
@@ -361,18 +361,18 @@ namespace micm
               stats.function_calls += 1;
             }
           }
-          K[stage].AsVector().assign(forcing.AsVector().begin(), forcing.AsVector().end());
+          K[stage].Copy(forcing);
           for (uint64_t j = 0; j < stage; ++j)
           {
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
-          temp.AsVector().assign(K[stage].AsVector().begin(), K[stage].AsVector().end());
+          temp.Copy(K[stage]);
           linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
 
         // Compute the new solution
-        Ynew.AsVector().assign(Y.AsVector().begin(), Y.AsVector().end());
+        Ynew.Copy(Y);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
@@ -396,13 +396,13 @@ namespace micm
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
-          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          Y.Copy(Ynew);
           result.state_ = SolverState::NaNDetected;
           break;
         }
         else if (std::isinf(error) == 1)
         {
-          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          Y.Copy(Ynew);
           result.state_ = SolverState::InfDetected;
           break;
         }
@@ -410,7 +410,7 @@ namespace micm
         {
           stats.accepted += 1;
           present_time = present_time + H;
-          Y.AsVector().assign(Ynew.AsVector().begin(), Ynew.AsVector().end());
+          Y.Copy(Ynew);
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, h_max));
           if (reject_last_h)
           {
