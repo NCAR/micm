@@ -302,8 +302,7 @@ namespace micm
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
   // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   template<class MatrixPolicy, class SparseMatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
+  requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
       SubtractJacobianTerms(
           const MatrixPolicy& rate_constants,
           const MatrixPolicy& state_variables,

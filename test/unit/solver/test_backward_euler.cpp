@@ -11,7 +11,8 @@ TEST(BackwardEuler, DefaultConstructor)
   EXPECT_NO_THROW(micm::BackwardEuler be);
 }
 
-TEST(BackwardEuler, CanCallSolve) {
+TEST(BackwardEuler, CanCallSolve)
+{
   micm::BackwardEuler be;
   double time_step = 1.0;
 
@@ -37,11 +38,9 @@ TEST(BackwardEuler, CanCallSolve) {
   auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
   options.ignore_unused_species_ = true;
 
-  micm::RosenbrockSolver<> rosenbrock{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2 },
-    options
-  };
+  micm::RosenbrockSolver<> rosenbrock{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+                                       std::vector<micm::Process>{ r1, r2 },
+                                       options };
 
   auto state = rosenbrock.GetState();
 
@@ -54,5 +53,6 @@ TEST(BackwardEuler, CanCallSolve) {
   auto process_set = rosenbrock.process_set_;
   auto processes = std::vector<micm::Process>{ r1, r2 };
 
-  EXPECT_NO_THROW(be.Solve(time_step, state, linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
+  EXPECT_NO_THROW(be.Solve(
+      time_step, state, linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
 }
