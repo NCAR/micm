@@ -13,6 +13,7 @@
 #include <micm/util/jacobian.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -22,7 +23,6 @@
 #include <limits>
 #include <string>
 #include <vector>
-#include <array>
 
 namespace micm
 {
@@ -37,9 +37,7 @@ namespace micm
     /// @brief Builds a backward eulder solver for the given system and processes
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
-    BackwardEuler(
-        const System& system,
-        const std::vector<Process>& processes);
+    BackwardEuler(const System& system, const std::vector<Process>& processes);
 
     virtual ~BackwardEuler() = default;
 
@@ -51,7 +49,13 @@ namespace micm
     /// @param processes The collection of chemical processes that will be applied during solving
     /// @param jacobian_diagonal_elements The diagonal elements of the jacobian matrix
     /// @return A struct containing results and a status code
-    void Solve(double time_step, auto& state, auto linear_solver, auto process_set, const std::vector<micm::Process>& processes, auto jacobian_diagonal_elements);
+    void Solve(
+        double time_step,
+        auto& state,
+        auto linear_solver,
+        auto process_set,
+        const std::vector<micm::Process>& processes,
+        auto jacobian_diagonal_elements);
   };
 
 }  // namespace micm

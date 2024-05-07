@@ -249,7 +249,7 @@ namespace micm
     {
       return data_.begin();
     }
-    
+
     typename std::vector<T>::const_iterator begin() const noexcept
     {
       return data_.cbegin();

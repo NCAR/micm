@@ -28,8 +28,7 @@ namespace
     {
       switch (static_cast<MicmBackwardEulerErrc>(ev))
       {
-        case MicmBackwardEulerErrc::FailedToConverge:
-          return "Failed to converge";
+        case MicmBackwardEulerErrc::FailedToConverge: return "Failed to converge";
         default: return "Unknown error";
       }
     }
@@ -49,14 +48,20 @@ namespace micm
   {
   }
 
-  inline void BackwardEuler::Solve(double time_step, auto& state, auto linear_solver, auto process_set, const std::vector<micm::Process>& processes, auto jacobian_diagonal_elements)
+  inline void BackwardEuler::Solve(
+      double time_step,
+      auto& state,
+      auto linear_solver,
+      auto process_set,
+      const std::vector<micm::Process>& processes,
+      auto jacobian_diagonal_elements)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
     // This is a root finding problem because you need to know y_{n+1} to compute f(t_{n+1}, y_{n+1})
     // you need to solve the equation y_{n+1} - y_n - H f(t_{n+1}, y_{n+1}) = 0
     // We will also use the same logic used by cam-chem to determine the time step
-    // That scheme is this: 
+    // That scheme is this:
     // Start with H = time_step
     // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
@@ -78,13 +83,15 @@ namespace micm
 
     Process::UpdateState(processes, state);
 
-    while(t < time_step) {
+    while (t < time_step)
+    {
       bool converged = false;
       std::size_t iterations = 0;
 
       Yn1 = Yn;
 
-      do {
+      do
+      {
         // the first time Yn1 is equal to Yn
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
@@ -98,7 +105,8 @@ namespace micm
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
-        for(auto& jac : state.jacobian_.AsVector()) {
+        for (auto& jac : state.jacobian_.AsVector())
+        {
           jac *= -1;
         }
         for (std::size_t i_block = 0; i_block < state.jacobian_.Size(); ++i_block)
@@ -120,7 +128,8 @@ namespace micm
         // forcing_blk in camchem
         // residual = (Yn1 - Yn) / H - forcing;
         // since forcing is only used once, we can reuse it to store the residual
-        for(; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++forcing_iter) {
+        for (; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++forcing_iter)
+        {
           *forcing_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
         }
 
@@ -133,12 +142,14 @@ namespace micm
         // always make sure the solution is positive regardless of which iteration we are on
         forcing_iter = forcing.begin();
         yn1_iter = Yn1.begin();
-        for(; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter) {
+        for (; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter)
+        {
           *yn1_iter = std::max(0.0, *yn1_iter + *forcing_iter);
         }
 
         // if this is the first iteration, we don't need to check for convergence
-        if (iterations++ == 0) continue;
+        if (iterations++ == 0)
+          continue;
 
         // check for convergence
         forcing_iter = forcing.begin();
@@ -146,23 +157,26 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
-        do {
+        do
+        {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
           converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter;
-        }
-        while (converged && forcing_iter != forcing.end());
+        } while (converged && forcing_iter != forcing.end());
 
-        if (!converged) {
+        if (!converged)
+        {
           std::cout << "failed to converge within the newton iteration\n";
         }
-      } while(!converged && iterations < max_iter);
+      } while (!converged && iterations < max_iter);
 
-      if (!converged) {
+      if (!converged)
+      {
         std::cout << "failed to converge\n";
         n_successful_integrations = 0;
 
-        if (n_convergence_failures >= time_step_reductions.size()) {
+        if (n_convergence_failures >= time_step_reductions.size())
+        {
           // we have failed to converge, accept the solution
           // TODO: continue on with the current solution to get the full solution
           n_convergence_failures = 0;
@@ -174,13 +188,15 @@ namespace micm
 
         H *= time_step_reductions[n_convergence_failures++];
       }
-      else {
+      else
+      {
         t += H;
         Yn = Yn1;
 
         // when we accept two solutions in a row, we can increase the time step
         n_successful_integrations++;
-        if (n_successful_integrations >= 2) {
+        if (n_successful_integrations >= 2)
+        {
           n_successful_integrations = 0;
           H *= 2.0;
         }
@@ -192,4 +208,4 @@ namespace micm
 
     state.variables_ = Yn1;
   }
-}
+}  // namespace micm
