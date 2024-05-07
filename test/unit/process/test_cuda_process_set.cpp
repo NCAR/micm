@@ -197,9 +197,9 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
   gpu_set.SetJacobianFlatIds(gpu_jacobian);
 
-  cpu_set.SubtractJacobianTerms<CPUMatrixPolicy, CPUSparseMatrixPolicy>(
+  cpu_set.SubtractJacobianTerms(
       cpu_rate_constants, cpu_state.variables_, cpu_jacobian);
-  gpu_set.SubtractJacobianTerms<GPUDenseMatrixPolicy, GPUSparseMatrixPolicy>(
+  gpu_set.SubtractJacobianTerms(
       gpu_rate_constants, gpu_state.variables_, gpu_jacobian);
   gpu_jacobian.CopyToHost();
 
