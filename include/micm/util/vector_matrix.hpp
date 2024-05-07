@@ -290,6 +290,13 @@ namespace micm
       }
     }
 
+    // Copy the values from the other VectorMatrix into this one 
+    void Copy(const VectorMatrix &other)
+    {
+      static_assert(other.AsVector().size() == this->data_.size(), "Both vector matrices must have the same size.");
+      this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;
