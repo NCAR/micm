@@ -106,7 +106,8 @@ namespace micm
         : VectorMatrix<T, L>(other)
     {
       this->param_.number_of_grid_cells_ = 0;
-      this->param_.number_of_elements_ = this->data_.size();
+      this->param_.number_of_elements_ = 0;
+      for (const auto& inner_vector : other) { this->param_.number_of_elements_ += inner_vector.size(); }
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
       CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
@@ -214,9 +215,10 @@ namespace micm
           "CUBLAS Daxpy operation failed...");
     }
 
+    // Copy the device data from the other Cuda dense matrix into this one 
     void Copy(const CudaDenseMatrix& other)
     {
-      static_assert(other.param_.number_of_elements_ == this->param_.number_of_elements_, "Both CUDA dense matrices must have the same size.");
+      if (other.param_.number_of_elements_ != this->param_.number_of_elements_) { throw std::runtime_error("Both CUDA dense matrices must have the same size."); } 
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
   }; // class CudaDenseMatrix

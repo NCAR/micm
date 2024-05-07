@@ -293,7 +293,7 @@ namespace micm
     // Copy the values from the other VectorMatrix into this one 
     void Copy(const VectorMatrix &other)
     {
-      static_assert(other.AsVector().size() == this->data_.size(), "Both vector matrices must have the same size.");
+      if (other.AsVector().size() != this->data_.size()) throw std::runtime_error("Both vector matrices must have the same size.");
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
