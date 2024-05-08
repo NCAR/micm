@@ -34,6 +34,11 @@ namespace micm
    * Copy/Move constructors/assignment operators are non-synchronizing
    * operators/constructors so if device and host data is desynchronized,
    * the copies and moved matrices will remain desynchronized.
+   * 
+   * Copy function only copies the device data from one CUDA dense matrix
+   * to the other (no change of the host data), assuming that the device memory
+   * has been allocated correctly. A check is done before doing the copy
+   * to make sure that both matrices have the same size.
    *
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
