@@ -22,20 +22,20 @@ TEST(BackwardEuler, CanCallSolve)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ a })
-                         .products({ yields(b, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ micm::Yields(b, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ b })
-                         .products({ yields(c, 1) })
-                         .rate_constant(micm::ArrheniusRateConstant(
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b })
+                         .SetProducts({ micm::Yields(c, 1) })
+                         .SetRateConstant(micm::ArrheniusRateConstant(
                              micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
-                         .phase(gas_phase);
+                         .SetPhase(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   options.ignore_unused_species_ = true;
 
   micm::RosenbrockSolver<> rosenbrock{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
