@@ -5,6 +5,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
@@ -110,8 +111,11 @@ void test_analytical_troe(
                                                                  .N_ = 0.8 }))
                          .phase(gas_phase);
 
-  OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+  auto processes = std::vector<micm::Process>{ r1, r2 };
+  OdeSolverPolicy solver = create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes);
+
+  micm::BackwardEuler be;
+  auto be_state = solver.GetState();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -133,15 +137,22 @@ void test_analytical_troe(
   auto state = solver.GetState();
 
   std::vector<std::vector<double>> model_concentrations(nsteps, std::vector<double>(3));
+  std::vector<std::vector<double>> be_model_concentrations(nsteps, std::vector<double>(3));
   std::vector<std::vector<double>> analytical_concentrations(nsteps, std::vector<double>(3));
 
   model_concentrations[0] = { 1, 0, 0 };
+  be_model_concentrations[0] = { 1, 0, 0 };
   analytical_concentrations[0] = { 1, 0, 0 };
 
   state.variables_[0] = model_concentrations[0];
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
+
+  be_state.variables_[0] = be_model_concentrations[0];
+  be_state.conditions_[0].temperature_ = temperature;
+  be_state.conditions_[0].pressure_ = pressure;
+  be_state.conditions_[0].air_density_ = air_density;
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
@@ -152,10 +163,18 @@ void test_analytical_troe(
     times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
+    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
+    {
+      auto linear_solver = solver.linear_solver_;
+      auto process_set = solver.process_set_;
+      be.Solve(
+          time_step, be_state, linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
+    }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
+    be_model_concentrations[i_time] = be_state.variables_[0];
     state.variables_[0] = result.result_.AsVector();
 
     // Analytical results
@@ -187,6 +206,16 @@ void test_analytical_troe(
         << "Arrays differ at index (" << i << ", " << 1 << ")";
     EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
+
+    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
+    {
+      EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-4)
+          << "Arrays differ at index (" << i << ", " << 0 << ")";
+      EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+          << "Arrays differ at index (" << i << ", " << 1 << ")";
+      EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+          << "Arrays differ at index (" << i << ", " << 2 << ")";
+    }
   }
 }
 

@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
-        xcode: ['13.1', '14.1']
+        xcode: ['14.1']
         build_type: [Release]
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10

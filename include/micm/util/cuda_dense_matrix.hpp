@@ -19,7 +19,6 @@
 
 namespace micm
 {
-
   /**
    * @brief Provides a CUDA implemtation to the VectorMatrix functionality.
    *
@@ -40,6 +39,22 @@ namespace micm
    * CUDA functionality requires T to be of type double, otherwise this
    * behaves similarily to VectorMatrix.
    */
+
+  /// Concept for Cuda Matrix
+  template<typename MatrixType>
+  concept CudaMatrix = requires(MatrixType t)
+  {
+    {
+      t.CopyToDevice()
+      } -> std::same_as<void>;
+    {
+      t.CopyToHost()
+      } -> std::same_as<void>;
+    {
+      t.AsDeviceParam()
+      } -> std::same_as<CudaMatrixParam>;
+  };
+
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaDenseMatrix : public VectorMatrix<T, L>
   {

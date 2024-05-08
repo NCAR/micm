@@ -104,7 +104,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
     builder = builder.with_element(elem.first, elem.second);
   SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
+  set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
   EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0);  // foo -> bar

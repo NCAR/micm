@@ -11,41 +11,6 @@
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
 const std::size_t BLOCK_SIZE = 32;
 
-// different matrix data grouped in struct passing to kernel driver function
-struct CudaMatrixParam_to_be_removed
-{
-  const double* rate_constants_;
-  const double* state_variables_;
-  double* forcing_;
-  const double* b_;
-  double* x_;
-  std::size_t x_size_;
-  std::size_t b_size_;
-  std::size_t n_grids_;
-  std::size_t n_reactions_;
-  std::size_t n_species_;
-  std::size_t b_column_counts_;
-  std::size_t x_column_counts_;
-};
-
-// sparseMatrix data grouped in struct passing to kernel driver function
-struct CudaSparseMatrixParam
-{
-  double* jacobian_;
-  std::size_t jacobian_size_;
-  const double* A_;
-  std::size_t A_size_;
-  double* L_;
-  std::size_t L_size_;
-  double* U_;
-  std::size_t U_size_;
-  std::size_t n_grids_;
-  const double* lower_matrix_;
-  std::size_t lower_matrix_size_;
-  const double* upper_matrix_;
-  std::size_t upper_matrix_size_;
-};
-
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "ProcessSet";
 /// This struct could be allocated on the host or device;

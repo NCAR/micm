@@ -529,8 +529,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
-    process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(
-        rate_constants, number_densities, jacobian);
+    process_set_.SubtractJacobianTerms(rate_constants, number_densities, jacobian);
   }
 
   template<
@@ -600,7 +599,7 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const requires(!VectorizableDense<MatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -640,7 +639,7 @@ namespace micm
   inline double RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::NormalizedError(
       const MatrixPolicy<double>& Y,
       const MatrixPolicy<double>& Ynew,
-      const MatrixPolicy<double>& errors) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      const MatrixPolicy<double>& errors) const requires(VectorizableDense<MatrixPolicy<double>>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

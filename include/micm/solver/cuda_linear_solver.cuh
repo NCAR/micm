@@ -15,9 +15,11 @@ namespace micm
   {
     /// This is the host function that will call the CUDA kernel
     ///   to perform the "solve" function on the device
-    std::chrono::nanoseconds SolveKernelDriver(
-        CudaSparseMatrixParam& sparseMatrix,
-        CudaMatrixParam_to_be_removed& denseMatrix,
+    void SolveKernelDriver(
+        const CudaMatrixParam& b_param,
+        CudaMatrixParam& x_param,
+        const CudaMatrixParam& L_param,
+        const CudaMatrixParam& U_param,
         const LinearSolverParam& devstruct);
 
     /// This is the function that will copy the constant data
