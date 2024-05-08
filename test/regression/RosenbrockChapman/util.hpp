@@ -132,8 +132,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options =
-      micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
@@ -147,8 +146,7 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options =
-      micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(

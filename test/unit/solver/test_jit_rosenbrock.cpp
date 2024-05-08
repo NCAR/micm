@@ -45,11 +45,8 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::Create()
-                         .SetReactants({ quz })
-                         .SetProducts({})
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
+      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::JitRosenbrockSolver<
       MatrixPolicy,
