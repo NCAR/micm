@@ -34,7 +34,7 @@ namespace micm
    * Copy/Move constructors/assignment operators are non-synchronizing
    * operators/constructors so if device and host data is desynchronized,
    * the copies and moved matrices will remain desynchronized.
-   * 
+   *
    * Copy function only copies the device data from one CUDA dense matrix
    * to the other (no change of the host data), assuming that the device memory
    * has been allocated correctly. A check is done before doing the copy
@@ -112,7 +112,10 @@ namespace micm
     {
       this->param_.number_of_grid_cells_ = 0;
       this->param_.number_of_elements_ = 0;
-      for (const auto& inner_vector : other) { this->param_.number_of_elements_ += inner_vector.size(); }
+      for (const auto& inner_vector : other)
+      {
+        this->param_.number_of_elements_ += inner_vector.size();
+      }
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
       CHECK_CUBLAS_ERROR(cublasCreate(&(this->handle_)), "CUBLAS initialization failed...");
     }
@@ -150,7 +153,8 @@ namespace micm
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
       VectorMatrix<T, L>::operator=(other);
-      if (this->param_.d_data_ != nullptr) CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
+      if (this->param_.d_data_ != nullptr)
+        CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_ = other.param_;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
@@ -220,11 +224,14 @@ namespace micm
           "CUBLAS Daxpy operation failed...");
     }
 
-    // Copy the device data from the other Cuda dense matrix into this one 
+    // Copy the device data from the other Cuda dense matrix into this one
     void Copy(const CudaDenseMatrix& other)
     {
-      if (other.param_.number_of_elements_ != this->param_.number_of_elements_) { throw std::runtime_error("Both CUDA dense matrices must have the same size."); } 
+      if (other.param_.number_of_elements_ != this->param_.number_of_elements_)
+      {
+        throw std::runtime_error("Both CUDA dense matrices must have the same size.");
+      }
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
-  }; // class CudaDenseMatrix
+  };  // class CudaDenseMatrix
 }  // namespace micm
