@@ -109,7 +109,7 @@ namespace micm
         {
           jac *= -1;
         }
-        for (std::size_t i_block = 0; i_block < state.jacobian_.Size(); ++i_block)
+        for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
         {
           auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
           for (const auto& i_elem : jacobian_diagonal_elements)
