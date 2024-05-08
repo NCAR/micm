@@ -91,7 +91,7 @@ namespace micm
     JitFunction() = delete;
 
     friend class JitFunctionBuilder;
-    static JitFunctionBuilder create(std::shared_ptr<JitCompiler> compiler);
+    static JitFunctionBuilder Create(std::shared_ptr<JitCompiler> compiler);
     JitFunction(JitFunctionBuilder& function_builder);
 
     /// @brief Generates the function
@@ -147,19 +147,19 @@ namespace micm
    public:
     JitFunctionBuilder() = delete;
     JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
-    JitFunctionBuilder& name(std::string name);
-    JitFunctionBuilder& arguments(const std::vector<std::pair<std::string, JitType>>& arguments);
-    JitFunctionBuilder& return_type(JitType type);
+    JitFunctionBuilder& SetName(const std::string& name);
+    JitFunctionBuilder& SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments);
+    JitFunctionBuilder& SetReturnType(JitType type);
   };
 
-  inline JitFunctionBuilder JitFunction::create(std::shared_ptr<JitCompiler> compiler)
+  inline JitFunctionBuilder JitFunction::Create(std::shared_ptr<JitCompiler> compiler)
   {
     return JitFunctionBuilder{ compiler };
   }
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
       : generated_(false),
-        name_(function_builder.name_ + generate_random_string()),
+        name_(function_builder.name_ + GenerateRandomString()),
         compiler_(function_builder.compiler_),
         context_(std::make_unique<llvm::LLVMContext>()),
         module_(std::make_unique<llvm::Module>(name_ + " module", *context_)),
@@ -297,19 +297,19 @@ namespace micm
   inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
       : compiler_(compiler){};
 
-  inline JitFunctionBuilder& JitFunctionBuilder::name(std::string name)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {
     name_ = name;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::arguments(const std::vector<std::pair<std::string, JitType>>& arguments)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments)
   {
     arguments_ = arguments;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::return_type(JitType type)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetReturnType(JitType type)
   {
     return_type_ = type;
     return *this;

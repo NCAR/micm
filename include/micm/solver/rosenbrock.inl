@@ -84,7 +84,7 @@ namespace micm
       class ProcessSetPolicy>
   inline RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::RosenbrockSolver()
       : processes_(),
-        parameters_(RosenbrockSolverParameters::three_stage_rosenbrock_parameters()),
+        parameters_(RosenbrockSolverParameters::ThreeStageRosenbrockParameters()),
         state_parameters_(),
         process_set_(),
         linear_solver_()
@@ -214,12 +214,12 @@ namespace micm
 
     process_set_ = std::move(create_process_set(processes, variable_map));
 
-    auto jacobian = build_jacobian<SparseMatrixPolicy>(
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(
         process_set_.NonZeroJacobianElements(), parameters_.number_of_grid_cells_, system.StateSize());
 
     std::vector<std::size_t> jacobian_diagonal_elements;
-    jacobian_diagonal_elements.reserve(jacobian[0].size());
-    for (std::size_t i = 0; i < jacobian[0].size(); ++i)
+    jacobian_diagonal_elements.reserve(jacobian.NumRows());
+    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
       jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
 
     state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
@@ -482,7 +482,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    for (std::size_t i_block = 0; i_block < jacobian.Size(); ++i_block)
+    for (std::size_t i_block = 0; i_block < jacobian.NumberOfBlocks(); ++i_block)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_block * jacobian.FlatBlockSize());
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)
@@ -504,7 +504,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     const std::size_t n_cells = jacobian.GroupVectorSize();
-    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.Size()); ++i_group)
+    for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
       auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
       for (const auto& i_elem : state_parameters_.jacobian_diagonal_elements_)

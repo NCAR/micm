@@ -15,27 +15,27 @@ int main()
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ a })
-                         .products({ yields(b, 1) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ b, b })
-                         .products({ yields(b, 1), yields(c, 1) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .phase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b, b })
+                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
-                         .reactants({ b, c })
-                         .products({ yields(a, 1), yields(c, 1) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .phase(gas_phase);
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b, c })
+                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
 
   micm::RosenbrockSolver<> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
                                    std::vector<micm::Process>{ r1, r2, r3 },
-                                   micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
+                                   micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(3, false) };
 
   auto state = solver.GetState();
 

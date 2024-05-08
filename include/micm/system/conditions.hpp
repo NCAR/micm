@@ -10,7 +10,7 @@ namespace micm
   struct Conditions
   {
     double temperature_{ 0.0 };  // K
-    double pressure_{ 0.0 };     // Pa;
+    double pressure_{ 0.0 };     // Pa
     double air_density_{ 1.0 };  // mol m-3
   };
 }  // namespace micm

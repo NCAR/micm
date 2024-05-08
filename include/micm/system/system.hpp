@@ -32,7 +32,6 @@ namespace micm
     /// @brief This is a catchall for anything that is not the gas phase.
     std::unordered_map<std::string, Phase> phases_;
 
-   public:
     /// @brief Default constructor
     System()
         : gas_phase_(),

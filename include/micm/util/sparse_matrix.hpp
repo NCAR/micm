@@ -73,7 +73,7 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -98,7 +98,7 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -121,7 +121,7 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -144,7 +144,7 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
         return matrix_.row_start_.size() - 1;
       }
@@ -156,7 +156,7 @@ namespace micm
     };
 
    public:
-    static SparseMatrixBuilder<T, OrderingPolicy> create(std::size_t block_size)
+    static SparseMatrixBuilder<T, OrderingPolicy> Create(std::size_t block_size)
     {
       return SparseMatrixBuilder<T, OrderingPolicy>{ block_size };
     }
@@ -215,9 +215,19 @@ namespace micm
       return false;
     }
 
-    std::size_t Size() const
+    std::size_t NumberOfBlocks() const
     {
       return number_of_blocks_;
+    }
+
+    std::size_t NumRows() const
+    {
+      return row_start_.size() - 1;
+    }
+
+    std::size_t NumColumns() const
+    {
+      return NumRows();
     }
 
     std::size_t FlatBlockSize() const
@@ -274,13 +284,13 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
-    SparseMatrixBuilder& number_of_blocks(std::size_t n)
+    SparseMatrixBuilder& SetNumberOfBlocks(std::size_t n)
     {
       number_of_blocks_ = n;
       return *this;
     }
 
-    SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
+    SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
         throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
@@ -288,7 +298,7 @@ namespace micm
       return *this;
     }
 
-    SparseMatrixBuilder& initial_value(T inital_value)
+    SparseMatrixBuilder& InitialValue(T inital_value)
     {
       initial_value_ = inital_value;
       return *this;

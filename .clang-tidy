@@ -1,7 +1,60 @@
-
 ---
-Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm-*,-llvmlibc-*,-bugprone-easily-swappable-parameters'
-CheckOptions: [{ key: misc-non-private-member-variables-in-classes, value: IgnoreClassesWithAllMemberVariablesBeingPublic }]
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle: none
+# Create new issues to allow
+# -readability-math-missing-parentheses
+#     eg) '*' has higher precedence than '+'; add parentheses to explicitly specify the order of operations
+# -readability-avoid-const-params-in-decls :
+#     eg) std::vector<std::string> UniqueNames(const std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> f) const;
+# -readability-non-const-parameter;
+#     eg) double* d_lower_matrix (micm/src/solver/linear_solver.cu)
+# -readability-convert-member-functions-to-static
+# -readability-identifier-length
+# -readability-braces-around-statements
+# -readability-make-member-function-const
+
+# Need discussion
+# -readability-implicit-bool-conversion: We could allow this while accepeting the two conditions specified in `Checks`
+#     eg) assert((!generated_) && "JIT Function already generated") (jit/jit_function.hpp)
+# -readability-isolate-declaration
+#     eg) double d_ymax, d_scale -> multiple declarations in a single statement reduces readability (micm/src/solver/rosenbrock.cu)
+# -readability-named-parameter: false positive cases
+
+# Have to fix later
+# -readability-avoid-unconditional-preprocessor-if:
+#     eg) #if 0 (micm/jit/jit_compiler.hpp)
+
+# Disabled
+# -readability-simplify-boolean-expr: Could hurt readability
+#     eg) return static_cast<bool>(elem == end)
+# -readability-magic-numbers,-warnings-as-errors: Doesn't allow the following example
+#     eg) parameters.c_[8] = -0.3399990352819905E+02; (micm/solver/rosenbrock_solver_parameters.hpp)
+
+Checks: >
+  -*,
+  readability-*,
+  -readability-named-parameter,
+  -readability-identifier-length,
+  -readability-convert-member-functions-to-static,
+  -readability-braces-around-statements,
+  -readability-math-missing-parentheses,
+  -readability-avoid-const-params-in-decls,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-make-member-function-const,
+  -readability-implicit-bool-conversion,
+  -readability-simplify-boolean-expr,
+  -readability-magic-numbers,-warnings-as-errors,
+  -readability-non-const-parameter,
+  -readability-isolate-declaration, 
+
+WarningsAsErrors: '*'
+
+# HeaderFilterRegex: ''
+
+CheckOptions:
+  - key:             readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.FunctionIgnoredRegexp
+    value:           'name|message|make_error_code'
+  - key:             readability-implicit-bool-conversion.AllowIntegerConditions
+    value:           1
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           1

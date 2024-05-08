@@ -30,7 +30,7 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorO
 
 TEST(JitLinearSolver, DenseMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -51,7 +51,7 @@ TEST(JitLinearSolver, DenseMatrixVectorOrdering)
 
 TEST(JitLinearSolver, RandomMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -85,7 +85,7 @@ TEST(JitLinearSolver, RandomMatrixVectorOrdering)
 
 TEST(JitLinearSolver, DiagonalMatrixVectorOrdering)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");

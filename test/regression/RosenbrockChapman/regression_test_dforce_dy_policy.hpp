@@ -33,8 +33,8 @@ void testJacobian(OdeSolverPolicy& solver)
   {
     double number_density_air = 1.0;
     std::vector<double> rate_constants = state.rate_constants_[i];
-    std::vector<double> variables(state.variables_[i].size());
-    for (std::size_t j{}; j < state.variables_[i].size(); ++j)
+    std::vector<double> variables(state.variables_.NumColumns());
+    for (std::size_t j{}; j < state.variables_.NumColumns(); ++j)
       variables[j] = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
     std::vector<double> fixed_jacobian = fixed_solver.dforce_dy(rate_constants, variables, number_density_air);
 

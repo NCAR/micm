@@ -36,13 +36,13 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    std::size_t n = matrix[0].size();
+    std::size_t n = matrix.NumRows();
     auto LU = GetLUMatrices<T, SparseMatrixPolicy>(matrix, initial_value);
     const auto& L_row_start = LU.first.RowStartVector();
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
     const auto& U_row_ids = LU.second.RowIdsVector();
-    for (std::size_t i = 0; i < matrix[0].size(); ++i)
+    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
       // Upper triangular matrix
@@ -122,7 +122,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    std::size_t n = A[0].size();
+    std::size_t n = A.NumRows();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
     const auto& row_start = A.RowStartVector();
     const auto& row_ids = A.RowIdsVector();
@@ -163,15 +163,15 @@ namespace micm
         }
       }
     }
-    auto L_builder = SparseMatrixPolicy::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
+    auto L_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : L_ids)
     {
-      L_builder = L_builder.with_element(pair.first, pair.second);
+      L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = SparseMatrixPolicy::create(n).number_of_blocks(A.Size()).initial_value(initial_value);
+    auto U_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : U_ids)
     {
-      U_builder = U_builder.with_element(pair.first, pair.second);
+      U_builder = U_builder.WithElement(pair.first, pair.second);
     }
     std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(L_builder, U_builder);
     return LU;
@@ -195,7 +195,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     // Loop over blocks
-    for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
+    for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
     {
       auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
       auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
@@ -257,14 +257,14 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    std::size_t A_Size = A.Size();
+    std::size_t A_BlockSize = A.NumberOfBlocks();
     std::size_t A_GroupVectorSize = A.GroupVectorSize();
     std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
     std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
     std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
 
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_Size); ++i_group)
+    for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
     {
       auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
       auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
@@ -279,7 +279,7 @@ namespace micm
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
       is_singular = false;
-      const std::size_t n_cells = std::min(A_GroupVectorSize, A_Size - i_group * A_GroupVectorSize);
+      const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix

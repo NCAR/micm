@@ -55,17 +55,17 @@ void test_analytical_surface_rxn(
   micm::SurfaceRateConstant surface{ { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
 
   // Process
-  micm::Process surface_process = micm::Process::create()
-                                      .reactants({ foo })
-                                      .products({ micm::yields(bar, bar_yield), micm::yields(baz, baz_yield) })
-                                      .rate_constant(surface)
-                                      .phase(gas_phase);
+  micm::Process surface_process = micm::Process::Create()
+                                      .SetReactants({ foo })
+                                      .SetProducts({ micm::Yields(bar, bar_yield), micm::Yields(baz, baz_yield) })
+                                      .SetRateConstant(surface)
+                                      .SetPhase(gas_phase);
 
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
   // micm::RosenbrockSolver<> solver{
-  //   chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+  //   chemical_system, reactions, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
   // };
 
   // Solver

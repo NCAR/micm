@@ -23,7 +23,6 @@ namespace micm
     /// @brief The list of species
     std::vector<Species> species_;
 
-   public:
     /// @brief Default constructor
     Phase()
         : species_()

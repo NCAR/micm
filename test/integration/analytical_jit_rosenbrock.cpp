@@ -19,7 +19,7 @@ using DefaultJitRosenbrockSolver = micm::JitRosenbrockSolver<
 
 TEST(AnalyticalExamplesJitRosenbrock, Troe)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -29,14 +29,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Troe)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -46,14 +46,14 @@ TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -63,14 +63,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -80,14 +80,14 @@ TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -97,14 +97,14 @@ TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -114,14 +114,14 @@ TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnal
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -131,14 +131,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -148,14 +148,14 @@ TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -165,14 +165,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -182,14 +182,14 @@ TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Branched)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -199,14 +199,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Branched)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -216,14 +216,14 @@ TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -233,14 +233,14 @@ TEST(AnalyticalExamplesJitRosenbrock, Robertson)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -250,7 +250,7 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
       [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
       {
         return DefaultJitRosenbrockSolver{
-          jit.get(), s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          jit.get(), s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }

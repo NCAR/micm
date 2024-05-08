@@ -78,8 +78,7 @@ namespace micm
       json << "\"dur\":" << (result.elapsed_time.count()) << ',';
       json << "\"name\":\"" << result.name << "\",";
       json << "\"ph\":\"X\",";
-      json << "\"pid\":\""
-           << "0\",";
+      json << "\"pid\":0,";
       json << "\"tid\":\"" << result.threadID << "\",";
       json << "\"ts\":" << result.start.count();
       json << "}";
@@ -132,7 +131,6 @@ namespace micm
       }
     }
 
-   private:
     std::mutex mutex_;
     InstrumentationSession* current_session_;
     std::ofstream output_stream_;

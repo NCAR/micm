@@ -25,25 +25,28 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ foo, baz })
-                         .products({ yields(bar, 1), yields(quuz, 2.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ bar })
-                         .products({ yields(foo, 1), yields(quz, 1.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
-      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
 }
 
 template<class T>
@@ -55,9 +58,11 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
   auto jacobian = solver.GetState().jacobian_;
 
-  EXPECT_EQ(jacobian.Size(), number_of_grid_cells);
-  EXPECT_EQ(jacobian[0].size(), 5);
-  EXPECT_EQ(jacobian[0][0].size(), 5);
+  EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
+  EXPECT_EQ(jacobian.NumRows(), 5);
+  EXPECT_EQ(jacobian.NumColumns(), jacobian.NumRows());
+  EXPECT_EQ(jacobian[0].Size(), 5);
+  EXPECT_EQ(jacobian[0][0].Size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
 
   // Initialize Jacobian matrix
@@ -201,18 +206,18 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ foo })
-                         .products({ yields(bar, 1) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo })
+                         .SetProducts({ Yields(bar, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
     auto solver = micm::RosenbrockSolver<>(
         micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
         std::vector<micm::Process>{ r1 },
-        micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells));
+        micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells));
     EXPECT_EQ(solver.parameters_.absolute_tolerance_.size(), 2);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[0], 1.0e-07);
     EXPECT_EQ(solver.parameters_.absolute_tolerance_[1], 1.0e-08);
@@ -229,15 +234,15 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ foo })
-                         .products({ yields(bar, 1) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo })
+                         .SetProducts({ Yields(bar, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
-    auto params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells);
+    auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells);
     params.absolute_tolerance_ = { 1.0e-01, 1.0e-02 };
     auto solver = micm::RosenbrockSolver<>(
         micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1 }, params);

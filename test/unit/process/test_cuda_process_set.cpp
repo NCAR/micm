@@ -15,7 +15,6 @@
 #include <random>
 #include <vector>
 
-using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
@@ -64,12 +63,12 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -159,12 +158,12 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
       reactants.push_back({ std::to_string(get_species_id()) });
     }
     auto n_product = get_n_product();
-    std::vector<yields> products{};
+    std::vector<micm::Yield> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
-    processes.push_back(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    processes.push_back(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
   }
 
   micm::ProcessSet cpu_set{ processes, cpu_state.variable_map_ };
@@ -184,13 +183,13 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
 
-  auto cpu_builder = CPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  auto cpu_builder = CPUSparseMatrixPolicy<double>::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    cpu_builder = cpu_builder.with_element(elem.first, elem.second);
+    cpu_builder = cpu_builder.WithElement(elem.first, elem.second);
   CPUSparseMatrixPolicy<double> cpu_jacobian{ cpu_builder };
-  auto gpu_builder = GPUSparseMatrixPolicy<double>::create(n_species).number_of_blocks(n_cells).initial_value(100.0);
+  auto gpu_builder = GPUSparseMatrixPolicy<double>::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    gpu_builder = gpu_builder.with_element(elem.first, elem.second);
+    gpu_builder = gpu_builder.WithElement(elem.first, elem.second);
   GPUSparseMatrixPolicy<double> gpu_jacobian{ gpu_builder };
   gpu_jacobian.CopyToDevice();
 

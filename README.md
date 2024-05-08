@@ -142,21 +142,21 @@ int main(const int argc, const char *argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::create()
-                   .reactants({ foo })
-                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ foo })
+                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ foo, bar })
-                   .products({ Yield(baz, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ foo, bar })
+                   .SetProducts({ Yield(baz, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetPhase(gas_phase);
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
 
   State state = solver.GetState();
 

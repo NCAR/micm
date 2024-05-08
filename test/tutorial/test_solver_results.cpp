@@ -16,27 +16,27 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::create()
-                   .reactants({ a })
-                   .products({ yields(b, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ a })
+                   .SetProducts({ Yields(b, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ b, b })
-                   .products({ yields(b, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ b, b })
+                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetPhase(gas_phase);
 
-  Process r3 = Process::create()
-                   .reactants({ b, c })
-                   .products({ yields(a, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .phase(gas_phase);
+  Process r3 = Process::Create()
+                   .SetReactants({ b, c })
+                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetPhase(gas_phase);
 
   RosenbrockSolver<> solver{ System(SystemParameters{ .gas_phase_ = gas_phase }),
                              std::vector<Process>{ r1, r2, r3 },
-                             RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false) };
+                             RosenbrockSolverParameters::ThreeStageRosenbrockParameters(3, false) };
 
   auto state = solver.GetState();
 

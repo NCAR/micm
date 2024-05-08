@@ -125,25 +125,25 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ foo, baz })
-                         .products({ yields(bar, 1), yields(quuz, 2.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ bar })
-                         .products({ yields(foo, 1), yields(quz, 1.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return RosenbrockPolicy(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
 }
 
 template<
@@ -159,11 +159,14 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<GPUMatrixPolicy, GPUSparseMatrixPolicy>>(number_of_grid_cells);
   auto gpu_jacobian = gpu_solver.GetState().jacobian_;
-  EXPECT_EQ(gpu_jacobian.Size(), number_of_grid_cells);
-  EXPECT_EQ(gpu_jacobian[0].size(), 5);
-  EXPECT_EQ(gpu_jacobian[0][0].size(), 5);
+  EXPECT_EQ(gpu_jacobian.NumberOfBlocks(), number_of_grid_cells);
+  EXPECT_EQ(gpu_jacobian.NumRows(), 5);
+  EXPECT_EQ(gpu_jacobian.NumColumns(), gpu_jacobian.NumRows());
+  EXPECT_EQ(gpu_jacobian[0].Size(), 5);
+  EXPECT_EQ(gpu_jacobian[0][0].Size(), 5);
   auto& gpu_jacobian_vec = gpu_jacobian.AsVector();
   EXPECT_GE(gpu_jacobian_vec.size(), 13 * number_of_grid_cells);
+
   gpu_jacobian_vec.assign(gpu_jacobian_vec.size(), 100.0);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {

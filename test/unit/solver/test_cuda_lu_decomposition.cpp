@@ -20,16 +20,16 @@ void check_results(
     const SparseMatrixPolicy<T>& U,
     const std::function<void(const T, const T)> f)
 {
-  EXPECT_EQ(A.Size(), L.Size());
-  EXPECT_EQ(A.Size(), U.Size());
-  for (std::size_t i_block = 0; i_block < A.Size(); ++i_block)
+  EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
+  EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
+  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A[i_block].size(); ++i)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A[i_block].size(); ++j)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
       {
         T result{};
-        for (std::size_t k = 0; k < A[i_block].size(); ++k)
+        for (std::size_t k = 0; k < A.NumRows(); ++k)
         {
           if (!(L.IsZero(i, k) || U.IsZero(k, j)))
           {
@@ -58,11 +58,11 @@ void testRandomMatrix(size_t n_grids)
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = CPUSparseMatrixPolicy<double>::create(10).number_of_blocks(n_grids).initial_value(1.0e-30);
+  auto builder = CPUSparseMatrixPolicy<double>::Create(10).SetNumberOfBlocks(n_grids).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
 
   CPUSparseMatrixPolicy<double> cpu_A(builder);
   GPUSparseMatrixPolicy<double> gpu_A(builder);

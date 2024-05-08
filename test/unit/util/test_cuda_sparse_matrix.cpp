@@ -18,10 +18,10 @@ TEST(CudaSparseMatrix, ConstZeroMatrix)
 
 TEST(CudaSparseMatrix, CopyAssignmentZeroMatrix)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
-                     .with_element(0, 0)
-                     .with_element(1, 1)
-                     .initial_value(0.0);
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::Create(2)
+                     .WithElement(0, 0)
+                     .WithElement(1, 1)
+                     .InitialValue(0.0);
 
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
@@ -46,10 +46,10 @@ TEST(CudaSparseMatrix, CopyAssignmentZeroMatrix)
 
 TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrix)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
-                     .with_element(0, 0)
-                     .with_element(1, 1)
-                     .initial_value(0.0);
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::Create(2)
+                     .WithElement(0, 0)
+                     .WithElement(1, 1)
+                     .InitialValue(0.0);
 
   const micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
@@ -84,10 +84,10 @@ TEST(CudaSparseMatrix, CopyAssignmentConstZeroMatrix)
 
 TEST(CudaSparseMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
-                     .with_element(0, 0)
-                     .with_element(1, 1)
-                     .initial_value(0.0);
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::Create(2)
+                     .WithElement(0, 0)
+                     .WithElement(1, 1)
+                     .InitialValue(0.0);
 
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
@@ -140,10 +140,10 @@ TEST(CudaSparseMatrix, CopyAssignmentDeSynchedHostZeroMatrix)
 
 TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrix)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
-                     .with_element(0, 0)
-                     .with_element(1, 1)
-                     .initial_value(0.0);
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::Create(2)
+                     .WithElement(0, 0)
+                     .WithElement(1, 1)
+                     .InitialValue(0.0);
 
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 
@@ -179,10 +179,10 @@ TEST(CudaSparseMatrix, MoveAssignmentConstZeroMatrix)
 
 TEST(CudaSparseMatrix, MoveAssignmentDeSyncedHostZeroMatrix)
 {
-  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::create(2)
-                     .with_element(0, 0)
-                     .with_element(1, 1)
-                     .initial_value(0.0);
+  auto builder = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>::Create(2)
+                     .WithElement(0, 0)
+                     .WithElement(1, 1)
+                     .InitialValue(0.0);
 
   micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>> matrix{ builder };
 

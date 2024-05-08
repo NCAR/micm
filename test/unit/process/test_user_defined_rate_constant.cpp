@@ -18,7 +18,7 @@ TEST(UserDefinedRateConstant, CalculateWithSystem)
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo{};
-  auto k = photo.calculate(state.conditions_[0], params);
+  auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 0.5);
 }
 
@@ -36,7 +36,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRate)
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo{};
-  auto k = photo.calculate(state.conditions_[0], params);
+  auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 1.1);
 }
 
@@ -53,7 +53,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name" });
-  auto k = photo.calculate(state.conditions_[0], params);
+  auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 1.1);
   EXPECT_EQ(photo.CustomParameters()[0], "a name");
 }
@@ -71,7 +71,7 @@ TEST(UserDefinedRateConstant, CustomScalingFactor)
   state.custom_rate_parameters_[0][0] = 1.2;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name", .scaling_factor_ = 2.0 });
-  auto k = photo.calculate(state.conditions_[0], params);
+  auto k = photo.Calculate(state.conditions_[0], params);
   EXPECT_EQ(k, 1.2 * 2.0);
   EXPECT_EQ(photo.CustomParameters()[0], "a name");
 }

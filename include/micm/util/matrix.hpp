@@ -69,7 +69,7 @@ namespace micm
       {
         return std::vector<T>(this->begin(), this->end());
       }
-      std::size_t size() const
+      std::size_t Size() const
       {
         return y_dim_;
       }
@@ -112,7 +112,7 @@ namespace micm
       {
         return std::vector<T>(this->begin(), this->end());
       }
-      std::size_t size() const
+      std::size_t Size() const
       {
         return y_dim_;
       }

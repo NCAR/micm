@@ -121,13 +121,13 @@ namespace micm
   template<std::size_t L>
   void JitProcessSet<L>::GenerateForcingFunction()
   {
-    std::string function_name = "add_forcing_terms_" + generate_random_string();
-    JitFunction func = JitFunction::create(compiler_)
-                           .name(function_name)
-                           .arguments({ { "rate constants", JitType::DoublePtr },
+    std::string function_name = "add_forcing_terms_" + GenerateRandomString();
+    JitFunction func = JitFunction::Create(compiler_)
+                           .SetName(function_name)
+                           .SetArguments({ { "rate constants", JitType::DoublePtr },
                                         { "state variables", JitType::DoublePtr },
                                         { "forcing", JitType::DoublePtr } })
-                           .return_type(JitType::Void);
+                           .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
     llvm::Type *rate_array_type = llvm::ArrayType::get(double_type, L);
@@ -223,13 +223,13 @@ namespace micm
   template<std::size_t L>
   void JitProcessSet<L>::GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
-    std::string function_name = "subtract_jacobian_terms_" + generate_random_string();
-    JitFunction func = JitFunction::create(compiler_)
-                           .name(function_name)
-                           .arguments({ { "rate constants", JitType::DoublePtr },
+    std::string function_name = "subtract_jacobian_terms_" + GenerateRandomString();
+    JitFunction func = JitFunction::Create(compiler_)
+                           .SetName(function_name)
+                           .SetArguments({ { "rate constants", JitType::DoublePtr },
                                         { "state variables", JitType::DoublePtr },
                                         { "jacobian", JitType::DoublePtr } })
-                           .return_type(JitType::Void);
+                           .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
     llvm::Type *rate_array_type = llvm::ArrayType::get(double_type, L);

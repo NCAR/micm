@@ -15,10 +15,10 @@ getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::two_stage_rosenbrock_parameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -41,10 +41,10 @@ getThreeStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -67,10 +67,10 @@ getFourStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options = micm::RosenbrockSolverParameters::four_stage_rosenbrock_parameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::FourStageRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -94,10 +94,10 @@ getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
   auto options =
-      micm::RosenbrockSolverParameters::four_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
+      micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -121,10 +121,10 @@ getSixStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
   auto options =
-      micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters(number_of_grid_cells);
+      micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");

@@ -26,13 +26,13 @@ void RunTerminatorTest()
               micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
               micm::JitProcessSet<number_of_grid_cells>>
       {
-        auto jit{ micm::JitCompiler::create() };
+        auto jit{ micm::JitCompiler::Create() };
         if (auto err = jit.takeError())
         {
           llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
           EXPECT_TRUE(false);
         }
-        auto solver_params = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, true);
+        auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
         solver_params.relative_tolerance_ = 1.0e-8;
         solver_params.max_number_of_steps_ = 100000;
         return micm::JitRosenbrockSolver<

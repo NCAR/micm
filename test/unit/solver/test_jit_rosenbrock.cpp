@@ -33,20 +33,23 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ foo, baz })
-                         .products({ yields(bar, 1), yields(quuz, 2.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ bar })
-                         .products({ yields(foo, 1), yields(quz, 1.4) })
-                         .phase(gas_phase)
-                         .rate_constant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase).rate_constant(
-      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ quz })
+                         .SetProducts({})
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::JitRosenbrockSolver<
       MatrixPolicy,
@@ -56,7 +59,7 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
       jit,
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters(number_of_grid_cells, false));
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
 }
 
 template<class T>
@@ -69,9 +72,11 @@ void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit)
   // return;
   auto jacobian = solver.GetState().jacobian_;
 
-  EXPECT_EQ(jacobian.Size(), number_of_grid_cells);
-  EXPECT_EQ(jacobian[0].size(), 5);
-  EXPECT_EQ(jacobian[0][0].size(), 5);
+  EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
+  EXPECT_EQ(jacobian.NumRows(), 5);
+  EXPECT_EQ(jacobian.NumColumns(), jacobian.NumRows());
+  EXPECT_EQ(jacobian[0].Size(), 5);
+  EXPECT_EQ(jacobian[0][0].Size(), 5);
   EXPECT_GE(jacobian.AsVector().size(), 13 * number_of_grid_cells);
 
   // Generate a negative Jacobian matrix
@@ -155,7 +160,7 @@ void run_solver(auto& solver)
 
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
   if (auto err = jit.takeError())
   {
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
@@ -169,7 +174,7 @@ TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 
 TEST(JitRosenbrockSolver, MultipleInstances)
 {
-  auto jit{ micm::JitCompiler::create() };
+  auto jit{ micm::JitCompiler::Create() };
 
   micm::SolverConfig solverConfig;
   std::string config_path = "./unit_configs/robertson";
@@ -180,7 +185,7 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  auto solver_parameters = micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters();
+  auto solver_parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
   micm::JitRosenbrockSolver<
       Group1VectorMatrix,

@@ -133,10 +133,10 @@ namespace micm
       std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
 
       // Create the JitFunction with the modified name
-      JitFunction func = JitFunction::create(compiler_)
-                             .name("alpha_minus_jacobian")
-                             .arguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
-                             .return_type(JitType::Void);
+      JitFunction func = JitFunction::Create(compiler_)
+                             .SetName("alpha_minus_jacobian")
+                             .SetArguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
+                             .SetReturnType(JitType::Void);
 
       // constants
       llvm::Value* zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));

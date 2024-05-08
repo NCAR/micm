@@ -66,25 +66,25 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::create()
-                   .reactants({ a })
-                   .products({ yields(b, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ a })
+                   .SetProducts({ Yields(b, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ b, b })
-                   .products({ yields(b, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ b, b })
+                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetPhase(gas_phase);
 
-  Process r3 = Process::create()
-                   .reactants({ b, c })
-                   .products({ yields(a, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .phase(gas_phase);
+  Process r3 = Process::Create()
+                   .SetReactants({ b, c })
+                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetPhase(gas_phase);
 
-  auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false);
+  auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters(3, false);
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
@@ -138,20 +138,20 @@ int main()
     std::cout << std::endl;
   }
 
-  micm::SparseMatrix<std::string> sparse_matrix{ micm::SparseMatrix<std::string>::create(4)
-                                                     .with_element(0, 1)
-                                                     .with_element(2, 1)
-                                                     .with_element(2, 3)
-                                                     .with_element(3, 2)
-                                                     .number_of_blocks(3) };
+  micm::SparseMatrix<std::string> sparse_matrix{ micm::SparseMatrix<std::string>::Create(4)
+                                                     .WithElement(0, 1)
+                                                     .WithElement(2, 1)
+                                                     .WithElement(2, 3)
+                                                     .WithElement(3, 2)
+                                                     .SetNumberOfBlocks(3) };
 
   micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>> sparse_vector_matrix{
-    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::create(4)
-        .with_element(0, 1)
-        .with_element(2, 1)
-        .with_element(2, 3)
-        .with_element(3, 2)
-        .number_of_blocks(3)
+    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::Create(4)
+        .WithElement(0, 1)
+        .WithElement(2, 1)
+        .WithElement(2, 3)
+        .WithElement(3, 2)
+        .SetNumberOfBlocks(3)
   };
 
   sparse_matrix[0][0][1] = sparse_vector_matrix[0][0][1] = "0.0.1";

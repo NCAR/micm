@@ -37,8 +37,8 @@ void testRateConstants(OdeSolverPolicy& solver)
     fixed_state.custom_rate_parameters_[0] = photo_rates[i];
     fixed_solver.UpdateState(fixed_state);
 
-    EXPECT_EQ(state.rate_constants_[i].size(), fixed_state.rate_constants_[0].size());
-    for (size_t j{}; j < state.rate_constants_[i].size(); ++j)
+    EXPECT_EQ(state.rate_constants_.NumColumns(), fixed_state.rate_constants_.NumColumns());
+    for (size_t j{}; j < state.rate_constants_.NumColumns(); ++j)
     {
       EXPECT_EQ(state.rate_constants_[i][j], fixed_state.rate_constants_[0][j]);
     }
@@ -68,12 +68,12 @@ void testForcing(OdeSolverPolicy& solver)
   {
     double number_density_air = 1.0;
     std::vector<double> rate_constants = state.rate_constants_[i];
-    std::vector<double> variables(state.variables_[i].size());
-    for (std::size_t j{}; j < state.variables_[i].size(); ++j)
+    std::vector<double> variables(state.variables_.NumColumns());
+    for (std::size_t j{}; j < state.variables_.NumColumns(); ++j)
       variables[j] = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
     std::vector<double> fixed_forcing = fixed_solver.force(rate_constants, variables, number_density_air);
 
-    EXPECT_EQ(forcing[i].size(), fixed_forcing.size());
+    EXPECT_EQ(forcing.NumColumns(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
       double a = forcing[i][state.variable_map_[fixed_solver.species_names()[j]]];

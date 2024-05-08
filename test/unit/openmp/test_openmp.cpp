@@ -24,7 +24,7 @@ TEST(OpenMP, OneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
 
 #pragma omp parallel num_threads(n_threads)
   {

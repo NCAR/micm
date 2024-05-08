@@ -90,7 +90,7 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
-    jacobian_ = build_jacobian<SparseMatrixPolicy>(
+    jacobian_ = BuildJacobian<SparseMatrixPolicy>(
         parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
 
     auto lu = LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(jacobian_, 1.0e-30);

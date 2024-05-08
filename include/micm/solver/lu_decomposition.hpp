@@ -127,7 +127,7 @@ namespace micm
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
     template<typename T, class SparseMatrixPolicy>
-    void Initialize(const SparseMatrixPolicy& A, T initial_value);
+    void Initialize(const SparseMatrixPolicy& matrix, T initial_value);
   };
 
 }  // namespace micm

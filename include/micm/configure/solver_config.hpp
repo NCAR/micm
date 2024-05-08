@@ -877,7 +877,7 @@ namespace micm
   {
    public:
     SolverConfig()
-        : ConfigTypePolicy(RosenbrockSolverParameters::three_stage_rosenbrock_parameters())
+        : ConfigTypePolicy(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
     {
     }
     SolverConfig(const RosenbrockSolverParameters& parameters)

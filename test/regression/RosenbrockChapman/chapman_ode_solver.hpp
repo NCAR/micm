@@ -762,26 +762,26 @@ namespace micm
     ArrheniusRateConstantParameters params;
     params.A_ = 2.15e-11;
     params.C_ = 110;
-    state.rate_constants_[0][3] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][3] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
 
     // O1D_O2_1
     // k_O1D_O2_1: O1D + O2 -> 1*O + 1*O2
     params.A_ = 3.3e-11;
     params.C_ = 55;
-    state.rate_constants_[0][4] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][4] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
 
     // O_O3_1
     // k_O_O3_1: O + O3 -> 2*O2
     params.A_ = 8e-12;
     params.C_ = -2060;
-    state.rate_constants_[0][5] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][5] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
 
     // M_O_O2_1
     // k_M_O_O2_1: M + O + O2 -> 1*O3 + 1*M
     params.A_ = 6e-34;
     params.B_ = 2.4;
     params.C_ = 0;
-    state.rate_constants_[0][6] = ArrheniusRateConstant(params).calculate(temperature, pressure);
+    state.rate_constants_[0][6] = ArrheniusRateConstant(params).Calculate(temperature, pressure);
   }
 
   inline std::vector<double> ChapmanODESolver::lin_factor(

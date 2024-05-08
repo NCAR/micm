@@ -19,7 +19,7 @@ TEST(AnalyticalExamples, Troe)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -31,7 +31,7 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -43,7 +43,7 @@ TEST(AnalyticalExamples, Photolysis)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -55,7 +55,7 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -67,7 +67,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -79,7 +79,7 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -91,7 +91,7 @@ TEST(AnalyticalExamples, Tunneling)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -103,7 +103,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -115,7 +115,7 @@ TEST(AnalyticalExamples, Arrhenius)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -127,7 +127,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -139,7 +139,7 @@ TEST(AnalyticalExamples, Branched)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -151,7 +151,7 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -163,7 +163,7 @@ TEST(AnalyticalExamples, Robertson)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -175,7 +175,7 @@ TEST(AnalyticalExamples, SurfaceRxn)
          const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
       {
         return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
+          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
         };
       });
 }
@@ -205,22 +205,22 @@ TEST(AnalyticalExamples, Oregonator)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ a })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ b })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .phase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
-                         .reactants({ b })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .phase(gas_phase);
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
 
-  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
@@ -323,36 +323,36 @@ TEST(AnalyticalExamples, Oregonator2)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ a, b })
-                         .products({ yields(b, 1 - std::pow((1 / 77.27), 2)) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a, b })
+                         .SetProducts({ Yields(b, 1 - std::pow((1 / 77.27), 2)) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ c })
-                         .products({ yields(b, 1 / (0.161 * 77.27)) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .phase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ c })
+                         .SetProducts({ Yields(b, 1 / (0.161 * 77.27)) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::create()
-                         .reactants({ b })
-                         .products({ yields(a, std::pow(77.27, 2)) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .phase(gas_phase);
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b })
+                         .SetProducts({ Yields(a, std::pow(77.27, 2)) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r4 = micm::Process::create()
-                         .reactants({ a })
-                         .products({ yields(a, 2), yields(c, 0.161 / 77.27) })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
-                         .phase(gas_phase);
+  micm::Process r4 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(a, 2), Yields(c, 0.161 / 77.27) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .SetPhase(gas_phase);
 
-  micm::Process r5 = micm::Process::create()
-                         .reactants({ a, a })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
-                         .phase(gas_phase);
+  micm::Process r5 = micm::Process::Create()
+                         .SetReactants({ a, a })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
+                         .SetPhase(gas_phase);
 
-  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
   Oregonator<micm::Matrix, SparseMatrixTest> solver(
@@ -470,40 +470,40 @@ TEST(AnalyticalExamples, HIRES)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4, y5, y6, y7, y8 } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ y1 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .phase(gas_phase);
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ y2 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .phase(gas_phase);
-  micm::Process r3 = micm::Process::create()
-                         .reactants({ y3 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .phase(gas_phase);
-  micm::Process r4 = micm::Process::create()
-                         .reactants({ y4 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
-                         .phase(gas_phase);
-  micm::Process r5 = micm::Process::create()
-                         .reactants({ y5 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
-                         .phase(gas_phase);
-  micm::Process r6 = micm::Process::create()
-                         .reactants({ y6 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
-                         .phase(gas_phase);
-  micm::Process r7 = micm::Process::create()
-                         .reactants({ y7 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
-                         .phase(gas_phase);
-  micm::Process r8 = micm::Process::create()
-                         .reactants({ y8 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ y1 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ y2 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ y3 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+  micm::Process r4 = micm::Process::Create()
+                         .SetReactants({ y4 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .SetPhase(gas_phase);
+  micm::Process r5 = micm::Process::Create()
+                         .SetReactants({ y5 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
+                         .SetPhase(gas_phase);
+  micm::Process r6 = micm::Process::Create()
+                         .SetReactants({ y6 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
+                         .SetPhase(gas_phase);
+  micm::Process r7 = micm::Process::Create()
+                         .SetReactants({ y7 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
+                         .SetPhase(gas_phase);
+  micm::Process r8 = micm::Process::Create()
+                         .SetReactants({ y8 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
+                         .SetPhase(gas_phase);
 
-  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   params.relative_tolerance_ = 1e-3;
   params.absolute_tolerance_ = std::vector<double>(8, 1e-4 * params.relative_tolerance_);
   HIRES<micm::Matrix, SparseMatrixTest> solver(
@@ -596,24 +596,24 @@ TEST(AnalyticalExamples, E5)
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4 } };
 
-  micm::Process r1 = micm::Process::create()
-                         .reactants({ y1 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .phase(gas_phase);
-  micm::Process r2 = micm::Process::create()
-                         .reactants({ y2 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .phase(gas_phase);
-  micm::Process r3 = micm::Process::create()
-                         .reactants({ y3 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .phase(gas_phase);
-  micm::Process r4 = micm::Process::create()
-                         .reactants({ y4 })
-                         .rate_constant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
-                         .phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ y1 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ y2 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ y3 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+  micm::Process r4 = micm::Process::Create()
+                         .SetReactants({ y4 })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                         .SetPhase(gas_phase);
 
-  auto params = micm::RosenbrockSolverParameters::six_stage_differential_algebraic_rosenbrock_parameters();
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   params.relative_tolerance_ = 1e-2;
   params.absolute_tolerance_ = std::vector<double>(4, 1.7e-24);
   E5<micm::Matrix, SparseMatrixTest> solver(
