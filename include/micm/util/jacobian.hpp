@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#include <cstddef>
+#include <set>
+#include <utility>
+
 #include <micm/profiler/instrumentation.hpp>
 
 namespace micm

@@ -7,6 +7,7 @@
 #include <micm/util/matrix_error.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <micm/util/sparse_matrix.hpp>
 #include <cmath>
 
 namespace micm
