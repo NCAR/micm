@@ -101,13 +101,13 @@ void test_analytical_troe(
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
-                                                                 .k0_B_ = 167,
-                                                                 .k0_C_ = 3,
-                                                                 .kinf_A_ = 136,
-                                                                 .kinf_B_ = 5,
-                                                                 .kinf_C_ = 24,
-                                                                 .Fc_ = 0.9,
-                                                                 .N_ = 0.8 }))
+                                                                   .k0_B_ = 167,
+                                                                   .k0_C_ = 3,
+                                                                   .kinf_A_ = 136,
+                                                                   .kinf_B_ = 5,
+                                                                   .kinf_C_ = 24,
+                                                                   .Fc_ = 0.9,
+                                                                   .N_ = 0.8 }))
                          .SetPhase(gas_phase);
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
@@ -254,13 +254,13 @@ void test_analytical_stiff_troe(
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
                          .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
-                                                                 .k0_B_ = 167,
-                                                                 .k0_C_ = 3,
-                                                                 .kinf_A_ = 136,
-                                                                 .kinf_B_ = 5,
-                                                                 .kinf_C_ = 24,
-                                                                 .Fc_ = 0.9,
-                                                                 .N_ = 0.8 }))
+                                                                   .k0_B_ = 167,
+                                                                   .k0_C_ = 3,
+                                                                   .kinf_A_ = 136,
+                                                                   .kinf_B_ = 5,
+                                                                   .kinf_C_ = 24,
+                                                                   .Fc_ = 0.9,
+                                                                   .N_ = 0.8 }))
                          .SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()
@@ -620,13 +620,13 @@ void test_analytical_ternary_chemical_activation(
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
-                                                                                      .k0_B_ = 167,
-                                                                                      .k0_C_ = 3,
-                                                                                      .kinf_A_ = 136,
-                                                                                      .kinf_B_ = 5,
-                                                                                      .kinf_C_ = 24,
-                                                                                      .Fc_ = 0.9,
-                                                                                      .N_ = 0.8 }))
+                                                                                        .k0_B_ = 167,
+                                                                                        .k0_C_ = 3,
+                                                                                        .kinf_A_ = 136,
+                                                                                        .kinf_B_ = 5,
+                                                                                        .kinf_C_ = 24,
+                                                                                        .Fc_ = 0.9,
+                                                                                        .N_ = 0.8 }))
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
@@ -745,13 +745,13 @@ void test_analytical_stiff_ternary_chemical_activation(
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
                          .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
-                                                                                      .k0_B_ = 167,
-                                                                                      .k0_C_ = 3,
-                                                                                      .kinf_A_ = 136,
-                                                                                      .kinf_B_ = 5,
-                                                                                      .kinf_C_ = 24,
-                                                                                      .Fc_ = 0.9,
-                                                                                      .N_ = 0.8 }))
+                                                                                        .k0_B_ = 167,
+                                                                                        .k0_C_ = 3,
+                                                                                        .kinf_A_ = 136,
+                                                                                        .kinf_B_ = 5,
+                                                                                        .kinf_C_ = 24,
+                                                                                        .Fc_ = 0.9,
+                                                                                        .N_ = 0.8 }))
                          .SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()
@@ -1333,10 +1333,10 @@ void test_analytical_branched(
           .SetReactants({ a })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                      .X_ = 1.2,
-                                                      .Y_ = 204.3,
-                                                      .a0_ = 1.0e-3,
-                                                      .n_ = 2 }))
+                                                        .X_ = 1.2,
+                                                        .Y_ = 204.3,
+                                                        .a0_ = 1.0e-3,
+                                                        .n_ = 2 }))
           .SetPhase(gas_phase);
 
   micm::Process r2 =
@@ -1344,10 +1344,10 @@ void test_analytical_branched(
           .SetReactants({ b })
           .SetProducts({ Yields(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                      .X_ = 1.2,
-                                                      .Y_ = 204.3,
-                                                      .a0_ = 1.0e-3,
-                                                      .n_ = 2 }))
+                                                        .X_ = 1.2,
+                                                        .Y_ = 204.3,
+                                                        .a0_ = 1.0e-3,
+                                                        .n_ = 2 }))
           .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
@@ -1464,10 +1464,10 @@ void test_analytical_stiff_branched(
           .SetReactants({ a1 })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                      .X_ = 1.2,
-                                                      .Y_ = 204.3,
-                                                      .a0_ = 1.0e-3,
-                                                      .n_ = 2 }))
+                                                        .X_ = 1.2,
+                                                        .Y_ = 204.3,
+                                                        .a0_ = 1.0e-3,
+                                                        .n_ = 2 }))
           .SetPhase(gas_phase);
 
   micm::Process r2 =
@@ -1475,10 +1475,10 @@ void test_analytical_stiff_branched(
           .SetReactants({ a2 })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                      .X_ = 1.2,
-                                                      .Y_ = 204.3,
-                                                      .a0_ = 1.0e-3,
-                                                      .n_ = 2 }))
+                                                        .X_ = 1.2,
+                                                        .Y_ = 204.3,
+                                                        .a0_ = 1.0e-3,
+                                                        .n_ = 2 }))
           .SetPhase(gas_phase);
 
   micm::Process r3 =
@@ -1486,10 +1486,10 @@ void test_analytical_stiff_branched(
           .SetReactants({ b })
           .SetProducts({ Yields(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                      .X_ = 1.2,
-                                                      .Y_ = 204.3,
-                                                      .a0_ = 1.0e-3,
-                                                      .n_ = 2 }))
+                                                        .X_ = 1.2,
+                                                        .Y_ = 204.3,
+                                                        .a0_ = 1.0e-3,
+                                                        .n_ = 2 }))
           .SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()

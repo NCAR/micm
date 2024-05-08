@@ -37,11 +37,8 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
                          .SetPhase(gas_phase)
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
 
-  micm::Process r3 = micm::Process::Create()
-                         .SetReactants({ quz })
-                         .SetProducts({})
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
+      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
   return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),

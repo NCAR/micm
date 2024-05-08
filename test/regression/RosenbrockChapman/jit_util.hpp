@@ -93,8 +93,7 @@ getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options =
-      micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   auto jit{ micm::JitCompiler::Create() };
@@ -120,8 +119,7 @@ getSixStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  auto options =
-      micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
+  auto options = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(number_of_grid_cells);
   options.ignore_unused_species_ = true;
 
   auto jit{ micm::JitCompiler::Create() };

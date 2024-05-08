@@ -34,11 +34,15 @@ void testProcessSet(const std::function<ProcessSetPolicy(
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
-  micm::Process r1 =
-      micm::Process::Create().SetReactants({ foo, baz }).SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) }).SetPhase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 =
-      micm::Process::Create().SetReactants({ bar, qux }).SetProducts({ Yields(foo, 1), Yields(quz, 1.4) }).SetPhase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar, qux })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 

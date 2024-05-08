@@ -125,8 +125,8 @@ namespace micm
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
-                                        { "state variables", JitType::DoublePtr },
-                                        { "forcing", JitType::DoublePtr } })
+                                           { "state variables", JitType::DoublePtr },
+                                           { "forcing", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
@@ -227,8 +227,8 @@ namespace micm
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
-                                        { "state variables", JitType::DoublePtr },
-                                        { "jacobian", JitType::DoublePtr } })
+                                           { "state variables", JitType::DoublePtr },
+                                           { "jacobian", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
