@@ -563,9 +563,9 @@ TEST(CudaDenseMatrix, CopyFunction)
   EXPECT_EQ(matrix[0][1], 8.41);
   EXPECT_EQ(matrix[1][0], 53.29);
   EXPECT_EQ(matrix[1][1], 20.25);
-  for(int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; i++)
   {
-    for(int j = 0; j < 2; j++)
+    for (int j = 0; j < 2; j++)
     {
       EXPECT_EQ(matrix2[i][j], matrix[i][j]);
     }
