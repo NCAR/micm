@@ -535,3 +535,39 @@ TEST(CudaDenseMatrix, Axpy)
   double sum = std::accumulate(gpu_y.AsVector().begin(), gpu_y.AsVector().end(), 0);
   EXPECT_EQ(sum, (10 * 2.0 + 20.0) * 198 + 20.0 * 2.0 + 20.0 + 30.0 * 2.0 + 20.0);
 }
+
+TEST(CudaDenseMatrix, CopyFunction)
+{
+  std::vector<std::vector<double>> h_vector{ { 0.1, 2.9 }, { 7.3, 4.5 } };
+  auto matrix = micm::CudaDenseMatrix<double, 2>(h_vector);
+
+  std::vector<std::vector<double>> h_vector2{ { 2.1, 5.9 }, { 6.3, 4.8 } };
+  auto matrix2 = micm::CudaDenseMatrix<double, 2>(h_vector2);
+
+  matrix[0][0] = 8.5;
+
+  EXPECT_EQ(matrix[0][0], 8.5);
+  EXPECT_EQ(matrix[0][1], 2.9);
+  EXPECT_EQ(matrix[1][0], 7.3);
+  EXPECT_EQ(matrix[1][1], 4.5);
+  EXPECT_EQ(matrix2[0][0], 2.1);
+  EXPECT_EQ(matrix2[0][1], 5.9);
+  EXPECT_EQ(matrix2[1][0], 6.3);
+  EXPECT_EQ(matrix2[1][1], 4.8);
+
+  ModifyAndSyncToHost(matrix);
+  matrix2.Copy(matrix);
+  matrix2.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 72.25);
+  EXPECT_EQ(matrix[0][1], 8.41);
+  EXPECT_EQ(matrix[1][0], 53.29);
+  EXPECT_EQ(matrix[1][1], 20.25);
+  for (int i = 0; i < 2; i++)
+  {
+    for (int j = 0; j < 2; j++)
+    {
+      EXPECT_EQ(matrix2[i][j], matrix[i][j]);
+    }
+  }
+}

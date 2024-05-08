@@ -234,6 +234,14 @@ namespace micm
         f(elem, *(a_iter++), *(b_iter++));
     }
 
+    // Copy the values from the other matrix into this one
+    void Copy(const Matrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both vector matrices must have the same size.");
+      this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;
