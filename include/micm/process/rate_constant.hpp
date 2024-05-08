@@ -48,12 +48,12 @@ namespace
     }
   };
 
-  const RateConstantErrorCategory rateConstantErrorCategory{};
+  const RateConstantErrorCategory RATE_CONSTANT_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmRateConstantErrc e)
 {
-  return { static_cast<int>(e), rateConstantErrorCategory };
+  return { static_cast<int>(e), RATE_CONSTANT_ERROR };
 }
 
 namespace micm

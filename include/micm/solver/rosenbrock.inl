@@ -280,7 +280,7 @@ namespace micm
     std::vector<MatrixPolicy<double>> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
-        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
+        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
 
@@ -294,7 +294,7 @@ namespace micm
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
-      H = delta_min_;
+      H = DELTA_MIN;
 
     // TODO: the logic above this point should be moved to the constructor and should return an error
     //       if the parameters are invalid (e.g., h_min > h_max or h_start > h_max)

@@ -58,6 +58,12 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.FunctionIgnoredRegexp
     value:           'name|message|make_error_code'
+  - key:             readability-identifier-naming.ClassMemberCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ClassMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           UPPER_CASE
   - key:             readability-implicit-bool-conversion.AllowIntegerConditions
     value:           1
   - key:             readability-implicit-bool-conversion.AllowPointerConditions

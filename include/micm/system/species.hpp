@@ -47,12 +47,12 @@ namespace
     }
   };
 
-  const MicmSpeciesErrorCategory micmSpeciesErrorCategory{};
+  const MicmSpeciesErrorCategory MICM_SPECIES_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmSpeciesErrc e)
 {
-  return { static_cast<int>(e), micmSpeciesErrorCategory };
+  return { static_cast<int>(e), MICM_SPECIES_ERROR };
 }
 
 namespace micm

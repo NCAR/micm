@@ -116,7 +116,7 @@ namespace micm
     ProcessSetPolicy process_set_;
     LinearSolverPolicy linear_solver_;
 
-    static constexpr double delta_min_ = 1.0e-6;
+    static constexpr double DELTA_MIN = 1.0e-6;
 
     /// @brief Default constructor
     RosenbrockSolver();
