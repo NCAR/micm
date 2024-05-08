@@ -4,9 +4,6 @@
  */
 #pragma once
 
-
-#include <chrono>
-
 #include <micm/util/cuda_param.hpp>
 
 namespace micm

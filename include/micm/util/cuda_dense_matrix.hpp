@@ -12,7 +12,6 @@
 #include <cuda_runtime.h>
 
 #include <type_traits>
-#include <iostream>
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)

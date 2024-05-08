@@ -19,7 +19,6 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include <gtest/gtest.h>
 
 constexpr size_t nsteps = 1000;
 
