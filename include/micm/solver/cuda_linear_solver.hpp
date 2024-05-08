@@ -86,7 +86,7 @@ namespace micm
         const SparseMatrixPolicy<T>& L,
         const SparseMatrixPolicy<T>& U) const
     {
-      LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>:: template Solve<MatrixPolicy>(b, x, L, U);
+      LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::template Solve<MatrixPolicy>(b, x, L, U);
     };
   };
 }  // namespace micm
