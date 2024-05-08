@@ -529,8 +529,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
-    process_set_.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(
-        rate_constants, number_densities, jacobian);
+    process_set_.SubtractJacobianTerms(rate_constants, number_densities, jacobian);
   }
 
   template<

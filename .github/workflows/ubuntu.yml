@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
         run: cmake --build build --verbose
