@@ -23,6 +23,8 @@ namespace micm
 
     cudaError_t FreeVector(CudaMatrixParam& param)
     {
+      param.number_of_elements_ = 0;
+      param.number_of_grid_cells_ = 0;
       if (param.d_data_ == nullptr)
       {
         return cudaError_t::cudaSuccess;
