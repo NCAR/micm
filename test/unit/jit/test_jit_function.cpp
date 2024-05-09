@@ -277,10 +277,8 @@ TEST(JitFunction, SimpleLoop)
     llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
     EXPECT_TRUE(false);
   }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
-                               .SetName("foo_loop")
-                               .SetArguments({})
-                               .SetReturnType(micm::JitType::Int32);
+  micm::JitFunction func =
+      micm::JitFunction::Create(jit.get()).SetName("foo_loop").SetArguments({}).SetReturnType(micm::JitType::Int32);
   auto loop = func.StartLoop("foo loop", 0, 10);
   llvm::PHINode *ret_val = func.builder_->CreatePHI(func.GetType(micm::JitType::Int32), 2, "ret val");
   ret_val->addIncoming(llvm::ConstantInt::get(*(func.context_), llvm::APInt(32, 1)), func.entry_block_);

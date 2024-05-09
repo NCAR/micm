@@ -234,6 +234,14 @@ namespace micm
         f(elem, *(a_iter++), *(b_iter++));
     }
 
+    // Copy the values from the other matrix into this one
+    void Copy(const Matrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both vector matrices must have the same size.");
+      this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;
@@ -242,6 +250,27 @@ namespace micm
     const std::vector<T> &AsVector() const
     {
       return data_;
+    }
+
+    // add begin and end iterators
+    typename std::vector<T>::iterator begin() noexcept
+    {
+      return data_.begin();
+    }
+
+    typename std::vector<T>::const_iterator begin() const noexcept
+    {
+      return data_.cbegin();
+    }
+
+    typename std::vector<T>::iterator end() noexcept
+    {
+      return data_.end();
+    }
+
+    typename std::vector<T>::const_iterator end() const noexcept
+    {
+      return data_.cend();
     }
   };
 

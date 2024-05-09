@@ -62,8 +62,8 @@ namespace micm
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "A matrix", JitType::DoublePtr },
-                                        { "lower matrix", JitType::DoublePtr },
-                                        { "upper matrix", JitType::DoublePtr } })
+                                           { "lower matrix", JitType::DoublePtr },
+                                           { "upper matrix", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));

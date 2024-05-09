@@ -6,6 +6,10 @@
 
 #include <micm/profiler/instrumentation.hpp>
 
+#include <cstddef>
+#include <set>
+#include <utility>
+
 namespace micm
 {
   // annonymous namespace to hide jacobian builder

@@ -34,11 +34,15 @@ void testProcessSet(const std::function<ProcessSetPolicy(
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
-  micm::Process r1 =
-      micm::Process::Create().SetReactants({ foo, baz }).SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) }).SetPhase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 =
-      micm::Process::Create().SetReactants({ bar, qux }).SetProducts({ Yields(foo, 1), Yields(quz, 1.4) }).SetPhase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar, qux })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
@@ -104,7 +108,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
     builder = builder.WithElement(elem.first, elem.second);
   SparseMatrixPolicy<double> jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
+  set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
   EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0);  // foo -> bar

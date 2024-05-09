@@ -63,11 +63,11 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    template<class MatrixPolicy, class SparseMatrixPolicy>
     void SubtractJacobianTerms(
-        const MatrixPolicy<double> &rate_constants,
-        const MatrixPolicy<double> &state_variables,
-        SparseMatrixPolicy<double> &jacobian) const;
+        const MatrixPolicy &rate_constants,
+        const MatrixPolicy &state_variables,
+        SparseMatrixPolicy &jacobian) const;
 
    private:
     /// @brief Generates a function to calculate forcing terms
@@ -125,8 +125,8 @@ namespace micm
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
-                                        { "state variables", JitType::DoublePtr },
-                                        { "forcing", JitType::DoublePtr } })
+                                           { "state variables", JitType::DoublePtr },
+                                           { "forcing", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
@@ -227,8 +227,8 @@ namespace micm
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
-                                        { "state variables", JitType::DoublePtr },
-                                        { "jacobian", JitType::DoublePtr } })
+                                           { "state variables", JitType::DoublePtr },
+                                           { "jacobian", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
@@ -343,11 +343,11 @@ namespace micm
   }
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   void JitProcessSet<L>::SubtractJacobianTerms(
-      const MatrixPolicy<double> &rate_constants,
-      const MatrixPolicy<double> &state_variables,
-      SparseMatrixPolicy<double> &jacobian) const
+      const MatrixPolicy &rate_constants,
+      const MatrixPolicy &state_variables,
+      SparseMatrixPolicy &jacobian) const
   {
     jacobian_function_(rate_constants.AsVector().data(), state_variables.AsVector().data(), jacobian.AsVector().data());
   }

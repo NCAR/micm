@@ -7,6 +7,8 @@
 #include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
+#include <cstdlib>
+#include <stdexcept>
 #include <vector>
 
 namespace micm

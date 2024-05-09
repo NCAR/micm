@@ -97,6 +97,7 @@ namespace micm
     micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_);
   }
 
+  // call the function from the base class
   template<typename T, template<class> class SparseMatrixPolicy>
   requires(!CudaMatrix<SparseMatrixPolicy<T>>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy<T>& A,
