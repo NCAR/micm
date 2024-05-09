@@ -66,22 +66,22 @@ namespace micm
   struct SolverStats
   {
     /// @brief The number of forcing function calls
-    uint64_t function_calls{};
+    uint64_t function_calls_{};
     /// @brief The number of jacobian function calls
-    uint64_t jacobian_updates{};
+    uint64_t jacobian_updates_{};
     /// @brief The total number of internal time steps taken
-    uint64_t number_of_steps{};
+    uint64_t number_of_steps_{};
     /// @brief The number of accepted integrations
-    uint64_t accepted{};
+    uint64_t accepted_{};
     /// @brief The number of rejected integrations
-    uint64_t rejected{};
+    uint64_t rejected_{};
     /// @brief The number of LU decompositions
-    uint64_t decompositions{};
+    uint64_t decompositions_{};
     /// @brief The number of linear solves
-    uint64_t solves{};
+    uint64_t solves_{};
     /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
     /// is never singular
-    uint64_t singular{};
+    uint64_t singular_{};
 
     /// @brief Set all member variables to zero
     void Reset();
