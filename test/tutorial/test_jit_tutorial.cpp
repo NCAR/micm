@@ -52,14 +52,14 @@ auto run_solver(auto& solver)
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
 
-      total_stats.function_calls += result.stats_.function_calls;
-      total_stats.jacobian_updates += result.stats_.jacobian_updates;
-      total_stats.number_of_steps += result.stats_.number_of_steps;
-      total_stats.accepted += result.stats_.accepted;
-      total_stats.rejected += result.stats_.rejected;
-      total_stats.decompositions += result.stats_.decompositions;
-      total_stats.solves += result.stats_.solves;
-      total_stats.singular += result.stats_.singular;
+      total_stats.function_calls_ += result.stats_.function_calls_;
+      total_stats.jacobian_updates_ += result.stats_.jacobian_updates_;
+      total_stats.number_of_steps_ += result.stats_.number_of_steps_;
+      total_stats.accepted_ += result.stats_.accepted_;
+      total_stats.rejected_ += result.stats_.rejected_;
+      total_stats.decompositions_ += result.stats_.decompositions_;
+      total_stats.solves_ += result.stats_.solves_;
+      total_stats.singular_ += result.stats_.singular_;
     }
   }
 
@@ -121,27 +121,27 @@ int main(const int argc, const char* argv[])
 
   auto result_stats = std::get<1>(result_tuple);
   std::cout << "Standard solve stats: " << std::endl;
-  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
-  std::cout << "\tfunction_calls: " << result_stats.function_calls << std::endl;
-  std::cout << "\tjacobian_updates: " << result_stats.jacobian_updates << std::endl;
-  std::cout << "\tnumber_of_steps: " << result_stats.number_of_steps << std::endl;
-  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
-  std::cout << "\trejected: " << result_stats.rejected << std::endl;
-  std::cout << "\tdecompositions: " << result_stats.decompositions << std::endl;
-  std::cout << "\tsolves: " << result_stats.solves << std::endl;
-  std::cout << "\tsingular: " << result_stats.singular << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted_ << std::endl;
+  std::cout << "\tfunction_calls: " << result_stats.function_calls_ << std::endl;
+  std::cout << "\tjacobian_updates: " << result_stats.jacobian_updates_ << std::endl;
+  std::cout << "\tnumber_of_steps: " << result_stats.number_of_steps_ << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted_ << std::endl;
+  std::cout << "\trejected: " << result_stats.rejected_ << std::endl;
+  std::cout << "\tdecompositions: " << result_stats.decompositions_ << std::endl;
+  std::cout << "\tsolves: " << result_stats.solves_ << std::endl;
+  std::cout << "\tsingular: " << result_stats.singular_ << std::endl;
 
   auto jit_result_stats = std::get<1>(jit_result_tuple);
   std::cout << "JIT solve stats: " << std::endl;
-  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "\tfunction_calls: " << jit_result_stats.function_calls << std::endl;
-  std::cout << "\tjacobian_updates: " << jit_result_stats.jacobian_updates << std::endl;
-  std::cout << "\tnumber_of_steps: " << jit_result_stats.number_of_steps << std::endl;
-  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "\trejected: " << jit_result_stats.rejected << std::endl;
-  std::cout << "\tdecompositions: " << jit_result_stats.decompositions << std::endl;
-  std::cout << "\tsolves: " << jit_result_stats.solves << std::endl;
-  std::cout << "\tsingular: " << jit_result_stats.singular << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted_ << std::endl;
+  std::cout << "\tfunction_calls: " << jit_result_stats.function_calls_ << std::endl;
+  std::cout << "\tjacobian_updates: " << jit_result_stats.jacobian_updates_ << std::endl;
+  std::cout << "\tnumber_of_steps: " << jit_result_stats.number_of_steps_ << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted_ << std::endl;
+  std::cout << "\trejected: " << jit_result_stats.rejected_ << std::endl;
+  std::cout << "\tdecompositions: " << jit_result_stats.decompositions_ << std::endl;
+  std::cout << "\tsolves: " << jit_result_stats.solves_ << std::endl;
+  std::cout << "\tsingular: " << jit_result_stats.singular_ << std::endl;
 
   auto result = std::get<0>(result_tuple);
   auto jit_result = std::get<0>(jit_result_tuple);
