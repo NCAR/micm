@@ -62,7 +62,7 @@ Adding the custom rate constant is quite simple. Include the header file:
     #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
     #include <micm/process/troe_rate_constant.hpp>
     #include <micm/process/tunneling_rate_constant.hpp>
-  + #include <micm/process/user_defined_rate_constant.hpp>
+    #include <micm/process/user_defined_rate_constant.hpp>
     #include <micm/solver/rosenbrock.hpp>
 
 
@@ -76,31 +76,30 @@ Then setup the reaction which will use this rate constant:
 
         .. code-block:: diff
 
-             Process r7 = Process::Create()
+            Process r7 = Process::Create()
                              .SetReactants({ f })
                              .SetProducts({ Yields(g, 1) })
                              .SetRateConstant(TunnelingRateConstant({ .A_ = 1.2, .B_ = 2.3, .C_ = 302.3 }))
                              .SetPhase(gas_phase);
 
-            + Process r8 = Process::Create()
-            +                 .SetReactants({ c })
-            +                 .SetProducts({ Yields(g, 1) })
-            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
-            +                 .SetPhase(gas_phase);
+            Process r8 = Process::Create()
+                             .SetReactants({ c })
+                             .SetProducts({ Yields(g, 1) })
+                             .SetRateConstant(UserDefinedRateConstant({.label_="my rate"}))
+                             .SetPhase(gas_phase);
 
-            + Process r9 = Process::Create()
-            +                 .SetProducts({ Yields(a, 1) })
-            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
-            +                 .SetPhase(gas_phase);
+            Process r9 = Process::Create()
+                             .SetProducts({ Yields(a, 1) })
+                             .SetRateConstant(UserDefinedRateConstant({.label_="my emission rate"}))
+                             .SetPhase(gas_phase);
 
-            + Process r10 = Process::Create()
-            +                 .SetReactants({ b })
-            +                 .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
-            +                 .SetPhase(gas_phase);
+            Process r10 = Process::Create()
+                             .SetReactants({ b })
+                             .SetRateConstant(UserDefinedRateConstant({.label_="my loss rate"}))
+                             .SetPhase(gas_phase);
 
-             auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
-            - auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
-            + auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
+            auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
+            auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 };
 
 
 
@@ -111,26 +110,26 @@ Then setup the reaction which will use this rate constant:
 
         .. code-block:: diff
 
-           + {
-           +   "type": "PHOTOLYSIS",
-           +   "reactants": {
-           +     "C": {}
-           +   },
-           +   "products": {
-           +     "G": {}
-           +   },
-           +   "MUSICA name": "my photolysis rate"
-           + },
-           + {
-           +   "type": "FIRST_ORDER_LOSS",
-           +   "species": "B",
-           +   "MUSICA name": "my loss rate"
-           + },
-           + {
-           +   "type": "EMISSION",
-           +   "species": "A",
-           +   "MUSICA name": "my emission rate"
-           + }
+          {
+            "type": "PHOTOLYSIS",
+            "reactants": {
+              "C": {}
+            },
+            "products": {
+              "G": {}
+            },
+            "MUSICA name": "my photolysis rate"
+          },
+          {
+            "type": "FIRST_ORDER_LOSS",
+            "species": "B",
+            "MUSICA name": "my loss rate"
+          },
+          {
+            "type": "EMISSION",
+            "species": "A",
+            "MUSICA name": "my emission rate"
+          }
 
 
 Finally, set and upate the rate constants as needed:
@@ -143,33 +142,33 @@ Finally, set and upate the rate constants as needed:
 
         .. code-block:: diff
 
-          +double photo_rate = 1e-10;
-          +double emission_rate = 1e-20;
-          +double loss = emission_rate * 1e-3;
-          +// these rates are constant through the simulation
-          +state.SetCustomRateParameter("my emission rate", emission_rate);
-          +state.SetCustomRateParameter("my loss rate", loss);
-           // solve for ten iterations
-           for (int i = 0; i < 10; ++i)
-           {
-             // Depending on how stiff the system is
-             // the solver integration step may not be able to solve for the full time step
-             // so we need to track how much time the solver was able to integrate for and continue
-             // solving until we finish
-             double elapsed_solve_time = 0;
-          +  state.SetCustomRateParameter("my photolysis rate", photo_rate);
+          double photo_rate = 1e-10;
+          double emission_rate = 1e-20;
+          double loss = emission_rate * 1e-3;
+          // these rates are constant through the simulation
+          state.SetCustomRateParameter("my emission rate", emission_rate);
+          state.SetCustomRateParameter("my loss rate", loss);
+          // solve for ten iterations
+          for (int i = 0; i < 10; ++i)
+          {
+            // Depending on how stiff the system is
+            // the solver integration step may not be able to solve for the full time step
+            // so we need to track how much time the solver was able to integrate for and continue
+            // solving until we finish
+            double elapsed_solve_time = 0;
+            state.SetCustomRateParameter("my photolysis rate", photo_rate);
 
-             while (elapsed_solve_time < time_step)
-             {
-               auto result = solver.Solve(time_step - elapsed_solve_time, state);
-               elapsed_solve_time = result.final_time_;
-               // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-               state.variables_[0] = result.result_.AsVector();
-             }
+            while (elapsed_solve_time < time_step)
+            {
+              auto result = solver.Solve(time_step - elapsed_solve_time, state);
+              elapsed_solve_time = result.final_time_;
+              // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
+              state.variables_[0] = result.result_.AsVector();
+            }
 
-             print_state(time_step * (i + 1), state);
-          +   photo_rate *= 1.5;
-           }
+            print_state(time_step * (i + 1), state);
+            photo_rate *= 1.5;
+          }
 
     .. tab-item:: OpenAtmos Configuration reading
 
@@ -180,33 +179,33 @@ Finally, set and upate the rate constants as needed:
 
         .. code-block:: diff
 
-          +double photo_rate = 1e-10;
-          +double emission_rate = 1e-20;
-          +double loss = emission_rate * 1e-3;
-          +// these rates are constant through the simulation
-          +state.SetCustomRateParameter("EMIS.my emission rate", emission_rate);
-          +state.SetCustomRateParameter("LOSS.my loss rate", loss);
-           // solve for ten iterations
-           for (int i = 0; i < 10; ++i)
-           {
-             // Depending on how stiff the system is
-             // the solver integration step may not be able to solve for the full time step
-             // so we need to track how much time the solver was able to integrate for and continue
-             // solving until we finish
-             double elapsed_solve_time = 0;
-             +state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
+          double photo_rate = 1e-10;
+          double emission_rate = 1e-20;
+          double loss = emission_rate * 1e-3;
+          // these rates are constant through the simulation
+          state.SetCustomRateParameter("EMIS.my emission rate", emission_rate);
+          state.SetCustomRateParameter("LOSS.my loss rate", loss);
+          // solve for ten iterations
+          for (int i = 0; i < 10; ++i)
+          {
+            // Depending on how stiff the system is
+            // the solver integration step may not be able to solve for the full time step
+            // so we need to track how much time the solver was able to integrate for and continue
+            // solving until we finish
+            double elapsed_solve_time = 0;
+            state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
 
-             while (elapsed_solve_time < time_step)
-             {
-               auto result = solver.Solve(time_step - elapsed_solve_time, state);
-               elapsed_solve_time = result.final_time_;
-               // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-               state.variables_[0] = result.result_.AsVector();
-             }
+            while (elapsed_solve_time < time_step)
+            {
+              auto result = solver.Solve(time_step - elapsed_solve_time, state);
+              elapsed_solve_time = result.final_time_;
+              // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
+              state.variables_[0] = result.result_.AsVector();
+            }
 
-             print_state(time_step * (i + 1), state);
-             +photo_rate *= 1.5;
-           }
+            print_state(time_step * (i + 1), state);
+            photo_rate *= 1.5;
+          }
 
 And this is final output. Notice that the concentration of G ends up much higher than in 
 the :ref:`Rate constants` tutorial's result.

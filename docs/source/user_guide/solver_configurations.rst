@@ -81,10 +81,6 @@ Running this program should give an output similar to this:
   decompositions: 178
   solves: 356
   singular: 0
-  total_forcing_time: 9962 nanoseconds
-  total_jacobian_time: 6454 nanoseconds
-  total_linear_factor_time: 26835 nanoseconds
-  total_linear_solve_time: 12044 nanoseconds
 
   Three stages: 
   time,         A,         B,         C
@@ -109,10 +105,6 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 381
   singular: 0
-  total_forcing_time: 7421 nanoseconds
-  total_jacobian_time: 4295 nanoseconds
-  total_linear_factor_time: 19248 nanoseconds
-  total_linear_solve_time: 12093 nanoseconds
 
   Four stages: 
   time,         A,         B,         C
@@ -137,10 +129,6 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 508
   singular: 0
-  total_forcing_time: 9749 nanoseconds
-  total_jacobian_time: 4537 nanoseconds
-  total_linear_factor_time: 20040 nanoseconds
-  total_linear_solve_time: 17923 nanoseconds
 
   Four stages differential algebraic: 
   time,         A,         B,         C
@@ -165,11 +153,6 @@ Running this program should give an output similar to this:
   decompositions: 128
   solves: 512
   singular: 0
-  total_forcing_time: 10584 nanoseconds
-  total_jacobian_time: 4376 nanoseconds
-  total_linear_factor_time: 19792 nanoseconds
-  total_linear_solve_time: 17254 nanoseconds
-
 
   Six stages differential algebraic: 
     time,         A,         B,         C
@@ -194,7 +177,3 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 762
   singular: 0
-  total_forcing_time: 20743 nanoseconds
-  total_jacobian_time: 4497 nanoseconds
-  total_linear_factor_time: 20085 nanoseconds
-  total_linear_solve_time: 28233 nanoseconds
