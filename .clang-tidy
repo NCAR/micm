@@ -59,11 +59,9 @@ CheckOptions:
   - key:             readability-identifier-naming.ClassIgnoredRegexp
     value:           'is_error_condition_enum'
   - key:             readability-identifier-naming.MemberCase
-    value:           lower_case
+    value:           aNy_CasE
   - key:             readability-identifier-naming.MemberSuffix
     value:           _
-  - key:             readability-identifier-naming.MemberIgnoredRegexp
-    value:           '^._$|^k0_._$|^kinf_._$|^Fc_$|^niLU_.*$|[LU]ij_.*$'
   - key:             readability-identifier-naming.ClassConstantCase
     value:           UPPER_CASE
   - key:             readability-identifier-naming.GlobalConstantCase
