@@ -159,7 +159,7 @@ Finally, we are ready to pick a timestep and solve the system.
 This is the output:
 
 
-.. csv-table:: Table Title
+.. csv-table:: The Change of Concentration with Time
    :header: "time", "A", "B", "C", "D", "E", "F", "G"
    :widths: 10, 15, 15, 15, 15, 15, 15, 15
 
