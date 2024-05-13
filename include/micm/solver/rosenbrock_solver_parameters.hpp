@@ -109,54 +109,54 @@ namespace micm
 
   inline void RosenbrockSolverParameters::Print() const
   {
-    std::cout << "stages_: " << stages_ << std::endl;
-    std::cout << "upper_limit_tolerance_: " << upper_limit_tolerance_ << std::endl;
-    std::cout << "max_number_of_steps_: " << max_number_of_steps_ << std::endl;
-    std::cout << "round_off_: " << round_off_ << std::endl;
-    std::cout << "factor_min_: " << factor_min_ << std::endl;
-    std::cout << "factor_max_: " << factor_max_ << std::endl;
-    std::cout << "rejection_factor_decrease_: " << rejection_factor_decrease_ << std::endl;
-    std::cout << "safety_factor_: " << safety_factor_ << std::endl;
-    std::cout << "h_min_: " << h_min_ << std::endl;
-    std::cout << "h_max_: " << h_max_ << std::endl;
-    std::cout << "h_start_: " << h_start_ << std::endl;
-    std::cout << "new_function_evaluation_: ";
+    std::cout << "stages: " << stages_ << std::endl;
+    std::cout << "upper_limit_tolerance: " << upper_limit_tolerance_ << std::endl;
+    std::cout << "max_number_of_steps: " << max_number_of_steps_ << std::endl;
+    std::cout << "round_off: " << round_off_ << std::endl;
+    std::cout << "factor_min: " << factor_min_ << std::endl;
+    std::cout << "factor_max: " << factor_max_ << std::endl;
+    std::cout << "rejection_factor_decrease: " << rejection_factor_decrease_ << std::endl;
+    std::cout << "safety_factor: " << safety_factor_ << std::endl;
+    std::cout << "h_min: " << h_min_ << std::endl;
+    std::cout << "h_max: " << h_max_ << std::endl;
+    std::cout << "h_start: " << h_start_ << std::endl;
+    std::cout << "new_function_evaluation: ";
     for (bool val : new_function_evaluation_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "estimator_of_local_order_: " << estimator_of_local_order_ << std::endl;
-    std::cout << "a_: ";
+    std::cout << "estimator_of_local_order: " << estimator_of_local_order_ << std::endl;
+    std::cout << "a: ";
     for (double val : a_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "c_: ";
+    std::cout << "c: ";
     for (double val : c_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "m_: ";
+    std::cout << "m: ";
     for (double val : m_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "e_: ";
+    std::cout << "e: ";
     for (double val : e_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "alpha_: ";
+    std::cout << "alpha: ";
     for (double val : alpha_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "gamma_: ";
+    std::cout << "gamma: ";
     for (double val : gamma_)
       std::cout << val << " ";
     std::cout << std::endl;
-    std::cout << "absolute_tolerance_: ";
+    std::cout << "absolute_tolerance: ";
     for (auto& val : absolute_tolerance_)
     {
       std::cout << val << " ";
     }
     std::cout << std::endl;
-    std::cout << "relative_tolerance_: " << relative_tolerance_ << std::endl;
-    std::cout << "number_of_grid_cells_: " << number_of_grid_cells_ << std::endl;
+    std::cout << "relative_tolerance: " << relative_tolerance_ << std::endl;
+    std::cout << "number_of_grid_cells: " << number_of_grid_cells_ << std::endl;
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::TwoStageRosenbrockParameters(

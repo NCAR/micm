@@ -123,11 +123,6 @@ The output will be similar to this:
           decompositions: 130
           solves: 390
           singular: 0
-          total_update_state_time: 416 nanoseconds
-          total_forcing_time: 14163 nanoseconds
-          total_jacobian_time: 9965 nanoseconds
-          total_linear_factor_time: 24893 nanoseconds
-          total_linear_solve_time: 12842 nanoseconds
 
   JIT solve stats: 
           accepted: 130
@@ -139,8 +134,3 @@ The output will be similar to this:
           decompositions: 130
           solves: 390
           singular: 0
-          total_update_state_time: 458 nanoseconds
-          total_forcing_time: 5036 nanoseconds
-          total_jacobian_time: 2168 nanoseconds
-          total_linear_factor_time: 17958 nanoseconds
-          total_linear_solve_time: 7586 nanoseconds
