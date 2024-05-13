@@ -54,5 +54,5 @@ TEST(BackwardEuler, CanCallSolve)
   auto processes = std::vector<micm::Process>{ r1, r2 };
 
   EXPECT_NO_THROW(be.Solve(
-      time_step, state, linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
+      time_step, state, micm::BackwardEulerSolverParameters(), linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
 }

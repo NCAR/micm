@@ -9,6 +9,7 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 
@@ -52,6 +53,7 @@ namespace micm
     void Solve(
         double time_step,
         auto& state,
+        BackwardEulerSolverParameters parameters,
         auto linear_solver,
         auto process_set,
         const std::vector<micm::Process>& processes,

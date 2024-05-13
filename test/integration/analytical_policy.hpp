@@ -162,12 +162,12 @@ void test_analytical_troe(
     times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
-    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
+    if constexpr (std::is_same_v<decltype(solver.process_set_), micm::ProcessSet>)
     {
       auto linear_solver = solver.linear_solver_;
       auto process_set = solver.process_set_;
       be.Solve(
-          time_step, be_state, linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
+        time_step, be_state, micm::BackwardEulerSolverParameters(), linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
     }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);

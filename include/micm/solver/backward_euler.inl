@@ -51,6 +51,7 @@ namespace micm
   inline void BackwardEuler::Solve(
       double time_step,
       auto& state,
+      BackwardEulerSolverParameters parameters,
       auto linear_solver,
       auto process_set,
       const std::vector<micm::Process>& processes,
@@ -67,15 +68,17 @@ namespace micm
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
 
+    double tolerance = parameters.absolute_tolerance_[0];
+    double small = parameters.small;
+    std::size_t max_iter = parameters.max_number_of_steps_;
+    const auto time_step_reductions = parameters.time_step_reductions;
+
     double H = time_step;
     double t = 0.0;
-    double tol = 1e-4;
-    double small = 1.0e-40;
-    bool singular = false;
-    std::size_t max_iter = 11;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
-    const std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
+
+    bool singular = false;
 
     auto Yn = state.variables_;
     auto Yn1 = state.variables_;
@@ -160,7 +163,7 @@ namespace micm
         do
         {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter));
+          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tolerance * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter;
         } while (converged && forcing_iter != forcing.end());
 

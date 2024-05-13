@@ -12,6 +12,7 @@ create_standard_test(NAME lu_decomposition SOURCES test_lu_decomposition.cpp)
 create_standard_test(NAME rosenbrock SOURCES test_rosenbrock.cpp)
 create_standard_test(NAME state SOURCES test_state.cpp)
 create_standard_test(NAME backward_euler SOURCES test_backward_euler.cpp)
+create_standard_test(NAME solver_builder SOURCES test_solver_builder.cpp)
 
 # GPU tests
 if(MICM_ENABLE_CUDA)
