@@ -55,14 +55,14 @@ void test_solver_type(auto& solver)
       auto end = std::chrono::high_resolution_clock::now();
 
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
-      total_stats.function_calls += result.stats_.function_calls;
-      total_stats.jacobian_updates += result.stats_.jacobian_updates;
-      total_stats.number_of_steps += result.stats_.number_of_steps;
-      total_stats.accepted += result.stats_.accepted;
-      total_stats.rejected += result.stats_.rejected;
-      total_stats.decompositions += result.stats_.decompositions;
-      total_stats.solves += result.stats_.solves;
-      total_stats.singular += result.stats_.singular;
+      total_stats.function_calls_ += result.stats_.function_calls_;
+      total_stats.jacobian_updates_ += result.stats_.jacobian_updates_;
+      total_stats.number_of_steps_ += result.stats_.number_of_steps_;
+      total_stats.accepted_ += result.stats_.accepted_;
+      total_stats.rejected_ += result.stats_.rejected_;
+      total_stats.decompositions_ += result.stats_.decompositions_;
+      total_stats.solves_ += result.stats_.solves_;
+      total_stats.singular_ += result.stats_.singular_;
 
       elapsed_solve_time = result.final_time_;
       state.variables_ = result.result_;
@@ -71,15 +71,15 @@ void test_solver_type(auto& solver)
     state.PrintState(time_step * (i + 1));
   }
   std::cout << "Total solve time: " << total_solve_time.count() << " nanoseconds" << std::endl;
-  std::cout << "accepted: " << total_stats.accepted << std::endl;
-  std::cout << "function_calls: " << total_stats.function_calls << std::endl;
-  std::cout << "jacobian_updates: " << total_stats.jacobian_updates << std::endl;
-  std::cout << "number_of_steps: " << total_stats.number_of_steps << std::endl;
-  std::cout << "accepted: " << total_stats.accepted << std::endl;
-  std::cout << "rejected: " << total_stats.rejected << std::endl;
-  std::cout << "decompositions: " << total_stats.decompositions << std::endl;
-  std::cout << "solves: " << total_stats.solves << std::endl;
-  std::cout << "singular: " << total_stats.singular << std::endl;
+  std::cout << "accepted: " << total_stats.accepted_ << std::endl;
+  std::cout << "function_calls: " << total_stats.function_calls_ << std::endl;
+  std::cout << "jacobian_updates: " << total_stats.jacobian_updates_ << std::endl;
+  std::cout << "number_of_steps: " << total_stats.number_of_steps_ << std::endl;
+  std::cout << "accepted: " << total_stats.accepted_ << std::endl;
+  std::cout << "rejected: " << total_stats.rejected_ << std::endl;
+  std::cout << "decompositions: " << total_stats.decompositions_ << std::endl;
+  std::cout << "solves: " << total_stats.solves_ << std::endl;
+  std::cout << "singular: " << total_stats.singular_ << std::endl;
 }
 
 int main()

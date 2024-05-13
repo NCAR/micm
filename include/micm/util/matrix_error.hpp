@@ -49,10 +49,10 @@ namespace
     }
   };
 
-  const MicmMatrixErrorCategory micmMatrixErrorCategory{};
+  const MicmMatrixErrorCategory MICM_MATRIX_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmMatrixErrc e)
 {
-  return { static_cast<int>(e), micmMatrixErrorCategory };
+  return { static_cast<int>(e), MICM_MATRIX_ERROR };
 }

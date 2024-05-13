@@ -47,12 +47,12 @@ namespace
     }
   };
 
-  const MicmProcessSetErrorCategory micmProcessSetErrorCategory{};
+  const MicmProcessSetErrorCategory MICM_PROCESS_SET_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmProcessSetErrc e)
 {
-  return { static_cast<int>(e), micmProcessSetErrorCategory };
+  return { static_cast<int>(e), MICM_PROCESS_SET_ERROR };
 }
 
 namespace micm

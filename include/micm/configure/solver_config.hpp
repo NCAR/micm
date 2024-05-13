@@ -84,18 +84,18 @@ namespace
     }
   };
 
-  const MicmConfigErrorCategory micmConfigErrorCategory{};
+  const MicmConfigErrorCategory MICM_CONFIG_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmConfigErrc e)
 {
-  return { static_cast<int>(e), micmConfigErrorCategory };
+  return { static_cast<int>(e), MICM_CONFIG_ERROR };
 }
 
 namespace micm
 {
 
-  constexpr double MolesM3ToMoleculesCm3 = 1.0e-6 * 6.02214076e23;
+  constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
 
   // Solver parameters
   struct SolverParameters
@@ -141,10 +141,10 @@ namespace micm
     RosenbrockSolverParameters parameters_;
 
     // Common JSON
-    static const inline std::string DEFAULT_CONFIG_FILE = "config.json";
-    static const inline std::string CAMP_FILES = "camp-files";
-    static const inline std::string CAMP_DATA = "camp-data";
-    static const inline std::string TYPE = "type";
+    inline static const std::string DEFAULT_CONFIG_FILE = "config.json";
+    inline static const std::string CAMP_FILES = "camp-files";
+    inline static const std::string CAMP_DATA = "camp-data";
+    inline static const std::string TYPE = "type";
 
     // Error string
     std::stringstream last_json_object_;
@@ -481,7 +481,7 @@ namespace micm
       {
         parameters.A_ = object["A"].get<double>();
       }
-      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
+      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
       if (object.contains("B"))
       {
         parameters.B_ = object["B"].get<double>();
@@ -530,7 +530,7 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].get<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size());
+      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size());
       if (object.contains("k0_B"))
       {
         parameters.k0_B_ = object["k0_B"].get<double>();
@@ -544,7 +544,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].get<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
+      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
       if (object.contains("kinf_B"))
       {
         parameters.kinf_B_ = object["kinf_B"].get<double>();
@@ -583,7 +583,7 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].get<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
+      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
       if (object.contains("k0_B"))
       {
         parameters.k0_B_ = object["k0_B"].get<double>();
@@ -597,7 +597,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].get<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 2);
+      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 2);
       if (object.contains("kinf_B"))
       {
         parameters.kinf_B_ = object["kinf_B"].get<double>();
@@ -640,7 +640,7 @@ namespace micm
       BranchedRateConstantParameters parameters;
       parameters.X_ = object[X].get<double>();
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.X_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
+      parameters.X_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
       parameters.Y_ = object[Y].get<double>();
       parameters.a0_ = object[A0].get<double>();
       parameters.n_ = object[N].get<int>();
@@ -674,7 +674,7 @@ namespace micm
         parameters.A_ = object["A"].get<double>();
       }
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.A_ *= std::pow(MolesM3ToMoleculesCm3, reactants.size() - 1);
+      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
       if (object.contains("B"))
       {
         parameters.B_ = object["B"].get<double>();

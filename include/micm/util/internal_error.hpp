@@ -46,12 +46,12 @@ namespace
     }
   };
 
-  const MicmInternalErrorCategory micmInternalErrorCategory{};
+  const MicmInternalErrorCategory MICM_INTERNAL_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmInternalErrc e)
 {
-  return { static_cast<int>(e), micmInternalErrorCategory };
+  return { static_cast<int>(e), MICM_INTERNAL_ERROR };
 }
 
 namespace micm

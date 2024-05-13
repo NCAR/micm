@@ -22,15 +22,15 @@ namespace micm
 
   struct ProfileResult
   {
-    std::string name;
-    FloatingPointMicroseconds start;
-    std::chrono::microseconds elapsed_time;
-    std::thread::id threadID;
+    std::string name_;
+    FloatingPointMicroseconds start_;
+    std::chrono::microseconds elapsed_time_;
+    std::thread::id thread_id_;
   };
 
   struct InstrumentationSession
   {
-    std::string name;
+    std::string name_;
   };
 
   class Instrumentor
@@ -44,7 +44,7 @@ namespace micm
       std::lock_guard lock(mutex_);
       if (current_session_)
       {
-        std::cerr << "Instrumentor::BeginSession('" << name << "') when session '" << current_session_->name
+        std::cerr << "Instrumentor::BeginSession('" << name << "') when session '" << current_session_->name_
                   << "' already open." << std::endl;
         InternalEndSession();
       }
@@ -75,12 +75,12 @@ namespace micm
       json << std::setprecision(3) << std::fixed;
       json << ",{";
       json << "\"cat\":\"function\",";
-      json << "\"dur\":" << (result.elapsed_time.count()) << ',';
-      json << "\"name\":\"" << result.name << "\",";
+      json << "\"dur\":" << (result.elapsed_time_.count()) << ',';
+      json << "\"name\":\"" << result.name_ << "\",";
       json << "\"ph\":\"X\",";
       json << "\"pid\":0,";
-      json << "\"tid\":\"" << result.threadID << "\",";
-      json << "\"ts\":" << result.start.count();
+      json << "\"tid\":\"" << result.thread_id_ << "\",";
+      json << "\"ts\":" << result.start_.count();
       json << "}";
 
       std::lock_guard lock(mutex_);
@@ -175,7 +175,7 @@ namespace micm
     template<size_t N>
     struct ChangeResult
     {
-      char Data[N];
+      char data_[N];
     };
 
     template<size_t N, size_t K>
@@ -192,7 +192,7 @@ namespace micm
           matchIndex++;
         if (matchIndex == K - 1)
           srcIndex += matchIndex;
-        result.Data[dstIndex++] = expr[srcIndex] == '"' ? '\'' : expr[srcIndex];
+        result.data_[dstIndex++] = expr[srcIndex] == '"' ? '\'' : expr[srcIndex];
         srcIndex++;
       }
 
@@ -217,7 +217,7 @@ namespace micm
 #  define MICM_PROFILE_END_SESSION()                 ::micm::Instrumentor::Get().EndSession()
 #  define MICM_PROFILE_SCOPE_LINE2(name, line)                                                         \
     constexpr auto fixedName##line = ::micm::InstrumentorUtils::CleanupOutputString(name, "__cdecl "); \
-    ::micm::InstrumentationTimer timer##line(fixedName##line.Data)
+    ::micm::InstrumentationTimer timer##line(fixedName##line.data_)
 #  define MICM_PROFILE_SCOPE_LINE(name, line) MICM_PROFILE_SCOPE_LINE2(name, line)
 #  define MICM_PROFILE_SCOPE(name)            MICM_PROFILE_SCOPE_LINE(name, __LINE__)
 #  define MICM_PROFILE_FUNCTION()             MICM_PROFILE_SCOPE(MICM_FUNC_SIG)

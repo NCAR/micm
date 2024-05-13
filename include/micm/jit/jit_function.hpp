@@ -248,8 +248,7 @@ namespace micm
     return builder_->CreateLoad(GetType(type), elem, array_ptr.name_ + " load elem");
   }
 
-  void
-  JitFunction::SetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type, llvm::Value* value)
+  void JitFunction::SetArrayElement(JitArgument array_ptr, llvm::ArrayRef<llvm::Value*> index, JitType type, llvm::Value* value)
   {
     llvm::Value* elem = builder_->CreateGEP(GetType(type), array_ptr.ptr_, index, array_ptr.name_ + " set elem");
     builder_->CreateStore(value, elem);

@@ -68,14 +68,14 @@ int main()
 
   auto result = solver.Solve(time_step, state);
   std::cout << "Solver state: " << StateToString(result.state_) << std::endl;
-  std::cout << "accepted: " << result.stats_.accepted << std::endl;
-  std::cout << "function_calls: " << result.stats_.function_calls << std::endl;
-  std::cout << "jacobian_updates: " << result.stats_.jacobian_updates << std::endl;
-  std::cout << "number_of_steps: " << result.stats_.number_of_steps << std::endl;
-  std::cout << "accepted: " << result.stats_.accepted << std::endl;
-  std::cout << "rejected: " << result.stats_.rejected << std::endl;
-  std::cout << "decompositions: " << result.stats_.decompositions << std::endl;
-  std::cout << "solves: " << result.stats_.solves << std::endl;
-  std::cout << "singular: " << result.stats_.singular << std::endl;
+  std::cout << "accepted: " << result.stats_.accepted_ << std::endl;
+  std::cout << "function_calls: " << result.stats_.function_calls_ << std::endl;
+  std::cout << "jacobian_updates: " << result.stats_.jacobian_updates_ << std::endl;
+  std::cout << "number_of_steps: " << result.stats_.number_of_steps_ << std::endl;
+  std::cout << "accepted: " << result.stats_.accepted_ << std::endl;
+  std::cout << "rejected: " << result.stats_.rejected_ << std::endl;
+  std::cout << "decompositions: " << result.stats_.decompositions_ << std::endl;
+  std::cout << "solves: " << result.stats_.solves_ << std::endl;
+  std::cout << "singular: " << result.stats_.singular_ << std::endl;
   std::cout << "final simulation time: " << result.final_time_ << std::endl;
 }
