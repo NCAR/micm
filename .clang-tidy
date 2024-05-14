@@ -43,7 +43,9 @@ Checks: >
   -readability-simplify-boolean-expr,
   -readability-magic-numbers,-warnings-as-errors,
   -readability-non-const-parameter,
-  -readability-isolate-declaration, 
+  -readability-isolate-declaration,
+  bugprone-*,
+  -bugprone-signal-handler,
 
 WarningsAsErrors: '*'
 
