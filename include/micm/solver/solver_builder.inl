@@ -104,15 +104,22 @@ namespace micm
   Solver SolverBuilder::BuildBackwardEulerSolver()
   {
     auto parameters = std::get<BackwardEulerSolverParameters>(options_);
-    UnusedSpeciesCheck<micm::ProcessSet>();
     auto species_map = GetSpeciesMap<MatrixPolicy, micm::ProcessSet>();
-    SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
+    auto labels = GetCustomParameterLabels();
     std::size_t number_of_species = system_.StateSize();
+
+    UnusedSpeciesCheck<micm::ProcessSet>();
+    SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
 
     micm::ProcessSet process_set(reactions_, species_map);
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
+    auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
+    process_set.SetJacobianFlatIds(jacobian);
+    micm::LinearSolver<double, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
 
-    return Solver(parameters, number_of_grid_cells_, number_of_species, reactions_.size());
+    return Solver(
+      new SolverImpl<decltype(linear_solver), decltype(process_set)>(), 
+      parameters, number_of_grid_cells_, number_of_species, reactions_.size());
   }
 
   template<class ProcessSetPolicy>
@@ -202,5 +209,27 @@ namespace micm
         }
       }
     }
+  }
+
+  std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const {
+    std::vector<std::string> param_labels{};
+    for (const auto& reaction : reactions_)
+      if (reaction.rate_constant_)
+        for (auto& label : reaction.rate_constant_->CustomParameters())
+          param_labels.push_back(label);
+    return param_labels;
+  }
+
+  std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const {
+    std::vector<std::size_t> jacobian_diagonal_elements;
+
+    jacobian_diagonal_elements.reserve(jacobian.NumRows());
+
+    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
+    {
+      jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
+    }
+
+    return jacobian_diagonal_elements;
   }
 }  // namespace micm

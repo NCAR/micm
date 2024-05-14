@@ -85,6 +85,12 @@ namespace micm
     /// @return 
     void SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const;
 
+    /// @brief Return the labels of the custom parameters
+    /// @return 
+    std::vector<std::string> GetCustomParameterLabels() const;
+
+    std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
+
   };
 }  // namespace micm
 

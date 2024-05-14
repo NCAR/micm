@@ -8,10 +8,22 @@
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
+#include <memory>
 #include <variant>
 
 namespace micm
 {
+  class SolverImplBase {
+  public:
+    virtual ~SolverImplBase() = default;
+  };
+
+  template<class LinearSolverPolicy, class ProcessSetPolicy>
+  struct SolverImpl : public SolverImplBase {
+    ProcessSetPolicy process_set_;
+    LinearSolverPolicy linear_solver_;
+  };
+
   class Solver
   {
    private:
@@ -22,6 +34,7 @@ namespace micm
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
+    std::unique_ptr<SolverImplBase> solver_impl_;
 
    public:
     Solver()
@@ -33,11 +46,13 @@ namespace micm
     }
 
     Solver(
+        SolverImplBase* solver_impl,
         SolverParameters parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
         std::size_t number_of_reactions)
-        : parameters_(parameters),
+        : solver_impl_(solver_impl),
+          parameters_(parameters),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions)
