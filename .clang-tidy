@@ -46,6 +46,7 @@ Checks: >
   -readability-isolate-declaration,
   bugprone-*,
   -bugprone-signal-handler,
+  cert-*,
 
 WarningsAsErrors: '*'
 
