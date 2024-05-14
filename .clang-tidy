@@ -47,6 +47,7 @@ Checks: >
   bugprone-*,
   -bugprone-signal-handler,
   cert-*,
+  -cert-err58-cpp,
 
 WarningsAsErrors: '*'
 
