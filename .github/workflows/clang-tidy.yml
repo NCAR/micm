@@ -19,7 +19,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build clang-tidy and micm docker image
-        run: ls -lah && docker build -t micm-clang-tidy -f docker/Dockerfile.clang-tidy .
+        run: docker build -t micm-clang-tidy -f docker/Dockerfile.clang-tidy .
 
       - name: Scan includes
         run: |

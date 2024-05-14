@@ -19,8 +19,6 @@ RUN clang-tidy --version && nvcc --version && cmake --version
 # copy the MICM code
 COPY . /micm/
 
-COPY ./.clang-tidy /micm/.
-
 # build the library and run the tests
 RUN cd /micm \
     && cmake \

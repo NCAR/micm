@@ -13,3 +13,4 @@
 !packaging
 !include/
 !examples
+!.clang-tidy
