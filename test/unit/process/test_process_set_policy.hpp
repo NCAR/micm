@@ -13,10 +13,8 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
-void testProcessSet(const std::function<ProcessSetPolicy(
-                        const std::vector<micm::Process>&,
-                        const micm::State<MatrixPolicy, SparseMatrixPolicy>&)> create_set)
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
+void testProcessSet()
 {
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
@@ -57,7 +55,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
 
-  ProcessSetPolicy set = create_set(std::vector<micm::Process>{ r1, r2, r3 }, state);
+  ProcessSetPolicy set = ProcessSetPolicy(std::vector<micm::Process>{ r1, r2, r3 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
@@ -103,10 +101,10 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = SparseMatrixPolicy<double>::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
+  auto builder = SparseMatrixPolicy::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
     builder = builder.WithElement(elem.first, elem.second);
-  SparseMatrixPolicy<double> jacobian{ builder };
+  SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
   set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
@@ -135,7 +133,7 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
 void testRandomSystem(
     std::size_t n_cells,
     std::size_t n_reactions,

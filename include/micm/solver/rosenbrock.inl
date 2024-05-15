@@ -78,7 +78,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -94,7 +93,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -106,7 +104,7 @@ namespace micm
             system,
             processes,
             parameters,
-            [](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
+            [](const SparseMatrixPolicy& matrix, double initial_value) -> LinearSolverPolicy {
               return LinearSolverPolicy{ matrix, initial_value };
             },
             [](const std::vector<Process>& processes,
@@ -119,7 +117,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -127,7 +124,7 @@ namespace micm
       const System& system,
       const std::vector<Process>& processes,
       const RosenbrockSolverParameters& parameters,
-      const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+      const std::function<LinearSolverPolicy(const SparseMatrixPolicy, double)> create_linear_solver,
       const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
           create_process_set)
       : processes_(processes),
@@ -172,7 +169,7 @@ namespace micm
       MatrixPolicy<int> unsorted_jac_non_zeros(system.StateSize(), system.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
-      auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
+      auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy<int>>(unsorted_jac_non_zeros);
       state_reordering = [=](const std::vector<std::string>& variables, const std::size_t i)
       { return variables[reorder_map[i]]; };
 
@@ -237,7 +234,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -250,7 +246,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -455,7 +450,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -472,13 +466,12 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
-      SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy<double>>)
+      SparseMatrixPolicy& jacobian,
+      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -493,13 +486,12 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::AlphaMinusJacobian(
-      SparseMatrixPolicy<double>& jacobian,
-      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy<double>>)
+      SparseMatrixPolicy& jacobian,
+      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -516,7 +508,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -524,7 +515,7 @@ namespace micm
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
-      SparseMatrixPolicy<double>& jacobian)
+      SparseMatrixPolicy& jacobian)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -535,7 +526,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -548,7 +538,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -592,7 +581,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
@@ -632,7 +620,6 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>

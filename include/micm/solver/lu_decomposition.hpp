@@ -78,56 +78,50 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<typename T>
-    LuDecomposition(const SparseMatrix<T>& matrix);
+    template<class SparseMatrixPolicy>
+    LuDecomposition(const SparseMatrixPolicy& matrix);
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<typename T, template<class> class SparseMatrixPolicy>
-    static LuDecomposition Create(const SparseMatrixPolicy<T>& matrix);
-    template<typename T, class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
     static LuDecomposition Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<typename T, template<class> class SparseMatrixPolicy>
-    static std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> GetLUMatrices(
-        const SparseMatrixPolicy<T>& A,
-        T initial_value);
-    template<typename T, class SparseMatrixPolicy>
-    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(const SparseMatrixPolicy& A, T initial_value);
+    template<class SparseMatrixPolicy>
+    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    template<typename T, template<class> class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const;
+    template<typename T, class SparseMatrixPolicy>
+    void Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const;
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
     /// @param is_singular Flag that is set to true if A is singular; false otherwise
-    template<typename T, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U,
+    template<typename T, class SparseMatrixPolicy>
+    requires(!VectorizableSparse<SparseMatrixPolicy>) void Decompose(
+        const SparseMatrixPolicy& A,
+        SparseMatrixPolicy& L,
+        SparseMatrixPolicy& U,
         bool& is_singular) const;
-    template<typename T, template<class> class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U,
+    template<typename T, class SparseMatrixPolicy>
+    requires(VectorizableSparse<SparseMatrixPolicy>) void Decompose(
+        const SparseMatrixPolicy& A,
+        SparseMatrixPolicy& L,
+        SparseMatrixPolicy& U,
         bool& is_singular) const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<typename T, class SparseMatrixPolicy>
-    void Initialize(const SparseMatrixPolicy& matrix, T initial_value);
+    template<class SparseMatrixPolicy>
+    void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 
 }  // namespace micm

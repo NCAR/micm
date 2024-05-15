@@ -35,11 +35,6 @@ namespace micm
     /// @brief Default constructor
     BackwardEuler();
 
-    /// @brief Builds a backward eulder solver for the given system and processes
-    /// @param system The chemical system to create the solver for
-    /// @param processes The collection of chemical processes that will be applied during solving
-    BackwardEuler(const System& system, const std::vector<Process>& processes);
-
     virtual ~BackwardEuler() = default;
 
     /// @brief Advances the given step over the specified time step

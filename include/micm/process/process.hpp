@@ -85,11 +85,11 @@ namespace micm
     /// @brief Update the solver state rate constants
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
         const std::vector<Process>& processes,
         State<MatrixPolicy, SparseMatrixPolicy>& state);
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+    template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
     requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
         const std::vector<Process>& processes,
         State<MatrixPolicy, SparseMatrixPolicy>& state);
@@ -148,7 +148,7 @@ namespace micm
     ProcessBuilder& SetPhase(const Phase& phase);
   };
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
   requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)
@@ -173,7 +173,7 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
   requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
       const std::vector<Process>& processes,
       State<MatrixPolicy, SparseMatrixPolicy>& state)

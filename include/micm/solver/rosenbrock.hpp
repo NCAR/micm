@@ -92,7 +92,7 @@ namespace micm
   /// The template parameter is the type of matrix to use
   template<
       template<class> class MatrixPolicy = Matrix,
-      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
+      class SparseMatrixPolicy = StandardSparseMatrix,
       class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
       class ProcessSetPolicy = ProcessSet>
   class RosenbrockSolver
@@ -141,7 +141,7 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters,
-        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy, double)> create_linear_solver,
         const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
             create_process_set);
 
@@ -168,10 +168,10 @@ namespace micm
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(!VectorizableSparse<SparseMatrixPolicy>);
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
@@ -184,7 +184,7 @@ namespace micm
     virtual void CalculateNegativeJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
-        SparseMatrixPolicy<double>& jacobian);
+        SparseMatrixPolicy& jacobian);
 
     /// @brief Prepare the linear solver
     /// @param H time step (seconds)

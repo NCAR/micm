@@ -9,35 +9,27 @@ namespace micm
   {
   }
 
-  template<typename T>
-  inline LuDecomposition::LuDecomposition(const SparseMatrix<T>& matrix)
+  template<class SparseMatrixPolicy>
+  inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
   {
-    Initialize<T, SparseMatrix>(matrix);
+    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy<T>& matrix)
-  {
-    LuDecomposition lu_decomp{};
-    lu_decomp.Initialize<T, SparseMatrixPolicy<T>>(matrix, T{});
-    return lu_decomp;
-  }
-
-  template<typename T, class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy>
   inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
-    lu_decomp.Initialize<T, SparseMatrixPolicy>(matrix, T{});
+    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
-  template<typename T, class SparseMatrixPolicy>
-  inline void LuDecomposition::Initialize(const SparseMatrixPolicy& matrix, T initial_value)
+  template<class SparseMatrixPolicy>
+  inline void LuDecomposition::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<T, SparseMatrixPolicy>(matrix, initial_value);
+    auto LU = GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
     const auto& L_row_start = LU.first.RowStartVector();
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
@@ -107,18 +99,10 @@ namespace micm
     }
   }
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  inline std::pair<SparseMatrixPolicy<T>, SparseMatrixPolicy<T>> LuDecomposition::GetLUMatrices(
-      const SparseMatrixPolicy<T>& A,
-      T initial_value)
-  {
-    return GetLUMatrices<T, SparseMatrixPolicy<T>>(A, initial_value);
-  }
-
-  template<typename T, class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy>
   inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::GetLUMatrices(
       const SparseMatrixPolicy& A,
-      T initial_value)
+      typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -177,19 +161,19 @@ namespace micm
     return LU;
   }
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U)
+  template<typename T, class SparseMatrixPolicy>
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U)
       const
   {
     bool is_singular = false;
     Decompose<T, SparseMatrixPolicy>(A, L, U, is_singular);
   }
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  requires(!VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
-      const SparseMatrixPolicy<T>& A,
-      SparseMatrixPolicy<T>& L,
-      SparseMatrixPolicy<T>& U,
+  template<typename T, class SparseMatrixPolicy>
+  requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U,
       bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();
@@ -248,11 +232,11 @@ namespace micm
     }
   }
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy<T>>) inline void LuDecomposition::Decompose(
-      const SparseMatrixPolicy<T>& A,
-      SparseMatrixPolicy<T>& L,
-      SparseMatrixPolicy<T>& U,
+  template<typename T, class SparseMatrixPolicy>
+  requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U,
       bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();

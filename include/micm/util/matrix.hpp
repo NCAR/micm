@@ -25,7 +25,7 @@ namespace micm
   };
 
   /// @brief A 2D array class with contiguous memory
-  template<class T>
+  template<class T = double>
   class Matrix
   {
     std::vector<T> data_;

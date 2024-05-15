@@ -65,7 +65,7 @@ namespace micm
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::Rosenbrock(const RosenbrockSolverParameters& options)
+  SolverBuilder& SolverBuilder::SolverParameters(const RosenbrockSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -75,7 +75,7 @@ namespace micm
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::BackwardEuler(const BackwardEulerSolverParameters& options)
+  SolverBuilder& SolverBuilder::SolverParameters(const BackwardEulerSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -85,7 +85,6 @@ namespace micm
     return *this;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
   Solver SolverBuilder::Build()
   {
     if (std::holds_alternative<micm::RosenbrockSolverParameters>(options_))
@@ -94,32 +93,10 @@ namespace micm
     }
     if (std::holds_alternative<micm::BackwardEulerSolverParameters>(options_))
     {
-      return BuildBackwardEulerSolver<MatrixPolicy, SparseMatrixPolicy>();
+      return BuildBackwardEulerSolver();
     }
 
     throw std::runtime_error("No solver type set");
-  }
-
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  Solver SolverBuilder::BuildBackwardEulerSolver()
-  {
-    auto parameters = std::get<BackwardEulerSolverParameters>(options_);
-    auto species_map = GetSpeciesMap<MatrixPolicy, micm::ProcessSet>();
-    auto labels = GetCustomParameterLabels();
-    std::size_t number_of_species = system_.StateSize();
-
-    UnusedSpeciesCheck<micm::ProcessSet>();
-    SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
-
-    micm::ProcessSet process_set(reactions_, species_map);
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
-    auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
-    process_set.SetJacobianFlatIds(jacobian);
-    micm::LinearSolver<double, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
-
-    return Solver(
-      new SolverImpl<decltype(linear_solver), decltype(process_set)>(), 
-      parameters, number_of_grid_cells_, number_of_species, reactions_.size());
   }
 
   template<class ProcessSetPolicy>
@@ -232,4 +209,27 @@ namespace micm
 
     return jacobian_diagonal_elements;
   }
+
+  template<class MatrixPolicy, class SparseMatrixPolicy>
+  Solver CpuSolverBuilder<MatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
+  {
+    auto parameters = std::get<BackwardEulerSolverParameters>(options_);
+    auto species_map = GetSpeciesMap<MatrixPolicy, micm::ProcessSet>();
+    auto labels = GetCustomParameterLabels();
+    std::size_t number_of_species = system_.StateSize();
+
+    UnusedSpeciesCheck<micm::ProcessSet>();
+    SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
+
+    micm::ProcessSet process_set(reactions_, species_map);
+    auto jacobian = BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
+    auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
+    process_set.SetJacobianFlatIds(jacobian);
+    micm::LinearSolver<double, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
+
+    return Solver(
+      new SolverImpl<decltype(linear_solver), decltype(process_set)>(), 
+      parameters, number_of_grid_cells_, number_of_species, reactions_.size());
+  }
+
 }  // namespace micm

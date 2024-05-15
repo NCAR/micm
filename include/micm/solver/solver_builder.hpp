@@ -22,7 +22,7 @@ namespace micm
 {
   class SolverBuilder
   {
-   private:
+   protected:
     micm::System system_;
     std::size_t number_of_grid_cells_;
     std::vector<micm::Process> reactions_;
@@ -49,24 +49,22 @@ namespace micm
     /// @brief Choose a rosenbrock solver
     /// @param options 
     /// @return 
-    SolverBuilder& Rosenbrock(const RosenbrockSolverParameters& options);
+    SolverBuilder& SolverParameters(const RosenbrockSolverParameters& options);
 
     /// @brief Choose a backward euler solver
     /// @param options 
     /// @return 
-    SolverBuilder& BackwardEuler(const BackwardEulerSolverParameters& options);
+    SolverBuilder& SolverParameters(const BackwardEulerSolverParameters& options);
 
     /// @brief  
     /// @return 
-    template<template<class> class MatrixPolicy = Matrix, template<class> class SparseMatrixPolicy = StandardSparseMatrix>
     Solver Build();
 
-   private:
+   protected:
 
     /// @brief  
     /// @return 
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    Solver BuildBackwardEulerSolver();
+    virtual Solver BuildBackwardEulerSolver();
 
     /// @brief 
     /// @tparam ProcessSetPolicy 
@@ -92,6 +90,21 @@ namespace micm
     std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
 
   };
+
+  template<class MatrixPolicy = Matrix<double>, class SparseMatrixPolicy = StandardSparseMatrix>
+  class CpuSolverBuilder : public SolverBuilder
+  {
+   public:
+    Solver BuildBackwardEulerSolver() override;
+  };
+
+  template<class MatrixPolicy = Matrix<double>, class SparseMatrixPolicy = StandardSparseMatrix>
+  class GpuSolverBuilder : public SolverBuilder
+  {
+   public:
+    Solver BuildBackwardEulerSolver() override;
+  };
+
 }  // namespace micm
 
 #include "solver_builder.inl"
