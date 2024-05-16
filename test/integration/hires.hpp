@@ -61,9 +61,9 @@ class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Li
   {
   }
 
-  micm::State<MatrixPolicy, SparseMatrixPolicy> GetState() const override
+  micm::State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const override
   {
-    auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
+    auto state = micm::State<MatrixPolicy<double>, SparseMatrixPolicy>{ this->state_parameters_ };
 
     state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
         nonzero_jacobian_elements_,

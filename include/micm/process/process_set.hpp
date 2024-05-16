@@ -91,33 +91,32 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    template<template<class> typename MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>) void AddForcingTerms(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
-    template<template<class> typename MatrixPolicy>
-    requires VectorizableDense<MatrixPolicy<double>>
+    template<typename DenseMatrixPolicy>
+    requires(!VectorizableDense<DenseMatrixPolicy>) void AddForcingTerms(
+        const DenseMatrixPolicy& rate_constants,
+        const DenseMatrixPolicy& state_variables,
+        DenseMatrixPolicy& forcing) const;
+    template<typename DenseMatrixPolicy>
+    requires VectorizableDense<DenseMatrixPolicy>
     void AddForcingTerms(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
+        const DenseMatrixPolicy& rate_constants,
+        const DenseMatrixPolicy& state_variables,
+        DenseMatrixPolicy& forcing) const;
 
     /// @brief Subtract Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param jacobian Jacobian matrix for the system (grid cell, dependent variable, independent variable)
-    // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    template<class MatrixPolicy, class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) void SubtractJacobianTerms(
-        const MatrixPolicy& rate_constants,
-        const MatrixPolicy& state_variables,
+    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+    requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) void SubtractJacobianTerms(
+        const DenseMatrixPolicy& rate_constants,
+        const DenseMatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
     // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    template<class MatrixPolicy, class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void SubtractJacobianTerms(
-        const MatrixPolicy& rate_constants,
-        const MatrixPolicy& state_variables,
+    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+    requires(VectorizableDense<DenseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void SubtractJacobianTerms(
+        const DenseMatrixPolicy& rate_constants,
+        const DenseMatrixPolicy& state_variables,
         SparseMatrixPolicy& jacobian) const;
 
     /// @brief Returns the set of species used in a set of processes
@@ -217,11 +216,11 @@ namespace micm
     }
   }
 
-  template<template<class> typename MatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>) inline void ProcessSet::AddForcingTerms(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+  template<typename DenseMatrixPolicy>
+  requires(!VectorizableDense<DenseMatrixPolicy>) inline void ProcessSet::AddForcingTerms(
+      const DenseMatrixPolicy& rate_constants,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -255,12 +254,12 @@ namespace micm
     }
   };
 
-  template<template<class> typename MatrixPolicy>
-  requires VectorizableDense<MatrixPolicy<double>>
+  template<typename DenseMatrixPolicy>
+  requires VectorizableDense<DenseMatrixPolicy>
   inline void ProcessSet::AddForcingTerms(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+      const DenseMatrixPolicy& rate_constants,
+      const DenseMatrixPolicy& state_variables,
+      DenseMatrixPolicy& forcing) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -300,12 +299,11 @@ namespace micm
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
-  // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  requires(!VectorizableDense<DenseMatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
       SubtractJacobianTerms(
-          const MatrixPolicy& rate_constants,
-          const MatrixPolicy& state_variables,
+          const DenseMatrixPolicy& rate_constants,
+          const DenseMatrixPolicy& state_variables,
           SparseMatrixPolicy& jacobian) const
   {
     MICM_PROFILE_FUNCTION();
@@ -350,12 +348,11 @@ namespace micm
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
-  // template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  requires(VectorizableDense<DenseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) inline void ProcessSet::
       SubtractJacobianTerms(
-          const MatrixPolicy& rate_constants,
-          const MatrixPolicy& state_variables,
+          const DenseMatrixPolicy& rate_constants,
+          const DenseMatrixPolicy& state_variables,
           SparseMatrixPolicy& jacobian) const
   {
     MICM_PROFILE_FUNCTION();

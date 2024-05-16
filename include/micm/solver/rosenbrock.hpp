@@ -149,12 +149,12 @@ namespace micm
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
-    virtual State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
+    virtual State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept;
+    SolverResult Solve(double time_step, State<MatrixPolicy<double>, SparseMatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -175,7 +175,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    void UpdateState(State<MatrixPolicy, SparseMatrixPolicy>& state);
+    void UpdateState(State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
     /// @param rate_constants List of rate constants for each needed species
@@ -198,7 +198,7 @@ namespace micm
         bool& singular,
         const MatrixPolicy<double>& number_densities,
         SolverStats& stats,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
+        State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector

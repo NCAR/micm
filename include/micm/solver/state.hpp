@@ -35,15 +35,15 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class MatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
     /// @brief The concentration of chemicals, varies through time
-    MatrixPolicy variables_;
+    DenseMatrixPolicy variables_;
     /// @brief Rate paramters particular to user-defined rate constants, may vary in time
-    MatrixPolicy custom_rate_parameters_;
+    DenseMatrixPolicy custom_rate_parameters_;
     /// @brief The reaction rates, may vary in time
-    MatrixPolicy rate_constants_;
+    DenseMatrixPolicy rate_constants_;
     /// @brief Atmospheric conditions, varies in time
     std::vector<Conditions> conditions_;
     /// @brief The jacobian structure, varies for each solve

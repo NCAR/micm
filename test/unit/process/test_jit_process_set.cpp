@@ -9,17 +9,12 @@
 
 #include <random>
 
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group200VectorMatrix = micm::VectorMatrix<T, 200>;
-template<class T>
-using Group300VectorMatrix = micm::VectorMatrix<T, 300>;
-template<class T>
-using Group400VectorMatrix = micm::VectorMatrix<T, 400>;
+using Group2VectorMatrix = micm::VectorMatrix<double, 2>;
+using Group200VectorMatrix = micm::VectorMatrix<double, 200>;
+using Group300VectorMatrix = micm::VectorMatrix<double, 300>;
+using Group400VectorMatrix = micm::VectorMatrix<double, 400>;
 
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
 
 TEST(JitProcessSet, VectorMatrix)
 {

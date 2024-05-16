@@ -20,6 +20,7 @@
 
 namespace micm
 {
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class SolverBuilder
   {
    protected:
@@ -58,13 +59,12 @@ namespace micm
 
     /// @brief
     /// @return
-    template<class MatrixPolicy, class SparseMatrixPolicy>
-    Solver<State<MatrixPolicy, SparseMatrixPolicy>> Build();
+    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> Build();
 
    protected:
     /// @brief
     /// @return
-    virtual Solver BuildBackwardEulerSolver() = 0;
+    virtual Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() = 0;
     virtual ~SolverBuilder() = default;
 
     /// @brief
@@ -75,7 +75,7 @@ namespace micm
 
     /// @brief Get a species map properly ordered
     /// @return
-    template<class MatrixPolicy, class ProcessSetPolicy>
+    template<class ProcessSetPolicy>
     std::map<std::string, std::size_t> GetSpeciesMap() const;
 
     /// @brief Set the absolute tolerances per species
@@ -91,18 +91,18 @@ namespace micm
     std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
   };
 
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  class CpuSolverBuilder : public SolverBuilder
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  class CpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver BuildBackwardEulerSolver() override;
+    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  class GpuSolverBuilder : public SolverBuilder
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  class GpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver BuildBackwardEulerSolver() override;
+    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
 }  // namespace micm

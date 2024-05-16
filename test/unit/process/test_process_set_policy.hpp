@@ -13,7 +13,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
 void testProcessSet()
 {
   auto foo = micm::Species("foo");
@@ -27,7 +27,7 @@ void testProcessSet()
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
 
-  micm::State<MatrixPolicy, SparseMatrixPolicy> state(
+  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_grid_cells_ = 2,
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
@@ -61,13 +61,13 @@ void testProcessSet()
   EXPECT_EQ(state.variables_.NumColumns(), 6);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
-  MatrixPolicy<double> rate_constants{ 2, 3 };
+  DenseMatrixPolicy rate_constants{ 2, 3 };
   rate_constants[0] = { 10.0, 20.0, 30.0 };
   rate_constants[1] = { 110.0, 120.0, 130.0 };
 
-  MatrixPolicy<double> forcing{ 2, 5, 1000.0 };
+  DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
-  set.template AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
   EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
   EXPECT_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
   EXPECT_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
@@ -133,13 +133,13 @@ void testProcessSet()
   EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
-template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
 void testRandomSystem(
     std::size_t n_cells,
     std::size_t n_reactions,
     std::size_t n_species,
     const std::function<
-        ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<MatrixPolicy, SparseMatrixPolicy>&)>
+        ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<DenseMatrixPolicy, SparseMatrixPolicy>&)>
         create_set)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -155,7 +155,7 @@ void testRandomSystem(
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
+  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
@@ -183,10 +183,10 @@ void testRandomSystem(
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
 
-  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
+  DenseMatrixPolicy rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
-  MatrixPolicy<double> forcing{ n_cells, n_species, 1000.0 };
+  DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
 
-  set.template AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
 }

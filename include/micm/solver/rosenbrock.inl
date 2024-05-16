@@ -237,10 +237,10 @@ namespace micm
       class SparseMatrixPolicy,
       class LinearSolverPolicy,
       class ProcessSetPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy>
+  inline State<MatrixPolicy<double>, SparseMatrixPolicy>
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::GetState() const
   {
-    return State<MatrixPolicy, SparseMatrixPolicy>{ state_parameters_ };
+    return State<MatrixPolicy<double>, SparseMatrixPolicy>{ state_parameters_ };
   }
 
   template<
@@ -252,7 +252,7 @@ namespace micm
   inline typename RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::SolverResult
   RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::Solve(
       double time_step,
-      State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept
+      State<MatrixPolicy<double>, SparseMatrixPolicy>& state) noexcept
   {
     MICM_PROFILE_FUNCTION();
 
@@ -460,7 +460,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
     std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-    process_set_.template AddForcingTerms<MatrixPolicy>(rate_constants, number_densities, forcing);
+    process_set_.template AddForcingTerms<MatrixPolicy<double>>(rate_constants, number_densities, forcing);
   }
 
   template<
@@ -530,7 +530,7 @@ namespace micm
       class LinearSolverPolicy,
       class ProcessSetPolicy>
   inline void RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::UpdateState(
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+      State<MatrixPolicy<double>, SparseMatrixPolicy>& state)
   {
     Process::UpdateState(processes_, state);
   }
@@ -547,7 +547,7 @@ namespace micm
       bool& singular,
       const MatrixPolicy<double>& number_densities,
       SolverStats& stats,
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+      State<MatrixPolicy<double>, SparseMatrixPolicy>& state)
   {
     MICM_PROFILE_FUNCTION();
 

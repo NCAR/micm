@@ -47,25 +47,29 @@ inline std::error_code make_error_code(MicmSolverBuilderErrc e)
 
 namespace micm
 {
-  inline SolverBuilder& SolverBuilder::SetSystem(System system)
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>& SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetSystem(System system)
   {
     system_ = system;
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SetReactions(std::vector<Process> reactions)
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>& SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetReactions(std::vector<Process> reactions)
   {
     reactions_ = reactions;
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SetNumberOfGridCells(int number_of_grid_cells)
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>& SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetNumberOfGridCells(int number_of_grid_cells)
   {
     number_of_grid_cells_ = number_of_grid_cells;
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SetSolverParameters(const RosenbrockSolverParameters& options)
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>& SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetSolverParameters(const RosenbrockSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -75,7 +79,8 @@ namespace micm
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SetSolverParameters(const BackwardEulerSolverParameters& options)
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>& SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetSolverParameters(const BackwardEulerSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -85,7 +90,8 @@ namespace micm
     return *this;
   }
 
-  inline Solver SolverBuilder::Build()
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::Build()
   {
     if (std::holds_alternative<RosenbrockSolverParameters>(options_))
     {
@@ -99,8 +105,9 @@ namespace micm
     throw std::runtime_error("No solver type set");
   }
 
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   template<class ProcessSetPolicy>
-  inline void SolverBuilder::UnusedSpeciesCheck()
+  inline void SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::UnusedSpeciesCheck()
   {
     if (ignore_unused_species_)
     {
@@ -128,8 +135,9 @@ namespace micm
     }
   }
 
-  template<class MatrixPolicy, class ProcessSetPolicy>
-  inline std::map<std::string, std::size_t> SolverBuilder::GetSpeciesMap() const
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  template<class ProcessSetPolicy>
+  inline std::map<std::string, std::size_t> SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::GetSpeciesMap() const
   {
     std::map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
@@ -143,7 +151,7 @@ namespace micm
       auto unsorted_process_set = ProcessSetPolicy(reactions_, species_map);
       auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
 
-      using Matrix = typename MatrixPolicy::IntMatrix;
+      using Matrix = typename DenseMatrixPolicy::IntMatrix;
       Matrix unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
@@ -160,7 +168,8 @@ namespace micm
     return species_map;
   }
 
-  inline void SolverBuilder::SetAbsoluteTolerances(
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetAbsoluteTolerances(
       std::vector<double>& tolerances,
       const std::map<std::string, std::size_t>& species_map) const
   {
@@ -188,7 +197,8 @@ namespace micm
     }
   }
 
-  inline std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline std::vector<std::string> SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::GetCustomParameterLabels() const
   {
     std::vector<std::string> param_labels{};
     for (const auto& reaction : reactions_)
@@ -198,7 +208,8 @@ namespace micm
     return param_labels;
   }
 
-  inline std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline std::vector<std::size_t> SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::GetJacobianDiagonalElements(auto jacobian) const
   {
     std::vector<std::size_t> jacobian_diagonal_elements;
 
@@ -212,41 +223,45 @@ namespace micm
     return jacobian_diagonal_elements;
   }
 
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  inline Solver CpuSolverBuilder<MatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> CpuSolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
   {
     using ProcessSetPolicy = ProcessSet;
+    using LinearSolverPolicy = LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>;
 
-    auto parameters = std::get<BackwardEulerSolverParameters>(options_);
-    auto species_map = GetSpeciesMap<MatrixPolicy, ProcessSetPolicy>();
-    auto labels = GetCustomParameterLabels();
-    std::size_t number_of_species = system_.StateSize();
+    auto parameters = std::get<BackwardEulerSolverParameters>(this->options_);
+    auto species_map = this->template GetSpeciesMap<ProcessSetPolicy>();
+    auto labels = this->GetCustomParameterLabels();
+    std::size_t number_of_species = this->system_.StateSize();
 
-    UnusedSpeciesCheck<ProcessSetPolicy>();
-    SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
+    this->template UnusedSpeciesCheck<ProcessSetPolicy>();
+    this->SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
 
-    ProcessSetPolicy process_set(reactions_, species_map);
+    ProcessSetPolicy process_set(this->reactions_, species_map);
     auto jacobian =
-        BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
-    auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
+        BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), this->number_of_grid_cells_, number_of_species);
 
     process_set.SetJacobianFlatIds(jacobian);
-    LinearSolver<typename MatrixPolicy::value_type, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
+    LinearSolverPolicy linear_solver(jacobian, 1e-30);
 
-    StateParameters state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
-                          .number_of_species_ = variable_map.size(),
-                          .number_of_rate_constants_ = processes_.size(),
-                          .variable_names_ = system.UniqueNames(state_reordering),
-                          .custom_rate_parameter_labels_ = param_labels,
-                          .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
-                          .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements() };
+    std::vector<std::string> variable_names{number_of_species};
+    for (auto& species_pair : species_map)
+      variable_names[species_pair.second] = species_pair.first;
 
-    return Solver<State<MatrixPolicy, SparseMatrixPolicy>>(
+    StateParameters state_parameters_ = { .number_of_grid_cells_ = this->number_of_grid_cells_,
+                          .number_of_species_ = number_of_species,
+                          .number_of_rate_constants_ = this->reactions_.size(),
+                          .variable_names_ = variable_names,
+                          .custom_rate_parameter_labels_ = this->GetCustomParameterLabels(),
+                          .jacobian_diagonal_elements_ = this->GetJacobianDiagonalElements(jacobian),
+                          .nonzero_jacobian_elements_ = process_set.NonZeroJacobianElements() };
+
+    return Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>>(
         new SolverImpl<decltype(linear_solver), decltype(process_set)>(),
         parameters,
-        number_of_grid_cells_,
+        this->number_of_grid_cells_,
         number_of_species,
-        reactions_.size());
+        this->reactions_.size());
   }
 
 }  // namespace micm
