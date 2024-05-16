@@ -20,6 +20,9 @@ Checks: >
   -readability-named-parameter,
   bugprone-*,
   -bugprone-signal-handler,
+  cert-*,
+  -cert-err58-cpp,
+  -cert-msc51-cpp,
 
 WarningsAsErrors: '*'
 
