@@ -133,7 +133,7 @@ namespace micm
     void EndLoop(JitLoop& loop);
 
    private:
-    llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name);
+    llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name) const;
   };
 
   class JitFunctionBuilder
@@ -187,8 +187,9 @@ namespace micm
       arg.arg_ = arg_iter++;
       arg.arg_->setName(arg.name_);
     }
-    for (unsigned int i = 0; i < arguments_.size(); ++i)
+    for (unsigned int i = 0; i < arguments_.size(); ++i) {
       function_->addParamAttr(i, llvm::Attribute::NoAlias);
+    }
 
     // function body
 
@@ -207,7 +208,7 @@ namespace micm
 
   std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> JitFunction::Generate()
   {
-    assert((!generated_) && "JIT Function already generated");
+    assert((!generated_) && static_cast<bool>("JIT Function already generated"));
     std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> ret_val;
     verifyFunction(*function_);
     ret_val.first = compiler_->GetMainJITDylib().createResourceTracker();
@@ -288,7 +289,7 @@ namespace micm
     loop.index_->addIncoming(nextIter, loop.block_);
   }
 
-  inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name)
+  inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name) const
   {
     llvm::IRBuilder<> TmpB(&function_->getEntryBlock(), function_->getEntryBlock().begin());
     return TmpB.CreateAlloca(type, 0, var_name.c_str());

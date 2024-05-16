@@ -148,8 +148,9 @@ namespace micm
 
     ~InstrumentationTimer()
     {
-      if (!stopped_)
+      if (!stopped_) {
         Stop();
+      }
     }
 
     void Stop()
@@ -188,10 +189,12 @@ namespace micm
       while (srcIndex < N)
       {
         size_t matchIndex = 0;
-        while (matchIndex < K - 1 && srcIndex + matchIndex < N - 1 && expr[srcIndex + matchIndex] == remove[matchIndex])
+        while (matchIndex < K - 1 && srcIndex + matchIndex < N - 1 && expr[srcIndex + matchIndex] == remove[matchIndex]) {
           matchIndex++;
-        if (matchIndex == K - 1)
+        }
+        if (matchIndex == K - 1) {
           srcIndex += matchIndex;
+        }
         result.data_[dstIndex++] = expr[srcIndex] == '"' ? '\'' : expr[srcIndex];
         srcIndex++;
       }

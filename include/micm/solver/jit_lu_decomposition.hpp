@@ -29,8 +29,8 @@ namespace micm
 
     JitLuDecomposition(const JitLuDecomposition &) = delete;
     JitLuDecomposition &operator=(const JitLuDecomposition &) = delete;
-    JitLuDecomposition(JitLuDecomposition &&);
-    JitLuDecomposition &operator=(JitLuDecomposition &&);
+    JitLuDecomposition(JitLuDecomposition &&other);
+    JitLuDecomposition &operator=(JitLuDecomposition &&other);
 
     /// @brief Create a JITed LU decomposer for a given sparse matrix structure
     /// @param compiler JIT compiler

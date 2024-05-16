@@ -210,9 +210,7 @@ namespace micm
       auto begin = std::next(row_ids_.begin(), row_start_[row]);
       auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
       auto elem = std::find(begin, end, column);
-      if (elem == end)
-        return true;
-      return false;
+      return (elem == end);
     }
 
     std::size_t NumberOfBlocks() const
