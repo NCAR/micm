@@ -13,13 +13,17 @@
 
 namespace micm
 {
-  class SolverImplBase {
-  public:
+  using SolverParameters = std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters>;
+
+  class SolverImplBase
+  {
+   public:
     virtual ~SolverImplBase() = default;
   };
 
   template<class LinearSolverPolicy, class ProcessSetPolicy>
-  struct SolverImpl : public SolverImplBase {
+  struct SolverImpl : public SolverImplBase
+  {
     ProcessSetPolicy process_set_;
     LinearSolverPolicy linear_solver_;
   };
@@ -27,9 +31,6 @@ namespace micm
   class Solver
   {
    private:
-    using SolverParameters =
-        std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters>;
-
     SolverParameters parameters_;
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;

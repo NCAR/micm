@@ -65,7 +65,7 @@ namespace micm
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SolverParameters(const RosenbrockSolverParameters& options)
+  inline SolverBuilder& SolverBuilder::SetSolverParameters(const RosenbrockSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -75,7 +75,7 @@ namespace micm
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SolverParameters(const BackwardEulerSolverParameters& options)
+  inline SolverBuilder& SolverBuilder::SetSolverParameters(const BackwardEulerSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -137,7 +137,6 @@ namespace micm
     for (auto& name : system_.UniqueNames())
       species_map[name] = index++;
 
-
     if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
@@ -189,7 +188,8 @@ namespace micm
     }
   }
 
-  inline std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const {
+  inline std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const
+  {
     std::vector<std::string> param_labels{};
     for (const auto& reaction : reactions_)
       if (reaction.rate_constant_)
@@ -198,7 +198,8 @@ namespace micm
     return param_labels;
   }
 
-  inline std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const {
+  inline std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const
+  {
     std::vector<std::size_t> jacobian_diagonal_elements;
 
     jacobian_diagonal_elements.reserve(jacobian.NumRows());
@@ -221,19 +222,23 @@ namespace micm
     auto labels = GetCustomParameterLabels();
     std::size_t number_of_species = system_.StateSize();
 
-
     UnusedSpeciesCheck<ProcessSetPolicy>();
     SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
 
     ProcessSetPolicy process_set(reactions_, species_map);
-    auto jacobian = BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
+    auto jacobian =
+        BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
     auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
+
     process_set.SetJacobianFlatIds(jacobian);
-    micm::LinearSolver<double, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
+    micm::LinearSolver<typename MatrixPolicy::value_type, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
 
     return Solver(
-      new SolverImpl<decltype(linear_solver), decltype(process_set)>(), 
-      parameters, number_of_grid_cells_, number_of_species, reactions_.size());
+        new SolverImpl<decltype(linear_solver), decltype(process_set)>(),
+        parameters,
+        number_of_grid_cells_,
+        number_of_species,
+        reactions_.size());
   }
 
 }  // namespace micm

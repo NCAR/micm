@@ -26,70 +26,68 @@ namespace micm
     micm::System system_;
     std::size_t number_of_grid_cells_;
     std::vector<micm::Process> reactions_;
-    std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters> options_;
+    SolverParameters options_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
 
    public:
     /// @brief Set the chemical system
-    /// @param system 
-    /// @return 
+    /// @param system
+    /// @return
     SolverBuilder& SetSystem(micm::System system);
 
     /// @brief Set the reactions
-    /// @param reactions 
-    /// @return 
+    /// @param reactions
+    /// @return
     SolverBuilder& SetReactions(std::vector<micm::Process> reactions);
 
     /// @brief Set the number of grid cells
-    /// @param number_of_grid_cells 
-    /// @return 
+    /// @param number_of_grid_cells
+    /// @return
     SolverBuilder& SetNumberOfGridCells(int number_of_grid_cells);
 
     /// @brief Choose a rosenbrock solver
-    /// @param options 
-    /// @return 
-    SolverBuilder& SolverParameters(const RosenbrockSolverParameters& options);
+    /// @param options
+    /// @return
+    SolverBuilder& SetSolverParameters(const RosenbrockSolverParameters& options);
 
     /// @brief Choose a backward euler solver
-    /// @param options 
-    /// @return 
-    SolverBuilder& SolverParameters(const BackwardEulerSolverParameters& options);
+    /// @param options
+    /// @return
+    SolverBuilder& SetSolverParameters(const BackwardEulerSolverParameters& options);
 
-    /// @brief  
-    /// @return 
+    /// @brief
+    /// @return
     Solver Build();
 
    protected:
-
-    /// @brief  
-    /// @return 
+    /// @brief
+    /// @return
     virtual Solver BuildBackwardEulerSolver() = 0;
     virtual ~SolverBuilder() = default;
 
-    /// @brief 
-    /// @tparam ProcessSetPolicy 
-    /// @return 
+    /// @brief
+    /// @tparam ProcessSetPolicy
+    /// @return
     template<class ProcessSetPolicy>
     void UnusedSpeciesCheck();
 
     /// @brief Get a species map properly ordered
-    /// @return 
+    /// @return
     template<class MatrixPolicy, class ProcessSetPolicy>
     std::map<std::string, std::size_t> GetSpeciesMap() const;
 
     /// @brief Set the absolute tolerances per species
-    /// @param parameters 
-    /// @param species_map 
-    /// @return 
+    /// @param parameters
+    /// @param species_map
+    /// @return
     void SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const;
 
     /// @brief Return the labels of the custom parameters
-    /// @return 
+    /// @return
     std::vector<std::string> GetCustomParameterLabels() const;
 
     std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
-
   };
 
   template<class MatrixPolicy, class SparseMatrixPolicy>

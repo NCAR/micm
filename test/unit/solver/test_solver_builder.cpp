@@ -9,7 +9,8 @@
 #include <algorithm>
 #include <random>
 
-namespace {
+namespace
+{
   auto a = micm::Species("A");
   auto b = micm::Species("B");
   auto c = micm::Species("C");
@@ -30,7 +31,7 @@ namespace {
                          .SetPhase(gas_phase);
   micm::System the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   std::vector<micm::Process> reactions = { r1, r2 };
-}
+}  // namespace
 
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
@@ -38,16 +39,16 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
                             .SetSystem(the_system)
                             .SetReactions(reactions)
                             .SetNumberOfGridCells(1)
-                            .SolverParameters(micm::BackwardEulerSolverParameters{})
+                            .SetSolverParameters(micm::BackwardEulerSolverParameters{})
                             .Build();
 
   constexpr std::size_t L = 4;
   auto backward_euler_vector = micm::CpuSolverBuilder<micm::VectorMatrix<double, L>, micm::SparseMatrix<double>>()
-                            .SetSystem(the_system)
-                            .SetReactions(reactions)
-                            .SetNumberOfGridCells(1)
-                            .SolverParameters(micm::BackwardEulerSolverParameters{})
-                            .Build();
+                                   .SetSystem(the_system)
+                                   .SetReactions(reactions)
+                                   .SetNumberOfGridCells(1)
+                                   .SetSolverParameters(micm::BackwardEulerSolverParameters{})
+                                   .Build();
 }
 
 TEST(SolverBuilder, CanBuildRosenbrock)
