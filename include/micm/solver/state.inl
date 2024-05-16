@@ -58,7 +58,7 @@ inline std::error_code make_error_code(MicmStateErrc e)
 namespace micm
 {
 
-  template<template<class> class MatrixPolicy,class SparseMatrixPolicy>
+  template<class MatrixPolicy,class SparseMatrixPolicy>
   inline State<MatrixPolicy, SparseMatrixPolicy>::State()
       : conditions_(),
         variables_(),
@@ -68,7 +68,7 @@ namespace micm
   {
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline State<MatrixPolicy, SparseMatrixPolicy>::State(const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
@@ -100,7 +100,7 @@ namespace micm
     upper_matrix_ = upper_matrix;
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
@@ -109,7 +109,7 @@ namespace micm
       SetConcentration({ pair.first }, pair.second);
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, double concentration)
   {
     auto var = variable_map_.find(species.name_);
@@ -120,7 +120,7 @@ namespace micm
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(
       const Species& species,
       const std::vector<double>& concentration)
@@ -135,7 +135,7 @@ namespace micm
       variables_[i][i_species] = concentration[i];
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
       const std::vector<std::vector<double>>& parameters)
   {
@@ -152,7 +152,7 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
@@ -160,7 +160,7 @@ namespace micm
       SetCustomRateParameter(pair.first, pair.second);
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
@@ -172,7 +172,7 @@ namespace micm
     custom_rate_parameters_[0][param->second] = value;
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(
       const std::string& label,
       const std::vector<double>& values)
@@ -187,7 +187,7 @@ namespace micm
       custom_rate_parameters_[i][param->second] = values[i];
   }
 
-  template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintHeader()
   {
     auto largest_str_iter = std::max_element(

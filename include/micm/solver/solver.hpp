@@ -28,6 +28,7 @@ namespace micm
     LinearSolverPolicy linear_solver_;
   };
 
+  template<class StatePolicy>
   class Solver
   {
    private:
@@ -36,6 +37,7 @@ namespace micm
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
     std::unique_ptr<SolverImplBase> solver_impl_;
+    StateParameters state_parameters_;
 
    public:
     Solver()
@@ -60,7 +62,7 @@ namespace micm
     {
     }
 
-    void Solve()
+    void Solve(double timestep, StatePolicy& state)
     {
       if (std::holds_alternative<micm::RosenbrockSolverParameters>(parameters_))
       {

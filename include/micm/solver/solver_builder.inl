@@ -47,13 +47,13 @@ inline std::error_code make_error_code(MicmSolverBuilderErrc e)
 
 namespace micm
 {
-  inline SolverBuilder& SolverBuilder::SetSystem(micm::System system)
+  inline SolverBuilder& SolverBuilder::SetSystem(System system)
   {
     system_ = system;
     return *this;
   }
 
-  inline SolverBuilder& SolverBuilder::SetReactions(std::vector<micm::Process> reactions)
+  inline SolverBuilder& SolverBuilder::SetReactions(std::vector<Process> reactions)
   {
     reactions_ = reactions;
     return *this;
@@ -87,11 +87,11 @@ namespace micm
 
   inline Solver SolverBuilder::Build()
   {
-    if (std::holds_alternative<micm::RosenbrockSolverParameters>(options_))
+    if (std::holds_alternative<RosenbrockSolverParameters>(options_))
     {
       throw std::runtime_error("Not implemented yet");
     }
-    if (std::holds_alternative<micm::BackwardEulerSolverParameters>(options_))
+    if (std::holds_alternative<BackwardEulerSolverParameters>(options_))
     {
       return BuildBackwardEulerSolver();
     }
@@ -215,7 +215,7 @@ namespace micm
   template<class MatrixPolicy, class SparseMatrixPolicy>
   inline Solver CpuSolverBuilder<MatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
   {
-    using ProcessSetPolicy = micm::ProcessSet;
+    using ProcessSetPolicy = ProcessSet;
 
     auto parameters = std::get<BackwardEulerSolverParameters>(options_);
     auto species_map = GetSpeciesMap<MatrixPolicy, ProcessSetPolicy>();
@@ -231,9 +231,17 @@ namespace micm
     auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
 
     process_set.SetJacobianFlatIds(jacobian);
-    micm::LinearSolver<typename MatrixPolicy::value_type, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
+    LinearSolver<typename MatrixPolicy::value_type, SparseMatrixPolicy> linear_solver(jacobian, 1e-30);
 
-    return Solver(
+    StateParameters state_parameters_ = { .number_of_grid_cells_ = parameters_.number_of_grid_cells_,
+                          .number_of_species_ = variable_map.size(),
+                          .number_of_rate_constants_ = processes_.size(),
+                          .variable_names_ = system.UniqueNames(state_reordering),
+                          .custom_rate_parameter_labels_ = param_labels,
+                          .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
+                          .nonzero_jacobian_elements_ = process_set_.NonZeroJacobianElements() };
+
+    return Solver<State<MatrixPolicy, SparseMatrixPolicy>>(
         new SolverImpl<decltype(linear_solver), decltype(process_set)>(),
         parameters,
         number_of_grid_cells_,

@@ -58,7 +58,8 @@ namespace micm
 
     /// @brief
     /// @return
-    Solver Build();
+    template<class MatrixPolicy, class SparseMatrixPolicy>
+    Solver<State<MatrixPolicy, SparseMatrixPolicy>> Build();
 
    protected:
     /// @brief
