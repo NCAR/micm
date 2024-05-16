@@ -46,6 +46,9 @@ Checks: >
   -readability-isolate-declaration,
   bugprone-*,
   -bugprone-signal-handler,
+  cert-*,
+  -cert-err58-cpp,
+  -cert-msc51-cpp,
 
 WarningsAsErrors: '*'
 
