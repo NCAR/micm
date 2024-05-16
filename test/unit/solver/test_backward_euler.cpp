@@ -53,6 +53,9 @@ TEST(BackwardEuler, CanCallSolve)
   auto process_set = rosenbrock.process_set_;
   auto processes = std::vector<micm::Process>{ r1, r2 };
 
+  auto params = micm::BackwardEulerSolverParameters();
+  params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
+
   EXPECT_NO_THROW(be.Solve(
-      time_step, state, micm::BackwardEulerSolverParameters(), linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
+      time_step, state, params, linear_solver, process_set, processes, rosenbrock.state_parameters_.jacobian_diagonal_elements_));
 }

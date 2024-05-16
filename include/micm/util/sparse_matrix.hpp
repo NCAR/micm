@@ -46,6 +46,8 @@ namespace micm
   class SparseMatrix : public OrderingPolicy
   {
    public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = SparseMatrix<int, OrderingPolicy>;
     using value_type = T;
 
    protected:

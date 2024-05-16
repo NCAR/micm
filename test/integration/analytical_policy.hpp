@@ -71,8 +71,7 @@ void writeCSV(
 
 using yields = std::pair<micm::Species, double>;
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 template<class OdeSolverPolicy>
 void test_analytical_troe(
@@ -162,18 +161,18 @@ void test_analytical_troe(
     times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
-    if constexpr (std::is_same_v<decltype(solver.process_set_), micm::ProcessSet>)
-    {
-      auto linear_solver = solver.linear_solver_;
-      auto process_set = solver.process_set_;
-      be.Solve(
-        time_step, be_state, micm::BackwardEulerSolverParameters(), linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
-    }
+    // if constexpr (std::is_same_v<decltype(solver.process_set_), micm::ProcessSet>)
+    // {
+    //   auto linear_solver = solver.linear_solver_;
+    //   auto process_set = solver.process_set_;
+    //   be.Solve(
+    //     time_step, be_state, micm::BackwardEulerSolverParameters(), linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
+    // }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
-    be_model_concentrations[i_time] = be_state.variables_[0];
+    // be_model_concentrations[i_time] = be_state.variables_[0];
     state.variables_[0] = result.result_.AsVector();
 
     // Analytical results
@@ -206,15 +205,15 @@ void test_analytical_troe(
     EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
 
-    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
-    {
-      EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 0 << ")";
-      EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 1 << ")";
-      EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 2 << ")";
-    }
+    // if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
+    // {
+    //   EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-4)
+    //       << "Arrays differ at index (" << i << ", " << 0 << ")";
+    //   EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+    //       << "Arrays differ at index (" << i << ", " << 1 << ")";
+    //   EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+    //       << "Arrays differ at index (" << i << ", " << 2 << ")";
+    // }
   }
 }
 

@@ -362,7 +362,7 @@ namespace micm
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
           temp.Copy(K[stage]);
-          linear_solver_.template Solve<MatrixPolicy>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+          linear_solver_.template Solve<MatrixPolicy<double>>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves += 1;
         }
 

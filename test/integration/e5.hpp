@@ -1,10 +1,11 @@
 #pragma once
 
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/util/sparse_matrix.hpp>
 
 template<
     template<class> class MatrixPolicy = micm::Matrix,
-    template<class> class SparseMatrixPolicy = micm::SparseMatrix,
+    class SparseMatrixPolicy = micm::StandardSparseMatrix,
     class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
 class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
@@ -22,7 +23,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
     this->processes_ = processes;
     this->parameters_ = parameters;
 
-    auto builder = SparseMatrixPolicy<double>::Create(4).SetNumberOfBlocks(1).InitialValue(0.0);
+    auto builder = SparseMatrixPolicy::Create(4).SetNumberOfBlocks(1).InitialValue(0.0);
     for (int i = 0; i < 4; ++i)
     {
       for (int j = 0; j < 4; ++j)
@@ -31,7 +32,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
         nonzero_jacobian_elements_.insert(std::make_pair(i, j));
       }
     }
-    SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
+    SparseMatrixPolicy jacobian = SparseMatrixPolicy(builder);
 
     std::vector<std::size_t> jacobian_diagonal_elements;
     for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
@@ -108,7 +109,7 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   void CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
-      SparseMatrixPolicy<double>& jacobian) override
+      SparseMatrixPolicy& jacobian) override
   {
     std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     auto data = number_densities.AsVector();

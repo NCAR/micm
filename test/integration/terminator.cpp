@@ -10,10 +10,9 @@
 
 #include <gtest/gtest.h>
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 void RunTerminatorTest(std::size_t number_of_grid_cells)
 {
   TestTerminator<MatrixPolicy, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(
@@ -56,14 +55,10 @@ using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
 
 TEST(RosenbrockSolver, VectorTerminator)
 {

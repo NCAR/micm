@@ -9,8 +9,7 @@
 
 #include <gtest/gtest.h>
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 TEST(AnalyticalExamples, Troe)
 {

@@ -47,25 +47,25 @@ inline std::error_code make_error_code(MicmSolverBuilderErrc e)
 
 namespace micm
 {
-  SolverBuilder& SolverBuilder::SetSystem(micm::System system)
+  inline SolverBuilder& SolverBuilder::SetSystem(micm::System system)
   {
     system_ = system;
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::SetReactions(std::vector<micm::Process> reactions)
+  inline SolverBuilder& SolverBuilder::SetReactions(std::vector<micm::Process> reactions)
   {
     reactions_ = reactions;
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::SetNumberOfGridCells(int number_of_grid_cells)
+  inline SolverBuilder& SolverBuilder::SetNumberOfGridCells(int number_of_grid_cells)
   {
     number_of_grid_cells_ = number_of_grid_cells;
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::SolverParameters(const RosenbrockSolverParameters& options)
+  inline SolverBuilder& SolverBuilder::SolverParameters(const RosenbrockSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -75,7 +75,7 @@ namespace micm
     return *this;
   }
 
-  SolverBuilder& SolverBuilder::SolverParameters(const BackwardEulerSolverParameters& options)
+  inline SolverBuilder& SolverBuilder::SolverParameters(const BackwardEulerSolverParameters& options)
   {
     if (!std::holds_alternative<std::monostate>(options_))
     {
@@ -85,7 +85,7 @@ namespace micm
     return *this;
   }
 
-  Solver SolverBuilder::Build()
+  inline Solver SolverBuilder::Build()
   {
     if (std::holds_alternative<micm::RosenbrockSolverParameters>(options_))
     {
@@ -100,7 +100,7 @@ namespace micm
   }
 
   template<class ProcessSetPolicy>
-  void SolverBuilder::UnusedSpeciesCheck()
+  inline void SolverBuilder::UnusedSpeciesCheck()
   {
     if (ignore_unused_species_)
     {
@@ -128,27 +128,28 @@ namespace micm
     }
   }
 
-  template<template<class> class MatrixPolicy, class ProcessSetPolicy>
-  std::map<std::string, std::size_t> SolverBuilder::GetSpeciesMap() const
+  template<class MatrixPolicy, class ProcessSetPolicy>
+  inline std::map<std::string, std::size_t> SolverBuilder::GetSpeciesMap() const
   {
     std::map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
     std::size_t index = 0;
+    for (auto& name : system_.UniqueNames())
+      species_map[name] = index++;
 
-    if (!reorder_state_)
-    {
-      for (auto& name : system_.UniqueNames())
-        species_map[name] = index++;
-    }
-    else
+
+    if (reorder_state_)
     {
       // get unsorted Jacobian non-zero elements
       auto unsorted_process_set = ProcessSetPolicy(reactions_, species_map);
       auto unsorted_jac_elements = unsorted_process_set.NonZeroJacobianElements();
-      MatrixPolicy<int> unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
+
+      using Matrix = typename MatrixPolicy::IntMatrix;
+      Matrix unsorted_jac_non_zeros(system_.StateSize(), system_.StateSize(), 0);
       for (auto& elem : unsorted_jac_elements)
         unsorted_jac_non_zeros[elem.first][elem.second] = 1;
-      auto reorder_map = DiagonalMarkowitzReorder<MatrixPolicy>(unsorted_jac_non_zeros);
+      auto reorder_map = DiagonalMarkowitzReorder<Matrix>(unsorted_jac_non_zeros);
+
       state_reordering = [=](const std::vector<std::string>& variables, const std::size_t i)
       { return variables[reorder_map[i]]; };
 
@@ -160,7 +161,7 @@ namespace micm
     return species_map;
   }
 
-  void SolverBuilder::SetAbsoluteTolerances(
+  inline void SolverBuilder::SetAbsoluteTolerances(
       std::vector<double>& tolerances,
       const std::map<std::string, std::size_t>& species_map) const
   {
@@ -188,7 +189,7 @@ namespace micm
     }
   }
 
-  std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const {
+  inline std::vector<std::string> SolverBuilder::GetCustomParameterLabels() const {
     std::vector<std::string> param_labels{};
     for (const auto& reaction : reactions_)
       if (reaction.rate_constant_)
@@ -197,7 +198,7 @@ namespace micm
     return param_labels;
   }
 
-  std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const {
+  inline std::vector<std::size_t> SolverBuilder::GetJacobianDiagonalElements(auto jacobian) const {
     std::vector<std::size_t> jacobian_diagonal_elements;
 
     jacobian_diagonal_elements.reserve(jacobian.NumRows());
@@ -211,17 +212,20 @@ namespace micm
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy>
-  Solver CpuSolverBuilder<MatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
+  inline Solver CpuSolverBuilder<MatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
   {
+    using ProcessSetPolicy = micm::ProcessSet;
+
     auto parameters = std::get<BackwardEulerSolverParameters>(options_);
-    auto species_map = GetSpeciesMap<MatrixPolicy, micm::ProcessSet>();
+    auto species_map = GetSpeciesMap<MatrixPolicy, ProcessSetPolicy>();
     auto labels = GetCustomParameterLabels();
     std::size_t number_of_species = system_.StateSize();
 
-    UnusedSpeciesCheck<micm::ProcessSet>();
+
+    UnusedSpeciesCheck<ProcessSetPolicy>();
     SetAbsoluteTolerances(parameters.absolute_tolerance_, species_map);
 
-    micm::ProcessSet process_set(reactions_, species_map);
+    ProcessSetPolicy process_set(reactions_, species_map);
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(process_set.NonZeroJacobianElements(), number_of_grid_cells_, number_of_species);
     auto diagonal_elements = GetJacobianDiagonalElements(jacobian);
     process_set.SetJacobianFlatIds(jacobian);

@@ -64,7 +64,8 @@ namespace micm
 
     /// @brief  
     /// @return 
-    virtual Solver BuildBackwardEulerSolver();
+    virtual Solver BuildBackwardEulerSolver() = 0;
+    virtual ~SolverBuilder() = default;
 
     /// @brief 
     /// @tparam ProcessSetPolicy 
@@ -74,7 +75,7 @@ namespace micm
 
     /// @brief Get a species map properly ordered
     /// @return 
-    template<template<class> class MatrixPolicy, class ProcessSetPolicy>
+    template<class MatrixPolicy, class ProcessSetPolicy>
     std::map<std::string, std::size_t> GetSpeciesMap() const;
 
     /// @brief Set the absolute tolerances per species
@@ -91,14 +92,14 @@ namespace micm
 
   };
 
-  template<class MatrixPolicy = Matrix<double>, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   class CpuSolverBuilder : public SolverBuilder
   {
    public:
     Solver BuildBackwardEulerSolver() override;
   };
 
-  template<class MatrixPolicy = Matrix<double>, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class MatrixPolicy, class SparseMatrixPolicy>
   class GpuSolverBuilder : public SolverBuilder
   {
    public:

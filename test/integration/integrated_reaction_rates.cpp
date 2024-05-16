@@ -14,8 +14,7 @@
 
 using yields = std::pair<micm::Species, double>;
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
 {

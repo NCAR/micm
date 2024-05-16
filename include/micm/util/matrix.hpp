@@ -28,6 +28,12 @@ namespace micm
   template<class T = double>
   class Matrix
   {
+    public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = Matrix<int>;
+    using value_type = T;
+
+    private:
     std::vector<T> data_;
     std::size_t x_dim_;
     std::size_t y_dim_;

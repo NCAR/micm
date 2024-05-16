@@ -14,8 +14,7 @@
 
 using yields = std::pair<micm::Species, double>;
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 #ifdef USE_JSON
 #  include <micm/configure/solver_config.hpp>
