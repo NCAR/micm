@@ -23,7 +23,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class CPUMatrixPolicy, template<class> class GPUMatrixPolicy>
+template<class CPUMatrixPolicy, template<class> class GPUMatrixPolicy>
 void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -212,8 +212,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   }
 }
 
-template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
+using Group10000VectorMatrix = micm::VectorMatrix<double, 10000>;
 
 template<class T>
 using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
