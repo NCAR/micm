@@ -186,7 +186,7 @@ namespace micm
       {
         if (species.HasProperty("absolute tolerance"))
         {
-          tolerances[species_map.at(species.name_)] = species.GetProperty<double>("absolute tolerance");
+          tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
         }
       }
       for (auto& phase : system_.phases_)
@@ -195,7 +195,7 @@ namespace micm
         {
           if (species.HasProperty("absolute tolerance"))
           {
-            tolerances[species_map.at(species.name_)] = species.GetProperty<double>("absolute tolerance");
+            tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
           }
         }
       }
