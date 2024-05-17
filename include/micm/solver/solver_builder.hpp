@@ -18,6 +18,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
+#include <variant>
 #include <system_error>
 
 namespace micm

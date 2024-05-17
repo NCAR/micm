@@ -49,14 +49,14 @@ namespace micm
 
   inline void SolverStats::Reset()
   {
-    function_calls = 0;
-    jacobian_updates = 0;
-    number_of_steps = 0;
-    accepted = 0;
-    rejected = 0;
-    decompositions = 0;
-    solves = 0;
-    singular = 0;
+    function_calls_ = 0;
+    jacobian_updates_ = 0;
+    number_of_steps_ = 0;
+    accepted_ = 0;
+    rejected_ = 0;
+    decompositions_ = 0;
+    solves_ = 0;
+    singular_ = 0;
   }
 
   inline std::string StateToString(const SolverState& state)
@@ -275,7 +275,7 @@ namespace micm
     std::vector<MatrixPolicy<double>> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
-        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, delta_min_) : std::min(h_max, parameters_.h_start_);
+        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
 
@@ -289,7 +289,7 @@ namespace micm
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
 
     if (std::abs(H) <= 10 * parameters_.round_off_)
-      H = delta_min_;
+      H = DELTA_MIN;
 
     // TODO: the logic above this point should be moved to the constructor and should return an error
     //       if the parameters are invalid (e.g., h_min > h_max or h_start > h_max)
@@ -299,7 +299,7 @@ namespace micm
 
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      if (stats.number_of_steps > parameters_.max_number_of_steps_)
+      if (stats.number_of_steps_ > parameters_.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
@@ -316,11 +316,11 @@ namespace micm
 
       // compute the forcing at the beginning of the current time
       CalculateForcing(state.rate_constants_, Y, initial_forcing);
-      stats.function_calls += 1;
+      stats.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       CalculateNegativeJacobian(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates += 1;
+      stats.jacobian_updates_ += 1;
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -353,7 +353,7 @@ namespace micm
                 Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
               }
               CalculateForcing(state.rate_constants_, Ynew, forcing);
-              stats.function_calls += 1;
+              stats.function_calls_ += 1;
             }
           }
           K[stage].Copy(forcing);
@@ -363,7 +363,7 @@ namespace micm
           }
           temp.Copy(K[stage]);
           linear_solver_.template Solve<MatrixPolicy<double>>(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
-          stats.solves += 1;
+          stats.solves_ += 1;
         }
 
         // Compute the new solution
@@ -386,7 +386,7 @@ namespace micm
                 parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
         double Hnew = H * fac;
 
-        stats.number_of_steps += 1;
+        stats.number_of_steps_ += 1;
 
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
@@ -403,7 +403,7 @@ namespace micm
         }
         else if ((error < 1) || (H < parameters_.h_min_))
         {
-          stats.accepted += 1;
+          stats.accepted_ += 1;
           present_time = present_time + H;
           Y.Copy(Ynew);
           Hnew = std::max(parameters_.h_min_, std::min(Hnew, h_max));
@@ -427,9 +427,9 @@ namespace micm
           reject_more_h = reject_last_h;
           reject_last_h = true;
           H = Hnew;
-          if (stats.accepted >= 1)
+          if (stats.accepted_ >= 1)
           {
-            stats.rejected += 1;
+            stats.rejected_ += 1;
           }
         }
       }
@@ -568,10 +568,10 @@ namespace micm
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
       }
       singular = false;  // TODO This should be evaluated in some way
-      stats.decompositions += 1;
+      stats.decompositions_ += 1;
       if (!singular)
         break;
-      stats.singular += 1;
+      stats.singular_ += 1;
       if (++n_consecutive > 5)
         break;
       H /= 2;

@@ -24,7 +24,7 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
 
     .. tab-item:: Build the Mechanism with the API
 
-      .. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
+      .. literalinclude:: ../../../test/tutorial/test_solver_results.cpp
         :language: cpp
         
 Line-by-line explanation
@@ -56,7 +56,7 @@ There are four values returned.
 Upon completion of the simulation, we can inspect the solver state and statistics including the number of individual function calls,
 acceptance/rejection of solutions and the existence of singular matrix.
 
-.. literalinclude:: ../../../test/tutorial/test_but_how_fast_is_it.cpp
+.. literalinclude:: ../../../test/tutorial/test_solver_results.cpp
   :language: cpp
   :lines: 69-80
 

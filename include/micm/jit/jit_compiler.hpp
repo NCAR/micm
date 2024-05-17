@@ -73,12 +73,12 @@ namespace
     }
   };
 
-  const JitErrorCategory jitErrorCategory{};
+  const JitErrorCategory JIT_ERROR{};
 }  // namespace
 
 inline std::error_code make_error_code(MicmJitErrc e)
 {
-  return { static_cast<int>(e), jitErrorCategory };
+  return { static_cast<int>(e), JIT_ERROR };
 }
 
 namespace micm

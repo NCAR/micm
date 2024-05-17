@@ -60,11 +60,11 @@ Running this program should give an output similar to this:
 
   Two stages: 
   time,         A,         B,         C
-      0,  1.00e+00,  0.00e+00,  0.00e+00
-    200,  5.37e-01,  4.50e-06,  4.63e-01
-    400,  4.51e-01,  3.23e-06,  5.49e-01
-    600,  4.01e-01,  2.64e-06,  5.99e-01
-    800,  3.65e-01,  2.28e-06,  6.35e-01
+     0,  1.00e+00,  0.00e+00,  0.00e+00
+   200,  5.37e-01,  4.50e-06,  4.63e-01
+   400,  4.51e-01,  3.23e-06,  5.49e-01
+   600,  4.01e-01,  2.64e-06,  5.99e-01
+   800,  3.65e-01,  2.28e-06,  6.35e-01
   1000,  3.38e-01,  2.02e-06,  6.62e-01
   1200,  3.16e-01,  1.83e-06,  6.84e-01
   1400,  2.97e-01,  1.68e-06,  7.03e-01
@@ -81,18 +81,14 @@ Running this program should give an output similar to this:
   decompositions: 178
   solves: 356
   singular: 0
-  total_forcing_time: 9962 nanoseconds
-  total_jacobian_time: 6454 nanoseconds
-  total_linear_factor_time: 26835 nanoseconds
-  total_linear_solve_time: 12044 nanoseconds
 
   Three stages: 
   time,         A,         B,         C
-      0,  1.00e+00,  0.00e+00,  0.00e+00
-    200,  5.35e-01,  4.50e-06,  4.65e-01
-    400,  4.50e-01,  3.23e-06,  5.50e-01
-    600,  4.00e-01,  2.63e-06,  6.00e-01
-    800,  3.64e-01,  2.27e-06,  6.36e-01
+     0,  1.00e+00,  0.00e+00,  0.00e+00
+   200,  5.35e-01,  4.50e-06,  4.65e-01
+   400,  4.50e-01,  3.23e-06,  5.50e-01
+   600,  4.00e-01,  2.63e-06,  6.00e-01
+   800,  3.64e-01,  2.27e-06,  6.36e-01
   1000,  3.37e-01,  2.01e-06,  6.63e-01
   1200,  3.15e-01,  1.82e-06,  6.85e-01
   1400,  2.96e-01,  1.67e-06,  7.04e-01
@@ -109,18 +105,14 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 381
   singular: 0
-  total_forcing_time: 7421 nanoseconds
-  total_jacobian_time: 4295 nanoseconds
-  total_linear_factor_time: 19248 nanoseconds
-  total_linear_solve_time: 12093 nanoseconds
 
   Four stages: 
   time,         A,         B,         C
-      0,  1.00e+00,  0.00e+00,  0.00e+00
-    200,  5.36e-01,  4.49e-06,  4.64e-01
-    400,  4.50e-01,  3.20e-06,  5.50e-01
-    600,  4.00e-01,  2.62e-06,  6.00e-01
-    800,  3.64e-01,  2.26e-06,  6.36e-01
+     0,  1.00e+00,  0.00e+00,  0.00e+00
+   200,  5.36e-01,  4.49e-06,  4.64e-01
+   400,  4.50e-01,  3.20e-06,  5.50e-01
+   600,  4.00e-01,  2.62e-06,  6.00e-01
+   800,  3.64e-01,  2.26e-06,  6.36e-01
   1000,  3.37e-01,  2.01e-06,  6.63e-01
   1200,  3.15e-01,  1.82e-06,  6.85e-01
   1400,  2.97e-01,  1.67e-06,  7.03e-01
@@ -137,18 +129,14 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 508
   singular: 0
-  total_forcing_time: 9749 nanoseconds
-  total_jacobian_time: 4537 nanoseconds
-  total_linear_factor_time: 20040 nanoseconds
-  total_linear_solve_time: 17923 nanoseconds
 
   Four stages differential algebraic: 
   time,         A,         B,         C
-      0,  1.00e+00,  0.00e+00,  0.00e+00
-    200,  5.36e-01,  4.49e-06,  4.64e-01
-    400,  4.51e-01,  3.23e-06,  5.49e-01
-    600,  4.00e-01,  2.63e-06,  6.00e-01
-    800,  3.64e-01,  2.27e-06,  6.36e-01
+     0,  1.00e+00,  0.00e+00,  0.00e+00
+   200,  5.36e-01,  4.49e-06,  4.64e-01
+   400,  4.51e-01,  3.23e-06,  5.49e-01
+   600,  4.00e-01,  2.63e-06,  6.00e-01
+   800,  3.64e-01,  2.27e-06,  6.36e-01
   1000,  3.37e-01,  2.01e-06,  6.63e-01
   1200,  3.15e-01,  1.82e-06,  6.85e-01
   1400,  2.97e-01,  1.68e-06,  7.03e-01
@@ -165,25 +153,20 @@ Running this program should give an output similar to this:
   decompositions: 128
   solves: 512
   singular: 0
-  total_forcing_time: 10584 nanoseconds
-  total_jacobian_time: 4376 nanoseconds
-  total_linear_factor_time: 19792 nanoseconds
-  total_linear_solve_time: 17254 nanoseconds
-
 
   Six stages differential algebraic: 
-    time,         A,         B,         C
-        0,  1.00e+00,  0.00e+00,  0.00e+00
-      200,  5.36e-01,  4.49e-06,  4.64e-01
-      400,  4.51e-01,  3.22e-06,  5.49e-01
-      600,  4.00e-01,  2.63e-06,  6.00e-01
-      800,  3.64e-01,  2.27e-06,  6.36e-01
-    1000,  3.37e-01,  2.01e-06,  6.63e-01
-    1200,  3.15e-01,  1.82e-06,  6.85e-01
-    1400,  2.97e-01,  1.67e-06,  7.03e-01
-    1600,  2.81e-01,  1.55e-06,  7.19e-01
-    1800,  2.67e-01,  1.45e-06,  7.33e-01
-    2000,  2.56e-01,  1.37e-06,  7.44e-01
+  time,         A,         B,         C
+     0,  1.00e+00,  0.00e+00,  0.00e+00
+   200,  5.36e-01,  4.49e-06,  4.64e-01
+   400,  4.51e-01,  3.22e-06,  5.49e-01
+   600,  4.00e-01,  2.63e-06,  6.00e-01
+   800,  3.64e-01,  2.27e-06,  6.36e-01
+  1000,  3.37e-01,  2.01e-06,  6.63e-01
+  1200,  3.15e-01,  1.82e-06,  6.85e-01
+  1400,  2.97e-01,  1.67e-06,  7.03e-01
+  1600,  2.81e-01,  1.55e-06,  7.19e-01
+  1800,  2.67e-01,  1.45e-06,  7.33e-01
+  2000,  2.56e-01,  1.37e-06,  7.44e-01
   Total solve time: 174959 nanoseconds
   accepted: 127
   function_calls: 762
@@ -194,7 +177,3 @@ Running this program should give an output similar to this:
   decompositions: 127
   solves: 762
   singular: 0
-  total_forcing_time: 20743 nanoseconds
-  total_jacobian_time: 4497 nanoseconds
-  total_linear_factor_time: 20085 nanoseconds
-  total_linear_solve_time: 28233 nanoseconds
