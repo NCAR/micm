@@ -112,7 +112,6 @@ void test_analytical_troe(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   OdeSolverPolicy solver = create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes);
 
-  micm::BackwardEuler be;
   auto be_state = solver.GetState();
 
   double temperature = 272.5;

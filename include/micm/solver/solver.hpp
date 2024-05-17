@@ -4,75 +4,39 @@
  */
 #pragma once
 
-#include <micm/solver/backward_euler.hpp>
-#include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
-
-#include <memory>
-#include <variant>
 
 namespace micm
 {
-  using SolverParameters = std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters>;
 
-  class SolverImplBase
-  {
-   public:
-    virtual ~SolverImplBase() = default;
-  };
-
-  template<class LinearSolverPolicy, class ProcessSetPolicy>
-  struct SolverImpl : public SolverImplBase
-  {
-    ProcessSetPolicy process_set_;
-    LinearSolverPolicy linear_solver_;
-  };
-
-  template<class StatePolicy>
+  template<class SolverPolicy, class StatePolicy>
   class Solver
   {
    private:
-    SolverParameters parameters_;
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
-    std::unique_ptr<SolverImplBase> solver_impl_;
     StateParameters state_parameters_;
+    SolverPolicy solver_;
 
    public:
-    Solver()
-        : parameters_(std::monostate{}),
-          number_of_grid_cells_(0),
-          number_of_species_(0),
-          number_of_reactions_(0)
-    {
-    }
 
     Solver(
-        SolverImplBase* solver_impl,
-        SolverParameters parameters,
+        SolverPolicy solver,
+        StateParameters state_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
         std::size_t number_of_reactions)
-        : solver_impl_(solver_impl),
-          parameters_(parameters),
+        : solver_(solver),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
-          number_of_reactions_(number_of_reactions)
+          number_of_reactions_(number_of_reactions),
+          state_parameters_(state_parameters)
     {
     }
 
-    void Solve(double timestep, StatePolicy& state)
+    void Solve(double time_step, StatePolicy& state)
     {
-      if (std::holds_alternative<micm::RosenbrockSolverParameters>(parameters_))
-      {
-        // call Rosenbrock solver
-      }
-      else if (std::holds_alternative<micm::BackwardEulerSolverParameters>(parameters_))
-      {
-        micm::BackwardEuler be;
-        // be.solve()
-      }
+      solver_.Solve(time_step, state);
     }
 
     /// @brief Returns the number of grid cells
@@ -94,6 +58,11 @@ namespace micm
     std::size_t GetNumberOfReactions() const
     {
       return number_of_reactions_;
+    }
+
+    StatePolicy GetState() const
+    {
+      return StatePolicy(state_parameters_);
     }
   };
 }  // namespace micm

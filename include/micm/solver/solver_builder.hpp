@@ -5,6 +5,8 @@
 #pragma once
 
 #include <micm/process/process.hpp>
+#include <micm/process/process_set.hpp>
+#include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
@@ -20,6 +22,8 @@
 
 namespace micm
 {
+  using SolverParameters = std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters>;
+
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class SolverBuilder
   {
@@ -59,12 +63,13 @@ namespace micm
 
     /// @brief
     /// @return
-    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> Build();
+    auto Build();
 
    protected:
     /// @brief
     /// @return
-    virtual Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() = 0;
+    virtual Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() = 0;
+
     virtual ~SolverBuilder() = default;
 
     /// @brief
@@ -95,14 +100,14 @@ namespace micm
   class CpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
+    Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class GpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver<State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
+    Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
 }  // namespace micm
