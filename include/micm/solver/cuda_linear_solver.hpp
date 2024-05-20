@@ -15,7 +15,7 @@
 
 namespace micm
 {
-  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
+  template<typename T, class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
   class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
@@ -32,16 +32,16 @@ namespace micm
     ///   in this case, we will use the CudaLuDecomposition specified at line 15;
     ///   See line 62 of "linear_solver.inl" for more details about how
     ///   this lamda function works;
-    CudaLinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value)
+    CudaLinearSolver(const SparseMatrixPolicy& matrix, T initial_value)
         : CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
-              [&](const SparseMatrixPolicy<double>& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
+              [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
 
     CudaLinearSolver(
-        const SparseMatrixPolicy<T>& matrix,
+        const SparseMatrixPolicy& matrix,
         T initial_value,
-        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp)
+        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
         : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
       LinearSolverParam hoststruct;
@@ -68,23 +68,22 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    template<template<class> class MatrixPolicy>
+    template<class MatrixPolicy>
     requires(
-        CudaMatrix<SparseMatrixPolicy<T>>&& CudaMatrix<MatrixPolicy<T>>&& VectorizableDense<MatrixPolicy<T>>&&
-            VectorizableSparse<SparseMatrixPolicy<
-                T>>) void Solve(const MatrixPolicy<T>& b, MatrixPolicy<T>& x, const SparseMatrixPolicy<T>& L, const SparseMatrixPolicy<T>& U)
+        CudaMatrix<SparseMatrixPolicy>&& CudaMatrix<MatrixPolicy>&& VectorizableDense<MatrixPolicy>&&
+            VectorizableSparse<SparseMatrixPolicy>) void Solve(const MatrixPolicy& b, MatrixPolicy& x, const SparseMatrixPolicy& L, const SparseMatrixPolicy& U)
         const
     {
       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
       micm::cuda::SolveKernelDriver(b.AsDeviceParam(), x_param, L.AsDeviceParam(), U.AsDeviceParam(), this->devstruct_);
     };
 
-    template<template<class> class MatrixPolicy>
-    requires(!CudaMatrix<SparseMatrixPolicy<T>> && !CudaMatrix<MatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x,
-        const SparseMatrixPolicy<T>& L,
-        const SparseMatrixPolicy<T>& U) const
+    template<class MatrixPolicy>
+    requires(!CudaMatrix<SparseMatrixPolicy> && !CudaMatrix<MatrixPolicy>) void Solve(
+        const MatrixPolicy& b,
+        MatrixPolicy& x,
+        const SparseMatrixPolicy& L,
+        const SparseMatrixPolicy& U) const
     {
       LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::template Solve<MatrixPolicy>(b, x, L, U);
     };

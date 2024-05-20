@@ -119,7 +119,6 @@ namespace micm
       return;
     }
 
-    std::size_t index = 0;
     auto used_species = ProcessSetPolicy::SpeciesUsed(reactions_);
     auto available_species = system_.UniqueNames();
     std::sort(available_species.begin(), available_species.end());
@@ -165,7 +164,7 @@ namespace micm
       state_reordering = [=](const std::vector<std::string>& variables, const std::size_t i)
       { return variables[reorder_map[i]]; };
 
-      std::size_t index = 0;
+      index = 0;
       for (auto& name : system_.UniqueNames(state_reordering))
         species_map[name] = index++;
     }

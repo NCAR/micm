@@ -1,5 +1,7 @@
 #pragma once
 
+#include "test_lu_decomposition_policy.hpp"
+
 #include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/cuda_param.hpp>
@@ -13,59 +15,20 @@
 #include <random>
 #include <vector>
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void check_results(
-    const SparseMatrixPolicy<T>& A,
-    const SparseMatrixPolicy<T>& L,
-    const SparseMatrixPolicy<T>& U,
-    const std::function<void(const T, const T)> f)
-{
-  EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
-  EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
-  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
-  {
-    for (std::size_t i = 0; i < A.NumRows(); ++i)
-    {
-      for (std::size_t j = 0; j < A.NumColumns(); ++j)
-      {
-        T result{};
-        for (std::size_t k = 0; k < A.NumRows(); ++k)
-        {
-          if (!(L.IsZero(i, k) || U.IsZero(k, j)))
-          {
-            result += L[i_block][i][k] * U[i_block][k][j];
-          }
-        }
-        // Make sure these are actually triangular matrices
-        EXPECT_TRUE(i >= j || L.IsZero(i, j));
-        EXPECT_TRUE(j >= i || U.IsZero(i, j));
-        if (A.IsZero(i, j))
-        {
-          f(result, T{});
-        }
-        else
-        {
-          f(result, A[i_block][i][j]);
-        }
-      }
-    }
-  }
-}
-
-template<template<class> class CPUSparseMatrixPolicy, template<class> class GPUSparseMatrixPolicy>
-void testRandomMatrix(size_t n_grids)
+template<class CPUSparseMatrixPolicy, class GPUSparseMatrixPolicy>
+void testCudaRandomMatrix(size_t n_grids)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = CPUSparseMatrixPolicy<double>::Create(10).SetNumberOfBlocks(n_grids).InitialValue(1.0e-30);
+  auto builder = CPUSparseMatrixPolicy::Create(10).SetNumberOfBlocks(n_grids).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
         builder = builder.WithElement(i, j);
 
-  CPUSparseMatrixPolicy<double> cpu_A(builder);
-  GPUSparseMatrixPolicy<double> gpu_A(builder);
+  CPUSparseMatrixPolicy cpu_A(builder);
+  GPUSparseMatrixPolicy gpu_A(builder);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
@@ -81,14 +44,14 @@ void testRandomMatrix(size_t n_grids)
   gpu_A.CopyToDevice();
   gpu_LU.first.CopyToDevice();
   gpu_LU.second.CopyToDevice();
-  gpu_lud.Decompose<double, GPUSparseMatrixPolicy>(gpu_A, gpu_LU.first, gpu_LU.second);
+  gpu_lud.Decompose<GPUSparseMatrixPolicy>(gpu_A, gpu_LU.first, gpu_LU.second);
   gpu_LU.first.CopyToHost();
   gpu_LU.second.CopyToHost();
-  check_results<double, GPUSparseMatrixPolicy>(
+  check_results<typename GPUSparseMatrixPolicy::value_type, GPUSparseMatrixPolicy>(
       gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 
-  micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<double, CPUSparseMatrixPolicy>(cpu_A);
-  auto cpu_LU = micm::LuDecomposition::GetLUMatrices<double, CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
+  micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
+  auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
   cpu_lud.Decompose<double, CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second);
 
   // checking GPU result again CPU
@@ -108,28 +71,20 @@ void testRandomMatrix(size_t n_grids)
   };
 }
 
-template<class T>
-using Group1CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group100CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
-template<class T>
-using Group1000CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
-template<class T>
-using Group100000CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
+using Group1CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group100CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<100>>;
+using Group1000CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1000>>;
+using Group100000CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<100000>>;
 
-template<class T>
-using Group1CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group100CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
-template<class T>
-using Group1000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
-template<class T>
-using Group100000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<100000>>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group100CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<100>>;
+using Group1000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1000>>;
+using Group100000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<100000>>;
 
 TEST(CudaLuDecomposition, RandomMatrixVectorOrdering)
 {
-  testRandomMatrix<Group1CPUSparseVectorMatrix, Group1CudaSparseMatrix>(1);
-  testRandomMatrix<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100);
-  testRandomMatrix<Group1000CPUSparseVectorMatrix, Group1000CudaSparseMatrix>(1000);
-  testRandomMatrix<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000);
+  testCudaRandomMatrix<Group1CPUSparseVectorMatrix, Group1CudaSparseMatrix>(1);
+  testCudaRandomMatrix<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100);
+  testCudaRandomMatrix<Group1000CPUSparseVectorMatrix, Group1000CudaSparseMatrix>(1000);
+  testCudaRandomMatrix<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000);
 }

@@ -33,17 +33,17 @@ namespace micm
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
 
-    template<template<class> typename MatrixPolicy>
-    requires(CudaMatrix<MatrixPolicy<double>>&& VectorizableDense<MatrixPolicy<double>>) void AddForcingTerms(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
+    template<typename MatrixPolicy>
+    requires(CudaMatrix<MatrixPolicy>&& VectorizableDense<MatrixPolicy>) void AddForcingTerms(
+        const MatrixPolicy& rate_constants,
+        const MatrixPolicy& state_variables,
+        MatrixPolicy& forcing) const;
 
-    template<template<class> typename MatrixPolicy>
-    requires(!CudaMatrix<MatrixPolicy<double>>) void AddForcingTerms(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& state_variables,
-        MatrixPolicy<double>& forcing) const;
+    template<typename MatrixPolicy>
+    requires(!CudaMatrix<MatrixPolicy>) void AddForcingTerms(
+        const MatrixPolicy& rate_constants,
+        const MatrixPolicy& state_variables,
+        MatrixPolicy& forcing) const;
 
     template<class MatrixPolicy, class SparseMatrixPolicy>
     requires(
@@ -101,12 +101,12 @@ namespace micm
     micm::cuda::CopyJacobiFlatId(hoststruct, this->devstruct_);
   }
 
-  template<template<class> class MatrixPolicy>
-  requires(CudaMatrix<MatrixPolicy<double>>&& VectorizableDense<MatrixPolicy<double>>) inline void CudaProcessSet::
+  template<class MatrixPolicy>
+  requires(CudaMatrix<MatrixPolicy>&& VectorizableDense<MatrixPolicy>) inline void CudaProcessSet::
       AddForcingTerms(
-          const MatrixPolicy<double>& rate_constants,
-          const MatrixPolicy<double>& state_variables,
-          MatrixPolicy<double>& forcing) const
+          const MatrixPolicy& rate_constants,
+          const MatrixPolicy& state_variables,
+          MatrixPolicy& forcing) const
   {
     auto forcing_param = forcing.AsDeviceParam();  // we need to update forcing so it can't be constant and must be an lvalue
     micm::cuda::AddForcingTermsKernelDriver(
@@ -114,11 +114,11 @@ namespace micm
   }
 
   // call the function from the base class
-  template<template<class> class MatrixPolicy>
-  requires(!CudaMatrix<MatrixPolicy<double>>) inline void CudaProcessSet::AddForcingTerms(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& state_variables,
-      MatrixPolicy<double>& forcing) const
+  template<class MatrixPolicy>
+  requires(!CudaMatrix<MatrixPolicy>) inline void CudaProcessSet::AddForcingTerms(
+      const MatrixPolicy& rate_constants,
+      const MatrixPolicy& state_variables,
+      MatrixPolicy& forcing) const
   {
     AddForcingTerms(rate_constants, state_variables, forcing);
   }

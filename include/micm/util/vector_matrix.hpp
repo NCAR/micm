@@ -33,7 +33,7 @@ namespace micm
   {
     public:
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
-    using IntMatrix = VectorMatrix<int>;
+    using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
 
     private:
