@@ -25,7 +25,8 @@ namespace micm
     for (auto& elem : nonzero_jacobian_elements)
       builder = builder.WithElement(elem.first, elem.second);
     // Always include diagonal elements
-    for (std::size_t i = 0; i < state_size; ++i) {
+    for (std::size_t i = 0; i < state_size; ++i)
+    {
       builder = builder.WithElement(i, i);
     }
     return SparseMatrixPolicy<double>(builder);

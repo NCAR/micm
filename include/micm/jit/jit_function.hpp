@@ -187,7 +187,8 @@ namespace micm
       arg.arg_ = arg_iter++;
       arg.arg_->setName(arg.name_);
     }
-    for (unsigned int i = 0; i < arguments_.size(); ++i) {
+    for (unsigned int i = 0; i < arguments_.size(); ++i)
+    {
       function_->addParamAttr(i, llvm::Attribute::NoAlias);
     }
 

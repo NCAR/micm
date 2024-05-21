@@ -107,7 +107,8 @@ namespace micm
   {
     double pre = parameters_.X_ * std::exp(-parameters_.Y_ / temperature);
     double Atmn = A(temperature, air_number_density);
-    if (parameters_.branch_ == BranchedRateConstantParameters::Branch::Alkoxy) {
+    if (parameters_.branch_ == BranchedRateConstantParameters::Branch::Alkoxy)
+    {
       return pre * (z_ / (z_ + Atmn));
     }
     return pre * (Atmn / (Atmn + z_));
