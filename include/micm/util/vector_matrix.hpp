@@ -251,12 +251,15 @@ namespace micm
       auto y_iter = data_.begin();
       auto x_iter = x.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i) {
+      for (std::size_t i = 0; i < n; ++i)
+      {
         *(y_iter++) += alpha * (*(x_iter++));
       }
       const std::size_t l = x_dim_ % L;
-      for (std::size_t i = 0; i < y_dim_; ++i) {
-        for (std::size_t j = 0; j < l; ++j) {
+      for (std::size_t i = 0; i < y_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < l; ++j)
+        {
           y_iter[(i * L) + j] += alpha * x_iter[(i * L) + j];
         }
       }
@@ -267,12 +270,15 @@ namespace micm
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i) {
+      for (std::size_t i = 0; i < n; ++i)
+      {
         f(*(this_iter++), *(a_iter++));
       }
       const std::size_t l = x_dim_ % L;
-      for (std::size_t y = 0; y < y_dim_; ++y) {
-        for (std::size_t x = 0; x < l; ++x) {
+      for (std::size_t y = 0; y < y_dim_; ++y)
+      {
+        for (std::size_t x = 0; x < l; ++x)
+        {
           f(this_iter[(y * L) + x], a_iter[(y * L) + x]);
         }
       }
@@ -286,14 +292,17 @@ namespace micm
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
-      for (std::size_t i = 0; i < n; ++i) {
+      for (std::size_t i = 0; i < n; ++i)
+      {
         f(*(this_iter++), *(a_iter++), *(b_iter++));
       }
       const std::size_t l = x_dim_ % L;
       if (l > 0)
       {
-        for (std::size_t y = 0; y < y_dim_; ++y) {
-          for (std::size_t x = 0; x < l; ++x) {
+        for (std::size_t y = 0; y < y_dim_; ++y)
+        {
+          for (std::size_t x = 0; x < l; ++x)
+          {
             f(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
           }
         }

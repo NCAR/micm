@@ -180,7 +180,8 @@ namespace micm
     ~CudaDenseMatrix() requires(std::is_same_v<T, double>)
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
-      if (this->handle_ != NULL) {
+      if (this->handle_ != NULL)
+      {
         cublasDestroy(this->handle_);
       }
       this->param_.d_data_ = nullptr;
