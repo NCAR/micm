@@ -5,7 +5,7 @@
 template<
     template<class> class MatrixPolicy = micm::Matrix,
     class SparseMatrixPolicy = micm::StandardSparseMatrix,
-    class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
+    class LinearSolverPolicy = micm::LinearSolver<SparseMatrixPolicy>>
 class HIRES : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
   std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_;

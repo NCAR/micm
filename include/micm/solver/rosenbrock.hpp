@@ -93,7 +93,7 @@ namespace micm
   template<
       template<class> class MatrixPolicy = Matrix,
       class SparseMatrixPolicy = StandardSparseMatrix,
-      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
+      class LinearSolverPolicy = LinearSolver<SparseMatrixPolicy>,
       class ProcessSetPolicy = ProcessSet>
   class RosenbrockSolver
   {

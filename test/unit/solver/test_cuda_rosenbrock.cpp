@@ -31,23 +31,15 @@ using Group300GPUVectorMatrix = micm::CudaDenseMatrix<T, 300>;
 template<class T>
 using Group4000GPUVectorMatrix = micm::CudaDenseMatrix<T, 4000>;
 
-template<class T>
-using Group1CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group20CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
-template<class T>
-using Group300CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<300>>;
-template<class T>
-using Group4000CPUSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4000>>;
+using Group1CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group20CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<20>>;
+using Group300CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<300>>;
+using Group4000CPUSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4000>>;
 
-template<class T>
-using Group1GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group20GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
-template<class T>
-using Group300GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<300>>;
-template<class T>
-using Group4000GPUSparseVectorMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4000>>;
+using Group1GPUSparseVectorMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group20GPUSparseVectorMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<20>>;
+using Group300GPUSparseVectorMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<300>>;
+using Group4000GPUSparseVectorMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<4000>>;
 
 // the following alias works for a CudaDenserMatrix with given row and any columns
 template<class T>
@@ -76,30 +68,18 @@ template<class T>
 using Group3395043CudaDenseMatrix = micm::CudaDenseMatrix<T, 3395043>;
 
 // the following alias works for a CudaSparseMatrix with given rows and any columns
-template<class T>
-using Group1CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group4CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
-template<class T>
-using Group7CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<7>>;
-template<class T>
-using Group12CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<12>>;
-template<class T>
-using Group16CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<16>>;
-template<class T>
-using Group20CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<20>>;
-template<class T>
-using Group5599CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<5599>>;
-template<class T>
-using Group6603CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<6603>>;
-template<class T>
-using Group200041CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<200041>>;
-template<class T>
-using Group421875CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<421875>>;
-template<class T>
-using Group3395043CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<3395043>>;
+using Group1CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group2CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
+using Group4CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
+using Group7CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<7>>;
+using Group12CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<12>>;
+using Group16CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<16>>;
+using Group20CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<20>>;
+using Group5599CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<5599>>;
+using Group6603CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<6603>>;
+using Group200041CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<200041>>;
+using Group421875CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<421875>>;
+using Group3395043CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<3395043>>;
 
 template<class RosenbrockPolicy>
 RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
@@ -149,11 +129,9 @@ RosenbrockPolicy getSolver(std::size_t number_of_grid_cells)
 template<
     template<class>
     class CPUMatrixPolicy,
-    template<class>
     class CPUSparseMatrixPolicy,
     template<class>
     class GPUMatrixPolicy,
-    template<class>
     class GPUSparseMatrixPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
@@ -223,7 +201,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
 // In this test, all the elements in the same array are identical;
 // thus the calculated RMSE should be the same no matter what the size of the array is.
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
 void testNormalizedErrorConst(const size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);
@@ -264,7 +242,7 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
 
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy>
 void testNormalizedErrorDiff(const size_t number_of_grid_cells)
 {
   auto gpu_solver = getSolver<micm::CudaRosenbrockSolver<MatrixPolicy, SparseMatrixPolicy>>(number_of_grid_cells);

@@ -15,8 +15,8 @@
 
 namespace micm
 {
-  template<typename T, class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
-  class CudaLinearSolver : public LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
+  class CudaLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
     /// This is an instance of struct "LinearSolverParam" that holds
@@ -32,17 +32,17 @@ namespace micm
     ///   in this case, we will use the CudaLuDecomposition specified at line 15;
     ///   See line 62 of "linear_solver.inl" for more details about how
     ///   this lamda function works;
-    CudaLinearSolver(const SparseMatrixPolicy& matrix, T initial_value)
-        : CudaLinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(
+    CudaLinearSolver(const SparseMatrixPolicy& matrix, typename SparseMatrixPolicy::value_type initial_value)
+        : CudaLinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
               matrix,
               initial_value,
               [&](const SparseMatrixPolicy& m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); }){};
 
     CudaLinearSolver(
         const SparseMatrixPolicy& matrix,
-        T initial_value,
+        typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
-        : LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
+        : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
       LinearSolverParam hoststruct;
 
@@ -85,7 +85,7 @@ namespace micm
         const SparseMatrixPolicy& L,
         const SparseMatrixPolicy& U) const
     {
-      LinearSolver<T, SparseMatrixPolicy, LuDecompositionPolicy>::template Solve<MatrixPolicy>(b, x, L, U);
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::template Solve<MatrixPolicy>(b, x, L, U);
     };
   };
 }  // namespace micm

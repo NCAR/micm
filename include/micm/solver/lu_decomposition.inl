@@ -161,15 +161,15 @@ namespace micm
     return LU;
   }
 
-  template<typename T, class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy>
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U)
       const
   {
     bool is_singular = false;
-    Decompose<T, SparseMatrixPolicy>(A, L, U, is_singular);
+    Decompose<SparseMatrixPolicy>(A, L, U, is_singular);
   }
 
-  template<typename T, class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy>
   requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
@@ -232,7 +232,7 @@ namespace micm
     }
   }
 
-  template<typename T, class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy>
   requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,

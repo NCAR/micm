@@ -35,9 +35,8 @@ namespace micm
   template<
       template<class>
       class MatrixPolicy,
-      template<class>
       class SparseMatrixPolicy,
-      class LinearSolverPolicy = CudaLinearSolver<double, SparseMatrixPolicy>,
+      class LinearSolverPolicy = CudaLinearSolver<SparseMatrixPolicy>,
       class ProcessSetPolicy = CudaProcessSet>
 
   class CudaRosenbrockSolver
@@ -78,7 +77,7 @@ namespace micm
         const System& system,
         const std::vector<Process> processes,
         const RosenbrockSolverParameters& parameters,
-        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy, double)> create_linear_solver,
         const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
             create_process_set)
         : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(
@@ -104,8 +103,8 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(CudaMatrix<SparseMatrixPolicy<double>>&& VectorizableSparse<SparseMatrixPolicy<double>>)
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
@@ -113,8 +112,8 @@ namespace micm
     }
 
     // call the function from the base class
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!CudaMatrix<SparseMatrixPolicy<double>>)
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(!CudaMatrix<SparseMatrixPolicy>)
     {
       AlphaMinusJacobian(jacobian, alpha);
     }

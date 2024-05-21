@@ -230,12 +230,12 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline Solver<
-      BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>,
+      BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>,
       State<DenseMatrixPolicy, SparseMatrixPolicy>>
   CpuSolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
   {
     using ProcessSetPolicy = ProcessSet;
-    using LinearSolverPolicy = LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>;
+    using LinearSolverPolicy = LinearSolver<SparseMatrixPolicy>;
 
     auto parameters = std::get<BackwardEulerSolverParameters>(this->options_);
     auto species_map = this->template GetSpeciesMap<ProcessSetPolicy>();

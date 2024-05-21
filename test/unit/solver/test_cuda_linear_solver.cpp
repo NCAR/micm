@@ -1,4 +1,3 @@
-#pragma once
 #include "test_linear_solver_policy.hpp"
 
 #include <micm/solver/cuda_linear_solver.hpp>
@@ -91,12 +90,12 @@ void verify_gpu_against_cpu()
   std::vector<double> cpu_x = linearSolverGenerator<
       Group10000VectorMatrix,
       Group10000SparseVectorMatrix,
-      micm::LinearSolver<double, Group10000SparseVectorMatrix>>(10000);
+      micm::LinearSolver<Group10000SparseVectorMatrix>>(10000);
 
   std::vector<double> gpu_x = linearSolverGenerator<
       Group10000CudaDenseMatrix,
       Group10000CudaSparseMatrix,
-      micm::CudaLinearSolver<double, Group10000CudaSparseMatrix>>(10000);
+      micm::CudaLinearSolver<Group10000CudaSparseMatrix>>(10000);
 
   for (int i = 0; i < cpu_x.size(); i++)
   {
@@ -109,23 +108,23 @@ TEST(CudaLinearSolver, DenseMatrixVectorOrderingPolicy)
   testDenseMatrix<
       Group1CudaDenseMatrix,
       Group1CudaSparseMatrix,
-      micm::CudaLinearSolver<double, Group1CudaSparseMatrix, micm::CudaLuDecomposition>>();
+      micm::CudaLinearSolver<Group1CudaSparseMatrix, micm::CudaLuDecomposition>>();
 }
 
 TEST(CudaLinearSolver, RandomMatrixVectorOrderingPolicy)
 {
-  testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(1);
-  testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(20);
-  testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<double, Group300CudaSparseMatrix>>(300);
-  testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>>(4000);
+  testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
+  testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
+  testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(300);
+  testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(4000);
 }
 
 TEST(CudaLinearSolver, DiagonalMatrixVectorOrderingPolicy)
 {
-  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<double, Group1CudaSparseMatrix>>(1);
-  testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<double, Group20CudaSparseMatrix>>(20);
-  testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<double, Group300CudaSparseMatrix>>(300);
-  testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<double, Group4000CudaSparseMatrix>>(4000);
+  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
+  testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
+  testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(300);
+  testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(4000);
 }
 
 TEST(CudaLinearSolver, RandomMatrixVectorOrderingForGPU)

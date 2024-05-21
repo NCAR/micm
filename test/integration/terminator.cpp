@@ -40,10 +40,10 @@ void RunTerminatorTest(std::size_t number_of_grid_cells)
 
 TEST(RosenbrockSolver, Terminator)
 {
-  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(2);
-  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(2);
-  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(3);
-  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<double, SparseMatrixTest>>(4);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(2);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(2);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(3);
+  RunTerminatorTest<micm::Matrix, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(4);
 }
 
 template<class T>
@@ -62,8 +62,8 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVe
 
 TEST(RosenbrockSolver, VectorTerminator)
 {
-  RunTerminatorTest<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
-  RunTerminatorTest<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(4);
-  RunTerminatorTest<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
-  RunTerminatorTest<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(2);
+  RunTerminatorTest<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1);
+  RunTerminatorTest<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(4);
+  RunTerminatorTest<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(3);
+  RunTerminatorTest<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(2);
 }

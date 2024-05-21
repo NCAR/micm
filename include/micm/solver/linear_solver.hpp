@@ -24,7 +24,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<typename T, class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:
@@ -60,7 +60,7 @@ namespace micm
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
     /// @param initial_value Initial value for matrix elements
-    LinearSolver(const SparseMatrixPolicy& matrix, T initial_value);
+    LinearSolver(const SparseMatrixPolicy& matrix, typename SparseMatrixPolicy::value_type initial_value);
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
@@ -68,12 +68,11 @@ namespace micm
     /// @param create_lu_decomp Function to create an LU Decomposition object that adheres to LuDecompositionPolicy
     LinearSolver(
         const SparseMatrixPolicy& matrix,
-        T initial_value,
+        typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
-    void
-    Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
+    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices

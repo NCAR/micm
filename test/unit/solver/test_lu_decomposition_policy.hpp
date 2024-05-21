@@ -100,7 +100,7 @@ void testDenseMatrix()
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -123,10 +123,10 @@ void testSingularMatrix()
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0E-30);
   bool is_singular{ false };
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   EXPECT_TRUE(is_singular);
   A[0][0][0] = 12;
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   EXPECT_FALSE(is_singular);
 }
 
@@ -152,7 +152,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -174,7 +174,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }

@@ -69,7 +69,7 @@ namespace micm
    protected:
     /// @brief
     /// @return
-    virtual Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() = 0;
+    virtual Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() = 0;
 
     virtual ~SolverBuilder() = default;
 
@@ -101,14 +101,14 @@ namespace micm
   class CpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
+    Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class GpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
-    Solver<BackwardEuler<LinearSolver<typename DenseMatrixPolicy::value_type, SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
+    Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>> BuildBackwardEulerSolver() override;
   };
 
 }  // namespace micm
