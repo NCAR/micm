@@ -259,8 +259,9 @@ namespace micm
         // d_rate_d_ind[i_cell] *= reactant_concentration for each reactant except ind
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
-          if (i_react == i_ind)
+          if (i_react == i_ind) {
             continue;
+          }
           loop = func.StartLoop("d_rate_d_ind calc", 0, L);
           llvm::Value *react_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, react_ids[i_react] * L));
           ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, react_id);

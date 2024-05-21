@@ -239,14 +239,17 @@ namespace micm
       {
         double rate = cell_rate_constants[i_rxn];
 
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react) {
           rate *= cell_state[react_id[i_react]];
+        }
 
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react) {
           cell_forcing[react_id[i_react]] -= rate;
+        }
 
-        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod) {
           cell_forcing[prod_id[i_prod]] += yield[i_prod] * rate;
+        }
 
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
@@ -281,7 +284,7 @@ namespace micm
       std::vector<double> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
-        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + i_rxn * L;
+        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
@@ -332,14 +335,17 @@ namespace micm
 
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            if (i_react == i_ind)
+            if (i_react == i_ind) {
               continue;
+            }
             d_rate_d_ind *= cell_state[react_id[i_react]];
           }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep) {
             cell_jacobian[*(flat_id++)] += d_rate_d_ind;
-          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+          }
+          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep) {
             cell_jacobian[*(flat_id++)] -= yield[i_dep] * d_rate_d_ind;
+          }
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
@@ -381,13 +387,14 @@ namespace micm
       {
         for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
         {
-          auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + i_rxn * L;
+          auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
           d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
           for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           {
-            if (i_react == i_ind)
+            if (i_react == i_ind) {
               continue;
-            std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
+            }
+            std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
           }

@@ -48,15 +48,15 @@ namespace micm
         for (size_t j = 0; j < nLij_Lii_size; ++j)
         {
           auto& nLij_Lii_element = d_nLij_Lii[j];
-          d_y[y_column_index * number_of_grid_cells + tid] = d_b[b_column_index++ * number_of_grid_cells + tid];
+          d_y[(y_column_index * number_of_grid_cells) + tid] = d_b[(b_column_index++ * number_of_grid_cells) + tid];
           for (size_t i = 0; i < nLij_Lii_element.first; ++i)
           {
             size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
             size_t y_index = d_Lij_yj[Lij_yj_index].second * number_of_grid_cells + tid;
-            d_y[y_column_index * number_of_grid_cells + tid] -= d_L[lower_matrix_index] * d_y[y_index];
+            d_y[(y_column_index * number_of_grid_cells) + tid] -= d_L[lower_matrix_index] * d_y[y_index];
             ++Lij_yj_index;
           }
-          d_y[y_column_index++ * number_of_grid_cells + tid] /= d_L[nLij_Lii_element.second + tid];
+          d_y[(y_column_index++ * number_of_grid_cells) + tid] /= d_L[nLij_Lii_element.second + tid];
         }
 
         for (size_t k = 0; k < nUij_Uii_size; ++k)
@@ -67,10 +67,10 @@ namespace micm
           {
             size_t upper_matrix_index = d_Uij_xj[Uij_xj_index].first + tid;
             size_t x_index = d_Uij_xj[Uij_xj_index].second * number_of_grid_cells + tid;
-            d_x[x_column_backward_index * number_of_grid_cells + tid] -= d_U[upper_matrix_index] * d_x[x_index];
+            d_x[(x_column_backward_index * number_of_grid_cells) + tid] -= d_U[upper_matrix_index] * d_x[x_index];
             ++Uij_xj_index;
           }
-          d_x[x_column_backward_index * number_of_grid_cells + tid] /= d_U[nUij_Uii_element.second + tid];
+          d_x[(x_column_backward_index * number_of_grid_cells) + tid] /= d_U[nUij_Uii_element.second + tid];
 
           if (x_column_backward_index != 0)
           {
