@@ -77,7 +77,7 @@ namespace micm
   {
     bool generated_ = false;
     std::string name_;
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
 
    public:
     std::unique_ptr<llvm::LLVMContext> context_;
@@ -91,7 +91,7 @@ namespace micm
     JitFunction() = delete;
 
     friend class JitFunctionBuilder;
-    static JitFunctionBuilder Create(std::shared_ptr<JitCompiler> compiler);
+    static JitFunctionBuilder Create();
     JitFunction(JitFunctionBuilder& function_builder);
 
     /// @brief Generates the function
@@ -138,7 +138,7 @@ namespace micm
 
   class JitFunctionBuilder
   {
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
     std::string name_;
     std::vector<std::pair<std::string, JitType>> arguments_;
     JitType return_type_{ JitType::Void };
@@ -152,9 +152,9 @@ namespace micm
     JitFunctionBuilder& SetReturnType(JitType type);
   };
 
-  inline JitFunctionBuilder JitFunction::Create(std::shared_ptr<JitCompiler> compiler)
+  inline JitFunctionBuilder JitFunction::Create()
   {
-    return JitFunctionBuilder{ compiler };
+    return JitFunctionBuilder{ JitCompiler::GetInstance() };
   }
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)

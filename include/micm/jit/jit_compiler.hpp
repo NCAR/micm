@@ -98,7 +98,6 @@ namespace micm
 
     llvm::orc::JITDylib &main_lib_;
 
-   public:
     JitCompiler(
         std::unique_ptr<llvm::orc::ExecutionSession> execution_session,
         llvm::orc::JITTargetMachineBuilder machine_builder,
@@ -118,13 +117,19 @@ namespace micm
           llvm::cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(data_layout_.getGlobalPrefix())));
     }
 
+   public:
     ~JitCompiler()
     {
       if (auto Err = execution_session_->endSession())
         execution_session_->reportError(std::move(Err));
     }
 
-    static llvm::Expected<std::shared_ptr<JitCompiler>> Create()
+    JitCompiler& GetInstance() {
+      static JitCompiler instance = JitCompiler::Create();
+      return &instance;
+    }
+
+    static JitCompiler Create()
     {
       llvm::InitializeNativeTarget();
       llvm::InitializeNativeTargetAsmPrinter();
@@ -142,8 +147,7 @@ namespace micm
       if (!data_layout)
         return data_layout.takeError();
 
-      return std::make_shared<JitCompiler>(
-          std::move(execution_session), std::move(machine_builder), std::move(*data_layout));
+      return JitCompiler(std::move(execution_session), std::move(machine_builder), std::move(*data_layout));
     }
 
     const llvm::DataLayout &GetDataLayout() const
