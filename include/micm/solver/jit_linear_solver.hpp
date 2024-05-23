@@ -22,7 +22,6 @@ namespace micm
   template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitLuDecomposition<L>>
   class JitLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
-    std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;
     void (*solve_function_)(const double*, double*, const double*, const double*);
 
@@ -39,8 +38,7 @@ namespace micm
     /// @param matrix Block-diagonal sparse matrix to create solver for
     /// @param initial_value Initial value for decomposed triangular matrix elements
     JitLinearSolver(
-        std::shared_ptr<JitCompiler> compiler,
-        const SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
+        const SparseMatrixPolicy& matrix,
         double initial_value);
 
     ~JitLinearSolver();
@@ -49,17 +47,17 @@ namespace micm
     /// @param matrix Matrix that will be factored into lower and upper triangular matrices
     /// @param is_singular Flag that will be set to true if matrix is singular; false otherwise
     void Factor(
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& lower_matrix,
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& upper_matrix,
+        SparseMatrixPolicy& matrix,
+        SparseMatrixPolicy& lower_matrix,
+        SparseMatrixPolicy& upper_matrix,
         bool& is_singular);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
     /// @param matrix Matrix that will be factored into lower and upper triangular matrices
     void Factor(
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& matrix,
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& lower_matrix,
-        SparseMatrix<double, SparseMatrixVectorOrdering<L>>& upper_matrix);
+        SparseMatrixPolicy& matrix,
+        SparseMatrixPolicy& lower_matrix,
+        SparseMatrixPolicy& upper_matrix);
 
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>

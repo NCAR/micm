@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
 void RunTerminatorTest()
 {
   TestTerminator<
@@ -26,12 +26,6 @@ void RunTerminatorTest()
               micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
               micm::JitProcessSet<number_of_grid_cells>>
       {
-        auto jit{ micm::JitCompiler::Create() };
-        if (auto err = jit.takeError())
-        {
-          llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
-          EXPECT_TRUE(false);
-        }
         auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
         solver_params.relative_tolerance_ = 1.0e-8;
         solver_params.max_number_of_steps_ = 100000;
@@ -39,7 +33,7 @@ void RunTerminatorTest()
             MatrixPolicy,
             SparseMatrixPolicy,
             micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-            micm::JitProcessSet<number_of_grid_cells>>{ jit.get(), s, p, solver_params };
+            micm::JitProcessSet<number_of_grid_cells>>{ s, p, solver_params };
       },
       number_of_grid_cells);
 }
@@ -53,14 +47,10 @@ using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
 
 TEST(JitRosenbrockSolver, Terminator)
 {

@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/random_string.hpp>
@@ -20,7 +19,6 @@ namespace micm
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class JitLuDecomposition : public LuDecomposition
   {
-    std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP decompose_function_resource_tracker_;
     void (*decompose_function_)(const double *, double *, double *);
 
@@ -33,11 +31,8 @@ namespace micm
     JitLuDecomposition &operator=(JitLuDecomposition &&);
 
     /// @brief Create a JITed LU decomposer for a given sparse matrix structure
-    /// @param compiler JIT compiler
     /// @param matrix Sparse matrix to create LU decomposer for
-    JitLuDecomposition(
-        std::shared_ptr<JitCompiler> compiler,
-        const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
+    JitLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
 
     ~JitLuDecomposition();
 
@@ -46,19 +41,19 @@ namespace micm
     /// @param lower The lower triangular matrix created by decomposition
     /// @param upper The upper triangular matrix created by decomposition
     /// @param is_singular Flag that will be set to true if A is singular; false otherwise
-    template<typename T, template<class> class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
     void Decompose(
-        const SparseMatrixPolicy<T> &A,
-        SparseMatrixPolicy<T> &lower,
-        SparseMatrixPolicy<T> &upper,
+        const SparseMatrixPolicy &A,
+        SparseMatrixPolicy &lower,
+        SparseMatrixPolicy &upper,
         bool &is_singular) const;
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @param lower The lower triangular matrix created by decomposition
     /// @param upper The upper triangular matrix created by decomposition
-    template<typename T, template<class> class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy<T> &A, SparseMatrixPolicy<T> &lower, SparseMatrixPolicy<T> &upper) const;
+    template<class SparseMatrixPolicy>
+    void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper) const;
 
    private:
     /// @brief Generates a function to perform the LU decomposition for a specific matrix sparsity structure

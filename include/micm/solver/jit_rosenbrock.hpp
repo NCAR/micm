@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
@@ -33,12 +32,11 @@ namespace micm
 
   template<
       template<class> class MatrixPolicy = VectorMatrix,
-      template<class> class SparseMatrixPolicy = VectorSparseMatrix,
+      class SparseMatrixPolicy = DefaultVectorSparseMatrix,
       class LinearSolverPolicy = JitLinearSolver<MICM_DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
       class ProcessSetPolicy = JitProcessSet<MICM_DEFAULT_VECTOR_SIZE>>
   class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>
   {
-    std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
     using FuncPtr = void (*)(double*, const double);
     FuncPtr alpha_minus_jacobian_ = nullptr;
@@ -48,7 +46,6 @@ namespace micm
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
         : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(std::move(other)),
-          compiler_(std::move(other.compiler_)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
     {
@@ -58,7 +55,6 @@ namespace micm
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
       RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::operator=(std::move(other));
-      compiler_ = std::move(other.compiler_);
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
       other.alpha_minus_jacobian_ = NULL;
@@ -69,7 +65,6 @@ namespace micm
     /// @param system The chemical system to create the solver for
     /// @param processes The collection of chemical processes that will be applied during solving
     JitRosenbrockSolver(
-        std::shared_ptr<JitCompiler> compiler,
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters)
@@ -77,14 +72,13 @@ namespace micm
               system,
               processes,
               parameters,
-              [&](const SparseMatrixPolicy<double>& matrix, double initial_value) -> LinearSolverPolicy {
-                return LinearSolverPolicy{ compiler, matrix, initial_value };
+              [&](const SparseMatrixPolicy& matrix, double initial_value) -> LinearSolverPolicy {
+                return LinearSolverPolicy{ matrix, initial_value };
               },
               [&](const std::vector<Process>& processes,
                   const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
-                return ProcessSetPolicy{ compiler, processes, variable_map };
-              }),
-          compiler_(compiler)
+                return ProcessSetPolicy{ processes, variable_map };
+              })
     {
       MatrixPolicy<double> temp{};
       if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
@@ -110,7 +104,7 @@ namespace micm
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
     {
       double a = alpha;
       if (alpha_minus_jacobian_)
@@ -133,7 +127,7 @@ namespace micm
       std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
 
       // Create the JitFunction with the modified name
-      JitFunction func = JitFunction::Create(compiler_)
+      JitFunction func = JitFunction::Create()
                              .SetName("alpha_minus_jacobian")
                              .SetArguments({ { "jacobian", JitType::DoublePtr }, { "alpha", JitType::Double } })
                              .SetReturnType(JitType::Void);

@@ -10,13 +10,13 @@
 
 #include <gtest/gtest.h>
 
-template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
 micm::JitRosenbrockSolver<
     MatrixPolicy,
     SparseMatrixPolicy,
     micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
     micm::JitProcessSet<number_of_grid_cells>>
-getSolver(std::shared_ptr<micm::JitCompiler> jit)
+getSolver()
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -53,7 +53,6 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
       SparseMatrixPolicy,
       micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
       micm::JitProcessSet<number_of_grid_cells>>(
-      jit,
       micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
       std::vector<micm::Process>{ r1, r2, r3 },
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
@@ -62,10 +61,10 @@ getSolver(std::shared_ptr<micm::JitCompiler> jit)
 template<class T>
 using SparseMatrix = micm::SparseMatrix<T>;
 
-template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-void testAlphaMinusJacobian(std::shared_ptr<micm::JitCompiler> jit)
+template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
+void testAlphaMinusJacobian()
 {
-  auto solver = getSolver<number_of_grid_cells, MatrixPolicy, SparseMatrixPolicy>(jit);
+  auto solver = getSolver<number_of_grid_cells, MatrixPolicy, SparseMatrixPolicy>();
   // return;
   auto jacobian = solver.GetState().jacobian_;
 
@@ -121,14 +120,10 @@ using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
 template<class T>
 using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
 
 void run_solver(auto& solver)
 {
@@ -157,22 +152,14 @@ void run_solver(auto& solver)
 
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
-    EXPECT_TRUE(false);
-  }
-  testAlphaMinusJacobian<1, Group1VectorMatrix, Group1SparseVectorMatrix>(jit.get());
-  testAlphaMinusJacobian<2, Group2VectorMatrix, Group2SparseVectorMatrix>(jit.get());
-  testAlphaMinusJacobian<3, Group3VectorMatrix, Group3SparseVectorMatrix>(jit.get());
-  testAlphaMinusJacobian<4, Group4VectorMatrix, Group4SparseVectorMatrix>(jit.get());
+  testAlphaMinusJacobian<1, Group1VectorMatrix, Group1SparseVectorMatrix>();
+  testAlphaMinusJacobian<2, Group2VectorMatrix, Group2SparseVectorMatrix>();
+  testAlphaMinusJacobian<3, Group3VectorMatrix, Group3SparseVectorMatrix>();
+  testAlphaMinusJacobian<4, Group4VectorMatrix, Group4SparseVectorMatrix>();
 }
 
 TEST(JitRosenbrockSolver, MultipleInstances)
 {
-  auto jit{ micm::JitCompiler::Create() };
-
   micm::SolverConfig solverConfig;
   std::string config_path = "./unit_configs/robertson";
   solverConfig.ReadAndParse(config_path);
@@ -189,19 +176,19 @@ TEST(JitRosenbrockSolver, MultipleInstances)
       Group1SparseVectorMatrix,
       micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
       micm::JitProcessSet<1>>
-      solver1(jit.get(), chemical_system, reactions, solver_parameters);
+      solver1(chemical_system, reactions, solver_parameters);
   micm::JitRosenbrockSolver<
       Group1VectorMatrix,
       Group1SparseVectorMatrix,
       micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
       micm::JitProcessSet<1>>
-      solver2(jit.get(), chemical_system, reactions, solver_parameters);
+      solver2(chemical_system, reactions, solver_parameters);
   micm::JitRosenbrockSolver<
       Group1VectorMatrix,
       Group1SparseVectorMatrix,
       micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
       micm::JitProcessSet<1>>
-      solver3(jit.get(), chemical_system, reactions, solver_parameters);
+      solver3(chemical_system, reactions, solver_parameters);
 
   run_solver(solver1);
   run_solver(solver2);

@@ -12,8 +12,7 @@ using namespace micm;
 
 template<class T>
 using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
 
 TEST(OpenMP, JITOneSolverManyStates)
 {
@@ -22,11 +21,7 @@ TEST(OpenMP, JITOneSolverManyStates)
   SolverConfig solverConfig;
 
   std::string config_path = "./unit_configs/robertson";
-  ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  if (status != micm::ConfigParseStatus::Success)
-  {
-    throw "Parsing failed";
-  }
+  solverConfig.ReadAndParse(config_path);
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
@@ -35,13 +30,12 @@ TEST(OpenMP, JITOneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  auto jit{ micm::JitCompiler::Create() };
   JitRosenbrockSolver<
       Group1VectorMatrix,
       Group1SparseVectorMatrix,
       JitLinearSolver<1, Group1SparseVectorMatrix>,
       micm::JitProcessSet<1>>
-      solver(jit.get(), chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+      solver(chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 #pragma omp parallel num_threads(n_threads)
   {
