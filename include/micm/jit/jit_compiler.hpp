@@ -40,7 +40,8 @@
 enum class MicmJitErrc
 {
   InvalidMatrix = MICM_JIT_ERROR_CODE_INVALID_MATRIX,
-  MissingJitFunction = MICM_JIT_ERROR_CODE_MISSING_JIT_FUNCTION
+  MissingJitFunction = MICM_JIT_ERROR_CODE_MISSING_JIT_FUNCTION,
+  FailedToBuild = MICM_JIT_ERROR_CODE_FAILED_TO_BUILD
 };
 
 namespace std
@@ -84,6 +85,7 @@ inline std::error_code make_error_code(MicmJitErrc e)
 namespace micm
 {
 
+  // a singleton class
   class JitCompiler
   {
    private:
@@ -98,56 +100,24 @@ namespace micm
 
     llvm::orc::JITDylib &main_lib_;
 
-    JitCompiler(
-        std::unique_ptr<llvm::orc::ExecutionSession> execution_session,
-        llvm::orc::JITTargetMachineBuilder machine_builder,
-        llvm::DataLayout data_layout)
-        : execution_session_(std::move(execution_session)),
-          data_layout_(std::move(data_layout)),
-          mangle_(*this->execution_session_, this->data_layout_),
-          object_layer_(*this->execution_session_, []() { return std::make_unique<llvm::SectionMemoryManager>(); }),
-          compile_layer_(
-              *this->execution_session_,
-              object_layer_,
-              std::make_unique<llvm::orc::ConcurrentIRCompiler>(std::move(machine_builder))),
-          optimize_layer_(*this->execution_session_, compile_layer_, OptimizeModule),
-          main_lib_(this->execution_session_->createBareJITDylib("<main>"))
+   public:
+    // Delete the copy constructor and assignment operator
+    JitCompiler(const JitCompiler&) = delete;
+    JitCompiler& operator=(const JitCompiler&) = delete;
+
+    static JitCompiler& GetInstance()
     {
-      main_lib_.addGenerator(
-          llvm::cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(data_layout_.getGlobalPrefix())));
+      static llvm::Expected<std::unique_ptr<JitCompiler>> instance = Create();
+      if (!instance) {
+        throw std::system_error(make_error_code(MicmJitErrc::FailedToBuild));
+      }
+      return *instance.get();
     }
 
-   public:
     ~JitCompiler()
     {
       if (auto Err = execution_session_->endSession())
         execution_session_->reportError(std::move(Err));
-    }
-
-    JitCompiler& GetInstance() {
-      static JitCompiler instance = JitCompiler::Create();
-      return &instance;
-    }
-
-    static JitCompiler Create()
-    {
-      llvm::InitializeNativeTarget();
-      llvm::InitializeNativeTargetAsmPrinter();
-      llvm::InitializeNativeTargetAsmParser();
-
-      auto EPC = llvm::orc::SelfExecutorProcessControl::Create();
-      if (!EPC)
-        return EPC.takeError();
-
-      auto execution_session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
-
-      llvm::orc::JITTargetMachineBuilder machine_builder(execution_session->getExecutorProcessControl().getTargetTriple());
-
-      auto data_layout = machine_builder.getDefaultDataLayoutForTarget();
-      if (!data_layout)
-        return data_layout.takeError();
-
-      return JitCompiler(std::move(execution_session), std::move(machine_builder), std::move(*data_layout));
     }
 
     const llvm::DataLayout &GetDataLayout() const
@@ -175,6 +145,47 @@ namespace micm
     }
 
    private:
+    static llvm::Expected<std::unique_ptr<JitCompiler>> Create()
+    {
+      llvm::InitializeNativeTarget();
+      llvm::InitializeNativeTargetAsmPrinter();
+      llvm::InitializeNativeTargetAsmParser();
+
+      auto EPC = llvm::orc::SelfExecutorProcessControl::Create();
+      if (!EPC)
+        return EPC.takeError();
+
+      auto execution_session = std::make_unique<llvm::orc::ExecutionSession>(std::move(*EPC));
+
+      llvm::orc::JITTargetMachineBuilder machine_builder(execution_session->getExecutorProcessControl().getTargetTriple());
+
+      auto data_layout = machine_builder.getDefaultDataLayoutForTarget();
+      if (!data_layout)
+        return data_layout.takeError();
+
+      return std::make_unique<JitCompiler>(std::move(execution_session), std::move(machine_builder), std::move(*data_layout));
+}
+    }
+
+    JitCompiler(
+        std::unique_ptr<llvm::orc::ExecutionSession> execution_session,
+        llvm::orc::JITTargetMachineBuilder machine_builder,
+        llvm::DataLayout data_layout)
+        : execution_session_(std::move(execution_session)),
+          data_layout_(std::move(data_layout)),
+          mangle_(*this->execution_session_, this->data_layout_),
+          object_layer_(*this->execution_session_, []() { return std::make_unique<llvm::SectionMemoryManager>(); }),
+          compile_layer_(
+              *this->execution_session_,
+              object_layer_,
+              std::make_unique<llvm::orc::ConcurrentIRCompiler>(std::move(machine_builder))),
+          optimize_layer_(*this->execution_session_, compile_layer_, OptimizeModule),
+          main_lib_(this->execution_session_->createBareJITDylib("<main>"))
+    {
+      main_lib_.addGenerator(
+          llvm::cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(data_layout_.getGlobalPrefix())));
+    }
+
     static llvm::Expected<llvm::orc::ThreadSafeModule> OptimizeModule(
         llvm::orc::ThreadSafeModule threadsafe_module,
         const llvm::orc::MaterializationResponsibility &responsibility)

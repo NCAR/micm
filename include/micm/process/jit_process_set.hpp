@@ -105,8 +105,7 @@ namespace micm
   inline JitProcessSet<L>::JitProcessSet(
       const std::vector<Process> &processes,
       const std::map<std::string, std::size_t> &variable_map)
-      : ProcessSet(processes, variable_map),
-        compiler_(compiler)
+      : ProcessSet(processes, variable_map)
   {
     forcing_function_ = NULL;
     jacobian_function_ = NULL;
@@ -117,7 +116,12 @@ namespace micm
   void JitProcessSet<L>::GenerateForcingFunction()
   {
     std::string function_name = "add_forcing_terms_" + GenerateRandomString();
+<<<<<<< HEAD
     JitFunction func = JitFunction::Create()
+=======
+    auto compiler_ = JitCompiler::GetInstance();
+    JitFunction func = JitFunction::Create(compiler_)
+>>>>>>> 2ac73fa625080be7970a68c4f7257311ce76a3c4
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
                                            { "state variables", JitType::DoublePtr },
