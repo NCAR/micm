@@ -163,8 +163,10 @@ namespace micm
       if (!data_layout)
         return data_layout.takeError();
 
-      return std::make_unique<JitCompiler>(std::move(execution_session), std::move(machine_builder), std::move(*data_layout));
-}
+      return llvm::Expected<std::unique_ptr<JitCompiler>>(
+        std::unique_ptr<JitCompiler>(
+          new JitCompiler(std::move(execution_session), std::move(machine_builder), std::move(*data_layout)))
+    );
     }
 
     JitCompiler(

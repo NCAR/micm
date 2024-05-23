@@ -146,7 +146,7 @@ namespace micm
 
    public:
     JitFunctionBuilder() = delete;
-    JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
+    JitFunctionBuilder(JitCompiler& compiler);
     JitFunctionBuilder& SetName(const std::string& name);
     JitFunctionBuilder& SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments);
     JitFunctionBuilder& SetReturnType(JitType type);
@@ -294,8 +294,8 @@ namespace micm
     return TmpB.CreateAlloca(type, 0, var_name.c_str());
   }
 
-  inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
-      : compiler_(compiler){};
+  inline JitFunctionBuilder::JitFunctionBuilder(JitCompiler& compiler)
+      : compiler_(&compiler){};
 
   inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {

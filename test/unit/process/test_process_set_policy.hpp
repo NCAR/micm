@@ -134,13 +134,7 @@ void testProcessSet()
 }
 
 template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
-void testRandomSystem(
-    std::size_t n_cells,
-    std::size_t n_reactions,
-    std::size_t n_species,
-    const std::function<
-        ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<DenseMatrixPolicy, SparseMatrixPolicy>&)>
-        create_set)
+void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -178,7 +172,7 @@ void testRandomSystem(
     auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
     processes.push_back(proc);
   }
-  ProcessSetPolicy set = create_set(processes, state);
+  ProcessSetPolicy set = ProcessSetPolicy(processes, state.variable_map_);
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();

@@ -4,7 +4,6 @@
  */
 #pragma once
 
-#include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/util/random_string.hpp>
@@ -33,7 +32,6 @@ namespace micm
     JitProcessSet() = default;
 
     /// @brief Create a JITed process set calculator for a given set of processes
-    /// @param compiler JIT compiler
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
     JitProcessSet(
@@ -51,11 +49,11 @@ namespace micm
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
-    template<template<class> class MatrixPolicy>
+    template<class MatrixPolicy>
     void AddForcingTerms(
-        const MatrixPolicy<double> &rate_constants,
-        const MatrixPolicy<double> &state_variables,
-        MatrixPolicy<double> &forcing) const;
+        const MatrixPolicy &rate_constants,
+        const MatrixPolicy &state_variables,
+        MatrixPolicy &forcing) const;
 
     /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)
@@ -116,12 +114,7 @@ namespace micm
   void JitProcessSet<L>::GenerateForcingFunction()
   {
     std::string function_name = "add_forcing_terms_" + GenerateRandomString();
-<<<<<<< HEAD
     JitFunction func = JitFunction::Create()
-=======
-    auto compiler_ = JitCompiler::GetInstance();
-    JitFunction func = JitFunction::Create(compiler_)
->>>>>>> 2ac73fa625080be7970a68c4f7257311ce76a3c4
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
                                            { "state variables", JitType::DoublePtr },
@@ -223,7 +216,7 @@ namespace micm
   void JitProcessSet<L>::GenerateJacobianFunction(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
   {
     std::string function_name = "subtract_jacobian_terms_" + GenerateRandomString();
-    JitFunction func = JitFunction::Create(compiler_)
+    JitFunction func = JitFunction::Create()
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
                                            { "state variables", JitType::DoublePtr },
@@ -332,11 +325,11 @@ namespace micm
   }
 
   template<std::size_t L>
-  template<template<class> class MatrixPolicy>
+  template<class MatrixPolicy>
   void JitProcessSet<L>::AddForcingTerms(
-      const MatrixPolicy<double> &rate_constants,
-      const MatrixPolicy<double> &state_variables,
-      MatrixPolicy<double> &forcing) const
+      const MatrixPolicy &rate_constants,
+      const MatrixPolicy &state_variables,
+      MatrixPolicy &forcing) const
   {
     forcing_function_(rate_constants.AsVector().data(), state_variables.AsVector().data(), forcing.AsVector().data());
   }

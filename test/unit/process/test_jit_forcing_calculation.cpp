@@ -17,10 +17,8 @@
 
 #define NUM_ITERATIONS 100
 
-template<class T>
-using ForcingTestVectorMatrix = micm::VectorMatrix<T, NUM_GRID_CELLS>;
-template<class T>
-using ForcingTestSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<NUM_GRID_CELLS>>;
+using ForcingTestVectorMatrix = micm::VectorMatrix<double, NUM_GRID_CELLS>;
+using ForcingTestSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<NUM_GRID_CELLS>>;
 
 TEST(JitProcessSet, ForcingFunction)
 {
@@ -51,17 +49,11 @@ TEST(JitProcessSet, ForcingFunction)
 
   std::vector<micm::Process> processes{ r1, r2, r3 };
 
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error]");
-    EXPECT_TRUE(false);
-  }
-  micm::JitProcessSet<NUM_GRID_CELLS> process_set{ jit.get(), processes, state.variable_map_ };
+  micm::JitProcessSet<NUM_GRID_CELLS> process_set{processes, state.variable_map_ };
 
-  ForcingTestVectorMatrix<double> rate_constants{ NUM_GRID_CELLS, 3 };
-  ForcingTestVectorMatrix<double> forcing{ NUM_GRID_CELLS, 6, 0.0 };
-  ForcingTestVectorMatrix<double> jit_forcing{ NUM_GRID_CELLS, 6, 0.0 };
+  ForcingTestVectorMatrix rate_constants{ NUM_GRID_CELLS, 3 };
+  ForcingTestVectorMatrix forcing{ NUM_GRID_CELLS, 6, 0.0 };
+  ForcingTestVectorMatrix jit_forcing{ NUM_GRID_CELLS, 6, 0.0 };
   for (int i = 0; i < 3 * NUM_GRID_CELLS; ++i)
     rate_constants.AsVector()[i] = i * 2.0;
   for (int i = 0; i < 6 * NUM_GRID_CELLS; ++i)

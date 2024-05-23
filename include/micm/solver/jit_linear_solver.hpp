@@ -19,8 +19,8 @@ namespace micm
   ///
   /// See LinearSolver class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = JitLuDecomposition<L>>
-  class JitLinearSolver : public LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitLuDecomposition<L>>
+  class JitLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
     std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;
@@ -62,12 +62,12 @@ namespace micm
         SparseMatrix<double, SparseMatrixVectorOrdering<L>>& upper_matrix);
 
     /// @brief Solve for x in Ax = b
-    template<template<class> class MatrixPolicy>
+    template<class MatrixPolicy>
     void Solve(
-        const MatrixPolicy<double>& b,
-        MatrixPolicy<double>& x,
-        SparseMatrixPolicy<double>& lower_matrix,
-        SparseMatrixPolicy<double>& upper_matrix);
+        const MatrixPolicy& b,
+        MatrixPolicy& x,
+        SparseMatrixPolicy& lower_matrix,
+        SparseMatrixPolicy& upper_matrix);
 
    private:
     /// @brief Generates the JIT-ed Solve function

@@ -313,13 +313,7 @@ TEST(JitFunction, LocalArray)
 // add a unique number to the function argument and return the sum
 TEST(JitFunction, SameNameFunctions)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func1 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func1 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);
@@ -330,7 +324,7 @@ TEST(JitFunction, SameNameFunctions)
   auto func1_target = func1.Generate();
   int32_t (*func1_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func1_target.second;
 
-  micm::JitFunction func2 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func2 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);
@@ -341,7 +335,7 @@ TEST(JitFunction, SameNameFunctions)
   auto func2_target = func2.Generate();
   int32_t (*func2_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func2_target.second;
 
-  micm::JitFunction func3 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func3 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);
