@@ -11,3 +11,18 @@
    fun:_ZN4llvm10AsmPrinter16emitFunctionBodyEv
    ...
 }
+
+{
+   <OpenMP_allocations>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:UnknownInlinedFun
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.34
+   fun:gomp_team_start
+   fun:GOMP_parallel
+   ...
+}

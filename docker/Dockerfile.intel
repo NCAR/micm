@@ -7,7 +7,6 @@ RUN apt update \
       ca-certificates \
       cmake \
       cmake-curses-gui \
-      curl \
       libcurl4-openssl-dev \
       libhdf5-dev \
       m4 \

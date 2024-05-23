@@ -102,16 +102,22 @@ namespace micm
 
    public:
     // Delete the copy constructor and assignment operator
-    JitCompiler(const JitCompiler&) = delete;
-    JitCompiler& operator=(const JitCompiler&) = delete;
+    JitCompiler(const JitCompiler &) = delete;
+    JitCompiler &operator=(const JitCompiler &) = delete;
 
-    static JitCompiler& GetInstance()
+    static JitCompiler &GetInstance()
     {
-      static llvm::Expected<std::unique_ptr<JitCompiler>> instance = Create();
-      if (!instance) {
-        throw std::system_error(make_error_code(MicmJitErrc::FailedToBuild));
+      static std::unique_ptr<JitCompiler> instance;
+      if (!instance)
+      {
+        auto expectedInstance = Create();
+        if (!expectedInstance)
+        {
+          throw std::system_error(make_error_code(MicmJitErrc::FailedToBuild));
+        }
+        instance = std::move(*expectedInstance);
       }
-      return *instance.get();
+      return *instance;
     }
 
     ~JitCompiler()
@@ -163,10 +169,8 @@ namespace micm
       if (!data_layout)
         return data_layout.takeError();
 
-      return llvm::Expected<std::unique_ptr<JitCompiler>>(
-        std::unique_ptr<JitCompiler>(
-          new JitCompiler(std::move(execution_session), std::move(machine_builder), std::move(*data_layout)))
-    );
+      return llvm::Expected<std::unique_ptr<JitCompiler>>(std::unique_ptr<JitCompiler>(
+          new JitCompiler(std::move(execution_session), std::move(machine_builder), std::move(*data_layout))));
     }
 
     JitCompiler(
