@@ -22,7 +22,8 @@ RUN mkdir /build \
       && cd /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
-        -D MICM_ENABLE_LLVM:BOOL=FALSE \
+        -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
+        -D MICM_ENABLE_LLVM:BOOL=TRUE \
         -D MICM_ENABLE_MEMCHECK:BOOL=TRUE \
         -D MICM_ENABLE_OPENMP:BOOL=TRUE \
         ../micm \
