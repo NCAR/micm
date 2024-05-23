@@ -19,7 +19,6 @@ namespace micm
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class JitProcessSet : public ProcessSet
   {
-    std::shared_ptr<JitCompiler> compiler_;
     llvm::orc::ResourceTrackerSP forcing_function_resource_tracker_;
     void (*forcing_function_)(const double *, const double *, double *);
     llvm::orc::ResourceTrackerSP jacobian_function_resource_tracker_;
@@ -81,7 +80,6 @@ namespace micm
   template<std::size_t L>
   inline JitProcessSet<L>::JitProcessSet(JitProcessSet &&other)
       : ProcessSet(std::move(other)),
-        compiler_(std::move(other.compiler_)),
         forcing_function_resource_tracker_(std::move(other.forcing_function_resource_tracker_)),
         forcing_function_(std::move(other.forcing_function_)),
         jacobian_function_resource_tracker_(std::move(other.jacobian_function_resource_tracker_)),
@@ -95,7 +93,6 @@ namespace micm
   inline JitProcessSet<L> &JitProcessSet<L>::operator=(JitProcessSet &&other)
   {
     ProcessSet::operator=(std::move(other));
-    compiler_ = std::move(other.compiler_);
     forcing_function_resource_tracker_ = std::move(other.forcing_function_resource_tracker_);
     forcing_function_ = std::move(other.forcing_function_);
     jacobian_function_resource_tracker_ = std::move(other.jacobian_function_resource_tracker_);
@@ -110,8 +107,7 @@ namespace micm
       std::shared_ptr<JitCompiler> compiler,
       const std::vector<Process> &processes,
       const std::map<std::string, std::size_t> &variable_map)
-      : ProcessSet(processes, variable_map),
-        compiler_(compiler)
+      : ProcessSet(processes, variable_map)
   {
     forcing_function_ = NULL;
     jacobian_function_ = NULL;
@@ -122,6 +118,7 @@ namespace micm
   void JitProcessSet<L>::GenerateForcingFunction()
   {
     std::string function_name = "add_forcing_terms_" + GenerateRandomString();
+    auto compiler_ = JitCompiler::GetInstance();
     JitFunction func = JitFunction::Create(compiler_)
                            .SetName(function_name)
                            .SetArguments({ { "rate constants", JitType::DoublePtr },
