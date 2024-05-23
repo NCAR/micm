@@ -12,30 +12,17 @@
 template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
 void RunTerminatorTest()
 {
+  auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
+  solver_params.relative_tolerance_ = 1.0e-8;
+  solver_params.max_number_of_steps_ = 100000;
+
   TestTerminator<
-      MatrixPolicy,
       micm::JitRosenbrockSolver<
           MatrixPolicy,
           SparseMatrixPolicy,
           micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
           micm::JitProcessSet<number_of_grid_cells>>>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p)
-          -> micm::JitRosenbrockSolver<
-              MatrixPolicy,
-              SparseMatrixPolicy,
-              micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-              micm::JitProcessSet<number_of_grid_cells>>
-      {
-        auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
-        solver_params.relative_tolerance_ = 1.0e-8;
-        solver_params.max_number_of_steps_ = 100000;
-        return micm::JitRosenbrockSolver<
-            MatrixPolicy,
-            SparseMatrixPolicy,
-            micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-            micm::JitProcessSet<number_of_grid_cells>>{ s, p, solver_params };
-      },
-      number_of_grid_cells);
+      number_of_grid_cells, solver_params);
 }
 
 template<class T>

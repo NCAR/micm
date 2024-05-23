@@ -18,126 +18,70 @@ using DefaultJitRosenbrockSolver = micm::JitRosenbrockSolver<
 
 TEST(AnalyticalExamplesJitRosenbrock, Troe)
 {
-  test_analytical_troe<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{ s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
-      });
+  test_analytical_troe<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
-      });
+  test_analytical_stiff_troe<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
 {
-  test_analytical_photolysis<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
-      });
+  test_analytical_photolysis<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_stiff_photolysis<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_ternary_chemical_activation<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_stiff_ternary_chemical_activation<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
 {
-  test_analytical_tunneling<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_tunneling<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_stiff_tunneling<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
 {
-  test_analytical_arrhenius<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_arrhenius<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_stiff_arrhenius<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Branched)
 {
-  test_analytical_branched<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_branched<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_stiff_branched<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 {
-  test_analytical_robertson<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_robertson<DefaultJitRosenbrockSolver>();
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 {
-  test_analytical_surface_rxn<DefaultJitRosenbrockSolver>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p) -> DefaultJitRosenbrockSolver
-      {
-        return DefaultJitRosenbrockSolver{s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()};
-      });
+  test_analytical_surface_rxn<DefaultJitRosenbrockSolver>();
 }

@@ -9,7 +9,7 @@
 
 template<class OdeSolverPolicy>
 void test_analytical_surface_rxn(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
@@ -69,7 +69,7 @@ void test_analytical_surface_rxn(
   // };
 
   // Solver
-  OdeSolverPolicy solver = create_solver(chemical_system, reactions);
+  OdeSolverPolicy solver = OdeSolverPolicy(chemical_system, reactions, parameters);
 
   // State
   micm::State state = solver.GetState();

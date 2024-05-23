@@ -15,27 +15,14 @@ using SparseMatrixTest = micm::SparseMatrix<double>;
 template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 void RunTerminatorTest(std::size_t number_of_grid_cells)
 {
-  TestTerminator<MatrixPolicy, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p)
-          -> micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
-      {
-        auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
-        solver_params.relative_tolerance_ = 1.0e-8;
-        solver_params.max_number_of_steps_ = 100000;
-        return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>{ s, p, solver_params };
-      },
-      number_of_grid_cells);
-  TestTerminator<MatrixPolicy, micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(
-      [&](const micm::System& s, const std::vector<micm::Process>& p)
-          -> micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
-      {
-        auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
-        solver_params.relative_tolerance_ = 1.0e-8;
-        solver_params.max_number_of_steps_ = 100000;
-        solver_params.check_singularity_ = true;
-        return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>{ s, p, solver_params };
-      },
-      number_of_grid_cells);
+  auto solver_params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, true);
+  solver_params.relative_tolerance_ = 1.0e-8;
+  solver_params.max_number_of_steps_ = 100000;
+
+  TestTerminator<micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(number_of_grid_cells, solver_params);
+
+  solver_params.check_singularity_ = true;
+  TestTerminator< micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>>(number_of_grid_cells, solver_params);
 }
 
 TEST(RosenbrockSolver, Terminator)
