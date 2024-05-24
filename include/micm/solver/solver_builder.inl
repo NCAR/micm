@@ -49,7 +49,7 @@ namespace micm
 {
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>&
-  SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetSystem(System system)
+  SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetSystem(const System& system)
   {
     system_ = system;
     return *this;
@@ -57,7 +57,7 @@ namespace micm
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>&
-  SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetReactions(std::vector<Process> reactions)
+  SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::SetReactions(const std::vector<Process>& reactions)
   {
     reactions_ = reactions;
     return *this;
