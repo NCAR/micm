@@ -59,7 +59,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
-    /// @return A struct containing results and a status code
+    /// @return Nothing, but the state is updated
     void Solve(
         double time_step,
         auto& state);

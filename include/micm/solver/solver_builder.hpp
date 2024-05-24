@@ -23,15 +23,15 @@
 
 namespace micm
 {
-  using SolverParameters = std::variant<std::monostate, micm::RosenbrockSolverParameters, micm::BackwardEulerSolverParameters>;
+  using SolverParameters = std::variant<std::monostate, RosenbrockSolverParameters, BackwardEulerSolverParameters>;
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   class SolverBuilder
   {
    protected:
-    micm::System system_;
+    System system_;
     std::size_t number_of_grid_cells_;
-    std::vector<micm::Process> reactions_;
+    std::vector<Process> reactions_;
     SolverParameters options_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
@@ -40,12 +40,12 @@ namespace micm
     /// @brief Set the chemical system
     /// @param system
     /// @return
-    SolverBuilder& SetSystem(micm::System system);
+    SolverBuilder& SetSystem(const System& system);
 
     /// @brief Set the reactions
     /// @param reactions
     /// @return
-    SolverBuilder& SetReactions(std::vector<micm::Process> reactions);
+    SolverBuilder& SetReactions(const std::vector<Process>& reactions);
 
     /// @brief Set the number of grid cells
     /// @param number_of_grid_cells
