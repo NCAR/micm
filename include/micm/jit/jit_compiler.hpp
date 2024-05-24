@@ -226,11 +226,6 @@ namespace micm
             for (auto &function : module)
             {
               pass_manager->run(function);
-#if 0
-              std::cout << "Generated function definition:" << std::endl;
-              function.print(llvm::errs());
-              std::cout << std::endl;
-#endif
             }
           });
 

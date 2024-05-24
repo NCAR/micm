@@ -24,11 +24,6 @@ namespace micm
     t.NumberOfGroups();
   };
 
-  template<class>
-  class Matrix;
-
-  using StandardDenseMatrix = Matrix<double>;
-
   /// @brief A 2D array class with contiguous memory
   template<class T = double>
   class Matrix
@@ -284,5 +279,7 @@ namespace micm
       return data_.cend();
     }
   };
+
+  using StandardDenseMatrix = Matrix<double>;
 
 }  // namespace micm

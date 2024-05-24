@@ -85,7 +85,9 @@ namespace micm
     __device__ void WarpReduce(volatile double* sdata, size_t tid)
     {
       if (BLOCK_SIZE >= 64)
+      {
         sdata[tid] += sdata[tid + 32];
+      }
       sdata[tid] += sdata[tid + 16];
       sdata[tid] += sdata[tid + 8];
       sdata[tid] += sdata[tid + 4];
@@ -149,10 +151,14 @@ namespace micm
         // Access the d_errors array directly if it is not the first call
         sdata[l_tid] = 0.0;
         if (g_tid < n)
+        {
           sdata[l_tid] += d_errors_input[g_tid];
+        }
         g_tid += BLOCK_SIZE;
         if (g_tid < n)
+        {
           sdata[l_tid] += d_errors_input[g_tid];
+        }
         __syncthreads();
       }
 
@@ -190,7 +196,9 @@ namespace micm
         __syncthreads();
       }
       if (l_tid < 32)
+      {
         WarpReduce(sdata, l_tid);
+      }
 
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
       if (l_tid == 0)

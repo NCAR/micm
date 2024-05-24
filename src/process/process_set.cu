@@ -39,12 +39,14 @@ namespace micm
         yield_offset = 0;
         for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
         {
-          double rate = d_rate_constants[i_rxn * number_of_grid_cells + tid];
-          for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
-            rate *= d_state_variables[d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells + tid];
+          double rate = d_rate_constants[(i_rxn * number_of_grid_cells) + tid];
           for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
           {
-            d_forcing[d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells + tid] -= rate;
+            rate *= d_state_variables[(d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells) + tid];
+          }
+          for (std::size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
+          {
+            d_forcing[(d_reactant_ids[react_id_offset + i_react] * number_of_grid_cells) + tid] -= rate;
           }
           for (std::size_t i_prod = 0; i_prod < d_number_of_products[i_rxn]; ++i_prod)
           {
@@ -92,12 +94,12 @@ namespace micm
           // loop over reactants in a reaction
           for (size_t i_ind = 0; i_ind < d_number_of_reactants[i_rxn]; ++i_ind)
           {
-            double d_rate_d_ind = d_rate_constants[i_rxn * number_of_grid_cells + tid];
+            double d_rate_d_ind = d_rate_constants[(i_rxn * number_of_grid_cells) + tid];
             for (size_t i_react = 0; i_react < d_number_of_reactants[i_rxn]; ++i_react)
             {
               if (i_react != i_ind)
               {
-                d_rate_d_ind *= d_state_variables[d_reactant_ids[react_ids_offset + i_react] * number_of_grid_cells + tid];
+                d_rate_d_ind *= d_state_variables[(d_reactant_ids[react_ids_offset + i_react] * number_of_grid_cells) + tid];
               }
             }
             for (size_t i_dep = 0; i_dep < d_number_of_reactants[i_rxn]; ++i_dep)
@@ -190,7 +192,9 @@ namespace micm
       cudaFree(devstruct.product_ids_);
       cudaFree(devstruct.yields_);
       if (devstruct.jacobian_flat_ids_ != nullptr)
+      {
         cudaFree(devstruct.jacobian_flat_ids_);
+      }
     }
 
     void SubtractJacobianTermsKernelDriver(
