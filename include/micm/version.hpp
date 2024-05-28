@@ -6,23 +6,23 @@ namespace micm {
 extern "C" {
 #endif
 
-  const char* getMicmVersion()
+  const char* GetMicmVersion()
   {
     return "3.5.0";
   }
-  unsigned getMicmVersionMajor()
+  unsigned GetMicmVersionMajor()
   {
     return 3;
   }
-  unsigned getMicmVersionMinor()
+  unsigned GetMicmVersionMinor()
   {
     return 5+0;
   }
-  unsigned getMicmVersionPatch()
+  unsigned GetMicmVersionPatch()
   {
     return 0+0;
   }
-  unsigned getMicmVersionTweak()
+  unsigned GetMicmVersionTweak()
   {
     return +0;
   }
