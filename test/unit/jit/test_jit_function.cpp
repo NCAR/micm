@@ -6,13 +6,7 @@
 // This test creates a function that adds two integers and returns the sum
 TEST(JitFunction, SimpleInt32Function)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_int32")
                                .SetArguments({ { "foo", micm::JitType::Int32 }, { "bar", micm::JitType::Int32 } })
                                .SetReturnType(micm::JitType::Int32);
@@ -30,13 +24,7 @@ TEST(JitFunction, SimpleInt32Function)
 // This test creates a function that adds two integers and returns the sum
 TEST(JitFunction, SimpleInt64Function)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_int64")
                                .SetArguments({ { "foo", micm::JitType::Int64 }, { "bar", micm::JitType::Int64 } })
                                .SetReturnType(micm::JitType::Int64);
@@ -53,13 +41,7 @@ TEST(JitFunction, SimpleInt64Function)
 // This test creates a function that adds two floats and returns the sum
 TEST(JitFunction, SimpleFloatFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_float")
                                .SetArguments({ { "foo", micm::JitType::Float }, { "bar", micm::JitType::Float } })
                                .SetReturnType(micm::JitType::Float);
@@ -76,13 +58,7 @@ TEST(JitFunction, SimpleFloatFunction)
 // This test creates a function that adds two doubles and returns the sum
 TEST(JitFunction, SimpleDoubleFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_double")
                                .SetArguments({ { "foo", micm::JitType::Double }, { "bar", micm::JitType::Double } })
                                .SetReturnType(micm::JitType::Double);
@@ -99,13 +75,7 @@ TEST(JitFunction, SimpleDoubleFunction)
 // This test creates a function that returns an OR of two booleans
 TEST(JitFunction, SimpleBoolFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_bool")
                                .SetArguments({ { "foo", micm::JitType::Bool }, { "bar", micm::JitType::Bool } })
                                .SetReturnType(micm::JitType::Bool);
@@ -123,13 +93,7 @@ TEST(JitFunction, SimpleBoolFunction)
 // second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleInt32PtrFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_int32_ptr")
                                .SetArguments({ { "foo", micm::JitType::Int32Ptr }, { "bar", micm::JitType::Int32Ptr } })
                                .SetReturnType(micm::JitType::Int32);
@@ -160,13 +124,7 @@ TEST(JitFunction, SimpleInt32PtrFunction)
 // second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleInt64PtrFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_int64_ptr")
                                .SetArguments({ { "foo", micm::JitType::Int64Ptr }, { "bar", micm::JitType::Int64Ptr } })
                                .SetReturnType(micm::JitType::Int64);
@@ -197,13 +155,7 @@ TEST(JitFunction, SimpleInt64PtrFunction)
 // second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleFloatPtrFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_float_ptr")
                                .SetArguments({ { "foo", micm::JitType::FloatPtr }, { "bar", micm::JitType::FloatPtr } })
                                .SetReturnType(micm::JitType::Float);
@@ -234,13 +186,7 @@ TEST(JitFunction, SimpleFloatPtrFunction)
 // second element of the second array as the sum, and also returns the sum
 TEST(JitFunction, SimpleDoublePtrFunction)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo_double_ptr")
                                .SetArguments({ { "foo", micm::JitType::DoublePtr }, { "bar", micm::JitType::DoublePtr } })
                                .SetReturnType(micm::JitType::Double);
@@ -271,14 +217,8 @@ TEST(JitFunction, SimpleDoublePtrFunction)
 // and iterates 10 times and returns the summed value
 TEST(JitFunction, SimpleLoop)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
   micm::JitFunction func =
-      micm::JitFunction::Create(jit.get()).SetName("foo_loop").SetArguments({}).SetReturnType(micm::JitType::Int32);
+      micm::JitFunction::Create().SetName("foo_loop").SetArguments({}).SetReturnType(micm::JitType::Int32);
   auto loop = func.StartLoop("foo loop", 0, 10);
   llvm::PHINode *ret_val = func.builder_->CreatePHI(func.GetType(micm::JitType::Int32), 2, "ret val");
   ret_val->addIncoming(llvm::ConstantInt::get(*(func.context_), llvm::APInt(32, 1)), func.entry_block_);
@@ -297,13 +237,7 @@ TEST(JitFunction, SimpleLoop)
 // arguments and 10 and 100, respectively
 TEST(JitFunction, MultipleFunctions)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction foo_func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction foo_func = micm::JitFunction::Create()
                                    .SetName("foo")
                                    .SetArguments({ { "arg", micm::JitType::Int32 } })
                                    .SetReturnType(micm::JitType::Int32);
@@ -312,7 +246,7 @@ TEST(JitFunction, MultipleFunctions)
   foo_func.builder_->CreateRet(foo_ret_val);
   auto foo_target = foo_func.Generate();
   int32_t (*foo_func_ptr)(int) = (int32_t(*)(int))(intptr_t)foo_target.second;
-  micm::JitFunction bar_func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction bar_func = micm::JitFunction::Create()
                                    .SetName("bar")
                                    .SetArguments({ { "arg", micm::JitType::Int32 } })
                                    .SetReturnType(micm::JitType::Int32);
@@ -332,13 +266,7 @@ TEST(JitFunction, MultipleFunctions)
 // and returns the sum
 TEST(JitFunction, LocalArray)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func = micm::JitFunction::Create()
                                .SetName("foo")
                                .SetArguments({ { "arg", micm::JitType::Int64 } })
                                .SetReturnType(micm::JitType::Int64);
@@ -385,13 +313,7 @@ TEST(JitFunction, LocalArray)
 // add a unique number to the function argument and return the sum
 TEST(JitFunction, SameNameFunctions)
 {
-  auto jit{ micm::JitCompiler::Create() };
-  if (auto err = jit.takeError())
-  {
-    llvm::logAllUnhandledErrors(std::move(err), llvm::errs(), "[JIT Error] ");
-    EXPECT_TRUE(false);
-  }
-  micm::JitFunction func1 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func1 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);
@@ -402,7 +324,7 @@ TEST(JitFunction, SameNameFunctions)
   auto func1_target = func1.Generate();
   int32_t (*func1_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func1_target.second;
 
-  micm::JitFunction func2 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func2 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);
@@ -413,7 +335,7 @@ TEST(JitFunction, SameNameFunctions)
   auto func2_target = func2.Generate();
   int32_t (*func2_ptr)(int32_t) = (int32_t(*)(int32_t))(intptr_t)func2_target.second;
 
-  micm::JitFunction func3 = micm::JitFunction::Create(jit.get())
+  micm::JitFunction func3 = micm::JitFunction::Create()
                                 .SetName("foobar")
                                 .SetArguments({ { "foo", micm::JitType::Int32 } })
                                 .SetReturnType(micm::JitType::Int32);

@@ -8,8 +8,8 @@
 
 // Define the following three functions that only work for the CudaMatrix; the if constexpr statement is evalauted at
 // compile-time Reference: https://www.modernescpp.com/index.php/using-requires-expression-in-c-20-as-a-standalone-feature/
-template<typename T, template<class> class MatrixPolicy>
-void CopyToDeviceDense(MatrixPolicy<T>& matrix)
+template<class MatrixPolicy>
+void CopyToDeviceDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   {
@@ -19,8 +19,8 @@ void CopyToDeviceDense(MatrixPolicy<T>& matrix)
     matrix.CopyToDevice();
 }
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void CopyToDeviceSparse(SparseMatrixPolicy<T>& matrix)
+template<class SparseMatrixPolicy>
+void CopyToDeviceSparse(SparseMatrixPolicy& matrix)
 {
   if constexpr (requires {
                   {
@@ -30,8 +30,8 @@ void CopyToDeviceSparse(SparseMatrixPolicy<T>& matrix)
     matrix.CopyToDevice();
 }
 
-template<typename T, template<class> class MatrixPolicy>
-void CopyToHostDense(MatrixPolicy<T>& matrix)
+template<class MatrixPolicy>
+void CopyToHostDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
                   {
@@ -41,11 +41,11 @@ void CopyToHostDense(MatrixPolicy<T>& matrix)
     matrix.CopyToHost();
 }
 
-template<typename T, template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<typename T, class MatrixPolicy, class SparseMatrixPolicy>
 void check_results(
-    const SparseMatrixPolicy<T> A,
-    const MatrixPolicy<T> b,
-    const MatrixPolicy<T> x,
+    const SparseMatrixPolicy A,
+    const MatrixPolicy b,
+    const MatrixPolicy x,
     const std::function<void(const T, const T)> f)
 {
   T result;
@@ -64,8 +64,8 @@ void check_results(
   }
 }
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
+template<class SparseMatrixPolicy>
+void print_matrix(const SparseMatrixPolicy& matrix, std::size_t width)
 {
   for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
@@ -90,10 +90,12 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
   }
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver)
+template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
+void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::Create(3)
+  using FloatingPointType = typename MatrixPolicy::value_type;
+
+  SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
                                                                 .InitialValue(1.0e-30)
                                                                 .WithElement(0, 0)
                                                                 .WithElement(0, 1)
@@ -104,8 +106,8 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
                                                                 .WithElement(2, 0)
                                                                 .WithElement(2, 1)
                                                                 .WithElement(2, 2));
-  MatrixPolicy<double> b(1, 3, 0.0);
-  MatrixPolicy<double> x(1, 3, 100.0);
+  MatrixPolicy b(1, 3, 0.0);
+  MatrixPolicy x(1, 3, 100.0);
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
@@ -122,46 +124,46 @@ void testDenseMatrix(const std::function<LinearSolverPolicy(const SparseMatrixPo
   b[0][2] = 9;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(A);
-  CopyToDeviceDense<double, MatrixPolicy>(b);
-  CopyToDeviceDense<double, MatrixPolicy>(x);
+  CopyToDeviceSparse<SparseMatrixPolicy>(A);
+  CopyToDeviceDense<MatrixPolicy>(b);
+  CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<double, MatrixPolicy>(x);
+  CopyToHostDense<MatrixPolicy>(x);
 
-  check_results<double, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-void testRandomMatrix(
-    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
-    std::size_t number_of_blocks)
+template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
+void testRandomMatrix(std::size_t number_of_blocks)
 {
+  using FloatingPointType = typename MatrixPolicy::value_type;
+
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
         builder = builder.WithElement(i, j);
 
-  SparseMatrixPolicy<double> A(builder);
-  MatrixPolicy<double> b(number_of_blocks, 10, 0.0);
-  MatrixPolicy<double> x(number_of_blocks, 10, 100.0);
+  SparseMatrixPolicy A(builder);
+  MatrixPolicy b(number_of_blocks, 10, 0.0);
+  MatrixPolicy x(number_of_blocks, 10, 100.0);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
@@ -174,78 +176,78 @@ void testRandomMatrix(
       b[i_block][i] = get_double();
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(A);
-  CopyToDeviceDense<double, MatrixPolicy>(b);
-  CopyToDeviceDense<double, MatrixPolicy>(x);
+  CopyToDeviceSparse<SparseMatrixPolicy>(A);
+  CopyToDeviceDense<MatrixPolicy>(b);
+  CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<double, MatrixPolicy>(x);
+  CopyToHostDense<MatrixPolicy>(x);
 
-  check_results<double, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
-void testDiagonalMatrix(
-    const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
-    std::size_t number_of_blocks)
+template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
+void testDiagonalMatrix(std::size_t number_of_blocks)
 {
+  using FloatingPointType = typename MatrixPolicy::value_type;
+
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.WithElement(i, i);
 
-  SparseMatrixPolicy<double> A(builder);
-  MatrixPolicy<double> b(number_of_blocks, 6, 0.0);
-  MatrixPolicy<double> x(number_of_blocks, 6, 100.0);
+  SparseMatrixPolicy A(builder);
+  MatrixPolicy b(number_of_blocks, 6, 0.0);
+  MatrixPolicy x(number_of_blocks, 6, 100.0);
 
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       A[i_block][i][i] = get_double();
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(A);
-  CopyToDeviceDense<double, MatrixPolicy>(b);
-  CopyToDeviceDense<double, MatrixPolicy>(x);
+  CopyToDeviceSparse<SparseMatrixPolicy>(A);
+  CopyToDeviceDense<MatrixPolicy>(b);
+  CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = create_linear_solver(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<double, SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<double, SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<double, MatrixPolicy>(x);
+  CopyToHostDense<MatrixPolicy>(x);
 
-  check_results<double, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
+template<class MatrixPolicy, class SparseMatrixPolicy>
 void testMarkowitzReordering()
 {
   const std::size_t order = 50;
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
-  MatrixPolicy<int> orig(order, order, 0);
+  MatrixPolicy orig(order, order, 0);
 
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
@@ -253,25 +255,25 @@ void testMarkowitzReordering()
 
   auto reorder_map = micm::DiagonalMarkowitzReorder<MatrixPolicy>(orig);
 
-  auto builder = SparseMatrixPolicy<double>::Create(50);
+  auto builder = SparseMatrixPolicy::Create(50);
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
       if (orig[i][j] != 0)
         builder = builder.WithElement(i, j);
-  SparseMatrixPolicy<double> orig_jac{ builder };
+  SparseMatrixPolicy orig_jac{ builder };
 
-  builder = SparseMatrixPolicy<double>::Create(50);
+  builder = SparseMatrixPolicy::Create(50);
   for (std::size_t i = 0; i < order; ++i)
     for (std::size_t j = 0; j < order; ++j)
       if (orig[reorder_map[i]][reorder_map[j]] != 0)
         builder = builder.WithElement(i, j);
-  SparseMatrixPolicy<double> reordered_jac{ builder };
+  SparseMatrixPolicy reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(orig_jac);
-  auto reordered_LU_calc = micm::LuDecomposition::Create<double, SparseMatrixPolicy>(reordered_jac);
+  auto orig_LU_calc = micm::LuDecomposition::Create< SparseMatrixPolicy>(orig_jac);
+  auto reordered_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy>(reordered_jac);
 
-  auto orig_LU = orig_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(orig_jac, 0.0);
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<double, SparseMatrixPolicy>(reordered_jac, 0.0);
+  auto orig_LU = orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy>(orig_jac, 0.0);
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy>(reordered_jac, 0.0);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;

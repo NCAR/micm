@@ -62,6 +62,11 @@ namespace micm
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class CudaDenseMatrix : public VectorMatrix<T, L>
   {
+  public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = CudaDenseMatrix<int, L>;
+    using value_type = T;
+
    private:
     /// @brief The device pointer (handle) to the allocated memory on the target device.
     CudaMatrixParam param_;

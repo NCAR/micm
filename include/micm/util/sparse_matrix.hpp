@@ -32,8 +32,7 @@ namespace micm
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrix;
 
-  template<class T>
-  using StandardSparseMatrix = SparseMatrix<T, SparseMatrixStandardOrdering>;
+  using StandardSparseMatrix = SparseMatrix<double, SparseMatrixStandardOrdering>;
 
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
   ///
@@ -43,9 +42,14 @@ namespace micm
   ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T, class OrderingPolicy>
+  template<class T = double, class OrderingPolicy>
   class SparseMatrix : public OrderingPolicy
   {
+   public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = SparseMatrix<int, OrderingPolicy>;
+    using value_type = T;
+
    protected:
     std::size_t number_of_blocks_;        // Number of block sub-matrices in the overall matrix
     std::vector<std::size_t> row_ids_;    // Row indices of each non-zero element in a block

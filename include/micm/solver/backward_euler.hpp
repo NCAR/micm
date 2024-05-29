@@ -7,6 +7,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/process_set.hpp>
 #include <micm/profiler/instrumentation.hpp>
+#include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
@@ -28,34 +29,40 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
+  template <class LinearSolverPolicy, class ProcessSetPolicy> 
   class BackwardEuler
   {
+    BackwardEulerSolverParameters parameters_;
+    LinearSolverPolicy linear_solver_;
+    ProcessSetPolicy process_set_;
+    std::vector<std::size_t> jacobian_diagonal_elements_;
+    std::vector<micm::Process> processes_;
+
    public:
     /// @brief Default constructor
-    BackwardEuler();
-
-    /// @brief Builds a backward eulder solver for the given system and processes
-    /// @param system The chemical system to create the solver for
-    /// @param processes The collection of chemical processes that will be applied during solving
-    BackwardEuler(const System& system, const std::vector<Process>& processes);
+    BackwardEuler(
+      BackwardEulerSolverParameters parameters, 
+      LinearSolverPolicy linear_solver, 
+      ProcessSetPolicy process_set,
+      std::vector<std::size_t> jacobian_diagonal_elements,
+      std::vector<micm::Process>& processes
+      ) : parameters_(parameters),
+          linear_solver_(linear_solver),
+          process_set_(process_set),
+          jacobian_diagonal_elements_(jacobian_diagonal_elements),
+          processes_(processes)
+    {
+    }
 
     virtual ~BackwardEuler() = default;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
-    /// @param linear_solver The linear solver to use
-    /// @param process_set The process set to use
-    /// @param processes The collection of chemical processes that will be applied during solving
-    /// @param jacobian_diagonal_elements The diagonal elements of the jacobian matrix
-    /// @return A struct containing results and a status code
+    /// @return Nothing, but the state is updated
     void Solve(
         double time_step,
-        auto& state,
-        auto linear_solver,
-        auto process_set,
-        const std::vector<micm::Process>& processes,
-        auto jacobian_diagonal_elements);
+        auto& state);
   };
 
 }  // namespace micm

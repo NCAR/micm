@@ -71,12 +71,11 @@ void writeCSV(
 
 using yields = std::pair<micm::Species, double>;
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 template<class OdeSolverPolicy>
 void test_analytical_troe(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -111,9 +110,8 @@ void test_analytical_troe(
                          .SetPhase(gas_phase);
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  OdeSolverPolicy solver = create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes);
+  OdeSolverPolicy solver = OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes, parameters);
 
-  micm::BackwardEuler be;
   auto be_state = solver.GetState();
 
   double temperature = 272.5;
@@ -162,18 +160,10 @@ void test_analytical_troe(
     times.push_back(time_step);
     // Model results
     auto result = solver.Solve(time_step, state);
-    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
-    {
-      auto linear_solver = solver.linear_solver_;
-      auto process_set = solver.process_set_;
-      be.Solve(
-          time_step, be_state, linear_solver, process_set, processes, solver.state_parameters_.jacobian_diagonal_elements_);
-    }
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
     model_concentrations[i_time] = result.result_.AsVector();
-    be_model_concentrations[i_time] = be_state.variables_[0];
     state.variables_[0] = result.result_.AsVector();
 
     // Analytical results
@@ -205,22 +195,12 @@ void test_analytical_troe(
         << "Arrays differ at index (" << i << ", " << 1 << ")";
     EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
-
-    if constexpr (std::is_same_v<OdeSolverPolicy, micm::RosenbrockSolver<>>)
-    {
-      EXPECT_NEAR(be_model_concentrations[i][_a], analytical_concentrations[i][0], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 0 << ")";
-      EXPECT_NEAR(be_model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 1 << ")";
-      EXPECT_NEAR(be_model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
-          << "Arrays differ at index (" << i << ", " << 2 << ")";
-    }
   }
 }
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_troe(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -275,8 +255,8 @@ void test_analytical_stiff_troe(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -358,7 +338,7 @@ void test_analytical_stiff_troe(
 
 template<class OdeSolverPolicy>
 void test_analytical_photolysis(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -386,7 +366,7 @@ void test_analytical_photolysis(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -464,7 +444,7 @@ void test_analytical_photolysis(
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_photolysis(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -512,8 +492,8 @@ void test_analytical_stiff_photolysis(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -594,7 +574,7 @@ void test_analytical_stiff_photolysis(
 
 template<class OdeSolverPolicy>
 void test_analytical_ternary_chemical_activation(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -630,7 +610,7 @@ void test_analytical_ternary_chemical_activation(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -711,7 +691,7 @@ void test_analytical_ternary_chemical_activation(
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_ternary_chemical_activation(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -766,8 +746,8 @@ void test_analytical_stiff_ternary_chemical_activation(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -849,7 +829,7 @@ void test_analytical_stiff_ternary_chemical_activation(
 
 template<class OdeSolverPolicy>
 void test_analytical_tunneling(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -878,7 +858,7 @@ void test_analytical_tunneling(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -953,7 +933,7 @@ void test_analytical_tunneling(
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_tunneling(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -1001,8 +981,8 @@ void test_analytical_stiff_tunneling(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1081,7 +1061,7 @@ void test_analytical_stiff_tunneling(
 
 template<class OdeSolverPolicy>
 void test_analytical_arrhenius(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -1109,7 +1089,7 @@ void test_analytical_arrhenius(
           .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1184,7 +1164,7 @@ void test_analytical_arrhenius(
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_arrhenius(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -1233,8 +1213,8 @@ void test_analytical_stiff_arrhenius(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1313,7 +1293,7 @@ void test_analytical_stiff_arrhenius(
 
 template<class OdeSolverPolicy>
 void test_analytical_branched(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1
@@ -1351,7 +1331,7 @@ void test_analytical_branched(
           .SetPhase(gas_phase);
 
   OdeSolverPolicy solver =
-      create_solver(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 });
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1441,7 +1421,7 @@ void test_analytical_branched(
 
 template<class OdeSolverPolicy>
 void test_analytical_stiff_branched(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A1 -> B, k1
@@ -1504,8 +1484,8 @@ void test_analytical_stiff_branched(
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 0.9 * 4.0e10 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1599,7 +1579,7 @@ void test_analytical_stiff_branched(
 
 template<class OdeSolverPolicy>
 void test_analytical_robertson(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
 {
   /*
    * A -> B, k1 = 0.04
@@ -1638,8 +1618,8 @@ void test_analytical_robertson(
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver = create_solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 });
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;

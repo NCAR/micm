@@ -69,7 +69,6 @@ namespace micm
   };
 
   // Default vectorized SparseMatrix
-  template<class T>
-  using VectorSparseMatrix = SparseMatrix<T, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using DefaultVectorSparseMatrix = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
 }  // namespace micm

@@ -15,8 +15,7 @@ using namespace micm;
 template<typename T>
 using Group3Matrix = micm::VectorMatrix<T, 3>;
 
-template<typename T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
 
 void solve(auto& solver, auto& state)
 {

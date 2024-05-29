@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver(std::size_t number_of_grid_cells)
 {
   // ---- foo  bar  baz  quz  quuz
@@ -46,10 +46,9 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
 }
 
-template<class T>
-using SparseMatrix = micm::SparseMatrix<T>;
+using SparseMatrix = micm::SparseMatrix<double>;
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 {
   auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
@@ -105,7 +104,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class LinearSolverPolicy>
+template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 void testNormalizedErrorDiff(const size_t number_of_grid_cells)
 {
   auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
@@ -149,10 +148,10 @@ void testNormalizedErrorDiff(const size_t number_of_grid_cells)
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(1);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(2);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(3);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<double, SparseMatrix>>(4);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(1);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(2);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(3);
+  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(4);
 }
 
 template<class T>
@@ -168,29 +167,19 @@ using Group8VectorMatrix = micm::VectorMatrix<T, 8>;
 template<class T>
 using Group10VectorMatrix = micm::VectorMatrix<T, 10>;
 
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;
-template<class T>
-using Group8SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<8>>;
-template<class T>
-using Group10SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
+using Group8SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<8>>;
+using Group10SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<10>>;
 
 TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<double, Group1SparseVectorMatrix>>(
-      1);
-  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<double, Group2SparseVectorMatrix>>(
-      4);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<double, Group3SparseVectorMatrix>>(
-      3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<double, Group4SparseVectorMatrix>>(
-      2);
+  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1);
+  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(4);
+  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(3);
+  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(2);
 }
 
 TEST(RosenbrockSolver, CanSetTolerances)
@@ -252,42 +241,15 @@ TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
 TEST(RosenbrockSolver, NormalizedError)
 {
   // Exact fits
-  testNormalizedErrorDiff<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::LinearSolver<double, Group1SparseVectorMatrix>>(1);
-  testNormalizedErrorDiff<
-      Group2VectorMatrix,
-      Group2SparseVectorMatrix,
-      micm::LinearSolver<double, Group2SparseVectorMatrix>>(2);
-  testNormalizedErrorDiff<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::LinearSolver<double, Group3SparseVectorMatrix>>(3);
-  testNormalizedErrorDiff<
-      Group4VectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::LinearSolver<double, Group4SparseVectorMatrix>>(4);
+  testNormalizedErrorDiff<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(4);
 
   // Inexact fits
-  testNormalizedErrorDiff<
-      Group2VectorMatrix,
-      Group2SparseVectorMatrix,
-      micm::LinearSolver<double, Group2SparseVectorMatrix>>(1);
-  testNormalizedErrorDiff<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::LinearSolver<double, Group3SparseVectorMatrix>>(2);
-  testNormalizedErrorDiff<
-      Group4VectorMatrix,
-      Group4SparseVectorMatrix,
-      micm::LinearSolver<double, Group4SparseVectorMatrix>>(3);
-  testNormalizedErrorDiff<
-      Group8VectorMatrix,
-      Group8SparseVectorMatrix,
-      micm::LinearSolver<double, Group8SparseVectorMatrix>>(5);
-  testNormalizedErrorDiff<
-      Group10VectorMatrix,
-      Group10SparseVectorMatrix,
-      micm::LinearSolver<double, Group10SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(1);
+  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(2);
+  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff<Group8VectorMatrix, Group8SparseVectorMatrix, micm::LinearSolver<Group8SparseVectorMatrix>>(5);
+  testNormalizedErrorDiff<Group10VectorMatrix, Group10SparseVectorMatrix, micm::LinearSolver<Group10SparseVectorMatrix>>(3);
 }

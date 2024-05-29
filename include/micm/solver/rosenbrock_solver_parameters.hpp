@@ -17,9 +17,9 @@ namespace micm
   /// @brief Rosenbrock solver parameters
   struct RosenbrockSolverParameters
   {
-    size_t stages_{};
-    size_t upper_limit_tolerance_{};
-    size_t max_number_of_steps_{ 1000 };
+    std::size_t stages_{};
+    std::size_t upper_limit_tolerance_{};
+    std::size_t max_number_of_steps_{ 1000 };
 
     double round_off_{ std::numeric_limits<double>::epsilon() };  // Unit roundoff (1+round_off)>1
     double factor_min_{ 0.2 };                                    // solver step size minimum boundary
@@ -59,7 +59,7 @@ namespace micm
     std::vector<double> absolute_tolerance_;
     double relative_tolerance_{ 1e-4 };
 
-    size_t number_of_grid_cells_{ 1 };     // Number of grid cells to solve simultaneously
+    std::size_t number_of_grid_cells_{ 1 };     // Number of grid cells to solve simultaneously
     bool reorder_state_{ true };           // Reorder state during solver construction to minimize LU fill-in
     bool check_singularity_{ false };      // Check for singular A matrix in linear solve of A x = b
     bool ignore_unused_species_{ false };  // Allow unused species to be included in state and solve
@@ -72,35 +72,35 @@ namespace micm
     /// @param reorder_state
     /// @return
     static RosenbrockSolverParameters TwoStageRosenbrockParameters(
-        size_t number_of_grid_cells = 1,
+        std::size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief an L-stable method, 3 stages, order 3, 2 function evaluations
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
     static RosenbrockSolverParameters ThreeStageRosenbrockParameters(
-        size_t number_of_grid_cells = 1,
+        std::size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief L-stable rosenbrock method of order 4, with 4 stages
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
     static RosenbrockSolverParameters FourStageRosenbrockParameters(
-        size_t number_of_grid_cells = 1,
+        std::size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief A stiffly-stable method, 4 stages, order 3
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
     static RosenbrockSolverParameters FourStageDifferentialAlgebraicRosenbrockParameters(
-        size_t number_of_grid_cells = 1,
+        std::size_t number_of_grid_cells = 1,
         bool reorder_state = true);
     /// @brief stiffly-stable rosenbrock method of order 4, with 6 stages
     /// @param number_of_grid_cells
     /// @param reorder_state
     /// @return
     static RosenbrockSolverParameters SixStageDifferentialAlgebraicRosenbrockParameters(
-        size_t number_of_grid_cells = 1,
+        std::size_t number_of_grid_cells = 1,
         bool reorder_state = true);
 
    private:
@@ -160,7 +160,7 @@ namespace micm
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::TwoStageRosenbrockParameters(
-      size_t number_of_grid_cells,
+      std::size_t number_of_grid_cells,
       bool reorder_state)
   {
     // an L-stable method, 2 stages, order 2
@@ -204,7 +204,7 @@ namespace micm
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::ThreeStageRosenbrockParameters(
-      size_t number_of_grid_cells,
+      std::size_t number_of_grid_cells,
       bool reorder_state)
   {
     // an L-stable method, 3 stages, order 3, 2 function evaluations
@@ -260,7 +260,7 @@ namespace micm
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::FourStageRosenbrockParameters(
-      size_t number_of_grid_cells,
+      std::size_t number_of_grid_cells,
       bool reorder_state)
   {
     // L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
@@ -329,7 +329,7 @@ namespace micm
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters(
-      size_t number_of_grid_cells,
+      std::size_t number_of_grid_cells,
       bool reorder_state)
   {
     // A STIFFLY-STABLE METHOD, 4 stages, order 3
@@ -384,7 +384,7 @@ namespace micm
   }
 
   inline RosenbrockSolverParameters RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters(
-      size_t number_of_grid_cells,
+      std::size_t number_of_grid_cells,
       bool reorder_state)
   {
     // STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES

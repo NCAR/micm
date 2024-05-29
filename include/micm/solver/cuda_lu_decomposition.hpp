@@ -28,9 +28,9 @@ namespace micm
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
-    template<typename SparseMatrixPolicy>
+    template<class SparseMatrixPolicy>
     CudaLuDecomposition(const SparseMatrixPolicy& matrix)
-        : LuDecomposition(LuDecomposition::Create<double, SparseMatrixPolicy>(matrix))
+        : LuDecomposition(LuDecomposition::Create<SparseMatrixPolicy>(matrix))
     {
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to
@@ -75,22 +75,22 @@ namespace micm
     ///   A is the sparse matrix to decompose
     ///   L is the lower triangular matrix created by decomposition
     ///   U is the upper triangular matrix created by decomposition
-    template<typename T, template<class> typename SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U) const;
+    template<class SparseMatrixPolicy>
+    requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
+        const SparseMatrixPolicy& A,
+        SparseMatrixPolicy& L,
+        SparseMatrixPolicy& U) const;
 
-    template<typename T, template<class> typename SparseMatrixPolicy>
-    requires(!CudaMatrix<SparseMatrixPolicy<T>>) void Decompose(
-        const SparseMatrixPolicy<T>& A,
-        SparseMatrixPolicy<T>& L,
-        SparseMatrixPolicy<T>& U) const;
+    template<class SparseMatrixPolicy>
+    requires(!CudaMatrix<SparseMatrixPolicy>) void Decompose(
+        const SparseMatrixPolicy& A,
+        SparseMatrixPolicy& L,
+        SparseMatrixPolicy& U) const;
   };
 
-  template<typename T, template<class> class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void CudaLuDecomposition::
-      Decompose(const SparseMatrixPolicy<T>& A, SparseMatrixPolicy<T>& L, SparseMatrixPolicy<T>& U) const
+  template<class SparseMatrixPolicy>
+  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::
+      Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
@@ -98,12 +98,12 @@ namespace micm
   }
 
   // call the function from the base class
-  template<typename T, template<class> class SparseMatrixPolicy>
-  requires(!CudaMatrix<SparseMatrixPolicy<T>>) void CudaLuDecomposition::Decompose(
-      const SparseMatrixPolicy<T>& A,
-      SparseMatrixPolicy<T>& L,
-      SparseMatrixPolicy<T>& U) const
+  template<class SparseMatrixPolicy>
+  requires(!CudaMatrix<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U) const
   {
-    LuDecomposition::Decompose<T, SparseMatrixPolicy>(A, L, U);
+    LuDecomposition::Decompose<SparseMatrixPolicy>(A, L, U);
   }
 }  // end of namespace micm

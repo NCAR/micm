@@ -9,175 +9,76 @@
 
 #include <gtest/gtest.h>
 
-template<class T>
-using SparseMatrixTest = micm::SparseMatrix<T>;
+using SparseMatrixTest = micm::SparseMatrix<double>;
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_troe<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_troe<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_photolysis<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_photolysis<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_ternary_chemical_activation<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_ternary_chemical_activation<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  test_analytical_tunneling<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_tunneling<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_tunneling<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  test_analytical_arrhenius<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_arrhenius<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_arrhenius<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  test_analytical_branched<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_branched<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_stiff_branched<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Robertson)
 {
-  test_analytical_robertson<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_robertson<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
-  test_analytical_surface_rxn<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>(
-      [](const micm::System& s,
-         const std::vector<micm::Process>& p) -> micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>
-      {
-        return micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>{
-          s, p, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-        };
-      });
+  test_analytical_surface_rxn<micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest>>();
 }
 
 TEST(AnalyticalExamples, Oregonator)

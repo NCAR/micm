@@ -23,7 +23,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class CPUMatrixPolicy, template<class> class GPUMatrixPolicy>
+template<class CPUMatrixPolicy, class GPUMatrixPolicy>
 void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -79,15 +79,15 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   gpu_state.variables_.AsVector().assign(cpu_state_vars.begin(), cpu_state_vars.end());
   gpu_state.variables_.CopyToDevice();
 
-  CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
-  GPUMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
+  CPUMatrixPolicy cpu_rate_constants{ n_cells, n_reactions };
+  GPUMatrixPolicy gpu_rate_constants{ n_cells, n_reactions };
   auto& cpu_rate_vars = cpu_rate_constants.AsVector();
   std::ranges::generate(cpu_rate_vars, get_double);
   gpu_rate_constants.AsVector().assign(cpu_rate_vars.begin(), cpu_rate_vars.end());
   gpu_rate_constants.CopyToDevice();
 
-  CPUMatrixPolicy<double> cpu_forcing{ n_cells, n_species, 1000.0 };
-  GPUMatrixPolicy<double> gpu_forcing{ n_cells, n_species, 1000.0 };
+  CPUMatrixPolicy cpu_forcing{ n_cells, n_species, 1000.0 };
+  GPUMatrixPolicy gpu_forcing{ n_cells, n_species, 1000.0 };
   gpu_forcing.CopyToDevice();
 
   // kernel function call
@@ -110,13 +110,9 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
 }
 
 template<
-    template<class>
     class CPUMatrixPolicy,
-    template<class>
     class CPUSparseMatrixPolicy,
-    template<class>
     class GPUDenseMatrixPolicy,
-    template<class>
     class GPUSparseMatrixPolicy>
 void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
@@ -174,8 +170,8 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   gpu_state.variables_.AsVector().assign(cpu_state_vars.begin(), cpu_state_vars.end());
   gpu_state.variables_.CopyToDevice();
 
-  CPUMatrixPolicy<double> cpu_rate_constants{ n_cells, n_reactions };
-  GPUDenseMatrixPolicy<double> gpu_rate_constants{ n_cells, n_reactions };
+  CPUMatrixPolicy cpu_rate_constants{ n_cells, n_reactions };
+  GPUDenseMatrixPolicy gpu_rate_constants{ n_cells, n_reactions };
   auto& cpu_rate_vars = cpu_rate_constants.AsVector();
   std::ranges::generate(cpu_rate_vars, get_double);
   gpu_rate_constants.AsVector().assign(cpu_rate_vars.begin(), cpu_rate_vars.end());
@@ -183,14 +179,14 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
 
   auto non_zero_elements = cpu_set.NonZeroJacobianElements();
 
-  auto cpu_builder = CPUSparseMatrixPolicy<double>::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
+  auto cpu_builder = CPUSparseMatrixPolicy::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
     cpu_builder = cpu_builder.WithElement(elem.first, elem.second);
-  CPUSparseMatrixPolicy<double> cpu_jacobian{ cpu_builder };
-  auto gpu_builder = GPUSparseMatrixPolicy<double>::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
+  CPUSparseMatrixPolicy cpu_jacobian{ cpu_builder };
+  auto gpu_builder = GPUSparseMatrixPolicy::Create(n_species).SetNumberOfBlocks(n_cells).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
     gpu_builder = gpu_builder.WithElement(elem.first, elem.second);
-  GPUSparseMatrixPolicy<double> gpu_jacobian{ gpu_builder };
+  GPUSparseMatrixPolicy gpu_jacobian{ gpu_builder };
   gpu_jacobian.CopyToDevice();
 
   cpu_set.SetJacobianFlatIds(cpu_jacobian);
@@ -212,17 +208,10 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   }
 }
 
-template<class T>
-using Group10000VectorMatrix = micm::VectorMatrix<T, 10000>;
-
-template<class T>
-using Group10000SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
-
-template<class T>
-using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<T, 10000>;
-
-template<class T>
-using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<T, micm::SparseMatrixVectorOrdering<10000>>;
+using Group10000VectorMatrix = micm::VectorMatrix<double, 10000>;
+using Group10000SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<10000>>;
+using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<double, 10000>;
+using Group10000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<10000>>;
 
 TEST(RandomCudaProcessSet, Forcing)
 {

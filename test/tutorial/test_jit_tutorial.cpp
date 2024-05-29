@@ -13,8 +13,7 @@ constexpr size_t n_grid_cells = 1;
 // partial template specializations
 template<class T>
 using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
-template<class T>
-using GroupSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
+using GroupSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
 
 auto run_solver(auto& solver)
 {
@@ -94,15 +93,13 @@ int main(const int argc, const char* argv[])
 
   RosenbrockSolver<GroupVectorMatrix, GroupSparseVectorMatrix> solver{ chemical_system, reactions, solver_parameters };
 
-  auto jit{ micm::JitCompiler::Create() };
-
   auto start = std::chrono::high_resolution_clock::now();
   JitRosenbrockSolver<
       GroupVectorMatrix,
       GroupSparseVectorMatrix,
       JitLinearSolver<n_grid_cells, GroupSparseVectorMatrix>,
       JitProcessSet<n_grid_cells>>
-      jit_solver(jit.get(), chemical_system, reactions, solver_parameters);
+      jit_solver(chemical_system, reactions, solver_parameters);
   auto end = std::chrono::high_resolution_clock::now();
   auto jit_compile_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 

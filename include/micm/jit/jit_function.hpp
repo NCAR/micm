@@ -77,7 +77,7 @@ namespace micm
   {
     bool generated_ = false;
     std::string name_;
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
 
    public:
     std::unique_ptr<llvm::LLVMContext> context_;
@@ -91,7 +91,7 @@ namespace micm
     JitFunction() = delete;
 
     friend class JitFunctionBuilder;
-    static JitFunctionBuilder Create(std::shared_ptr<JitCompiler> compiler);
+    static JitFunctionBuilder Create();
     JitFunction(JitFunctionBuilder& function_builder);
 
     /// @brief Generates the function
@@ -138,7 +138,7 @@ namespace micm
 
   class JitFunctionBuilder
   {
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
     std::string name_;
     std::vector<std::pair<std::string, JitType>> arguments_;
     JitType return_type_{ JitType::Void };
@@ -146,15 +146,15 @@ namespace micm
 
    public:
     JitFunctionBuilder() = delete;
-    JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
+    JitFunctionBuilder(JitCompiler& compiler);
     JitFunctionBuilder& SetName(const std::string& name);
     JitFunctionBuilder& SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments);
     JitFunctionBuilder& SetReturnType(JitType type);
   };
 
-  inline JitFunctionBuilder JitFunction::Create(std::shared_ptr<JitCompiler> compiler)
+  inline JitFunctionBuilder JitFunction::Create()
   {
-    return JitFunctionBuilder{ compiler };
+    return JitFunctionBuilder{ JitCompiler::GetInstance() };
   }
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
@@ -296,8 +296,8 @@ namespace micm
     return TmpB.CreateAlloca(type, 0, var_name.c_str());
   }
 
-  inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
-      : compiler_(compiler){};
+  inline JitFunctionBuilder::JitFunctionBuilder(JitCompiler& compiler)
+      : compiler_(&compiler){};
 
   inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {

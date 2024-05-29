@@ -92,8 +92,8 @@ namespace micm
   /// The template parameter is the type of matrix to use
   template<
       template<class> class MatrixPolicy = Matrix,
-      template<class> class SparseMatrixPolicy = StandardSparseMatrix,
-      class LinearSolverPolicy = LinearSolver<double, SparseMatrixPolicy>,
+      class SparseMatrixPolicy = StandardSparseMatrix,
+      class LinearSolverPolicy = LinearSolver<SparseMatrixPolicy>,
       class ProcessSetPolicy = ProcessSet>
   class RosenbrockSolver
   {
@@ -141,7 +141,7 @@ namespace micm
         const System& system,
         const std::vector<Process>& processes,
         const RosenbrockSolverParameters& parameters,
-        const std::function<LinearSolverPolicy(const SparseMatrixPolicy<double>, double)> create_linear_solver,
+        const std::function<LinearSolverPolicy(const SparseMatrixPolicy, double)> create_linear_solver,
         const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
             create_process_set);
 
@@ -149,12 +149,12 @@ namespace micm
 
     /// @brief Returns a state object for use with the solver
     /// @return A object that can hold the full state of the chemical system
-    virtual State<MatrixPolicy, SparseMatrixPolicy> GetState() const;
+    virtual State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, State<MatrixPolicy, SparseMatrixPolicy>& state) noexcept;
+    SolverResult Solve(double time_step, State<MatrixPolicy<double>, SparseMatrixPolicy>& state) noexcept;
 
     /// @brief Calculate a chemical forcing
     /// @param rate_constants List of rate constants for each needed species
@@ -168,14 +168,14 @@ namespace micm
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy<double>>);
-    void AlphaMinusJacobian(SparseMatrixPolicy<double>& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy<double>>);
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(!VectorizableSparse<SparseMatrixPolicy>);
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+        requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    void UpdateState(State<MatrixPolicy, SparseMatrixPolicy>& state);
+    void UpdateState(State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
 
     /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
     /// @param rate_constants List of rate constants for each needed species
@@ -184,7 +184,7 @@ namespace micm
     virtual void CalculateNegativeJacobian(
         const MatrixPolicy<double>& rate_constants,
         const MatrixPolicy<double>& number_densities,
-        SparseMatrixPolicy<double>& jacobian);
+        SparseMatrixPolicy& jacobian);
 
     /// @brief Prepare the linear solver
     /// @param H time step (seconds)
@@ -198,7 +198,7 @@ namespace micm
         bool& singular,
         const MatrixPolicy<double>& number_densities,
         SolverStats& stats,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
+        State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector

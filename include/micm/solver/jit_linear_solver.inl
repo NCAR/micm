@@ -5,39 +5,35 @@
 namespace micm
 {
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::JitLinearSolver(JitLinearSolver &&other)
-      : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other)),
-        compiler_(std::move(other.compiler_)),
+      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other)),
         solve_function_resource_tracker_(std::move(other.solve_function_resource_tracker_)),
         solve_function_(std::move(other.solve_function_))
   {
     other.solve_function_ = NULL;
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>
       &JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
   {
-    LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
-    compiler_ = std::move(other.compiler_);
+    LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
     solve_function_resource_tracker_ = std::move(other.solve_function_resource_tracker_);
     solve_function_ = std::move(other.solve_function_);
     other.solve_function_ = NULL;
     return *this;
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::JitLinearSolver(
-      std::shared_ptr<JitCompiler> compiler,
-      const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix,
+      const SparseMatrixPolicy &matrix,
       double initial_value)
-      : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>(
+      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [&](const SparseMatrixPolicy<double> &m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy(compiler, m); }),
-        compiler_(compiler)
+            [&](const SparseMatrixPolicy &m) -> LuDecompositionPolicy
+            { return LuDecompositionPolicy(m); })
   {
     solve_function_ = NULL;
     if (matrix.NumberOfBlocks() != L || matrix.GroupVectorSize() != L)
@@ -51,7 +47,7 @@ namespace micm
     GenerateSolveFunction();
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::~JitLinearSolver()
   {
     if (solve_function_ != NULL)
@@ -61,42 +57,42 @@ namespace micm
     }
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix,
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &lower_matrix,
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &upper_matrix,
+      SparseMatrixPolicy &matrix,
+      SparseMatrixPolicy &lower_matrix,
+      SparseMatrixPolicy &upper_matrix,
       bool &is_singular)
   {
-    LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix, is_singular);
+    LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix, is_singular);
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix,
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &lower_matrix,
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>> &upper_matrix)
+      SparseMatrixPolicy &matrix,
+      SparseMatrixPolicy &lower_matrix,
+      SparseMatrixPolicy &upper_matrix)
   {
-    LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix);
+    LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix);
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-  template<template<class> class MatrixPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<class MatrixPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
-      const MatrixPolicy<double> &b,
-      MatrixPolicy<double> &x,
-      SparseMatrixPolicy<double> &lower_matrix,
-      SparseMatrixPolicy<double> &upper_matrix)
+      const MatrixPolicy &b,
+      MatrixPolicy &x,
+      SparseMatrixPolicy &lower_matrix,
+      SparseMatrixPolicy &upper_matrix)
   {
     solve_function_(
         b.AsVector().data(), x.AsVector().data(), lower_matrix.AsVector().data(), upper_matrix.AsVector().data());
   }
 
-  template<std::size_t L, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::GenerateSolveFunction()
   {
     std::string function_name = "linear_solve_" + GenerateRandomString();
-    JitFunction func = JitFunction::Create(compiler_)
+    JitFunction func = JitFunction::Create()
                            .SetName(function_name)
                            .SetArguments({ { "b", JitType::DoublePtr },
                                            { "x", JitType::DoublePtr },
@@ -104,10 +100,10 @@ namespace micm
                                            { "U", JitType::DoublePtr } })
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
-    auto Lij_yj = LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Lij_yj_.begin();
-    auto Uij_xj = LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::Uij_xj_.begin();
+    auto Lij_yj = LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Lij_yj_.begin();
+    auto Uij_xj = LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Uij_xj_.begin();
     std::size_t offset = 0;
-    for (auto &nLij_Lii : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::nLij_Lii_)
+    for (auto &nLij_Lii : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::nLij_Lii_)
     {
       // the x vector is used for y values to conserve memory
       {
@@ -157,8 +153,8 @@ namespace micm
       }
       offset += L;
     }
-    offset = L * LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::nUij_Uii_.size();
-    for (auto &nUij_Uii : LinearSolver<double, SparseMatrixPolicy, LuDecompositionPolicy>::nUij_Uii_)
+    offset = L * LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::nUij_Uii_.size();
+    for (auto &nUij_Uii : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::nUij_Uii_)
     {
       offset -= L;
       for (std::size_t i = 0; i < nUij_Uii.first; ++i)

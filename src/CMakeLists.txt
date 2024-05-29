@@ -99,6 +99,7 @@ if(MICM_ENABLE_CUDA)
     PUBLIC cudart cublas culibos
   )
 
+  target_include_directories(micm_cuda PUBLIC /usr/local/cuda/include)
 endif()
 
 if (MICM_ENABLE_PROFILE)

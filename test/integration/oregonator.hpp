@@ -4,8 +4,8 @@
 
 template<
     template<class> class MatrixPolicy = micm::Matrix,
-    template<class> class SparseMatrixPolicy = micm::SparseMatrix,
-    class LinearSolverPolicy = micm::LinearSolver<double, SparseMatrixPolicy>>
+    class SparseMatrixPolicy = micm::StandardSparseMatrix,
+    class LinearSolverPolicy = micm::LinearSolver<SparseMatrixPolicy>>
 class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
 {
   std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_;
@@ -24,7 +24,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
     this->parameters_ = parameters;
     this->parameters_.absolute_tolerance_ = std::vector<double>(3, 1.0e-3);
 
-    auto builder = SparseMatrixPolicy<double>::Create(3).SetNumberOfBlocks(1).InitialValue(0.0);
+    auto builder = SparseMatrixPolicy::Create(3).SetNumberOfBlocks(1).InitialValue(0.0);
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
@@ -33,7 +33,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
         nonzero_jacobian_elements_.insert(std::make_pair(i, j));
       }
     }
-    SparseMatrixPolicy<double> jacobian = SparseMatrixPolicy<double>(builder);
+    SparseMatrixPolicy jacobian = SparseMatrixPolicy(builder);
 
     std::vector<std::size_t> jacobian_diagonal_elements;
     for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
@@ -62,9 +62,9 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
   {
   }
 
-  micm::State<MatrixPolicy, SparseMatrixPolicy> GetState() const override
+  micm::State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const override
   {
-    auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ this->state_parameters_ };
+    auto state = micm::State<MatrixPolicy<double>, SparseMatrixPolicy>{ this->state_parameters_ };
 
     state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
         nonzero_jacobian_elements_,
@@ -105,7 +105,7 @@ class Oregonator : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolic
   void CalculateNegativeJacobian(
       const MatrixPolicy<double>& rate_constants,
       const MatrixPolicy<double>& number_densities,
-      SparseMatrixPolicy<double>& jacobian) override
+      SparseMatrixPolicy& jacobian) override
   {
     auto data = number_densities.AsVector();
 

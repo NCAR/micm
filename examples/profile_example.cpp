@@ -29,7 +29,7 @@
 namespace fs = std::filesystem;
 using namespace micm;
 
-template<template<class> class MatrixType, template<class> class SparseMatrixType>
+template<template<class> class MatrixType, class SparseMatrixType>
 int Run(const char* filepath, const char* initial_conditions, const std::string& matrix_ordering_type)
 {
   using SolverType = RosenbrockSolver<MatrixType, SparseMatrixType>;
@@ -114,24 +114,9 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   return 0;
 }
 
-template<class T>
-using SparseMatrixParam = micm::SparseMatrix<T>;
-template<class T>
-using Vector1MatrixParam = micm::VectorMatrix<T, 1>;
-template<class T>
-using Vector10MatrixParam = micm::VectorMatrix<T, 10>;
-template<class T>
-using Vector100MatrixParam = micm::VectorMatrix<T, 100>;
-template<class T>
+template<typename T>
 using Vector1000MatrixParam = micm::VectorMatrix<T, 1000>;
-template<class T>
-using Vector1SparseMatrixParam = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Vector10SparseMatrixParam = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<10>>;
-template<class T>
-using Vector100SparseMatrixParam = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<100>>;
-template<class T>
-using Vector1000SparseMatrixParam = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1000>>;
+using Vector1000SparseMatrixParam = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1000>>;
 
 int main(const int argc, const char* argv[])
 {

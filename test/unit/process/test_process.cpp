@@ -9,7 +9,7 @@
 
 #include <random>
 
-template<template<class> class MatrixPolicy>
+template<class DenseMatrixPolicy>
 void testProcessUpdateState(const std::size_t number_of_grid_cells)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
@@ -29,14 +29,14 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   for (const auto& process : processes)
     for (auto& label : process.rate_constant_->CustomParameters())
       param_labels.push_back(label);
-  micm::State<MatrixPolicy> state{ micm::StateParameters{
+  micm::State<DenseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = number_of_grid_cells,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = { "foo", "bar'" },
       .custom_rate_parameter_labels_ = param_labels,
   } };
 
-  MatrixPolicy<double> expected_rate_constants(number_of_grid_cells, 3, 0.0);
+  DenseMatrixPolicy expected_rate_constants(number_of_grid_cells, 3, 0.0);
   std::vector<double> params = { 0.0, 0.0, 0.0 };
   auto get_double = std::bind(std::lognormal_distribution(0.0, 0.01), std::default_random_engine());
 
@@ -82,15 +82,15 @@ using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
 TEST(Process, Matrix)
 {
-  testProcessUpdateState<micm::Matrix>(5);
+  testProcessUpdateState<micm::Matrix<double>>(5);
 }
 
 TEST(Process, VectorMatrix)
 {
-  testProcessUpdateState<Group1VectorMatrix>(5);
-  testProcessUpdateState<Group2VectorMatrix>(5);
-  testProcessUpdateState<Group3VectorMatrix>(5);
-  testProcessUpdateState<Group4VectorMatrix>(5);
+  testProcessUpdateState<Group1VectorMatrix<double>>(5);
+  testProcessUpdateState<Group2VectorMatrix<double>>(5);
+  testProcessUpdateState<Group3VectorMatrix<double>>(5);
+  testProcessUpdateState<Group4VectorMatrix<double>>(5);
 }
 
 TEST(Process, SurfaceRateConstantOnlyHasOneReactant)

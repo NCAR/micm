@@ -44,17 +44,10 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 
 namespace micm
 {
-  inline BackwardEuler::BackwardEuler()
-  {
-  }
-
-  inline void BackwardEuler::Solve(
+  template <class LinearSolverPolicy, class ProcessSetPolicy> 
+  inline void BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(
       double time_step,
-      auto& state,
-      auto linear_solver,
-      auto process_set,
-      const std::vector<micm::Process>& processes,
-      auto jacobian_diagonal_elements)
+      auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -67,21 +60,24 @@ namespace micm
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
 
+
+    double tolerance = parameters_.absolute_tolerance_[0];
+    double small = parameters_.small;
+    std::size_t max_iter = parameters_.max_number_of_steps_;
+    const auto time_step_reductions = parameters_.time_step_reductions;
+
     double H = time_step;
     double t = 0.0;
-    double tol = 1e-4;
-    double small = 1.0e-40;
-    bool singular = false;
-    std::size_t max_iter = 11;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
-    const std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
+
+    bool singular = false;
 
     auto Yn = state.variables_;
     auto Yn1 = state.variables_;
     auto forcing = state.variables_;
 
-    Process::UpdateState(processes, state);
+    Process::UpdateState(processes_, state);
 
     while (t < time_step)
     {
@@ -97,11 +93,11 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-        process_set.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        process_set_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
-        process_set.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        process_set_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
@@ -112,7 +108,7 @@ namespace micm
         for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
         {
           auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-          for (const auto& i_elem : jacobian_diagonal_elements)
+          for (const auto& i_elem : jacobian_diagonal_elements_)
             jacobian_vector[i_elem] -= 1 / H;
         }
 
@@ -120,7 +116,7 @@ namespace micm
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
-        linear_solver.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
+        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
 
         auto yn1_iter = Yn1.begin();
         auto yn_iter = Yn.begin();
@@ -135,7 +131,7 @@ namespace micm
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
-        linear_solver.Solve(forcing, forcing, state.lower_matrix_, state.upper_matrix_);
+        linear_solver_.Solve(forcing, forcing, state.lower_matrix_, state.upper_matrix_);
 
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
@@ -160,7 +156,7 @@ namespace micm
         do
         {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tol * std::abs(*yn1_iter));
+          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tolerance * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter;
         } while (converged && forcing_iter != forcing.end());
 
