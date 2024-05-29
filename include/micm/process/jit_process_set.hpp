@@ -34,9 +34,7 @@ namespace micm
     /// @brief Create a JITed process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
-    JitProcessSet(
-        const std::vector<Process> &processes,
-        const std::map<std::string, std::size_t> &variable_map);
+    JitProcessSet(const std::vector<Process> &processes, const std::map<std::string, std::size_t> &variable_map);
 
     ~JitProcessSet();
 
@@ -50,10 +48,8 @@ namespace micm
     /// @param state_variables Current state variable values (grid cell, state variable)
     /// @param forcing Forcing terms for each state variable (grid cell, state variable)
     template<class MatrixPolicy>
-    void AddForcingTerms(
-        const MatrixPolicy &rate_constants,
-        const MatrixPolicy &state_variables,
-        MatrixPolicy &forcing) const;
+    void AddForcingTerms(const MatrixPolicy &rate_constants, const MatrixPolicy &state_variables, MatrixPolicy &forcing)
+        const;
 
     /// @brief Subtracts Jacobian terms for the set of processes for the current conditions
     /// @param rate_constants Current values for the process rate constants (grid cell, process)

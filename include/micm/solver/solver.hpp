@@ -4,7 +4,6 @@
  */
 #pragma once
 
-
 namespace micm
 {
 
@@ -19,7 +18,6 @@ namespace micm
     SolverPolicy solver_;
 
    public:
-
     Solver(
         SolverPolicy solver,
         StateParameters state_parameters,

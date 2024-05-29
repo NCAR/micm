@@ -37,9 +37,7 @@ namespace micm
     /// @param compiler JIT compiler
     /// @param matrix Block-diagonal sparse matrix to create solver for
     /// @param initial_value Initial value for decomposed triangular matrix elements
-    JitLinearSolver(
-        const SparseMatrixPolicy& matrix,
-        double initial_value);
+    JitLinearSolver(const SparseMatrixPolicy& matrix, double initial_value);
 
     ~JitLinearSolver();
 
@@ -54,18 +52,11 @@ namespace micm
 
     /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
     /// @param matrix Matrix that will be factored into lower and upper triangular matrices
-    void Factor(
-        SparseMatrixPolicy& matrix,
-        SparseMatrixPolicy& lower_matrix,
-        SparseMatrixPolicy& upper_matrix);
+    void Factor(SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
-    void Solve(
-        const MatrixPolicy& b,
-        MatrixPolicy& x,
-        SparseMatrixPolicy& lower_matrix,
-        SparseMatrixPolicy& upper_matrix);
+    void Solve(const MatrixPolicy& b, MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 
    private:
     /// @brief Generates the JIT-ed Solve function

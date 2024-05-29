@@ -16,13 +16,11 @@ void RunTerminatorTest()
   solver_params.relative_tolerance_ = 1.0e-8;
   solver_params.max_number_of_steps_ = 100000;
 
-  TestTerminator<
-      micm::JitRosenbrockSolver<
-          MatrixPolicy,
-          SparseMatrixPolicy,
-          micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-          micm::JitProcessSet<number_of_grid_cells>>>(
-      number_of_grid_cells, solver_params);
+  TestTerminator<micm::JitRosenbrockSolver<
+      MatrixPolicy,
+      SparseMatrixPolicy,
+      micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
+      micm::JitProcessSet<number_of_grid_cells>>>(number_of_grid_cells, solver_params);
 }
 
 template<class T>

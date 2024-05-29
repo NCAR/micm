@@ -49,7 +49,7 @@ TEST(JitProcessSet, ForcingFunction)
 
   std::vector<micm::Process> processes{ r1, r2, r3 };
 
-  micm::JitProcessSet<NUM_GRID_CELLS> process_set{processes, state.variable_map_ };
+  micm::JitProcessSet<NUM_GRID_CELLS> process_set{ processes, state.variable_map_ };
 
   ForcingTestVectorMatrix rate_constants{ NUM_GRID_CELLS, 3 };
   ForcingTestVectorMatrix forcing{ NUM_GRID_CELLS, 6, 0.0 };

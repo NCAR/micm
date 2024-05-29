@@ -29,7 +29,7 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template <class LinearSolverPolicy, class ProcessSetPolicy> 
+  template<class LinearSolverPolicy, class ProcessSetPolicy>
   class BackwardEuler
   {
     BackwardEulerSolverParameters parameters_;
@@ -41,12 +41,12 @@ namespace micm
    public:
     /// @brief Default constructor
     BackwardEuler(
-      BackwardEulerSolverParameters parameters, 
-      LinearSolverPolicy linear_solver, 
-      ProcessSetPolicy process_set,
-      std::vector<std::size_t> jacobian_diagonal_elements,
-      std::vector<micm::Process>& processes
-      ) : parameters_(parameters),
+        BackwardEulerSolverParameters parameters,
+        LinearSolverPolicy linear_solver,
+        ProcessSetPolicy process_set,
+        std::vector<std::size_t> jacobian_diagonal_elements,
+        std::vector<micm::Process>& processes)
+        : parameters_(parameters),
           linear_solver_(linear_solver),
           process_set_(process_set),
           jacobian_diagonal_elements_(jacobian_diagonal_elements),
@@ -60,9 +60,7 @@ namespace micm
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
     /// @return Nothing, but the state is updated
-    void Solve(
-        double time_step,
-        auto& state);
+    void Solve(double time_step, auto& state);
   };
 
 }  // namespace micm

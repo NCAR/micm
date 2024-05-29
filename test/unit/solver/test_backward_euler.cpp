@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <random>
 
-namespace {
+namespace
+{
   auto a = micm::Species("A");
   auto b = micm::Species("B");
   auto c = micm::Species("C");
@@ -27,7 +28,7 @@ namespace {
 
   auto the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   std::vector<micm::Process> reactions = { r1, r2 };
-}
+}  // namespace
 
 TEST(BackwardEuler, CanCallSolve)
 {
@@ -35,11 +36,11 @@ TEST(BackwardEuler, CanCallSolve)
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
 
   auto be = micm::CpuSolverBuilder<micm::Matrix<double>, micm::SparseMatrix<double>>()
-                            .SetSystem(the_system)
-                            .SetReactions(reactions)
-                            .SetNumberOfGridCells(1)
-                            .SetSolverParameters(params)
-                            .Build();
+                .SetSystem(the_system)
+                .SetReactions(reactions)
+                .SetNumberOfGridCells(1)
+                .SetSolverParameters(params)
+                .Build();
   double time_step = 1.0;
 
   auto state = be.GetState();

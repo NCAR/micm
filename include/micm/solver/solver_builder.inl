@@ -229,9 +229,7 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline Solver<
-      BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>>
+  inline Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>>
   CpuSolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>::BuildBackwardEulerSolver()
   {
     using ProcessSetPolicy = ProcessSet;
