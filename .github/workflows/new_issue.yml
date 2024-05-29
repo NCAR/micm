@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add issue to project board
-        uses: actions/add-to-project@v1
+        uses: actions/add-to-project@RELEASE_VERSION
         with:
           project-url: https://github.com/orgs/NCAR/projects/51
           github-token: ${{ secrets.GITHUB_TOKEN }}
