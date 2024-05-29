@@ -2,7 +2,13 @@
 # Utility functions for creating tests
 
 if(MICM_ENABLE_MEMCHECK)
-  find_program(MEMORYCHECK_COMMAND "valgrind")
+  if(MICM_ENABLE_CUDA)
+    find_program(MEMORYCHECK_COMMAND "compute-sanitizer")
+    set(MEMORYCHECK_COMMAND_OPTIONS "--show-backtrace device --tool=memcheck --launch-timeout=0")
+  else()
+    find_program(MEMORYCHECK_COMMAND "valgrind")
+    set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --trace-children=yes --leak-check=full --gen-suppressions=all ${MEMCHECK_SUPPRESS}")
+  endif()
 endif()
 
 ################################################################################
@@ -46,7 +52,6 @@ function(add_micm_test test_name test_binary test_args working_dir test_skip_mem
              COMMAND ${test_binary} ${test_args}
              WORKING_DIRECTORY ${working_dir})
   endif()
-  set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --trace-children=yes --leak-check=full --gen-suppressions=all ${MEMCHECK_SUPPRESS}")
   set(memcheck "${MEMORYCHECK_COMMAND} ${MEMORYCHECK_COMMAND_OPTIONS}")
   separate_arguments(memcheck)
   if(MICM_ENABLE_MPI AND MEMORYCHECK_COMMAND AND MICM_ENABLE_MEMCHECK AND NOT test_skip_memcheck)
