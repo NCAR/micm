@@ -25,8 +25,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  inline JitLuDecomposition<L>::JitLuDecomposition(
-      const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
+  inline JitLuDecomposition<L>::JitLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
       : LuDecomposition(LuDecomposition::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
   {
     decompose_function_ = NULL;
@@ -198,10 +197,8 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitLuDecomposition<L>::Decompose(
-      const SparseMatrixPolicy &A,
-      SparseMatrixPolicy &lower,
-      SparseMatrixPolicy &upper) const
+  void JitLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
+      const
   {
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
   }

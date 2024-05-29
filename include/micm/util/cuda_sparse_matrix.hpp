@@ -20,7 +20,7 @@ namespace micm
   template<class T, class OrderingPolicy>
   class CudaSparseMatrix : public SparseMatrix<T, OrderingPolicy>
   {
-  public:
+   public:
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = CudaSparseMatrix<int, OrderingPolicy>;
     using value_type = T;

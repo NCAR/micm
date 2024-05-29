@@ -110,7 +110,8 @@ void test_analytical_troe(
                          .SetPhase(gas_phase);
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
-  OdeSolverPolicy solver = OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes, parameters);
+  OdeSolverPolicy solver =
+      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), processes, parameters);
 
   auto be_state = solver.GetState();
 
@@ -256,7 +257,9 @@ void test_analytical_stiff_troe(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -365,8 +368,8 @@ void test_analytical_photolysis(
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "photoB" }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver =
-      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -493,7 +496,9 @@ void test_analytical_stiff_photolysis(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -609,8 +614,8 @@ void test_analytical_ternary_chemical_activation(
                                                                                         .N_ = 0.8 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver =
-      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -747,7 +752,9 @@ void test_analytical_stiff_ternary_chemical_activation(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -857,8 +864,8 @@ void test_analytical_tunneling(
                          .SetRateConstant(micm::TunnelingRateConstant({ .A_ = 1.2e-4, .B_ = 167, .C_ = 1.0e8 }))
                          .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver =
-      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -982,7 +989,9 @@ void test_analytical_stiff_tunneling(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1088,8 +1097,8 @@ void test_analytical_arrhenius(
           .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.2e-4, .B_ = 7, .C_ = 75, .D_ = 50, .E_ = 0.5 }))
           .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver =
-      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1214,7 +1223,9 @@ void test_analytical_stiff_arrhenius(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1330,8 +1341,8 @@ void test_analytical_branched(
                                                         .n_ = 2 }))
           .SetPhase(gas_phase);
 
-  OdeSolverPolicy solver =
-      OdeSolverPolicy(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
+  OdeSolverPolicy solver = OdeSolverPolicy(
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1485,7 +1496,9 @@ void test_analytical_stiff_branched(
                          .SetPhase(gas_phase);
 
   OdeSolverPolicy solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3, r4, r5 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
+      parameters);
 
   double temperature = 272.5;
   double pressure = 101253.3;

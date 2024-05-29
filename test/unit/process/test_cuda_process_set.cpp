@@ -109,11 +109,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   }
 }
 
-template<
-    class CPUMatrixPolicy,
-    class CPUSparseMatrixPolicy,
-    class GPUDenseMatrixPolicy,
-    class GPUSparseMatrixPolicy>
+template<class CPUMatrixPolicy, class CPUSparseMatrixPolicy, class GPUDenseMatrixPolicy, class GPUSparseMatrixPolicy>
 void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());

@@ -32,8 +32,7 @@ namespace micm
       : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
             matrix,
             initial_value,
-            [&](const SparseMatrixPolicy &m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy(m); })
+            [&](const SparseMatrixPolicy &m) -> LuDecompositionPolicy { return LuDecompositionPolicy(m); })
   {
     solve_function_ = NULL;
     if (matrix.NumberOfBlocks() != L || matrix.GroupVectorSize() != L)

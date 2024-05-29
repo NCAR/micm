@@ -90,7 +90,9 @@ namespace micm
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
     template<class SparseMatrixPolicy>
-    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value);
+    static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
+        const SparseMatrixPolicy& A,
+        typename SparseMatrixPolicy::value_type initial_value);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose

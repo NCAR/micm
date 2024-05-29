@@ -136,7 +136,8 @@ namespace micm
   template<class MatrixPolicy>
   requires(
       !VectorizableDense<MatrixPolicy> ||
-      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
+      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
+      Solve(
           const MatrixPolicy& b,
           MatrixPolicy& x,
           const SparseMatrixPolicy& lower_matrix,
@@ -191,8 +192,8 @@ namespace micm
 
   template<class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<class MatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy>&& VectorizableSparse<
-           SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
+  requires(VectorizableDense<MatrixPolicy>&&
+               VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
       Solve(
           const MatrixPolicy& b,
           MatrixPolicy& x,

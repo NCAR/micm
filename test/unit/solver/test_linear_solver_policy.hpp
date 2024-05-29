@@ -96,16 +96,16 @@ void testDenseMatrix()
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
-                                                                .InitialValue(1.0e-30)
-                                                                .WithElement(0, 0)
-                                                                .WithElement(0, 1)
-                                                                .WithElement(0, 2)
-                                                                .WithElement(1, 0)
-                                                                .WithElement(1, 1)
-                                                                .WithElement(1, 2)
-                                                                .WithElement(2, 0)
-                                                                .WithElement(2, 1)
-                                                                .WithElement(2, 2));
+                                                .InitialValue(1.0e-30)
+                                                .WithElement(0, 0)
+                                                .WithElement(0, 1)
+                                                .WithElement(0, 2)
+                                                .WithElement(1, 0)
+                                                .WithElement(1, 1)
+                                                .WithElement(1, 2)
+                                                .WithElement(2, 0)
+                                                .WithElement(2, 1)
+                                                .WithElement(2, 2));
   MatrixPolicy b(1, 3, 0.0);
   MatrixPolicy x(1, 3, 100.0);
 
@@ -269,7 +269,7 @@ void testMarkowitzReordering()
         builder = builder.WithElement(i, j);
   SparseMatrixPolicy reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create< SparseMatrixPolicy>(orig_jac);
+  auto orig_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy>(orig_jac);
   auto reordered_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy>(reordered_jac);
 
   auto orig_LU = orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy>(orig_jac, 0.0);

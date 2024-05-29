@@ -31,12 +31,12 @@ namespace micm
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
-    public:
+   public:
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
 
-    private:
+   private:
    protected:
     std::vector<T> data_;
     std::size_t x_dim_;  // number of rows

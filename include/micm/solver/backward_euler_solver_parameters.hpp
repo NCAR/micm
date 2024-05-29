@@ -4,10 +4,10 @@
  */
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <iostream>
 #include <vector>
-#include <array>
 
 namespace micm
 {
@@ -16,7 +16,7 @@ namespace micm
   struct BackwardEulerSolverParameters
   {
     std::vector<double> absolute_tolerance_;
-    double small { 1.0e-40 };
+    double small{ 1.0e-40 };
     size_t max_number_of_steps_{ 11 };
     std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
   };

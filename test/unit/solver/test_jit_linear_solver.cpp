@@ -22,7 +22,10 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVe
 
 TEST(JitLinearSolver, DenseMatrixVectorOrdering)
 {
-  testDenseMatrix<Group1VectorMatrix, Group1SparseVectorMatrix, micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>>();
+  testDenseMatrix<
+      Group1VectorMatrix,
+      Group1SparseVectorMatrix,
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>>();
 }
 
 TEST(JitLinearSolver, RandomMatrixVectorOrdering)

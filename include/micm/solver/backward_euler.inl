@@ -44,10 +44,8 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 
 namespace micm
 {
-  template <class LinearSolverPolicy, class ProcessSetPolicy> 
-  inline void BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(
-      double time_step,
-      auto& state)
+  template<class LinearSolverPolicy, class ProcessSetPolicy>
+  inline void BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(double time_step, auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -59,7 +57,6 @@ namespace micm
     // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
-
 
     double tolerance = parameters_.absolute_tolerance_[0];
     double small = parameters_.small;

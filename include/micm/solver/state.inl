@@ -58,7 +58,7 @@ inline std::error_code make_error_code(MicmStateErrc e)
 namespace micm
 {
 
-  template<class DenseMatrixPolicy,class SparseMatrixPolicy>
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy>::State()
       : conditions_(),
         variables_(),

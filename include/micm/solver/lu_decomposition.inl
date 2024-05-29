@@ -162,8 +162,7 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U)
-      const
+  inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
   {
     bool is_singular = false;
     Decompose<SparseMatrixPolicy>(A, L, U, is_singular);

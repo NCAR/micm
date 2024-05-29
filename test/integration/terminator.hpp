@@ -46,7 +46,9 @@ void TestTerminator(
                              .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k2 }));
 
   auto solver = OdeSolverPolicy(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ toy_r1, toy_r2 }, parameters);
+      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
+      std::vector<micm::Process>{ toy_r1, toy_r2 },
+      parameters);
   auto state = solver.GetState();
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
