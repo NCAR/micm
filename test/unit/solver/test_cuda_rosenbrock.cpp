@@ -208,6 +208,8 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
   std::vector<double> atol = gpu_solver.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.parameters_.relative_tolerance_;
 
+  std::cout << "JS: number_of_grid_cells: " << number_of_grid_cells << std::endl;
+
   auto state = gpu_solver.GetState();
   auto y_old = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 1.0);
   auto y_new = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 2.0);
@@ -218,6 +220,8 @@ void testNormalizedErrorConst(const size_t number_of_grid_cells)
   errors.CopyToDevice();
 
   double error = gpu_solver.NormalizedError(y_old, y_new, errors);
+
+  std::cout << "JS: pass the test..." << std::endl;
 
   auto expected_error = 0.0;
   for (size_t i = 0; i < state.state_size_; ++i)

@@ -5,6 +5,7 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/internal_error.hpp>
+#include <micm/util/cublas_handle_singleton.hpp>
 
 #include <cublas_v2.h>
 
@@ -250,11 +251,14 @@ namespace micm
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
         const RosenbrockSolverParameters& ros_param,
-        cublasHandle_t handle,
+ //       cublasHandle_t handle,
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
       const size_t number_of_elements = devstruct.errors_size_;
+
+ //     if (handle == NULL) std::cout << "JS: handle is NULL" << std::endl;
+ //     else std::cout << "JS: handle is not NULL" << std::endl;
 
       if (number_of_elements != errors_param.number_of_elements_)
       {
@@ -264,15 +268,25 @@ namespace micm
       }
       cudaError_t err = cudaMemcpy(
           devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
+      if (err != cudaSuccess)
+      {
+        ThrowInternalError(MicmInternalErrc::Cuda, __FILE__, __LINE__, cudaGetErrorString(err));
+      }
 
       if (number_of_elements > 1000000)
       {
         // call cublas APIs
         size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
         ScaledErrorKernel<<<number_of_blocks, BLOCK_SIZE>>>(y_old_param, y_new_param, ros_param, devstruct);
+        std::cout << "JS: number_of_elements = " << number_of_elements << std::endl;
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-        cublasStatus_t stat = cublasDnrm2(handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
+ //       cublasHandle_t* tmp_handle;
+        cublasHandle_t tmp_handle = micm::CublasHandleSingleton::GetInstance().GetCublasHandle();
+        std::cout << "js: address of cublas handle = " << &tmp_handle << std::endl;
+  //      cublasCreate(&tmp_handle);
+
+        cublasStatus_t stat = cublasDnrm2(tmp_handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
         if (stat != CUBLAS_STATUS_SUCCESS)
         {
           ThrowInternalError(MicmInternalErrc::Cublas, __FILE__, __LINE__, cublasGetStatusString(stat));
@@ -281,6 +295,7 @@ namespace micm
       }
       else
       {
+        std::cout << "JS: use cuda version ... " << std::endl;
         // call CUDA implementation
         size_t number_of_blocks = std::ceil(std::ceil(number_of_elements * 1.0 / BLOCK_SIZE) / 2.0);
         number_of_blocks = number_of_blocks < 1 ? 1 : number_of_blocks;

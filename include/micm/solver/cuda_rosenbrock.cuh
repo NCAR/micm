@@ -44,7 +44,7 @@ namespace micm
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
         const RosenbrockSolverParameters& ros_param,
-        cublasHandle_t handle,
+ //       cublasHandle_t handle,
         CudaRosenbrockSolverParam devstruct);
   }  // namespace cuda
 }  // namespace micm

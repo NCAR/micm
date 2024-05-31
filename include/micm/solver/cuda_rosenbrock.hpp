@@ -136,7 +136,7 @@ namespace micm
           y_new.AsDeviceParam(),
           errors.AsDeviceParam(),
           this->parameters_,
-          errors.AsCublasHandle(),
+ //         errors.AsCublasHandle(),
           this->devstruct_);
     }
 
