@@ -18,11 +18,7 @@ create_standard_test(NAME user_defined_rate_constant SOURCES test_user_defined_r
 
 # GPU tests
 if(MICM_ENABLE_CUDA)
-  create_standard_test(NAME cuda_process_set SOURCES test_cuda_process_set.cpp LIBRARIES musica::micm_cuda)
-endif()
-
-if(MICM_ENABLE_OPENACC)
-  create_standard_test(NAME openacc_process_set SOURCES test_openacc_process_set.cpp LIBRARIES musica::micm_openacc)
+  create_standard_test(NAME cuda_process_set SOURCES test_cuda_process_set.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
 endif()
 
 if(MICM_ENABLE_LLVM)
