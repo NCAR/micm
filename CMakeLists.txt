@@ -35,7 +35,6 @@ option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_ENABLE_JSON "Enable json configuration file reading" ON)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_CUDA "Build with Cuda support" OFF)
-option(MICM_ENABLE_OPENACC "Build with OpenACC Support" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
@@ -45,7 +44,7 @@ set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectoriza
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags
 cmake_dependent_option(MICM_ENABLE_GPU_TYPE "Enable custom CUDA flags" OFF
-  "MICM_ENABLE_OPENACC OR MICM_ENABLE_CUDA" ON)
+  "MICM_ENABLE_CUDA" ON)
 
 if(MICM_ENABLE_GPU_TYPE)
   set(MICM_GPU_TYPE "" CACHE STRING "The GPU type being targeted")
