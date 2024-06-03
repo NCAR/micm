@@ -11,10 +11,16 @@
 
 namespace micm
 {
+  
+  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  class BackwardEuler;
 
   /// @brief BackwardEuler solver parameters
   struct BackwardEulerSolverParameters
   {
+    template<class ProcessSetPolicy, class LinearSolverPolicy>
+    using SolverType = BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>;
+
     std::vector<double> absolute_tolerance_;
     double small{ 1.0e-40 };
     size_t max_number_of_steps_{ 11 };

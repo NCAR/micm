@@ -237,6 +237,13 @@ namespace micm
       return row_ids_.size();
     }
 
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
+    }
+
     ConstProxyRow operator[](std::size_t b) const
     {
       return ConstProxyRow(*this, b);

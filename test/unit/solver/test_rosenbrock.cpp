@@ -1,5 +1,6 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -7,8 +8,8 @@
 
 #include <gtest/gtest.h>
 
-template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> getSolver(std::size_t number_of_grid_cells)
+template<class SolverBuilderPolicy>
+SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -40,18 +41,16 @@ micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy> get
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
+      .SetReorderState(false);
 }
 
-using SparseMatrix = micm::SparseMatrix<double>;
-
-template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
+template<class SolverBuilderPolicy>
+void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
+  builder = getSolver(builder);
+  auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto jacobian = solver.GetState().jacobian_;
 
   EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
@@ -83,7 +82,7 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
   for (auto& elem : jacobian.AsVector())
     elem = -elem;
 
-  solver.AlphaMinusJacobian(jacobian, 42.042);
+  solver.solver_.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
@@ -104,17 +103,19 @@ void testAlphaMinusJacobian(std::size_t number_of_grid_cells)
 
 // In this test, the elements in the same array are different;
 // thus the calculated RMSE will change when the size of the array changes.
-template<template<class> class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
-void testNormalizedErrorDiff(const size_t number_of_grid_cells)
+template<class SolverBuilderPolicy>
+void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>(number_of_grid_cells);
-  std::vector<double> atol = solver.parameters_.absolute_tolerance_;
-  double rtol = solver.parameters_.relative_tolerance_;
+  builder = getSolver(builder);
+  auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
+  std::vector<double> atol = solver.solver_.parameters_.absolute_tolerance_;
+  double rtol = solver.solver_.parameters_.relative_tolerance_;
 
   auto state = solver.GetState();
-  auto y_old = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 7.7);
-  auto y_new = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, -13.9);
-  auto errors = MatrixPolicy<double>(number_of_grid_cells, state.state_size_, 81.57);
+  using MatrixPolicy = decltype(state.variables_);
+  auto y_old = MatrixPolicy(number_of_grid_cells, state.state_size_, 7.7);
+  auto y_new = MatrixPolicy(number_of_grid_cells, state.state_size_, -13.9);
+  auto errors = MatrixPolicy(number_of_grid_cells, state.state_size_, 81.57);
 
   double expected_error = 0.0;
   for (size_t i = 0; i < number_of_grid_cells; ++i)
@@ -132,7 +133,7 @@ void testNormalizedErrorDiff(const size_t number_of_grid_cells)
   double error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
-  double computed_error = solver.NormalizedError(y_old, y_new, errors);
+  double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
@@ -146,40 +147,24 @@ void testNormalizedErrorDiff(const size_t number_of_grid_cells)
   }
 }
 
+using StandardBuilder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>;
+template<std::size_t L>
+using VectorBuilder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(1);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(2);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(3);
-  testAlphaMinusJacobian<micm::Matrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(4);
+  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-template<class T>
-using Group8VectorMatrix = micm::VectorMatrix<T, 8>;
-template<class T>
-using Group10VectorMatrix = micm::VectorMatrix<T, 10>;
-
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
-using Group8SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<8>>;
-using Group10SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<10>>;
-
-TEST(RosenbrockSolver, DenseAlphaMinusJacobian)
+TEST(RosenbrockSolver, VectorAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1);
-  testAlphaMinusJacobian<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(4);
-  testAlphaMinusJacobian<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(3);
-  testAlphaMinusJacobian<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(2);
+  testAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+  testAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
 }
 
 TEST(RosenbrockSolver, CanSetTolerances)
@@ -200,56 +185,37 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
-    auto solver = micm::RosenbrockSolver<>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-        std::vector<micm::Process>{ r1 },
-        micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells));
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_.size(), 2);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[0], 1.0e-07);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[1], 1.0e-08);
+    auto solver = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                      .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                      .SetReactions(std::vector<micm::Process>{ r1 })
+                      .SetNumberOfGridCells(number_of_grid_cells)
+                      .Build();
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_.size(), 2);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[0], 1.0e-07);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[1], 1.0e-08);
   }
 }
 
-TEST(RosenbrockSolver, CanOverrideTolerancesWithParameters)
+TEST(RosenbrockSolver, StandardNormalizedError)
 {
-  auto foo = micm::Species("foo");
-  auto bar = micm::Species("bar");
-
-  foo.SetProperty("absolute tolerance", 1.0e-07);
-  bar.SetProperty("absolute tolerance", 1.0e-08);
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ foo })
-                         .SetProducts({ Yields(bar, 1) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
-
-  for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
-  {
-    auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells);
-    params.absolute_tolerance_ = { 1.0e-01, 1.0e-02 };
-    auto solver = micm::RosenbrockSolver<>(
-        micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1 }, params);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_.size(), 2);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[0], 1.0e-01);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[1], 1.0e-02);
-  }
+  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
-TEST(RosenbrockSolver, NormalizedError)
+TEST(RosenbrockSolver, VectorNormalizedError)
 {
   // Exact fits
-  testNormalizedErrorDiff<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1);
-  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(2);
-  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(3);
-  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(4);
+  testNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 
   // Inexact fits
-  testNormalizedErrorDiff<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(1);
-  testNormalizedErrorDiff<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(2);
-  testNormalizedErrorDiff<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(3);
-  testNormalizedErrorDiff<Group8VectorMatrix, Group8SparseVectorMatrix, micm::LinearSolver<Group8SparseVectorMatrix>>(5);
-  testNormalizedErrorDiff<Group10VectorMatrix, Group10SparseVectorMatrix, micm::LinearSolver<Group10SparseVectorMatrix>>(3);
+  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+  testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
 }

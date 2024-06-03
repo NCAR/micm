@@ -1,5 +1,6 @@
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <chrono>
 #include <iomanip>
@@ -65,7 +66,6 @@ void test_solver_type(auto& solver)
       total_stats.singular_ += result.stats_.singular_;
 
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
 
     state.PrintState(time_step * (i + 1));
@@ -111,19 +111,30 @@ int main()
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  RosenbrockSolver<> two_stage{ system, reactions, RosenbrockSolverParameters::TwoStageRosenbrockParameters() };
+  auto two_stage = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
+                       .SetSystem(system)
+                       .SetReactions(reactions)
+                       .Build();
 
-  RosenbrockSolver<> three_stage{ system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
+  auto three_stage = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                         .SetSystem(system)
+                         .SetReactions(reactions)
+                         .Build();
 
-  RosenbrockSolver<> four_stage{ system, reactions, RosenbrockSolverParameters::FourStageRosenbrockParameters() };
+  auto four_stage = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
+                        .SetSystem(system)
+                        .SetReactions(reactions)
+                        .Build();
 
-  RosenbrockSolver<> four_stage_da{ system,
-                                    reactions,
-                                    RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters() };
+  auto four_stage_da = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
+                            .SetSystem(system)
+                            .SetReactions(reactions)
+                            .Build();
 
-  RosenbrockSolver<> six_stage_da{ system,
-                                   reactions,
-                                   RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters() };
+  auto six_stage_da = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
+                            .SetSystem(system)
+                            .SetReactions(reactions)
+                            .Build();
 
   std::cout << "Two stages: " << std::endl;
   test_solver_type(two_stage);

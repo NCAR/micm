@@ -35,11 +35,10 @@ TEST(BackwardEuler, CanCallSolve)
   auto params = micm::BackwardEulerSolverParameters();
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
 
-  auto be = micm::CpuSolverBuilder<micm::Matrix<double>, micm::SparseMatrix<double>>()
+  auto be = micm::CpuSolverBuilder(params)
                 .SetSystem(the_system)
                 .SetReactions(reactions)
                 .SetNumberOfGridCells(1)
-                .SetSolverParameters(params)
                 .Build();
   double time_step = 1.0;
 
@@ -50,5 +49,5 @@ TEST(BackwardEuler, CanCallSolve)
   state.conditions_[0].pressure_ = 101253.3;
   state.conditions_[0].air_density_ = 1e6;
 
-  EXPECT_NO_THROW(be.Solve(time_step, state));
+  EXPECT_NO_THROW(auto result = be.Solve(time_step, state));
 }

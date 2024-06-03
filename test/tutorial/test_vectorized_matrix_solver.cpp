@@ -1,5 +1,6 @@
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -12,12 +13,7 @@
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-template<typename T>
-using Group3Matrix = micm::VectorMatrix<T, 3>;
-
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-
-void solve(auto& solver, auto& state)
+void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -30,7 +26,7 @@ void solve(auto& solver, auto& state)
   double pressure = 101253.3;  // [Pa]
   double air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
+  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -47,7 +43,6 @@ void solve(auto& solver, auto& state)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
       solver_state = result.state_;
     }
   }
@@ -83,11 +78,16 @@ int main()
                    .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
                    .SetPhase(gas_phase);
 
-  auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters(3, false);
+  auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
+  const std::size_t number_of_grid_cells = 3;
 
-  RosenbrockSolver<> solver{ system, reactions, params };
+  auto solver = CpuSolverBuilder(params)
+      .SetSystem(system)
+      .SetReactions(reactions)
+      .SetNumberOfGridCells(number_of_grid_cells)
+      .Build();
 
   auto state = solver.GetState();
 
@@ -102,7 +102,13 @@ int main()
 
   std::cout << std::endl;
 
-  RosenbrockSolver<Group3Matrix, Group3SparseVectorMatrix> vectorized_solver{ system, reactions, params };
+  auto vectorized_solver = CpuSolverBuilder<RosenbrockSolverParameters,
+                                            VectorMatrix<double, 3>,
+                                            SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
+                               .SetSystem(system)
+                               .SetReactions(reactions)
+                               .SetNumberOfGridCells(number_of_grid_cells)
+                               .Build();
 
   auto vectorized_state = vectorized_solver.GetState();
 
@@ -117,10 +123,10 @@ int main()
 
   std::cout << std::endl;
 
-  solve(solver, state);
-  solve(vectorized_solver, vectorized_state);
+  solve(solver, state, number_of_grid_cells);
+  solve(vectorized_solver, vectorized_state, number_of_grid_cells);
 
-  for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
+  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {
     std::cout << "Cell " << cell << std::endl;
     std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;

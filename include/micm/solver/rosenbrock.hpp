@@ -25,6 +25,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/solver/solver_result.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -40,179 +41,90 @@
 namespace micm
 {
 
-  /// @brief The final state the solver was in after the Solve function finishes
-  enum class SolverState
-  {
-    /// @brief This is the initial value at the start of the Solve function
-    NotYetCalled,
-    /// @brief This is only used for control flow in the Solve function
-    Running,
-    /// @brief A successful integration will have this value
-    Converged,
-    /// @brief If the number of steps exceeds the maximum value on the solver parameter, this value will be returned
-    ConvergenceExceededMaxSteps,
-    /// @brief Very stiff systems will likely result in a step size that is not useable for the solver
-    StepSizeTooSmall,
-    /// @brief Matrices that are singular more than once will set this value. At present, this should never be returned
-    RepeatedlySingularMatrix,
-    /// @brief Mostly this value is returned by systems that tend toward chemical explosions
-    NaNDetected,
-    /// @brief Can happen when unititialized memory is used in the solver
-    InfDetected
-  };
-
-  std::string StateToString(const SolverState& state);
-
-  struct SolverStats
-  {
-    /// @brief The number of forcing function calls
-    uint64_t function_calls_{};
-    /// @brief The number of jacobian function calls
-    uint64_t jacobian_updates_{};
-    /// @brief The total number of internal time steps taken
-    uint64_t number_of_steps_{};
-    /// @brief The number of accepted integrations
-    uint64_t accepted_{};
-    /// @brief The number of rejected integrations
-    uint64_t rejected_{};
-    /// @brief The number of LU decompositions
-    uint64_t decompositions_{};
-    /// @brief The number of linear solves
-    uint64_t solves_{};
-    /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
-    /// is never singular
-    uint64_t singular_{};
-
-    /// @brief Set all member variables to zero
-    void Reset();
-  };
-
   /// @brief An implementation of the Rosenbrock ODE solver
+  /// @tparam ProcessSetPolicy The policy to use for the process set
+  /// @tparam LinearSolverPolicy The policy to use for the linear solver
   ///
   /// The template parameter is the type of matrix to use
-  template<
-      template<class> class MatrixPolicy = Matrix,
-      class SparseMatrixPolicy = StandardSparseMatrix,
-      class LinearSolverPolicy = LinearSolver<SparseMatrixPolicy>,
-      class ProcessSetPolicy = ProcessSet>
+  template<class ProcessSetPolicy, class LinearSolverPolicy>
   class RosenbrockSolver
   {
    public:
-    struct [[nodiscard]] SolverResult
-    {
-      /// @brief The new state computed by the solver
-      MatrixPolicy<double> result_{};
-      /// @brief The final state the solver was in
-      SolverState state_ = SolverState::NotYetCalled;
-      /// @brief A collection of runtime state for this call of the solver
-      SolverStats stats_{};
-      /// @brief The final time the solver iterated to
-      double final_time_{};
-    };
-
-    std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
-    StateParameters state_parameters_;
-    ProcessSetPolicy process_set_;
     LinearSolverPolicy linear_solver_;
+    ProcessSetPolicy process_set_;
+    std::vector<std::size_t> jacobian_diagonal_elements_;
+    std::vector<Process> processes_;
 
     static constexpr double DELTA_MIN = 1.0e-6;
 
+    /// @brief Solver parameters typename
+    using ParametersType = RosenbrockSolverParameters;
+
     /// @brief Default constructor
-    RosenbrockSolver();
-
-    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
-    /// @param system The chemical system to create the solver for
-    /// @param processes The collection of chemical processes that will be applied during solving
-    /// @param parameters Rosenbrock algorithm parameters
+    ///
+    /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
     RosenbrockSolver(
-        const System& system,
-        const std::vector<Process>& processes,
-        const RosenbrockSolverParameters& parameters);
-
-    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters,
-    ///        with a specific function provided to create the linear solver
-    /// @param system The chemical system to create the solver for
-    /// @param processes The collection of chemical processes that will be applied during solving
-    /// @param parameters Rosenbrock algorithm parameters
-    /// @param create_linear_solver Function that will be used to create a linear solver instance
-    /// @param create_process_set Function that will be used to create a process set instance
-    RosenbrockSolver(
-        const System& system,
-        const std::vector<Process>& processes,
-        const RosenbrockSolverParameters& parameters,
-        const std::function<LinearSolverPolicy(const SparseMatrixPolicy, double)> create_linear_solver,
-        const std::function<ProcessSetPolicy(const std::vector<Process>&, const std::map<std::string, std::size_t>&)>
-            create_process_set);
+        RosenbrockSolverParameters parameters,
+        LinearSolverPolicy linear_solver,
+        ProcessSetPolicy process_set,
+        std::vector<std::size_t> jacobian_diagonal_elements,
+        std::vector<Process>& processes)
+        : parameters_(parameters),
+          linear_solver_(linear_solver),
+          process_set_(process_set),
+          jacobian_diagonal_elements_(jacobian_diagonal_elements),
+          processes_(processes)
+    {
+    }
 
     virtual ~RosenbrockSolver() = default;
-
-    /// @brief Returns a state object for use with the solver
-    /// @return A object that can hold the full state of the chemical system
-    virtual State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, State<MatrixPolicy<double>, SparseMatrixPolicy>& state) noexcept;
-
-    /// @brief Calculate a chemical forcing
-    /// @param rate_constants List of rate constants for each needed species
-    /// @param number_densities The number density of each species
-    /// @param forcing Vector of forcings for the current conditions
-    virtual void CalculateForcing(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& number_densities,
-        MatrixPolicy<double>& forcing);
+    SolverResult Solve(double time_step, auto& state) noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
+    template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(!VectorizableSparse<SparseMatrixPolicy>);
+    template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(VectorizableSparse<SparseMatrixPolicy>);
 
-    /// @brief Update the rate constants for the environment state
-    /// @param state The current state of the chemical system
-    void UpdateState(State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
-
-    /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
-    /// @param rate_constants List of rate constants for each needed species
-    /// @param number_densities The number density of each species
-    /// @param jacobian The matrix of negative partial derivatives
-    virtual void CalculateNegativeJacobian(
-        const MatrixPolicy<double>& rate_constants,
-        const MatrixPolicy<double>& number_densities,
-        SparseMatrixPolicy& jacobian);
-
-    /// @brief Prepare the linear solver
-    /// @param H time step (seconds)
-    /// @param gamma time step factor for specific rosenbrock method
-    /// @param singular indicates if the matrix is singular
-    /// @param number_densities constituent concentration (molec/cm^3)
-    /// @param state The current State
+    /// @brief Perform the LU decomposition of the matrix
+    /// @param H The time step
+    /// @param gamma The gamma value
+    /// @param singular A flag to indicate if the matrix is singular
+    /// @param number_densities The number densities
+    /// @param stats The solver stats
+    /// @param state The state
     void LinearFactor(
-        double& H,
-        const double gamma,
-        bool& singular,
-        const MatrixPolicy<double>& number_densities,
-        SolverStats& stats,
-        State<MatrixPolicy<double>, SparseMatrixPolicy>& state);
+      double& H,
+      const double gamma,
+      bool& singular,
+      const auto& number_densities,
+      SolverStats& stats,
+      auto& state);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
     /// @param y_new the new vector
     /// @param errors The computed errors
     /// @return
+    template<class DenseMatrixPolicy>
     double NormalizedError(
-        const MatrixPolicy<double>& y,
-        const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(!VectorizableDense<MatrixPolicy<double>>);
+        const DenseMatrixPolicy& y,
+        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>);
+    template<class DenseMatrixPolicy>
     double NormalizedError(
-        const MatrixPolicy<double>& y,
-        const MatrixPolicy<double>& y_new,
-        const MatrixPolicy<double>& errors) const requires(VectorizableDense<MatrixPolicy<double>>);
+        const DenseMatrixPolicy& y,
+        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm

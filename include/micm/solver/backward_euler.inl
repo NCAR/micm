@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 enum class MicmBackwardEulerErrc
 {
   FailedToConverge = 1
@@ -45,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(double time_step, auto& state)
+  inline SolverResult BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(double time_step, auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -57,6 +55,9 @@ namespace micm
     // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
+
+    // TODO populate the result before returning it
+    SolverResult result;
 
     double tolerance = parameters_.absolute_tolerance_[0];
     double small = parameters_.small;
@@ -200,5 +201,6 @@ namespace micm
     }
 
     state.variables_ = Yn1;
+    return result;
   }
 }  // namespace micm

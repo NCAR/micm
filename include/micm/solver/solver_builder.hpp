@@ -17,102 +17,103 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
 #include <variant>
 
 namespace micm
 {
-  using SolverParameters = std::variant<std::monostate, RosenbrockSolverParameters, BackwardEulerSolverParameters>;
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  /// @brief Builder of general solvers
+  /// @tparam SolverParametersPolicy Policy for the ODE solver
+  /// @tparam DenseMatrixPolicy Policy for dense matrices
+  /// @tparam SparseMatrixPolicy Policy for sparse matrices
+  /// @tparam ProcessSetPolicy Policy for sets of processes (used to calculate forcing and the jacobian matrix)
+  /// @tparam LinearSolverPolicy Policy for the linear solver
+  template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy, class LinearSolverPolicy>
   class SolverBuilder
   {
    protected:
+    SolverParametersPolicy options_;
     System system_;
-    std::size_t number_of_grid_cells_;
+    std::size_t number_of_grid_cells_ = 1;
     std::vector<Process> reactions_;
-    SolverParameters options_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
+    bool valid_system_ = false;
+    bool valid_reactions_ = false;
 
    public:
-    /// @brief Set the chemical system
-    /// @param system
-    /// @return
-    SolverBuilder& SetSystem(const System& system);
 
-    /// @brief Set the reactions
-    /// @param reactions
-    /// @return
-    SolverBuilder& SetReactions(const std::vector<Process>& reactions);
+    SolverBuilder() = delete;
 
-    /// @brief Set the number of grid cells
-    /// @param number_of_grid_cells
-    /// @return
-    SolverBuilder& SetNumberOfGridCells(int number_of_grid_cells);
-
-    /// @brief Choose a rosenbrock solver
-    /// @param options
-    /// @return
-    SolverBuilder& SetSolverParameters(const RosenbrockSolverParameters& options);
-
-    /// @brief Choose a backward euler solver
-    /// @param options
-    /// @return
-    SolverBuilder& SetSolverParameters(const BackwardEulerSolverParameters& options);
-
-    /// @brief
-    /// @return
-    auto Build();
-
-   protected:
-    /// @brief
-    /// @return
-    virtual Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>>
-    BuildBackwardEulerSolver() = 0;
+    SolverBuilder(SolverParametersPolicy options)
+        : options_(options)
+    {
+    }
 
     virtual ~SolverBuilder() = default;
 
-    /// @brief
-    /// @tparam ProcessSetPolicy
-    /// @return
-    template<class ProcessSetPolicy>
+    /// @brief Set the chemical system
+    /// @param system The chemical system
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetSystem(const System& system);
+
+    /// @brief Set the reactions
+    /// @param reactions The reactions
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetReactions(const std::vector<Process>& reactions);
+
+    /// @brief Set the number of grid cells
+    /// @param number_of_grid_cells The number of grid cells
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetNumberOfGridCells(int number_of_grid_cells);
+
+    /// @brief Set whether to ignore unused species
+    /// @param ignore_unused_species True if unused species should be ignored
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetIgnoreUnusedSpecies(bool ignore_unused_species);
+
+    /// @brief Set whether to reorder the state to optimize the LU decomposition
+    /// @param reorder_state True if the state should be reordered
+    /// @return Updated SolverBuilder
+    SolverBuilder& SetReorderState(bool reorder_state);
+
+    /// @brief Creates an instance of Solver with a properly configured ODE solver
+    /// @return An instance of Solver
+    auto Build();
+
+   protected:
+    /// @brief Checks for unused species
+    /// @throws std::system_error if an unused species is found
     void UnusedSpeciesCheck();
 
-    /// @brief Get a species map properly ordered
-    /// @return
-    template<class ProcessSetPolicy>
+    /// @brief Gets a map of species to their index
+    /// @return The species map
     std::map<std::string, std::size_t> GetSpeciesMap() const;
 
-    /// @brief Set the absolute tolerances per species
+    /// @brief Sets the absolute tolerances per species
     /// @param parameters
     /// @param species_map
-    /// @return
     void SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const;
 
-    /// @brief Return the labels of the custom parameters
-    /// @return
+    /// @brief Returns the labels of the custom parameters
+    /// @return The labels of the custom parameters
     std::vector<std::string> GetCustomParameterLabels() const;
 
+    /// @brief Returns the diagonal elements of the jacobian matrix
+    /// @param jacobian
+    /// @return The diagonal elements of the jacobian matrix
     std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
   };
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  class CpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
-  {
-   public:
-    Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>>
-    BuildBackwardEulerSolver() override;
-  };
-
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  class GpuSolverBuilder : public SolverBuilder<DenseMatrixPolicy, SparseMatrixPolicy>
-  {
-   public:
-    Solver<BackwardEuler<LinearSolver<SparseMatrixPolicy>, ProcessSet>, State<DenseMatrixPolicy, SparseMatrixPolicy>>
-    BuildBackwardEulerSolver() override;
-  };
+  /// @brief Builder of CPU-based general solvers
+  /// @tparam SolverParametersPolicy Parameters for the ODE solver
+  /// @tparam DenseMatrixPolicy Policy for dense matrices
+  /// @tparam SparseMatrixPolicy Policy for sparse matrices
+  template<class SolverParametersPolicy, class DenseMatrixPolicy = Matrix<double>, class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
+  using CpuSolverBuilder = SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, ProcessSet, LinearSolver<SparseMatrixPolicy, LuDecomposition>>;
 
 }  // namespace micm
 

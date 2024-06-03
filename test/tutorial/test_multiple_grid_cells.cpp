@@ -1,5 +1,6 @@
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -33,9 +34,13 @@ int main()
                          .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
                          .SetPhase(gas_phase);
 
-  micm::RosenbrockSolver<> solver{ micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-                                   std::vector<micm::Process>{ r1, r2, r3 },
-                                   micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(3, false) };
+  const std::size_t number_of_grid_cells = 3;
+
+  auto solver = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ r1, r2, r3 })
+                    .SetNumberOfGridCells(number_of_grid_cells)
+                    .Build();
 
   auto state = solver.GetState();
 
@@ -55,7 +60,7 @@ int main()
   double pressure = 101253.3;  // [Pa]
   double air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
+  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -81,7 +86,6 @@ int main()
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
     state.PrintState(time_step * (i + 1));
   }

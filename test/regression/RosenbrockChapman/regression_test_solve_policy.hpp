@@ -8,8 +8,8 @@
 
 #include <random>
 
-template<class OdeSolverPolicy>
-void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
+template<class SolverPolicy>
+void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};
@@ -58,27 +58,8 @@ void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
   for (int i = 0; i < 3; ++i)
     for (int j = 0; j < fixed_results[i].result_.size(); ++j)
     {
-      double a = results.result_[i][state.variable_map_[fixed_solver.species_names()[j]]];
+      double a = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }
 }
-
-template<class T>
-using DenseMatrix = micm::Matrix<T>;
-
-using SparseMatrix = micm::SparseMatrix<double>;
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;

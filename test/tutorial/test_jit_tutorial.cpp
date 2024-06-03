@@ -1,6 +1,7 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -91,8 +92,12 @@ int main(const int argc, const char* argv[])
 
   auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters(n_grid_cells);
 
-  RosenbrockSolver<GroupVectorMatrix, GroupSparseVectorMatrix> solver{ chemical_system, reactions, solver_parameters };
-
+  auto solver = micm::JitSolverBuilder(solver_parameters)
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .SetNumberOfGridCells(n_grid_cells)
+                    .Build();
+  
   auto start = std::chrono::high_resolution_clock::now();
   JitRosenbrockSolver<
       GroupVectorMatrix,

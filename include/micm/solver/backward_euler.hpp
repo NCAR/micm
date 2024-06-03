@@ -10,6 +10,7 @@
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/state.hpp>
+#include <micm/solver/solver_result.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 
@@ -39,6 +40,9 @@ namespace micm
     std::vector<micm::Process> processes_;
 
    public:
+    /// @brief Solver parameters typename
+    using ParametersType = BackwardEulerSolverParameters;
+
     /// @brief Default constructor
     BackwardEuler(
         BackwardEulerSolverParameters parameters,
@@ -59,8 +63,8 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
-    /// @return Nothing, but the state is updated
-    void Solve(double time_step, auto& state);
+    /// @return result of the solver (success or failure, and statistics)
+    SolverResult Solve(double time_step, auto& state);
   };
 
 }  // namespace micm

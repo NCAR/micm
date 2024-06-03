@@ -1,5 +1,6 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 using namespace micm;
 
@@ -36,12 +37,15 @@ int main()
 
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
   auto params = solver_params.parameters_;
-  params.reorder_state_ = false;
 
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, params };
+  auto solver = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .SetReorderState(false)
+                    .Build();
   auto state = solver.GetState();
 
   // mol m-3
@@ -74,7 +78,6 @@ int main()
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
     print_state(time_step * (i + 1), state);
   }

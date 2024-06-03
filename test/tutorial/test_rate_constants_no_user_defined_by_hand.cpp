@@ -6,6 +6,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -98,7 +99,10 @@ int main(const int argc, const char* argv[])
   auto chemical_system = System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
+  auto solver = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K
@@ -134,8 +138,6 @@ int main(const int argc, const char* argv[])
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-      state.variables_ = result.result_;
     }
 
     state.PrintState(time_step * (i + 1));
