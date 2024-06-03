@@ -22,7 +22,7 @@ jobs:
           - Dockerfile.no_json
           - Dockerfile.nvhpc
           - Dockerfile.openmp
-          # - Dockerfile.intel Disabling until #541 is fixed
+          - Dockerfile.intel 
           # - Dockerfile.mpi
     steps:
       - name: Checkout code
