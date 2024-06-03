@@ -114,12 +114,34 @@ endif()
 # GPU Support
 
 if(MICM_ENABLE_CUDA)
-  find_package(CUDA REQUIRED)
-  enable_language(CUDA)
-endif()
+  if(NOT MICM_GPU_TYPE)
+    message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
+  endif()
 
-if(MICM_ENABLE_OPENACC)
-  find_package(OpenACC REQUIRED)
+  set(MICM_GPU_ARCH "")
+  if (MICM_GPU_TYPE STREQUAL a100)
+  set(MICM_GPU_ARCH "80")
+  endif()
+  if (MICM_GPU_TYPE STREQUAL v100)
+    set(MICM_GPU_ARCH "70")
+  endif()
+  if(NOT MICM_GPU_ARCH)
+    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
+  endif()
+
+  message(STATUS "GPU architecture ${MICM_GPU_ARCH}")
+
+  include(CheckLanguage)
+  check_language(CUDA)
+
+  message(STATUS "CMAKE_CUDA_COMPILER = ${CMAKE_CUDA_COMPILER}")
+
+  if(NOT CMAKE_CUDA_COMPILER)
+    message(FATAL_ERROR "Unable to find compatiable compiler for CUDA.")
+  endif()
+
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
 endif()
 
 ################################################################################
