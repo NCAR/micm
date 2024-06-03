@@ -47,7 +47,7 @@ if(MICM_ENABLE_LLVM)
   target_link_libraries(micm INTERFACE ${llvm_libs})
 endif()
 
-if(MICM_ENABLE_OPENACC OR MICM_ENABLE_CUDA)
+if(MICM_ENABLE_CUDA)
   if(NOT MICM_GPU_TYPE)
     message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
   endif()
@@ -63,34 +63,12 @@ if(MICM_ENABLE_OPENACC OR MICM_ENABLE_CUDA)
   if(NOT MICM_GPU_ARCH)
     message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
   endif()
-  
-endif()
-
-if(MICM_ENABLE_OPENACC)
-  add_library(micm_openacc)
-  add_library(musica::micm_openacc ALIAS micm_openacc)
-
-  set(GPU_FLAGS -gpu=cc${MICM_GPU_ARCH},lineinfo -Minfo=accel)
-  message(STATUS "GPU Flags: ${OpenACC_CXX_FLAGS} ${GPU_FLAGS}")
-
-  target_compile_options(micm_openacc PRIVATE ${OpenACC_CXX_FLAGS} ${GPU_FLAGS})
-
-  target_link_libraries(micm_openacc 
-    PRIVATE micm
-  )
-
-  target_link_libraries(micm_openacc 
-    PUBLIC OpenACC::OpenACC_CXX
-  )
-endif()
-
-if(MICM_ENABLE_CUDA)
   message(STATUS "GPU architecture ${MICM_GPU_ARCH}")
   set(CMAKE_CUDA_ARCHITECTURES ${MICM_GPU_ARCH})
 
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-  set(CMAKE_CUDA_ARCHITECTURES 80)
+  set(CMAKE_CUDA_ARCHITECTURES ${MICM_GPU_ARCH})
   target_link_libraries(micm_cuda 
     PRIVATE micm
   )
@@ -99,7 +77,8 @@ if(MICM_ENABLE_CUDA)
     PUBLIC cudart cublas culibos
   )
 
-  target_include_directories(micm_cuda PUBLIC /usr/local/cuda/include)
+  # If not running on an NCAR machine, replace ${NCAR_INC_CUDA} with the path to the CUDA include directory
+  target_include_directories(micm_cuda PUBLIC ${NCAR_INC_CUDA})
 endif()
 
 if (MICM_ENABLE_PROFILE)
