@@ -50,8 +50,7 @@ endif()
 if(MICM_ENABLE_CUDA)
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-  enable_language(CUDA)
-  target_link_libraries(micm_cuda 
+  target_link_libraries(micm_cuda
     PRIVATE micm
   )
 
