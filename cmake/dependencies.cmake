@@ -125,7 +125,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   # until the current process has returned to the caller site in CMake.
   set(ENV{CUDAARCHS} ${cuda_arch_map_${MICM_GPU_TYPE}})
 
-  message(STATUS "GPU architecture ENV{CUDAARCHS}")
+  message(STATUS "GPU architecture found: $ENV{CUDAARCHS}")
 
   include(CheckLanguage)
   check_language(CUDA)
