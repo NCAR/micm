@@ -52,6 +52,8 @@ if(MICM_ENABLE_CUDA)
     message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
   endif()
 
+  # set CMAKE_CUDA_ARCHITECTURES by setting the environment variable CUDAARCHS based on the GPU type
+  # reference: https://cmake.org/cmake/help/latest/variable/CMAKE_CUDA_ARCHITECTURES.html
   if (MICM_GPU_TYPE STREQUAL a100)
     set(ENV{CUDAARCHS} 80)
   elseif (MICM_GPU_TYPE STREQUAL v100)

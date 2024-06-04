@@ -257,9 +257,6 @@ namespace micm
       double normalized_error;
       const size_t number_of_elements = devstruct.errors_size_;
 
- //     if (handle == NULL) std::cout << "JS: handle is NULL" << std::endl;
- //     else std::cout << "JS: handle is not NULL" << std::endl;
-
       if (number_of_elements != errors_param.number_of_elements_)
       {
         std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
@@ -281,10 +278,10 @@ namespace micm
         std::cout << "JS: number_of_elements = " << number_of_elements << std::endl;
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
- //       cublasHandle_t* tmp_handle;
+  //      cublasHandle_t tmp_handle;
         cublasHandle_t tmp_handle = micm::CublasHandleSingleton::GetInstance().GetCublasHandle();
-        std::cout << "js: address of cublas handle = " << &tmp_handle << std::endl;
   //      cublasCreate(&tmp_handle);
+        std::cout << "js: cublas handle = " << tmp_handle << std::endl;
 
         cublasStatus_t stat = cublasDnrm2(tmp_handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
         if (stat != CUBLAS_STATUS_SUCCESS)
