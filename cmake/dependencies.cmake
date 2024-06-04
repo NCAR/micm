@@ -113,24 +113,19 @@ endif()
 ################################################################################
 # GPU Support
 
-if(MICM_ENABLE_CUDA)
-  if(NOT MICM_GPU_TYPE)
-    message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
-  endif()
-
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   set(cuda_arch_map_a100 80)
   set(cuda_arch_map_v100 70)
   set(cuda_arch_map_h100 90a)
   set(cuda_arch_map_h200 90a)
   set(cuda_arch_map_b100 95)
   set(cuda_arch_map_b200 95)
-  set(MICM_GPU_ARCH ${cuda_arch_map_${MICM_GPU_TYPE}})
+  set(cuda_arch_map_ all-major)
+  # Setting CUDAARCHS does not override CMAKE_CUDA_ARCHITECTURES or CUDA_ARCHITECTURES
+  # until the current process has returned to the caller site in CMake.
+  set(ENV{CUDAARCHS} ${cuda_arch_map_${MICM_GPU_TYPE}})
 
-  if(NOT MICM_GPU_ARCH)
-    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100, h1/200].")
-  endif()
-
-  message(STATUS "GPU architecture ${MICM_GPU_ARCH}")
+  message(STATUS "GPU architecture ENV{CUDAARCHS}")
 
   include(CheckLanguage)
   check_language(CUDA)
@@ -141,6 +136,7 @@ if(MICM_ENABLE_CUDA)
 
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
+  set(MICM_ENABLE_CUDA ON)
 endif()
 
 ################################################################################

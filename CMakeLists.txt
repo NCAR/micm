@@ -34,21 +34,14 @@ option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
 option(MICM_ENABLE_JSON "Enable json configuration file reading" ON)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
-option(MICM_ENABLE_CUDA "Build with Cuda support" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
+set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 
 include(CMakeDependentOption)
-# Option to collect custom OpenACC flags
-cmake_dependent_option(MICM_ENABLE_GPU_TYPE "Enable custom CUDA flags" OFF
-  "MICM_ENABLE_CUDA" ON)
-
-if(MICM_ENABLE_GPU_TYPE)
-  set(MICM_GPU_TYPE "" CACHE STRING "The GPU type being targeted")
-endif()
 
 # on ubuntu with clang, an incorrect version of the c++ standard library was being linked
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

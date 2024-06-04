@@ -57,7 +57,6 @@ if(MICM_ENABLE_CUDA)
   target_link_libraries(micm_cuda 
     PUBLIC CUDA::cudart CUDA::cublas
   )
-  set_target_properties(micm_cuda PROPERTIES CUDA_ARCHITECTURES "${MICM_GPU_ARCH}")
 endif()
 
 if (MICM_ENABLE_PROFILE)
