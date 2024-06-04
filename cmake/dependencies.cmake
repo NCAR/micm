@@ -127,7 +127,7 @@ if(MICM_ENABLE_CUDA)
   set(MICM_GPU_ARCH ${cuda_arch_map_${MICM_GPU_TYPE}})
 
   if(NOT MICM_GPU_ARCH)
-    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
+    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100, h1/200].")
   endif()
 
   message(STATUS "GPU architecture ${MICM_GPU_ARCH}")
