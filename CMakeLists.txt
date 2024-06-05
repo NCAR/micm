@@ -41,6 +41,8 @@ option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_MODULE_LOADS "" CACHE STRING "Modules to load")
+set(MICM_MODULE_UNLOADS "" CACHE STRING "Modules to unload")
 
 include(CMakeDependentOption)
 # Option to collect custom OpenACC flags

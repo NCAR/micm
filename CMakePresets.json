@@ -1,0 +1,28 @@
+{
+    "version" : 6,
+    "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 26
+    },
+    "configurePresets": [
+        {
+            "name": "derecho-gpu",
+            "displayName": "Derecho",
+            "description": "Presets for the Derecho cluster",
+            "cacheVariables": {
+                "MICM_MODULE_LOADS": {
+                    "type": "STRING",
+                    "value": "nvhpc/23.7;gcc-toolchain/12.2.0;cmake"
+                },
+                "MICM_MODULE_UNLOADS": {
+                    "type": "STRING",
+                    "value": "openmpi"
+                },
+                "MICM_ENABLE_GPU_TYPE": {
+                    "type": "STRING",
+                    "value": "a100"
+                }
+            }
+        }
+    ]
+}
