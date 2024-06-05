@@ -113,13 +113,35 @@ endif()
 ################################################################################
 # GPU Support
 
-if(MICM_ENABLE_CUDA)
-  find_package(CUDA REQUIRED)
-  enable_language(CUDA)
-endif()
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  string(TOLOWER ${MICM_GPU_TYPE} MICM_GPU_TYPE_LOWER)
+  set(cuda_arch_map_a100 80)
+  set(cuda_arch_map_v100 70)
+  set(cuda_arch_map_h100 90a)
+  set(cuda_arch_map_h200 90a)
+  set(cuda_arch_map_b100 95)
+  set(cuda_arch_map_b200 95)
+  set(cuda_arch_map_all_major all-major)
+  # Setting CUDAARCHS does not override CMAKE_CUDA_ARCHITECTURES or CUDA_ARCHITECTURES
+  # until the current process has returned to the caller site in CMake.
+  set(ENV{CUDAARCHS} ${cuda_arch_map_${MICM_GPU_TYPE_LOWER}})
 
-if(MICM_ENABLE_OPENACC)
-  find_package(OpenACC REQUIRED)
+  if("$ENV{CUDAARCHS}" STREQUAL "")
+    message(FATAL_ERROR "${MICM_GPU_TYPE_LOWER} unsupported, current options are a100,v100,h{1,2}00, b{1,2}00.")
+  endif()
+
+  message(STATUS "GPU architecture found: $ENV{CUDAARCHS}")
+
+  include(CheckLanguage)
+  check_language(CUDA)
+
+  if(NOT CMAKE_CUDA_COMPILER)
+    message(FATAL_ERROR "Unable to find compatiable compiler for CUDA.")
+  endif()
+
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+  set(MICM_ENABLE_CUDA ON)
 endif()
 
 ################################################################################

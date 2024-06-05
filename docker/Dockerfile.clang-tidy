@@ -25,7 +25,6 @@ RUN cd /micm \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       -DMICM_ENABLE_CUDA=ON \
       -DMICM_GPU_TYPE=v100 \
-      -DCMAKE_CUDA_ARCHITECTURES=70 \
       -B./cuda-build \
       -S.
 
