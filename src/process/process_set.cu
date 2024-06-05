@@ -145,16 +145,28 @@ namespace micm
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.yields_), yields_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      CHECK_CUDA_ERROR(cudaMemcpy(
-          devstruct.number_of_reactants_,
-          hoststruct.number_of_reactants_,
-          number_of_reactants_bytes,
-          cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.reactant_ids_, hoststruct.reactant_ids_, reactant_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(
-          devstruct.number_of_products_, hoststruct.number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(
+              devstruct.number_of_reactants_,
+              hoststruct.number_of_reactants_,
+              number_of_reactants_bytes,
+              cudaMemcpyHostToDevice),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.reactant_ids_, hoststruct.reactant_ids_, reactant_ids_bytes, cudaMemcpyHostToDevice),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(
+              devstruct.number_of_products_,
+              hoststruct.number_of_products_,
+              number_of_products_bytes,
+              cudaMemcpyHostToDevice),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice),
+          "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
       devstruct.reactant_ids_size_ = hoststruct.reactant_ids_size_;
@@ -177,8 +189,10 @@ namespace micm
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      CHECK_CUDA_ERROR(cudaMemcpy(
-          devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(
+              devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice),
+          "cudaMemcpy");
 
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
     }

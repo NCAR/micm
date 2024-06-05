@@ -132,14 +132,20 @@ namespace micm
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(cudaMemcpy(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
       CHECK_CUDA_ERROR(cudaMemcpy(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
       CHECK_CUDA_ERROR(cudaMemcpy(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
       CHECK_CUDA_ERROR(cudaMemcpy(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
       devstruct.niLU_size_ = hoststruct.niLU_size_;
 

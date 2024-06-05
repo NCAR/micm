@@ -4,8 +4,9 @@
  */
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
-#include <micm/util/internal_error.hpp>
 #include <micm/util/cuda_util.cuh>
+#include <micm/util/internal_error.hpp>
+
 #include <cublas_v2.h>
 
 namespace micm
@@ -52,13 +53,17 @@ namespace micm
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.absolute_tolerance_), tolerance_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      CHECK_CUDA_ERROR(cudaMemcpy(
-          devstruct.jacobian_diagonal_elements_,
-          hoststruct.jacobian_diagonal_elements_,
-          jacobian_diagonal_elements_bytes,
-          cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(
+              devstruct.jacobian_diagonal_elements_,
+              hoststruct.jacobian_diagonal_elements_,
+              jacobian_diagonal_elements_bytes,
+              cudaMemcpyHostToDevice),
+          "cudaMemcpy");
 
-      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice),
+          "cudaMemcpy");
 
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
@@ -306,7 +311,9 @@ namespace micm
         }
         cudaDeviceSynchronize();
 
-        CHECK_CUDA_ERROR(cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost), "cudaMemcpy");
+        CHECK_CUDA_ERROR(
+            cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost),
+            "cudaMemcpy");
         normalized_error = std::sqrt(normalized_error / number_of_elements);
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
