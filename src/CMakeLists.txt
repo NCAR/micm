@@ -48,33 +48,15 @@ if(MICM_ENABLE_LLVM)
 endif()
 
 if(MICM_ENABLE_CUDA)
-  if(NOT MICM_GPU_TYPE)
-    message(FATAL_ERROR "MICM_GPU_TYPE is not set or is empty. Please provide a GPU type.")
-  endif()
-
-  # set CMAKE_CUDA_ARCHITECTURES by setting the environment variable CUDAARCHS based on the GPU type
-  # reference: https://cmake.org/cmake/help/latest/variable/CMAKE_CUDA_ARCHITECTURES.html
-  if (MICM_GPU_TYPE STREQUAL a100)
-    set(ENV{CUDAARCHS} 80)
-  elseif (MICM_GPU_TYPE STREQUAL v100)
-    set(ENV{CUDAARCHS} 70)
-  else()
-    message(FATAL_ERROR "MICM_GPU_TYPE (${MICM_GPU_TYPE}) is not recognized. Available options are [a100, v100].")
-  endif()
-  message(STATUS "CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
-
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
-  target_link_libraries(micm_cuda 
+  target_link_libraries(micm_cuda
     PRIVATE micm
   )
 
   target_link_libraries(micm_cuda 
-    PUBLIC cudart cublas culibos
+    PUBLIC CUDA::cudart CUDA::cublas
   )
-
-  # If not running on an NCAR machine, replace ${NCAR_INC_CUDA} with the path to the CUDA include directory
-  target_include_directories(micm_cuda PUBLIC ${NCAR_INC_CUDA})
 endif()
 
 if (MICM_ENABLE_PROFILE)

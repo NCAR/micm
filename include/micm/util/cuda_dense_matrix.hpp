@@ -5,6 +5,7 @@
 #pragma once
 
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_util.cuh>
 #include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
 #include <micm/util/cublas_handle_singleton.hpp>
@@ -12,9 +13,6 @@
 #include <cuda_runtime.h>
 
 #include <type_traits>
-
-#define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
-#define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
 
 namespace micm
 {
