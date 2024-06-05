@@ -18,9 +18,13 @@
                     "type": "STRING",
                     "value": "openmpi"
                 },
-                "MICM_ENABLE_GPU_TYPE": {
+                "MICM_GPU_TYPE": {
                     "type": "STRING",
                     "value": "a100"
+                },
+                "MICM_ENABLE_CUDA": {
+                    "type": "BOOL",
+                    "value": "ON"
                 }
             }
         }
