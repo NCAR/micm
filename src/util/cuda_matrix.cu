@@ -4,10 +4,7 @@
  */
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/internal_error.hpp>
-
 #include <cuda_runtime.h>
-
-#include <iostream>
 #include <vector>
 
 namespace micm
@@ -57,24 +54,6 @@ namespace micm
           sizeof(double) * vectorMatrixSrc.number_of_elements_,
           cudaMemcpyDeviceToDevice);
       return err;
-    }
-
-    void CheckCudaError(cudaError_t err, const char* file, int line, std::string str)
-    {
-      if (err != cudaSuccess)
-      {
-        std::string msg = std::string(cudaGetErrorString(err)) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cuda, file, line, msg.c_str());
-      }
-    }
-
-    void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str)
-    {
-      if (err != CUBLAS_STATUS_SUCCESS)
-      {
-        std::string msg = std::to_string(err) + " : " + str;
-        ThrowInternalError(MicmInternalErrc::Cublas, file, line, msg.c_str());
-      }
     }
   }  // namespace cuda
 }  // namespace micm

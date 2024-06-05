@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <micm/util/cuda_param.hpp>
-
-#include <chrono>
-#include <iostream>
+#include <micm/util/cuda_util.cuh>
 
 namespace micm
 {
@@ -121,28 +119,28 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
-      cudaMalloc(&(devstruct.niLU_), niLU_bytes);
-      cudaMalloc(&(devstruct.do_aik_), do_aik_bytes);
-      cudaMalloc(&(devstruct.aik_), aik_bytes);
-      cudaMalloc(&(devstruct.uik_nkj_), uik_nkj_bytes);
-      cudaMalloc(&(devstruct.lij_ujk_), lij_ujk_bytes);
-      cudaMalloc(&(devstruct.do_aki_), do_aki_bytes);
-      cudaMalloc(&(devstruct.aki_), aki_bytes);
-      cudaMalloc(&(devstruct.lki_nkj_), lki_nkj_bytes);
-      cudaMalloc(&(devstruct.lkj_uji_), lkj_uji_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.niLU_), niLU_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.do_aik_), do_aik_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.aik_), aik_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.uik_nkj_), uik_nkj_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.lij_ujk_), lij_ujk_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.do_aki_), do_aki_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.aki_), aki_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.lki_nkj_), lki_nkj_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.lkj_uji_), lkj_uji_bytes), "cudaMalloc");
       cudaMalloc(&(devstruct.uii_), uii_bytes);
 
       /// Copy the data from host to device
-      cudaMemcpy(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice);
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
       devstruct.niLU_size_ = hoststruct.niLU_size_;
 
       return devstruct;
@@ -152,16 +150,16 @@ namespace micm
     ///   members of class "CudaLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
-      cudaFree(devstruct.niLU_);
-      cudaFree(devstruct.do_aik_);
-      cudaFree(devstruct.aik_);
-      cudaFree(devstruct.uik_nkj_);
-      cudaFree(devstruct.lij_ujk_);
-      cudaFree(devstruct.do_aki_);
-      cudaFree(devstruct.aki_);
-      cudaFree(devstruct.lki_nkj_);
-      cudaFree(devstruct.lkj_uji_);
-      cudaFree(devstruct.uii_);
+      CHECK_CUDA_ERROR(cudaFree(devstruct.niLU_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aik_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.aik_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.uik_nkj_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.lij_ujk_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aki_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.aki_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.lki_nkj_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.lkj_uji_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.uii_), "cudaFree");
     }
 
     void DecomposeKernelDriver(
