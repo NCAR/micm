@@ -4,10 +4,7 @@
  */
 #include <micm/util/cuda_matrix.cuh>
 #include <micm/util/internal_error.hpp>
-
 #include <cuda_runtime.h>
-
-#include <iostream>
 #include <vector>
 
 namespace micm

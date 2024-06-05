@@ -13,8 +13,6 @@
 
 #include <type_traits>
 
-#define CHECK_CUDA_ERROR(err, msg) micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
-
 namespace micm
 {
   template<class T, class OrderingPolicy>

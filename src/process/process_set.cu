@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_matrix.cuh>
 
 namespace micm
 {
@@ -137,23 +138,23 @@ namespace micm
       ProcessSetParam devstruct;
 
       /// Allocate memory space on the device
-      cudaMalloc(&(devstruct.number_of_reactants_), number_of_reactants_bytes);
-      cudaMalloc(&(devstruct.reactant_ids_), reactant_ids_bytes);
-      cudaMalloc(&(devstruct.number_of_products_), number_of_products_bytes);
-      cudaMalloc(&(devstruct.product_ids_), product_ids_bytes);
-      cudaMalloc(&(devstruct.yields_), yields_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.number_of_reactants_), number_of_reactants_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.reactant_ids_), reactant_ids_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.number_of_products_), number_of_products_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.product_ids_), product_ids_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.yields_), yields_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      cudaMemcpy(
+      CHECK_CUDA_ERROR(cudaMemcpy(
           devstruct.number_of_reactants_,
           hoststruct.number_of_reactants_,
           number_of_reactants_bytes,
-          cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.reactant_ids_, hoststruct.reactant_ids_, reactant_ids_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(
-          devstruct.number_of_products_, hoststruct.number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice);
+          cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.reactant_ids_, hoststruct.reactant_ids_, reactant_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(
+          devstruct.number_of_products_, hoststruct.number_of_products_, number_of_products_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
       devstruct.reactant_ids_size_ = hoststruct.reactant_ids_size_;
@@ -173,11 +174,11 @@ namespace micm
       size_t jacobian_flat_ids_bytes = sizeof(size_t) * hoststruct.jacobian_flat_ids_size_;
 
       /// Allocate memory space on the device
-      cudaMalloc(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      cudaMemcpy(
-          devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice);
+      CHECK_CUDA_ERROR(cudaMemcpy(
+          devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
 
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
     }
@@ -186,14 +187,14 @@ namespace micm
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct)
     {
-      cudaFree(devstruct.number_of_reactants_);
-      cudaFree(devstruct.reactant_ids_);
-      cudaFree(devstruct.number_of_products_);
-      cudaFree(devstruct.product_ids_);
-      cudaFree(devstruct.yields_);
+      CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_reactants_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.reactant_ids_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_products_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.product_ids_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.yields_), "cudaFree");
       if (devstruct.jacobian_flat_ids_ != nullptr)
       {
-        cudaFree(devstruct.jacobian_flat_ids_);
+        CHECK_CUDA_ERROR(cudaFree(devstruct.jacobian_flat_ids_), "cudaFree");
       }
     }
 

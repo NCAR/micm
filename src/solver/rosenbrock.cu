@@ -5,10 +5,8 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/internal_error.hpp>
-
+#include <micm/util/cuda_matrix.cuh>
 #include <cublas_v2.h>
-
-#include <iostream>
 
 namespace micm
 {
@@ -48,19 +46,19 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
-      cudaMalloc(&(devstruct.errors_input_), errors_bytes);
-      cudaMalloc(&(devstruct.errors_output_), errors_bytes);
-      cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
-      cudaMalloc(&(devstruct.absolute_tolerance_), tolerance_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.errors_input_), errors_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.errors_output_), errors_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.absolute_tolerance_), tolerance_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      cudaMemcpy(
+      CHECK_CUDA_ERROR(cudaMemcpy(
           devstruct.jacobian_diagonal_elements_,
           hoststruct.jacobian_diagonal_elements_,
           jacobian_diagonal_elements_bytes,
-          cudaMemcpyHostToDevice);
+          cudaMemcpyHostToDevice), "cudaMemcpy");
 
-      cudaMemcpy(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice);
+      CHECK_CUDA_ERROR(cudaMemcpy(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
 
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
@@ -73,10 +71,10 @@ namespace micm
     ///   members and temporary variables of class "CudaLuDecomposition" on the device
     void FreeConstData(CudaRosenbrockSolverParam& devstruct)
     {
-      cudaFree(devstruct.errors_input_);
-      cudaFree(devstruct.errors_output_);
-      cudaFree(devstruct.jacobian_diagonal_elements_);
-      cudaFree(devstruct.absolute_tolerance_);
+      CHECK_CUDA_ERROR(cudaFree(devstruct.errors_input_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.errors_output_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.jacobian_diagonal_elements_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.absolute_tolerance_), "cudaFree");
     }
 
     // Specific CUDA device function to do reduction within a warp
@@ -308,7 +306,7 @@ namespace micm
         }
         cudaDeviceSynchronize();
 
-        cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost);
+        CHECK_CUDA_ERROR(cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost), "cudaMemcpy");
         normalized_error = std::sqrt(normalized_error / number_of_elements);
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
