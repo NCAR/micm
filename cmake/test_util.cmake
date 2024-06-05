@@ -4,7 +4,7 @@
 if(MICM_ENABLE_MEMCHECK)
   if(MICM_ENABLE_CUDA)
     find_program(MEMORYCHECK_COMMAND "compute-sanitizer")
-    set(MEMORYCHECK_COMMAND_OPTIONS "--show-backtrace device --tool=memcheck --launch-timeout=0")
+    set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --show-backtrace device --tool=memcheck --launch-timeout=0")
     set(CUDA_MEMORY_CHECK TRUE)
   else()
     find_program(MEMORYCHECK_COMMAND "valgrind")
