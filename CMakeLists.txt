@@ -2,16 +2,18 @@
 # Preamble
 cmake_minimum_required(VERSION 3.21)
 
-find_package(EnvModules REQUIRED)
 
-foreach(NEEDED_MODULE IN LISTS MICM_MODULE_LOADS)
-  env_module(load "${NEEDED_MODULE}")
-endforeach()
-foreach(UNNEEDED_MODULE IN LISTS MICM_MODULE_UNLOADS)
-  env_module(unload "${UNNEEDED_MODULE}")
-endforeach()
-env_module_list(MICM_CURRENT_MODULES)
-message(STATUS "Currently loaded modules: ${MICM_CURRENT_MODULES}")
+if(DEFINED MICM_MODULE_LOADS OR DEFINED MICM_MODULE_UNLOADS)
+  find_package(EnvModules REQUIRED)
+  foreach(NEEDED_MODULE IN LISTS MICM_MODULE_LOADS)
+    env_module(load "${NEEDED_MODULE}")
+  endforeach()
+  foreach(UNNEEDED_MODULE IN LISTS MICM_MODULE_UNLOADS)
+    env_module(unload "${UNNEEDED_MODULE}")
+  endforeach()
+  env_module_list(MICM_CURRENT_MODULES)
+  message(STATUS "Currently loaded modules: ${MICM_CURRENT_MODULES}")
+endif()
 
 project(
   micm
