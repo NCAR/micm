@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #pragma once
- 
+
 #include <cublas_v2.h>
-#include <cuda_runtime.h> 
+#include <cuda_runtime.h>
+
 #include <string>
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)

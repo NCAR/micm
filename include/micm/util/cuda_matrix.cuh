@@ -5,7 +5,9 @@
 #pragma once
 
 #include <micm/util/cuda_param.hpp>
+
 #include <cuda_runtime.h>
+
 #include <vector>
 
 namespace micm
