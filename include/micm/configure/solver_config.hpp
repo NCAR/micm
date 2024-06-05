@@ -351,12 +351,16 @@ namespace micm
       const std::string NAME = "name";
       const std::string TYPE = "type";
 
+      const std::string TRACER_TYPE = "tracer type";
+      const std::string ABS_TOLERANCE = "absolute tolerance";
+      const std::string DIFFUSION_COEFF = "diffusion coefficient [m2 s-1]";
+      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
       const std::string THIRD_BODY = "THIRD_BODY";
 
       ValidateSchema(
           object,
           { NAME, TYPE },
-          { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+          { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT});
 
       std::string name = object[NAME].get<std::string>();
       Species species{ name };
@@ -368,7 +372,7 @@ namespace micm
         {
           if (value.is_string())
           {
-            if (key == "tracer type" && value == THIRD_BODY)
+            if (key == TRACER_TYPE && value == THIRD_BODY)
             {
               species = Species::ThirdBody();
             }
