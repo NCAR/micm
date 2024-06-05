@@ -5,7 +5,7 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/internal_error.hpp>
-#include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_util.cuh>
 #include <cublas_v2.h>
 
 namespace micm

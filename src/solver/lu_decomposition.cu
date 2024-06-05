@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <micm/util/cuda_param.hpp>
-#include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_util.cuh>
 
 namespace micm
 {
