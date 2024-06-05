@@ -10,12 +10,14 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
   {
     Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
@@ -24,6 +26,7 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecomposition::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
@@ -100,6 +103,7 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::GetLUMatrices(
       const SparseMatrixPolicy& A,
       typename SparseMatrixPolicy::value_type initial_value)
@@ -162,6 +166,7 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
   {
     bool is_singular = false;

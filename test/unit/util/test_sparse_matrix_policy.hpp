@@ -162,27 +162,29 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
                      .WithElement(3, 2)
                      .WithElement(0, 1)
                      .WithElement(2, 3)
+                     .WithElement(1, 1)
                      .WithElement(2, 1);
   // 0 X 0 0
-  // 0 0 0 0
+  // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
   {
     auto row_ids = builder.RowIdsVector();
     auto row_starts = builder.RowStartVector();
 
-    EXPECT_EQ(builder.NumberOfElements(), 4);
-    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(builder.NumberOfElements(), 5);
+    EXPECT_EQ(row_ids.size(), 5);
     EXPECT_EQ(row_ids[0], 1);
     EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 3);
-    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_ids[2], 1);
+    EXPECT_EQ(row_ids[3], 3);
+    EXPECT_EQ(row_ids[4], 2);
     EXPECT_EQ(row_starts.size(), 5);
     EXPECT_EQ(row_starts[0], 0);
     EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 1);
-    EXPECT_EQ(row_starts[3], 3);
-    EXPECT_EQ(row_starts[4], 4);
+    EXPECT_EQ(row_starts[2], 2);
+    EXPECT_EQ(row_starts[3], 4);
+    EXPECT_EQ(row_starts[4], 5);
   }
 
   MatrixPolicy<int, OrderingPolicy> matrix{ builder };
@@ -190,20 +192,25 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
   {
     auto& row_ids = matrix.RowIdsVector();
     auto& row_starts = matrix.RowStartVector();
-    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(row_ids.size(), 5);
     EXPECT_EQ(row_ids[0], 1);
     EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 3);
-    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_ids[2], 1);
+    EXPECT_EQ(row_ids[3], 3);
+    EXPECT_EQ(row_ids[4], 2);
     EXPECT_EQ(row_starts.size(), 5);
     EXPECT_EQ(row_starts[0], 0);
     EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 1);
-    EXPECT_EQ(row_starts[3], 3);
-    EXPECT_EQ(row_starts[4], 4);
+    EXPECT_EQ(row_starts[2], 2);
+    EXPECT_EQ(row_starts[3], 4);
+    EXPECT_EQ(row_starts[4], 5);
+
+    auto diagonal_ids = matrix.DiagonalIndices(0);
+    EXPECT_EQ(diagonal_ids.size(), 1);
+    EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1));
   }
 
-  EXPECT_EQ(matrix.FlatBlockSize(), 4);
+  EXPECT_EQ(matrix.FlatBlockSize(), 5);
 
   EXPECT_EQ(matrix.IsZero(0, 1), false);
   EXPECT_EQ(matrix.IsZero(3, 2), false);
@@ -235,7 +242,7 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::system_error& e) {
+      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
@@ -265,7 +272,7 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2; } catch (const std::system_error& e) {
+      try { matrix[0][3][3] = 2; } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
@@ -281,9 +288,10 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
                      .WithElement(3, 2)
                      .WithElement(0, 1)
                      .WithElement(2, 3)
+                     .WithElement(1, 1)
                      .WithElement(2, 1);
   // 0 X 0 0
-  // 0 0 0 0
+  // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
   MatrixPolicy<int, OrderingPolicy> orig_matrix{ builder };
@@ -291,26 +299,31 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
   orig_matrix[0][3][2] = 42;
   orig_matrix[0][2][3] = 21;
   auto& row_ids = orig_matrix.RowIdsVector();
-  EXPECT_EQ(row_ids.size(), 4);
+  EXPECT_EQ(row_ids.size(), 5);
   const MatrixPolicy<int, OrderingPolicy> matrix = orig_matrix;
 
   {
     auto& row_ids = matrix.RowIdsVector();
     auto& row_starts = matrix.RowStartVector();
-    EXPECT_EQ(row_ids.size(), 4);
+    EXPECT_EQ(row_ids.size(), 5);
     EXPECT_EQ(row_ids[0], 1);
     EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 3);
-    EXPECT_EQ(row_ids[3], 2);
+    EXPECT_EQ(row_ids[2], 1);
+    EXPECT_EQ(row_ids[3], 3);
+    EXPECT_EQ(row_ids[4], 2);
     EXPECT_EQ(row_starts.size(), 5);
     EXPECT_EQ(row_starts[0], 0);
     EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 1);
-    EXPECT_EQ(row_starts[3], 3);
-    EXPECT_EQ(row_starts[4], 4);
+    EXPECT_EQ(row_starts[2], 2);
+    EXPECT_EQ(row_starts[3], 4);
+    EXPECT_EQ(row_starts[4], 5);
+
+    auto diagonal_ids = matrix.DiagonalIndices(0);
+    EXPECT_EQ(diagonal_ids.size(), 1);
+    EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1));
   }
 
-  EXPECT_EQ(matrix.FlatBlockSize(), 4);
+  EXPECT_EQ(matrix.FlatBlockSize(), 5);
 
   EXPECT_EQ(matrix.IsZero(0, 1), false);
   EXPECT_EQ(matrix.IsZero(3, 2), false);
@@ -340,7 +353,7 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1); } catch (const std::system_error& e) {
+      try { std::size_t elem = matrix.VectorIndex(2, 2); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
@@ -362,32 +375,34 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
                      .WithElement(3, 2)
                      .WithElement(0, 1)
                      .WithElement(2, 3)
+                     .WithElement(1, 1)
                      .WithElement(2, 1)
                      .InitialValue(24)
                      .SetNumberOfBlocks(3);
   // 0 X 0 0
-  // 0 0 0 0
+  // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
   auto row_ids = builder.RowIdsVector();
   auto row_starts = builder.RowStartVector();
 
-  EXPECT_EQ(builder.NumberOfElements(), 4 * 3);
-  EXPECT_EQ(row_ids.size(), 4);
+  EXPECT_EQ(builder.NumberOfElements(), 5 * 3);
+  EXPECT_EQ(row_ids.size(), 5);
   EXPECT_EQ(row_ids[0], 1);
   EXPECT_EQ(row_ids[1], 1);
-  EXPECT_EQ(row_ids[2], 3);
-  EXPECT_EQ(row_ids[3], 2);
+  EXPECT_EQ(row_ids[2], 1);
+  EXPECT_EQ(row_ids[3], 3);
+  EXPECT_EQ(row_ids[4], 2);
   EXPECT_EQ(row_starts.size(), 5);
   EXPECT_EQ(row_starts[0], 0);
   EXPECT_EQ(row_starts[1], 1);
-  EXPECT_EQ(row_starts[2], 1);
-  EXPECT_EQ(row_starts[3], 3);
-  EXPECT_EQ(row_starts[4], 4);
+  EXPECT_EQ(row_starts[2], 2);
+  EXPECT_EQ(row_starts[3], 4);
+  EXPECT_EQ(row_starts[4], 5);
 
   MatrixPolicy<int, OrderingPolicy> matrix{ builder };
 
-  EXPECT_EQ(matrix.FlatBlockSize(), 4);
+  EXPECT_EQ(matrix.FlatBlockSize(), 5);
 
   EXPECT_EQ(matrix[0][2][1], 24);
   matrix[0][2][1] = 45;
@@ -395,6 +410,16 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
 
   matrix[2][2][3] = 64;
   EXPECT_EQ(matrix[2][2][3], 64);
+
+  auto diagonal_ids = matrix.DiagonalIndices(0);
+  EXPECT_EQ(diagonal_ids.size(), 1);
+  EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(0, 1, 1));
+  diagonal_ids = matrix.DiagonalIndices(1);
+  EXPECT_EQ(diagonal_ids.size(), 1);
+  EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1, 1));
+  diagonal_ids = matrix.DiagonalIndices(2);
+  EXPECT_EQ(diagonal_ids.size(), 1);
+  EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(2, 1, 1));
 
   EXPECT_THROW(
       try { std::size_t elem = matrix.VectorIndex(0, 4, 2); } catch (const std::system_error& e) {
@@ -415,7 +440,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { std::size_t elem = matrix.VectorIndex(1, 1, 1); } catch (const std::system_error& e) {
+      try { std::size_t elem = matrix.VectorIndex(1, 2, 2); } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },
@@ -451,7 +476,7 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
       },
       std::system_error);
   EXPECT_THROW(
-      try { matrix[0][1][1] = 2; } catch (const std::system_error& e) {
+      try { matrix[0][3][3] = 2; } catch (const std::system_error& e) {
         EXPECT_EQ(e.code().value(), static_cast<int>(MicmMatrixErrc::ZeroElementAccess));
         throw;
       },

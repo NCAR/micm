@@ -2,6 +2,8 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
+#include <micm/solver/jit_solver_builder.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -10,13 +12,8 @@
 
 #include <gtest/gtest.h>
 
-template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
-micm::JitRosenbrockSolver<
-    MatrixPolicy,
-    SparseMatrixPolicy,
-    micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-    micm::JitProcessSet<number_of_grid_cells>>
-getSolver()
+template<class SolverBuilderPolicy>
+SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 {
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
@@ -48,24 +45,16 @@ getSolver()
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
       micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
 
-  return micm::JitRosenbrockSolver<
-      MatrixPolicy,
-      SparseMatrixPolicy,
-      micm::JitLinearSolver<number_of_grid_cells, SparseMatrixPolicy>,
-      micm::JitProcessSet<number_of_grid_cells>>(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::vector<micm::Process>{ r1, r2, r3 },
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters(number_of_grid_cells, false));
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
+      .SetReorderState(false);
 }
 
-template<class T>
-using SparseMatrix = micm::SparseMatrix<T>;
-
-template<std::size_t number_of_grid_cells, template<class> class MatrixPolicy, class SparseMatrixPolicy>
-void testAlphaMinusJacobian()
+template<class SolverBuilderPolicy>
+void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
-  auto solver = getSolver<number_of_grid_cells, MatrixPolicy, SparseMatrixPolicy>();
-  // return;
+  builder = getSolver(builder);
+  auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto jacobian = solver.GetState().jacobian_;
 
   EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
@@ -92,7 +81,7 @@ void testAlphaMinusJacobian()
     jacobian[i_cell][4][2] = -53.6;
     jacobian[i_cell][4][4] = -1.0;
   }
-  solver.AlphaMinusJacobian(jacobian, 42.042);
+  solver.solver_.AlphaMinusJacobian(jacobian, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);
@@ -110,20 +99,6 @@ void testAlphaMinusJacobian()
     EXPECT_NEAR(jacobian[i_cell][4][4], 42.042 - 1.0, 1.0e-5);
   }
 }
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;
 
 void run_solver(auto& solver)
 {
@@ -145,17 +120,19 @@ void run_solver(auto& solver)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
   }
 }
 
+template <std::size_t L>
+using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
+
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 {
-  testAlphaMinusJacobian<1, Group1VectorMatrix, Group1SparseVectorMatrix>();
-  testAlphaMinusJacobian<2, Group2VectorMatrix, Group2SparseVectorMatrix>();
-  testAlphaMinusJacobian<3, Group3VectorMatrix, Group3SparseVectorMatrix>();
-  testAlphaMinusJacobian<4, Group4VectorMatrix, Group4SparseVectorMatrix>();
+  testAlphaMinusJacobian(JitBuilder<1>(micm::JitRosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+  testAlphaMinusJacobian(JitBuilder<2>(micm::JitRosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+  testAlphaMinusJacobian(JitBuilder<3>(micm::JitRosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+  testAlphaMinusJacobian(JitBuilder<4>(micm::JitRosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
 TEST(JitRosenbrockSolver, MultipleInstances)
@@ -169,26 +146,13 @@ TEST(JitRosenbrockSolver, MultipleInstances)
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  auto solver_parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto builder = JitBuilder<1>(micm::JitRosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                     .SetSystem(chemical_system)
+                     .SetReactions(reactions);
 
-  micm::JitRosenbrockSolver<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-      micm::JitProcessSet<1>>
-      solver1(chemical_system, reactions, solver_parameters);
-  micm::JitRosenbrockSolver<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-      micm::JitProcessSet<1>>
-      solver2(chemical_system, reactions, solver_parameters);
-  micm::JitRosenbrockSolver<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      micm::JitLinearSolver<1, Group1SparseVectorMatrix>,
-      micm::JitProcessSet<1>>
-      solver3(chemical_system, reactions, solver_parameters);
+  auto solver1 = builder.Build();
+  auto solver2 = builder.Build();
+  auto solver3 = builder.Build();
 
   run_solver(solver1);
   run_solver(solver2);

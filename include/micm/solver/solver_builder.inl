@@ -199,22 +199,6 @@ namespace micm
   }
 
   template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy, class LinearSolverPolicy>
-  inline std::vector<std::size_t> SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, ProcessSetPolicy, LinearSolverPolicy>::GetJacobianDiagonalElements(
-      auto jacobian) const
-  {
-    std::vector<std::size_t> jacobian_diagonal_elements;
-
-    jacobian_diagonal_elements.reserve(jacobian.NumRows());
-
-    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
-    {
-      jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
-    }
-
-    return jacobian_diagonal_elements;
-  }
-
-  template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy, class LinearSolverPolicy>
   inline auto SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, ProcessSetPolicy, LinearSolverPolicy>::Build()
   {
     if (!valid_system_)
@@ -240,7 +224,6 @@ namespace micm
     ProcessSetPolicy process_set(this->reactions_, species_map);
     auto nonzero_elements = process_set.NonZeroJacobianElements();
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
-    auto jacobian_diagonal_elements = this->GetJacobianDiagonalElements(jacobian);
 
     process_set.SetJacobianFlatIds(jacobian);
     LinearSolverPolicy linear_solver(jacobian, 1e-30);
@@ -254,12 +237,11 @@ namespace micm
                                           .number_of_rate_constants_ = this->reactions_.size(),
                                           .variable_names_ = variable_names,
                                           .custom_rate_parameter_labels_ = labels,
-                                          .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
                                           .nonzero_jacobian_elements_ = nonzero_elements };
 
     return Solver<SolverPolicy, State<DenseMatrixPolicy, SparseMatrixPolicy>>(
           SolverPolicy(
-              this->options_, linear_solver, process_set, jacobian_diagonal_elements, this->reactions_),
+              this->options_, std::move(linear_solver), std::move(process_set), jacobian, this->reactions_),
           state_parameters,
           this->number_of_grid_cells_,
           number_of_species,

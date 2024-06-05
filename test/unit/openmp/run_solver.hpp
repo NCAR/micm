@@ -37,7 +37,6 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
   }
 

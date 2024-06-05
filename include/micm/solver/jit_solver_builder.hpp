@@ -11,10 +11,15 @@ namespace micm
 {
   /// @brief Builder of CPU-based solvers optimized for a particular chemical system using JIT compilation
   /// @tparam SolverParametersPolicy Policy for the ODE solver
-  /// @tparam T Primary data type
   /// @tparam L Vector size
   ///
   /// JIT-compiled solvers only work with vector-ordered matrices
-  template<class SolverParametersPolicy, class T = double, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using JitSolverBuilder = SolverBuilder<SolverParametersPolicy, VectorMatrix<T, L>, SparseMatrix<T, SparseMatrixVectorOrdering<L>>, JitProcessSet, JitLinearSolver<SparseMatrixVectorOrdering<L>>, JitLuDecomposition>>;
+  template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  using JitSolverBuilder = SolverBuilder<SolverParametersPolicy,
+                                         VectorMatrix<double, L>,
+                                         SparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+                                         JitProcessSet<L>,
+                                         JitLinearSolver<L,
+                                                         SparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+                                                         JitLuDecomposition<L>>>;
 } // namespace micm

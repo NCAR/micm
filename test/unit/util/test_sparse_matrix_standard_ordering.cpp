@@ -28,15 +28,15 @@ TEST(SparseMatrix, SingleBlockMatrix)
 
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
-    EXPECT_EQ(elem, 3);
+    EXPECT_EQ(elem, 4);
     matrix.AsVector()[elem] = 42;
-    EXPECT_EQ(matrix.AsVector()[3], 42);
+    EXPECT_EQ(matrix.AsVector()[4], 42);
   }
   {
     std::size_t elem = matrix.VectorIndex(2, 3);
-    EXPECT_EQ(elem, 2);
+    EXPECT_EQ(elem, 3);
     matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[2], 21);
+    EXPECT_EQ(matrix.AsVector()[3], 21);
   }
 }
 
@@ -45,13 +45,13 @@ TEST(SparseMatrix, ConstSingleBlockMatrix)
   auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
   {
     std::size_t elem = matrix.VectorIndex(3, 2);
-    EXPECT_EQ(elem, 3);
-    EXPECT_EQ(matrix.AsVector()[3], 42);
+    EXPECT_EQ(elem, 4);
+    EXPECT_EQ(matrix.AsVector()[4], 42);
   }
   {
     std::size_t elem = matrix.VectorIndex(2, 3);
-    EXPECT_EQ(elem, 2);
-    EXPECT_EQ(matrix.AsVector()[2], 21);
+    EXPECT_EQ(elem, 3);
+    EXPECT_EQ(matrix.AsVector()[3], 21);
   }
 }
 
@@ -61,15 +61,15 @@ TEST(SparseMatrix, MultiBlockMatrix)
 
   {
     std::size_t elem = matrix.VectorIndex(0, 2, 3);
-    EXPECT_EQ(elem, 2);
+    EXPECT_EQ(elem, 3);
     matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[2], 21);
+    EXPECT_EQ(matrix.AsVector()[3], 21);
   }
   {
     std::size_t elem = matrix.VectorIndex(2, 2, 1);
-    EXPECT_EQ(elem, 9);
+    EXPECT_EQ(elem, 12);
     matrix.AsVector()[elem] = 31;
-    EXPECT_EQ(matrix.AsVector()[9], 31);
+    EXPECT_EQ(matrix.AsVector()[12], 31);
   }
 }
 

@@ -31,7 +31,6 @@ namespace micm
     std::size_t number_of_rate_constants_{ 0 };
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
-    std::vector<std::size_t> jacobian_diagonal_elements_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 

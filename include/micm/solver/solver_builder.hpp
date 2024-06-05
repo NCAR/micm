@@ -102,10 +102,6 @@ namespace micm
     /// @return The labels of the custom parameters
     std::vector<std::string> GetCustomParameterLabels() const;
 
-    /// @brief Returns the diagonal elements of the jacobian matrix
-    /// @param jacobian
-    /// @return The diagonal elements of the jacobian matrix
-    std::vector<std::size_t> GetJacobianDiagonalElements(auto jacobian) const;
   };
 
   /// @brief Builder of CPU-based general solvers

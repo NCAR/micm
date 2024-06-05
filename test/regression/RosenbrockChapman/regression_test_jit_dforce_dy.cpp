@@ -8,10 +8,6 @@
 
 TEST(RegressionJitRosenbrock, VectorJacobian)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::JitLinearSolver<3, Group3SparseVectorMatrix>,
-      micm::JitProcessSet<3>>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
   testJacobian<>(solver);
 }

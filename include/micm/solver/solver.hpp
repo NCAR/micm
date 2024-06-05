@@ -21,12 +21,12 @@ namespace micm
     SolverPolicy solver_;
 
     Solver(
-        SolverPolicy solver,
+        SolverPolicy&& solver,
         StateParameters state_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
         std::size_t number_of_reactions)
-        : solver_(solver),
+        : solver_(std::move(solver)),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions),

@@ -46,17 +46,22 @@ namespace micm
     /// @brief Default constructor
     BackwardEuler(
         BackwardEulerSolverParameters parameters,
-        LinearSolverPolicy linear_solver,
-        ProcessSetPolicy process_set,
-        std::vector<std::size_t> jacobian_diagonal_elements,
+        LinearSolverPolicy&& linear_solver,
+        ProcessSetPolicy&& process_set,
+        auto& jacobian,
         std::vector<micm::Process>& processes)
         : parameters_(parameters),
-          linear_solver_(linear_solver),
-          process_set_(process_set),
-          jacobian_diagonal_elements_(jacobian_diagonal_elements),
+          linear_solver_(std::move(linear_solver)),
+          process_set_(std::move(process_set)),
+          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0)),
           processes_(processes)
     {
     }
+
+    BackwardEuler(const BackwardEuler&) = delete;
+    BackwardEuler& operator=(const BackwardEuler&) = delete;
+    BackwardEuler(BackwardEuler&&) = default;
+    BackwardEuler& operator=(BackwardEuler&&) = default;
 
     virtual ~BackwardEuler() = default;
 
