@@ -5,6 +5,7 @@
 #pragma once
 
 #include <micm/util/cuda_matrix.cuh>
+#include <micm/util/cuda_util.cuh>
 #include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
 
