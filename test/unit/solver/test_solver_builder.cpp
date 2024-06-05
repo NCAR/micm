@@ -1,8 +1,10 @@
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#ifdef MICM_ENABLE_LLVM
 #include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/jit_solver_builder.hpp>
+#endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -93,6 +95,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                             .Build();
 }
 
+#ifdef MICM_ENABLE_LLVM
 TEST(SolverBuilder, CanBuildJitRosenbrock)
 {
   constexpr std::size_t L = 4;
@@ -102,6 +105,7 @@ TEST(SolverBuilder, CanBuildJitRosenbrock)
                             .SetNumberOfGridCells(L)
                             .Build();
 }
+#endif
 
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
