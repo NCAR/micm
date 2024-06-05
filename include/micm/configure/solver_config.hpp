@@ -351,6 +351,8 @@ namespace micm
       const std::string NAME = "name";
       const std::string TYPE = "type";
 
+      const std::string THIRD_BODY = "THIRD_BODY";
+
       ValidateSchema(
           object,
           { NAME, TYPE },
@@ -366,7 +368,14 @@ namespace micm
         {
           if (value.is_string())
           {
-            species.SetProperty<std::string>(key, value);
+            if (key == "tracer type" && value == THIRD_BODY)
+            {
+              species = Species::ThirdBody();
+            }
+            else
+            {
+              species.SetProperty<std::string>(key, value);
+            }
           }
           else if (value.is_number_integer())
           {

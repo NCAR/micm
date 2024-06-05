@@ -137,6 +137,21 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   EXPECT_EQ(solver_params.system_.gas_phase_.species_[4].GetProperty<int>("__custom int property"), 12);
 }
 
+TEST(SolverConfig, ReadAndParseThirdBodySpecies)
+{
+  micm::SolverConfig solverConfig;
+
+  // Read and parse the configure files
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/third_body"));
+
+  // Get solver parameters ('System', the collection of 'Process')
+  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].name_, "M");
+  EXPECT_TRUE(solver_params.system_.gas_phase_.species_[0].IsParameterized());
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].parameterize_({ .air_density_ = 42.4 }), 42.4);
+}
+
 TEST(SolverConfig, ReadAndParseProcessObjects)
 {
   micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
