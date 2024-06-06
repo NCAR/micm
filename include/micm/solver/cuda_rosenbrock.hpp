@@ -74,24 +74,21 @@ namespace micm
       devstruct_.errors_output_ = nullptr;
     };
 
-    /// @brief Builds a CUDA Rosenbrock solver for the given system, processes, and solver parameters
+    /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param process_set Process set
     /// @param jacobian Jacobian matrix
-    /// @param processes Vector of processes
     CudaRosenbrockSolver(
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy&& linear_solver,
         ProcessSetPolicy&& process_set,
-        auto& jacobian,
-        std::vector<Process>& processes)
+        auto& jacobian)
         : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(
               parameters,
               std::move(linear_solver),
               std::move(process_set),
-              jacobian,
-              processes)
+              jacobian)
     {
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation

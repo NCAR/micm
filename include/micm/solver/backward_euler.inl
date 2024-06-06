@@ -75,8 +75,6 @@ namespace micm
     auto Yn1 = state.variables_;
     auto forcing = state.variables_;
 
-    Process::UpdateState(processes_, state);
-
     while (t < time_step)
     {
       bool converged = false;

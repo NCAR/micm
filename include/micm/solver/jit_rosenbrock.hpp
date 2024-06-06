@@ -18,7 +18,6 @@
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/random_string.hpp>
@@ -31,9 +30,9 @@
 
 namespace micm
 {
+  struct JitRosenbrockSolverParameters;
 
   /// @brief A Rosenbrock solver with JIT-compiled optimizations
-
   template<class ProcessSetPolicy, class LinearSolverPolicy>
   class JitRosenbrockSolver : public RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>
   {
@@ -65,24 +64,21 @@ namespace micm
       return *this;
     }
 
-    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
+    /// @brief Builds a Rosenbrock solver for the given system and solver parameters
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param process_set Process set
     /// @param jacobian Jacobian matrix
-    /// @param processes Vector of processes
     JitRosenbrockSolver(
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
         ProcessSetPolicy process_set,
-        auto& jacobian,
-        std::vector<Process>& processes)
+        auto& jacobian)
         : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(
               parameters,
               std::move(linear_solver),
               std::move(process_set),
-              jacobian,
-              processes)
+              jacobian)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

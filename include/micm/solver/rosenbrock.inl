@@ -34,8 +34,6 @@ namespace micm
 
     SolverStats stats;
 
-    Process::UpdateState(processes_, state);
-
     K.reserve(parameters_.stages_);
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
       K.emplace_back(num_rows, num_cols, 0.0);

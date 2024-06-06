@@ -111,6 +111,7 @@ int main(const int argc, const char* argv[])
 
   while (elapsed_solve_time < time_step)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
     if (result.state_ != SolverState::Converged)

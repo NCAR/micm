@@ -63,7 +63,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     param_iter += rc3.SizeCustomParameters();
   }
 
-  micm::Process::UpdateState(processes, state);
+  micm::Process::CalculateRateConstants(processes, state);
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <micm/solver/solver_result.hpp>
+#include <micm/process/process.hpp>
 
 namespace micm
 {
@@ -16,6 +17,7 @@ namespace micm
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
     StateParameters state_parameters_;
+    std::vector<micm::Process> processes_;
 
    public:
     SolverPolicy solver_;
@@ -25,12 +27,14 @@ namespace micm
         StateParameters state_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
-        std::size_t number_of_reactions)
+        std::size_t number_of_reactions,
+        std::vector<micm::Process> processes)
         : solver_(std::move(solver)),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions),
-          state_parameters_(state_parameters)
+          state_parameters_(state_parameters),
+          processes_(std::move(processes))
     {
     }
 
@@ -63,6 +67,11 @@ namespace micm
     StatePolicy GetState() const
     {
       return StatePolicy(state_parameters_);
+    }
+
+    void CalculateRateConstants(StatePolicy& state)
+    {
+      Process::CalculateRateConstants(processes_, state);
     }
   };
 

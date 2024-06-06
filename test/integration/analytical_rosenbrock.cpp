@@ -183,6 +183,7 @@ TEST(AnalyticalExamples, Oregonator)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
+    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
@@ -329,6 +330,7 @@ TEST(AnalyticalExamples, Oregonator2)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
+    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
@@ -471,6 +473,7 @@ TEST(AnalyticalExamples, HIRES)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
+    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
@@ -570,6 +573,7 @@ TEST(AnalyticalExamples, E5)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
+    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)

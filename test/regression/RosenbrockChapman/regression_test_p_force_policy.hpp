@@ -29,7 +29,7 @@ void testRateConstants(SolverPolicy& solver)
   state.conditions_[2].temperature_ = 299.31;  // [K]
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
 
-  micm::Process::UpdateState(solver.solver_.processes_, state);
+  solver.CalculateRateConstants(state);
 
   for (size_t i{}; i < 3; ++i)
   {

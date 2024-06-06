@@ -241,11 +241,12 @@ namespace micm
 
     return Solver<SolverPolicy, State<DenseMatrixPolicy, SparseMatrixPolicy>>(
           SolverPolicy(
-              this->options_, std::move(linear_solver), std::move(process_set), jacobian, this->reactions_),
+              this->options_, std::move(linear_solver), std::move(process_set), jacobian),
           state_parameters,
           this->number_of_grid_cells_,
           number_of_species,
-          this->reactions_.size());
+          this->reactions_.size(),
+          this->reactions_);
   }
 
 }  // namespace micm

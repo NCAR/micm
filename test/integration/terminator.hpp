@@ -84,6 +84,7 @@ void TestTerminator(
       state.conditions_[i_cell].air_density_ = 42.0;   // mol m-3
     }
     state.SetCustomRateParameters(custom_rate_constants);
+    solver.CalculateRateConstants(state);
 
     double dt = 30.0;
     auto result = solver.Solve(dt, state);

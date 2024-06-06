@@ -40,6 +40,7 @@ void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   abs_tol *= 1.0e-12;
 
   // run solvers
+  solver.CalculateRateConstants(state);
   auto results = solver.Solve(500.0, state);
   micm::ChapmanODESolver::SolverResult fixed_results[3];
   for (int i = 0; i < 3; ++i)

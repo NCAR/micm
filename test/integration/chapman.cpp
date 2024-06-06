@@ -78,6 +78,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   for (double t{}; t < 100; ++t)
   {
     state.SetCustomRateParameters(photo_rates);
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(30.0, state);
     // output state
   }
@@ -163,6 +164,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   for (double t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(30.0, state);
     // output state
   }

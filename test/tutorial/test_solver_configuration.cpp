@@ -52,6 +52,7 @@ void test_solver_type(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
+      solver.CalculateRateConstants(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
 

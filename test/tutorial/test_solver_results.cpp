@@ -67,6 +67,7 @@ int main()
     state.conditions_[cell].pressure_ = pressure;
     state.conditions_[cell].air_density_ = air_density;
   }
+  solver.CalculateRateConstants(state);
 
   // choose a timestep and print the initial state
   double time_step = 200;  // s

@@ -72,6 +72,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     {
       state.SetCustomRateParameter("r2", 0.0);
     }
+    solver.CalculateRateConstants(state);
     std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
     double irr1 = state.variables_[0][irr1_idx];
     double irr2 = state.variables_[0][irr2_idx];

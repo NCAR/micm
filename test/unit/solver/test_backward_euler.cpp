@@ -48,6 +48,7 @@ TEST(BackwardEuler, CanCallSolve)
   state.conditions_[0].temperature_ = 272.5;
   state.conditions_[0].pressure_ = 101253.3;
   state.conditions_[0].air_density_ = 1e6;
+  be.CalculateRateConstants(state);
 
   EXPECT_NO_THROW(auto result = be.Solve(time_step, state));
 }

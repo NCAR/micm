@@ -32,6 +32,7 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   for (int i = 0; i < 10; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
     while (elapsed_solve_time < time_step)
     {

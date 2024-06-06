@@ -100,6 +100,7 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   MICM_PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime-" + matrix_ordering_type + ".json");
   while (elapsed_solve_time < time_step)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
     state.variables_ = result.result_;

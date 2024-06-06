@@ -98,6 +98,7 @@ void test_analytical_surface_rxn(BuilderPolicy& builder)
   for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);

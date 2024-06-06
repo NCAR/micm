@@ -115,6 +115,7 @@ void run_solver(auto& solver)
   for (int i = 0; i < 10; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
     while (elapsed_solve_time < time_step)
     {

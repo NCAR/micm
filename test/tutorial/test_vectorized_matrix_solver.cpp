@@ -39,6 +39,7 @@ void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
   for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
     while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);

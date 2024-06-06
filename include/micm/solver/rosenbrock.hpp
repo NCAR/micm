@@ -54,7 +54,6 @@ namespace micm
     LinearSolverPolicy linear_solver_;
     ProcessSetPolicy process_set_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
-    std::vector<Process> processes_;
 
     static constexpr double DELTA_MIN = 1.0e-6;
 
@@ -68,13 +67,11 @@ namespace micm
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
         ProcessSetPolicy process_set,
-        auto& jacobian,
-        std::vector<Process>& processes)
+        auto& jacobian)
         : parameters_(parameters),
           linear_solver_(std::move(linear_solver)),
           process_set_(std::move(process_set)),
-          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0)),
-          processes_(processes)
+          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
     {
     }
 

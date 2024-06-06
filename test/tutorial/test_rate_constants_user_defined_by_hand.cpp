@@ -159,6 +159,7 @@ int main(const int argc, const char* argv[])
     double elapsed_solve_time = 0;
     // this rate is updated at each time step and would typically vary with time
     state.SetCustomRateParameter("my photolysis rate", photo_rate);
+    solver.CalculateRateConstants(state);
 
     while (elapsed_solve_time < time_step)
     {

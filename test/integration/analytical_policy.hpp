@@ -160,6 +160,7 @@ void test_analytical_troe(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -303,6 +304,7 @@ void test_analytical_stiff_troe(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -412,6 +414,7 @@ void test_analytical_photolysis(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -547,6 +550,7 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -668,6 +672,7 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -811,6 +816,7 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -925,6 +931,7 @@ void test_analytical_tunneling(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1055,6 +1062,7 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1157,6 +1165,7 @@ void test_analytical_arrhenius(BuilderPolicy& builder)
   times.push_back(0);
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1289,6 +1298,7 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1417,6 +1427,7 @@ void test_analytical_branched(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1577,6 +1588,7 @@ void test_analytical_stiff_branched(BuilderPolicy& builder)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     times.push_back(time_step);
+    solver.CalculateRateConstants(state);
     // Model results
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
@@ -1708,6 +1720,7 @@ void test_analytical_robertson(BuilderPolicy& builder)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
+    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
