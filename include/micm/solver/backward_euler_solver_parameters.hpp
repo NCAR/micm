@@ -12,14 +12,14 @@
 namespace micm
 {
   
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   class BackwardEuler;
 
   /// @brief BackwardEuler solver parameters
   struct BackwardEulerSolverParameters
   {
-    template<class ProcessSetPolicy, class LinearSolverPolicy>
-    using SolverType = BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy>
+    using SolverType = BackwardEuler<LinearSolverPolicy, RatesPolicy>;
 
     std::vector<double> absolute_tolerance_;
     double small{ 1.0e-40 };

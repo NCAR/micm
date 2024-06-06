@@ -4,9 +4,7 @@
  */
 #pragma once
 
-#include <micm/process/cuda_process_set.hpp>
 #include <micm/process/process.hpp>
-#include <micm/process/process_set.hpp>
 #include <micm/solver/cuda_linear_solver.hpp>
 #include <micm/solver/cuda_rosenbrock.cuh>
 #include <micm/solver/linear_solver.hpp>
@@ -32,8 +30,8 @@
 namespace micm
 {
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
-  class CudaRosenbrockSolver : public RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
+  class CudaRosenbrockSolver : public RosenbrockSolver<RatesPolicy, LinearSolverPolicy>
   {
     ///@brief Default constructor
    public:
@@ -47,7 +45,7 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(std::move(other)),
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(std::move(other)),
           devstruct_(std::move(other.devstruct_))
     {
       other.devstruct_.errors_input_ = nullptr;
@@ -58,7 +56,7 @@ namespace micm
 
     CudaRosenbrockSolver& operator=(CudaRosenbrockSolver&& other)
     {
-      RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
       devstruct_ = std::move(other.devstruct_);
       other.devstruct_.errors_input_ = nullptr;
       other.devstruct_.errors_output_ = nullptr;
@@ -77,17 +75,17 @@ namespace micm
     /// @brief Builds a CUDA Rosenbrock solver for the given system and solver parameters
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
-    /// @param process_set Process set
+    /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
     CudaRosenbrockSolver(
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy&& linear_solver,
-        ProcessSetPolicy&& process_set,
+        RatesPolicy&& rates,
         auto& jacobian)
-        : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(
               parameters,
               std::move(linear_solver),
-              std::move(process_set),
+              std::move(rates),
               jacobian)
     {
       CudaRosenbrockSolverParam hoststruct;

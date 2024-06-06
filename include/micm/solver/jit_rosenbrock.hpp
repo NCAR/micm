@@ -16,7 +16,6 @@
 #pragma once
 
 #include <micm/jit/jit_function.hpp>
-#include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
@@ -33,8 +32,8 @@ namespace micm
   struct JitRosenbrockSolverParameters;
 
   /// @brief A Rosenbrock solver with JIT-compiled optimizations
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
-  class JitRosenbrockSolver : public RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
+  class JitRosenbrockSolver : public RosenbrockSolver<RatesPolicy, LinearSolverPolicy>
   {
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
     using FuncPtr = void (*)(double*, const double);
@@ -48,7 +47,7 @@ namespace micm
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
-        : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(std::move(other)),
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(std::move(other)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
     {
@@ -57,7 +56,7 @@ namespace micm
 
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
-      RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::operator=(std::move(other));
+      RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
       other.alpha_minus_jacobian_ = NULL;
@@ -67,17 +66,17 @@ namespace micm
     /// @brief Builds a Rosenbrock solver for the given system and solver parameters
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
-    /// @param process_set Process set
+    /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
     JitRosenbrockSolver(
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
-        ProcessSetPolicy process_set,
+        RatesPolicy rates,
         auto& jacobian)
-        : RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>(
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(
               parameters,
               std::move(linear_solver),
-              std::move(process_set),
+              std::move(rates),
               jacobian)
     {
       this->GenerateAlphaMinusJacobian(jacobian);

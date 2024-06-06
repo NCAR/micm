@@ -3,8 +3,8 @@
 namespace micm
 {
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
-  inline SolverResult RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::Solve(
+  template<class RatesPolicy, class LinearSolverPolicy>
+  inline SolverResult RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::Solve(
       double time_step,
       auto& state) noexcept
   {
@@ -69,12 +69,12 @@ namespace micm
 
       // compute the forcing at the beginning of the current time
       initial_forcing.Fill(0.0);
-      process_set_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+      rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
       stats.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0.0);
-      process_set_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+      rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
@@ -108,7 +108,7 @@ namespace micm
                 Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
               }
               forcing.Fill(0.0);
-              process_set_.AddForcingTerms(state.rate_constants_, Ynew, forcing);
+              rates_.AddForcingTerms(state.rate_constants_, Ynew, forcing);
               stats.function_calls_ += 1;
             }
           }
@@ -203,9 +203,9 @@ namespace micm
     return result;
   }
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   template<class SparseMatrixPolicy>
-  inline void RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
+  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
       const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
@@ -219,9 +219,9 @@ namespace micm
     }
   }
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   template<class SparseMatrixPolicy>
-  inline void RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
+  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
       const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
   {
@@ -237,8 +237,8 @@ namespace micm
     }
   }
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
-  inline void RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::LinearFactor(
+  template<class RatesPolicy, class LinearSolverPolicy>
+  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::LinearFactor(
       double& H,
       const double gamma,
       bool& singular,
@@ -275,9 +275,9 @@ namespace micm
     }
   }
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline double RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::NormalizedError(
+  inline double RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>)
@@ -310,9 +310,9 @@ namespace micm
     return std::max(std::sqrt(error / N), error_min);
   }
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline double RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>::NormalizedError(
+  inline double RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>)

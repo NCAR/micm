@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include <micm/process/process.hpp>
-#include <micm/process/process_set.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
@@ -30,12 +28,12 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template<class LinearSolverPolicy, class ProcessSetPolicy>
+  template<class LinearSolverPolicy, class RatesPolicy>
   class BackwardEuler
   {
     BackwardEulerSolverParameters parameters_;
     LinearSolverPolicy linear_solver_;
-    ProcessSetPolicy process_set_;
+    RatesPolicy rates_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
 
    public:
@@ -43,14 +41,18 @@ namespace micm
     using ParametersType = BackwardEulerSolverParameters;
 
     /// @brief Default constructor
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
     BackwardEuler(
         BackwardEulerSolverParameters parameters,
         LinearSolverPolicy&& linear_solver,
-        ProcessSetPolicy&& process_set,
+        RatesPolicy&& rates,
         auto& jacobian)
         : parameters_(parameters),
           linear_solver_(std::move(linear_solver)),
-          process_set_(std::move(process_set)),
+          rates_(std::move(rates)),
           jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
     {
     }

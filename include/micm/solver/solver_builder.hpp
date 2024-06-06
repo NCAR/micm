@@ -29,9 +29,9 @@ namespace micm
   /// @tparam SolverParametersPolicy Policy for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  /// @tparam ProcessSetPolicy Policy for sets of processes (used to calculate forcing and the jacobian matrix)
+  /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Policy for the linear solver
-  template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy, class LinearSolverPolicy>
   class SolverBuilder
   {
    protected:

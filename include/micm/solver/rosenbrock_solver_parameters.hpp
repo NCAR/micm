@@ -14,14 +14,14 @@
 namespace micm
 {
 
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   class RosenbrockSolver;
 
   /// @brief Rosenbrock solver parameters
   struct RosenbrockSolverParameters
   {
-    template<class ProcessSetPolicy, class LinearSolverPolicy>
-    using SolverType = RosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>;
+    template<class RatesPolicy, class LinearSolverPolicy>
+    using SolverType = RosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
 
     std::size_t stages_{};
     std::size_t upper_limit_tolerance_{};

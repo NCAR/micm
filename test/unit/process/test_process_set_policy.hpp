@@ -13,7 +13,7 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
 void testProcessSet()
 {
   auto foo = micm::Species("foo");
@@ -44,7 +44,7 @@ void testProcessSet()
 
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
-  auto used_species = ProcessSetPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
+  auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -55,7 +55,7 @@ void testProcessSet()
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
 
-  ProcessSetPolicy set = ProcessSetPolicy(std::vector<micm::Process>{ r1, r2, r3 }, state.variable_map_);
+  RatesPolicy set = RatesPolicy(std::vector<micm::Process>{ r1, r2, r3 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
@@ -133,7 +133,7 @@ void testProcessSet()
   EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
-template<class DenseMatrixPolicy, class SparseMatrixPolicy, class ProcessSetPolicy>
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
 void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
@@ -172,7 +172,7 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
     processes.push_back(proc);
   }
-  ProcessSetPolicy set = ProcessSetPolicy(processes, state.variable_map_);
+  RatesPolicy set = RatesPolicy(processes, state.variable_map_);
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();

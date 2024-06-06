@@ -28,7 +28,7 @@ void testJacobian(SolverPolicy& solver)
 
   auto& jacobian = state.jacobian_;
   jacobian.Fill(0.0);
-  solver.solver_.process_set_.SubtractJacobianTerms(state.rate_constants_, state.variables_, jacobian);
+  solver.solver_.rates_.SubtractJacobianTerms(state.rate_constants_, state.variables_, jacobian);
 
   for (std::size_t i{}; i < 3; ++i)
   {

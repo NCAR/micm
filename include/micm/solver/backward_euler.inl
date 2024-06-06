@@ -42,8 +42,8 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 
 namespace micm
 {
-  template<class LinearSolverPolicy, class ProcessSetPolicy>
-  inline SolverResult BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(double time_step, auto& state)
+  template<class LinearSolverPolicy, class RatesPolicy>
+  inline SolverResult BackwardEuler<LinearSolverPolicy, RatesPolicy>::Solve(double time_step, auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -89,11 +89,11 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-        process_set_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
-        process_set_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix

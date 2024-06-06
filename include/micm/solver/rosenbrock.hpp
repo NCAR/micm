@@ -15,8 +15,6 @@
  */
 #pragma once
 
-#include <micm/process/process.hpp>
-#include <micm/process/process_set.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
@@ -42,17 +40,17 @@ namespace micm
 {
 
   /// @brief An implementation of the Rosenbrock ODE solver
-  /// @tparam ProcessSetPolicy The policy to use for the process set
-  /// @tparam LinearSolverPolicy The policy to use for the linear solver
+  /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
+  /// @tparam LinearSolverPolicy Linear solver
   ///
   /// The template parameter is the type of matrix to use
-  template<class ProcessSetPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   class RosenbrockSolver
   {
    public:
     RosenbrockSolverParameters parameters_;
     LinearSolverPolicy linear_solver_;
-    ProcessSetPolicy process_set_;
+    RatesPolicy rates_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
 
     static constexpr double DELTA_MIN = 1.0e-6;
@@ -61,16 +59,20 @@ namespace micm
     using ParametersType = RosenbrockSolverParameters;
 
     /// @brief Default constructor
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
     RosenbrockSolver(
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
-        ProcessSetPolicy process_set,
+        RatesPolicy rates,
         auto& jacobian)
         : parameters_(parameters),
           linear_solver_(std::move(linear_solver)),
-          process_set_(std::move(process_set)),
+          rates_(std::move(rates)),
           jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
     {
     }

@@ -11,8 +11,8 @@ namespace micm
     /// @brief Parameters for the JIT Rosenbrock solver
     struct JitRosenbrockSolverParameters : public RosenbrockSolverParameters
     {
-        template<class ProcessSetPolicy, class LinearSolverPolicy>
-        using SolverType = JitRosenbrockSolver<ProcessSetPolicy, LinearSolverPolicy>;
+        template<class RatesPolicy, class LinearSolverPolicy>
+        using SolverType = JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
 
         /// @brief Constructor from base class
         /// @param base
