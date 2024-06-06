@@ -43,7 +43,7 @@ namespace
 TEST(SolverBuilder, ThrowsMissingSystem)
 {
 
-  EXPECT_THROW(micm::CpuSolverBuilder(micm::BackwardEulerSolverParameters{})
+  EXPECT_THROW(micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                    .SetNumberOfGridCells(1)
                    .Build(),
                std::system_error);
@@ -51,12 +51,12 @@ TEST(SolverBuilder, ThrowsMissingSystem)
 
 TEST(SolverBuilder, ThrowsMissingReactions)
 {
-  EXPECT_THROW(micm::CpuSolverBuilder(micm::BackwardEulerSolverParameters{})
+  EXPECT_THROW(micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                    .SetSystem(the_system)
                    .SetNumberOfGridCells(1)
                    .Build(),
                std::system_error);
-  EXPECT_THROW(micm::CpuSolverBuilder(micm::BackwardEulerSolverParameters{})
+  EXPECT_THROW(micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                    .SetSystem(the_system)
                    .SetReactions({})
                    .Build(),
@@ -65,7 +65,7 @@ TEST(SolverBuilder, ThrowsMissingReactions)
 
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
-  auto backward_euler = micm::CpuSolverBuilder(micm::BackwardEulerSolverParameters{})
+  auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                             .SetSystem(the_system)
                             .SetReactions(reactions)
                             .SetNumberOfGridCells(1)
@@ -81,7 +81,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
 
 TEST(SolverBuilder, CanBuildRosenbrock)
 {
-  auto rosenbrock = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                             .SetSystem(the_system)
                             .SetReactions(reactions)
                             .SetNumberOfGridCells(1)

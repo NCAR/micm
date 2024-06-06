@@ -17,36 +17,36 @@ TEST(RosenbrockSolver, Terminator)
   parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 2);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 3);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
   parameters.check_singularity_ = true;
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 2);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 3);
   }
   {  
-    auto builder = micm::CpuSolverBuilder(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
 }

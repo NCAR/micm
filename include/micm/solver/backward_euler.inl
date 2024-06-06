@@ -177,7 +177,6 @@ namespace micm
           // give_up = true;
           t += H;
           throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
-          break;
         };
 
         H *= time_step_reductions[n_convergence_failures++];

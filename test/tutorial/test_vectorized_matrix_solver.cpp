@@ -83,7 +83,7 @@ int main()
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 
-  auto solver = CpuSolverBuilder(params)
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
       .SetSystem(system)
       .SetReactions(reactions)
       .SetNumberOfGridCells(number_of_grid_cells)

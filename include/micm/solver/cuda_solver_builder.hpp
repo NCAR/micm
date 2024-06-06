@@ -9,15 +9,15 @@
 #include <micm/solver/cuda_lu_decomposition.hpp>
 #include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/cuda_sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 namespace micm
 {
   /// @brief Builder of CUDA-based general solvers
   /// @tparam SolverParametersPolicy Policy for the ODE solver
-  /// @tparam T Primary data type
   /// @tparam L Vector size
   ///
   /// GPU solvers only work with vector-ordered matrices
-  template<class SolverParametersPolicy, class T = double, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using CudaSolverBuilder = SolverBuilder<SolverParametersPolicy, CudaVectorMatrix<T, L>, CudaSparseMatrix<T, SparseMatrixVectorOrdering<L>>, CudaProcessSet, CudaLinearSolver<CudaSparseMatrix<T, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
+  template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  using CudaSolverBuilder = SolverBuilder<SolverParametersPolicy, CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaProcessSet, CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
 } // namespace micm

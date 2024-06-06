@@ -18,6 +18,7 @@
 #include <micm/jit/jit_function.hpp>
 #include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/random_string.hpp>
@@ -43,7 +44,7 @@ namespace micm
    public:
 
     /// @brief Solver parameters typename
-    using ParametersType = RosenbrockSolverParameters;
+    using ParametersType = JitRosenbrockSolverParameters;
 
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;

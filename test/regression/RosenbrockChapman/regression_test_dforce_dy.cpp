@@ -15,7 +15,7 @@ using VectorBuilder = micm::CpuSolverBuilder<
 
 TEST(RegressionRosenbrock, Jacobian)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testJacobian(solver);
 }

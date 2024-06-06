@@ -14,35 +14,35 @@ using VectorBuilder = micm::CpuSolverBuilder<
 
 TEST(RegressionRosenbrock, TwoStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-2);
 }
 
 TEST(RegressionRosenbrock, ThreeStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver);
 }
 
 TEST(RegressionRosenbrock, FourStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, FourStageDASolve)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);
 }
 
 TEST(RegressionRosenbrock, SixStageDASolve)
 {
-  auto builder = micm::CpuSolverBuilder(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);
 }
