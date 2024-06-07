@@ -28,7 +28,7 @@ class Oregonator
     parameters.absolute_tolerance_ = std::vector<double>(3, 1.0e-10);
 
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;
-    auto jacobian_builder = SparseMatrixPolicy::Create(3).SetNumberOfBlocks(1).InitialValue(0.0);
+    auto jacobian_builder = SparseMatrixPolicy::Create(3).SetNumberOfBlocks(number_of_grid_cells).InitialValue(0.0);
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
@@ -82,13 +82,11 @@ class Oregonator
       const MatrixPolicy& number_densities,
       MatrixPolicy& forcing)
   {
-    std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-
     auto data = number_densities.AsVector();
 
-    forcing[0][0] = 77.27 * (data[1] + data[0] * (1.0 - 8.375e-6 * data[0] - data[1]));
-    forcing[0][1] = (data[2] - (1.0 + data[0]) * data[1]) / 77.27;
-    forcing[0][2] = 0.161 * (data[0] - data[2]);
+    forcing[0][0] += 77.27 * (data[1] + data[0] * (1.0 - 8.375e-6 * data[0] - data[1]));
+    forcing[0][1] += (data[2] - (1.0 + data[0]) * data[1]) / 77.27;
+    forcing[0][2] += 0.161 * (data[0] - data[2]);
   }
 
   /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
