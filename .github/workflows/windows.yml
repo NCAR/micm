@@ -55,7 +55,8 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        build_type: [Release]
+        # build_type: [Release]
+        build_type: [Debug]
         architecture: [Win32, x64]
 
     steps:
