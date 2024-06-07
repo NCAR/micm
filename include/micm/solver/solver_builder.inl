@@ -209,7 +209,7 @@ namespace micm
     {
       throw std::system_error(make_error_code(MicmSolverBuilderErrc::MissingReactions), "Missing reactions.");
     }
-    using SolverPolicy = SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
+    using SolverPolicy = typename SolverParametersPolicy::template SolverType<RatesPolicy, LinearSolverPolicy>;
     auto species_map = this->GetSpeciesMap();
     auto labels = this->GetCustomParameterLabels();
     std::size_t number_of_species = this->system_.StateSize();
