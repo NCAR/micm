@@ -16,9 +16,9 @@ create_standard_test(NAME solver_builder SOURCES test_solver_builder.cpp)
 
 # GPU tests
 if(MICM_ENABLE_CUDA)
-  create_standard_test(NAME cuda_lu_decomposition SOURCES test_cuda_lu_decomposition.cpp LIBRARIES musica::micm_cuda)
-  create_standard_test(NAME cuda_linear_solver SOURCES test_cuda_linear_solver.cpp LIBRARIES musica::micm_cuda)
-  create_standard_test(NAME cuda_rosenbrock SOURCES test_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda)
+  create_standard_test(NAME cuda_lu_decomposition SOURCES test_cuda_lu_decomposition.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
+  create_standard_test(NAME cuda_linear_solver SOURCES test_cuda_linear_solver.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
+  create_standard_test(NAME cuda_rosenbrock SOURCES test_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
 endif()
 
 if(MICM_ENABLE_LLVM)

@@ -4,8 +4,3 @@ if(MICM_ENABLE_CUDA)
      process_set.cu
   )
 endif()
-if(MICM_ENABLE_OPENACC)
-  target_sources(micm_openacc
-    PRIVATE
-  )
-endif()

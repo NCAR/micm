@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <micm/util/cuda_param.hpp>
+#include <micm/util/cuda_util.cuh>
 
 #include <chrono>
 
@@ -92,16 +93,20 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverParam devstruct;
-      cudaMalloc(&(devstruct.nLij_Lii_), nLij_Lii_bytes);
-      cudaMalloc(&(devstruct.Lij_yj_), Lij_yj_bytes);
-      cudaMalloc(&(devstruct.nUij_Uii_), nUij_Uii_bytes);
-      cudaMalloc(&(devstruct.Uij_xj_), Uij_xj_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.nLij_Lii_), nLij_Lii_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.Lij_yj_), Lij_yj_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.nUij_Uii_), nUij_Uii_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.Uij_xj_), Uij_xj_bytes), "cudaMalloc");
 
       /// Copy the data from host to device
-      cudaMemcpy(devstruct.nLij_Lii_, hoststruct.nLij_Lii_, nLij_Lii_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.Lij_yj_, hoststruct.Lij_yj_, Lij_yj_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.nUij_Uii_, hoststruct.nUij_Uii_, nUij_Uii_bytes, cudaMemcpyHostToDevice);
-      cudaMemcpy(devstruct.Uij_xj_, hoststruct.Uij_xj_, Uij_xj_bytes, cudaMemcpyHostToDevice);
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.nLij_Lii_, hoststruct.nLij_Lii_, nLij_Lii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.Lij_yj_, hoststruct.Lij_yj_, Lij_yj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.nUij_Uii_, hoststruct.nUij_Uii_, nUij_Uii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+      CHECK_CUDA_ERROR(
+          cudaMemcpy(devstruct.Uij_xj_, hoststruct.Uij_xj_, Uij_xj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
 
       devstruct.nLij_Lii_size_ = hoststruct.nLij_Lii_size_;
       devstruct.Lij_yj_size_ = hoststruct.Lij_yj_size_;
@@ -115,10 +120,10 @@ namespace micm
     ///   members of class "CudaLinearSolver" on the device
     void FreeConstData(LinearSolverParam& devstruct)
     {
-      cudaFree(devstruct.nLij_Lii_);
-      cudaFree(devstruct.Lij_yj_);
-      cudaFree(devstruct.nUij_Uii_);
-      cudaFree(devstruct.Uij_xj_);
+      CHECK_CUDA_ERROR(cudaFree(devstruct.nLij_Lii_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.Lij_yj_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.nUij_Uii_), "cudaFree");
+      CHECK_CUDA_ERROR(cudaFree(devstruct.Uij_xj_), "cudaFree");
     }
 
     void SolveKernelDriver(
