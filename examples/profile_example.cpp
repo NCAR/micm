@@ -56,20 +56,6 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
 
   SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  // add third-body species parameterizaton on air density
-  for (auto& species : solver_params.system_.gas_phase_.species_)
-    if (species.name_ == "M")
-      species.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  for (auto& process : solver_params.processes_)
-  {
-    for (auto& reactant : process.reactants_)
-      if (reactant.name_ == "M")
-        reactant.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    for (auto& product : process.products_)
-      if (product.first.name_ == "M")
-        product.first.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  }
-
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
