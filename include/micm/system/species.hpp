@@ -109,7 +109,7 @@ namespace micm
     void SetProperty(const std::string& key, T value);
 
     /// @brief Return a Species instance parameterized on air density
-    static Species ThirdBody();
+    void SetThirdBody();
   };
 
   inline Species& Species::operator=(const Species& other)
@@ -238,10 +238,8 @@ namespace micm
     }
   }
 
-  inline Species Species::ThirdBody()
+  inline void Species::SetThirdBody()
   {
-    Species third_body{ "M" };
-    third_body.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    return third_body;
+    parameterize_ = [](const Conditions& c) { return c.air_density_; };
   }
 }  // namespace micm

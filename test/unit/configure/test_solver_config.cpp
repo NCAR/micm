@@ -147,7 +147,7 @@ TEST(SolverConfig, ReadAndParseThirdBodySpecies)
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].name_, "M");
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].name_, "FOO");
   EXPECT_TRUE(solver_params.system_.gas_phase_.species_[0].IsParameterized());
   EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].parameterize_({ .air_density_ = 42.4 }), 42.4);
 }

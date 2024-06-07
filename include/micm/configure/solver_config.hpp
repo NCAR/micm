@@ -374,7 +374,7 @@ namespace micm
           {
             if (key == TRACER_TYPE && value == THIRD_BODY)
             {
-              species = Species::ThirdBody();
+              species.SetThirdBody();
             }
             else
             {

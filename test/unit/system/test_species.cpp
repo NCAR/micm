@@ -95,9 +95,10 @@ TEST(Species, GetProperty)
       std::runtime_error);
 }
 
-TEST(Species, ThirdBody)
+TEST(Species, SetThirdBody)
 {
-  micm::Species species = micm::Species::ThirdBody();
+  micm::Species species("M");
+  species.SetThirdBody();
   EXPECT_EQ(species.name_, "M");
   EXPECT_TRUE(species.IsParameterized());
   EXPECT_EQ(species.parameterize_({ .air_density_ = 42.4 }), 42.4);
