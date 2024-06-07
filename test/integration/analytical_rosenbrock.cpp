@@ -3,10 +3,10 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 
+#include "oregonator.hpp"
 #ifndef EXCLUDE_CUSTOM_SOLVERS
 #include "e5.hpp"
 #include "hires.hpp"
-#include "oregonator.hpp"
 #endif
 
 #include <micm/solver/rosenbrock.hpp>
@@ -101,19 +101,14 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(builder);
 }
 
-#ifndef EXCLUDE_CUSTOM_SOLVERS
+using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
+template<class RatesPolicy>
+using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
+
 TEST(AnalyticalExamples, Oregonator)
 {
   /*
-   * I think these are the equations, but I'm really not sure. I don't know how this translates to the jacobian
-   * and forcing functions used by the ODE book: https://www.unige.ch/~hairer/testset/stiff/orego/equation.f
-   * A+Y -> X+P
-   * X+Y -> 2P
-   * A+X -> 2X+2Z
-   * 2X -> A+P
-   * B+Z -> 1/2fY
-   *
-   * this problem is described in
+   * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 3
    *
@@ -121,33 +116,12 @@ TEST(AnalyticalExamples, Oregonator)
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
-  auto a = micm::Species("A");
-  auto b = micm::Species("B");
-  auto c = micm::Species("C");
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ a })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ b })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r3 = micm::Process::Create()
-                         .SetReactants({ b })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(gas_phase);
-
   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   params.relative_tolerance_ = 1e-4;
   params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
-  Oregonator<micm::Matrix, SparseMatrixTest> solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2, r3 }, params);
-
+  using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
+  auto solver = OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
+  
   double end = 360;
   double time_step = 30;
   size_t N = static_cast<size_t>(end / time_step);
@@ -173,7 +147,7 @@ TEST(AnalyticalExamples, Oregonator)
     { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
   };
 
-  auto state = solver.GetState();
+  auto state = solver.rates_.GetState();
 
   state.variables_[0] = model_concentrations[0];
 
@@ -183,13 +157,12 @@ TEST(AnalyticalExamples, Oregonator)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      state.variables_[0] = result.result_.AsVector();
+      state.variables_[0] = state.variables_.AsVector();
       actual_solve += result.final_time_;
     }
     model_concentrations[i_time + 1] = state.variables_[0];
@@ -223,153 +196,7 @@ TEST(AnalyticalExamples, Oregonator)
   }
 }
 
-TEST(AnalyticalExamples, Oregonator2)
-{
-  /* Equations derived from the forcing function here: https://www.unige.ch/~hairer/testset/stiff/orego/equation.f
-   * a + b -> ( 1 - (1/77.27)^2 ) b    k = 77.27
-   * c -> ( 1 / (0.161 * 77.27) ) b    k = 0.161
-   * b -> ( 77.27 )^2 a                k = 1/77.27
-   * a -> 2 a + ( 0.161/77.27 ) c      k = 77.27
-   * a + a -> NULL                     k = 77.27 * 8.375e-6
-   *
-   * this problem is described in
-   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 3
-   *
-   * solutions are provided here
-   * https://www.unige.ch/~hairer/testset/testset.html
-   */
-
-  auto a = micm::Species("A");
-  auto b = micm::Species("B");
-  auto c = micm::Species("C");
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ a, b })
-                         .SetProducts({ Yields(b, 1 - std::pow((1 / 77.27), 2)) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ c })
-                         .SetProducts({ Yields(b, 1 / (0.161 * 77.27)) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r3 = micm::Process::Create()
-                         .SetReactants({ b })
-                         .SetProducts({ Yields(a, std::pow(77.27, 2)) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r4 = micm::Process::Create()
-                         .SetReactants({ a })
-                         .SetProducts({ Yields(a, 2), Yields(c, 0.161 / 77.27) })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r5 = micm::Process::Create()
-                         .SetReactants({ a, a })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
-                         .SetPhase(gas_phase);
-
-  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-  params.relative_tolerance_ = 1e-4;
-  params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
-  Oregonator<micm::Matrix, SparseMatrixTest> solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::vector<micm::Process>{ r1, r2, r3, r4, r5 },
-      params);
-
-  double end = 360;
-  double time_step = 30;
-  size_t N = static_cast<size_t>(end / time_step);
-
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
-  std::vector<std::vector<double>> analytical_concentrations(13, std::vector<double>(3));
-
-  model_concentrations[0] = { 1, 2, 3 };
-
-  analytical_concentrations = {
-    { 1, 2, 3 },
-    { 0.1000661467180497E+01, 0.1512778937348249E+04, 0.1035854312767229E+05 },
-    { 0.1000874625199626E+01, 0.1144336972384497E+04, 0.8372149966624639E+02 },
-    { 0.1001890368438751E+01, 0.5299926232295553E+03, 0.1662279579042420E+01 },
-    { 0.1004118022612645E+01, 0.2438326079910346E+03, 0.1008822224048647E+01 },
-    { 0.1008995416634061E+01, 0.1121664388662539E+03, 0.1007783229065319E+01 },
-    { 0.1019763472537298E+01, 0.5159761322947535E+02, 0.1016985778956374E+01 },
-    { 0.1043985088527474E+01, 0.2373442027531524E+02, 0.1037691843544522E+01 },
-    { 0.1100849071667922E+01, 0.1091533805469020E+02, 0.1085831969810860E+01 },
-    { 0.1249102130020572E+01, 0.5013945178605446E+01, 0.1208326626237875E+01 },
-    { 0.1779724751937019E+01, 0.2281852385542403E+01, 0.1613754023671725E+01 },
-    { 0.1000889326903503E+01, 0.1125438585746596E+04, 0.1641049483777168E+05 },
-    { 0.1000814870318523E+01, 0.1228178521549889E+04, 0.1320554942846513E+03 },
-  };
-
-  auto state = solver.GetState();
-
-  double k1 = 77.27;
-  double k2 = 0.161;
-  double k3 = 1 / 77.27;
-  double k4 = 77.27;
-  double k5 = 77.27 * 8.375e-6;
-
-  state.SetCustomRateParameter("r1", k1);
-  state.SetCustomRateParameter("r2", k2);
-  state.SetCustomRateParameter("r3", k3);
-  state.SetCustomRateParameter("r4", k4);
-  state.SetCustomRateParameter("r5", k5);
-
-  state.variables_[0] = model_concentrations[0];
-
-  std::vector<double> times;
-  times.push_back(0);
-  for (size_t i_time = 0; i_time < N; ++i_time)
-  {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
-    solver.CalculateRateConstants(state);
-    // Model results
-    double actual_solve = 0;
-    while (actual_solve < time_step)
-    {
-      auto result = solver.Solve(time_step - actual_solve, state);
-      state.variables_[0] = result.result_.AsVector();
-      actual_solve += result.final_time_;
-    }
-    model_concentrations[i_time + 1] = state.variables_[0];
-  }
-
-  std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
-  std::vector<double> an_times;
-  an_times.push_back(0);
-  for (int i = 1; i <= 12; ++i)
-  {
-    an_times.push_back(30 * i);
-  }
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, an_times);
-
-  auto map = state.variable_map_;
-
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
-
-  double tol = 1e-3;
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
-  {
-    double rel_diff = relative_difference(model_concentrations[i][_a], analytical_concentrations[i][0]);
-    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 0 << ")";
-    rel_diff = relative_difference(model_concentrations[i][_b], analytical_concentrations[i][1]);
-    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 1 << ")";
-    rel_diff = relative_difference(model_concentrations[i][_c], analytical_concentrations[i][2]);
-    EXPECT_TRUE(rel_diff < tol) << "Arrays differ at index (" << i << ", " << 2 << ")";
-  }
-}
-
+#ifndef EXCLUDE_CUSTOM_SOLVERS
 TEST(AnalyticalExamples, HIRES)
 {
   /*

@@ -347,12 +347,6 @@ void test_analytical_photolysis(BuilderPolicy& builder)
    * A -> B, k1
    * B -> C, k2
    *
-   * Copying the CAMP example:
-{
-  /*
-   * A -> B, k1
-   * B -> C, k2
-   *
    * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_photolysis.F90
    */
 
@@ -588,13 +582,6 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder)
 
 template<class BuilderPolicy>
 void test_analytical_ternary_chemical_activation(BuilderPolicy& builder)
-{
-  /*
-   * A -> B, k1
-   * B -> C, k2
-   *
-   * Copying the CAMP example:
-   *
 {
   /*
    * A -> B, k1
@@ -854,19 +841,6 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder)
 
 template<class BuilderPolicy>
 void test_analytical_tunneling(BuilderPolicy& builder)
-{
-  /*
-   * A -> B, k1
-   * B -> C, k2
-   *
-   * Copying the CAMP example:
-{
-  /*
-   * A -> B, k1
-   * B -> C, k2
-   *
-   * Copying the CAMP example:
-   *
 {
   /*
    * A -> B, k1
