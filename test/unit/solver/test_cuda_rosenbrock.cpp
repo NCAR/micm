@@ -102,7 +102,18 @@ void testAlphaMinusJacobian()
 
   // Negate the Jacobian matrix (-J) here
   std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
-  auto cpu_jacobian = gpu_jacobian;
+
+  auto cpu_jacobian = cpu_solver.GetState().jacobian_;
+  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
+  {
+    for (std::size_t i = 0; i < 5; ++i)
+    {
+      for (std::size_t j = 0; j < 5; ++j)
+      {
+        if (!cpu_jacobian.IsZero(i, j)) cpu_jacobian[i_cell][i][j] = gpu_jacobian[i_cell][i][j];
+      }
+    }
+  }
 
   gpu_jacobian.CopyToDevice();
   gpu_solver.solver_.AlphaMinusJacobian(gpu_jacobian, 42.042);
@@ -127,11 +138,16 @@ void testAlphaMinusJacobian()
 
   cpu_solver.solver_.AlphaMinusJacobian(cpu_jacobian, 42.042);
 
-  std::vector<double> jacobian_gpu_vector = gpu_jacobian.AsVector();
-  std::vector<double> jacobian_cpu_vector = cpu_jacobian.AsVector();
-  for (int i = 0; i < jacobian_cpu_vector.size(); i++)
+  // Compare the results
+  for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
-    EXPECT_EQ(jacobian_cpu_vector[i], jacobian_gpu_vector[i]);
+    for (std::size_t i = 0; i < 5; ++i)
+    {
+      for (std::size_t j = 0; j < 5; ++j)
+      {
+        if (!cpu_jacobian.IsZero(i, j)) EXPECT_EQ(cpu_jacobian[i_cell][i][j], gpu_jacobian[i_cell][i][j]);
+      }
+    }
   }
 }
 
