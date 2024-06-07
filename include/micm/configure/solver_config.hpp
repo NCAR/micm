@@ -357,10 +357,7 @@ namespace micm
       const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
       const std::string THIRD_BODY = "THIRD_BODY";
 
-      ValidateSchema(
-          object,
-          { NAME, TYPE },
-          { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT});
+      ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
 
       std::string name = object[NAME].get<std::string>();
       Species species{ name };
