@@ -17,7 +17,7 @@ jobs:
       CXX: g++
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -41,7 +41,7 @@ jobs:
       CXX: clang++
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}

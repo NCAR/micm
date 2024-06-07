@@ -18,7 +18,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -42,7 +42,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -69,7 +69,7 @@ jobs:
       CXX: ${{ matrix.compiler.cpp }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}

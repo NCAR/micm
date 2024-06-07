@@ -100,6 +100,9 @@ namespace micm
 
     bool HasProperty(const std::string& key) const;
 
+    /// @brief Set a Species instance parameterized on air density
+    void SetThirdBody();
+
     /// @brief Return the value of a species property
     template<class T>
     T GetProperty(const std::string& key) const;
@@ -107,9 +110,6 @@ namespace micm
     /// @brief Set the value of a species property
     template<class T>
     void SetProperty(const std::string& key, T value);
-
-    /// @brief Return a Species instance parameterized on air density
-    static Species ThirdBody();
   };
 
   inline Species& Species::operator=(const Species& other)
@@ -154,6 +154,11 @@ namespace micm
     return properties_string_.find(key) != properties_string_.end() ||
            properties_double_.find(key) != properties_double_.end() ||
            properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
+  }
+
+  inline void Species::SetThirdBody()
+  {
+    parameterize_ = [](const Conditions& c) { return c.air_density_; };
   }
 
   template<class T>
@@ -238,10 +243,4 @@ namespace micm
     }
   }
 
-  inline Species Species::ThirdBody()
-  {
-    Species third_body{ "M" };
-    third_body.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    return third_body;
-  }
 }  // namespace micm
