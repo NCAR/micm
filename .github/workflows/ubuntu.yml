@@ -1,55 +1,55 @@
-# name: Ubuntu
+name: Ubuntu
 
-# on: [pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch]
   
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
 
-# jobs:
-#   gcc:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         build_type: [Release]
-#     env:
-#       CC: gcc
-#       CXX: g++
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+jobs:
+  gcc:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Release]
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#       - name: Run Cmake 
-#         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Run Cmake 
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-#       - name: Build
-#         run: cmake --build build --parallel 10
+      - name: Build
+        run: cmake --build build --parallel 10
 
-#       - name: Run tests
-#         run: |
-#           cd build
-#           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
+      - name: Run tests
+        run: |
+          cd build
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
 
-#   clang:
-#     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         build_type: [Release]
-#     env:
-#       CC: clang
-#       CXX: clang++
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+  clang:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [Release]
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#       - name: Run Cmake 
-#         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Run Cmake 
+        run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-#       - name: Build
-#         run: cmake --build build --verbose
+      - name: Build
+        run: cmake --build build --verbose
 
-#       - name: Run tests
-#         run: |
-#           cd build
-#           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
+      - name: Run tests
+        run: |
+          cd build
+          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
