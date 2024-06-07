@@ -1,13 +1,9 @@
-#define EXCLUDE_CUSTOM_SOLVERS
-
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 
 #include "oregonator.hpp"
 #include "e5.hpp"
-#ifndef EXCLUDE_CUSTOM_SOLVERS
 #include "hires.hpp"
-#endif
 
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
@@ -117,8 +113,6 @@ TEST(AnalyticalExamples, Oregonator)
    */
 
   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-  params.relative_tolerance_ = 1e-4;
-  params.absolute_tolerance_ = std::vector<double>(3, 1e-6 * params.relative_tolerance_);
   using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
   auto solver = OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
   
@@ -196,13 +190,10 @@ TEST(AnalyticalExamples, Oregonator)
   }
 }
 
-#ifndef EXCLUDE_CUSTOM_SOLVERS
 TEST(AnalyticalExamples, HIRES)
 {
   /*
-   * No idea what these equations are
-   *
-   * this problem is described in
+   * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 3
    *
@@ -210,58 +201,10 @@ TEST(AnalyticalExamples, HIRES)
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
-  auto y1 = micm::Species("y1");
-  auto y2 = micm::Species("y2");
-  auto y3 = micm::Species("y3");
-  auto y4 = micm::Species("y4");
-  auto y5 = micm::Species("y5");
-  auto y6 = micm::Species("y6");
-  auto y7 = micm::Species("y7");
-  auto y8 = micm::Species("y8");
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ y1, y2, y3, y4, y5, y6, y7, y8 } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ y1 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
-                         .SetPhase(gas_phase);
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ y2 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
-                         .SetPhase(gas_phase);
-  micm::Process r3 = micm::Process::Create()
-                         .SetReactants({ y3 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
-                         .SetPhase(gas_phase);
-  micm::Process r4 = micm::Process::Create()
-                         .SetReactants({ y4 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
-                         .SetPhase(gas_phase);
-  micm::Process r5 = micm::Process::Create()
-                         .SetReactants({ y5 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r5" }))
-                         .SetPhase(gas_phase);
-  micm::Process r6 = micm::Process::Create()
-                         .SetReactants({ y6 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r6" }))
-                         .SetPhase(gas_phase);
-  micm::Process r7 = micm::Process::Create()
-                         .SetReactants({ y7 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r7" }))
-                         .SetPhase(gas_phase);
-  micm::Process r8 = micm::Process::Create()
-                         .SetReactants({ y8 })
-                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r8" }))
-                         .SetPhase(gas_phase);
-
   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-  params.relative_tolerance_ = 1e-3;
-  params.absolute_tolerance_ = std::vector<double>(8, 1e-4 * params.relative_tolerance_);
-  HIRES<micm::Matrix, SparseMatrixTest> solver(
-      micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-      std::vector<micm::Process>{ r1, r2, r3, r4, r5, r6, r7, r8 },
-      params);
-
+  using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
+  auto solver = HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
+  
   size_t N = 2;
 
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
@@ -289,7 +232,7 @@ TEST(AnalyticalExamples, HIRES)
       0.004685507242281520 },
   };
 
-  auto state = solver.GetState();
+  auto state = solver.rates_.GetState();
 
   state.variables_[0] = model_concentrations[0];
 
@@ -300,13 +243,12 @@ TEST(AnalyticalExamples, HIRES)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    solver.CalculateRateConstants(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
     {
       auto result = solver.Solve(time_step - actual_solve, state);
-      state.variables_[0] = result.result_.AsVector();
+      state.variables_[0] = state.variables_.AsVector();
       actual_solve += result.final_time_;
     }
     model_concentrations[i_time + 1] = state.variables_[0];
@@ -327,7 +269,6 @@ TEST(AnalyticalExamples, HIRES)
     }
   }
 }
-#endif
 
 TEST(AnalyticalExamples, E5)
 {
