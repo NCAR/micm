@@ -14,7 +14,7 @@ jobs:
         architecture: [x64]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up MinGW
         uses: egor-tensin/setup-mingw@v2
         with:
@@ -40,7 +40,7 @@ jobs:
         architecture: [Win32, x64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Run CMake
       run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "Visual Studio 16 2019" -A ${{ matrix.architecture }}
@@ -59,7 +59,7 @@ jobs:
         architecture: [Win32, x64]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Run CMake
       run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} -G "Visual Studio 17 2022" -A ${{ matrix.architecture }}
     - name: Build
@@ -74,7 +74,7 @@ jobs:
         version: [11, 12, 13, 14, 15]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Clang
         run: curl -fsSL -o LLVM${{ matrix.version }}.exe https://github.com/llvm/llvm-project/releases/download/llvmorg-${{ matrix.version }}.0.0/LLVM-${{ matrix.version }}.0.0-win64.exe ; 7z x LLVM${{ matrix.version }}.exe -y -o"C:/Program Files/LLVM"
       - name: Run CMake
@@ -91,7 +91,7 @@ jobs:
         architecture: [Win32, x64]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run CMake
         run: cmake -S . -B build -D MICM_ENABLE_PROFILE=ON -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -T ClangCL
       - name: Build
