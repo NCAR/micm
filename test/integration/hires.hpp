@@ -38,11 +38,13 @@ class HIRES
       }
     }
     SparseMatrixPolicy jacobian = SparseMatrixPolicy(jacobian_builder);
+    LinearSolverPolicy linear_solver(jacobian, 1.0e-30);
+    HIRES<MatrixPolicy, SparseMatrixPolicy> hires(number_of_grid_cells, nonzero_jacobian_elements);
 
     return SolverPolicy(
       parameters,
-      LinearSolverPolicy(jacobian, 1.0e-30),
-      HIRES<MatrixPolicy, SparseMatrixPolicy>(number_of_grid_cells, nonzero_jacobian_elements),
+      std::move(linear_solver),
+      std::move(hires),
       jacobian);
   }
 

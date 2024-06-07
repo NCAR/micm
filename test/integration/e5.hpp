@@ -38,11 +38,13 @@ class E5
       }
     }
     SparseMatrixPolicy jacobian = SparseMatrixPolicy(jacobian_builder);
+    LinearSolverPolicy linear_solver(jacobian, 1.0e-30);
+    E5<MatrixPolicy, SparseMatrixPolicy> e5(number_of_grid_cells, nonzero_jacobian_elements);
 
     return SolverPolicy(
       parameters,
-      LinearSolverPolicy(jacobian, 1.0e-30),
-      E5<MatrixPolicy, SparseMatrixPolicy>(number_of_grid_cells, nonzero_jacobian_elements),
+      std::move(linear_solver),
+      std::move(e5),
       jacobian);
   }
 
