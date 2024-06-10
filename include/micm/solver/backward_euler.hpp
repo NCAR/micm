@@ -46,7 +46,7 @@ namespace micm
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
     BackwardEuler(
-        BackwardEulerSolverParameters parameters,
+        const BackwardEulerSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
