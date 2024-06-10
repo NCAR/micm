@@ -47,7 +47,7 @@ namespace micm
 
     SolverBuilder() = delete;
 
-    SolverBuilder(SolverParametersPolicy options)
+    SolverBuilder(const SolverParametersPolicy& options)
         : options_(options)
     {
     }
