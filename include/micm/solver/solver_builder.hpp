@@ -20,7 +20,6 @@
 #include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
-#include <variant>
 
 namespace micm
 {

@@ -28,15 +28,15 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template<class LinearSolverPolicy, class RatesPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   class BackwardEuler
   {
+   public:
     BackwardEulerSolverParameters parameters_;
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
 
-   public:
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
 

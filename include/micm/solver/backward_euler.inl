@@ -42,8 +42,8 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 
 namespace micm
 {
-  template<class LinearSolverPolicy, class RatesPolicy>
-  inline SolverResult BackwardEuler<LinearSolverPolicy, RatesPolicy>::Solve(double time_step, auto& state)
+  template<class RatesPolicy, class LinearSolverPolicy>
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -59,7 +59,6 @@ namespace micm
     // TODO populate the result before returning it
     SolverResult result;
 
-    double tolerance = parameters_.absolute_tolerance_[0];
     double small = parameters_.small;
     std::size_t max_iter = parameters_.max_number_of_steps_;
     const auto time_step_reductions = parameters_.time_step_reductions;
@@ -149,11 +148,14 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
+        auto abs_tol_iter = parameters_.absolute_tolerance_.begin();
         do
         {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tolerance * std::abs(*yn1_iter));
-          ++forcing_iter, ++yn1_iter;
+          converged = (std::abs(*forcing_iter) <= small) ||
+                      (std::abs(*forcing_iter) <= *abs_tol_iter) ||
+                      (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
+          ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
         } while (converged && forcing_iter != forcing.end());
 
         if (!converged)
