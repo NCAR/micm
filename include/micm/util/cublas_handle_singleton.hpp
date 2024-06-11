@@ -13,12 +13,6 @@ namespace micm
       CublasHandleSingleton(const CublasHandleSingleton&) = delete;
       CublasHandleSingleton& operator=(const CublasHandleSingleton&) = delete;
 
-      // Static method to get the singleton instance
-      static CublasHandleSingleton& GetInstance() {
-        static CublasHandleSingleton instance;
-        return instance;
-      }
-
       // Get the static instance of CublasHandleSingleton class
       static CublasHandleSingleton& GetInstance()
       {
