@@ -21,9 +21,7 @@
 /// More details including analytical solution can be found here:
 /// https://github.com/ESCOMP/CAM/blob/8cd44c50fe107c0b93ccd48b61eaa3d10a5b4e2f/src/chemistry/pp_terminator/chemistry.F90#L1-L434
 template<class BuilderPolicy>
-void TestTerminator(
-    BuilderPolicy& builder,
-    std::size_t number_of_grid_cells)
+void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
 {
   auto cl2 = micm::Species("Cl2");
   auto cl = micm::Species("Cl");
@@ -45,11 +43,10 @@ void TestTerminator(
                              .SetPhase(gas_phase)
                              .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = k2 }));
 
-  auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 })
-          .SetNumberOfGridCells(number_of_grid_cells)
-          .Build();
+  auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 })
+                    .SetNumberOfGridCells(number_of_grid_cells)
+                    .Build();
   auto state = solver.GetState();
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());

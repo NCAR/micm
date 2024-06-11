@@ -110,9 +110,7 @@ void test_analytical_troe(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   auto be_state = solver.GetState();
 
@@ -258,9 +256,7 @@ void test_analytical_stiff_troe(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -370,9 +366,7 @@ void test_analytical_photolysis(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -499,9 +493,7 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -618,9 +610,7 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -757,9 +747,7 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -870,9 +858,7 @@ void test_analytical_tunneling(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -996,9 +982,7 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1105,9 +1089,7 @@ void test_analytical_arrhenius(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1232,9 +1214,7 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1351,9 +1331,7 @@ void test_analytical_branched(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1507,9 +1485,7 @@ void test_analytical_stiff_branched(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1643,9 +1619,7 @@ void test_analytical_robertson(BuilderPolicy& builder)
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
   auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-          .SetReactions(processes)
-          .Build();
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;

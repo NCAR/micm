@@ -11,12 +11,11 @@ class E5
   const std::vector<std::string> variable_names_ = { "y1", "y2", "y3", "y4" };
 
  public:
-
   E5() = delete;
 
   E5(std::size_t number_of_grid_cells, std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements)
-    : number_of_grid_cells_(number_of_grid_cells),
-      nonzero_jacobian_elements_(nonzero_jacobian_elements)
+      : number_of_grid_cells_(number_of_grid_cells),
+        nonzero_jacobian_elements_(nonzero_jacobian_elements)
   {
   }
 
@@ -41,11 +40,7 @@ class E5
     LinearSolverPolicy linear_solver(jacobian, 1.0e-30);
     E5<MatrixPolicy, SparseMatrixPolicy> e5(number_of_grid_cells, nonzero_jacobian_elements);
 
-    return SolverPolicy(
-      parameters,
-      std::move(linear_solver),
-      std::move(e5),
-      jacobian);
+    return SolverPolicy(parameters, std::move(linear_solver), std::move(e5), jacobian);
   }
 
   ~E5()
@@ -54,18 +49,15 @@ class E5
 
   micm::State<MatrixPolicy, SparseMatrixPolicy> GetState() const
   {
-    auto state = micm::State<MatrixPolicy, SparseMatrixPolicy>{ {
-      .number_of_grid_cells_ = number_of_grid_cells_,
-      .number_of_species_ = 4,
-      .number_of_rate_constants_ = 0,
-      .variable_names_ = variable_names_,
-      .nonzero_jacobian_elements_ = nonzero_jacobian_elements_
-    } };
+    auto state =
+        micm::State<MatrixPolicy, SparseMatrixPolicy>{ { .number_of_grid_cells_ = number_of_grid_cells_,
+                                                         .number_of_species_ = 4,
+                                                         .number_of_rate_constants_ = 0,
+                                                         .variable_names_ = variable_names_,
+                                                         .nonzero_jacobian_elements_ = nonzero_jacobian_elements_ } };
 
-    state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
-        nonzero_jacobian_elements_,
-        number_of_grid_cells_,
-        variable_names_.size());
+    state.jacobian_ =
+        micm::BuildJacobian<SparseMatrixPolicy>(nonzero_jacobian_elements_, number_of_grid_cells_, variable_names_.size());
 
     auto lu = micm::LuDecomposition::GetLUMatrices(state.jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);
@@ -80,10 +72,7 @@ class E5
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
   /// @param forcing Vector of forcings for the current conditions
-  void AddForcingTerms(
-      const MatrixPolicy& rate_constants,
-      const MatrixPolicy& number_densities,
-      MatrixPolicy& forcing)
+  void AddForcingTerms(const MatrixPolicy& rate_constants, const MatrixPolicy& number_densities, MatrixPolicy& forcing)
   {
     auto data = number_densities.AsVector();
 

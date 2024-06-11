@@ -37,10 +37,10 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   EXPECT_EQ(options.relative_tolerance_, 1.0e-4);
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-      .SetSystem(solver_params.system_)
-      .SetReactions(solver_params.processes_)
-      .SetIgnoreUnusedSpecies(true)
-      .Build();
+                    .SetSystem(solver_params.system_)
+                    .SetReactions(solver_params.processes_)
+                    .SetIgnoreUnusedSpecies(true)
+                    .Build();
 
   micm::State state = solver.GetState();
 
@@ -151,7 +151,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                     .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
                     .SetIgnoreUnusedSpecies(true)
                     .Build();
-  
+
   auto state = solver.GetState();
 
   std::vector<double> concentrations{ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3 };

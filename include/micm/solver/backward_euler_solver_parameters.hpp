@@ -9,7 +9,7 @@
 
 namespace micm
 {
-  
+
   template<class RatesPolicy, class LinearSolverPolicy>
   class BackwardEuler;
 

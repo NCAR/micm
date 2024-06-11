@@ -15,12 +15,12 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/solver/solver_result.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -104,12 +104,12 @@ namespace micm
     /// @param stats The solver stats
     /// @param state The state
     void LinearFactor(
-      double& H,
-      const double gamma,
-      bool& singular,
-      const auto& number_densities,
-      SolverStats& stats,
-      auto& state);
+        double& H,
+        const double gamma,
+        bool& singular,
+        const auto& number_densities,
+        SolverStats& stats,
+        auto& state);
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector
@@ -117,15 +117,11 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
-        const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>);
+    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
+        requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y,
-        const DenseMatrixPolicy& y_new,
-        const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>);
+    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
+        requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm

@@ -2,8 +2,8 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/jit_solver_builder.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -125,7 +125,7 @@ void run_solver(auto& solver)
   }
 }
 
-template <std::size_t L>
+template<std::size_t L>
 using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)

@@ -3,8 +3,8 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/jit_solver_builder.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -12,7 +12,7 @@
 
 using namespace micm;
 
-template <std::size_t L>
+template<std::size_t L>
 using JitBuilder = JitSolverBuilder<JitRosenbrockSolverParameters, L>;
 
 TEST(OpenMP, JITOneSolverManyStates)
@@ -34,7 +34,7 @@ TEST(OpenMP, JITOneSolverManyStates)
   auto solver = JitBuilder<1>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
-                    .Build();  
+                    .Build();
 
 #pragma omp parallel num_threads(n_threads)
   {

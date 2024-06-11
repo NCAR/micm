@@ -1,14 +1,14 @@
 #include "util.hpp"
 
 #include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/jit_solver_builder.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
-template <std::size_t L>
+template<std::size_t L>
 using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 
-template <std::size_t L>
+template<std::size_t L>
 auto getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
@@ -22,7 +22,7 @@ auto getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
       .Build();
 }
 
-template <std::size_t L>
+template<std::size_t L>
 auto getThreeStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
@@ -36,7 +36,7 @@ auto getThreeStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
       .Build();
 }
 
-template <std::size_t L>
+template<std::size_t L>
 auto getFourStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
@@ -50,7 +50,7 @@ auto getFourStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
       .Build();
 }
 
-template <std::size_t L>
+template<std::size_t L>
 auto getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
@@ -64,7 +64,7 @@ auto getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
       .Build();
 }
 
-template <std::size_t L>
+template<std::size_t L>
 auto getSixStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();

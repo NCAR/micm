@@ -63,7 +63,7 @@ namespace micm
     std::vector<double> absolute_tolerance_;
     double relative_tolerance_{ 1e-6 };
 
-    bool check_singularity_{ false };        // Check for singular A matrix in linear solve of A x = b
+    bool check_singularity_{ false };  // Check for singular A matrix in linear solve of A x = b
 
     // Print RosenbrockSolverParameters to console
     void Print() const;

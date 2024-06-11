@@ -152,8 +152,7 @@ namespace micm
         do
         {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) ||
-                      (std::abs(*forcing_iter) <= *abs_tol_iter) ||
+          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= *abs_tol_iter) ||
                       (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
         } while (converged && forcing_iter != forcing.end());

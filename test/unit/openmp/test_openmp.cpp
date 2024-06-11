@@ -25,10 +25,11 @@ TEST(OpenMP, OneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                    .SetSystem(chemical_system)
-                    .SetReactions(reactions)
-                    .Build();
+  auto solver =
+      CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+          .SetSystem(chemical_system)
+          .SetReactions(reactions)
+          .Build();
 
 #pragma omp parallel num_threads(n_threads)
   {

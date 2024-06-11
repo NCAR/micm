@@ -6,7 +6,7 @@
 
 namespace micm
 {
-    /// @brief The final state the solver was in after the Solve function finishes
+  /// @brief The final state the solver was in after the Solve function finishes
   enum class SolverState
   {
     /// @brief This is the initial value at the start of the Solve function
@@ -80,12 +80,12 @@ namespace micm
   }
 
   struct [[nodiscard]] SolverResult
-    {
-      /// @brief The final state the solver was in
-      SolverState state_ = SolverState::NotYetCalled;
-      /// @brief A collection of runtime state for this call of the solver
-      SolverStats stats_{};
-      /// @brief The final time the solver iterated to
-      double final_time_{};
-    };
-}
+  {
+    /// @brief The final state the solver was in
+    SolverState state_ = SolverState::NotYetCalled;
+    /// @brief A collection of runtime state for this call of the solver
+    SolverStats stats_{};
+    /// @brief The final time the solver iterated to
+    double final_time_{};
+  };
+}  // namespace micm

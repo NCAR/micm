@@ -37,7 +37,6 @@ namespace micm
     FuncPtr alpha_minus_jacobian_ = nullptr;
 
    public:
-
     /// @brief Solver parameters typename
     using ParametersType = JitRosenbrockSolverParameters;
 
@@ -70,11 +69,7 @@ namespace micm
         LinearSolverPolicy linear_solver,
         RatesPolicy rates,
         auto& jacobian)
-        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(
-              parameters,
-              std::move(linear_solver),
-              std::move(rates),
-              jacobian)
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(parameters, std::move(linear_solver), std::move(rates), jacobian)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

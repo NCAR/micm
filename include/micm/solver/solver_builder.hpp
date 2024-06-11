@@ -28,7 +28,12 @@ namespace micm
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Policy for the linear solver
-  template<class SolverParametersPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy, class LinearSolverPolicy>
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class RatesPolicy,
+      class LinearSolverPolicy>
   class SolverBuilder
   {
    protected:
@@ -42,7 +47,6 @@ namespace micm
     bool valid_reactions_ = false;
 
    public:
-
     SolverBuilder() = delete;
 
     SolverBuilder(const SolverParametersPolicy& options)
@@ -98,15 +102,22 @@ namespace micm
     /// @brief Returns the labels of the custom parameters
     /// @return The labels of the custom parameters
     std::vector<std::string> GetCustomParameterLabels() const;
-
   };
 
   /// @brief Builder of CPU-based general solvers
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  template<class SolverParametersPolicy, class DenseMatrixPolicy = Matrix<double>, class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
-  using CpuSolverBuilder = SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, ProcessSet, LinearSolver<SparseMatrixPolicy, LuDecomposition>>;
+  template<
+      class SolverParametersPolicy,
+      class DenseMatrixPolicy = Matrix<double>,
+      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
+  using CpuSolverBuilder = SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      ProcessSet,
+      LinearSolver<SparseMatrixPolicy, LuDecomposition>>;
 
 }  // namespace micm
 

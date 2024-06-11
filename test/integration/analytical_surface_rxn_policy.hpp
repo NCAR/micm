@@ -63,10 +63,7 @@ void test_analytical_surface_rxn(BuilderPolicy& builder)
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
-  auto solver =
-      builder.SetSystem(chemical_system)
-          .SetReactions(reactions)
-          .Build();
+  auto solver = builder.SetSystem(chemical_system).SetReactions(reactions).Build();
 
   // State
   micm::State state = solver.GetState();
