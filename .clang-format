@@ -14,7 +14,7 @@ BinPackParameters: 'false'
 Cpp11BracedListStyle: 'false'
 ColumnLimit: 125 
 IndentWidth: 2
-IndentPPDirectives: AfterHash
+IndentPPDirectives: BeforeHash
 NamespaceIndentation: All
 PackConstructorInitializers: 'Never'
 SpaceAfterTemplateKeyword: 'false'
@@ -30,13 +30,13 @@ IncludeCategories:
   - Regex:           '<(micm)\/'
     Priority:        2
   # CUDA, cuBLAS, LLVM, OpenMP headers
-  - Regex:           '<(cuda|cublas|llvm|omp)[[:alnum:].\Q/-_\E]+>'
+  - Regex:           '<(cuda|cublas|llvm|omp)[[:alnum:].(-|_)*]+>'
     Priority:        3
   # External libraries headers
-  - Regex:           '<([[:alnum:].\Q/-_\E]+)\/'
+  - Regex:           '<[[:alnum:].(-|_)*]+\/'
     Priority:        3
   # System headers
-  - Regex:           '<[[:alnum:].\Q/-_\E]+>'
+  - Regex:           '<[[:alnum:].(-|_)*]+>'
     Priority:        4
   # Main, local, private headers
   - Regex:           '".*'
