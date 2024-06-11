@@ -1,5 +1,6 @@
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -30,7 +31,10 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
   State state = solver.GetState();
 
@@ -41,8 +45,8 @@ int main(const int argc, const char *argv[])
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(500.0, state);
-    state.variables_ = result.result_;
     state.PrintState(i * 500);
   }
 

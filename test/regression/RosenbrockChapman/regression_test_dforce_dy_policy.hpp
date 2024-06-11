@@ -10,8 +10,8 @@
 
 #include <random>
 
-template<class OdeSolverPolicy>
-void testJacobian(OdeSolverPolicy& solver)
+template<class SolverPolicy>
+void testJacobian(SolverPolicy& solver)
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };
@@ -27,7 +27,8 @@ void testJacobian(OdeSolverPolicy& solver)
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
 
   auto& jacobian = state.jacobian_;
-  solver.CalculateNegativeJacobian(state.rate_constants_, state.variables_, jacobian);
+  jacobian.Fill(0.0);
+  solver.solver_.rates_.SubtractJacobianTerms(state.rate_constants_, state.variables_, jacobian);
 
   for (std::size_t i{}; i < 3; ++i)
   {
@@ -48,21 +49,3 @@ void testJacobian(OdeSolverPolicy& solver)
     }
   }
 }
-
-template<class T>
-using DenseMatrix = micm::Matrix<T>;
-using SparseMatrix = micm::SparseMatrix<double>;
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;

@@ -1,81 +1,78 @@
 #include "regression_test_p_force_policy.hpp"
 
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
+template<std::size_t L>
+using VectorBuilder = micm::CpuSolverBuilder<
+    micm::RosenbrockSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+
 TEST(RegressionRosenbrock, RateConstants)
 {
-  auto solver = getThreeStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(3);
-  testRateConstants<>(solver);
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto solver = getChapmanSolver(builder, 3);
+  testRateConstants(solver);
 }
 
 TEST(RegressionRosenbrock, VectorRateConstants)
 {
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group1VectorMatrix,
-        Group1SparseVectorMatrix,
-        micm::LinearSolver<Group1SparseVectorMatrix>>(3);
-    testRateConstants<>(solver);
+    auto builder = VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testRateConstants(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group2VectorMatrix,
-        Group2SparseVectorMatrix,
-        micm::LinearSolver<Group2SparseVectorMatrix>>(3);
-    testRateConstants<>(solver);
+    auto builder = VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testRateConstants(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group3VectorMatrix,
-        Group3SparseVectorMatrix,
-        micm::LinearSolver<Group3SparseVectorMatrix>>(3);
-    testRateConstants<>(solver);
+    auto builder = VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testRateConstants(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group4VectorMatrix,
-        Group4SparseVectorMatrix,
-        micm::LinearSolver<Group4SparseVectorMatrix>>(3);
-    testRateConstants<>(solver);
+    auto builder = VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testRateConstants(solver);
   }
 }
 
 TEST(RegressionRosenbrock, Forcing)
 {
-  auto solver = getThreeStageMultiCellChapmanSolver<DenseMatrix, SparseMatrix, micm::LinearSolver<SparseMatrix>>(3);
-  testForcing<DenseMatrix>(solver);
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto solver = getChapmanSolver(builder, 3);
+  testForcing<micm::Matrix<double>>(solver);
 }
 
 TEST(RegressionRosenbrock, VectorForcing)
 {
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group1VectorMatrix,
-        Group1SparseVectorMatrix,
-        micm::LinearSolver<Group1SparseVectorMatrix>>(3);
-    testForcing<Group1VectorMatrix>(solver);
+    auto builder = VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testForcing<micm::VectorMatrix<double, 1>>(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group2VectorMatrix,
-        Group2SparseVectorMatrix,
-        micm::LinearSolver<Group2SparseVectorMatrix>>(3);
-    testForcing<Group2VectorMatrix>(solver);
+    auto builder = VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testForcing<micm::VectorMatrix<double, 2>>(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group3VectorMatrix,
-        Group3SparseVectorMatrix,
-        micm::LinearSolver<Group3SparseVectorMatrix>>(3);
-    testForcing<Group3VectorMatrix>(solver);
+    auto builder = VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testForcing<micm::VectorMatrix<double, 3>>(solver);
   }
   {
-    auto solver = getThreeStageMultiCellChapmanSolver<
-        Group4VectorMatrix,
-        Group4SparseVectorMatrix,
-        micm::LinearSolver<Group4SparseVectorMatrix>>(3);
-    testForcing<Group4VectorMatrix>(solver);
+    auto builder = VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+    auto solver = getChapmanSolver(builder, 3);
+    testForcing<micm::VectorMatrix<double, 4>>(solver);
   }
 }

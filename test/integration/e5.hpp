@@ -3,72 +3,61 @@
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
-template<
-    template<class> class MatrixPolicy = micm::Matrix,
-    class SparseMatrixPolicy = micm::StandardSparseMatrix,
-    class LinearSolverPolicy = micm::LinearSolver<SparseMatrixPolicy>>
-class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>
+template<class MatrixPolicy, class SparseMatrixPolicy>
+class E5
 {
+  std::size_t number_of_grid_cells_;
   std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_;
+  const std::vector<std::string> variable_names_ = { "y1", "y2", "y3", "y4" };
 
  public:
-  /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
-  /// @param system The chemical system to create the solver for
-  /// @param processes The collection of chemical processes that will be applied during solving
-  E5(const micm::System& system,
-     const std::vector<micm::Process>& processes,
-     const micm::RosenbrockSolverParameters& parameters)
-      : micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy>()
-  {
-    this->processes_ = processes;
-    this->parameters_ = parameters;
+  E5() = delete;
 
-    auto builder = SparseMatrixPolicy::Create(4).SetNumberOfBlocks(1).InitialValue(0.0);
+  E5(std::size_t number_of_grid_cells, std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements)
+      : number_of_grid_cells_(number_of_grid_cells),
+        nonzero_jacobian_elements_(nonzero_jacobian_elements)
+  {
+  }
+
+  /// @brief Creates a new solver for the Oregonator system
+  template<class SolverPolicy, class LinearSolverPolicy>
+  static auto CreateSolver(auto parameters, std::size_t number_of_grid_cells)
+  {
+    parameters.relative_tolerance_ = 1e-2;
+    parameters.absolute_tolerance_ = std::vector<double>(4, 1.7e-24);
+
+    std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements;
+    auto jacobian_builder = SparseMatrixPolicy::Create(4).SetNumberOfBlocks(number_of_grid_cells).InitialValue(0.0);
     for (int i = 0; i < 4; ++i)
     {
       for (int j = 0; j < 4; ++j)
       {
-        builder = builder.WithElement(i, j);
-        nonzero_jacobian_elements_.insert(std::make_pair(i, j));
+        jacobian_builder = jacobian_builder.WithElement(i, j);
+        nonzero_jacobian_elements.insert(std::make_pair(i, j));
       }
     }
-    SparseMatrixPolicy jacobian = SparseMatrixPolicy(builder);
+    SparseMatrixPolicy jacobian = SparseMatrixPolicy(jacobian_builder);
+    LinearSolverPolicy linear_solver(jacobian, 1.0e-30);
+    E5<MatrixPolicy, SparseMatrixPolicy> e5(number_of_grid_cells, nonzero_jacobian_elements);
 
-    std::vector<std::size_t> jacobian_diagonal_elements;
-    for (std::size_t i = 0; i < jacobian.NumRows(); ++i)
-      jacobian_diagonal_elements.push_back(jacobian.VectorIndex(0, i, i));
-
-    std::vector<std::string> param_labels{};
-    for (const auto& process : processes)
-      if (process.rate_constant_)
-        for (auto& label : process.rate_constant_->CustomParameters())
-          param_labels.push_back(label);
-
-    std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
-    this->state_parameters_ = {
-      .number_of_grid_cells_ = 1,
-      .number_of_species_ = 4,
-      .number_of_rate_constants_ = processes.size(),
-      .variable_names_ = system.UniqueNames(state_reordering),
-      .custom_rate_parameter_labels_ = param_labels,
-      .jacobian_diagonal_elements_ = jacobian_diagonal_elements,
-    };
-
-    this->linear_solver_ = LinearSolverPolicy(jacobian, 1.0e-30);
+    return SolverPolicy(parameters, std::move(linear_solver), std::move(e5), jacobian);
   }
 
   ~E5()
   {
   }
 
-  micm::State<MatrixPolicy<double>, SparseMatrixPolicy> GetState() const override
+  micm::State<MatrixPolicy, SparseMatrixPolicy> GetState() const
   {
-    auto state = micm::State<MatrixPolicy<double>, SparseMatrixPolicy>{ this->state_parameters_ };
+    auto state =
+        micm::State<MatrixPolicy, SparseMatrixPolicy>{ { .number_of_grid_cells_ = number_of_grid_cells_,
+                                                         .number_of_species_ = 4,
+                                                         .number_of_rate_constants_ = 0,
+                                                         .variable_names_ = variable_names_,
+                                                         .nonzero_jacobian_elements_ = nonzero_jacobian_elements_ } };
 
-    state.jacobian_ = micm::BuildJacobian<SparseMatrixPolicy>(
-        nonzero_jacobian_elements_,
-        this->state_parameters_.number_of_grid_cells_,
-        this->state_parameters_.variable_names_.size());
+    state.jacobian_ =
+        micm::BuildJacobian<SparseMatrixPolicy>(nonzero_jacobian_elements_, number_of_grid_cells_, variable_names_.size());
 
     auto lu = micm::LuDecomposition::GetLUMatrices(state.jacobian_, 1.0e-30);
     auto lower_matrix = std::move(lu.first);
@@ -83,60 +72,50 @@ class E5 : public micm::RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, Linea
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
   /// @param forcing Vector of forcings for the current conditions
-  void CalculateForcing(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& number_densities,
-      MatrixPolicy<double>& forcing) override
+  void AddForcingTerms(const MatrixPolicy& rate_constants, const MatrixPolicy& number_densities, MatrixPolicy& forcing)
   {
-    std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-
     auto data = number_densities.AsVector();
 
     double prod1 = 7.89e-10 * data[0];
     double prod2 = 1.1e7 * data[0] * data[2];
     double prod3 = 1.13e9 * data[1] * data[2];
     double prod4 = 1.13e3 * data[3];
-    forcing[0][0] = -prod1 - prod2;
-    forcing[0][1] = prod1 - prod3;
-    forcing[0][3] = prod2 - prod4;
-    forcing[0][2] = forcing[0][1] - forcing[0][3];
+    forcing[0][0] += -prod1 - prod2;
+    forcing[0][1] += prod1 - prod3;
+    forcing[0][3] += prod2 - prod4;
+    forcing[0][2] += forcing[0][1] - forcing[0][3];
   }
 
   /// @brief Compute the derivative of the forcing w.r.t. each chemical, and return the negative jacobian
   /// @param rate_constants List of rate constants for each needed species
   /// @param number_densities The number density of each species
   /// @param jacobian The matrix of negative partial derivatives
-  void CalculateNegativeJacobian(
-      const MatrixPolicy<double>& rate_constants,
-      const MatrixPolicy<double>& number_densities,
-      SparseMatrixPolicy& jacobian) override
+  void SubtractJacobianTerms(
+      const MatrixPolicy& rate_constants,
+      const MatrixPolicy& number_densities,
+      SparseMatrixPolicy& jacobian)
   {
-    std::fill(jacobian.AsVector().begin(), jacobian.AsVector().end(), 0.0);
     auto data = number_densities.AsVector();
 
     double A = 7.89e-10;
     double B = 1.1e7;
     double CM = 1.13e9;
     double C = 1.13e3;
-    jacobian[0][0][0] = -A - B * data[2];
-    jacobian[0][0][1] = 0.0;
-    jacobian[0][0][2] = -B * data[0];
-    jacobian[0][0][3] = 0.0;
-    jacobian[0][1][0] = A;
-    jacobian[0][1][1] = -CM * data[2];
-    jacobian[0][1][2] = -CM * data[1];
-    jacobian[0][1][3] = 0.0;
-    jacobian[0][2][0] = A - B * data[2];
-    jacobian[0][2][1] = -CM * data[2];
-    jacobian[0][2][2] = -B * data[0] - CM * data[1];
-    jacobian[0][2][3] = C;
-    jacobian[0][3][0] = B * data[2];
-    jacobian[0][3][1] = 0.0;
-    jacobian[0][3][2] = B * data[0];
-    jacobian[0][3][3] = -C;
-
-    // Negate the jacobian
-    for (auto& elem : jacobian.AsVector())
-      elem = -elem;
+    jacobian[0][0][0] -= -A - B * data[2];
+    jacobian[0][0][1] -= 0.0;
+    jacobian[0][0][2] -= -B * data[0];
+    jacobian[0][0][3] -= 0.0;
+    jacobian[0][1][0] -= A;
+    jacobian[0][1][1] -= -CM * data[2];
+    jacobian[0][1][2] -= -CM * data[1];
+    jacobian[0][1][3] -= 0.0;
+    jacobian[0][2][0] -= A - B * data[2];
+    jacobian[0][2][1] -= -CM * data[2];
+    jacobian[0][2][2] -= -B * data[0] - CM * data[1];
+    jacobian[0][2][3] -= C;
+    jacobian[0][3][0] -= B * data[2];
+    jacobian[0][3][1] -= 0.0;
+    jacobian[0][3][2] -= B * data[0];
+    jacobian[0][3][3] -= -C;
   }
 };

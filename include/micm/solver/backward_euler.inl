@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 enum class MicmBackwardEulerErrc
 {
   FailedToConverge = 1
@@ -44,8 +42,8 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 
 namespace micm
 {
-  template<class LinearSolverPolicy, class ProcessSetPolicy>
-  inline void BackwardEuler<LinearSolverPolicy, ProcessSetPolicy>::Solve(double time_step, auto& state)
+  template<class RatesPolicy, class LinearSolverPolicy>
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state)
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -58,7 +56,9 @@ namespace micm
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
 
-    double tolerance = parameters_.absolute_tolerance_[0];
+    // TODO populate the result before returning it
+    SolverResult result;
+
     double small = parameters_.small;
     std::size_t max_iter = parameters_.max_number_of_steps_;
     const auto time_step_reductions = parameters_.time_step_reductions;
@@ -74,8 +74,6 @@ namespace micm
     auto Yn1 = state.variables_;
     auto forcing = state.variables_;
 
-    Process::UpdateState(processes_, state);
-
     while (t < time_step)
     {
       bool converged = false;
@@ -90,11 +88,11 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
-        process_set_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
-        process_set_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
@@ -150,11 +148,13 @@ namespace micm
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
+        auto abs_tol_iter = parameters_.absolute_tolerance_.begin();
         do
         {
           // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= tolerance * std::abs(*yn1_iter));
-          ++forcing_iter, ++yn1_iter;
+          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= *abs_tol_iter) ||
+                      (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
+          ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
         } while (converged && forcing_iter != forcing.end());
 
         if (!converged)
@@ -176,7 +176,6 @@ namespace micm
           // give_up = true;
           t += H;
           throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
-          break;
         };
 
         H *= time_step_reductions[n_convergence_failures++];
@@ -200,5 +199,6 @@ namespace micm
     }
 
     state.variables_ = Yn1;
+    return result;
   }
 }  // namespace micm

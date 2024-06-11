@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
@@ -198,6 +196,14 @@ namespace micm
     {
       return y_dim_;
     }
+
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
+    }
+
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, x * y_dim_, y_dim_);

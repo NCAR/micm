@@ -1,5 +1,6 @@
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <omp.h>
 
@@ -50,12 +51,12 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   for (int i = 0; i < 10; ++i)
   {
     double elapsed_solve_time = 0;
-
+    solver.CalculateRateConstants(state);
+    
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
     }
   }
 
@@ -78,7 +79,10 @@ int main()
 
   std::vector<std::vector<double>> results(n_threads);
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, solver_params.parameters_ };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
 #pragma omp parallel num_threads(n_threads)
   {

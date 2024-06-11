@@ -2,6 +2,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
@@ -41,9 +42,11 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }), std::vector<micm::Process>{ r1, r2 }, options
-  };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ r1, r2 })
+                    .SetNumberOfGridCells(1)
+                    .Build();
 
   auto state = solver.GetState();
 
@@ -69,11 +72,13 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
     {
       state.SetCustomRateParameter("r2", 0.0);
     }
+    solver.CalculateRateConstants(state);
     std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
+    double irr1 = state.variables_[0][irr1_idx];
+    double irr2 = state.variables_[0][irr2_idx];
     auto result = solver.Solve(30.0, state);
-    EXPECT_GE(result.result_[0][irr1_idx], state.variables_[0][irr1_idx]);
-    EXPECT_GE(result.result_[0][irr2_idx], state.variables_[0][irr2_idx]);
-    state.variables_ = result.result_;
+    EXPECT_GE(state.variables_[0][irr1_idx], irr1);
+    EXPECT_GE(state.variables_[0][irr2_idx], irr2);
   }
   std::cout << state.variables_[0][irr1_idx] << " " << state.variables_[0][irr2_idx] << std::endl;
 }

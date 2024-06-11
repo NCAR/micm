@@ -2,6 +2,7 @@
 #include <micm/process/process.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
@@ -32,27 +33,28 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
   auto options = solver_params.parameters_;
-  options.ignore_unused_species_ = true;
 
   EXPECT_EQ(options.relative_tolerance_, 1.0e-4);
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{ solver_params.system_,
-                                                                 std::move(solver_params.processes_),
-                                                                 options };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(solver_params.system_)
+                    .SetReactions(solver_params.processes_)
+                    .SetIgnoreUnusedSpecies(true)
+                    .Build();
 
   micm::State state = solver.GetState();
 
   for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
   {
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["M"]], 1.0e-3);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["N2"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O1D"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O2"]], 1.0e-12);
-    EXPECT_EQ(solver.parameters_.absolute_tolerance_[state.variable_map_["O3"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["M"]], 1.0e-3);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["N2"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["O1D"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["O"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["O2"]], 1.0e-12);
+    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["O3"]], 1.0e-12);
   }
 
   // User gives an input of concentrations
@@ -76,6 +78,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   for (double t{}; t < 100; ++t)
   {
     state.SetCustomRateParameters(photo_rates);
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(30.0, state);
     // output state
   }
@@ -142,13 +145,12 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
                               .SetPhase(gas_phase);
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  options.ignore_unused_species_ = true;
 
-  micm::RosenbrockSolver<micm::Matrix, SparseMatrixTest> solver{
-    micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }),
-    std::vector<micm::Process>{ r1, r2, r3, r4, photo_1, photo_2, photo_3 },
-    options
-  };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                    .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                    .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
+                    .SetIgnoreUnusedSpecies(true)
+                    .Build();
 
   auto state = solver.GetState();
 
@@ -162,6 +164,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
   for (double t{}; t < 100; ++t)
   {
     state.custom_rate_parameters_[0] = photo_rates;
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(30.0, state);
     // output state
   }

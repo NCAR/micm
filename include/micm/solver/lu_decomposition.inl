@@ -1,7 +1,6 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+
 namespace micm
 {
 
@@ -10,13 +9,14 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
+  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
   {
     Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
-  inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy& matrix)
+  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecomposition LuDecomposition::Create(
+      const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
     lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
@@ -24,7 +24,9 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline void LuDecomposition::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
+  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecomposition::Initialize(
+      const SparseMatrixPolicy& matrix,
+      auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -100,9 +102,9 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::GetLUMatrices(
-      const SparseMatrixPolicy& A,
-      typename SparseMatrixPolicy::value_type initial_value)
+  requires(
+      SparseMatrixConcept<SparseMatrixPolicy>) inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::
+      GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -162,7 +164,10 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  inline void LuDecomposition::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
+  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
+      const SparseMatrixPolicy& A,
+      SparseMatrixPolicy& L,
+      SparseMatrixPolicy& U) const
   {
     bool is_singular = false;
     Decompose<SparseMatrixPolicy>(A, L, U, is_singular);

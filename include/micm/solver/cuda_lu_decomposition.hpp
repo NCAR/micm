@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/solver/cuda_lu_decomposition.cuh>
@@ -24,6 +22,41 @@ namespace micm
 
     /// This is the default constructor, taking no arguments;
     CudaLuDecomposition(){};
+
+    CudaLuDecomposition(const CudaLuDecomposition&) = delete;
+    CudaLuDecomposition& operator=(const CudaLuDecomposition&) = delete;
+    CudaLuDecomposition(CudaLuDecomposition&& other)
+        : LuDecomposition(std::move(other)),
+          devstruct_(std::move(other.devstruct_))
+    {
+      other.devstruct_.niLU_ = nullptr;
+      other.devstruct_.do_aik_ = nullptr;
+      other.devstruct_.aik_ = nullptr;
+      other.devstruct_.uik_nkj_ = nullptr;
+      other.devstruct_.lij_ujk_ = nullptr;
+      other.devstruct_.do_aki_ = nullptr;
+      other.devstruct_.aki_ = nullptr;
+      other.devstruct_.lki_nkj_ = nullptr;
+      other.devstruct_.lkj_uji_ = nullptr;
+      other.devstruct_.uii_ = nullptr;
+    };
+
+    CudaLuDecomposition& operator=(CudaLuDecomposition&& other)
+    {
+      LuDecomposition::operator=(std::move(other));
+      devstruct_ = std::move(other.devstruct_);
+      other.devstruct_.niLU_ = nullptr;
+      other.devstruct_.do_aik_ = nullptr;
+      other.devstruct_.aik_ = nullptr;
+      other.devstruct_.uik_nkj_ = nullptr;
+      other.devstruct_.lij_ujk_ = nullptr;
+      other.devstruct_.do_aki_ = nullptr;
+      other.devstruct_.aki_ = nullptr;
+      other.devstruct_.lki_nkj_ = nullptr;
+      other.devstruct_.lkj_uji_ = nullptr;
+      other.devstruct_.uii_ = nullptr;
+      return *this;
+    };
 
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and

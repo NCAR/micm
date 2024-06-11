@@ -7,6 +7,7 @@
 #include <micm/process/ternary_chemical_activation_rate_constant.hpp>
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/solver/rosenbrock.hpp>
 
 #include <algorithm>
@@ -58,25 +59,13 @@ int main(const int argc, const char* argv[])
 
   SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  // add third-body species parameterizaton on air density
-  for (auto& species : solver_params.system_.gas_phase_.species_)
-    if (species.name_ == "M")
-      species.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  for (auto& process : solver_params.processes_)
-  {
-    for (auto& reactant : process.reactants_)
-      if (reactant.name_ == "M")
-        reactant.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    for (auto& product : process.products_)
-      if (product.first.name_ == "M")
-        product.first.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  }
-
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  auto params = solver_params.parameters_;
-  RosenbrockSolver<> solver{ chemical_system, reactions, params };
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(solver_params.parameters_)
+                   .SetSystem(chemical_system)
+                   .SetReactions(reactions)
+                   .Build();
 
   State state = solver.GetState();
 
@@ -108,9 +97,9 @@ int main(const int argc, const char* argv[])
 
   while (elapsed_solve_time < time_step)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
-    state.variables_ = result.result_;
     if (result.state_ != SolverState::Converged)
     {
       std::cout << "solver failed to converge" << std::endl;

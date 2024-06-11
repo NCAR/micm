@@ -1,7 +1,14 @@
 #include <micm/solver/backward_euler.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/rosenbrock_solver_parameters.hpp>
+#ifdef MICM_ENABLE_LLVM
+#  include <micm/solver/jit_solver_builder.hpp>
+#  include <micm/solver/jit_solver_parameters.hpp>
+#endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
@@ -33,50 +40,84 @@ namespace
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
+TEST(SolverBuilder, ThrowsMissingSystem)
+{
+  EXPECT_THROW(
+      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+          .SetNumberOfGridCells(1)
+          .Build(),
+      std::system_error);
+}
+
+TEST(SolverBuilder, ThrowsMissingReactions)
+{
+  EXPECT_THROW(
+      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+          .SetSystem(the_system)
+          .SetNumberOfGridCells(1)
+          .Build(),
+      std::system_error);
+  EXPECT_THROW(
+      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+          .SetSystem(the_system)
+          .SetReactions({})
+          .Build(),
+      std::system_error);
+}
+
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
-  auto backward_euler = micm::CpuSolverBuilder<micm::Matrix<double>, micm::SparseMatrix<double>>()
+  auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                             .SetSystem(the_system)
                             .SetReactions(reactions)
                             .SetNumberOfGridCells(1)
-                            .SetSolverParameters(micm::BackwardEulerSolverParameters{})
                             .Build();
 
   constexpr std::size_t L = 4;
-  auto backward_euler_vector = micm::CpuSolverBuilder<micm::VectorMatrix<double, L>, micm::SparseMatrix<double>>()
-                                   .SetSystem(the_system)
-                                   .SetReactions(reactions)
-                                   .SetNumberOfGridCells(1)
-                                   .SetSolverParameters(micm::BackwardEulerSolverParameters{})
-                                   .Build();
+  auto backward_euler_vector =
+      micm::CpuSolverBuilder<
+          micm::BackwardEulerSolverParameters,
+          micm::VectorMatrix<double, L>,
+          micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
+          .SetSystem(the_system)
+          .SetReactions(reactions)
+          .SetNumberOfGridCells(1)
+          .Build();
 }
 
 TEST(SolverBuilder, CanBuildRosenbrock)
 {
-  // auto rosenbrock = micm::CpuSolverBuilder<Matrix<double>, SparseMatrix<double>>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::ThreeStageRosenbockSolverParameters{})
-  //                           .Build();
+  auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                        micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                        .SetSystem(the_system)
+                        .SetReactions(reactions)
+                        .SetNumberOfGridCells(1)
+                        .Build();
 
-  // auto rosenbrock_vector = micm::CpuSolverBuilder<VectorMatrix<double, L>, SparseVectorMatrix<double, L>>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::ThreeStageRosenbockSolverParameters{})
-  //                           .Build();
+  constexpr std::size_t L = 4;
+  auto rosenbrock_vector = micm::CpuSolverBuilder<
+                               micm::RosenbrockSolverParameters,
+                               micm::VectorMatrix<double, L>,
+                               micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(
+                               micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                               .SetSystem(the_system)
+                               .SetReactions(reactions)
+                               .SetNumberOfGridCells(1)
+                               .Build();
 }
 
+#ifdef MICM_ENABLE_LLVM
 TEST(SolverBuilder, CanBuildJitRosenbrock)
 {
-  // auto jit_rosenbrock = micm::JitSolverBuilder<L>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::ThreeStageRosenbockSolverParameters{})
-  //                           .Build();
+  constexpr std::size_t L = 4;
+  auto jit_rosenbrock = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
+                            micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                            .SetSystem(the_system)
+                            .SetReactions(reactions)
+                            .SetNumberOfGridCells(L)
+                            .Build();
 }
+#endif
 
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {

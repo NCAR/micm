@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
@@ -56,6 +54,11 @@ namespace micm
    public:
     /// @brief default constructor
     LinearSolver(){};
+
+    LinearSolver(const LinearSolver&) = delete;
+    LinearSolver& operator=(const LinearSolver&) = delete;
+    LinearSolver(LinearSolver&&) = default;
+    LinearSolver& operator=(LinearSolver&&) = default;
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix

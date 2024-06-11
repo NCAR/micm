@@ -9,6 +9,8 @@
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -29,11 +31,12 @@
 namespace fs = std::filesystem;
 using namespace micm;
 
-template<template<class> class MatrixType, class SparseMatrixType>
+template<std::size_t L>
+using VectorBuilder = CpuSolverBuilder<RosenbrockSolverParameters, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
+
+template<std::size_t L>
 int Run(const char* filepath, const char* initial_conditions, const std::string& matrix_ordering_type)
 {
-  using SolverType = RosenbrockSolver<MatrixType, SparseMatrixType>;
-
   fs::path config_path{ filepath };
   std::string initial_conditions_file{ initial_conditions };
 
@@ -56,28 +59,17 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
 
   SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  // add third-body species parameterizaton on air density
-  for (auto& species : solver_params.system_.gas_phase_.species_)
-    if (species.name_ == "M")
-      species.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  for (auto& process : solver_params.processes_)
-  {
-    for (auto& reactant : process.reactants_)
-      if (reactant.name_ == "M")
-        reactant.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    for (auto& product : process.products_)
-      if (product.first.name_ == "M")
-        product.first.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-  }
-
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.relative_tolerance_ = 0.1;
-  RosenbrockSolver<> solver{ chemical_system, reactions, params };
 
-  State state = solver.GetState();
+  auto solver = VectorBuilder<L>(params)
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
+  auto state = solver.GetState();
 
   state.conditions_[0].temperature_ = dataMap.environments["temperature"];  // K
   state.conditions_[0].pressure_ = dataMap.environments["pressure"];        // Pa
@@ -95,14 +87,13 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
 
   double time_step = dataMap.environments["time_step"];  // s
   double elapsed_solve_time = 0;
-  typename SolverType::SolverResult result;
 
   MICM_PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime-" + matrix_ordering_type + ".json");
   while (elapsed_solve_time < time_step)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
-    state.variables_ = result.result_;
     if (result.state_ != SolverState::Converged)
     {
       std::cout << "solver failed to converge" << std::endl;
@@ -114,10 +105,6 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   return 0;
 }
 
-template<typename T>
-using Vector1000MatrixParam = micm::VectorMatrix<T, 1000>;
-using Vector1000SparseMatrixParam = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1000>>;
-
 int main(const int argc, const char* argv[])
 {
   if (argc < 3)
@@ -128,5 +115,5 @@ int main(const int argc, const char* argv[])
     return 1;
   }
 
-  Run<Vector1000MatrixParam, Vector1000SparseMatrixParam>(argv[1], argv[2], "Vector-Sparse-1000");
+  Run<1000>(argv[1], argv[2], "Vector-Sparse-1000");
 };

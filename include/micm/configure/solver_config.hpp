@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/arrhenius_rate_constant.hpp>
@@ -351,10 +349,13 @@ namespace micm
       const std::string NAME = "name";
       const std::string TYPE = "type";
 
-      ValidateSchema(
-          object,
-          { NAME, TYPE },
-          { "tracer type", "absolute tolerance", "diffusion coefficient [m2 s-1]", "molecular weight [kg mol-1]" });
+      const std::string TRACER_TYPE = "tracer type";
+      const std::string ABS_TOLERANCE = "absolute tolerance";
+      const std::string DIFFUSION_COEFF = "diffusion coefficient [m2 s-1]";
+      const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
+      const std::string THIRD_BODY = "THIRD_BODY";
+
+      ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
 
       std::string name = object[NAME].get<std::string>();
       Species species{ name };
@@ -366,7 +367,14 @@ namespace micm
         {
           if (value.is_string())
           {
-            species.SetProperty<std::string>(key, value);
+            if (key == TRACER_TYPE && value == THIRD_BODY)
+            {
+              species.SetThirdBody();
+            }
+            else
+            {
+              species.SetProperty<std::string>(key, value);
+            }
           }
           else if (value.is_number_integer())
           {

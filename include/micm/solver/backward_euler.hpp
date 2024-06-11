@@ -1,14 +1,11 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process.hpp>
-#include <micm/process/process_set.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
+#include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
@@ -29,38 +26,47 @@ namespace micm
 {
 
   /// @brief An implementation of the fully implicit backward euler method
-  template<class LinearSolverPolicy, class ProcessSetPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy>
   class BackwardEuler
   {
+   public:
     BackwardEulerSolverParameters parameters_;
     LinearSolverPolicy linear_solver_;
-    ProcessSetPolicy process_set_;
+    RatesPolicy rates_;
     std::vector<std::size_t> jacobian_diagonal_elements_;
-    std::vector<micm::Process> processes_;
 
-   public:
+    /// @brief Solver parameters typename
+    using ParametersType = BackwardEulerSolverParameters;
+
     /// @brief Default constructor
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
     BackwardEuler(
-        BackwardEulerSolverParameters parameters,
-        LinearSolverPolicy linear_solver,
-        ProcessSetPolicy process_set,
-        std::vector<std::size_t> jacobian_diagonal_elements,
-        std::vector<micm::Process>& processes)
+        const BackwardEulerSolverParameters& parameters,
+        LinearSolverPolicy&& linear_solver,
+        RatesPolicy&& rates,
+        auto& jacobian)
         : parameters_(parameters),
-          linear_solver_(linear_solver),
-          process_set_(process_set),
-          jacobian_diagonal_elements_(jacobian_diagonal_elements),
-          processes_(processes)
+          linear_solver_(std::move(linear_solver)),
+          rates_(std::move(rates)),
+          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
     {
     }
+
+    BackwardEuler(const BackwardEuler&) = delete;
+    BackwardEuler& operator=(const BackwardEuler&) = delete;
+    BackwardEuler(BackwardEuler&&) = default;
+    BackwardEuler& operator=(BackwardEuler&&) = default;
 
     virtual ~BackwardEuler() = default;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
-    /// @return Nothing, but the state is updated
-    void Solve(double time_step, auto& state);
+    /// @return result of the solver (success or failure, and statistics)
+    SolverResult Solve(double time_step, auto& state);
   };
 
 }  // namespace micm

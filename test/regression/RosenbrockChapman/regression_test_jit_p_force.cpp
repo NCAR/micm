@@ -3,25 +3,18 @@
 
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <gtest/gtest.h>
 
 TEST(RegressionJitRosenbrock, VectorRateConstants)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::JitLinearSolver<3, Group3SparseVectorMatrix>,
-      micm::JitProcessSet<3>>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
   testRateConstants<>(solver);
 }
 
 TEST(RegressionJitRosenbrock, VectorForcing)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<
-      Group3VectorMatrix,
-      Group3SparseVectorMatrix,
-      micm::JitLinearSolver<3, Group3SparseVectorMatrix>,
-      micm::JitProcessSet<3>>(3);
-  testForcing<Group3VectorMatrix>(solver);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
+  testForcing<micm::VectorMatrix<double, 3>>(solver);
 }
