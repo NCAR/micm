@@ -1,7 +1,5 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/arrhenius_rate_constant.hpp>
@@ -357,10 +355,7 @@ namespace micm
       const std::string MOL_WEIGHT = "molecular weight [kg mol-1]";
       const std::string THIRD_BODY = "THIRD_BODY";
 
-      ValidateSchema(
-          object,
-          { NAME, TYPE },
-          { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT});
+      ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
 
       std::string name = object[NAME].get<std::string>();
       Species species{ name };

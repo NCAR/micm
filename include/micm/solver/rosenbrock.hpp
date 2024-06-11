@@ -1,18 +1,15 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Much of this solver was formulated and implemented from this book:
- * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
- * edition. ed. Springer, Berlin ; New York. The source code for many (all?) of the solvers in that book can be found here:
- * http://www.unige.ch/~hairer/software.html
- *
- * Some extensions to the rosenbrock solver formulated there were formulated in this paper
- * Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. Benchmarking stiff ode solvers for
- * atmospheric chemistry problems II: Rosenbrock solvers. Atmospheric Environment 31, 3459–3472.
- * https://doi.org/10.1016/S1352-2310(97)83212-8
- *
- */
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+//
+// Much of this solver was formulated and implemented from this book:
+// Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
+// edition. ed. Springer, Berlin ; New York. The source code for many (all?) of the solvers in that book can be found here:
+// http://www.unige.ch/~hairer/software.html
+//
+// Some extensions to the rosenbrock solver formulated there were formulated in this paper
+// Sandu, A., Verwer, J.G., Blom, J.G., Spee, E.J., Carmichael, G.R., Potra, F.A., 1997. Benchmarking stiff ode solvers for
+// atmospheric chemistry problems II: Rosenbrock solvers. Atmospheric Environment 31, 3459–3472.
+// https://doi.org/10.1016/S1352-2310(97)83212-8
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
