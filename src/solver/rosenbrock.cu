@@ -252,7 +252,6 @@ namespace micm
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
         const RosenbrockSolverParameters& ros_param,
- //       cublasHandle_t handle,
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
@@ -264,12 +263,9 @@ namespace micm
                           " but got: " + std::to_string(errors_param.number_of_elements_);
         INTERNAL_ERROR(msg.c_str());
       }
-      cudaError_t err = cudaMemcpy(
-          devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice);
-      if (err != cudaSuccess)
-      {
-        ThrowInternalError(MicmInternalErrc::Cuda, __FILE__, __LINE__, cudaGetErrorString(err));
-      }
+      CHECK_CUDA_ERROR(cudaMemcpy(
+          devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice),
+          "cudaMemcpy");
 
       if (number_of_elements > 1000000)
       {
@@ -293,7 +289,6 @@ namespace micm
       }
       else
       {
-        std::cout << "JS: use cuda version ... " << std::endl;
         // call CUDA implementation
         size_t number_of_blocks = std::ceil(std::ceil(number_of_elements * 1.0 / BLOCK_SIZE) / 2.0);
         number_of_blocks = number_of_blocks < 1 ? 1 : number_of_blocks;

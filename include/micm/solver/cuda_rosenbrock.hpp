@@ -136,13 +136,11 @@ namespace micm
     double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
         const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
-      // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(),
           y_new.AsDeviceParam(),
           errors.AsDeviceParam(),
           this->parameters_,
- //         errors.AsCublasHandle(),
           this->devstruct_);
     }
 

@@ -1,9 +1,7 @@
 #include <memory>
 #include <mutex>
 #include <cublas_v2.h>
-#include <micm/util/cuda_matrix.cuh>
-
-#define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
+#include <micm/util/cuda_util.cuh>
 
 namespace micm
 {
