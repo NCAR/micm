@@ -66,7 +66,7 @@ namespace micm
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
     RosenbrockSolver(
-        RosenbrockSolverParameters parameters,
+        const RosenbrockSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
