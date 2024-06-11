@@ -147,9 +147,15 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
   }
 }
 
-using StandardBuilder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>;
+using StandardBuilder = micm::CpuSolverBuilder<
+    micm::RosenbrockSolverParameters,
+    micm::Matrix<double>,
+    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>;
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+using VectorBuilder = micm::CpuSolverBuilder<
+    micm::RosenbrockSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
@@ -185,7 +191,8 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                       .SetReactions(std::vector<micm::Process>{ r1 })
                       .SetNumberOfGridCells(number_of_grid_cells)

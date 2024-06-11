@@ -84,16 +84,13 @@ std::vector<micm::Process> createProcesses(const micm::Phase& gas_phase)
 }
 
 template<class SolverBuilderPolicy>
-auto getChapmanSolver(
-    SolverBuilderPolicy& builder,
-    const size_t number_of_grid_cells)
+auto getChapmanSolver(SolverBuilderPolicy& builder, const size_t number_of_grid_cells)
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
 
-  return builder
-        .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-        .SetReactions(std::move(processes))
-        .SetNumberOfGridCells(number_of_grid_cells)
-        .Build();
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::move(processes))
+      .SetNumberOfGridCells(number_of_grid_cells)
+      .Build();
 }

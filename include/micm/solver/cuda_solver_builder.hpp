@@ -21,5 +21,10 @@ namespace micm
   ///
   /// GPU solvers only work with vector-ordered matrices
   template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using CudaSolverBuilder = SolverBuilder<SolverParametersPolicy, CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaProcessSet, CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
-} // namespace micm
+  using CudaSolverBuilder = SolverBuilder<
+      SolverParametersPolicy,
+      CudaDenseMatrix<double, L>,
+      CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+      CudaProcessSet,
+      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
+}  // namespace micm

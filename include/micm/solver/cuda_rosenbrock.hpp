@@ -80,11 +80,7 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
-        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(
-              parameters,
-              std::move(linear_solver),
-              std::move(rates),
-              jacobian)
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(parameters, std::move(linear_solver), std::move(rates), jacobian)
     {
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
@@ -107,9 +103,9 @@ namespace micm
     };
 
     /// @brief  @brief Computes [alpha * I - jacobian] on the GPU
-    /// @tparam SparseMatrixPolicy 
+    /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
-    /// @param alpha 
+    /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>)
@@ -120,9 +116,9 @@ namespace micm
     }
 
     /// @brief  @brief Computes [alpha * I - jacobian] on the CPU
-    /// @tparam SparseMatrixPolicy 
+    /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
-    /// @param alpha 
+    /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(!CudaMatrix<SparseMatrixPolicy>)
@@ -137,11 +133,8 @@ namespace micm
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
     template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y_old,
-        const DenseMatrixPolicy& y_new,
-        const DenseMatrixPolicy& errors) const
-        requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+    double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
+        const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
       // At this point, it does not matter which handle we use; may revisit it when we have a multi-node-multi-GPU test
       return micm::cuda::NormalizedErrorDriver(
@@ -154,16 +147,14 @@ namespace micm
     }
 
     /// @brief Computes the scaled norm of the vector errors on the CPU
-    /// @tparam DenseMatrixPolicy 
+    /// @tparam DenseMatrixPolicy
     /// @param y_old The original vector
     /// @param y_new The new vector
     /// @param errors The computed errors
     /// @return The scaled norm of the errors
     template<class DenseMatrixPolicy>
-    double NormalizedError(
-        const DenseMatrixPolicy& y_old,
-        const DenseMatrixPolicy& y_new,
-        const DenseMatrixPolicy& errors) const requires(!CudaMatrix<DenseMatrixPolicy>)
+    double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
+        const requires(!CudaMatrix<DenseMatrixPolicy>)
     {
       return NormalizedErrorDriver(y_old, y_new, errors);
     }

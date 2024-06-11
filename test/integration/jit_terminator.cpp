@@ -30,23 +30,19 @@ TEST(JitRosenbrockSolver, Terminator)
   parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {
-    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 1>(parameters)
-                      .SetIgnoreUnusedSpecies(true);
+    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 1>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);
   }
   {
-    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 2>(parameters)
-                      .SetIgnoreUnusedSpecies(true);
+    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 2>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 2);
   }
   {
-    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 3>(parameters)
-                      .SetIgnoreUnusedSpecies(true);
+    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 3>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 3);
   }
   {
-    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 4>(parameters)
-                      .SetIgnoreUnusedSpecies(true);
+    auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 4>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
 }

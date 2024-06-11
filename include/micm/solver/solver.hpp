@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/solver/solver_result.hpp>
 #include <micm/process/process.hpp>
+#include <micm/solver/solver_result.hpp>
 
 namespace micm
 {
@@ -72,6 +72,5 @@ namespace micm
       Process::CalculateRateConstants(processes_, state);
     }
   };
-
 
 }  // namespace micm

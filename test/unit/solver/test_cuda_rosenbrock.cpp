@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-template <std::size_t L>
+template<std::size_t L>
 using GpuBuilder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
 
 template<class SolverBuilderPolicy>
@@ -69,7 +69,8 @@ void testAlphaMinusJacobian()
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto cpu_builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto cpu_builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   cpu_builder = getSolver(cpu_builder);
   auto cpu_solver = cpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
 
@@ -110,7 +111,8 @@ void testAlphaMinusJacobian()
     {
       for (std::size_t j = 0; j < 5; ++j)
       {
-        if (!cpu_jacobian.IsZero(i, j)) cpu_jacobian[i_cell][i][j] = gpu_jacobian[i_cell][i][j];
+        if (!cpu_jacobian.IsZero(i, j))
+          cpu_jacobian[i_cell][i][j] = gpu_jacobian[i_cell][i][j];
       }
     }
   }
@@ -145,7 +147,8 @@ void testAlphaMinusJacobian()
     {
       for (std::size_t j = 0; j < 5; ++j)
       {
-        if (!cpu_jacobian.IsZero(i, j)) EXPECT_EQ(cpu_jacobian[i_cell][i][j], gpu_jacobian[i_cell][i][j]);
+        if (!cpu_jacobian.IsZero(i, j))
+          EXPECT_EQ(cpu_jacobian[i_cell][i][j], gpu_jacobian[i_cell][i][j]);
       }
     }
   }
@@ -160,7 +163,7 @@ void testNormalizedErrorConst()
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  
+
   std::vector<double> atol = gpu_solver.solver_.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.solver_.parameters_.relative_tolerance_;
 
@@ -205,7 +208,7 @@ void testNormalizedErrorDiff()
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  
+
   std::vector<double> atol = gpu_solver.solver_.parameters_.absolute_tolerance_;
   double rtol = gpu_solver.solver_.parameters_.relative_tolerance_;
 
