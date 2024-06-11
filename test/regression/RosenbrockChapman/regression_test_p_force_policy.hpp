@@ -7,11 +7,12 @@
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/process/process.hpp>
 
 #include <random>
 
-template<class OdeSolverPolicy>
-void testRateConstants(OdeSolverPolicy& solver)
+template<class SolverPolicy>
+void testRateConstants(SolverPolicy& solver)
 {
   micm::ChapmanODESolver fixed_solver{};
 
@@ -28,7 +29,7 @@ void testRateConstants(OdeSolverPolicy& solver)
   state.conditions_[2].temperature_ = 299.31;  // [K]
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
 
-  solver.UpdateState(state);
+  solver.CalculateRateConstants(state);
 
   for (size_t i{}; i < 3; ++i)
   {
@@ -45,9 +46,10 @@ void testRateConstants(OdeSolverPolicy& solver)
   }
 }
 
-template<template<class> class MatrixPolicy, class OdeSolverPolicy>
-void testForcing(OdeSolverPolicy& solver)
+template<class MatrixPolicy, class SolverPolicy>
+void testForcing(SolverPolicy& solver)
 {
+
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };
   std::lognormal_distribution dist(-2.0, 2.0);
@@ -61,8 +63,9 @@ void testForcing(OdeSolverPolicy& solver)
   auto& rate_const_vec = state.rate_constants_.AsVector();
   std::generate(begin(rate_const_vec), end(rate_const_vec), [&]() { return dist(engine); });
 
-  MatrixPolicy<double> forcing(3, 9);
-  solver.CalculateForcing(state.rate_constants_, state.variables_, forcing);
+  MatrixPolicy forcing(3, 9);
+  forcing.Fill(0.0);
+  solver.solver_.rates_.AddForcingTerms(state.rate_constants_, state.variables_, forcing);
 
   for (std::size_t i{}; i < 3; ++i)
   {
@@ -82,21 +85,3 @@ void testForcing(OdeSolverPolicy& solver)
     }
   }
 }
-
-template<class T>
-using DenseMatrix = micm::Matrix<T>;
-using SparseMatrix = micm::SparseMatrix<double>;
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-using Group1SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<1>>;
-using Group2SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<2>>;
-using Group3SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<3>>;
-using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<4>>;

@@ -7,9 +7,8 @@
 
 #include <gtest/gtest.h>
 
-template<class OdeSolverPolicy>
-void test_analytical_surface_rxn(
-    const micm::RosenbrockSolverParameters parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+template<class BuilderPolicy>
+void test_analytical_surface_rxn(BuilderPolicy& builder)
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
@@ -64,12 +63,10 @@ void test_analytical_surface_rxn(
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
-  // micm::RosenbrockSolver<> solver{
-  //   chemical_system, reactions, micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()
-  // };
-
-  // Solver
-  OdeSolverPolicy solver = OdeSolverPolicy(chemical_system, reactions, parameters);
+  auto solver =
+      builder.SetSystem(chemical_system)
+          .SetReactions(reactions)
+          .Build();
 
   // State
   micm::State state = solver.GetState();
@@ -101,27 +98,18 @@ void test_analytical_surface_rxn(
   for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
     elapsed_solve_time = result.final_time_;
-    state.variables_ = result.result_;
 
-    // further iterations
-    /*
-    while (elapsed_solve_time < time_step)
-    {
-      result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
-    }
-    */
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 
     // Check surface reaction rate calculation
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
 
-    model_conc[i] = result.result_.AsVector();
+    model_conc[i] = state.variables_.AsVector();
 
     double time = i * time_step;
     analytic_conc[i][idx_foo] = conc_foo * std::exp(-k1 * time);

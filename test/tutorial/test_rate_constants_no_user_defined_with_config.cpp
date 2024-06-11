@@ -7,6 +7,7 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -35,7 +36,10 @@ int main(const int argc, const char* argv[])
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, solver_params.parameters_ };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
   State state = solver.GetState();
 
@@ -71,13 +75,12 @@ int main(const int argc, const char* argv[])
     // so we need to track how much time the solver was able to integrate for and continue
     // solving until we finish
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
     while (elapsed_solve_time < time_step)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       elapsed_solve_time = result.final_time_;
-      // std::cout << "solver state: " << StateToString(result.state_) << std::endl;
-      state.variables_ = result.result_;
     }
 
     state.PrintState(time_step * (i + 1));

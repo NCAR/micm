@@ -205,6 +205,19 @@ namespace micm
       return VectorIndex(0, row, column);
     }
 
+    /// @brief Returns the indices of non-zero diagonal elements in a particular block
+    /// @param block_id Block index
+    /// @return Vector of indices of non-zero diagonal elements
+    std::vector<std::size_t> DiagonalIndices(std::size_t block_id) const
+    {
+      std::vector<std::size_t> indices;
+      indices.reserve(row_start_.size() - 1);
+      for (std::size_t i = 0; i < row_start_.size() - 1; ++i)
+        if (!IsZero(i, i))
+          indices.push_back(VectorIndex(block_id, i, i));
+      return indices;
+    }
+
     bool IsZero(std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
@@ -233,6 +246,13 @@ namespace micm
     std::size_t FlatBlockSize() const
     {
       return row_ids_.size();
+    }
+
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
     }
 
     ConstProxyRow operator[](std::size_t b) const

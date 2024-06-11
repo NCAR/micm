@@ -55,6 +55,11 @@ namespace micm
     /// @brief default constructor
     LinearSolver(){};
 
+    LinearSolver(const LinearSolver&) = delete;
+    LinearSolver& operator=(const LinearSolver&) = delete;
+    LinearSolver(LinearSolver&&) = default;
+    LinearSolver& operator=(LinearSolver&&) = default;
+
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
     /// @param initial_value Initial value for matrix elements

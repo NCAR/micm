@@ -228,6 +228,13 @@ namespace micm
       return L;
     }
 
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
+    }
+
     ConstProxy operator[](std::size_t x) const
     {
       return ConstProxy(*this, std::floor(x / L), x % L, y_dim_);

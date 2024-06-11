@@ -24,6 +24,29 @@ namespace micm
     /// This is the default constructor, taking no arguments;
     CudaLinearSolver(){};
 
+    CudaLinearSolver(const CudaLinearSolver&) = delete;
+    CudaLinearSolver& operator=(const CudaLinearSolver&) = delete;
+    CudaLinearSolver(CudaLinearSolver&& other)
+        : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other)),
+          devstruct_(std::move(other.devstruct_))
+    {
+      other.devstruct_.nLij_Lii_ = nullptr;
+      other.devstruct_.Lij_yj_ = nullptr;
+      other.devstruct_.nUij_Uii_ = nullptr;
+      other.devstruct_.Uij_xj_ = nullptr;
+    };
+
+    CudaLinearSolver& operator=(CudaLinearSolver&& other)
+    {
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
+      devstruct_ = std::move(other.devstruct_);
+      other.devstruct_.nLij_Lii_ = nullptr;
+      other.devstruct_.Lij_yj_ = nullptr;
+      other.devstruct_.nUij_Uii_ = nullptr;
+      other.devstruct_.Uij_xj_ = nullptr;
+      return *this;
+    };
+
     /// This constructor takes two arguments: a sparse matrix and its values
     /// The base class here takes three arguments: the third argument is
     ///   a lamda function that creates an instance of LuDecompositionPolicy;

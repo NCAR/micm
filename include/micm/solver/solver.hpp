@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/solver/solver_result.hpp>
+#include <micm/process/process.hpp>
+
 namespace micm
 {
-
   template<class SolverPolicy, class StatePolicy>
   class Solver
   {
@@ -13,26 +15,30 @@ namespace micm
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
     StateParameters state_parameters_;
-    SolverPolicy solver_;
+    std::vector<micm::Process> processes_;
 
    public:
+    SolverPolicy solver_;
+
     Solver(
-        SolverPolicy solver,
+        SolverPolicy&& solver,
         StateParameters state_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
-        std::size_t number_of_reactions)
-        : solver_(solver),
+        std::size_t number_of_reactions,
+        std::vector<micm::Process> processes)
+        : solver_(std::move(solver)),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions),
-          state_parameters_(state_parameters)
+          state_parameters_(state_parameters),
+          processes_(std::move(processes))
     {
     }
 
-    void Solve(double time_step, StatePolicy& state)
+    SolverResult Solve(double time_step, StatePolicy& state)
     {
-      solver_.Solve(time_step, state);
+      return solver_.Solve(time_step, state);
     }
 
     /// @brief Returns the number of grid cells
@@ -60,5 +66,12 @@ namespace micm
     {
       return StatePolicy(state_parameters_);
     }
+
+    void CalculateRateConstants(StatePolicy& state)
+    {
+      Process::CalculateRateConstants(processes_, state);
+    }
   };
+
+
 }  // namespace micm

@@ -1,6 +1,9 @@
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/solver/jit_solver_builder.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -45,11 +48,11 @@ auto run_solver(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
+      solver.CalculateRateConstants(state);
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
 
       total_stats.function_calls_ += result.stats_.function_calls_;
       total_stats.jacobian_updates_ += result.stats_.jacobian_updates_;
@@ -89,17 +92,20 @@ int main(const int argc, const char* argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters(n_grid_cells);
+  auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  RosenbrockSolver<GroupVectorMatrix, GroupSparseVectorMatrix> solver{ chemical_system, reactions, solver_parameters };
-
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(solver_parameters)
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .SetNumberOfGridCells(n_grid_cells)
+                    .Build();
+  
   auto start = std::chrono::high_resolution_clock::now();
-  JitRosenbrockSolver<
-      GroupVectorMatrix,
-      GroupSparseVectorMatrix,
-      JitLinearSolver<n_grid_cells, GroupSparseVectorMatrix>,
-      JitProcessSet<n_grid_cells>>
-      jit_solver(chemical_system, reactions, solver_parameters);
+  auto jit_solver = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, n_grid_cells>(solver_parameters)
+                        .SetSystem(chemical_system)
+                        .SetReactions(reactions)
+                        .SetNumberOfGridCells(n_grid_cells)
+                        .Build();
   auto end = std::chrono::high_resolution_clock::now();
   auto jit_compile_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 

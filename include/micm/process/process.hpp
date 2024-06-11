@@ -80,15 +80,15 @@ namespace micm
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
-    /// @brief Update the solver state rate constants
+    /// @brief Recalculate the rate constants for each process for the current state
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-    requires(!VectorizableDense<DenseMatrixPolicy>) static void UpdateState(
+    requires(!VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-    requires(VectorizableDense<DenseMatrixPolicy>) static void UpdateState(
+    requires(VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
 
@@ -147,7 +147,7 @@ namespace micm
   };
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  requires(!VectorizableDense<DenseMatrixPolicy>) void Process::UpdateState(
+  requires(!VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
   {
@@ -172,7 +172,7 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  requires(VectorizableDense<DenseMatrixPolicy>) void Process::UpdateState(
+  requires(VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
   {

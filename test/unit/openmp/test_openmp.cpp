@@ -2,6 +2,7 @@
 
 #include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 #include <gtest/gtest.h>
 #include <omp.h>
@@ -24,7 +25,10 @@ TEST(OpenMP, OneSolverManyStates)
 
   std::vector<std::vector<double>> results(n_threads);
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
 #pragma omp parallel num_threads(n_threads)
   {

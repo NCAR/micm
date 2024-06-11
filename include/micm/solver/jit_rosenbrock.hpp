@@ -13,9 +13,9 @@
 #pragma once
 
 #include <micm/jit/jit_function.hpp>
-#include <micm/process/jit_process_set.hpp>
 #include <micm/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
@@ -26,23 +26,25 @@
 
 namespace micm
 {
+  struct JitRosenbrockSolverParameters;
 
-  template<
-      template<class> class MatrixPolicy = VectorMatrix,
-      class SparseMatrixPolicy = DefaultVectorSparseMatrix,
-      class LinearSolverPolicy = JitLinearSolver<MICM_DEFAULT_VECTOR_SIZE, SparseMatrixPolicy>,
-      class ProcessSetPolicy = JitProcessSet<MICM_DEFAULT_VECTOR_SIZE>>
-  class JitRosenbrockSolver : public RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>
+  /// @brief A Rosenbrock solver with JIT-compiled optimizations
+  template<class RatesPolicy, class LinearSolverPolicy>
+  class JitRosenbrockSolver : public RosenbrockSolver<RatesPolicy, LinearSolverPolicy>
   {
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
     using FuncPtr = void (*)(double*, const double);
     FuncPtr alpha_minus_jacobian_ = nullptr;
 
    public:
+
+    /// @brief Solver parameters typename
+    using ParametersType = JitRosenbrockSolverParameters;
+
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(std::move(other)),
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(std::move(other)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
     {
@@ -51,42 +53,30 @@ namespace micm
 
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
-      RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>::operator=(std::move(other));
+      RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
       other.alpha_minus_jacobian_ = NULL;
       return *this;
     }
 
-    /// @brief Builds a Rosenbrock solver for the given system, processes, and solver parameters
-    /// @param system The chemical system to create the solver for
-    /// @param processes The collection of chemical processes that will be applied during solving
+    /// @brief Builds a Rosenbrock solver for the given system and solver parameters
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
     JitRosenbrockSolver(
-        const System& system,
-        const std::vector<Process>& processes,
-        const RosenbrockSolverParameters& parameters)
-        : RosenbrockSolver<MatrixPolicy, SparseMatrixPolicy, LinearSolverPolicy, ProcessSetPolicy>(
-              system,
-              processes,
+        RosenbrockSolverParameters parameters,
+        LinearSolverPolicy linear_solver,
+        RatesPolicy rates,
+        auto& jacobian)
+        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(
               parameters,
-              [&](const SparseMatrixPolicy& matrix, double initial_value) -> LinearSolverPolicy {
-                return LinearSolverPolicy{ matrix, initial_value };
-              },
-              [&](const std::vector<Process>& processes,
-                  const std::map<std::string, std::size_t>& variable_map) -> ProcessSetPolicy {
-                return ProcessSetPolicy{ processes, variable_map };
-              })
+              std::move(linear_solver),
+              std::move(rates),
+              jacobian)
     {
-      MatrixPolicy<double> temp{};
-      if (temp.GroupVectorSize() != parameters.number_of_grid_cells_)
-      {
-        std::string msg =
-            "JIT functions require the number of grid cells solved together to match the vector dimension template "
-            "parameter, currently: " +
-            std::to_string(temp.GroupVectorSize());
-        throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
-      }
-      this->GenerateAlphaMinusJacobian();
+      this->GenerateAlphaMinusJacobian(jacobian);
     }
 
     ~JitRosenbrockSolver()
@@ -101,8 +91,17 @@ namespace micm
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
+    template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
     {
+      if (jacobian.GroupVectorSize() != jacobian.NumberOfBlocks())
+      {
+        std::string msg =
+            "JIT functions require the number of grid cells solved together to match the vector dimension template "
+            "parameter, currently: " +
+            std::to_string(jacobian.GroupVectorSize());
+        throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
+      }
       double a = alpha;
       if (alpha_minus_jacobian_)
       {
@@ -116,9 +115,9 @@ namespace micm
     }
 
    private:
-    void GenerateAlphaMinusJacobian()
+    void GenerateAlphaMinusJacobian(auto& jacobian)
     {
-      auto jacobian = this->GetState().jacobian_;
+      auto diagonal_elements = jacobian.DiagonalIndices(0);
       // save sizes needed throughout the function
       std::size_t n_cells = jacobian.GroupVectorSize();
       std::size_t number_of_nonzero_jacobian_elements = jacobian.AsVector().size();
@@ -140,7 +139,7 @@ namespace micm
 
       // iterative over the blocks of the jacobian and add the alpha value
       // jacobian_vector[i_elem + i_cell] += alpha;
-      for (const auto& i_elem : this->state_parameters_.jacobian_diagonal_elements_)
+      for (const auto& i_elem : diagonal_elements)
       {
         llvm::Value* ptr_index[1];
 
