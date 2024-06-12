@@ -52,7 +52,7 @@ namespace micm
         // Initialize the cublas handle map
         if (cublas_handle_map_.empty())
         {
-          cublas_handle_map = {};
+          cublas_handle_map_ = {};
         }
         // Initialize the cuBLAS handle
         if (!handle_)
@@ -69,6 +69,11 @@ namespace micm
         {
           CHECK_CUBLAS_ERROR(cublasDestroy(handle_), "CUBLAS finalization failed...");
           this->handle_ = NULL;
+        }
+        // Destroy the cublas handle map
+        if (!cublas_handle_map_.empty())
+        {
+          cublas_handle_map_.clear();
         }
       }
   }; // class CublasHandleSingleton
