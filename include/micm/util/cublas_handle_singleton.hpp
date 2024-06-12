@@ -16,10 +16,7 @@ namespace micm
       // Get the static instance of CublasHandleSingleton class
       static CublasHandleSingleton& GetInstance(int device_id)
       {
-        if (auto search = cublas_handle_map_.find(device_id); search == cublas_handle_map_.end())
-        {
-          std::lock_guard<std::mutex> lock(GetMutex()); // no cublas handle if found; lock the mutex and generate a new cublas handle below
-        }
+        std::lock_guard<std::mutex> lock(GetMutex()); // lock the mutex and generate a new cublas handle below
         static CublasHandleSingleton instance;
         if (auto search = cublas_handle_map_.find(device_id); search == cublas_handle_map_.end())
         {
