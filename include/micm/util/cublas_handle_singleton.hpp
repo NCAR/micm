@@ -1,7 +1,7 @@
 #include <memory>
 #include <mutex>
-#include <cstdlib>   // for getenv
-#include <string>    // for std::stoi
+#include <map>
+#include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <micm/util/cuda_util.cuh>
 
@@ -16,33 +16,29 @@ namespace micm
       // Get the static instance of CublasHandleSingleton class
       static CublasHandleSingleton& GetInstance()
       {
-        const char* number_of_openmp_threads = std::getenv("OMP_NUM_THREADS");
-        const char* number_of_cuda_devices = std::getenv("NGPUS");   // This environment variable may only be set on NCAR's machine
-        if (number_of_openmp_threads != nullptr && number_of_cuda_devices != nullptr)
+        int device_id;
+        CHECK_CUDA_ERROR(cudaGetDevice(&device_id), "Failed to get device ID...");
+        if (auto search = cublas_handle_map_.find(device_id); search == cublas_handle_map_.end())
         {
-            if (std::stoi(number_of_openmp_threads) > std::stoi(number_of_cuda_devices))
-            {
-            std::cout << "Mapping multiple OpenMP threads to the same GPU...\n";
-            std::lock_guard<std::mutex> lock(GetMutex()); // Lock the mutex so that only one thread will execute the following code at a time;
-                                                            // Unlock the mutex when the thread goes out of scope;
-                                                            // I think this is needed if multiple threads are mapped to the same GPU.
-            }
+          std::lock_guard<std::mutex> lock(GetMutex()); // no cublas handle if found; lock the mutex and generate a new cublas handle below
         }
-        else
+        static CublasHandleSingleton instance;          // create the cublas handle inside
+        if (auto search = cublas_handle_map_.find(device_id); search == cublas_handle_map_.end())
         {
-            throw std::runtime_error("Please set the environment variables OMP_NUM_THREADS and CUDA_VISIBLE_DEVICES.\n");
+          cublas_handle_map_[device_id] = handle_;      // save the cublas handle to the map
         }
-        static CublasHandleSingleton instance;
         return instance;
       }
 
       // Method to get the cuBLAS handle
-      cublasHandle_t& GetCublasHandle() {
+      cublasHandle_t& GetCublasHandle()
+      {
         return handle_;
       }
 
     private:
       inline static cublasHandle_t handle_;
+      inline static std::map<int, cublasHandle_t> cublas_handle_map_;
 
       static std::mutex& GetMutex()
       {
@@ -53,6 +49,11 @@ namespace micm
       // Private constructor to prevent instantiation
       CublasHandleSingleton()
       {
+        // Initialize the cublas handle map
+        if (cublas_handle_map_.empty())
+        {
+          cublas_handle_map = {};
+        }
         // Initialize the cuBLAS handle
         if (!handle_)
         {

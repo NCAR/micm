@@ -53,10 +53,10 @@ if(MICM_ENABLE_CUDA)
   target_link_libraries(micm_cuda
     PRIVATE micm
   )
-
   target_link_libraries(micm_cuda 
     PUBLIC CUDA::cudart CUDA::cublas
   )
+  set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 endif()
 
 if (MICM_ENABLE_PROFILE)

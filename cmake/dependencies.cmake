@@ -142,6 +142,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
   set(MICM_ENABLE_CUDA ON)
+  set(CUDA_STANDARD_REQUIRED ON)
 endif()
 
 ################################################################################
