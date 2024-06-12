@@ -142,7 +142,6 @@ namespace micm
     {
       this->param_.d_data_ = nullptr;
       std::swap(this->param_, other.param_);
-      std::swap(this->handle_, other.handle_);
     }
 
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
@@ -162,7 +161,6 @@ namespace micm
       {
         VectorMatrix<T, L>::operator=(other);
         std::swap(this->param_, other.param_);
-        std::swap(this->handle_, other.handle_);
       }
       return *this;
     }
@@ -206,7 +204,7 @@ namespace micm
       static_assert(std::is_same_v<T, double>);
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(
-            x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy),
+            micm::CublasHandleSingleton::GetInstance().GetCublasHandle(), x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy),
             "CUBLAS Daxpy operation failed...");
     }
 
