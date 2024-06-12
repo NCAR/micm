@@ -17,7 +17,7 @@ namespace micm
       static CublasHandleSingleton& GetInstance()
       {
         const char* number_of_openmp_threads = std::getenv("OMP_NUM_THREADS");
-        const char* number_of_cuda_devices = std::getenv("CUDA_VISIBLE_DEVICES");
+        const char* number_of_cuda_devices = std::getenv("NGPUS");   // This environment variable may only be set on NCAR's machine
         if (number_of_openmp_threads != nullptr && number_of_cuda_devices != nullptr)
         {
             if (std::stoi(number_of_openmp_threads) > std::stoi(number_of_cuda_devices))

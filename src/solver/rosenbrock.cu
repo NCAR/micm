@@ -272,19 +272,9 @@ namespace micm
         // call cublas APIs
         size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
         ScaledErrorKernel<<<number_of_blocks, BLOCK_SIZE>>>(y_old_param, y_new_param, ros_param, devstruct);
-        std::cout << "JS: number_of_elements = " << number_of_elements << std::endl;
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-  //      cublasHandle_t tmp_handle;
-        cublasHandle_t tmp_handle = micm::CublasHandleSingleton::GetInstance().GetCublasHandle();
-  //      cublasCreate(&tmp_handle);
-        std::cout << "js: cublas handle = " << tmp_handle << std::endl;
-
-        cublasStatus_t stat = cublasDnrm2(tmp_handle, number_of_elements, devstruct.errors_input_, 1, &normalized_error);
-        if (stat != CUBLAS_STATUS_SUCCESS)
-        {
-          ThrowInternalError(MicmInternalErrc::Cublas, __FILE__, __LINE__, cublasGetStatusString(stat));
-        }
+        CHECK_CUBLAS_ERROR(cublasDnrm2(micm::CublasHandleSingleton::GetInstance().GetCublasHandle(), number_of_elements, devstruct.errors_input_, 1, &normalized_error), "cublasDnrm2");
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
       }
       else
