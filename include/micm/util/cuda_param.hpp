@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <utility>
-#include <cublas_v2.h>
 
 // To make the NormalizedError function works properly on GPU,
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
@@ -94,6 +93,4 @@ struct CudaRosenbrockSolverParam
   // for AlphaMinusJacobian function
   std::size_t* jacobian_diagonal_elements_;
   std::size_t jacobian_diagonal_elements_size_;
-  // for cublas handle
-  cublasHandle_t handle_;
 };

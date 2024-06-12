@@ -14,8 +14,10 @@ namespace micm
       CublasHandleSingleton& operator=(const CublasHandleSingleton&) = delete;
 
       // Get the static instance of CublasHandleSingleton class
-      static CublasHandleSingleton& GetInstance(int device_id)
+      static CublasHandleSingleton& GetInstance()
       {
+        int device_id;
+        CHECK_CUDA_ERROR(cudaGetDevice(&device_id), "Failed to get device ID...");
         std::lock_guard<std::mutex> lock(GetMutex()); // lock the mutex and generate a new cublas handle below
         static CublasHandleSingleton instance;
         if (auto search = cublas_handle_map_.find(device_id); search == cublas_handle_map_.end())
@@ -28,8 +30,10 @@ namespace micm
       }
 
       // Method to get the cuBLAS handle
-      cublasHandle_t& GetCublasHandle(int device_id)
+      cublasHandle_t& GetCublasHandle()
       {
+        int device_id;
+        CHECK_CUDA_ERROR(cudaGetDevice(&device_id), "Failed to get device ID...");
         return cublas_handle_map_[device_id];
       }
 
