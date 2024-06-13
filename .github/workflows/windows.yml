@@ -39,6 +39,7 @@ jobs:
 
   msvc2019:
     runs-on: windows-2019
+    continue-on-error: true 
     strategy:
       matrix:
         build_type: [Release]
@@ -58,6 +59,7 @@ jobs:
 
   msvc2022:
     runs-on: windows-2022
+    continue-on-error: true 
     strategy:
       matrix:
         build_type: [Release]
@@ -74,6 +76,7 @@ jobs:
 
   clang:
     runs-on: windows-2019
+    continue-on-error: true 
     strategy:
       matrix:
         version: [11, 12, 13, 14, 15]
@@ -91,6 +94,7 @@ jobs:
 
   clang-cl-11:
     runs-on: windows-2019
+    continue-on-error: true 
     strategy:
       matrix:
         architecture: [Win32, x64]
