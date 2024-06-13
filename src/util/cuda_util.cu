@@ -3,11 +3,12 @@
 #include <micm/util/cuda_util.cuh>
 #include <micm/util/internal_error.hpp>
 
+#include <cublas_v2.h>
 #include <cuda_runtime.h>
+
+#include <map>
 #include <memory>
 #include <mutex>
-#include <map>
-#include <cublas_v2.h>
 
 namespace micm
 {
@@ -32,9 +33,12 @@ namespace micm
     }
 
     // Define a functor for the cublasHandle_t unique pointer deleter
-    struct CublasHandleDeleter {
-      void operator()(cublasHandle_t* handle) const {
-        if (handle != nullptr) {
+    struct CublasHandleDeleter
+    {
+      void operator()(cublasHandle_t* handle) const
+      {
+        if (handle != nullptr)
+        {
           CHECK_CUBLAS_ERROR(cublasDestroy(*handle), "CUBLAS finalization failed");
           delete handle;
         }
@@ -45,19 +49,20 @@ namespace micm
     using CublasHandlePtr = std::unique_ptr<cublasHandle_t, CublasHandleDeleter>;
 
     // Create a cublas handle and return a unique pointer to it
-    CublasHandlePtr CreateCublasHandle() {
+    CublasHandlePtr CreateCublasHandle()
+    {
       cublasHandle_t* handle = new cublasHandle_t;
       CHECK_CUBLAS_ERROR(cublasCreate(handle), "CUBLAS initialization failed...");
       return CublasHandlePtr(handle, CublasHandleDeleter());
     }
-  
+
     cublasHandle_t& GetCublasHandle()
     {
       static std::map<int, CublasHandlePtr> cublas_handles_map;
       static std::mutex mutex;
       int device_id;
       CHECK_CUDA_ERROR(cudaGetDevice(&device_id), "Failed to get device ID...");
-      std::lock_guard<std::mutex> lock(mutex); // lock the mutex and generate a new cublas handle below
+      std::lock_guard<std::mutex> lock(mutex);  // lock the mutex and generate a new cublas handle below
       if (auto search = cublas_handles_map.find(device_id); search == cublas_handles_map.end())
       {
         cublas_handles_map[device_id] = std::move(CreateCublasHandle());

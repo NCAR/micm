@@ -6,6 +6,7 @@
 #include <micm/util/cuda_util.cuh>
 #include <micm/util/error.hpp>
 #include <micm/util/vector_matrix.hpp>
+
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 
@@ -203,8 +204,14 @@ namespace micm
       static_assert(std::is_same_v<T, double>);
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(
-            micm::cuda::GetCublasHandle(), x.param_.number_of_elements_, &alpha, x.param_.d_data_, incx, this->param_.d_data_, incy),
-            "CUBLAS Daxpy operation failed...");
+              micm::cuda::GetCublasHandle(),
+              x.param_.number_of_elements_,
+              &alpha,
+              x.param_.d_data_,
+              incx,
+              this->param_.d_data_,
+              incy),
+          "CUBLAS Daxpy operation failed...");
     }
 
     // Copy the device data from the other Cuda dense matrix into this one

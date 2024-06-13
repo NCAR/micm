@@ -137,11 +137,7 @@ namespace micm
         const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
       return micm::cuda::NormalizedErrorDriver(
-          y_old.AsDeviceParam(),
-          y_new.AsDeviceParam(),
-          errors.AsDeviceParam(),
-          this->parameters_,
-          this->devstruct_);
+          y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, this->devstruct_);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the CPU
