@@ -4,7 +4,6 @@
 #include <micm/util/cuda_param.hpp>
 #include <micm/util/cuda_util.cuh>
 #include <micm/util/internal_error.hpp>
-#include <micm/util/cublas_handle_singleton.hpp>
 
 #include <cublas_v2.h>
 
@@ -274,7 +273,7 @@ namespace micm
         ScaledErrorKernel<<<number_of_blocks, BLOCK_SIZE>>>(y_old_param, y_new_param, ros_param, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-        CHECK_CUBLAS_ERROR(cublasDnrm2(micm::CublasHandleSingleton::GetInstance().GetCublasHandle(), number_of_elements, devstruct.errors_input_, 1, &normalized_error), "cublasDnrm2");
+        CHECK_CUBLAS_ERROR(cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, devstruct.errors_input_, 1, &normalized_error), "cublasDnrm2");
         normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
       }
       else

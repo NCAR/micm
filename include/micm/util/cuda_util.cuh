@@ -4,7 +4,6 @@
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
-
 #include <string>
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
@@ -27,5 +26,8 @@ namespace micm
     /// @param line Line number where error occurred
     /// @param str Additional string to print with error message
     void CheckCublasError(cublasStatus_t err, const char* file, int line, std::string str);
+
+    /// @brief Get the cuBLAS handle for the current device
+    cublasHandle_t& GetCublasHandle();
   }  // namespace cuda
 }  // namespace micm
