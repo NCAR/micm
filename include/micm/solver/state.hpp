@@ -8,6 +8,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -91,6 +92,12 @@ namespace micm
     /// @brief Print state (concentrations) at the given time
     /// @param time solving time
     void PrintState(double time);
+
+    /// @brief Copy input variables to the device
+    void SyncInputsToDevice();
+
+    /// @brief Copy output variables to the host
+    void SyncOutputsToHost();
   };
 
 }  // namespace micm

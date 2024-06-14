@@ -102,7 +102,18 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    /// @brief  @brief Computes [alpha * I - jacobian] on the GPU
+    /// @brief Advances the given step over the specified time step on the GPU
+    /// @param time_step Time [s] to advance the state by
+    /// @return A struct containing results and a status code
+    SolverResult Solve(double time_step, auto& state) noexcept
+    {
+      SolverResult result{};
+      result = Solve(time_step, state);
+      state.SyncOutputsToHost();
+      return result;
+    }
+
+    /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
     /// @param alpha
@@ -115,7 +126,7 @@ namespace micm
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
     }
 
-    /// @brief  @brief Computes [alpha * I - jacobian] on the CPU
+    /// @brief Computes [alpha * I - jacobian] on the CPU
     /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
     /// @param alpha
@@ -150,7 +161,7 @@ namespace micm
     double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
         const requires(!CudaMatrix<DenseMatrixPolicy>)
     {
-      return NormalizedErrorDriver(y_old, y_new, errors);
+      return NormalizedError(y_old, y_new, errors);
     }
 
   };  // end CudaRosenbrockSolver

@@ -15,7 +15,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/error.hpp>
-
+#include <micm/util/cuda_dense_matrix.hpp>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -88,9 +88,14 @@ namespace micm
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-    requires(VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
+    requires(!CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
+    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+    requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
+        const std::vector<Process>& processes,
+        State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
+     
 
     friend class ProcessBuilder;
     static ProcessBuilder Create();
@@ -172,11 +177,10 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  requires(VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
+  requires(VectorizableDense<DenseMatrixPolicy>) void CalculateRateConstantsVectorizableMatrix(
       const std::vector<Process>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
   {
-    MICM_PROFILE_FUNCTION();
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
     const std::size_t L = state.rate_constants_.GroupVectorSize();
@@ -208,6 +212,25 @@ namespace micm
         offset_rc += L;
       }
     }
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  requires(!CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
+      const std::vector<Process>& processes,
+      State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
+  {
+    MICM_PROFILE_FUNCTION();
+    CalculateRateConstantsVectorizableMatrix(processes, state);
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
+        const std::vector<Process>& processes,
+        State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
+  {
+    MICM_PROFILE_FUNCTION();
+    CalculateRateConstantsVectorizableMatrix(processes, state);
+    state.SyncInputsToDevice();
   }
 
   inline ProcessBuilder Process::Create()
