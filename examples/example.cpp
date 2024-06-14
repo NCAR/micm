@@ -1,27 +1,10 @@
-#include "util_example.cpp"
+#include "util_example.hpp"
 
 #include <micm/configure/solver_config.hpp>
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/solver/rosenbrock.hpp>
 
-#include <algorithm>
-#include <filesystem>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <iterator>
-#include <map>
-#include <sstream>
-#include <stdexcept>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace fs = std::filesystem;
 using namespace micm;

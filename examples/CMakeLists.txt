@@ -2,7 +2,7 @@
 set(CMAKE_CXX_CLANG_TIDY "")
 
 if(MICM_ENABLE_EXAMPLES)
-  add_executable(micmDriver example.cpp)
+  add_executable(micmDriver example.cpp util_example.cpp)
   target_link_libraries(micmDriver PUBLIC musica::micm)
   set_target_properties(micmDriver PROPERTIES OUTPUT_NAME "micm")
 
