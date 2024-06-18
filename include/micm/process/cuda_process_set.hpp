@@ -89,7 +89,7 @@ namespace micm
   inline void CudaProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     /// This function sets the "jacobian_flat_ids_" member after the structure of Jacobian matrix is known
-    ProcessSet::SetJacobianFlatIds(matrix);
+    micm::ProcessSet::SetJacobianFlatIds(matrix);
 
     ProcessSetParam hoststruct;
     hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
@@ -117,7 +117,7 @@ namespace micm
       const MatrixPolicy& state_variables,
       MatrixPolicy& forcing) const
   {
-    Process::AddForcingTerms<MatrixPolicy>(rate_constants, state_variables, forcing);
+    micm::Process::AddForcingTerms<MatrixPolicy>(rate_constants, state_variables, forcing);
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy>
@@ -141,6 +141,6 @@ namespace micm
       const MatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    Process::SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state_variables, jacobian);
+    micm::Process::SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state_variables, jacobian);
   }
 }  // namespace micm

@@ -142,7 +142,7 @@ namespace micm
   };
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+  requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U,
@@ -154,34 +154,14 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+  requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U) const
   {
     bool is_singular = false;
+    auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
+    auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
     micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_, is_singular);
-  }
-
-  // call the function from the base class
-  template<class SparseMatrixPolicy>
-  requires(!CudaMatrix<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U,
-      bool& is_singular) const
-  {
-    LuDecomposition::Decompose<SparseMatrixPolicy>(A, L, U, is_singular);
-  }
-
-  // call the function from the base class
-  template<class SparseMatrixPolicy>
-  requires(!CudaMatrix<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
-  {
-    bool is_singular = false;
-    LuDecomposition::Decompose<SparseMatrixPolicy>(A, L, U, is_singular);
   }
 }  // end of namespace micm

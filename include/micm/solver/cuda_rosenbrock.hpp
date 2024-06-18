@@ -161,7 +161,7 @@ namespace micm
     double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
         const requires(!CudaMatrix<DenseMatrixPolicy>)
     {
-      return NormalizedError(y_old, y_new, errors);
+      return micm::RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(y_old, y_new, errors);
     }
 
   };  // end CudaRosenbrockSolver
