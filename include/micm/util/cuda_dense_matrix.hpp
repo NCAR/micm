@@ -196,11 +196,11 @@ namespace micm
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
-    /// @param incx The increment for the elements of x
-    /// @param incy The increment for the elements of y
     /// @return 0 if successful, otherwise an error code
-    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x, const int incx, const int incy)
+    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x)
     {
+      const int incx = 1; // increment for the elements of x
+      const int incy = 1; // increment for the elements of y
       static_assert(std::is_same_v<T, double>);
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(
