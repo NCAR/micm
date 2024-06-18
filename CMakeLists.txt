@@ -2,6 +2,19 @@
 # Preamble
 cmake_minimum_required(VERSION 3.21)
 
+
+if(DEFINED MICM_MODULE_LOADS OR DEFINED MICM_MODULE_UNLOADS)
+  find_package(EnvModules REQUIRED)
+  foreach(NEEDED_MODULE IN LISTS MICM_MODULE_LOADS)
+    env_module(load "${NEEDED_MODULE}")
+  endforeach()
+  foreach(UNNEEDED_MODULE IN LISTS MICM_MODULE_UNLOADS)
+    env_module(unload "${UNNEEDED_MODULE}")
+  endforeach()
+  env_module_list(MICM_CURRENT_MODULES)
+  message(STATUS "Currently loaded modules: ${MICM_CURRENT_MODULES}")
+endif()
+
 project(
   micm
   VERSION 3.5.0
@@ -40,6 +53,8 @@ option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_MODULE_LOADS "" CACHE STRING "Modules to load")
+set(MICM_MODULE_UNLOADS "" CACHE STRING "Modules to unload")
 
 include(CMakeDependentOption)
 
