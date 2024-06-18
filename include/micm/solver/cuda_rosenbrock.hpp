@@ -108,7 +108,7 @@ namespace micm
     SolverResult Solve(double time_step, auto& state) noexcept
     {
       SolverResult result{};
-      result = Solve(time_step, state);
+      result = micm::RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::Solve(time_step, state);
       state.SyncOutputsToHost();
       return result;
     }
@@ -134,7 +134,7 @@ namespace micm
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(!CudaMatrix<SparseMatrixPolicy>)
     {
-      AlphaMinusJacobian(jacobian, alpha);
+      micm::RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(jacobian, alpha);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already

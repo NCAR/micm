@@ -117,7 +117,7 @@ namespace micm
       const MatrixPolicy& state_variables,
       MatrixPolicy& forcing) const
   {
-    AddForcingTerms(rate_constants, state_variables, forcing);
+    Process::AddForcingTerms<MatrixPolicy>(rate_constants, state_variables, forcing);
   }
 
   template<class MatrixPolicy, class SparseMatrixPolicy>
@@ -141,6 +141,6 @@ namespace micm
       const MatrixPolicy& state_variables,
       SparseMatrixPolicy& jacobian) const
   {
-    SubtractJacobianTerms(rate_constants, state_variables, jacobian);
+    Process::SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state_variables, jacobian);
   }
 }  // namespace micm

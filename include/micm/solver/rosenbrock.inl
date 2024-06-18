@@ -131,6 +131,7 @@ namespace micm
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         auto error = NormalizedError(Y, Ynew, Yerror);
+        std::cout << "Error: " << error << std::endl;
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(

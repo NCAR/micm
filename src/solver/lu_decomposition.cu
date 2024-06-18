@@ -12,7 +12,8 @@ namespace micm
         const CudaMatrixParam A_param,
         CudaMatrixParam L_param,
         CudaMatrixParam U_param,
-        const LuDecomposeParam devstruct)
+        const LuDecomposeParam devstruct,
+        bool* d_is_singular)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -44,6 +45,7 @@ namespace micm
       double* d_L = L_param.d_data_;
       double* d_U = U_param.d_data_;
       size_t number_of_grid_cells = A_param.number_of_grid_cells_;
+      *d_is_singular = false;
 
       if (tid < number_of_grid_cells)
       {
@@ -90,6 +92,10 @@ namespace micm
               size_t U_idx = d_lkj_uji[lkj_uji_offset].second + tid;
               d_L[L_idx_1] -= d_L[L_idx_2] * d_U[U_idx];
               ++lkj_uji_offset;
+            }
+            if (d_U[d_uii[uii_offset] + tid] == 0.0)
+            {
+              *d_is_singular = true;
             }
             d_L[d_lki_nkj[lki_nkj_offset].first + tid] /= d_U[d_uii[uii_offset] + tid];
             ++lki_nkj_offset;
@@ -170,10 +176,19 @@ namespace micm
         const CudaMatrixParam& A_param,
         CudaMatrixParam& L_param,
         CudaMatrixParam& U_param,
-        const LuDecomposeParam& devstruct)
+        const LuDecomposeParam& devstruct,
+        bool& is_singular)
     {
+      // Allocate device space for the boolean variable
+      bool* d_is_singular;
+      cudaMalloc(&d_is_singular, sizeof(bool));
+      // Copy the boolean result from host to device
+      cudaMemcpy(d_is_singular, &is_singular, sizeof(bool), cudaMemcpyHostToDevice);
+      // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct);
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct, d_is_singular);
+      // Copy the boolean result from device back to host
+      cudaMemcpy(&is_singular, d_is_singular, sizeof(bool), cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
