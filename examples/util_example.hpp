@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 /// @brief Struct of mapping keys in certain type to its initial condition values
 struct InitialConditions
