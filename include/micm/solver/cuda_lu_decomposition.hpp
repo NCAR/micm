@@ -116,26 +116,8 @@ namespace micm
         SparseMatrixPolicy& U,
         bool& is_singular) const;
 
-    /// @brief This is the function to perform an LU decomposition on a given A matrix on the CPU
-    /// @param A is the sparse matrix to decompose
-    /// @param L is the lower triangular matrix created by decomposition
-    /// @param U is the upper triangular matrix created by decomposition
-    /// @param is_singular Flag that is set to true if A is singular; false otherwise
-    template<class SparseMatrixPolicy>
-    requires(!CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U,
-        bool& is_singular) const;
-
     template<class SparseMatrixPolicy>
     requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U) const;
-
-    template<class SparseMatrixPolicy>
-    requires(!CudaMatrix<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
         SparseMatrixPolicy& L,
         SparseMatrixPolicy& U) const;

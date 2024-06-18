@@ -126,17 +126,6 @@ namespace micm
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
     }
 
-    /// @brief Computes [alpha * I - jacobian] on the CPU
-    /// @tparam SparseMatrixPolicy
-    /// @param jacobian Jacobian matrix
-    /// @param alpha
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(!CudaMatrix<SparseMatrixPolicy>)
-    {
-      micm::RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(jacobian, alpha);
-    }
-
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
     /// @tparam DenseMatrixPolicy
     /// @param y_old the original vector
@@ -150,19 +139,5 @@ namespace micm
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, this->devstruct_);
     }
-
-    /// @brief Computes the scaled norm of the vector errors on the CPU
-    /// @tparam DenseMatrixPolicy
-    /// @param y_old The original vector
-    /// @param y_new The new vector
-    /// @param errors The computed errors
-    /// @return The scaled norm of the errors
-    template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
-        const requires(!CudaMatrix<DenseMatrixPolicy>)
-    {
-      return micm::RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(y_old, y_new, errors);
-    }
-
   };  // end CudaRosenbrockSolver
 }  // namespace micm
