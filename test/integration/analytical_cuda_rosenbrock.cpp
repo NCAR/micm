@@ -13,7 +13,8 @@ TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 {
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_troe(builder);
+  test_analytical_troe(builder, [](auto& state) -> void { state.SyncInputsToDevice(); },
+                                [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 // TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)

@@ -16,7 +16,7 @@ TEST(AnalyticalExamples, Troe)
 {
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_troe(builder);
+  test_analytical_troe(builder, [](auto& state) { }, [](auto& state) { });
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)

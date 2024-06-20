@@ -73,8 +73,8 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-template<class BuilderPolicy>
-void test_analytical_troe(BuilderPolicy& builder)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_troe(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve)
 {
   /*
    * A -> B, k1
@@ -159,8 +159,10 @@ void test_analytical_troe(BuilderPolicy& builder)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);

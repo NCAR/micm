@@ -109,7 +109,7 @@ namespace micm
     {
       SolverResult result{};
       result = micm::AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>::Solve(time_step, state);
-      state.SyncOutputsToHost();
+  //    state.SyncOutputsToHost();
       return result;
     }
 

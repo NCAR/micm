@@ -230,7 +230,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
     CalculateRateConstantsVectorizableMatrix(processes, state);
-    state.SyncInputsToDevice();
+//    state.SyncInputsToDevice();
   }
 
   inline ProcessBuilder Process::Create()
