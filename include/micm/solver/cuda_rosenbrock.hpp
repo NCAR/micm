@@ -108,7 +108,6 @@ namespace micm
     SolverResult Solve(double time_step, auto& state) noexcept
     {
       SolverResult result{};
-      std::cout << "call the cuda solve implementation..." << std::endl;
       result = micm::AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>::Solve(time_step, state);
       state.SyncOutputsToHost();
       return result;
@@ -122,7 +121,6 @@ namespace micm
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
         requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
-      std::cout << "call the cuda implementation..." << std::endl;
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);

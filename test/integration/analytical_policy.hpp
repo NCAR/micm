@@ -160,7 +160,6 @@ void test_analytical_troe(BuilderPolicy& builder)
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
     // Model results
-    std::cout << "Time: " << i_time << std::endl;
     auto result = solver.Solve(time_step, state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);

@@ -88,14 +88,6 @@ namespace micm
           break;
         }
 
- //     state.lower_matrix_.CopyToHost();
-      for(auto& elem : state.lower_matrix_.AsVector())
-          std::cout << "elem in lower_matrix: " << elem << std::endl;
- //     state.upper_matrix_.CopyToHost();
-      for(auto& elem : state.upper_matrix_.AsVector())
-          std::cout << "elem in upper_matrix: " << elem << std::endl;
-      exit(10);
-
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
@@ -139,7 +131,6 @@ namespace micm
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         auto error = static_cast<Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
-        std::cout << "Error: " << error << std::endl;
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
@@ -206,7 +197,6 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats;
     state.variables_ = Y;
-    state.SyncOutputsToHost();
     
     return result;
   }
@@ -234,7 +224,7 @@ namespace micm
       const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
-    std::cout << "call the host implementation..." << std::endl;
+
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
@@ -263,10 +253,6 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
-      jacobian.CopyToHost();
-      for(auto& elem : jacobian.AsVector())
-          std::cout << "elem in jiacobian: " << elem << std::endl;
-      exit(10);
       if (parameters_.check_singularity_)
       {
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);

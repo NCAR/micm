@@ -130,7 +130,29 @@ namespace micm
   }; // end of Abstract Rosenbrock Solver 
 
   template<class RatesPolicy, class LinearSolverPolicy>
-  class RosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>{};
+  class RosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>{
+   public:
+    /// @brief Default constructor
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
+    ///
+    /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
+    RosenbrockSolver(
+        const RosenbrockSolverParameters& parameters,
+        LinearSolverPolicy&& linear_solver,
+        RatesPolicy&& rates,
+        auto& jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+    {
+    }
+
+    RosenbrockSolver(const RosenbrockSolver&) = delete;
+    RosenbrockSolver& operator=(const RosenbrockSolver&) = delete;
+    RosenbrockSolver(RosenbrockSolver&&) = default;
+    RosenbrockSolver& operator=(RosenbrockSolver&&) = default;
+  };
 
 }  // namespace micm
 
