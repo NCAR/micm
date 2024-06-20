@@ -3,8 +3,8 @@
 namespace micm
 {
 
-  template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) noexcept
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(double time_step, auto& state) noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
@@ -88,6 +88,14 @@ namespace micm
           break;
         }
 
+ //     state.lower_matrix_.CopyToHost();
+      for(auto& elem : state.lower_matrix_.AsVector())
+          std::cout << "elem in lower_matrix: " << elem << std::endl;
+ //     state.upper_matrix_.CopyToHost();
+      for(auto& elem : state.upper_matrix_.AsVector())
+          std::cout << "elem in upper_matrix: " << elem << std::endl;
+      exit(10);
+
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
@@ -130,7 +138,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
-        auto error = NormalizedError(Y, Ynew, Yerror);
+        auto error = static_cast<Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
         std::cout << "Error: " << error << std::endl;
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -198,13 +206,14 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats;
     state.variables_ = Y;
-
+    state.SyncOutputsToHost();
+    
     return result;
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
-  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
       const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
@@ -218,14 +227,14 @@ namespace micm
     }
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class SparseMatrixPolicy>
-  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::AlphaMinusJacobian(
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
       const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
-
+    std::cout << "call the host implementation..." << std::endl;
     const std::size_t n_cells = jacobian.GroupVectorSize();
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
@@ -236,8 +245,8 @@ namespace micm
     }
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
-  inline void RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::LinearFactor(
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
+  inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
       double& H,
       const double gamma,
       bool& singular,
@@ -253,7 +262,11 @@ namespace micm
     while (true)
     {
       double alpha = 1 / (H * gamma);
-      AlphaMinusJacobian(jacobian, alpha);
+      static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
+      jacobian.CopyToHost();
+      for(auto& elem : jacobian.AsVector())
+          std::cout << "elem in jiacobian: " << elem << std::endl;
+      exit(10);
       if (parameters_.check_singularity_)
       {
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
@@ -274,9 +287,9 @@ namespace micm
     }
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class DenseMatrixPolicy>
-  inline double RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(
+  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>)
@@ -309,9 +322,9 @@ namespace micm
     return std::max(std::sqrt(error / N), error_min);
   }
 
-  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   template<class DenseMatrixPolicy>
-  inline double RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::NormalizedError(
+  inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
       const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>)

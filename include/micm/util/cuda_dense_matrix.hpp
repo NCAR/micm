@@ -223,5 +223,14 @@ namespace micm
       }
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
+
+    /// @brief Set every matrix element to a given value on the GPU
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(this->data_.begin(), this->data_.end(), val);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
+    }
+
   };  // class CudaDenseMatrix
 }  // namespace micm
