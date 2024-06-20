@@ -12,102 +12,93 @@
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
+auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(
+    micm::BackwardEulerSolverParameters());
+
 TEST(AnalyticalExamples, Troe)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_troe(builder);
+  test_analytical_troe(rosenbrock);
+  test_analytical_troe(backward_euler, 1e-4);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_troe(builder);
+  test_analytical_stiff_troe(rosenbrock, 1e-4);
+  test_analytical_stiff_troe(backward_euler, 1e-4);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_photolysis(builder);
+  test_analytical_photolysis(rosenbrock);
+  test_analytical_photolysis(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_photolysis(builder);
+  test_analytical_stiff_photolysis(rosenbrock, 1e-4);
+  test_analytical_stiff_photolysis(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_ternary_chemical_activation(builder);
+  test_analytical_ternary_chemical_activation(rosenbrock);
+  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_ternary_chemical_activation(builder);
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock, 1e-4);
+  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_tunneling(builder);
+  test_analytical_tunneling(rosenbrock);
+  test_analytical_tunneling(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_tunneling(builder);
+  test_analytical_stiff_tunneling(rosenbrock, 1e-4);
+  test_analytical_stiff_tunneling(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_arrhenius(builder);
+  test_analytical_arrhenius(rosenbrock);
+  test_analytical_arrhenius(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_arrhenius(builder);
+  test_analytical_stiff_arrhenius(rosenbrock, 1e-4);
+  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_branched(builder);
+  test_analytical_branched(rosenbrock, 1e-3);
+  test_analytical_branched(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_branched(builder);
+  test_analytical_stiff_branched(rosenbrock, 1e-3);
+  test_analytical_stiff_branched(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, Robertson)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson(builder);
+  test_analytical_robertson(rosenbrock, 1e-1);
+  // test_analytical_robertson(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_surface_rxn(builder);
+  test_analytical_surface_rxn(rosenbrock, 1e-5);
+  test_analytical_surface_rxn(backward_euler, 1e-1);
 }
 
 using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;

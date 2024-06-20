@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy>
-void test_analytical_surface_rxn(BuilderPolicy& builder)
+void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
@@ -114,9 +114,9 @@ void test_analytical_surface_rxn(BuilderPolicy& builder)
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
     // Check concentrations
-    EXPECT_NEAR(analytic_conc[i][idx_foo], model_conc[i][idx_foo], 1e-5);
-    EXPECT_NEAR(analytic_conc[i][idx_bar], model_conc[i][idx_bar], 1e-5);
-    EXPECT_NEAR(analytic_conc[i][idx_baz], model_conc[i][idx_baz], 1e-5);
+    EXPECT_NEAR(analytic_conc[i][idx_foo], model_conc[i][idx_foo], tolerance);
+    EXPECT_NEAR(analytic_conc[i][idx_bar], model_conc[i][idx_bar], tolerance);
+    EXPECT_NEAR(analytic_conc[i][idx_baz], model_conc[i][idx_baz], tolerance);
 
     std::cout << std::setw(3) << i << "  " << std::fixed << std::setprecision(2) << std::setw(5) << time << "  "
               << std::fixed << std::setprecision(7) << analytic_conc[i][idx_foo] << "  " << model_conc[i][idx_foo] << "  "
