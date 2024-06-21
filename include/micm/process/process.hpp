@@ -15,7 +15,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/error.hpp>
-#include <micm/util/cuda_dense_matrix.hpp>
+
 #include <memory>
 #include <utility>
 #include <vector>
