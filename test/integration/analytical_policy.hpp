@@ -22,6 +22,11 @@
 
 constexpr size_t nsteps = 1000;
 
+double relative_error(double a, double b)
+{
+  return abs(a - b) / abs(a);
+}
+
 double relative_difference(double a, double b)
 {
   return abs(a - b) / ((a + b) / 2);

@@ -98,7 +98,7 @@ TEST(AnalyticalExamples, Robertson)
 TEST(AnalyticalExamples, SurfaceRxn)
 {
   test_analytical_surface_rxn(rosenbrock, 1e-5);
-  test_analytical_surface_rxn(backward_euler, 1e-1);
+  test_analytical_surface_rxn(backward_euler, 0.05);
 }
 
 using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;

@@ -114,9 +114,9 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
     // Check concentrations
-    EXPECT_NEAR(analytic_conc[i][idx_foo], model_conc[i][idx_foo], tolerance);
-    EXPECT_NEAR(analytic_conc[i][idx_bar], model_conc[i][idx_bar], tolerance);
-    EXPECT_NEAR(analytic_conc[i][idx_baz], model_conc[i][idx_baz], tolerance);
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
 
     std::cout << std::setw(3) << i << "  " << std::fixed << std::setprecision(2) << std::setw(5) << time << "  "
               << std::fixed << std::setprecision(7) << analytic_conc[i][idx_foo] << "  " << model_conc[i][idx_foo] << "  "
