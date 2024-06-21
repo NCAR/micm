@@ -102,17 +102,6 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    /// @brief Advances the given step over the specified time step on the GPU
-    /// @param time_step Time [s] to advance the state by
-    /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, auto& state) noexcept
-    {
-      SolverResult result{};
-      result = micm::AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>::Solve(time_step, state);
-  //    state.SyncOutputsToHost();
-      return result;
-    }
-
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix

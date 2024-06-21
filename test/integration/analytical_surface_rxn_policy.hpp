@@ -7,8 +7,8 @@
 
 #include <gtest/gtest.h>
 
-template<class BuilderPolicy>
-void test_analytical_surface_rxn(BuilderPolicy& builder)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_surface_rxn(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve)
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
@@ -97,8 +97,10 @@ void test_analytical_surface_rxn(BuilderPolicy& builder)
     double elapsed_solve_time = 0;
     solver.CalculateRateConstants(state);
 
+    prepare_for_solve(state);
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
+    postpare_for_solve(state);
     elapsed_solve_time = result.final_time_;
 
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));

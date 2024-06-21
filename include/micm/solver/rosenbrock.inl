@@ -130,6 +130,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
+        // Compute the normalized error
         auto error = static_cast<Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
@@ -197,7 +198,7 @@ namespace micm
     result.final_time_ = present_time;
     result.stats_ = stats;
     state.variables_ = Y;
-    
+
     return result;
   }
 

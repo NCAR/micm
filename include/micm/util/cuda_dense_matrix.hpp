@@ -98,6 +98,7 @@ namespace micm
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
