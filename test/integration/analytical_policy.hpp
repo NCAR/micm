@@ -1694,6 +1694,7 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
     times.push_back(0);
     for (size_t i_time = 0; i_time < N; ++i_time)
     {
+      state.variables_[0] = model_concentrations[0];
       double solve_time = time_step + i_time * time_step;
       times.push_back(solve_time);
       solver.CalculateRateConstants(state);
@@ -1707,7 +1708,6 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
       model_concentrations[i_time + 1] = state.variables_[0];
       time_step *= 10;
     }
-
 
     std::vector<std::string> header = { "time", "A", "B", "C" };
     // set the name of the output to include the  tolerance loop

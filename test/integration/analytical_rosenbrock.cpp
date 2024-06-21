@@ -13,7 +13,7 @@
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
 auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-    micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+    micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(
     micm::BackwardEulerSolverParameters());
 
