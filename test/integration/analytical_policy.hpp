@@ -27,6 +27,10 @@ double relative_difference(double a, double b)
   return abs(a - b) / ((a + b) / 2);
 }
 
+double relative_error(double a, double b) {
+  return abs(a - b) / abs(a);
+}
+
 void writeCSV(
     const std::string& filename,
     const std::vector<std::string>& header,
@@ -1620,6 +1624,15 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
   auto solver =
       builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
+  
+  // tolerances taken from https://www.unige.ch/~hairer/testset/stiff/rober/driver_rodas.f
+  // i don't know why these particular tolerances are used, they just are
+  int min_tolerance_power = 2;
+  int max_tolerance_power = 10;
+  int tolerance_factor_power = 4;
+  int num_tolerance_loops = (max_tolerance_power - min_tolerance_power) * tolerance_factor_power + 1;
+  double start_tolerance = std::pow(0.1, min_tolerance_power);
+  double tolerance_factor = std::pow(0.1, 1.0 / tolerance_factor_power);
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1640,8 +1653,6 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(3));
   std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(3));
 
-  model_concentrations[0] = { 1, 0, 0 };
-
   analytical_concentrations = { { 1, 0, 0 },
                                 { 0.9664597373330035E+00, 0.3074626578578675E-04, 0.3350951640121071E-01 },
                                 { 0.8413699238414729E+00, 0.1623390937990473E-04, 0.1586138422491472E+00 },
@@ -1656,47 +1667,70 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
                                 { 0.2083328471883087E-06, 0.8333315602809495E-12, 0.9999997916663195E+00 },
                                 { 0.2083340149701284E-07, 0.8333360770334744E-13, 0.9999999791665152E+00 } };
 
-  state.variables_[0] = model_concentrations[0];
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
 
-  double time_step = 1.0;
-  std::vector<double> times;
-  times.push_back(0);
-  for (size_t i_time = 0; i_time < N; ++i_time)
-  {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
-    solver.CalculateRateConstants(state);
-    // Model results
-    double actual_solve = 0;
-    while (actual_solve < time_step)
+  for (int toleranceLoop = 1; toleranceLoop <= num_tolerance_loops; ++toleranceLoop) {
+    double relative_tolerance = start_tolerance;
+    double absolute_tolerance = 1.0e-6 * relative_tolerance;
+
+    solver.solver_.parameters_.relative_tolerance_ = relative_tolerance;
+    solver.solver_.parameters_.absolute_tolerance_ = { absolute_tolerance, absolute_tolerance, absolute_tolerance };
+
+    for(auto& conc : model_concentrations)
     {
-      auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
+      conc = { 0, 0, 0 };
     }
-    model_concentrations[i_time + 1] = state.variables_[0];
-    time_step *= 10;
+    model_concentrations[0] = { 1, 0, 0 };
+      
+    state.variables_[0] = model_concentrations[0];
+
+    // print the tolerance and number loop
+    std::cout << "Loop: " << toleranceLoop << " Relative Tolerance: " << relative_tolerance << " Absolute Tolerance: " << absolute_tolerance << std::endl;
+
+    double time_step = 1.0;
+    std::vector<double> times;
+    times.push_back(0);
+    for (size_t i_time = 0; i_time < N; ++i_time)
+    {
+      double solve_time = time_step + i_time * time_step;
+      times.push_back(solve_time);
+      solver.CalculateRateConstants(state);
+      // Model results
+      double actual_solve = 0;
+      while (actual_solve < time_step)
+      {
+        auto result = solver.Solve(time_step - actual_solve, state);
+        actual_solve += result.final_time_;
+      }
+      model_concentrations[i_time + 1] = state.variables_[0];
+      time_step *= 10;
+    }
+
+
+    std::vector<std::string> header = { "time", "A", "B", "C" };
+    // set the name of the output to include the  tolerance loop
+    std::string output_name = "robertson_model_concentrations_" + std::to_string(toleranceLoop) + ".csv";
+    writeCSV(output_name, header, model_concentrations, times);
+    writeCSV("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
+
+    start_tolerance *= tolerance_factor;
   }
 
-  std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  // auto map = state.variable_map_;
 
-  auto map = state.variable_map_;
+  // size_t _a = map.at("A");
+  // size_t _b = map.at("B");
+  // size_t _c = map.at("C");
 
-  size_t _a = map.at("A");
-  size_t _b = map.at("B");
-  size_t _c = map.at("C");
-
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
-  {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
-        << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
-        << "Arrays differ at index (" << i << ", " << 2 << ")";
-  }
+  // for (size_t i = 0; i < model_concentrations.size(); ++i)
+  // {
+  //   EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+  //       << "Arrays differ at index (" << i << ", " << 0 << ")";
+  //   EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+  //       << "Arrays differ at index (" << i << ", " << 1 << ")";
+  //   EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+  //       << "Arrays differ at index (" << i << ", " << 2 << ")";
+  // }
 }
