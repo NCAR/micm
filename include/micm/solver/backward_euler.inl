@@ -171,12 +171,15 @@ namespace micm
         if (n_convergence_failures >= time_step_reductions.size())
         {
           // we have failed to converge, accept the solution
-          // TODO: continue on with the current solution to get the full solution
           n_convergence_failures = 0;
           // give_up = true;
           t += H;
-          throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
-        };
+        }
+        else {
+          // accept the current solution and continue on like camchem does
+          Yn = Yn1;
+          n_convergence_failures = 0;
+        }
 
         H *= time_step_reductions[n_convergence_failures++];
       }

@@ -1578,7 +1578,7 @@ void test_analytical_stiff_branched(BuilderPolicy& builder)
 }
 
 template<class BuilderPolicy>
-void test_analytical_robertson(BuilderPolicy& builder)
+void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1 = 0.04
@@ -1690,14 +1690,13 @@ void test_analytical_robertson(BuilderPolicy& builder)
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  double tol = 1e-1;
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tol)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tol)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tol)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }

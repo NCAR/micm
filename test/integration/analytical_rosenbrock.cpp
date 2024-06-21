@@ -12,6 +12,9 @@
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
+auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(
+    micm::BackwardEulerSolverParameters());
+
 TEST(AnalyticalExamples, Troe)
 {
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
@@ -101,6 +104,7 @@ TEST(AnalyticalExamples, Robertson)
   auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_robertson(builder);
+  test_analytical_robertson(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
