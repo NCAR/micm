@@ -17,5 +17,6 @@ if(MICM_ENABLE_LLVM)
 endif()
 
 if(MICM_ENABLE_CUDA)
-  create_standard_test(NAME analytical_cuda_rosenbrock_integration SOURCES analytical_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
+  # the compute-sanitizer hangs for any integration test somehow; turns it off for now
+  create_standard_test(NAME analytical_cuda_rosenbrock_integration SOURCES analytical_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda)
 endif()
