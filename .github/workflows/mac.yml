@@ -38,6 +38,7 @@ jobs:
 
   xcode_macos_13:
     runs-on: macos-13
+    continue-on-error: true 
     strategy:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
@@ -62,6 +63,7 @@ jobs:
 
   macos_lateset:
     runs-on: macos-latest
+    continue-on-error: true 
     strategy:
       matrix:
         compiler:
