@@ -241,19 +241,4 @@ namespace micm
       std::cout.copyfmt(oldState);
     }
   }
-
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SyncInputsToDevice()
-  {
-    variables_.CopyToDevice();
-    rate_constants_.CopyToDevice();
-  }
-
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SyncOutputsToHost()
-  {
-    variables_.CopyToHost();
-  }
 }  // namespace micm
