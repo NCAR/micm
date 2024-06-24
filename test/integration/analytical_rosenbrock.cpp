@@ -14,8 +14,7 @@ using SparseMatrixTest = micm::SparseMatrix<double>;
 
 auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(
-    micm::BackwardEulerSolverParameters());
+auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
