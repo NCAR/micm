@@ -1,0 +1,31 @@
+name: Add Documentation Link to PR
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+
+jobs:
+  add-doc-link:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Add Documentation Link
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PR_NUMBER=${{ github.event.number }}
+        BRANCH_NAME=${{ github.event.pull_request.head.ref }}
+        DOCS_URL="https://ncar.github.io/micm/branch/${BRANCH_NAME}"
+
+        # Comment body
+        COMMENT_BODY="Here is the documentation for this branch: [${BRANCH_NAME} Documentation](${DOCS_URL})"
+
+        # Post the comment
+        curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+             -X POST \
+             -d "{\"body\": \"${COMMENT_BODY}\"}" \
+             "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
