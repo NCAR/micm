@@ -40,6 +40,7 @@ option(MICM_ENABLE_EXAMPLES "Build the examples" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+message(STATUS "   [micm] MICM vector matrix size: ${MICM_DEFAULT_VECTOR_MATRIX_SIZE}")
 
 include(CMakeDependentOption)
 
