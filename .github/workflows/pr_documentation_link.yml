@@ -30,7 +30,6 @@ jobs:
       uses: peter-evans/create-or-update-comment@v4
       with:
         issue-number: ${{ github.event.pull_request.number }}
-        comment-author: 'github-actions[bot]'
         body: |
           Here is the documentation for this branch: [Documentation](https://ncar.github.io/micm/branch/${{ env.BRANCH_NAME }})
       env:
