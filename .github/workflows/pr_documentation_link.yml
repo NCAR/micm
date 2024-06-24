@@ -21,12 +21,17 @@ jobs:
         echo "github.head_ref:" ${{github.head_ref}}
         echo "github.base_ref:" ${{github.base_ref}}
 
+    - name: Extract Branch Name
+      id: extract_branch
+      run: echo "BRANCH_NAME=$(echo ${{ github.head_ref }} | cut -d'/' -f3)" >> $GITHUB_ENV
+
     - name: Add Documentation Link
       id: comment
       uses: peter-evans/create-or-update-comment@v4
       with:
-        issue-number: ${{ github.event.number }}
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
         body: |
-          Here is the documentation for this branch: [Documentation](https://ncar.github.io/micm/branch/${{ github.head_ref }})
+          Here is the documentation for this branch: [Documentation](https://ncar.github.io/micm/branch/${{ env.BRANCH_NAME }})
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
