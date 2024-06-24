@@ -27,7 +27,6 @@ suffix = os.getenv("SWITCHER_SUFFIX", "")
 regex = r'project\(\w+\s+VERSION\s+(\d+\.\d+\.\d+)'
 version = '0.0.0'
 # read the version from the cmake files
-# print the current working directory
 with open(f'../../CMakeLists.txt', 'r') as f:
     for line in f:
         match = re.match(regex, line)
