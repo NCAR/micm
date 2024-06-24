@@ -14,19 +14,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Debugging information
+      run: |
+        echo "github.ref:" ${{github.ref}}
+        echo "github.event_name:" ${{github.event_name}}
+        echo "github.head_ref:" ${{github.head_ref}}
+        echo "github.base_ref:" ${{github.base_ref}}
+
     - name: Add Documentation Link
+      id: comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        issue-number: ${{ github.event.number }}
+        body: |
+          Here is the documentation for this branch: [Documentation](https://ncar.github.io/micm/branch/${{ github.head_ref }})
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        PR_NUMBER=${{ github.event.number }}
-        BRANCH_NAME=${{ github.event.pull_request.head.ref }}
-        DOCS_URL="https://ncar.github.io/micm/branch/${BRANCH_NAME}"
-
-        # Comment body
-        COMMENT_BODY="Here is the documentation for this branch: [${BRANCH_NAME} Documentation](${DOCS_URL})"
-
-        # Post the comment
-        curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-             -X POST \
-             -d "{\"body\": \"${COMMENT_BODY}\"}" \
-             "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
