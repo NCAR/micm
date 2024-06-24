@@ -13,6 +13,7 @@
 import os
 import sys
 import datetime
+import re
 sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
@@ -23,7 +24,16 @@ author = 'NCAR/UCAR'
 
 suffix = os.getenv("SWITCHER_SUFFIX", "")
 # the suffix is required. This is controlled by the dockerfile that builds the docs
-release = f'v3.4.0{suffix}'
+regex = r'project\(\w+\s+VERSION\s+(\d+\.\d+\.\d+)'
+version = '0.0.0'
+# read the version from the cmake files
+# print the current working directory
+with open(f'../../CMakeLists.txt', 'r') as f:
+    for line in f:
+        match = re.match(regex, line)
+        if match:
+            version = match.group(1)
+release = f'{version}{suffix}'
 
 # -- General configuration ---------------------------------------------------
 
