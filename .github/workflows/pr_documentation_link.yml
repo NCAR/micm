@@ -2,6 +2,7 @@ name: Add Documentation Link to PR
 
 on:
   workflow_dispatch:
+  push:
   pull_request:
     types: [opened]
 
@@ -11,7 +12,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Add Documentation Link
       env:
