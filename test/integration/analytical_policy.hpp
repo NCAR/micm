@@ -1711,7 +1711,7 @@ void test_analytical_oregonator(auto& solver, double tolerance = 1e-8)
   /*
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 3
+   * edition. ed. Springer, Berlin ; New York. Page 144
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
@@ -1800,7 +1800,7 @@ void test_analytical_hires(auto& solver, double tolerance = 1e-8)
     /*
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 3
+   * edition. ed. Springer, Berlin ; New York. Page 144
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
@@ -1873,7 +1873,7 @@ void test_analytical_e5(auto& solver, double tolerance = 1e-8)
     /*
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 3
+   * edition. ed. Springer, Berlin ; New York. Page 145
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
