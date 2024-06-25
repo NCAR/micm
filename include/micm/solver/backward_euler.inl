@@ -76,6 +76,7 @@ namespace micm
 
     while (t < time_step)
     {
+      result.state_ = SolverState::Running;
       bool converged = false;
       std::size_t iterations = 0;
 
@@ -156,11 +157,6 @@ namespace micm
                       (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
         } while (converged && forcing_iter != forcing.end());
-
-        if (!converged)
-        {
-          std::cout << "failed to converge within the newton iteration\n";
-        }
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -180,6 +176,7 @@ namespace micm
       }
       else
       {
+        result.state_ = SolverState::Converged;
         t += H;
         Yn = Yn1;
 

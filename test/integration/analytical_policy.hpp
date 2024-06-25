@@ -22,6 +22,11 @@
 
 constexpr size_t nsteps = 1000;
 
+double relative_error(double a, double b)
+{
+  return abs(a - b) / abs(a);
+}
+
 double relative_difference(double a, double b)
 {
   return abs(a - b) / ((a + b) / 2);
@@ -74,7 +79,7 @@ using yields = std::pair<micm::Species, double>;
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
 template<class BuilderPolicy>
-void test_analytical_troe(BuilderPolicy& builder)
+void test_analytical_troe(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -189,17 +194,17 @@ void test_analytical_troe(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_troe(BuilderPolicy& builder)
+void test_analytical_stiff_troe(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -330,14 +335,14 @@ void test_analytical_stiff_troe(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4);
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_photolysis(BuilderPolicy& builder)
+void test_analytical_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -433,17 +438,17 @@ void test_analytical_photolysis(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_photolysis(BuilderPolicy& builder)
+void test_analytical_stiff_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -566,14 +571,14 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4);
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_ternary_chemical_activation(BuilderPolicy& builder)
+void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -680,17 +685,17 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder)
+void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -821,14 +826,14 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4);
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_tunneling(BuilderPolicy& builder)
+void test_analytical_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -922,17 +927,17 @@ void test_analytical_tunneling(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_tunneling(BuilderPolicy& builder)
+void test_analytical_stiff_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1050,17 +1055,17 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_arrhenius(BuilderPolicy& builder)
+void test_analytical_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1153,17 +1158,17 @@ void test_analytical_arrhenius(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-8)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_arrhenius(BuilderPolicy& builder)
+void test_analytical_stiff_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1282,17 +1287,17 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-4)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_branched(BuilderPolicy& builder)
+void test_analytical_branched(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1410,17 +1415,17 @@ void test_analytical_branched(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
 template<class BuilderPolicy>
-void test_analytical_stiff_branched(BuilderPolicy& builder)
+void test_analytical_stiff_branched(BuilderPolicy& builder, double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1568,11 +1573,11 @@ void test_analytical_stiff_branched(BuilderPolicy& builder)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], 1e-3)
+    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
