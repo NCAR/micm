@@ -165,6 +165,7 @@ namespace micm
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
+          t += H;
           std::cerr << "Failed to converge too many times in a row. Accepting the current integration and continuing on.\n";
           break;
         }
@@ -187,9 +188,9 @@ namespace micm
           n_successful_integrations = 0;
           H *= 2.0;
         }
-        // Don't let H go past the time step
-        H = std::min(H, time_step - t);
       }
+      // Don't let H go past the time step
+      H = std::min(H, time_step - t);
     }
 
     state.variables_ = Yn1;
