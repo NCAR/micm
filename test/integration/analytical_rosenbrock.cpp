@@ -113,7 +113,11 @@ TEST(AnalyticalExamples, Oregonator)
   using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
 
   auto rosenbrock_solver = OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
-  auto backward_euler_solver = OregonatorTest::template CreateSolver<BackwardEulerTest<OregonatorTest>, LinearSolverTest>(micm::BackwardEulerSolverParameters(), 1);
+  auto backward_euler_params = micm::BackwardEulerSolverParameters();
+  double abolute_tolerance = 1e-16;
+  backward_euler_params.absolute_tolerance_ = { abolute_tolerance, abolute_tolerance, abolute_tolerance };
+  backward_euler_params.relative_tolerance_ = 1e-10;
+  auto backward_euler_solver = OregonatorTest::template CreateSolver<BackwardEulerTest<OregonatorTest>, LinearSolverTest>(backward_euler_params, 1);
 
   test_analytical_oregonator(rosenbrock_solver, 1e-3);
   // test_analytical_oregonator(backward_euler_solver, 1e-1);

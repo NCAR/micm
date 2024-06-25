@@ -1780,12 +1780,6 @@ void test_analytical_oregonator(auto& solver, double tolerance = 1e-8)
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    // EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
-    //     << "Arrays differ at index (" << i << ", " << 0 << ")";
-    // EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
-    //     << "Arrays differ at index (" << i << ", " << 1 << ")";
-    // EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
-    //     << "Arrays differ at index (" << i << ", " << 2 << ")";
     double rel_diff = relative_difference(model_concentrations[i][_a], analytical_concentrations[i][0]);
     EXPECT_NEAR(0, rel_diff, tolerance) << "Arrays differ at index (" << i << ", " << 0 << ")";
     rel_diff = relative_difference(model_concentrations[i][_b], analytical_concentrations[i][1]);
