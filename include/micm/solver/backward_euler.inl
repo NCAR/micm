@@ -165,23 +165,18 @@ namespace micm
 
       if (!converged)
       {
-        std::cout << "failed to converge\n";
         n_successful_integrations = 0;
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
-          // we have failed to converge, accept the solution
-          n_convergence_failures = 0;
-          // give_up = true;
-          t += H;
+          std::cout << "Failed to converge too many times in a row. Accepting the current integration and continuing on.\n";
+          break;
         }
         else {
-          // accept the current solution and continue on like camchem does
-          Yn = Yn1;
-          n_convergence_failures = 0;
+          std::cout << "Failed to converge. Reducing the time step.\n";
+          H *= time_step_reductions[n_convergence_failures++];
         }
 
-        H *= time_step_reductions[n_convergence_failures++];
       }
       else
       {
@@ -195,13 +190,13 @@ namespace micm
           n_successful_integrations = 0;
           H *= 2.0;
         }
+        // Don't let H go past the time step
+        H = std::min(H, time_step - t);
       }
-
-      // Don't let H go past the time step
-      H = std::min(H, time_step - t);
     }
 
     state.variables_ = Yn1;
+    result.final_time_ = t;
     return result;
   }
 }  // namespace micm
