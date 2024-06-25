@@ -242,7 +242,6 @@ namespace micm
       size_t number_of_blocks =
           (devstruct.jacobian_diagonal_elements_size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AlphaMinusJacobianKernel<<<number_of_blocks, BLOCK_SIZE>>>(jacobian_param, alpha, devstruct);
-      cudaDeviceSynchronize();
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
@@ -306,7 +305,6 @@ namespace micm
               y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
           number_of_blocks = new_number_of_blocks;
         }
-        cudaDeviceSynchronize();
 
         CHECK_CUDA_ERROR(
             cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost),
