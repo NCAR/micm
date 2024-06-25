@@ -165,11 +165,11 @@ namespace micm
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
-          std::cout << "Failed to converge too many times in a row. Accepting the current integration and continuing on.\n";
+          std::cerr << "Failed to converge too many times in a row. Accepting the current integration and continuing on.\n";
           break;
         }
         else {
-          std::cout << "Failed to converge. Reducing the time step.\n";
+          std::cerr << "Failed to converge. Reducing the time step.\n";
           H *= time_step_reductions[n_convergence_failures++];
         }
 

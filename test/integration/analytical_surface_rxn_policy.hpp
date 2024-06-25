@@ -88,8 +88,8 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  std::cout << std::setw(3) << "i" << std::setw(7) << "time" << std::setw(11) << "anal foo" << std::setw(11) << "model foo"
-            << std::setw(11) << "anal bar" << std::setw(11) << "model bar" << std::setw(11) << "anal baz" << std::setw(11)
+  std::cout << std::setw(3) << "i" << std::setw(7) << "time" << std::setw(11) << "true foo" << std::setw(11) << "model foo"
+            << std::setw(11) << "true bar" << std::setw(11) << "model bar" << std::setw(11) << "true baz" << std::setw(11)
             << "model baz" << std::endl;
 
   for (int i = 1; i <= nstep; ++i)
