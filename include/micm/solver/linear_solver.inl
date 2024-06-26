@@ -207,12 +207,12 @@ namespace micm
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
       auto U_group =
           std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
+      // Forward Substitution
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          std::copy(x_group, x_group + n_cells, y_elem);
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             std::size_t Lij_yj_first = (*Lij_yj).first;
@@ -227,6 +227,8 @@ namespace micm
           y_elem += n_cells;
         }
       }
+
+      // Backward Substitution
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();
