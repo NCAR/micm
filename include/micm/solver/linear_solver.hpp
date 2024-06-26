@@ -89,13 +89,11 @@ namespace micm
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
     requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) void Solve(
-        const MatrixPolicy& b,
-        MatrixPolicy& x,
+        MatrixPolicy& b,
         const SparseMatrixPolicy& lower_matrix,
         const SparseMatrixPolicy& upper_matrix) const;
     template<class MatrixPolicy>
     requires(VectorizableDense<MatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Solve(
-        const MatrixPolicy& b,
         MatrixPolicy& x,
         const SparseMatrixPolicy& lower_matrix,
         const SparseMatrixPolicy& upper_matrix) const;

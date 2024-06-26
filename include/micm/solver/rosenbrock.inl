@@ -115,8 +115,7 @@ namespace micm
           {
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
-          temp.Copy(K[stage]);
-          linear_solver_.Solve(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+          linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves_ += 1;
         }
 
