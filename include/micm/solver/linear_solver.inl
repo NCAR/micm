@@ -147,7 +147,7 @@ namespace micm
       auto x_cell = x[i_cell];
       const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
       const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
-      auto& y_cell = x_cell;
+      auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
       
       // Forward Substitution
       {
