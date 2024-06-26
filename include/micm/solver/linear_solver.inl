@@ -157,8 +157,8 @@ namespace micm
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
-              *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * x_cell[(*Lij_yj).second];
-              ++Lij_yj;
+            *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
+            ++Lij_yj;
           }
           *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
         }
