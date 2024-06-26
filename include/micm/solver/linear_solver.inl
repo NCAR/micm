@@ -170,6 +170,7 @@ namespace micm
         auto Uij_xj = Uij_xj_.begin();
         for (auto& nUij_Uii : nUij_Uii_)
         {
+          // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             *x_elem -= upper_matrix.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
