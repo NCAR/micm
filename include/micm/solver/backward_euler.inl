@@ -55,8 +55,8 @@ namespace micm
     // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
+    // the number of time step reduction is controlled by the time_step_reductions parameter
 
-    // TODO populate the result before returning it
     SolverResult result;
 
     double small = parameters_.small;
@@ -84,16 +84,19 @@ namespace micm
 
       do
       {
+        result.stats_.number_of_steps_++;
         // the first time Yn1 is equal to Yn
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        result.stats_.function_calls_++;
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        result.stats_.jacobian_updates_++;
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
@@ -113,6 +116,7 @@ namespace micm
 
         // try to find the root by factoring and solving the linear system
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
+        result.stats_.decompositions_++;
 
         auto yn1_iter = Yn1.begin();
         auto yn_iter = Yn.begin();
@@ -128,6 +132,7 @@ namespace micm
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
         linear_solver_.Solve(forcing, forcing, state.lower_matrix_, state.upper_matrix_);
+        result.stats_.solves_++;
 
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
@@ -161,6 +166,7 @@ namespace micm
 
       if (!converged)
       {
+        result.stats_.rejected_++;
         n_successful_integrations = 0;
 
         if (n_convergence_failures >= time_step_reductions.size())
@@ -173,10 +179,10 @@ namespace micm
           std::cerr << "Failed to converge. Reducing the time step.\n";
           H *= time_step_reductions[n_convergence_failures++];
         }
-
       }
       else
       {
+        result.stats_.accepted_++;
         result.state_ = SolverState::Converged;
         t += H;
         Yn = Yn1;
