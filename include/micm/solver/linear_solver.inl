@@ -178,6 +178,7 @@ namespace micm
           }
 
           *(x_elem) /= upper_matrix.AsVector()[upper_grid_offset + nUij_Uii.second];
+          // don't iterate before the beginning of the vector
           if (x_elem != x_cell.begin())
           {
             --x_elem;
