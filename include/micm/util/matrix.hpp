@@ -13,7 +13,7 @@
 namespace micm
 {
 
-  /// Concept for vectorizable matrices
+  /// @brief Concept for vectorizable matrices
   template<typename T>
   concept VectorizableDense = requires(T t)
   {
