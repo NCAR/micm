@@ -198,12 +198,10 @@ namespace micm
           const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
-    const MatrixPolicy& b = x;
-    const std::size_t n_cells = b.GroupVectorSize();
+    const std::size_t n_cells = x.GroupVectorSize();
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
+    for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
-      auto b_group = std::next(b.AsVector().begin(), i_group * b.GroupSize());
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
       auto L_group =
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
@@ -214,8 +212,7 @@ namespace micm
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          std::copy(b_group, b_group + n_cells, y_elem);
-          b_group += n_cells;
+          std::copy(x_group, x_group + n_cells, y_elem);
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             std::size_t Lij_yj_first = (*Lij_yj).first;
