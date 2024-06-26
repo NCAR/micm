@@ -34,7 +34,6 @@ namespace micm
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
 
-   private:
    protected:
     std::vector<T> data_;
     std::size_t x_dim_;  // number of rows
