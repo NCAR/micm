@@ -147,19 +147,20 @@ namespace micm
       auto x_cell = x[i_cell];
       const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
       const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
+      auto& y_cell = x_cell;
       
       // Forward Substitution
       {
-        auto x_elem = x_cell.begin();
+        auto y_elem = y_cell.begin();
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
-              *x_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * x_cell[(*Lij_yj).second];
+              *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * x_cell[(*Lij_yj).second];
               ++Lij_yj;
           }
-          *(x_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
+          *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
         }
       }
       
