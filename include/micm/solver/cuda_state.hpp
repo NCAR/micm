@@ -19,7 +19,7 @@ namespace micm
       CudaState(CudaState&&) = default;
       CudaState& operator=(CudaState&&) = default;
 
-      /// @brief
+      /// @brief Constructor which takes the state dimension information as input
       /// @param parameters State dimension information
       CudaState(const StateParameters& parameters) : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters) {};
 
