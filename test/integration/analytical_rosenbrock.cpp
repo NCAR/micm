@@ -18,7 +18,7 @@ auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe(rosenbrock, [](auto& state) { }, [](auto& state) { }, 1e-4);
+  test_analytical_troe(rosenbrock, [](auto& state) { }, [](auto& state) { });
   test_analytical_troe(backward_euler, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
@@ -30,7 +30,7 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis(rosenbrock, [](auto& state) { }, [](auto& state) { }, 1e-3);
+  test_analytical_photolysis(rosenbrock, [](auto& state) { }, [](auto& state) { });
   test_analytical_photolysis(backward_euler, [](auto& state) { }, [](auto& state) { }, 1e-3);
 }
 
@@ -67,7 +67,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 TEST(AnalyticalExamples, Arrhenius)
 {
   test_analytical_arrhenius(rosenbrock, [](auto& state) { }, [](auto& state) { });
-  test_analytical_arrhenius(rosenbrock, [](auto& state) { }, [](auto& state) { }, 1e-3);
+  test_analytical_arrhenius(backward_euler, [](auto& state) { }, [](auto& state) { }, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
@@ -79,7 +79,7 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 TEST(AnalyticalExamples, Branched)
 {
   test_analytical_branched(rosenbrock, [](auto& state) { }, [](auto& state) { }, 1e-3);
-  test_analytical_branched(rosenbrock, [](auto& state) { }, [](auto& state) { }, 1e-1);
+  test_analytical_branched(backward_euler, [](auto& state) { }, [](auto& state) { }, 1e-1);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)

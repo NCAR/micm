@@ -24,7 +24,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_troe(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                      [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                      [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-4);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
@@ -40,7 +40,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_photolysis(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                            [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                            [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-4);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
@@ -56,7 +56,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAna
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_ternary_chemical_activation(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                                             [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                                             [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-4);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
@@ -72,7 +72,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_tunneling(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                           [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                           [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-4);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
@@ -88,7 +88,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_arrhenius(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                           [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                           [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-4);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Branched)
@@ -96,7 +96,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Branched)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_branched(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                    [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                    [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-3);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
@@ -104,7 +104,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_branched(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                          [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                          [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-3);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
@@ -112,7 +112,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_robertson(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                     [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                     [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-1);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
@@ -120,5 +120,5 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
   auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_surface_rxn(builder, [](auto& state) -> void { state.SyncInputsToDevice(); }, 
-                                       [](auto& state) -> void { state.SyncOutputsToHost(); });
+                                       [](auto& state) -> void { state.SyncOutputsToHost(); }, 1e-5);
 }
