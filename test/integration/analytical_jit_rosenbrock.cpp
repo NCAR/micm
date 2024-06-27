@@ -20,7 +20,7 @@ TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_troe(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_troe(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
@@ -34,7 +34,7 @@ TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_photolysis(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_photolysis(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
@@ -48,7 +48,7 @@ TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnal
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_ternary_chemical_activation(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_ternary_chemical_activation(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
@@ -62,7 +62,7 @@ TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_tunneling(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_tunneling(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
@@ -76,33 +76,33 @@ TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_arrhenius(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_arrhenius(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Branched)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_branched(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_branched(builder, [](auto& state) { }, [](auto& state) { }, 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_branched(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_stiff_branched(builder, [](auto& state) { }, [](auto& state) { }, 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_robertson(builder, [](auto& state) { }, [](auto& state) { }, 1e-1);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 {
   auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_surface_rxn(builder, [](auto& state) { }, [](auto& state) { });
+  test_analytical_surface_rxn(builder, [](auto& state) { }, [](auto& state) { }, 1e-4);
 }

@@ -76,6 +76,7 @@ namespace micm
 
     while (t < time_step)
     {
+      result.state_ = SolverState::Running;
       bool converged = false;
       std::size_t iterations = 0;
 
@@ -182,6 +183,7 @@ namespace micm
       }
       else
       {
+        result.state_ = SolverState::Converged;
         t += H;
         Yn = Yn1;
 
