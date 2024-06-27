@@ -87,7 +87,7 @@ namespace micm
     {
       if (BLOCK_SIZE >= 64)
       {
-        sdata[tid] += sdata[tid + 32];
+        sdata[tid] = sdata[tid] + sdata[tid + 32];
       }
       sdata[tid] = sdata[tid] + sdata[tid + 16];
       sdata[tid] = sdata[tid] + sdata[tid + 8];
