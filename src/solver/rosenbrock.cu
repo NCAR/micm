@@ -89,11 +89,11 @@ namespace micm
       {
         sdata[tid] += sdata[tid + 32];
       }
-      sdata[tid] += sdata[tid + 16];
-      sdata[tid] += sdata[tid + 8];
-      sdata[tid] += sdata[tid + 4];
-      sdata[tid] += sdata[tid + 2];
-      sdata[tid] += sdata[tid + 1];
+      sdata[tid] = sdata[tid] + sdata[tid + 16];
+      sdata[tid] = sdata[tid] + sdata[tid + 8];
+      sdata[tid] = sdata[tid] + sdata[tid + 4];
+      sdata[tid] = sdata[tid] + sdata[tid + 2];
+      sdata[tid] = sdata[tid] + sdata[tid + 1];
     }
 
     // CUDA kernel to compute the scaled norm of the vector errors; CUDA kernel does not take reference as argument
