@@ -104,7 +104,7 @@ TEST(SolverConfig, ReadAndParseSystemObject)
   micm::SolverConfig solverConfig;
 
   // Read and parse the configure files
-  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/chapman/config.json"));
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/small_mechanism/config.json"));
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
@@ -157,7 +157,7 @@ TEST(SolverConfig, ReadAndParseProcessObjects)
   micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
 
   // Read and parse the configure files
-  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/chapman/config.json"));
+  EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/small_mechanism/config.json"));
 
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
