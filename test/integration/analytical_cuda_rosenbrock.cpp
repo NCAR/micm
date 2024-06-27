@@ -7,7 +7,6 @@
 #include <micm/solver/cuda_solver_builder.hpp>
 #include <micm/solver/cuda_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-
 #include <gtest/gtest.h>
 
 constexpr std::size_t L = 1;

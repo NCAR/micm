@@ -10,7 +10,7 @@
 namespace micm
 {
   /// @brief Construct a state variable for CUDA tests
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy>
   {
     public:
@@ -19,21 +19,21 @@ namespace micm
       CudaState(CudaState&&) = default;
       CudaState& operator=(CudaState&&) = default;
 
+      /// @brief
+      /// @param parameters State dimension information
+      CudaState(const StateParameters& parameters) : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters) {};
+
       /// @brief Copy input variables to the device
-      template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
-      void SyncInputsToDevice()
+      void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
       {
-         variables_.CopyToDevice();
-         rate_constants_.CopyToDevice();
+        this->variables_.CopyToDevice();
+        this->rate_constants_.CopyToDevice();
       }
 
       /// @brief Copy output variables to the host
-      template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
-      void SyncOutputsToHost()
+      void SyncOutputsToHost() requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
       {
-        variables_.CopyToHost();
+        this->variables_.CopyToHost();
       }
   };
 }  // namespace micm

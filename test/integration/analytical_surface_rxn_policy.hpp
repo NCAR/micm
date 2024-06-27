@@ -4,7 +4,7 @@
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
-
+#include <micm/solver/cuda_state.hpp>
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
@@ -66,7 +66,7 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, PrepareFunc prepare_for
   auto solver = builder.SetSystem(chemical_system).SetReactions(reactions).Build();
 
   // State
-  micm::State state = solver.GetState();
+  auto state = solver.GetState();
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.SetCustomRateParameter("foo.effective radius [m]", radius);

@@ -11,6 +11,7 @@
 #include <micm/system/phase.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
+#include <micm/solver/cuda_state.hpp>
 
 #include <gtest/gtest.h>
 
