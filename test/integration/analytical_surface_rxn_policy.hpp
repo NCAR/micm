@@ -4,7 +4,7 @@
 #include <micm/system/species.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
-#include <micm/solver/cuda_state.hpp>
+
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
@@ -15,8 +15,6 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, PrepareFunc prepare_for
   const double mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
   const double DENSITY_stuff = 1000.0;       // [kg m-3]
   const double DENSITY_more_stuff = 1000.0;  // [kg m-3]
-  const double MW_stuff = 0.5;               // [kg mol-1]
-  const double MW_more_stuff = 0.2;          // [kg mol-1]
   const double MW_foo = 0.04607;             // [kg mol-1]
   const double Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
   const double rxn_gamma = 2.0e-2;           // [unitless]
