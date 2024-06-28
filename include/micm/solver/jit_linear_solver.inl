@@ -183,7 +183,7 @@ namespace micm
     func.builder_->CreateRetVoid();
 
     auto target = func.Generate();
-    solve_function_ = (void (*)(double *, const double *, const double *))(intptr_t)target.second;
+    solve_function_ = (FuncPtr)(intptr_t)target.second;
     solve_function_resource_tracker_ = target.first;
   }
 
