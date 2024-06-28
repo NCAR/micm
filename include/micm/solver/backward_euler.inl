@@ -172,7 +172,7 @@ namespace micm
         if (n_convergence_failures >= time_step_reductions.size())
         {
           t += H;
-          std::cerr << "Failed to converge too many times in a row. Accepting the current integration and continuing on.\n";
+          result.state_ = SolverState::AcceptingUnconvergedIntegration;
           break;
         }
         else {

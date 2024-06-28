@@ -24,7 +24,9 @@ namespace micm
     /// @brief Mostly this value is returned by systems that tend toward chemical explosions
     NaNDetected,
     /// @brief Can happen when unititialized memory is used in the solver
-    InfDetected
+    InfDetected,
+    /// @brief Used for backward euler. This allows us to "succeed" in the same way that cam-chem does
+    AcceptingUnconvergedIntegration
   };
 
   struct SolverStats
@@ -75,6 +77,7 @@ namespace micm
       case SolverState::RepeatedlySingularMatrix: return "Repeatedly Singular Matrix";
       case SolverState::NaNDetected: return "NaNDetected";
       case SolverState::InfDetected: return "InfDetected";
+      case SolverState::AcceptingUnconvergedIntegration: return "AcceptingUnconvergedIntegration";
       default: return "Unknown";
     }
   }
