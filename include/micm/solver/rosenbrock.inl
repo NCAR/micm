@@ -13,13 +13,9 @@ namespace micm
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    // reset the upper, lower matrix. Repeated calls without zeroing these matrices can lead to lack of convergence
-    auto& lower = state.lower_matrix_.AsVector();
-    auto& upper = state.upper_matrix_.AsVector();
-    for (auto& l : lower)
-      l = 0;
-    for (auto& u : upper)
-      u = 0;
+    // reset the upper, lower matrix. (this may not be needed anymore. see https://github.com/NCAR/micm/issues/587)
+    state.lower_matrix_.Fill(0.0);
+    state.upper_matrix_.Fill(0.0);
     MatrixPolicy Y = state.variables_;
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
