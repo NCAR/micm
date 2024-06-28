@@ -135,10 +135,7 @@ namespace micm
   requires(
       !VectorizableDense<MatrixPolicy> ||
       !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          MatrixPolicy& x,
-          const SparseMatrixPolicy& lower_matrix,
-          const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -148,7 +145,7 @@ namespace micm
       const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
       const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
       auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
-      
+
       // Forward Substitution
       {
         auto y_elem = y_cell.begin();
@@ -163,7 +160,7 @@ namespace micm
           *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
         }
       }
-      
+
       // Backward Substitution
       {
         auto x_elem = std::next(x_cell.end(), -1);
@@ -192,10 +189,7 @@ namespace micm
   template<class MatrixPolicy>
   requires(VectorizableDense<MatrixPolicy>&&
                VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          MatrixPolicy& x,
-          const SparseMatrixPolicy& lower_matrix,
-          const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
     const std::size_t n_cells = x.GroupVectorSize();

@@ -176,7 +176,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       b[i_block][i] = get_double();
-  
+
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
@@ -224,7 +224,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       b[i_block][i] = get_double();
-  
+
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix

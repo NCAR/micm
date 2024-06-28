@@ -55,7 +55,7 @@ namespace micm
 
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
-    void Solve( MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
+    void Solve(MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 
    private:
     /// @brief Generates the JIT-ed Solve function
