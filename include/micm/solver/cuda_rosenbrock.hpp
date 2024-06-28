@@ -29,7 +29,10 @@ namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy>
-  class CudaRosenbrockSolver : public RosenbrockSolver<RatesPolicy, LinearSolverPolicy>
+  class CudaRosenbrockSolver : public AbstractRosenbrockSolver<
+                                   RatesPolicy,
+                                   LinearSolverPolicy,
+                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
   {
     ///@brief Default constructor
    public:
@@ -43,7 +46,8 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(std::move(other)),
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              std::move(other)),
           devstruct_(std::move(other.devstruct_))
     {
       other.devstruct_.errors_input_ = nullptr;
@@ -80,7 +84,11 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
-        : RosenbrockSolver<RatesPolicy, LinearSolverPolicy>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              parameters,
+              std::move(linear_solver),
+              std::move(rates),
+              jacobian)
     {
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
@@ -102,7 +110,7 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
-    /// @brief  @brief Computes [alpha * I - jacobian] on the GPU
+    /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
     /// @param alpha
@@ -113,17 +121,6 @@ namespace micm
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
       micm::cuda::AlphaMinusJacobianDriver(jacobian_param, alpha, this->devstruct_);
-    }
-
-    /// @brief  @brief Computes [alpha * I - jacobian] on the CPU
-    /// @tparam SparseMatrixPolicy
-    /// @param jacobian Jacobian matrix
-    /// @param alpha
-    template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(!CudaMatrix<SparseMatrixPolicy>)
-    {
-      AlphaMinusJacobian(jacobian, alpha);
     }
 
     /// @brief Computes the scaled norm of the vector errors on the GPU; assume all the data are GPU resident already
@@ -139,19 +136,5 @@ namespace micm
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, this->devstruct_);
     }
-
-    /// @brief Computes the scaled norm of the vector errors on the CPU
-    /// @tparam DenseMatrixPolicy
-    /// @param y_old The original vector
-    /// @param y_new The new vector
-    /// @param errors The computed errors
-    /// @return The scaled norm of the errors
-    template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
-        const requires(!CudaMatrix<DenseMatrixPolicy>)
-    {
-      return NormalizedErrorDriver(y_old, y_new, errors);
-    }
-
   };  // end CudaRosenbrockSolver
 }  // namespace micm

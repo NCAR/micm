@@ -9,6 +9,7 @@
 #include <micm/process/cuda_process_set.hpp>
 #include <micm/solver/cuda_linear_solver.hpp>
 #include <micm/solver/cuda_lu_decomposition.hpp>
+#include <micm/solver/cuda_state.hpp>
 #include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -26,5 +27,6 @@ namespace micm
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaProcessSet,
-      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
+      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>,
+      CudaState<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
 }  // namespace micm

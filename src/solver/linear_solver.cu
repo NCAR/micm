@@ -128,9 +128,8 @@ namespace micm
         const CudaMatrixParam& U_param,
         const LinearSolverParam& devstruct)
     {
-      size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(x_param, L_param, U_param, devstruct);
-      cudaDeviceSynchronize();
+      size_t number_of_blocks = (b_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(b_param, x_param, L_param, U_param, devstruct);
     }
   }  // namespace cuda
 }  // namespace micm

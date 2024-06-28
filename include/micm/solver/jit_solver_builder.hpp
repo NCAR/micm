@@ -23,5 +23,6 @@ namespace micm
       VectorMatrix<double, L>,
       SparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       JitProcessSet<L>,
-      JitLinearSolver<L, SparseMatrix<double, SparseMatrixVectorOrdering<L>>, JitLuDecomposition<L>>>;
+      JitLinearSolver<L, SparseMatrix<double, SparseMatrixVectorOrdering<L>>, JitLuDecomposition<L>>,
+      State<VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
 }  // namespace micm
