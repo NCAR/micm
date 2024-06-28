@@ -24,7 +24,6 @@ namespace micm
     MatrixPolicy Ynew(num_rows, num_cols, 0.0);
     MatrixPolicy initial_forcing(num_rows, num_cols, 0.0);
     MatrixPolicy forcing(num_rows, num_cols, 0.0);
-    MatrixPolicy temp(num_rows, num_cols, 0.0);
     std::vector<MatrixPolicy> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =

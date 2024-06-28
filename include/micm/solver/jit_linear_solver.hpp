@@ -21,7 +21,8 @@ namespace micm
   class JitLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;
-    void (*solve_function_)(const double*, double*, const double*, const double*);
+    using FuncPtr = void (*)(double*, const double*, const double*);
+    FuncPtr solve_function_ = nullptr;
 
    public:
     JitLinearSolver(){};
@@ -54,7 +55,7 @@ namespace micm
 
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
-    void Solve(const MatrixPolicy& b, MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
+    void Solve( MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 
    private:
     /// @brief Generates the JIT-ed Solve function
