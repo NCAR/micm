@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
+#include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 #include <cublas_v2.h>
 

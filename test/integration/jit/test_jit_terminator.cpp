@@ -1,9 +1,9 @@
 #include "../terminator.hpp"
 
-#include <micm/process/process.hpp>
 #include <micm/jit/solver/jit_rosenbrock.hpp>
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
+#include <micm/process/process.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
