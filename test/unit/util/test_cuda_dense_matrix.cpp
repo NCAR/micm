@@ -525,7 +525,7 @@ TEST(CudaDenseMatrix, Axpy)
 
   gpu_x.CopyToDevice();
   gpu_y.CopyToDevice();
-  gpu_y.Axpy(alpha, gpu_x, 1, 1);
+  gpu_y.Axpy(alpha, gpu_x);
   gpu_y.CopyToHost();
 
   EXPECT_EQ(gpu_y[0][0], 40.0);

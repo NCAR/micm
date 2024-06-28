@@ -241,5 +241,4 @@ namespace micm
       std::cout.copyfmt(oldState);
     }
   }
-
 }  // namespace micm

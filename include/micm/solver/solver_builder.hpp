@@ -33,7 +33,8 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy>
+      class LinearSolverPolicy,
+      class StatePolicy>
   class SolverBuilder
   {
    protected:
@@ -117,7 +118,8 @@ namespace micm
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet,
-      LinearSolver<SparseMatrixPolicy, LuDecomposition>>;
+      LinearSolver<SparseMatrixPolicy, LuDecomposition>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
 
 }  // namespace micm
 

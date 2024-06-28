@@ -39,10 +39,15 @@ namespace micm
   /// @brief An implementation of the Rosenbrock ODE solver
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Linear solver
+  /// @tparam Derived Implementation of the Rosenbock solver
   ///
-  /// The template parameter is the type of matrix to use
-  template<class RatesPolicy, class LinearSolverPolicy>
-  class RosenbrockSolver
+  /// This implements the Curiously Recurring Template Pattern to allow
+  /// the AlphaMinusJacobian and NormalizedError functions to be implemented
+  /// in extending classes and called from the base class Solve() function.
+  /// https://en.cppreference.com/w/cpp/language/crtp
+  ///
+  template<class RatesPolicy, class LinearSolverPolicy, class Dervied>
+  class AbstractRosenbrockSolver
   {
    public:
     RosenbrockSolverParameters parameters_;
@@ -62,7 +67,7 @@ namespace micm
     /// @param jacobian Jacobian matrix
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    RosenbrockSolver(
+    AbstractRosenbrockSolver(
         const RosenbrockSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
@@ -74,12 +79,12 @@ namespace micm
     {
     }
 
-    RosenbrockSolver(const RosenbrockSolver&) = delete;
-    RosenbrockSolver& operator=(const RosenbrockSolver&) = delete;
-    RosenbrockSolver(RosenbrockSolver&&) = default;
-    RosenbrockSolver& operator=(RosenbrockSolver&&) = default;
+    AbstractRosenbrockSolver(const AbstractRosenbrockSolver&) = delete;
+    AbstractRosenbrockSolver& operator=(const AbstractRosenbrockSolver&) = delete;
+    AbstractRosenbrockSolver(AbstractRosenbrockSolver&&) = default;
+    AbstractRosenbrockSolver& operator=(AbstractRosenbrockSolver&&) = default;
 
-    virtual ~RosenbrockSolver() = default;
+    virtual ~AbstractRosenbrockSolver() = default;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
@@ -122,6 +127,31 @@ namespace micm
     template<class DenseMatrixPolicy>
     double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
         requires(VectorizableDense<DenseMatrixPolicy>);
+  }; // end of Abstract Rosenbrock Solver 
+
+  template<class RatesPolicy, class LinearSolverPolicy>
+  class RosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>{
+   public:
+    /// @brief Default constructor
+    /// @param parameters Solver parameters
+    /// @param linear_solver Linear solver
+    /// @param rates Rates calculator
+    /// @param jacobian Jacobian matrix
+    ///
+    /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
+    RosenbrockSolver(
+        const RosenbrockSolverParameters& parameters,
+        LinearSolverPolicy&& linear_solver,
+        RatesPolicy&& rates,
+        auto& jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+    {
+    }
+
+    RosenbrockSolver(const RosenbrockSolver&) = delete;
+    RosenbrockSolver& operator=(const RosenbrockSolver&) = delete;
+    RosenbrockSolver(RosenbrockSolver&&) = default;
+    RosenbrockSolver& operator=(RosenbrockSolver&&) = default;
   };
 
 }  // namespace micm
