@@ -11,7 +11,6 @@ namespace micm
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void SolveKernel(
-        const CudaMatrixParam b_param,
         CudaMatrixParam x_param,
         const CudaMatrixParam L_param,
         const CudaMatrixParam U_param,
@@ -30,15 +29,14 @@ namespace micm
 
       double* d_L = L_param.d_data_;
       double* d_U = U_param.d_data_;
-      double* d_b = b_param.d_data_;
       double* d_x = x_param.d_data_;
       double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
-      const size_t number_of_grid_cells = b_param.number_of_grid_cells_;
-      const size_t number_of_species = b_param.number_of_elements_ / number_of_grid_cells;
+      const size_t number_of_grid_cells = x_param.number_of_grid_cells_;
+      const size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
 
       if (tid < number_of_grid_cells)
       {
-        size_t b_column_index = 0;
+        size_t x_column_index = 0;
         size_t y_column_index = 0;
         size_t x_column_backward_index = number_of_species - 1;
         size_t Lij_yj_index = 0;
@@ -47,7 +45,7 @@ namespace micm
         for (size_t j = 0; j < nLij_Lii_size; ++j)
         {
           auto& nLij_Lii_element = d_nLij_Lii[j];
-          d_y[(y_column_index * number_of_grid_cells) + tid] = d_b[(b_column_index++ * number_of_grid_cells) + tid];
+          d_y[(y_column_index * number_of_grid_cells) + tid] = d_x[(x_column_index++ * number_of_grid_cells) + tid];
           for (size_t i = 0; i < nLij_Lii_element.first; ++i)
           {
             size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
@@ -125,14 +123,13 @@ namespace micm
     }
 
     void SolveKernelDriver(
-        const CudaMatrixParam& b_param,
         CudaMatrixParam& x_param,
         const CudaMatrixParam& L_param,
         const CudaMatrixParam& U_param,
         const LinearSolverParam& devstruct)
     {
-      size_t number_of_blocks = (b_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(b_param, x_param, L_param, U_param, devstruct);
+      size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(x_param, L_param, U_param, devstruct);
       cudaDeviceSynchronize();
     }
   }  // namespace cuda

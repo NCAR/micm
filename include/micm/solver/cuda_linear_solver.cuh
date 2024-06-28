@@ -11,7 +11,6 @@ namespace micm
     /// This is the host function that will call the CUDA kernel
     ///   to perform the "solve" function on the device
     void SolveKernelDriver(
-        const CudaMatrixParam& b_param,
         CudaMatrixParam& x_param,
         const CudaMatrixParam& L_param,
         const CudaMatrixParam& U_param,
