@@ -176,7 +176,6 @@ namespace micm
           break;
         }
         else {
-          std::cerr << "Failed to converge. Reducing the time step.\n";
           H *= time_step_reductions[n_convergence_failures++];
         }
       }
