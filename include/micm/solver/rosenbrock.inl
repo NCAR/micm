@@ -4,7 +4,9 @@ namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
-  inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(double time_step, auto& state) noexcept
+  inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
+      double time_step,
+      auto& state) noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);

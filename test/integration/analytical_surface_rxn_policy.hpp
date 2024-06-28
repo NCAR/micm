@@ -8,7 +8,11 @@
 #include <gtest/gtest.h>
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_surface_rxn(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_surface_rxn(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]

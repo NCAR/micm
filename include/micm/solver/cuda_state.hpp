@@ -3,9 +3,9 @@
 #pragma once
 
 #include <micm/solver/state.hpp>
+#include <micm/util/cuda_dense_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/cuda_dense_matrix.hpp>
 
 namespace micm
 {
@@ -13,27 +13,28 @@ namespace micm
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy>
   {
-    public:
-      CudaState(const CudaState&) = delete;
-      CudaState& operator=(const CudaState&) = delete;
-      CudaState(CudaState&&) = default;
-      CudaState& operator=(CudaState&&) = default;
+   public:
+    CudaState(const CudaState&) = delete;
+    CudaState& operator=(const CudaState&) = delete;
+    CudaState(CudaState&&) = default;
+    CudaState& operator=(CudaState&&) = default;
 
-      /// @brief Constructor which takes the state dimension information as input
-      /// @param parameters State dimension information
-      CudaState(const StateParameters& parameters) : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters) {};
+    /// @brief Constructor which takes the state dimension information as input
+    /// @param parameters State dimension information
+    CudaState(const StateParameters& parameters)
+        : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters){};
 
-      /// @brief Copy input variables to the device
-      void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
-      {
-        this->variables_.CopyToDevice();
-        this->rate_constants_.CopyToDevice();
-      }
+    /// @brief Copy input variables to the device
+    void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+    {
+      this->variables_.CopyToDevice();
+      this->rate_constants_.CopyToDevice();
+    }
 
-      /// @brief Copy output variables to the host
-      void SyncOutputsToHost() requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>) 
-      {
-        this->variables_.CopyToHost();
-      }
+    /// @brief Copy output variables to the host
+    void SyncOutputsToHost() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+    {
+      this->variables_.CopyToHost();
+    }
   };
 }  // namespace micm

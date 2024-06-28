@@ -127,10 +127,12 @@ namespace micm
     template<class DenseMatrixPolicy>
     double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
         requires(VectorizableDense<DenseMatrixPolicy>);
-  }; // end of Abstract Rosenbrock Solver 
+  };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy>
-  class RosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>{
+  class RosenbrockSolver
+      : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+  {
    public:
     /// @brief Default constructor
     /// @param parameters Solver parameters
@@ -144,7 +146,11 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              parameters,
+              std::move(linear_solver),
+              std::move(rates),
+              jacobian)
     {
     }
 
