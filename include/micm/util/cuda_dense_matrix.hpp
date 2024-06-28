@@ -98,6 +98,7 @@ namespace micm
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
       CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
     CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
@@ -196,11 +197,11 @@ namespace micm
     ///        where alpha is a scalar constant.
     /// @param alpha The scaling scalar to apply to the VectorMatrix x
     /// @param x The input VectorMatrix
-    /// @param incx The increment for the elements of x
-    /// @param incy The increment for the elements of y
     /// @return 0 if successful, otherwise an error code
-    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x, const int incx, const int incy)
+    void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x)
     {
+      const int incx = 1;  // increment for the elements of x
+      const int incy = 1;  // increment for the elements of y
       static_assert(std::is_same_v<T, double>);
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(
@@ -223,5 +224,14 @@ namespace micm
       }
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
+
+    /// @brief Set every matrix element to a given value on the GPU
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(this->data_.begin(), this->data_.end(), val);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
+    }
+
   };  // class CudaDenseMatrix
 }  // namespace micm

@@ -7,16 +7,18 @@
 
 #include <gtest/gtest.h>
 
-template<class BuilderPolicy>
-void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_surface_rxn(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
   const double mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
   const double DENSITY_stuff = 1000.0;       // [kg m-3]
   const double DENSITY_more_stuff = 1000.0;  // [kg m-3]
-  const double MW_stuff = 0.5;               // [kg mol-1]
-  const double MW_more_stuff = 0.2;          // [kg mol-1]
   const double MW_foo = 0.04607;             // [kg mol-1]
   const double Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
   const double rxn_gamma = 2.0e-2;           // [unitless]
@@ -66,7 +68,7 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8
   auto solver = builder.SetSystem(chemical_system).SetReactions(reactions).Build();
 
   // State
-  micm::State state = solver.GetState();
+  auto state = solver.GetState();
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.SetCustomRateParameter("foo.effective radius [m]", radius);
@@ -97,8 +99,10 @@ void test_analytical_surface_rxn(BuilderPolicy& builder, double tolerance = 1e-8
     double elapsed_solve_time = 0;
     solver.CalculateRateConstants(state);
 
+    prepare_for_solve(state);
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
+    postpare_for_solve(state);
     elapsed_solve_time = result.final_time_;
 
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));

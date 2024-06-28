@@ -14,7 +14,8 @@ namespace micm
         const CudaMatrixParam& A_param,
         CudaMatrixParam& L_param,
         CudaMatrixParam& U_param,
-        const LuDecomposeParam& devstruct);
+        const LuDecomposeParam& devstruct,
+        bool& is_singular);
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device;

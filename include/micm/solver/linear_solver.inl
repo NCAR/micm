@@ -135,28 +135,23 @@ namespace micm
   requires(
       !VectorizableDense<MatrixPolicy> ||
       !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          const MatrixPolicy& b,
-          MatrixPolicy& x,
-          const SparseMatrixPolicy& lower_matrix,
-          const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
-    for (std::size_t i_cell = 0; i_cell < b.NumRows(); ++i_cell)
+    for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
-      auto b_cell = b[i_cell];
       auto x_cell = x[i_cell];
       const std::size_t lower_grid_offset = i_cell * lower_matrix.FlatBlockSize();
       const std::size_t upper_grid_offset = i_cell * upper_matrix.FlatBlockSize();
       auto& y_cell = x_cell;  // Alias x for consistency with equations, but to reuse memory
+
+      // Forward Substitution
       {
-        auto b_elem = b_cell.begin();
         auto y_elem = y_cell.begin();
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          *y_elem = *(b_elem++);
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
@@ -165,6 +160,8 @@ namespace micm
           *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
         }
       }
+
+      // Backward Substitution
       {
         auto x_elem = std::next(x_cell.end(), -1);
         auto Uij_xj = Uij_xj_.begin();
@@ -177,8 +174,8 @@ namespace micm
             ++Uij_xj;
           }
 
-          // don't iterate before the beginning of the vector
           *(x_elem) /= upper_matrix.AsVector()[upper_grid_offset + nUij_Uii.second];
+          // don't iterate before the beginning of the vector
           if (x_elem != x_cell.begin())
           {
             --x_elem;
@@ -192,30 +189,24 @@ namespace micm
   template<class MatrixPolicy>
   requires(VectorizableDense<MatrixPolicy>&&
                VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(
-          const MatrixPolicy& b,
-          MatrixPolicy& x,
-          const SparseMatrixPolicy& lower_matrix,
-          const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
-    const std::size_t n_cells = b.GroupVectorSize();
+    const std::size_t n_cells = x.GroupVectorSize();
     // Loop over groups of blocks
-    for (std::size_t i_group = 0; i_group < b.NumberOfGroups(); ++i_group)
+    for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
-      auto b_group = std::next(b.AsVector().begin(), i_group * b.GroupSize());
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
       auto L_group =
           std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
       auto U_group =
           std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
+      // Forward Substitution
       {
         auto y_elem = x_group;
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij_Lii : nLij_Lii_)
         {
-          std::copy(b_group, b_group + n_cells, y_elem);
-          b_group += n_cells;
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
             std::size_t Lij_yj_first = (*Lij_yj).first;
@@ -230,6 +221,8 @@ namespace micm
           y_elem += n_cells;
         }
       }
+
+      // Backward Substitution
       {
         auto x_elem = std::next(x_group, x.GroupSize() - n_cells);
         auto Uij_xj = Uij_xj_.begin();

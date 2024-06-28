@@ -26,7 +26,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   // Read and parse the configure files
   // If parsing fails, it could throw exceptions - we probably want to catch them.
-  std::string config_path = "./unit_configs/chapman";
+  std::string config_path = "./unit_configs/small_mechanism";
   EXPECT_NO_THROW(solverConfig.ReadAndParse(config_path));
 
   // Get solver parameters ('System', the collection of 'Process')

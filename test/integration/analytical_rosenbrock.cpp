@@ -18,86 +18,113 @@ auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe(rosenbrock);
-  test_analytical_troe(backward_euler, 1e-4);
+  test_analytical_troe(
+      rosenbrock, [](auto& state) {}, [](auto& state) {});
+  test_analytical_troe(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-4);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe(rosenbrock, 1e-4);
-  test_analytical_stiff_troe(backward_euler, 1e-4);
+  test_analytical_stiff_troe(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
+  test_analytical_stiff_troe(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-4);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis(rosenbrock);
-  test_analytical_photolysis(backward_euler, 1e-3);
+  test_analytical_photolysis(
+      rosenbrock, [](auto& state) {}, [](auto& state) {});
+  test_analytical_photolysis(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis(rosenbrock, 1e-4);
-  test_analytical_stiff_photolysis(backward_euler, 1e-3);
+  test_analytical_stiff_photolysis(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
+  test_analytical_stiff_photolysis(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation(rosenbrock);
-  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
+  test_analytical_ternary_chemical_activation(
+      rosenbrock, [](auto& state) {}, [](auto& state) {});
+  test_analytical_ternary_chemical_activation(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-5);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation(rosenbrock, 1e-4);
-  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
+  test_analytical_stiff_ternary_chemical_activation(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  test_analytical_tunneling(rosenbrock);
-  test_analytical_tunneling(backward_euler, 1e-3);
+  test_analytical_tunneling(
+      rosenbrock, [](auto& state) {}, [](auto& state) {});
+  test_analytical_tunneling(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling(rosenbrock, 1e-4);
-  test_analytical_stiff_tunneling(backward_euler, 1e-3);
+  test_analytical_stiff_tunneling(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
+  test_analytical_stiff_tunneling(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  test_analytical_arrhenius(rosenbrock);
-  test_analytical_arrhenius(backward_euler, 1e-3);
+  test_analytical_arrhenius(
+      rosenbrock, [](auto& state) {}, [](auto& state) {});
+  test_analytical_arrhenius(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius(rosenbrock, 1e-4);
-  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
+  test_analytical_stiff_arrhenius(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
+  test_analytical_stiff_arrhenius(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  test_analytical_branched(rosenbrock, 1e-3);
-  test_analytical_branched(backward_euler, 1e-1);
+  test_analytical_branched(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-3);
+  test_analytical_branched(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched(rosenbrock, 1e-3);
-  test_analytical_stiff_branched(backward_euler, 1e-1);
+  test_analytical_stiff_branched(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-3);
+  test_analytical_stiff_branched(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
 }
 
 TEST(AnalyticalExamples, Robertson)
 {
-  test_analytical_robertson(rosenbrock, 1e-1);
-  test_analytical_robertson(backward_euler, 1e-1);
+  test_analytical_robertson(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-1);
+  test_analytical_robertson(backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
-  test_analytical_surface_rxn(rosenbrock, 1e-5);
-  test_analytical_surface_rxn(backward_euler, 0.05);
+  test_analytical_surface_rxn(
+      rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-5);
+  test_analytical_surface_rxn(
+      backward_euler, [](auto& state) {}, [](auto& state) {}, 0.05);
 }
 
 using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
