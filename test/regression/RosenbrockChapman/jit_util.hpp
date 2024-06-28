@@ -1,8 +1,8 @@
 #include "util.hpp"
 
-#include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/jit_solver_builder.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
+#include <micm/jit/solver/jit_rosenbrock.hpp>
+#include <micm/jit/solver/jit_solver_builder.hpp>
+#include <micm/jit/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 template<std::size_t L>

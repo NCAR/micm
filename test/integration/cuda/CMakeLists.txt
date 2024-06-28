@@ -6,6 +6,4 @@ include(test_util)
 ################################################################################
 # Tests
 
-create_standard_test(NAME jit_function SOURCES test_jit_function.cpp)
-add_subdirectory(process)
-add_subdirectory(solver)
+create_standard_test(NAME cuda_analytical_rosenbrock_integration SOURCES test_cuda_analytical_rosenbrock.cpp LIBRARIES musica::micm_cuda)
