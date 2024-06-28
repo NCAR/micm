@@ -78,9 +78,12 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_troe(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_troe(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -207,7 +210,11 @@ void test_analytical_troe(BuilderPolicy& builder, PrepareFunc prepare_for_solve,
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_troe(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_troe(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -347,7 +354,11 @@ void test_analytical_stiff_troe(BuilderPolicy& builder, PrepareFunc prepare_for_
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_photolysis(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_photolysis(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -455,7 +466,11 @@ void test_analytical_photolysis(BuilderPolicy& builder, PrepareFunc prepare_for_
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_photolysis(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_photolysis(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -587,7 +602,11 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder, PrepareFunc prepar
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_ternary_chemical_activation(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -706,7 +725,11 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, Prepare
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_ternary_chemical_activation(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -846,7 +869,11 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, P
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_tunneling(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_tunneling(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -952,7 +979,11 @@ void test_analytical_tunneling(BuilderPolicy& builder, PrepareFunc prepare_for_s
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_tunneling(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_tunneling(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1082,7 +1113,11 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder, PrepareFunc prepare
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_arrhenius(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_arrhenius(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1187,7 +1222,11 @@ void test_analytical_arrhenius(BuilderPolicy& builder, PrepareFunc prepare_for_s
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_arrhenius(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_arrhenius(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1318,7 +1357,11 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder, PrepareFunc prepare
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_branched(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_branched(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1448,7 +1491,11 @@ void test_analytical_branched(BuilderPolicy& builder, PrepareFunc prepare_for_so
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_stiff_branched(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_stiff_branched(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1608,7 +1655,11 @@ void test_analytical_stiff_branched(BuilderPolicy& builder, PrepareFunc prepare_
 }
 
 template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
-void test_analytical_robertson(BuilderPolicy& builder, PrepareFunc prepare_for_solve, PostpareFunc postpare_for_solve, double tolerance = 1e-8)
+void test_analytical_robertson(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1 = 0.04

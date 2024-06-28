@@ -200,8 +200,8 @@ namespace micm
     /// @return 0 if successful, otherwise an error code
     void Axpy(const double alpha, const CudaDenseMatrix<T, L>& x)
     {
-      const int incx = 1; // increment for the elements of x
-      const int incy = 1; // increment for the elements of y
+      const int incx = 1;  // increment for the elements of x
+      const int incy = 1;  // increment for the elements of y
       static_assert(std::is_same_v<T, double>);
       CHECK_CUBLAS_ERROR(
           cublasDaxpy(

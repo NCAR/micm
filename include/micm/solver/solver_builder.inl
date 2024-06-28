@@ -58,10 +58,22 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>&
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::SetSystem(
-      const System& system)
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetSystem(const System& system)
   {
     system_ = system;
     valid_system_ = true;
@@ -73,10 +85,22 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>&
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      SetReactions(const std::vector<Process>& reactions)
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetReactions(const std::vector<Process>& reactions)
   {
     reactions_ = reactions;
     valid_reactions_ = reactions_.size() > 0;
@@ -88,10 +112,22 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>&
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      SetNumberOfGridCells(int number_of_grid_cells)
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetNumberOfGridCells(int number_of_grid_cells)
   {
     number_of_grid_cells_ = number_of_grid_cells;
     return *this;
@@ -102,10 +138,22 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>&
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      SetIgnoreUnusedSpecies(bool ignore_unused_species)
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetIgnoreUnusedSpecies(bool ignore_unused_species)
   {
     ignore_unused_species_ = ignore_unused_species;
     return *this;
@@ -116,10 +164,22 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>&
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      SetReorderState(bool reorder_state)
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>&
+  SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::SetReorderState(bool reorder_state)
   {
     reorder_state_ = reorder_state;
     return *this;
@@ -130,9 +190,15 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline void SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      UnusedSpeciesCheck()
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline void SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::UnusedSpeciesCheck()
   {
     if (ignore_unused_species_)
     {
@@ -164,10 +230,15 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline std::map<std::string, std::size_t>
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      GetSpeciesMap() const
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline std::map<std::string, std::size_t> SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::GetSpeciesMap() const
   {
     std::map<std::string, std::size_t> species_map;
     std::function<std::string(const std::vector<std::string>& variables, const std::size_t i)> state_reordering;
@@ -203,8 +274,15 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline void SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline void SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::
       SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
   {
     // if the tolerances aren't already set, initialize them and then set based off of information in the system
@@ -236,10 +314,15 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline std::vector<std::string>
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::
-      GetCustomParameterLabels() const
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline std::vector<std::string> SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::GetCustomParameterLabels() const
   {
     std::vector<std::string> param_labels{};
     for (const auto& reaction : reactions_)
@@ -254,9 +337,15 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
-      class LinearSolverPolicy, class StatePolicy>
-  inline auto
-  SolverBuilder<SolverParametersPolicy, DenseMatrixPolicy, SparseMatrixPolicy, RatesPolicy, LinearSolverPolicy, StatePolicy>::Build()
+      class LinearSolverPolicy,
+      class StatePolicy>
+  inline auto SolverBuilder<
+      SolverParametersPolicy,
+      DenseMatrixPolicy,
+      SparseMatrixPolicy,
+      RatesPolicy,
+      LinearSolverPolicy,
+      StatePolicy>::Build()
   {
     if (!valid_system_)
     {

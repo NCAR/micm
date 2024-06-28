@@ -90,7 +90,7 @@ namespace micm
     template<class DenseMatrixPolicy, class SparseMatrixPolicy>
     requires(VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
         const std::vector<Process>& processes,
-        State<DenseMatrixPolicy, SparseMatrixPolicy>& state);   
+        State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder Create();

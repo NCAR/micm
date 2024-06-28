@@ -124,7 +124,7 @@ namespace micm
   };
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U,
@@ -136,7 +136,7 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U) const

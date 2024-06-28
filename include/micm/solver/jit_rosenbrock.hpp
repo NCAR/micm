@@ -30,7 +30,10 @@ namespace micm
 
   /// @brief A Rosenbrock solver with JIT-compiled optimizations
   template<class RatesPolicy, class LinearSolverPolicy>
-  class JitRosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+  class JitRosenbrockSolver : public AbstractRosenbrockSolver<
+                                  RatesPolicy,
+                                  LinearSolverPolicy,
+                                  JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
   {
     llvm::orc::ResourceTrackerSP function_resource_tracker_;
     using FuncPtr = void (*)(double*, const double);
@@ -43,7 +46,8 @@ namespace micm
     JitRosenbrockSolver(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver& operator=(const JitRosenbrockSolver&) = delete;
     JitRosenbrockSolver(JitRosenbrockSolver&& other)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(std::move(other)),
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              std::move(other)),
           function_resource_tracker_(std::move(other.function_resource_tracker_)),
           alpha_minus_jacobian_(std::move(other.alpha_minus_jacobian_))
     {
@@ -52,7 +56,8 @@ namespace micm
 
     JitRosenbrockSolver& operator=(JitRosenbrockSolver&& other)
     {
-      AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>::operator=(std::move(other));
+      AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>::
+      operator=(std::move(other));
       function_resource_tracker_ = std::move(other.function_resource_tracker_);
       alpha_minus_jacobian_ = std::move(other.alpha_minus_jacobian_);
       other.alpha_minus_jacobian_ = NULL;
@@ -69,7 +74,11 @@ namespace micm
         LinearSolverPolicy linear_solver,
         RatesPolicy rates,
         auto& jacobian)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              parameters,
+              std::move(linear_solver),
+              std::move(rates),
+              jacobian)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

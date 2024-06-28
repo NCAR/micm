@@ -29,7 +29,10 @@ namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy>
-  class CudaRosenbrockSolver : public AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
+  class CudaRosenbrockSolver : public AbstractRosenbrockSolver<
+                                   RatesPolicy,
+                                   LinearSolverPolicy,
+                                   CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>
   {
     ///@brief Default constructor
    public:
@@ -43,7 +46,8 @@ namespace micm
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver(CudaRosenbrockSolver&& other)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(std::move(other)),
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              std::move(other)),
           devstruct_(std::move(other.devstruct_))
     {
       other.devstruct_.errors_input_ = nullptr;
@@ -80,7 +84,11 @@ namespace micm
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian)
-        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(parameters, std::move(linear_solver), std::move(rates), jacobian)
+        : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
+              parameters,
+              std::move(linear_solver),
+              std::move(rates),
+              jacobian)
     {
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
@@ -108,7 +116,7 @@ namespace micm
     /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+        requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
