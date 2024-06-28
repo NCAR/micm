@@ -88,12 +88,11 @@ namespace micm
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::GenerateSolveFunction()
   {
     std::string function_name = "linear_solve_" + GenerateRandomString();
-    JitFunction func = JitFunction::Create()
-                           .SetName(function_name)
-                           .SetArguments({ { "x", JitType::DoublePtr },
-                                           { "L", JitType::DoublePtr },
-                                           { "U", JitType::DoublePtr } })
-                           .SetReturnType(JitType::Void);
+    JitFunction func =
+        JitFunction::Create()
+            .SetName(function_name)
+            .SetArguments({ { "x", JitType::DoublePtr }, { "L", JitType::DoublePtr }, { "U", JitType::DoublePtr } })
+            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     auto Lij_yj = LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Lij_yj_.begin();
     auto Uij_xj = LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Uij_xj_.begin();
