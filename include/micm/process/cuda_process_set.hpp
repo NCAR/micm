@@ -89,7 +89,7 @@ namespace micm
   inline void CudaProcessSet::SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix)
   {
     /// This function sets the "jacobian_flat_ids_" member after the structure of Jacobian matrix is known
-    ProcessSet::SetJacobianFlatIds(matrix);
+    micm::ProcessSet::SetJacobianFlatIds(matrix);
 
     ProcessSetParam hoststruct;
     hoststruct.jacobian_flat_ids_ = this->jacobian_flat_ids_.data();
@@ -110,16 +110,6 @@ namespace micm
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), forcing_param, this->devstruct_);
   }
 
-  // call the function from the base class
-  template<class MatrixPolicy>
-  requires(!CudaMatrix<MatrixPolicy>) inline void CudaProcessSet::AddForcingTerms(
-      const MatrixPolicy& rate_constants,
-      const MatrixPolicy& state_variables,
-      MatrixPolicy& forcing) const
-  {
-    AddForcingTerms(rate_constants, state_variables, forcing);
-  }
-
   template<class MatrixPolicy, class SparseMatrixPolicy>
   requires(CudaMatrix<MatrixPolicy>&& CudaMatrix<SparseMatrixPolicy>&& VectorizableDense<MatrixPolicy>&&
                VectorizableSparse<SparseMatrixPolicy>) inline void CudaProcessSet::
@@ -132,15 +122,5 @@ namespace micm
         jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue
     micm::cuda::SubtractJacobianTermsKernelDriver(
         rate_constants.AsDeviceParam(), state_variables.AsDeviceParam(), jacobian_param, this->devstruct_);
-  }
-
-  // call the function from the base class
-  template<class MatrixPolicy, class SparseMatrixPolicy>
-  requires(!CudaMatrix<MatrixPolicy> && !CudaMatrix<SparseMatrixPolicy>) inline void CudaProcessSet::SubtractJacobianTerms(
-      const MatrixPolicy& rate_constants,
-      const MatrixPolicy& state_variables,
-      SparseMatrixPolicy& jacobian) const
-  {
-    SubtractJacobianTerms(rate_constants, state_variables, jacobian);
   }
 }  // namespace micm

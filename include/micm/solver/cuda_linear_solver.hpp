@@ -98,14 +98,5 @@ namespace micm
       auto x_param = x.AsDeviceParam();  // we need to update x so it can't be constant and must be an lvalue
       micm::cuda::SolveKernelDriver(x_param, L.AsDeviceParam(), U.AsDeviceParam(), this->devstruct_);
     };
-
-    template<class MatrixPolicy>
-    requires(!CudaMatrix<SparseMatrixPolicy> && !CudaMatrix<MatrixPolicy>) void Solve(
-        MatrixPolicy& x,
-        const SparseMatrixPolicy& L,
-        const SparseMatrixPolicy& U) const
-    {
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::template Solve<MatrixPolicy>(x, L, U);
-    };
   };
 }  // namespace micm

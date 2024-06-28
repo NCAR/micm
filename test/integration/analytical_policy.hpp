@@ -78,8 +78,12 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-template<class BuilderPolicy>
-void test_analytical_troe(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_troe(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -164,8 +168,10 @@ void test_analytical_troe(BuilderPolicy& builder, double tolerance = 1e-8)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -203,8 +209,12 @@ void test_analytical_troe(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_troe(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_troe(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -306,8 +316,10 @@ void test_analytical_stiff_troe(BuilderPolicy& builder, double tolerance = 1e-8)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -341,8 +353,12 @@ void test_analytical_stiff_troe(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_photolysis(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -408,8 +424,10 @@ void test_analytical_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -447,8 +465,12 @@ void test_analytical_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_photolysis(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_photolysis(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -542,8 +564,10 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder, double tolerance =
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -577,8 +601,12 @@ void test_analytical_stiff_photolysis(BuilderPolicy& builder, double tolerance =
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_ternary_chemical_activation(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -655,8 +683,10 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, double 
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -694,8 +724,12 @@ void test_analytical_ternary_chemical_activation(BuilderPolicy& builder, double 
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_ternary_chemical_activation(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -797,8 +831,10 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, d
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -832,8 +868,12 @@ void test_analytical_stiff_ternary_chemical_activation(BuilderPolicy& builder, d
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_tunneling(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -897,8 +937,10 @@ void test_analytical_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -936,8 +978,12 @@ void test_analytical_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_tunneling(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_tunneling(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1026,8 +1072,10 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder, double tolerance = 
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -1064,8 +1112,12 @@ void test_analytical_stiff_tunneling(BuilderPolicy& builder, double tolerance = 
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_arrhenius(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1127,8 +1179,10 @@ void test_analytical_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
   for (size_t i_time = 1; i_time < nsteps; ++i_time)
   {
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -1167,8 +1221,12 @@ void test_analytical_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_arrhenius(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_arrhenius(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1258,8 +1316,10 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder, double tolerance = 
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -1296,8 +1356,12 @@ void test_analytical_stiff_arrhenius(BuilderPolicy& builder, double tolerance = 
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_branched(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_branched(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1
@@ -1385,8 +1449,10 @@ void test_analytical_branched(BuilderPolicy& builder, double tolerance = 1e-8)
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
     EXPECT_NEAR(k2, state.rate_constants_.AsVector()[1], 1e-8);
@@ -1424,8 +1490,12 @@ void test_analytical_branched(BuilderPolicy& builder, double tolerance = 1e-8)
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_stiff_branched(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_stiff_branched(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A1 -> B, k1
@@ -1544,8 +1614,10 @@ void test_analytical_stiff_branched(BuilderPolicy& builder, double tolerance = 1
   {
     times.push_back(time_step);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     auto result = solver.Solve(time_step, state);
+    postpare_for_solve(state);
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     model_concentrations[i_time] = state.variables_.AsVector();
 
@@ -1582,8 +1654,12 @@ void test_analytical_stiff_branched(BuilderPolicy& builder, double tolerance = 1
   }
 }
 
-template<class BuilderPolicy>
-void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
+template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+void test_analytical_robertson(
+    BuilderPolicy& builder,
+    PrepareFunc prepare_for_solve,
+    PostpareFunc postpare_for_solve,
+    double tolerance = 1e-8)
 {
   /*
    * A -> B, k1 = 0.04
@@ -1674,6 +1750,7 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
     solver.CalculateRateConstants(state);
+    prepare_for_solve(state);
     // Model results
     double actual_solve = 0;
     while (actual_solve < time_step)
@@ -1681,6 +1758,7 @@ void test_analytical_robertson(BuilderPolicy& builder, double tolerance = 1e-8)
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.final_time_;
     }
+    postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
     time_step *= 10;
   }

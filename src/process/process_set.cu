@@ -219,7 +219,6 @@ namespace micm
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SubtractJacobianTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(
           rate_constants_param, state_variables_param, jacobian_param, devstruct);
-      cudaDeviceSynchronize();
     }  // end of SubtractJacobianTermsKernelDriver
 
     void AddForcingTermsKernelDriver(
@@ -231,7 +230,6 @@ namespace micm
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AddForcingTermsKernel<<<number_of_blocks, BLOCK_SIZE>>>(
           rate_constants_param, state_variables_param, forcing_param, devstruct);
-      cudaDeviceSynchronize();
     }  // end of AddForcingTermsKernelDriver
   }    // namespace cuda
 }  // namespace micm
