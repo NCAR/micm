@@ -1,9 +1,9 @@
 #include <micm/jit/jit_compiler.hpp>
-#include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/jit_solver_parameters.hpp>
+#include <micm/jit/solver/jit_rosenbrock.hpp>
+#include <micm/jit/solver/jit_solver_parameters.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
-#include <micm/solver/jit_solver_builder.hpp>
+#include <micm/jit/solver/jit_solver_builder.hpp>
 
 #include <chrono>
 #include <iostream>

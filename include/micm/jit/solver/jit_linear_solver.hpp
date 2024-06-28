@@ -4,7 +4,7 @@
 
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
-#include <micm/solver/jit_lu_decomposition.hpp>
+#include <micm/jit/solver/jit_lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix.hpp>

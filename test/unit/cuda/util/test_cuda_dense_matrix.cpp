@@ -1,8 +1,8 @@
 #include "cuda_matrix_utils.cuh"
-#include "test_matrix_policy.hpp"
+#include "../../util/test_matrix_policy.hpp"
 
-#include <micm/util/cuda_dense_matrix.hpp>
-#include <micm/util/cuda_matrix.cuh>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>
+#include <micm/cuda/util/cuda_matrix.cuh>
 
 #include <gtest/gtest.h>
 

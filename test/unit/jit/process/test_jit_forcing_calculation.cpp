@@ -6,7 +6,7 @@
 
 #include "forcing_calculation.hpp"
 
-#include <micm/process/jit_process_set.hpp>
+#include <micm/jit/process/jit_process_set.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>

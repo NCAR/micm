@@ -1,4 +1,4 @@
-#include <micm/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
 
 namespace micm
 {

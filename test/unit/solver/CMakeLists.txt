@@ -13,16 +13,3 @@ create_standard_test(NAME rosenbrock SOURCES test_rosenbrock.cpp)
 create_standard_test(NAME state SOURCES test_state.cpp)
 create_standard_test(NAME backward_euler SOURCES test_backward_euler.cpp)
 create_standard_test(NAME solver_builder SOURCES test_solver_builder.cpp)
-
-# GPU tests
-if(MICM_ENABLE_CUDA)
-  create_standard_test(NAME cuda_lu_decomposition SOURCES test_cuda_lu_decomposition.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
-  create_standard_test(NAME cuda_linear_solver SOURCES test_cuda_linear_solver.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
-  create_standard_test(NAME cuda_rosenbrock SOURCES test_cuda_rosenbrock.cpp LIBRARIES musica::micm_cuda IS_CUDA_TEST)
-endif()
-
-if(MICM_ENABLE_LLVM)
-  create_standard_test(NAME jit_linear_solver SOURCES test_jit_linear_solver.cpp)
-  create_standard_test(NAME jit_lu_decomposition SOURCES test_jit_lu_decomposition.cpp)
-  create_standard_test(NAME jit_rosenbrock SOURCES test_jit_rosenbrock.cpp)
-endif()

@@ -1,6 +1,6 @@
-#include "test_lu_decomposition_policy.hpp"
+#include "../../solver/test_lu_decomposition_policy.hpp"
 
-#include <micm/solver/jit_lu_decomposition.hpp>
+#include <micm/jit/solver/jit_lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 

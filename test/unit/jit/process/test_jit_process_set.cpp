@@ -1,6 +1,6 @@
-#include "test_process_set_policy.hpp"
+#include "../../process/test_process_set_policy.hpp"
 
-#include <micm/process/jit_process_set.hpp>
+#include <micm/jit/process/jit_process_set.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>

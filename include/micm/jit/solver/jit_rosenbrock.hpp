@@ -13,7 +13,7 @@
 #pragma once
 
 #include <micm/jit/jit_function.hpp>
-#include <micm/solver/jit_linear_solver.hpp>
+#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/util/random_string.hpp>

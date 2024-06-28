@@ -1,11 +1,11 @@
-#include "test_linear_solver_policy.hpp"
+#include "../../solver/test_linear_solver_policy.hpp"
 
-#include <micm/solver/cuda_linear_solver.hpp>
-#include <micm/solver/cuda_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_linear_solver.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
-#include <micm/util/cuda_dense_matrix.hpp>
-#include <micm/util/cuda_sparse_matrix.hpp>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>
+#include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>

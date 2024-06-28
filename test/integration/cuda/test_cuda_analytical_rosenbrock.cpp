@@ -1,11 +1,11 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
-#include "analytical_policy.hpp"
-#include "analytical_surface_rxn_policy.hpp"
+#include "../analytical_policy.hpp"
+#include "../analytical_surface_rxn_policy.hpp"
 
-#include <micm/solver/cuda_solver_builder.hpp>
-#include <micm/solver/cuda_solver_parameters.hpp>
+#include <micm/cuda/solver/cuda_solver_builder.hpp>
+#include <micm/cuda/solver/cuda_solver_parameters.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 #include <gtest/gtest.h>

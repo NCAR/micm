@@ -4,9 +4,7 @@
  */
 #pragma once
 
-#include "rosenbrock_solver_parameters.hpp"
-
-#include <micm/solver/jit_rosenbrock.hpp>
+#include <micm/jit/solver/jit_rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 namespace micm

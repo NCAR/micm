@@ -1,9 +1,9 @@
 #include "test_lu_decomposition_policy.hpp"
 
-#include <micm/solver/cuda_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/lu_decomposition.hpp>
-#include <micm/util/cuda_param.hpp>
-#include <micm/util/cuda_sparse_matrix.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 

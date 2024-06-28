@@ -4,11 +4,10 @@
  */
 #pragma once
 
-#include "solver_builder.hpp"
-
-#include <micm/process/jit_process_set.hpp>
-#include <micm/solver/jit_linear_solver.hpp>
-#include <micm/solver/jit_lu_decomposition.hpp>
+#include <micm/jit/process/jit_process_set.hpp>
+#include <micm/jit/solver/jit_linear_solver.hpp>
+#include <micm/jit/solver/jit_lu_decomposition.hpp>
+#include <micm/solver/solver_builder.hpp>
 
 namespace micm
 {
