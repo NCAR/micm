@@ -175,7 +175,8 @@ namespace micm
           result.state_ = SolverState::AcceptingUnconvergedIntegration;
           break;
         }
-        else {
+        else
+        {
           H *= time_step_reductions[n_convergence_failures++];
         }
       }
