@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/solver/cuda_linear_solver.cuh>
-#include <micm/solver/cuda_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_linear_solver.cuh>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
-#include <micm/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
 
 #include <chrono>
 #include <functional>

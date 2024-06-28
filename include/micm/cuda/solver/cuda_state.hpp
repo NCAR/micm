@@ -3,7 +3,7 @@
 #pragma once
 
 #include <micm/solver/state.hpp>
-#include <micm/util/cuda_dense_matrix.hpp>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 

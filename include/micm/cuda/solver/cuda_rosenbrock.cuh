@@ -3,7 +3,7 @@
 #pragma once
 
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
 
 #include <cublas_v2.h>
 

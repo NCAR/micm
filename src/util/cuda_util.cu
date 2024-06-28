@@ -1,6 +1,6 @@
 // Copyright (C) 2023-2024 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-#include <micm/util/cuda_util.cuh>
+#include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/internal_error.hpp>
 
 #include <cublas_v2.h>

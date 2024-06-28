@@ -4,14 +4,13 @@
  */
 #pragma once
 
-#include "solver_builder.hpp"
-
-#include <micm/process/cuda_process_set.hpp>
-#include <micm/solver/cuda_linear_solver.hpp>
-#include <micm/solver/cuda_lu_decomposition.hpp>
-#include <micm/solver/cuda_state.hpp>
-#include <micm/util/cuda_dense_matrix.hpp>
-#include <micm/util/cuda_sparse_matrix.hpp>
+#include <micm/cuda/process/cuda_process_set.hpp>
+#include <micm/cuda/solver/cuda_linear_solver.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_state.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>
+#include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 namespace micm

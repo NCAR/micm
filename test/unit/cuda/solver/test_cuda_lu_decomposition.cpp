@@ -1,4 +1,4 @@
-#include "test_lu_decomposition_policy.hpp"
+#include "../../solver/test_lu_decomposition_policy.hpp"
 
 #include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/solver/lu_decomposition.hpp>

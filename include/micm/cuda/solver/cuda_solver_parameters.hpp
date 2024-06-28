@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <micm/solver/cuda_rosenbrock.hpp>
+#include <micm/cuda/solver/cuda_rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 namespace micm

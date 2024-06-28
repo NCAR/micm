@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/cuda_dense_matrix.hpp>  // include this for CudaMatrix concept
-#include <micm/util/cuda_matrix.cuh>
-#include <micm/util/cuda_param.hpp>
-#include <micm/util/cuda_util.cuh>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>  // include this for CudaMatrix concept
+#include <micm/cuda/util/cuda_matrix.cuh>
+#include <micm/cuda/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/sparse_matrix.hpp>
 
 #include <cuda_runtime.h>

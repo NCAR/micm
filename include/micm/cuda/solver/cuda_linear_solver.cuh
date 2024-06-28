@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
 
 namespace micm
 {
