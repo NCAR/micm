@@ -1,5 +1,5 @@
-#include "cuda_matrix_utils.cuh"
 #include "../../util/test_sparse_matrix_policy.hpp"
+#include "cuda_matrix_utils.cuh"
 
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/cuda/util/sparse_matrix_vector_ordering.hpp>

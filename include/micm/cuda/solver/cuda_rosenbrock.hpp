@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process.hpp>
 #include <micm/cuda/solver/cuda_linear_solver.hpp>
 #include <micm/cuda/solver/cuda_rosenbrock.cuh>
+#include <micm/cuda/util/cuda_dense_matrix.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_sparse_matrix.hpp>
+#include <micm/process/process.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
-#include <micm/cuda/util/cuda_dense_matrix.hpp>
-#include <micm/cuda/util/cuda_param.hpp>
-#include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
