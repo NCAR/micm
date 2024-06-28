@@ -55,8 +55,8 @@ namespace micm
     // if that fails, try H = H/2 several times
     // if that fails, try H = H/10 once
     // if that fails, accept the current H but do not update the Yn vector
+    // the number of time step reduction is controlled by the time_step_reductions parameter
 
-    // TODO populate the result before returning it
     SolverResult result;
 
     double small = parameters_.small;
@@ -84,16 +84,19 @@ namespace micm
 
       do
       {
+        result.stats_.number_of_steps_++;
         // the first time Yn1 is equal to Yn
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        result.stats_.function_calls_++;
 
         // calculate jacobian
         std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
+        result.stats_.jacobian_updates_++;
 
         // subtract the inverse of the time step from the diagonal
         // TODO: handle vectorized jacobian matrix
@@ -113,6 +116,7 @@ namespace micm
 
         // try to find the root by factoring and solving the linear system
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
+        result.stats_.decompositions_++;
 
         auto yn1_iter = Yn1.begin();
         auto yn_iter = Yn.begin();
@@ -128,6 +132,7 @@ namespace micm
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
         linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
+        result.stats_.solves_++;
 
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
@@ -157,32 +162,26 @@ namespace micm
                       (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
           ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
         } while (converged && forcing_iter != forcing.end());
-
-        if (!converged)
-        {
-          std::cout << "failed to converge within the newton iteration\n";
-        }
       } while (!converged && iterations < max_iter);
 
       if (!converged)
       {
-        std::cout << "failed to converge\n";
+        result.stats_.rejected_++;
         n_successful_integrations = 0;
 
         if (n_convergence_failures >= time_step_reductions.size())
         {
-          // we have failed to converge, accept the solution
-          // TODO: continue on with the current solution to get the full solution
-          n_convergence_failures = 0;
-          // give_up = true;
           t += H;
-          throw std::system_error(make_error_code(MicmBackwardEulerErrc::FailedToConverge), "Failed to converge");
-        };
-
-        H *= time_step_reductions[n_convergence_failures++];
+          result.state_ = SolverState::AcceptingUnconvergedIntegration;
+          break;
+        }
+        else {
+          H *= time_step_reductions[n_convergence_failures++];
+        }
       }
       else
       {
+        result.stats_.accepted_++;
         result.state_ = SolverState::Converged;
         t += H;
         Yn = Yn1;
@@ -195,12 +194,12 @@ namespace micm
           H *= 2.0;
         }
       }
-
       // Don't let H go past the time step
       H = std::min(H, time_step - t);
     }
 
     state.variables_ = Yn1;
+    result.final_time_ = t;
     return result;
   }
 }  // namespace micm
