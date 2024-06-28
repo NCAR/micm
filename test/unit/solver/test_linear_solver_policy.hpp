@@ -107,7 +107,7 @@ void testDenseMatrix()
                                                 .WithElement(2, 1)
                                                 .WithElement(2, 2));
   MatrixPolicy b(1, 3, 0.0);
-  MatrixPolicy x(1, 3, 100.0);
+  MatrixPolicy x(1, 3, 0.0);
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
@@ -122,6 +122,8 @@ void testDenseMatrix()
   b[0][0] = 23;
   b[0][1] = 42;
   b[0][2] = 9;
+
+  x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(A);
@@ -138,7 +140,7 @@ void testDenseMatrix()
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
+  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -163,7 +165,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
 
   SparseMatrixPolicy A(builder);
   MatrixPolicy b(number_of_blocks, 10, 0.0);
-  MatrixPolicy x(number_of_blocks, 10, 100.0);
+  MatrixPolicy x(number_of_blocks, 10, 0.0);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
@@ -174,10 +176,11 @@ void testRandomMatrix(std::size_t number_of_blocks)
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       b[i_block][i] = get_double();
+  
+  x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(A);
-  CopyToDeviceDense<MatrixPolicy>(b);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
@@ -190,7 +193,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
+  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -212,15 +215,20 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 
   SparseMatrixPolicy A(builder);
   MatrixPolicy b(number_of_blocks, 6, 0.0);
-  MatrixPolicy x(number_of_blocks, 6, 100.0);
+  MatrixPolicy x(number_of_blocks, 6, 0.0);
 
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       A[i_block][i][i] = get_double();
 
+  for (std::size_t i = 0; i < 6; ++i)
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+      b[i_block][i] = get_double();
+  
+  x = b;
+
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(A);
-  CopyToDeviceDense<MatrixPolicy>(b);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
@@ -233,7 +241,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(b, x, lower_matrix, upper_matrix);
+  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);

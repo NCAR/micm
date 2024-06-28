@@ -22,7 +22,6 @@ namespace micm
     MatrixPolicy Ynew(num_rows, num_cols, 0.0);
     MatrixPolicy initial_forcing(num_rows, num_cols, 0.0);
     MatrixPolicy forcing(num_rows, num_cols, 0.0);
-    MatrixPolicy temp(num_rows, num_cols, 0.0);
     std::vector<MatrixPolicy> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
@@ -113,8 +112,7 @@ namespace micm
           {
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
           }
-          temp.Copy(K[stage]);
-          linear_solver_.Solve(temp, K[stage], state.lower_matrix_, state.upper_matrix_);
+          linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves_ += 1;
         }
 

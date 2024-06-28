@@ -127,7 +127,7 @@ namespace micm
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
-        linear_solver_.Solve(forcing, forcing, state.lower_matrix_, state.upper_matrix_);
+        linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
 
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
