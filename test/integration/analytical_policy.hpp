@@ -353,12 +353,12 @@ void test_analytical_stiff_troe(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_photolysis(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1
@@ -465,12 +465,12 @@ void test_analytical_photolysis(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_photolysis(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
@@ -601,12 +601,12 @@ void test_analytical_stiff_photolysis(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_ternary_chemical_activation(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1
@@ -724,12 +724,12 @@ void test_analytical_ternary_chemical_activation(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_ternary_chemical_activation(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
@@ -868,12 +868,12 @@ void test_analytical_stiff_ternary_chemical_activation(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_tunneling(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1

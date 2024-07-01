@@ -44,45 +44,55 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   test_analytical_stiff_troe(backward_euler, 1e-4);
 }
 
-// TEST(AnalyticalExamples, Photolysis)
-// {
-//   test_analytical_photolysis(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {});
-//   test_analytical_photolysis(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, Photolysis)
+{
+  test_analytical_photolysis(rosenbrock_2stage, 1e-5);
+  test_analytical_photolysis(rosenbrock_3stage);
+  test_analytical_photolysis(rosenbrock_4stage);
+  test_analytical_photolysis(rosenbrock_4stage_da);
+  test_analytical_photolysis(rosenbrock_6stage_da);
+  test_analytical_photolysis(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
-// {
-//   test_analytical_stiff_photolysis(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
-//   test_analytical_stiff_photolysis(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
+{
+  test_analytical_stiff_photolysis(rosenbrock_2stage, 1e-5);
+  test_analytical_stiff_photolysis(rosenbrock_3stage, 1e-4);
+  test_analytical_stiff_photolysis(rosenbrock_4stage, 1e-5);
+  test_analytical_stiff_photolysis(rosenbrock_4stage_da, 1e-5);
+  test_analytical_stiff_photolysis(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_photolysis(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, TernaryChemicalActivation)
-// {
-//   test_analytical_ternary_chemical_activation(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {});
-//   test_analytical_ternary_chemical_activation(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-5);
-// }
+TEST(AnalyticalExamples, TernaryChemicalActivation)
+{
+  test_analytical_ternary_chemical_activation(rosenbrock_2stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_3stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_4stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_4stage_da);
+  test_analytical_ternary_chemical_activation(rosenbrock_6stage_da);
+  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
+}
 
-// TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
-// {
-//   test_analytical_stiff_ternary_chemical_activation(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
-//   test_analytical_stiff_ternary_chemical_activation(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
+{
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock_2stage, 1e-6);
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock_3stage, 1e-6);
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock_4stage, 1e-6);
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock_4stage_da, 1e-6);
+  test_analytical_stiff_ternary_chemical_activation(rosenbrock_6stage_da, 1e-6);
+  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, Tunneling)
-// {
-//   test_analytical_tunneling(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {});
-//   test_analytical_tunneling(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, Tunneling)
+{
+  test_analytical_tunneling(rosenbrock_2stage, 1e-5);
+  test_analytical_tunneling(rosenbrock_3stage);
+  test_analytical_tunneling(rosenbrock_4stage);
+  test_analytical_tunneling(rosenbrock_4stage_da);
+  test_analytical_tunneling(rosenbrock_6stage_da);
+  test_analytical_tunneling(backward_euler, 1e-3);
+}
 
 // TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 // {
