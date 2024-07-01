@@ -78,12 +78,12 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_troe(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1
@@ -209,12 +209,12 @@ void test_analytical_troe(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_troe(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
