@@ -22,7 +22,6 @@ auto rosenbrock_4stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParamet
     micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
 auto rosenbrock_6stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
@@ -31,7 +30,6 @@ TEST(AnalyticalExamples, Troe)
   test_analytical_troe(rosenbrock_4stage);
   test_analytical_troe(rosenbrock_4stage_da);
   test_analytical_troe(rosenbrock_6stage_da);
-  test_analytical_troe(backward_euler, 1e-4);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
@@ -41,7 +39,6 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
   test_analytical_stiff_troe(rosenbrock_4stage, 1e-4);
   test_analytical_stiff_troe(rosenbrock_4stage_da, 1e-4);
   test_analytical_stiff_troe(rosenbrock_6stage_da, 1e-4);
-  test_analytical_stiff_troe(backward_euler, 1e-4);
 }
 
 TEST(AnalyticalExamples, Photolysis)
@@ -51,7 +48,6 @@ TEST(AnalyticalExamples, Photolysis)
   test_analytical_photolysis(rosenbrock_4stage);
   test_analytical_photolysis(rosenbrock_4stage_da);
   test_analytical_photolysis(rosenbrock_6stage_da);
-  test_analytical_photolysis(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
@@ -61,7 +57,6 @@ TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
   test_analytical_stiff_photolysis(rosenbrock_4stage, 1e-5);
   test_analytical_stiff_photolysis(rosenbrock_4stage_da, 1e-5);
   test_analytical_stiff_photolysis(rosenbrock_6stage_da, 1e-5);
-  test_analytical_stiff_photolysis(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
@@ -71,7 +66,6 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
   test_analytical_ternary_chemical_activation(rosenbrock_4stage);
   test_analytical_ternary_chemical_activation(rosenbrock_4stage_da);
   test_analytical_ternary_chemical_activation(rosenbrock_6stage_da);
-  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -81,7 +75,6 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
   test_analytical_stiff_ternary_chemical_activation(rosenbrock_4stage, 1e-6);
   test_analytical_stiff_ternary_chemical_activation(rosenbrock_4stage_da, 1e-6);
   test_analytical_stiff_ternary_chemical_activation(rosenbrock_6stage_da, 1e-6);
-  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Tunneling)
@@ -91,7 +84,6 @@ TEST(AnalyticalExamples, Tunneling)
   test_analytical_tunneling(rosenbrock_4stage);
   test_analytical_tunneling(rosenbrock_4stage_da);
   test_analytical_tunneling(rosenbrock_6stage_da);
-  test_analytical_tunneling(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
@@ -101,7 +93,6 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
   test_analytical_stiff_tunneling(rosenbrock_4stage, 1e-5);
   test_analytical_stiff_tunneling(rosenbrock_4stage_da, 1e-4);
   test_analytical_stiff_tunneling(rosenbrock_6stage_da, 1e-5);
-  test_analytical_stiff_tunneling(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
@@ -111,7 +102,6 @@ TEST(AnalyticalExamples, Arrhenius)
   test_analytical_arrhenius(rosenbrock_4stage);
   test_analytical_arrhenius(rosenbrock_4stage_da);
   test_analytical_arrhenius(rosenbrock_6stage_da);
-  test_analytical_arrhenius(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
@@ -121,7 +111,6 @@ TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
   test_analytical_stiff_arrhenius(rosenbrock_4stage, 1e-5);
   test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 1e-4);
   test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-5);
-  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
 }
 
 TEST(AnalyticalExamples, Branched)
@@ -131,7 +120,6 @@ TEST(AnalyticalExamples, Branched)
   test_analytical_stiff_arrhenius(rosenbrock_4stage, 1e-5);
   test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 1e-4);
   test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-5);
-  test_analytical_stiff_arrhenius(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
@@ -141,7 +129,6 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   test_analytical_stiff_branched(rosenbrock_4stage, 1e-4);
   test_analytical_stiff_branched(rosenbrock_4stage_da, 1e-3);
   test_analytical_stiff_branched(rosenbrock_6stage_da, 1e-5);
-  test_analytical_stiff_branched(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, Robertson)
@@ -151,7 +138,6 @@ TEST(AnalyticalExamples, Robertson)
   test_analytical_robertson(rosenbrock_4stage, 1e-1);
   test_analytical_robertson(rosenbrock_4stage_da, 1e-1);
   test_analytical_robertson(rosenbrock_6stage_da, 1e-1);
-  test_analytical_robertson(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
@@ -161,15 +147,11 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(rosenbrock_4stage, 1e-6);
   test_analytical_surface_rxn(rosenbrock_4stage_da, 1e-5);
   test_analytical_surface_rxn(rosenbrock_6stage_da, 1e-7);
-  test_analytical_surface_rxn(backward_euler, 0.05);
 }
 
 using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
 template<class RatesPolicy>
 using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
-
-template<class RatesPolicy>
-using BackwardEulerTest = micm::BackwardEuler<RatesPolicy, LinearSolverTest>;
 
 TEST(AnalyticalExamples, Oregonator)
 {
@@ -196,9 +178,6 @@ TEST(AnalyticalExamples, HIRES)
     return HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
   };
 
-  auto backward_euler_solver = HIRESTest::template CreateSolver<BackwardEulerTest<HIRESTest>, LinearSolverTest>(
-      micm::BackwardEulerSolverParameters(), 1);
-
   auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
   auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
@@ -210,16 +189,12 @@ TEST(AnalyticalExamples, HIRES)
   test_analytical_hires(four_stage_solver, 1e-5);
   test_analytical_hires(four_stage_da_solver, 1e-4);
   test_analytical_hires(six_stage_da_solver, 1e-5);
-  test_analytical_hires(backward_euler_solver, 1e-1);
 }
 
 TEST(AnalyticalExamples, E5)
 {
   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   using E5Test = E5<micm::Matrix<double>, SparseMatrixTest>;
-
-  auto backward_euler_solver =
-      E5Test::template CreateSolver<BackwardEulerTest<E5Test>, LinearSolverTest>(micm::BackwardEulerSolverParameters(), 1);
 
   auto rosenbrock_solver = [](auto params) {
     return E5Test::CreateSolver<RosenbrockTest<E5Test>, LinearSolverTest>(params, 1);
@@ -236,5 +211,4 @@ TEST(AnalyticalExamples, E5)
   test_analytical_e5(four_stage_solver, 1e-5);
   test_analytical_e5(four_stage_da_solver, 1e-5);
   test_analytical_e5(six_stage_da_solver, 1e-5);
-  test_analytical_e5(backward_euler_solver, 1e-3);
 }

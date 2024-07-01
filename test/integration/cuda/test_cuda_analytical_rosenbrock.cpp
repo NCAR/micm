@@ -6,162 +6,145 @@
 
 #include <micm/cuda/solver/cuda_solver_builder.hpp>
 #include <micm/cuda/solver/cuda_solver_parameters.hpp>
+#include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 #include <gtest/gtest.h>
 
 constexpr std::size_t L = 1;
+using builderType = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
+using stateType = micm::CudaState<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+auto two = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto three = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto four = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto four_da = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto six_da = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+
+auto copy_to_device = [](auto& state) -> void { state.SyncInputsToDevice(); };
+auto copy_to_host = [](auto& state) -> void { state.SyncOutputsToHost(); };
 
 TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_troe(
-      builder,
-      1e-8,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_troe<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_troe(
-      builder,
-      1e-4,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_troe<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_photolysis(
-      builder,
-      1e-8,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_photolysis<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_photolysis(
-      builder,
-      1e-4,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_photolysis<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_ternary_chemical_activation(
-      builder,
-      1e-8,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_ternary_chemical_activation<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_ternary_chemical_activation(
-      builder,
-      1e-4,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_tunneling(
-      builder,
-      1e-8
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_tunneling<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_tunneling(
-      builder,
-      1e-4,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_arrhenius(
-      builder,
-      1e-8,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_arrhenius<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_arrhenius(
-      builder,
-      1e-4,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_arrhenius<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Branched)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_branched(
-      builder,
-      1e-3
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_branched<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(three, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(four, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(four_da, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_stiff_branched(
-      builder,
-      1e-3,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_stiff_branched<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_branched<builderType, stateType>(three, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_branched<builderType, stateType>(four, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_branched<builderType, stateType>(four_da, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_branched<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson(
-      builder,
-      1e-1,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_robertson<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType, stateType>(three, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType, stateType>(four, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType, stateType>(four_da, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType, stateType>(six_da, 1e-1, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 {
-  auto builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_surface_rxn(
-      builder,
-      1e-5,
-      [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); });
+  test_analytical_surface_rxn<builderType, stateType>(two, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_surface_rxn<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_surface_rxn<builderType, stateType>(four, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_surface_rxn<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 }
