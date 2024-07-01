@@ -187,28 +187,54 @@ TEST(AnalyticalExamples, Oregonator)
   test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
 }
 
-// TEST(AnalyticalExamples, HIRES)
-// {
-//   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-//   using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
+TEST(AnalyticalExamples, HIRES)
+{
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
+  using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
 
-//   auto rosenbrock_solver = HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
-//   auto backward_euler_solver = HIRESTest::template CreateSolver<BackwardEulerTest<HIRESTest>, LinearSolverTest>(
-//       micm::BackwardEulerSolverParameters(), 1);
+  auto rosenbrock_solver = [](auto params) {
+    return HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
+  };
 
-//   test_analytical_hires(rosenbrock_solver, 1e-5);
-//   test_analytical_hires(backward_euler_solver, 1e-1);
-// }
+  auto backward_euler_solver = HIRESTest::template CreateSolver<BackwardEulerTest<HIRESTest>, LinearSolverTest>(
+      micm::BackwardEulerSolverParameters(), 1);
 
-// TEST(AnalyticalExamples, E5)
-// {
-//   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-//   using E5Test = E5<micm::Matrix<double>, SparseMatrixTest>;
+  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
-//   auto rosenbrock_solver = E5Test::CreateSolver<RosenbrockTest<E5Test>, LinearSolverTest>(params, 1);
-//   auto backward_euler_solver =
-//       E5Test::template CreateSolver<BackwardEulerTest<E5Test>, LinearSolverTest>(micm::BackwardEulerSolverParameters(), 1);
+  test_analytical_hires(two_stage_solver, 1e-3);
+  test_analytical_hires(three_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_da_solver, 1e-4);
+  test_analytical_hires(six_stage_da_solver, 1e-5);
+  test_analytical_hires(backward_euler_solver, 1e-1);
+}
 
-//   test_analytical_e5(rosenbrock_solver, 1e-5);
-//   test_analytical_e5(backward_euler_solver, 1e-3);
-// }
+TEST(AnalyticalExamples, E5)
+{
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
+  using E5Test = E5<micm::Matrix<double>, SparseMatrixTest>;
+
+  auto backward_euler_solver =
+      E5Test::template CreateSolver<BackwardEulerTest<E5Test>, LinearSolverTest>(micm::BackwardEulerSolverParameters(), 1);
+
+  auto rosenbrock_solver = [](auto params) {
+    return E5Test::CreateSolver<RosenbrockTest<E5Test>, LinearSolverTest>(params, 1);
+  };
+
+  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+
+  test_analytical_e5(two_stage_solver, 1e-5);
+  test_analytical_e5(three_stage_solver, 1e-5);
+  test_analytical_e5(four_stage_solver, 1e-5);
+  test_analytical_e5(four_stage_da_solver, 1e-5);
+  test_analytical_e5(six_stage_da_solver, 1e-5);
+  test_analytical_e5(backward_euler_solver, 1e-3);
+}
