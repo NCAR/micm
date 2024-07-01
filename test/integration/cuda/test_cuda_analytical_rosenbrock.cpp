@@ -18,6 +18,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Troe)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_troe(
       builder,
+      1e-8,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
       [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
@@ -28,9 +29,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_troe(
       builder,
+      1e-4,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-4);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
@@ -39,6 +40,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_photolysis(
       builder,
+      1e-8,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
       [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
@@ -49,9 +51,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_photolysis(
       builder,
+      1e-4,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-4);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
@@ -60,6 +62,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_ternary_chemical_activation(
       builder,
+      1e-8,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
       [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
@@ -70,9 +73,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAna
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_ternary_chemical_activation(
       builder,
+      1e-4,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-4);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
@@ -81,6 +84,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_tunneling(
       builder,
+      1e-8
       [](auto& state) -> void { state.SyncInputsToDevice(); },
       [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
@@ -91,9 +95,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_tunneling(
       builder,
+      1e-4,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-4);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
@@ -102,6 +106,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_arrhenius(
       builder,
+      1e-8,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
       [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
@@ -112,9 +117,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_arrhenius(
       builder,
+      1e-4,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-4);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Branched)
@@ -123,9 +128,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, Branched)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_branched(
       builder,
+      1e-3
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-3);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
@@ -134,9 +139,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_stiff_branched(
       builder,
+      1e-3,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-3);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
@@ -145,9 +150,9 @@ TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_robertson(
       builder,
+      1e-1,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-1);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
@@ -156,7 +161,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_surface_rxn(
       builder,
+      1e-5,
       [](auto& state) -> void { state.SyncInputsToDevice(); },
-      [](auto& state) -> void { state.SyncOutputsToHost(); },
-      1e-5);
+      [](auto& state) -> void { state.SyncOutputsToHost(); });
 }
