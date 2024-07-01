@@ -155,7 +155,6 @@ using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
 
   auto rosenbrock_solver = [](auto params) {
@@ -171,7 +170,6 @@ TEST(AnalyticalExamples, Oregonator)
 
 TEST(AnalyticalExamples, HIRES)
 {
-  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
 
   auto rosenbrock_solver = [](auto params) {
@@ -193,7 +191,6 @@ TEST(AnalyticalExamples, HIRES)
 
 TEST(AnalyticalExamples, E5)
 {
-  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
   using E5Test = E5<micm::Matrix<double>, SparseMatrixTest>;
 
   auto rosenbrock_solver = [](auto params) {

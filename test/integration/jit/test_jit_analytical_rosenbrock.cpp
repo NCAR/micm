@@ -1,8 +1,12 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
+#include "../oregonator.hpp"
+#include "../e5.hpp"
+#include "../hires.hpp"
 
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
+#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 #include <gtest/gtest.h>
@@ -140,4 +144,65 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<builderType, stateType>(four, 1e-4);
   test_analytical_surface_rxn<builderType, stateType>(four_da, 1e-4);
   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-4);
+}
+
+using LinearSolverTest = micm::JitLinearSolver<L, builderType::SparseMatrixPolicyType, micm::JitLuDecomposition<L>>;
+template<class RatesPolicy>
+using RosenbrockTest = micm::JitRosenbrockSolver<RatesPolicy, LinearSolverTest>;
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  using OregonatorTest = Oregonator<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+
+  auto rosenbrock_solver = [](auto params) {
+    return OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
+  };
+
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 1e-3);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
+}
+
+TEST(AnalyticalExamples, HIRES)
+{
+  using HIRESTest = HIRES<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+
+  auto rosenbrock_solver = [](auto params) {
+    return HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
+  };
+
+  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+
+  test_analytical_hires(two_stage_solver, 1e-3);
+  test_analytical_hires(three_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_da_solver, 1e-4);
+  test_analytical_hires(six_stage_da_solver, 1e-5);
+}
+
+TEST(AnalyticalExamples, E5)
+{
+  using E5Test = E5<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+
+  auto rosenbrock_solver = [](auto params) {
+    return E5Test::CreateSolver<RosenbrockTest<E5Test>, LinearSolverTest>(params, 1);
+  };
+
+  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+
+  test_analytical_e5(two_stage_solver, 1e-5);
+  test_analytical_e5(three_stage_solver, 1e-5);
+  test_analytical_e5(four_stage_solver, 1e-5);
+  test_analytical_e5(four_stage_da_solver, 1e-5);
+  test_analytical_e5(six_stage_da_solver, 1e-5);
 }
