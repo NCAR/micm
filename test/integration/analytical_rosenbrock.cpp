@@ -94,79 +94,98 @@ TEST(AnalyticalExamples, Tunneling)
   test_analytical_tunneling(backward_euler, 1e-3);
 }
 
-// TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
-// {
-//   test_analytical_stiff_tunneling(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
-//   test_analytical_stiff_tunneling(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
+{
+  test_analytical_stiff_tunneling(rosenbrock_2stage, 1e-4);
+  test_analytical_stiff_tunneling(rosenbrock_3stage, 1e-4);
+  test_analytical_stiff_tunneling(rosenbrock_4stage, 1e-5);
+  test_analytical_stiff_tunneling(rosenbrock_4stage_da, 1e-4);
+  test_analytical_stiff_tunneling(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_tunneling(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, Arrhenius)
-// {
-//   test_analytical_arrhenius(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {});
-//   test_analytical_arrhenius(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, Arrhenius)
+{
+  test_analytical_arrhenius(rosenbrock_2stage, 1e-5);
+  test_analytical_arrhenius(rosenbrock_3stage);
+  test_analytical_arrhenius(rosenbrock_4stage);
+  test_analytical_arrhenius(rosenbrock_4stage_da);
+  test_analytical_arrhenius(rosenbrock_6stage_da);
+  test_analytical_arrhenius(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
-// {
-//   test_analytical_stiff_arrhenius(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-4);
-//   test_analytical_stiff_arrhenius(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-3);
-// }
+TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
+{
+  test_analytical_stiff_arrhenius(rosenbrock_2stage, 1e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_3stage, 1e-4);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage, 1e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 1e-4);
+  test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
+}
 
-// TEST(AnalyticalExamples, Branched)
-// {
-//   test_analytical_branched(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-3);
-//   test_analytical_branched(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
-// }
+TEST(AnalyticalExamples, Branched)
+{
+  test_analytical_stiff_arrhenius(rosenbrock_2stage, 1e-3);
+  test_analytical_stiff_arrhenius(rosenbrock_3stage, 1e-3);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage, 1e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 1e-4);
+  test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_arrhenius(backward_euler, 1e-1);
+}
 
-// TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
-// {
-//   test_analytical_stiff_branched(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-3);
-//   test_analytical_stiff_branched(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
-// }
+TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
+{
+  test_analytical_stiff_branched(rosenbrock_2stage, 1e-2);
+  test_analytical_stiff_branched(rosenbrock_3stage, 1e-3);
+  test_analytical_stiff_branched(rosenbrock_4stage, 1e-4);
+  test_analytical_stiff_branched(rosenbrock_4stage_da, 1e-3);
+  test_analytical_stiff_branched(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_branched(backward_euler, 1e-1);
+}
 
-// TEST(AnalyticalExamples, Robertson)
-// {
-//   test_analytical_robertson(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-1);
-//   test_analytical_robertson(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 1e-1);
-// }
+TEST(AnalyticalExamples, Robertson)
+{
+  test_analytical_robertson(rosenbrock_2stage, 1e-1);
+  test_analytical_robertson(rosenbrock_3stage, 1e-1);
+  test_analytical_robertson(rosenbrock_4stage, 1e-1);
+  test_analytical_robertson(rosenbrock_4stage_da, 1e-1);
+  test_analytical_robertson(rosenbrock_6stage_da, 1e-1);
+  test_analytical_robertson(backward_euler, 1e-1);
+}
 
-// TEST(AnalyticalExamples, SurfaceRxn)
-// {
-//   test_analytical_surface_rxn(
-//       rosenbrock, [](auto& state) {}, [](auto& state) {}, 1e-5);
-//   test_analytical_surface_rxn(
-//       backward_euler, [](auto& state) {}, [](auto& state) {}, 0.05);
-// }
+TEST(AnalyticalExamples, SurfaceRxn)
+{
+  test_analytical_surface_rxn(rosenbrock_2stage, 1e-2);
+  test_analytical_surface_rxn(rosenbrock_3stage, 1e-5);
+  test_analytical_surface_rxn(rosenbrock_4stage, 1e-6);
+  test_analytical_surface_rxn(rosenbrock_4stage_da, 1e-5);
+  test_analytical_surface_rxn(rosenbrock_6stage_da, 1e-7);
+  test_analytical_surface_rxn(backward_euler, 0.05);
+}
 
-// using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
-// template<class RatesPolicy>
-// using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
+using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
+template<class RatesPolicy>
+using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
 
-// template<class RatesPolicy>
-// using BackwardEulerTest = micm::BackwardEuler<RatesPolicy, LinearSolverTest>;
+template<class RatesPolicy>
+using BackwardEulerTest = micm::BackwardEuler<RatesPolicy, LinearSolverTest>;
 
-// TEST(AnalyticalExamples, Oregonator)
-// {
-//   auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
-//   using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
+TEST(AnalyticalExamples, Oregonator)
+{
+  auto params = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
+  using OregonatorTest = Oregonator<micm::Matrix<double>, SparseMatrixTest>;
 
-//   auto rosenbrock_solver =
-//       OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
+  auto rosenbrock_solver = [](auto params) {
+    return OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
+  };
 
-//   test_analytical_oregonator(rosenbrock_solver, 1e-3);
-// }
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 1e-3);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
+}
 
 // TEST(AnalyticalExamples, HIRES)
 // {

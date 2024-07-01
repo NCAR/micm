@@ -978,12 +978,12 @@ void test_analytical_tunneling(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_tunneling(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
@@ -1112,12 +1112,12 @@ void test_analytical_stiff_tunneling(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_arrhenius(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1
@@ -1221,12 +1221,12 @@ void test_analytical_arrhenius(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_arrhenius(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
@@ -1356,12 +1356,12 @@ void test_analytical_stiff_arrhenius(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_branched(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1
@@ -1490,12 +1490,12 @@ void test_analytical_branched(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_branched(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A1 -> B, k1
@@ -1654,12 +1654,12 @@ void test_analytical_stiff_branched(
   }
 }
 
-template<class BuilderPolicy, class PrepareFunc, class PostpareFunc>
+template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_robertson(
-    BuilderPolicy& builder,
-    PrepareFunc prepare_for_solve,
-    PostpareFunc postpare_for_solve,
-    double tolerance = 1e-8)
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
    * A -> B, k1 = 0.04
@@ -1784,7 +1784,7 @@ void test_analytical_robertson(
   }
 }
 
-void test_analytical_oregonator(auto& solver, double tolerance = 1e-8)
+void test_analytical_oregonator(auto solver, double tolerance = 1e-8)
 {
   /*
    * This problem is described in
