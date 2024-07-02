@@ -152,7 +152,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 }
 
-TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
+TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
   test_analytical_e5<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
   test_analytical_e5<builderType, stateType>(three, 1e-1, copy_to_device, copy_to_host);

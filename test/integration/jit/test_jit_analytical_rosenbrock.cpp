@@ -146,6 +146,15 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-4);
 }
 
+TEST(AnalyticalExamplesJitRosenbrock, E5)
+{
+  test_analytical_e5<builderType, stateType>(two, 1e-1);
+  test_analytical_e5<builderType, stateType>(three, 1e-1);
+  test_analytical_e5<builderType, stateType>(four, 1e-1);
+  test_analytical_e5<builderType, stateType>(four_da, 1e-1);
+  test_analytical_e5<builderType, stateType>(six_da, 1e-1);
+}
+
 using LinearSolverTest = micm::JitLinearSolver<L, builderType::SparseMatrixPolicyType, micm::JitLuDecomposition<L>>;
 template<class RatesPolicy>
 using RosenbrockTest = micm::JitRosenbrockSolver<RatesPolicy, LinearSolverTest>;
@@ -184,25 +193,4 @@ TEST(AnalyticalExamples, HIRES)
   test_analytical_hires(four_stage_solver, 1e-5);
   test_analytical_hires(four_stage_da_solver, 1e-4);
   test_analytical_hires(six_stage_da_solver, 1e-5);
-}
-
-TEST(AnalyticalExamples, E5)
-{
-  using E5Test = E5<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
-
-  auto rosenbrock_solver = [](auto params) {
-    return E5Test::CreateSolver<RosenbrockTest<E5Test>, LinearSolverTest>(params, 1);
-  };
-
-  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-
-  test_analytical_e5(two_stage_solver, 1e-5);
-  test_analytical_e5(three_stage_solver, 1e-5);
-  test_analytical_e5(four_stage_solver, 1e-5);
-  test_analytical_e5(four_stage_da_solver, 1e-5);
-  test_analytical_e5(six_stage_da_solver, 1e-5);
 }
