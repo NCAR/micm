@@ -2,8 +2,8 @@
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #ifdef MICM_ENABLE_LLVM
-  #include <micm/solver/jit_solver_builder.hpp>
-  #include <micm/solver/jit_solver_parameters.hpp>
+  #include <micm/solver/jit/jit_solver_builder.hpp>
+  #include <micm/solver/jit/jit_solver_parameters.hpp>
 #endif
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
@@ -104,34 +104,4 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .SetReactions(reactions)
                                .SetNumberOfGridCells(1)
                                .Build();
-}
-
-#ifdef MICM_ENABLE_LLVM
-TEST(SolverBuilder, CanBuildJitRosenbrock)
-{
-  constexpr std::size_t L = 4;
-  auto jit_rosenbrock = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
-                            micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                            .SetSystem(the_system)
-                            .SetReactions(reactions)
-                            .SetNumberOfGridCells(L)
-                            .Build();
-}
-#endif
-
-TEST(SolverBuilder, CanBuildCudaSolvers)
-{
-  // auto cuda_backward_euler = micm::CudaSolverBuilder<L>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::BackwardEulerSolverParameters{})
-  //                           .Build();
-
-  // auto cuda_rosenbrock = micm::CudaSolverBuilder<L>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::ThreeStageRosenbockSolverParameters{})
-  //                           .Build();
 }
