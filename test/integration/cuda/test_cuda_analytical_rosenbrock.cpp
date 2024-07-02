@@ -151,3 +151,52 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 }
+
+TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
+{
+  test_analytical_e5<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(three, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(four, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(four_da, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(six_da, 1e-1, copy_to_device, copy_to_host);
+}
+
+using LinearSolverTest = micm::CudaLinearSolver<builderType::SparseMatrixPolicyType, micm::CudaLuDecomposition>;
+template<class RatesPolicy>
+using RosenbrockTest = micm::CudaRosenbrockSolver<RatesPolicy, LinearSolverTest>;
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  using OregonatorTest = Oregonator<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+
+  auto rosenbrock_solver = [](auto params) {
+    return OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
+  };
+
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 1e-3);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 1e-2);
+  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
+}
+
+TEST(AnalyticalExamples, HIRES)
+{
+  using HIRESTest = HIRES<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+
+  auto rosenbrock_solver = [](auto params) {
+    return HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
+  };
+
+  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+
+  test_analytical_hires(two_stage_solver, 1e-3);
+  test_analytical_hires(three_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_solver, 1e-5);
+  test_analytical_hires(four_stage_da_solver, 1e-4);
+  test_analytical_hires(six_stage_da_solver, 1e-5);
+}

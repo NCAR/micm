@@ -1940,36 +1940,91 @@ void test_analytical_hires(auto& solver, double tolerance = 1e-8)
   }
 }
 
-void test_analytical_e5(auto& solver, double tolerance = 1e-8)
+template<class BuilderPolicy, class StateType = micm::State<>>
+void test_analytical_e5(
+  BuilderPolicy& builder,
+  double tolerance = 1e-8,
+  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
+  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
 {
   /*
-   * This problem is described in
+   * A1 -> A2 + A3,  k1 = 7.89e-10
+   * A2 + A3 -> A5,  k2 = 1.13e9
+   * A1 + A3 -> A4,  k3 = 1.1e7
+   * A4 -> A3 + A6,  k4 = 1.13e3
+   * 
+   * this problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 145
+   * edition. ed. Springer, Berlin ; New York. Page 3
+   * 
+   * full equations retrieved from here: https://archimede.uniba.it/~testset/report/e5.pdf
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
    */
 
+  auto a1 = micm::Species("A1");
+  auto a2 = micm::Species("A2");
+  auto a3 = micm::Species("A3");
+  auto a4 = micm::Species("A4");
+  auto a5 = micm::Species("A5");
+  auto a6 = micm::Species("A6");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a1, a2, a3, a4, a5, a6 } };
+
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a1 })
+                         .SetProducts({ Yields(a2, 1), Yields(a3, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ a2, a3 })
+                         .SetProducts({ Yields(a5, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ a1, a3 })
+                         .SetProducts({Yields(a4, 1)})
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r4 = micm::Process::Create()
+                        .SetReactants({ a4 })
+                        .SetProducts({ Yields(a3, 1), Yields(a6, 1) })
+                        .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
+                        .SetPhase(gas_phase);
+
+  auto processes = std::vector<micm::Process>{ r1, r2, r3, r4 };
+  auto solver =
+      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
+
   size_t N = 7;
 
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(4));
-  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(4));
+  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(6));
+  std::vector<std::vector<double>> analytical_concentrations(N + 1, std::vector<double>(6));
 
-  model_concentrations[0] = { 1.76e-3, 0, 0, 0 };
+  model_concentrations[0] = { 1.76e-3, 0, 0, 0, 0, 0 };
 
+  // ignore the concentration of A5 and A6
   analytical_concentrations = {
-    { 1.76e-3, 0, 0, 0 },
-    { 1.7599259497677897058e-003, 1.3846281519376516449e-011, 7.6370038530073911180e-013, 1.3082581134075777338e-011 },
-    { 1.6180769999072942552e-003, 1.3822370304983735443e-010, 8.2515735006838336088e-012, 1.2997212954915352082e-010 },
-    { 7.4813208224292220114e-006, 2.3734781561205975019e-012, 2.2123586689581663654e-012, 1.6111948716243113653e-013 },
-    { 4.7150333630401632232e-010, 1.8188895860807021729e-014, 1.8188812376786725407e-014, 8.3484020296321693074e-020 },
-    { 3.1317148329356996037e-014, 1.4840957952870064294e-016, 1.4840957948345691466e-016, 4.5243728279782625194e-026 },
-    { 3.8139035189787091771e-049, 1.0192582567660293322e-020, 1.0192582567660293322e-020, 3.7844935507486221171e-065 },
-    { 0.0000000000000000000e-000, 8.8612334976263783420e-023, 8.8612334976263783421e-023, 0.0000000000000000000e-000 }
+    { 1.76e-3, 0, 0, 0 , 0, 0},
+    { 1.7599259497677897058e-003, 1.3846281519376516449e-011, 7.6370038530073911180e-013, 1.3082581134075777338e-011, 0, 0},
+    { 1.6180769999072942552e-003, 1.3822370304983735443e-010, 8.2515735006838336088e-012, 1.2997212954915352082e-010, 0, 0},
+    { 7.4813208224292220114e-006, 2.3734781561205975019e-012, 2.2123586689581663654e-012, 1.6111948716243113653e-013, 0, 0},
+    { 4.7150333630401632232e-010, 1.8188895860807021729e-014, 1.8188812376786725407e-014, 8.3484020296321693074e-020, 0, 0},
+    { 3.1317148329356996037e-014, 1.4840957952870064294e-016, 1.4840957948345691466e-016, 4.5243728279782625194e-026, 0, 0},
+    { 3.8139035189787091771e-049, 1.0192582567660293322e-020, 1.0192582567660293322e-020, 3.7844935507486221171e-065, 0, 0},
+    { 0.0000000000000000000e-000, 8.8612334976263783420e-023, 8.8612334976263783421e-023, 0.0000000000000000000e-000, 0, 0}
   };
 
-  auto state = solver.rates_.GetState();
+  auto state = solver.GetState();
+
+  state.SetCustomRateParameter("r1", 7.89e-10);
+  state.SetCustomRateParameter("r2", 1.13e9);
+  state.SetCustomRateParameter("r3", 1.1e7);
+  state.SetCustomRateParameter("r4", 1.13e3);
 
   state.variables_[0] = model_concentrations[0];
 
@@ -1991,13 +2046,14 @@ void test_analytical_e5(auto& solver, double tolerance = 1e-8)
     time_step *= 100;
   }
 
-  std::vector<std::string> header = { "time", "y1", "y2", "y3", "y4" };
+  std::vector<std::string> header = { "time", "a1", "a2", "a3", "a4" };
   writeCSV("model_concentrations.csv", header, model_concentrations, times);
   writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    for (size_t j = 0; j < model_concentrations[0].size(); ++j)
+    // ignore the concentration of A5 and A6
+    for (size_t j = 0; j < model_concentrations[0].size() - 2; ++j)
     {
       EXPECT_NEAR(model_concentrations[i][j], analytical_concentrations[i][j], tolerance)
           << "difference at (" << i << ", " << j << ")";
