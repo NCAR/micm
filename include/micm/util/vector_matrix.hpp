@@ -5,6 +5,7 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/util/matrix_error.hpp>
 
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -323,7 +324,10 @@ namespace micm
     void Copy(const VectorMatrix &other)
     {
       if (other.AsVector().size() != this->data_.size())
+      {
+        std::cout << "left: " << other.AsVector().size() << ", " << "right: " <<  this->data_.size() << std::endl;
         throw std::runtime_error("Both vector matrices must have the same size.");
+      }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
