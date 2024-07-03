@@ -163,19 +163,19 @@ TEST(AnalyticalExamples, Oregonator)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 }
 
 using LinearSolverTest = micm::JitLinearSolver<L, builderType::SparseMatrixPolicyType, micm::JitLuDecomposition<L>>;

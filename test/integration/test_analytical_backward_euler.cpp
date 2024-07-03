@@ -1,7 +1,6 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 #include "hires.hpp"
-#include "oregonator.hpp"
 
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>

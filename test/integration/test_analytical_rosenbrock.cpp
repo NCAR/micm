@@ -1,7 +1,6 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 #include "hires.hpp"
-#include "oregonator.hpp"
 
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
@@ -158,19 +157,19 @@ TEST(AnalyticalExamples, Oregonator)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator_config(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator_config(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator_config(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-3);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)

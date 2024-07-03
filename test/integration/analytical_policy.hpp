@@ -1785,7 +1785,7 @@ void test_analytical_robertson(
 }
 
 template<class BuilderPolicy, class StateType = micm::State<>>
-void test_analytical_oregonator_config(
+void test_analytical_oregonator(
   BuilderPolicy& builder,
   double tolerance = 1e-8,
   std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},

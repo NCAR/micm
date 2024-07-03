@@ -169,39 +169,24 @@ TEST(AnalyticalExamples, Oregonator)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+  test_analytical_oregonator<builderType, stateType>(solver, 1e-3);
 }
 
 using LinearSolverTest = micm::CudaLinearSolver<builderType::SparseMatrixPolicyType, micm::CudaLuDecomposition>;
 template<class RatesPolicy>
 using RosenbrockTest = micm::CudaRosenbrockSolver<RatesPolicy, LinearSolverTest>;
-
-TEST(AnalyticalExamples, Oregonator)
-{
-  using OregonatorTest = Oregonator<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
-
-  auto rosenbrock_solver = [](auto params) {
-    return OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
-  };
-
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 1e-3);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
-}
 
 TEST(AnalyticalExamples, HIRES)
 {
