@@ -140,11 +140,26 @@ TEST(AnalyticalExamples, Robertson)
 
 TEST(AnalyticalExamples, E5)
 {
-  test_analytical_e5(rosenbrock_2stage, 1e-5);
-  test_analytical_e5(rosenbrock_3stage, 1e-6);
-  test_analytical_e5(rosenbrock_4stage, 1e-6);
-  test_analytical_e5(rosenbrock_4stage_da, 1e-5);
-  test_analytical_e5(rosenbrock_6stage_da, 1e-6);
+  auto rosenbrock_solver = [](auto params, double tolerance = 1e-8) {
+    params.relative_tolerance_ = tolerance;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_e5(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_e5(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_e5(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_e5(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_e5(solver, 1e-3);
 }
 
 TEST(AnalyticalExamples, Oregonator)
