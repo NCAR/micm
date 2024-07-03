@@ -1859,7 +1859,6 @@ void test_analytical_oregonator(
     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
     .SetReactions(processes).Build();
 
-  double end = 360;
   double time_step = 30;
   size_t N = 12;
 
@@ -1910,6 +1909,7 @@ void test_analytical_oregonator(
 
   state.variables_[0] = model_concentrations[0];
   solver.CalculateRateConstants(state);
+  prepare_for_solve(state);
 
   std::vector<double> times;
   times.push_back(0);
@@ -1924,6 +1924,7 @@ void test_analytical_oregonator(
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.final_time_;
     }
+    postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
   }
 
@@ -2115,6 +2116,7 @@ void test_analytical_e5(
 
   state.variables_[0] = model_concentrations[0];
   solver.CalculateRateConstants(state);
+  prepare_for_solve(state);
 
   std::vector<double> times;
   times.push_back(0);
@@ -2130,6 +2132,7 @@ void test_analytical_e5(
       auto result = solver.Solve(time_step - actual_solve, state);
       actual_solve += result.final_time_;
     }
+    postpare_for_solve(state);
     model_concentrations[i_time + 1] = state.variables_[0];
     time_step *= 100;
   }
