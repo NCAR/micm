@@ -1,6 +1,5 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
-#include "e5.hpp"
 #include "hires.hpp"
 #include "oregonator.hpp"
 
@@ -142,12 +141,21 @@ TEST(AnalyticalExamples, Robertson)
 
 TEST(AnalyticalExamples, E5)
 {
-  test_analytical_e5(rosenbrock_2stage, 1e-1);
-  test_analytical_e5(rosenbrock_3stage, 1e-1);
-  test_analytical_e5(rosenbrock_4stage, 1e-1);
-  test_analytical_e5(rosenbrock_4stage_da, 1e-1);
-  test_analytical_e5(rosenbrock_6stage_da, 1e-1);
+  test_analytical_e5(rosenbrock_2stage, 1e-5);
+  test_analytical_e5(rosenbrock_3stage, 1e-6);
+  test_analytical_e5(rosenbrock_4stage, 1e-6);
+  test_analytical_e5(rosenbrock_4stage_da, 1e-5);
+  test_analytical_e5(rosenbrock_6stage_da, 1e-6);
 }
+
+// TEST(AnalyticalExamples, OregonatorConfig)
+// {
+//   test_analytical_oregonator_config(rosenbrock_2stage, 1e-1);
+//   test_analytical_oregonator_config(rosenbrock_3stage, 1e-1);
+//   test_analytical_oregonator_config(rosenbrock_4stage, 1e-1);
+//   test_analytical_oregonator_config(rosenbrock_4stage_da, 1e-1);
+//   test_analytical_oregonator_config(rosenbrock_6stage_da, 1e-1);
+// }
 
 TEST(AnalyticalExamples, SurfaceRxn)
 {
