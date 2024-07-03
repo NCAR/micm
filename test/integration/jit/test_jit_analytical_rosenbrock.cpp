@@ -1,7 +1,5 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
-#include "../oregonator.hpp"
-#include "../e5.hpp"
 #include "../hires.hpp"
 
 #include <micm/jit/solver/jit_solver_builder.hpp>
@@ -148,31 +146,41 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesJitRosenbrock, E5)
 {
-  test_analytical_e5<builderType, stateType>(two, 1e-1);
-  test_analytical_e5<builderType, stateType>(three, 1e-1);
-  test_analytical_e5<builderType, stateType>(four, 1e-1);
-  test_analytical_e5<builderType, stateType>(four_da, 1e-1);
-  test_analytical_e5<builderType, stateType>(six_da, 1e-1);
+  test_analytical_e5<builderType, stateType>(two, 1e-5);
+  test_analytical_e5<builderType, stateType>(three, 1e-6);
+  test_analytical_e5<builderType, stateType>(four, 1e-6);
+  test_analytical_e5<builderType, stateType>(four_da, 1e-5);
+  test_analytical_e5<builderType, stateType>(six_da, 1e-6);
+}
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  auto rosenbrock_solver = [](auto params) {
+    // anything below 1e-6 is too strict for the Oregonator
+    params.relative_tolerance_ = 1e-6;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
 }
 
 using LinearSolverTest = micm::JitLinearSolver<L, builderType::SparseMatrixPolicyType, micm::JitLuDecomposition<L>>;
 template<class RatesPolicy>
 using RosenbrockTest = micm::JitRosenbrockSolver<RatesPolicy, LinearSolverTest>;
-
-TEST(AnalyticalExamples, Oregonator)
-{
-  using OregonatorTest = Oregonator<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
-
-  auto rosenbrock_solver = [](auto params) {
-    return OregonatorTest::template CreateSolver<RosenbrockTest<OregonatorTest>, LinearSolverTest>(params, 1);
-  };
-
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters()), 1e-3);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters()), 1e-2);
-  test_analytical_oregonator(rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters()), 1e-3);
-}
 
 TEST(AnalyticalExamples, HIRES)
 {

@@ -1,6 +1,5 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
-#include "e5.hpp"
 #include "hires.hpp"
 #include "oregonator.hpp"
 
@@ -100,10 +99,5 @@ TEST(AnalyticalExamples, HIRES)
 
 TEST(AnalyticalExamples, E5)
 {
-  using E5Test = E5<micm::Matrix<double>, SparseMatrixTest>;
-
-  auto backward_euler_solver =
-      E5Test::template CreateSolver<BackwardEulerTest<E5Test>, LinearSolverTest>(micm::BackwardEulerSolverParameters(), 1);
-
-  test_analytical_e5(backward_euler_solver, 1e-3);
+  test_analytical_e5(backward_euler, 1e-3);
 }

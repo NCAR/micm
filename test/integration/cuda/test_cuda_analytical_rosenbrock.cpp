@@ -3,7 +3,6 @@
 
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
-#include "../oregonator.hpp"
 #include "../hires.hpp"
 
 #include <micm/cuda/solver/cuda_solver_builder.hpp>
@@ -153,11 +152,36 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
-  test_analytical_e5<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_e5<builderType, stateType>(three, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_e5<builderType, stateType>(four, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_e5<builderType, stateType>(four_da, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_e5<builderType, stateType>(six_da, 1e-1, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(two, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(three, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(four, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType, stateType>(six_da, 1e-6, copy_to_device, copy_to_host);
+}
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  auto rosenbrock_solver = [](auto params) {
+    // anything below 1e-6 is too strict for the Oregonator
+    params.relative_tolerance_ = 1e-6;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_oregonator_config<builderType, stateType>(solver, 1e-3);
 }
 
 using LinearSolverTest = micm::CudaLinearSolver<builderType::SparseMatrixPolicyType, micm::CudaLuDecomposition>;
