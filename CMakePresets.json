@@ -6,17 +6,17 @@
     },
     "configurePresets": [
         {
-            "name": "derecho-gpu",
+            "name": "derecho-gpu-configure",
             "displayName": "Derecho",
             "description": "Presets for the Derecho cluster",
             "cacheVariables": {
                 "MICM_MODULE_LOADS": {
                     "type": "STRING",
-                    "value": "nvhpc/23.7;gcc-toolchain/12.2.0;cmake"
+                    "value": "nvhpc/23.7;gcc-toolchain/12.2.0;cuda/12.2.1"
                 },
                 "MICM_MODULE_UNLOADS": {
                     "type": "STRING",
-                    "value": "openmpi"
+                    "value": "cray-mpich"
                 },
                 "MICM_GPU_TYPE": {
                     "type": "STRING",
@@ -26,7 +26,30 @@
                     "type": "BOOL",
                     "value": "ON"
                 }
-            }
+            },
+            "binaryDir": "nvhpc-test"
         }
+    ],
+    "buildPresets": [
+      {
+        "name": "derecho-gpu-build",
+        "configurePreset" : "derecho-gpu-configure",
+        "inheritConfigureEnvironment": true
+      }
+    ],
+    "workflowPresets": [
+      {
+        "name" : "derecho-gpu-workflow",
+        "steps": [
+          {
+            "type": "configure",
+            "name" : "derecho-gpu-configure"
+          },
+          {
+            "type": "build",
+            "name": "derecho-gpu-build"
+          }
+        ]
+      }
     ]
 }

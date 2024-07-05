@@ -13,6 +13,12 @@ if(DEFINED MICM_MODULE_LOADS OR DEFINED MICM_MODULE_UNLOADS)
   endforeach()
   env_module_list(MICM_CURRENT_MODULES)
   message(STATUS "Currently loaded modules: ${MICM_CURRENT_MODULES}")
+  message(STATUS "Currently using $ENV{SHELL}.")
+  # set(MACHINE_MODULE_PATH "$ENV{MODULESHOME}")
+  # add_custom_target(enable-module-command
+  #   ALL COMMAND "." "${MACHINE_MODULE_PATH}/init/bash"
+  #   COMMAND "ml" "${MICM_MODULE_LOADS}"
+  #   COMMAND_EXPAND_LISTS)
 endif()
 
 project(
