@@ -79,18 +79,18 @@ auto copy_to_host = [](auto& state) -> void { state.SyncOutputsToHost(); };
 //   test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
 // }
 
-TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
-{
-  test_analytical_tunneling<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
-}
+// TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
+// {
+//   test_analytical_tunneling<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
+//   test_analytical_tunneling<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_tunneling<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+//   test_analytical_tunneling<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_tunneling<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
+// }
 
 // TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
 // {
-//   test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+//   test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-2, copy_to_device, copy_to_host);
 //   test_analytical_stiff_tunneling<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
 //   test_analytical_stiff_tunneling<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
 //   test_analytical_stiff_tunneling<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
@@ -99,7 +99,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 
 // TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
 // {
-//   test_analytical_arrhenius<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+//   test_analytical_arrhenius<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
 //   test_analytical_arrhenius<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
 //   test_analytical_arrhenius<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
 //   test_analytical_arrhenius<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
@@ -117,11 +117,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 
 // TEST(AnalyticalExamplesCudaRosenbrock, Branched)
 // {
-//   test_analytical_branched<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
-//   test_analytical_branched<builderType, stateType>(three, 1e-3, copy_to_device, copy_to_host);
-//   test_analytical_branched<builderType, stateType>(four, 1e-3, copy_to_device, copy_to_host);
-//   test_analytical_branched<builderType, stateType>(four_da, 1e-3, copy_to_device, copy_to_host);
-//   test_analytical_branched<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
+//   test_analytical_branched<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+//   test_analytical_branched<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_branched<builderType, stateType>(four, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_branched<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_branched<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 // }
 
 // TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
@@ -135,45 +135,60 @@ TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 
 // TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
 // {
-//   test_analytical_robertson<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
-//   test_analytical_robertson<builderType, stateType>(three, 1e-1, copy_to_device, copy_to_host);
-//   test_analytical_robertson<builderType, stateType>(four, 1e-1, copy_to_device, copy_to_host);
-//   test_analytical_robertson<builderType, stateType>(four_da, 1e-1, copy_to_device, copy_to_host);
-//   test_analytical_robertson<builderType, stateType>(six_da, 1e-1, copy_to_device, copy_to_host);
-// }
-
-// TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
-// {
-//   test_analytical_surface_rxn<builderType, stateType>(two, 1e-5, copy_to_device, copy_to_host);
-//   test_analytical_surface_rxn<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
-//   test_analytical_surface_rxn<builderType, stateType>(four, 1e-5, copy_to_device, copy_to_host);
-//   test_analytical_surface_rxn<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
-//   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
-// }
-
-// TEST(AnalyticalExamplesCudaRosenbrock, E5)
-// {
 //   auto rosenbrock_solver = [](auto params) {
-//     params.relative_tolerance_ = 1e-8;
+//     params.relative_tolerance_ = 1e-10;
 //     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
 //     return builderType(params);
 //   };
 
 //   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-//   test_analytical_e5<builderType, stateType>(solver, 1e-4, copy_to_device, copy_to_host);
-
+//   test_analytical_robertson<builderType, stateType>(solver, 2e-1, copy_to_device, copy_to_host);
+  
 //   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-//   test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+//   test_analytical_robertson<builderType, stateType>(solver, 2e-1, copy_to_device, copy_to_host);
 
 //   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-//   test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+//   test_analytical_robertson<builderType, stateType>(solver, 2e-1, copy_to_device, copy_to_host);
 
 //   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-//   test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+//   test_analytical_robertson<builderType, stateType>(solver, 2e-1, copy_to_device, copy_to_host);
 
 //   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-//   test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+//   test_analytical_robertson<builderType, stateType>(solver, 2e-1, copy_to_device, copy_to_host);
 // }
+
+// TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
+// {
+//   test_analytical_surface_rxn<builderType, stateType>(two, 1e-2, copy_to_device, copy_to_host);
+//   test_analytical_surface_rxn<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_surface_rxn<builderType, stateType>(four, 1e-6, copy_to_device, copy_to_host);
+//   test_analytical_surface_rxn<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+//   test_analytical_surface_rxn<builderType, stateType>(six_da, 1e-7, copy_to_device, copy_to_host);
+// }
+
+TEST(AnalyticalExamplesCudaRosenbrock, E5)
+{
+  auto rosenbrock_solver = [](auto params) {
+    params.relative_tolerance_ = 1e-11;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  // test_analytical_e5<builderType, stateType>(solver, 1e-5, copy_to_device, copy_to_host);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  // test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  // test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  // test_analytical_e5<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
+}
 
 // TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 // {

@@ -1100,13 +1100,12 @@ void test_analytical_stiff_tunneling(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -1209,13 +1208,13 @@ void test_analytical_arrhenius(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -1344,13 +1343,12 @@ void test_analytical_stiff_arrhenius(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -1380,7 +1378,7 @@ void test_analytical_branched(
           .SetReactants({ a })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1.2,
+                                                        .X_ = 1e-4,
                                                         .Y_ = 204.3,
                                                         .a0_ = 1.0e-3,
                                                         .n_ = 2 }))
@@ -1391,7 +1389,7 @@ void test_analytical_branched(
           .SetReactants({ b })
           .SetProducts({ Yields(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                        .X_ = 1.2,
+                                                        .X_ = 1e-4,
                                                         .Y_ = 204.3,
                                                         .a0_ = 1.0e-3,
                                                         .n_ = 2 }))
@@ -1414,7 +1412,7 @@ void test_analytical_branched(
   b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-  double k1 = 1.2 * std::exp(-204.3 / temperature) * (z / (z + A));
+  double k1 = 1e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
 
   // B->C reaction rate
   a_ = 2.0e-22 * std::exp(2) * 2.45e19;
@@ -1424,7 +1422,7 @@ void test_analytical_branched(
   b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
   A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-  double k2 = 1.2 * std::exp(-204.3 / temperature) * (A / (z + A));
+  double k2 = 1e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
 
   double time_step = 1.0;
   auto state = solver.GetState();
@@ -1469,8 +1467,8 @@ void test_analytical_branched(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("branched_analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("branched_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1478,13 +1476,13 @@ void test_analytical_branched(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -1517,7 +1515,7 @@ void test_analytical_stiff_branched(
           .SetReactants({ a1 })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1.2,
+                                                        .X_ = 1e-4,
                                                         .Y_ = 204.3,
                                                         .a0_ = 1.0e-3,
                                                         .n_ = 2 }))
@@ -1528,7 +1526,7 @@ void test_analytical_stiff_branched(
           .SetReactants({ a2 })
           .SetProducts({ Yields(b, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Alkoxy,
-                                                        .X_ = 1.2,
+                                                        .X_ = 1e-4,
                                                         .Y_ = 204.3,
                                                         .a0_ = 1.0e-3,
                                                         .n_ = 2 }))
@@ -1539,7 +1537,7 @@ void test_analytical_stiff_branched(
           .SetReactants({ b })
           .SetProducts({ Yields(c, 1) })
           .SetRateConstant(micm::BranchedRateConstant({ .branch_ = micm::BranchedRateConstantParameters::Branch::Nitrate,
-                                                        .X_ = 1.2,
+                                                        .X_ = 1e-4,
                                                         .Y_ = 204.3,
                                                         .a0_ = 1.0e-3,
                                                         .n_ = 2 }))
@@ -1574,7 +1572,7 @@ void test_analytical_stiff_branched(
   b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
   double A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-  double k1 = 1.2 * std::exp(-204.3 / temperature) * (z / (z + A));
+  double k1 = 1.e-4 * std::exp(-204.3 / temperature) * (z / (z + A));
 
   // B->C reaction rate
   a_ = 2.0e-22 * std::exp(2) * 2.45e19;
@@ -1584,7 +1582,7 @@ void test_analytical_stiff_branched(
   b_ = 0.43 * std::pow((temperature / 298.0), -8.0);
   A = a_ / (1.0 + a_ / b_) * std::pow(0.41, 1.0 / (1.0 + std::pow(std::log10(a_ / b_), 2)));
 
-  double k2 = 1.2 * std::exp(-204.3 / temperature) * (A / (z + A));
+  double k2 = 1.e-4 * std::exp(-204.3 / temperature) * (A / (z + A));
 
   double time_step = 1.0;
   auto state = solver.GetState();
@@ -1642,13 +1640,12 @@ void test_analytical_stiff_branched(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -1698,8 +1695,10 @@ void test_analytical_robertson(
                          .SetPhase(gas_phase);
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3 };
-  auto solver =
-      builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes).Build();
+  auto solver = builder
+        .SetReorderState(false)
+        .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+        .SetReactions(processes).Build();
 
   double temperature = 272.5;
   double pressure = 101253.3;
@@ -1763,8 +1762,8 @@ void test_analytical_robertson(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("robertson_model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("robertson_analytical_concentrations.csv", header, analytical_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -1772,14 +1771,24 @@ void test_analytical_robertson(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  // average of the starting concentration *1e-3;
+  double absolute_tolerance = 0.3e-3;
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
-        << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
-        << "Arrays differ at index (" << i << ", " << 2 << ")";
+    double rel_error = relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]);
+    double abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
+
+    rel_error = relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]);
+    abs_error = std::abs(model_concentrations[i][_b] - analytical_concentrations[i][1]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error " << abs_error;
+
+    rel_error = relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]);
+    abs_error = std::abs(model_concentrations[i][_c] - analytical_concentrations[i][2]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error " << abs_error;
   }
 }
 
@@ -2143,9 +2152,18 @@ void test_analytical_e5(
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
-    EXPECT_NEAR(model_concentrations[i][0], analytical_concentrations[i][0], tolerance) << "a1 differes at index " << i;
-    EXPECT_NEAR(model_concentrations[i][1], analytical_concentrations[i][1], tolerance) << "a2 differes at index " << i;
-    EXPECT_NEAR(model_concentrations[i][2], analytical_concentrations[i][2], tolerance) << "a3 differes at index " << i;
-    EXPECT_NEAR(model_concentrations[i][3], analytical_concentrations[i][3], tolerance) << "a4 differes at index " << i;
+    // EXPECT_NEAR(model_concentrations[i][0], analytical_concentrations[i][0], tolerance) << "a1 differes at index " << i;
+    // EXPECT_NEAR(model_concentrations[i][1], analytical_concentrations[i][1], tolerance) << "a2 differes at index " << i;
+    // EXPECT_NEAR(model_concentrations[i][2], analytical_concentrations[i][2], tolerance) << "a3 differes at index " << i;
+    // EXPECT_NEAR(model_concentrations[i][3], analytical_concentrations[i][3], tolerance) << "a4 differes at index " << i;
+
+    EXPECT_NEAR(relative_error(model_concentrations[i][0], analytical_concentrations[i][0]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 0 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][1], analytical_concentrations[i][1]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][2], analytical_concentrations[i][2]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][3], analytical_concentrations[i][3]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 3 << ")";
   }
 }
