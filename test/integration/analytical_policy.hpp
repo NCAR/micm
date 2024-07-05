@@ -1966,6 +1966,17 @@ void test_analytical_hires(auto& solver, double tolerance = 1e-8)
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 144
+   * 
+   * From the forcing function these equations were made
+   * y0 -> y1,                                  k = 1.71
+   * y1 -> (0.43 / 8.75 )y0 + (8.32 / 8.75)y3,  k = 8.75
+   * y2 -> (8.32 /10.03)y0 + (1.71/10.03)y3,    k = 10.03
+   *    -> y0,                                  k = 0.0007
+   * y3 -> (0.43/1.12)y2 + (0.69/1.12)y5,       k = 1.12
+   * y4 -> (0.035/1.745)y2 + (1.71/1.745)y5,    k = 1.745
+   * y5 -> y4                                   k = 0.43
+   * y6 -> (0.43/1.81)y4 + (0.69/1.81)y5 + y7   k = 1.81
+   * y5 + y7 -> y6                              k = 280.0
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
@@ -2153,28 +2164,31 @@ void test_analytical_e5(
   writeCSV("e5_model_concentrations.csv", header, model_concentrations, times);
   writeCSV("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
 
-  double absolute_tolerance = 1.76e-3 * 1e-6;
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
-    // EXPECT_NEAR(model_concentrations[i][0], analytical_concentrations[i][0], tolerance) << "a1 differes at index " << i;
-    // EXPECT_NEAR(model_concentrations[i][1], analytical_concentrations[i][1], tolerance) << "a2 differes at index " << i;
-    // EXPECT_NEAR(model_concentrations[i][2], analytical_concentrations[i][2], tolerance) << "a3 differes at index " << i;
-    // EXPECT_NEAR(model_concentrations[i][3], analytical_concentrations[i][3], tolerance) << "a4 differes at index " << i;
+    double absolute_tolerance = 1e-6;
+    double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
+    double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
 
-
-    // double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
-    // double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
-    // EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
-    //     << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
-
-    EXPECT_NEAR(relative_error(model_concentrations[i][0], analytical_concentrations[i][0]), 0, tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][1], analytical_concentrations[i][1]), 0, tolerance)
-        << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][2], analytical_concentrations[i][2]), 0, tolerance)
-        << "Arrays differ at index (" << i << ", " << 2 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][3], analytical_concentrations[i][3]), 0, tolerance)
-        << "Arrays differ at index (" << i << ", " << 3 << ")";
+    absolute_tolerance = 1e-13;
+    rel_error = relative_error(model_concentrations[i][1], analytical_concentrations[i][1]);
+    abs_error = std::abs(model_concentrations[i][1] - analytical_concentrations[i][1]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error " << abs_error;
+    
+    absolute_tolerance = 1e-13;
+    rel_error = relative_error(model_concentrations[i][2], analytical_concentrations[i][2]);
+    abs_error = std::abs(model_concentrations[i][2] - analytical_concentrations[i][2]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error " << abs_error;
+    
+    absolute_tolerance = 1e-13;
+    rel_error = relative_error(model_concentrations[i][3], analytical_concentrations[i][3]);
+    abs_error = std::abs(model_concentrations[i][3] - analytical_concentrations[i][3]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 3 << ") with relative error " << rel_error << " and absolute error " << abs_error;
   }
 }
