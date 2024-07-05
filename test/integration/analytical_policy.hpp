@@ -2051,6 +2051,10 @@ void test_analytical_e5(
    * edition. ed. Springer, Berlin ; New York. Page 3
    * 
    * full equations retrieved from here: https://archimede.uniba.it/~testset/report/e5.pdf
+   * 
+   * originally described here
+   * 
+   * Enright, W.H., Hull, T.E., Lindberg, B., 1975. Comparing numerical methods for stiff systems of O.D.E:s. BIT 15, 10–48. https://doi.org/10.1007/BF01932994
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
