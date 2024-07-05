@@ -2159,10 +2159,10 @@ void test_analytical_e5(
     // EXPECT_NEAR(model_concentrations[i][3], analytical_concentrations[i][3], tolerance) << "a4 differes at index " << i;
 
 
-    double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
-    double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
-        << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
+    // double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
+    // double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
+    // EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    //     << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
 
     EXPECT_NEAR(relative_error(model_concentrations[i][0], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
