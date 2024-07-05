@@ -2149,6 +2149,7 @@ void test_analytical_e5(
   writeCSV("e5_model_concentrations.csv", header, model_concentrations, times);
   writeCSV("e5_analytical_concentrations.csv", header, analytical_concentrations, times);
 
+  double absolute_tolerance = 1.76e-3 * 1e-6;
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
     // ignore the concentration of A5 and A6
@@ -2156,6 +2157,12 @@ void test_analytical_e5(
     // EXPECT_NEAR(model_concentrations[i][1], analytical_concentrations[i][1], tolerance) << "a2 differes at index " << i;
     // EXPECT_NEAR(model_concentrations[i][2], analytical_concentrations[i][2], tolerance) << "a3 differes at index " << i;
     // EXPECT_NEAR(model_concentrations[i][3], analytical_concentrations[i][3], tolerance) << "a4 differes at index " << i;
+
+
+    double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
+    double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+        << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error " << abs_error;
 
     EXPECT_NEAR(relative_error(model_concentrations[i][0], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
