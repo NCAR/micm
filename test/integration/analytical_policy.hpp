@@ -143,22 +143,15 @@ void test_analytical_troe(
   auto state = solver.GetState();
 
   std::vector<std::vector<double>> model_concentrations(nsteps, std::vector<double>(3));
-  std::vector<std::vector<double>> be_model_concentrations(nsteps, std::vector<double>(3));
   std::vector<std::vector<double>> analytical_concentrations(nsteps, std::vector<double>(3));
 
   model_concentrations[0] = { 1, 0, 0 };
-  be_model_concentrations[0] = { 1, 0, 0 };
   analytical_concentrations[0] = { 1, 0, 0 };
 
   state.variables_[0] = model_concentrations[0];
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.conditions_[0].air_density_ = air_density;
-
-  be_state.variables_[0] = be_model_concentrations[0];
-  be_state.conditions_[0].temperature_ = temperature;
-  be_state.conditions_[0].pressure_ = pressure;
-  be_state.conditions_[0].air_density_ = air_density;
 
   size_t idx_A = 0, idx_B = 1, idx_C = 2;
 
@@ -189,8 +182,8 @@ void test_analytical_troe(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("troe_analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("troe_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -198,13 +191,13 @@ void test_analytical_troe(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -345,11 +338,13 @@ void test_analytical_stiff_troe(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
     EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
@@ -454,13 +449,13 @@ void test_analytical_photolysis(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -593,11 +588,13 @@ void test_analytical_stiff_photolysis(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
     EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
@@ -625,13 +622,13 @@ void test_analytical_ternary_chemical_activation(
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ a })
                          .SetProducts({ Yields(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
+                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-4, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
+                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e3,
                                                                                         .k0_B_ = 167,
                                                                                         .k0_C_ = 3,
                                                                                         .kinf_A_ = 136,
@@ -650,13 +647,13 @@ void test_analytical_ternary_chemical_activation(
   double air_density = 1e6;
 
   // A->B reaction rate
-  double k_0 = 4.0e-10;
+  double k_0 = 4.0e-4;
   double k_inf = 1;
   double k1 = k_0 / (1.0 + k_0 * air_density / k_inf) *
               std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_0 = 1.2e3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
   k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 / (1.0 + k_0 * air_density / k_inf) *
               std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
@@ -704,8 +701,8 @@ void test_analytical_ternary_chemical_activation(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("tca_analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("tca_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -713,13 +710,13 @@ void test_analytical_ternary_chemical_activation(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
@@ -750,19 +747,19 @@ void test_analytical_stiff_ternary_chemical_activation(
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ a1 })
                          .SetProducts({ Yields(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
+                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-4, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase);
 
   micm::Process r2 = micm::Process::Create()
                          .SetReactants({ a2 })
                          .SetProducts({ Yields(b, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-10, .kinf_A_ = 1 }))
+                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 4.0e-4, .kinf_A_ = 1 }))
                          .SetPhase(gas_phase);
 
   micm::Process r3 = micm::Process::Create()
                          .SetReactants({ b })
                          .SetProducts({ Yields(c, 1) })
-                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e-3,
+                         .SetRateConstant(micm::TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2e3,
                                                                                         .k0_B_ = 167,
                                                                                         .k0_C_ = 3,
                                                                                         .kinf_A_ = 136,
@@ -793,13 +790,13 @@ void test_analytical_stiff_ternary_chemical_activation(
   double air_density = 1e6;
 
   // A->B reaction rate
-  double k_0 = 4.0e-10;
+  double k_0 = 4.0e-4;
   double k_inf = 1;
   double k1 = k_0 / (1.0 + k_0 * air_density / k_inf) *
               std::pow(0.6, 1.0 / (1.0 + (1.0 / 1.0) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
 
   // B->C reaction rate
-  k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
+  k_0 = 1.2e3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 167.0);
   k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
   double k2 = k_0 / (1.0 + k_0 * air_density / k_inf) *
               std::pow(0.9, 1.0 / (1.0 + (1.0 / 0.8) * std::pow(std::log10(k_0 * air_density / k_inf), 2)));
@@ -860,11 +857,13 @@ void test_analytical_stiff_ternary_chemical_activation(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
     EXPECT_NEAR(model_concentrations[i][_a1] + model_concentrations[i][_a2], analytical_concentrations[i][0], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance);
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 1 << ")";
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
+        << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
 
@@ -958,8 +957,8 @@ void test_analytical_tunneling(
   }
 
   std::vector<std::string> header = { "time", "A", "B", "C" };
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
+  writeCSV("tunneling_analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV("tunneling_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -967,13 +966,13 @@ void test_analytical_tunneling(
   size_t _b = map.at("B");
   size_t _c = map.at("C");
 
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
+  for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_a], analytical_concentrations[i][0], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(model_concentrations[i][_b], analytical_concentrations[i][1], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(model_concentrations[i][_c], analytical_concentrations[i][2], tolerance)
+    EXPECT_NEAR(relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]), 0, tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
   }
 }
