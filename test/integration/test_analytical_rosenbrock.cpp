@@ -184,7 +184,6 @@ TEST(AnalyticalExamples, E5)
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
   test_analytical_e5<builderType, stateType>(solver, 1e-3);
-
 }
 
 TEST(AnalyticalExamples, Oregonator)

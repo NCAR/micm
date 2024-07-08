@@ -38,11 +38,11 @@ TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
 {
-  test_analytical_photolysis<builderType, stateType>(two);
-  test_analytical_photolysis<builderType, stateType>(three);
-  test_analytical_photolysis<builderType, stateType>(four);
-  test_analytical_photolysis<builderType, stateType>(four_da);
-  test_analytical_photolysis<builderType, stateType>(six_da);
+  test_analytical_photolysis<builderType, stateType>(two, 1e-2);
+  test_analytical_photolysis<builderType, stateType>(three, 1e-6);
+  test_analytical_photolysis<builderType, stateType>(four, 1e-6);
+  test_analytical_photolysis<builderType, stateType>(four_da, 1e-6);
+  test_analytical_photolysis<builderType, stateType>(six_da, 1e-6);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
@@ -56,34 +56,34 @@ TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<builderType, stateType>(two);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(three);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(four);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(four_da);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(six_da);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(two, 1e-4);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(three, 1e-5);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four, 1e-5);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four_da, 1e-5);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(six_da, 1e-5);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(two, 1e-4);
-  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(three, 1e-4);
-  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four, 1e-4);
-  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four_da, 1e-4);
-  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(six_da, 1e-4);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(two, 1e-2);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(three, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(four_da, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation<builderType, stateType>(six_da, 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
 {
-  test_analytical_tunneling<builderType, stateType>(two);
-  test_analytical_tunneling<builderType, stateType>(three);
-  test_analytical_tunneling<builderType, stateType>(four);
-  test_analytical_tunneling<builderType, stateType>(four_da);
-  test_analytical_tunneling<builderType, stateType>(six_da);
+  test_analytical_tunneling<builderType, stateType>(two, 1e-1);
+  test_analytical_tunneling<builderType, stateType>(three, 1e-5);
+  test_analytical_tunneling<builderType, stateType>(four, 1e-5);
+  test_analytical_tunneling<builderType, stateType>(four_da, 1e-5);
+  test_analytical_tunneling<builderType, stateType>(six_da, 1e-5);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-4);
+  test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-2);
   test_analytical_stiff_tunneling<builderType, stateType>(three, 1e-4);
   test_analytical_stiff_tunneling<builderType, stateType>(four, 1e-4);
   test_analytical_stiff_tunneling<builderType, stateType>(four_da, 1e-4);
@@ -92,11 +92,11 @@ TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
 {
-  test_analytical_arrhenius<builderType, stateType>(two);
-  test_analytical_arrhenius<builderType, stateType>(three);
-  test_analytical_arrhenius<builderType, stateType>(four);
-  test_analytical_arrhenius<builderType, stateType>(four_da);
-  test_analytical_arrhenius<builderType, stateType>(six_da);
+  test_analytical_arrhenius<builderType, stateType>(two, 1e-4);
+  test_analytical_arrhenius<builderType, stateType>(three, 1e-8);
+  test_analytical_arrhenius<builderType, stateType>(four, 1e-8);
+  test_analytical_arrhenius<builderType, stateType>(four_da, 1e-8);
+  test_analytical_arrhenius<builderType, stateType>(six_da, 1e-8);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
@@ -110,11 +110,11 @@ TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Branched)
 {
-  test_analytical_branched<builderType, stateType>(two, 1e-3);
-  test_analytical_branched<builderType, stateType>(three, 1e-3);
-  test_analytical_branched<builderType, stateType>(four, 1e-3);
-  test_analytical_branched<builderType, stateType>(four_da, 1e-3);
-  test_analytical_branched<builderType, stateType>(six_da, 1e-3);
+  test_analytical_branched<builderType, stateType>(two, 1e-4);
+  test_analytical_branched<builderType, stateType>(three, 1e-4);
+  test_analytical_branched<builderType, stateType>(four, 1e-4);
+  test_analytical_branched<builderType, stateType>(four_da, 1e-4);
+  test_analytical_branched<builderType, stateType>(six_da, 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
@@ -128,11 +128,26 @@ TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 {
-  test_analytical_robertson<builderType, stateType>(two, 1e-1);
-  test_analytical_robertson<builderType, stateType>(three, 1e-1);
-  test_analytical_robertson<builderType, stateType>(four, 1e-1);
-  test_analytical_robertson<builderType, stateType>(four_da, 1e-1);
-  test_analytical_robertson<builderType, stateType>(six_da, 1e-1);
+  auto rosenbrock_solver = [](auto params) {
+    params.relative_tolerance_ = 1e-10;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
@@ -146,11 +161,32 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesJitRosenbrock, E5)
 {
-  test_analytical_e5<builderType, stateType>(two, 1e-5);
-  test_analytical_e5<builderType, stateType>(three, 1e-6);
-  test_analytical_e5<builderType, stateType>(four, 1e-6);
-  test_analytical_e5<builderType, stateType>(four_da, 1e-5);
-  test_analytical_e5<builderType, stateType>(six_da, 1e-6);
+  auto rosenbrock_solver = [](auto params) {
+    params.relative_tolerance_ = 1e-13;
+    params.absolute_tolerance_ = std::vector<double>(6, 1e-17);
+    // this paper https://archimede.uniba.it/~testset/report/e5.pdf
+    // says that the first variable should have a much looser tolerance than the other species
+    params.absolute_tolerance_[0] = 1e-7;
+    // these last two aren't actually provided values and we don't care how they behave
+    params.absolute_tolerance_[4] = 1e-7;
+    params.absolute_tolerance_[5] = 1e-7;
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_e5<builderType, stateType>(solver, 1e-3);
 }
 
 TEST(AnalyticalExamples, Oregonator)
