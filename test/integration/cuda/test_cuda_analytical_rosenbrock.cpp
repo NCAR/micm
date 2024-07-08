@@ -220,3 +220,27 @@ TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
   test_analytical_oregonator<builderType, stateType>(solver, 1e-3, copy_to_device, copy_to_host);
 }
+
+TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
+{
+  auto rosenbrock_solver = [](auto params) {
+    params.relative_tolerance_ = 1e-6;
+    params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
+    return builderType(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_hires<builderType, stateType>(solver, 5e-2);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_hires<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_hires<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_hires<builderType, stateType>(solver, 1e-3);
+
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_hires<builderType, stateType>(solver, 1e-3);
+}

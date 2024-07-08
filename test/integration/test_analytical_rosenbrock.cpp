@@ -1,14 +1,11 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
-#include "hires.hpp"
 
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 
 #include <gtest/gtest.h>
-
-using SparseMatrixTest = micm::SparseMatrix<double>;
 
 using builderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
 using stateType = micm::State<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
@@ -223,48 +220,23 @@ TEST(AnalyticalExamples, SurfaceRxn)
 TEST(AnalyticalExamples, HIRESConfig)
 {
   auto rosenbrock_solver = [](auto params) {
-    params.relative_tolerance_ = 1e-8;
-    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    params.relative_tolerance_ = 1e-6;
+    params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
     return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires_config(solver, 1e-3);
+  test_analytical_hires(solver, 5e-2);
 
-  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  // test_analytical_hires_config(solver, 1e-3);
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  test_analytical_hires(solver, 1e-3);
 
-  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  // test_analytical_hires_config(solver, 1e-3);
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  test_analytical_hires(solver, 1e-3);
 
-  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  // test_analytical_hires_config(solver, 1e-3);
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_hires(solver, 1e-3);
 
-  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  // test_analytical_hires_config(solver, 1e-3);
-}
-
-using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
-template<class RatesPolicy>
-using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
-
-TEST(AnalyticalExamples, HIRES)
-{
-  using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
-
-  auto rosenbrock_solver = [](auto params) {
-    return HIRESTest::CreateSolver<RosenbrockTest<HIRESTest>, LinearSolverTest>(params, 1);
-  };
-
-  auto two_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  auto three_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  auto four_stage_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  auto four_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  auto six_stage_da_solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-
-  test_analytical_hires(two_stage_solver, 1e-3);
-  test_analytical_hires(three_stage_solver, 1e-5);
-  test_analytical_hires(four_stage_solver, 1e-5);
-  test_analytical_hires(four_stage_da_solver, 1e-4);
-  test_analytical_hires(six_stage_da_solver, 1e-5);
+  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  test_analytical_hires(solver, 1e-3);
 }

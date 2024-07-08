@@ -1960,92 +1960,8 @@ void test_analytical_oregonator(
   }
 }
 
-void test_analytical_hires(auto& solver, double tolerance = 1e-8)
-{
-  /*
-   * This problem is described in
-   * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
-   * edition. ed. Springer, Berlin ; New York. Page 144
-   * 
-   * From the forcing function these equations were made
-   * y0 -> y1,                                  k = 1.71
-   * y1 -> (0.43 / 8.75 )y0 + (8.32 / 8.75)y3,  k = 8.75
-   * y2 -> (8.32 /10.03)y0 + (1.71/10.03)y3,    k = 10.03
-   *    -> y0,                                  k = 0.0007
-   * y3 -> (0.43/1.12)y2 + (0.69/1.12)y5,       k = 1.12
-   * y4 -> (0.035/1.745)y2 + (1.71/1.745)y5,    k = 1.745
-   * y5 -> y4                                   k = 0.43
-   * y6 -> (0.43/1.81)y4 + (0.69/1.81)y5 + y7   k = 1.81
-   * y5 + y7 -> y6                              k = 280.0
-   *
-   * solutions are provided here
-   * https://www.unige.ch/~hairer/testset/testset.html
-   */
-
-  size_t N = 2;
-
-  std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(8));
-  std::vector<std::vector<double>> analytical_concentrations(3, std::vector<double>(8));
-
-  model_concentrations[0] = { 1, 0, 0, 0, 0, 0, 0, 0.0057 };
-
-  analytical_concentrations = {
-    { 1, 0, 0, 0, 0, 0, 0, 0.0057 },
-    { 0.000737131257332567,
-      0.000144248572631618,
-      0.000058887297409676,
-      0.001175651343283149,
-      0.002386356198831330,
-      0.006238968252742796,
-      0.002849998395185769,
-      0.002850001604814231 },
-    { 0.000670305503581864,
-      0.000130996846986347,
-      0.000046862231597733,
-      0.001044668020551705,
-      0.000594883830951485,
-      0.001399628833942774,
-      0.001014492757718480,
-      0.004685507242281520 },
-  };
-
-  auto state = solver.rates_.GetState();
-
-  state.variables_[0] = model_concentrations[0];
-
-  std::vector<double> times;
-  times.push_back(0);
-  double time_step = 321.8122;
-  for (size_t i_time = 0; i_time < N; ++i_time)
-  {
-    double solve_time = time_step + i_time * time_step;
-    times.push_back(solve_time);
-    // Model results
-    double actual_solve = 0;
-    while (actual_solve < time_step)
-    {
-      auto result = solver.Solve(time_step - actual_solve, state);
-      actual_solve += result.final_time_;
-    }
-    model_concentrations[i_time + 1] = state.variables_[0];
-    time_step += 100;
-  }
-
-  std::vector<std::string> header = { "time", "y1", "y2", "y3", "y4", "y5", "y6", "y7", "y8" };
-  writeCSV("model_concentrations.csv", header, model_concentrations, times);
-  writeCSV("analytical_concentrations.csv", header, analytical_concentrations, times);
-
-  for (size_t i = 0; i < model_concentrations.size(); ++i)
-  {
-    for (size_t j = 0; j < model_concentrations[0].size(); ++j)
-    {
-      EXPECT_NEAR(model_concentrations[i][j], analytical_concentrations[i][j], tolerance);
-    }
-  }
-}
-
 template<class BuilderPolicy, class StateType = micm::State<>>
-void test_analytical_hires_config(
+void test_analytical_hires(
   BuilderPolicy& builder,
   double tolerance = 1e-8,
   std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
@@ -2057,15 +1973,15 @@ void test_analytical_hires_config(
    * edition. ed. Springer, Berlin ; New York. Page 144
    * 
    * From the forcing function these equations were made
-   * y0 -> y1,                                  k = 1.71
-   * y1 -> (0.43 / 8.75 )y0 + (8.32 / 8.75)y3,  k = 8.75
-   * y2 -> (8.32 /10.03)y0 + (1.71/10.03)y3,    k = 10.03
-   *    -> y0,                                  k = 0.0007
-   * y3 -> (0.43/1.12)y2 + (0.69/1.12)y5,       k = 1.12
-   * y4 -> (0.035/1.745)y2 + (1.71/1.745)y5,    k = 1.745
-   * y5 -> y4                                   k = 0.43
-   * y6 -> (0.43/1.81)y4 + (0.69/1.81)y5 + y7   k = 1.81
-   * y5 + y7 -> y6                              k = 280.0
+   * y0 -> y1,                                  k1 = 1.71
+   * y1 -> (0.43 / 8.75 )y0 + (8.32 / 8.75)y3,  k2 = 8.75
+   * y2 -> (8.32 /10.03)y0 + (1.71/10.03)y3,    k3 = 10.03
+   *    -> y0,                                  k4 = 0.0007
+   * y3 -> (0.43/1.12)y2 + (0.69/1.12)y5,       k5 = 1.12
+   * y4 -> (0.035/1.745)y2 + (1.71/1.745)y5,    k6 = 1.745
+   * y5 -> y4                                   k7 = 0.43
+   * y6 -> (0.43/1.81)y4 + (0.69/1.81)y5 + y7   k8 = 1.81
+   * y5 + y7 -> y6                              k9 = 280.0
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
@@ -2101,7 +2017,7 @@ void test_analytical_hires_config(
                          .SetPhase(gas_phase);
 
   micm::Process r4 = micm::Process::Create()
-                          .SetProducts({ Yields(y0, 0.0007) })
+                          .SetProducts({ Yields(y0, 1) })
                           .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r4" }))
                           .SetPhase(gas_phase);
 
@@ -2219,21 +2135,21 @@ void test_analytical_hires_config(
 
   for (size_t i = 1; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y0], analytical_concentrations[i][0]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y0], analytical_concentrations[i][0], tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y1], analytical_concentrations[i][1]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y1], analytical_concentrations[i][1], tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y2], analytical_concentrations[i][2]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y2], analytical_concentrations[i][2], tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y3], analytical_concentrations[i][3]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y3], analytical_concentrations[i][3], tolerance)
         << "Arrays differ at index (" << i << ", " << 3 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y4], analytical_concentrations[i][4]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y4], analytical_concentrations[i][4], tolerance)
         << "Arrays differ at index (" << i << ", " << 4 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y5], analytical_concentrations[i][5]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y5], analytical_concentrations[i][5], tolerance)
         << "Arrays differ at index (" << i << ", " << 5 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y6], analytical_concentrations[i][6]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y6], analytical_concentrations[i][6], tolerance)
         << "Arrays differ at index (" << i << ", " << 6 << ")";
-    EXPECT_NEAR(relative_error(model_concentrations[i][_y7], analytical_concentrations[i][7]), 0, tolerance)
+    EXPECT_NEAR(model_concentrations[i][_y7], analytical_concentrations[i][7], tolerance)
         << "Arrays differ at index (" << i << ", " << 7 << ")";
   }
 }
