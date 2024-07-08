@@ -220,6 +220,30 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(rosenbrock_6stage_da, 1e-7);
 }
 
+TEST(AnalyticalExamples, HIRESConfig)
+{
+  auto rosenbrock_solver = [](auto params) {
+    params.relative_tolerance_ = 1e-8;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
+  };
+
+  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
+  test_analytical_hires_config(solver, 1e-3);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+  // test_analytical_hires_config(solver, 1e-3);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
+  // test_analytical_hires_config(solver, 1e-3);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
+  // test_analytical_hires_config(solver, 1e-3);
+
+  // solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
+  // test_analytical_hires_config(solver, 1e-3);
+}
+
 using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
 template<class RatesPolicy>
 using RosenbrockTest = micm::RosenbrockSolver<RatesPolicy, LinearSolverTest>;
