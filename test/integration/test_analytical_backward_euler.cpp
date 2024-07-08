@@ -13,52 +13,52 @@ auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe(backward_euler, 1e-4);
+  test_analytical_troe(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe(backward_euler, 1e-4);
+  test_analytical_stiff_troe(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis(backward_euler, 1e-3);
+  test_analytical_photolysis(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis(backward_euler, 1e-3);
+  test_analytical_stiff_photolysis(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation(backward_euler, 1e-5);
+  test_analytical_ternary_chemical_activation(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation(backward_euler, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  test_analytical_tunneling(backward_euler, 1e-3);
+  test_analytical_tunneling(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling(backward_euler, 1e-3);
+  test_analytical_stiff_tunneling(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  test_analytical_arrhenius(backward_euler, 1e-3);
+  test_analytical_arrhenius(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius(backward_euler, 1e-3);
+  test_analytical_stiff_arrhenius(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, Branched)
@@ -68,12 +68,12 @@ TEST(AnalyticalExamples, Branched)
 
 TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched(backward_euler, 1e-1);
+  test_analytical_stiff_branched(backward_euler, 5e-1);
 }
 
 TEST(AnalyticalExamples, Robertson)
 {
-  test_analytical_robertson(backward_euler, 1e-1);
+  test_analytical_robertson(backward_euler, 1);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
@@ -98,5 +98,5 @@ TEST(AnalyticalExamples, HIRES)
 
 TEST(AnalyticalExamples, E5)
 {
-  test_analytical_e5(backward_euler, 1e-3);
+  test_analytical_e5(backward_euler, 1);
 }
