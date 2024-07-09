@@ -56,9 +56,9 @@ namespace micm
 
     SolverResult result;
 
-    double small = parameters_.small;
+    double small = parameters_.small_;
     std::size_t max_iter = parameters_.max_number_of_steps_;
-    const auto time_step_reductions = parameters_.time_step_reductions;
+    const auto time_step_reductions = parameters_.time_step_reductions_;
 
     double H = time_step;
     double t = 0.0;
@@ -125,19 +125,7 @@ namespace micm
           continue;
 
         // check for convergence
-        auto forcing_iter = forcing.begin();
-        auto yn1_iter = Yn1.begin();
-
-        // convergence happens when the absolute value of the change to the solution
-        // is less than a tolerance times the absolute value of the solution
-        auto abs_tol_iter = parameters_.absolute_tolerance_.begin();
-        do
-        {
-          // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= *abs_tol_iter) ||
-                      (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
-          ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
-        } while (converged && forcing_iter != forcing.end());
+        converged = IsConverged(parameters_, forcing, Yn1);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -180,4 +168,73 @@ namespace micm
     return result;
   }
 
+  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class DenseMatrixPolicy>
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
+    requires(!VectorizableDense<DenseMatrixPolicy>)
+  {
+    double small = parameters.small_;
+    double rel_tol = parameters.relative_tolerance_;
+    auto& abs_tol = parameters.absolute_tolerance_;
+    auto residual_iter = residual.AsVector().begin();
+    auto state_iter = state.AsVector().begin();
+    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
+    const std::size_t n_vars = abs_tol.size();
+    for (std::size_t i = 0; i < n_elem; ++i)
+    {
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+      {
+        return false;
+      }
+      ++residual_iter, ++state_iter;
+    }
+    return true;
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class DenseMatrixPolicy>
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
+    requires(VectorizableDense<DenseMatrixPolicy>)
+  {
+    double small = parameters.small_;
+    double rel_tol = parameters.relative_tolerance_;
+    auto& abs_tol = parameters.absolute_tolerance_;
+    auto residual_iter = residual.AsVector().begin();
+    auto state_iter = state.AsVector().begin();
+    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
+    const std::size_t L = residual.GroupVectorSize();
+    const std::size_t n_vars = abs_tol.size();
+    const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
+
+    // evaluate the rows that fit exactly into the vectorizable dimension (L)
+    for (std::size_t i = 0; i < whole_blocks; ++i)
+    {
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+      {
+        return false;
+      }
+      ++residual_iter, ++state_iter;
+    }
+
+    // evaluate the remaining rows
+    const std::size_t remaining_rows = residual.NumRows() % L;
+    if (remaining_rows > 0)
+    {
+      for (std::size_t y = 0; y < residual.NumColumns(); ++y)
+      {
+        const std::size_t offset = y * L;
+        for (std::size_t i = offset; i < offset + remaining_rows; ++i)
+        {
+          if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
+              std::abs(residual_iter[i]) > rel_tol * std::abs(state_iter[i]))
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 }  // namespace micm

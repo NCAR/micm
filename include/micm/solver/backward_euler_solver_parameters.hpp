@@ -21,11 +21,11 @@ namespace micm
 
     std::vector<double> absolute_tolerance_;
     double relative_tolerance_{ 1.0e-8 };
-    double small{ 1.0e-40 };
+    double small_{ 1.0e-40 };
     size_t max_number_of_steps_{ 11 };
     // The time step reductions are used to determine the time step after a failed solve
     // This default set of time step reductions is used by CAM-Chem
-    std::array<double, 5> time_step_reductions{ 0.5, 0.5, 0.5, 0.5, 0.1 };
+    std::array<double, 5> time_step_reductions_{ 0.5, 0.5, 0.5, 0.5, 0.1 };
   };
 
 }  // namespace micm
