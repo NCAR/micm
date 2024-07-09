@@ -90,24 +90,14 @@ namespace micm
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
         result.stats_.function_calls_++;
 
-        // calculate jacobian
+        // calculate the negative jacobian
         state.jacobian_.Fill(0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
-        // subtract the inverse of the time step from the diagonal
-        // TODO: handle vectorized jacobian matrix
-        for (auto& jac : state.jacobian_.AsVector())
-        {
-          jac *= -1;
-        }
-        for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
-        {
-          auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-          for (const auto& i_elem : jacobian_diagonal_elements_)
-            jacobian_vector[i_elem] -= 1 / H;
-        }
-
+        // add the inverse of the time step from the diagonal
+        state.jacobian_.AddToDiagonal(1 / H);
+        
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
@@ -115,17 +105,11 @@ namespace micm
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
         result.stats_.decompositions_++;
 
-        auto yn1_iter = Yn1.begin();
-        auto yn_iter = Yn.begin();
-        auto forcing_iter = forcing.begin();
         // forcing_blk in camchem
-        // residual = (Yn1 - Yn) / H - forcing;
+        // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        for (; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++forcing_iter)
-        {
-          *forcing_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
-        }
-
+        forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
+        
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
         linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
@@ -134,20 +118,15 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        forcing_iter = forcing.begin();
-        yn1_iter = Yn1.begin();
-        for (; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter)
-        {
-          *yn1_iter = std::max(0.0, *yn1_iter + *forcing_iter);
-        }
+        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max( 0.0, yn1 + f ); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
           continue;
 
         // check for convergence
-        forcing_iter = forcing.begin();
-        yn1_iter = Yn1.begin();
+        auto forcing_iter = forcing.begin();
+        auto yn1_iter = Yn1.begin();
 
         // convergence happens when the absolute value of the change to the solution
         // is less than a tolerance times the absolute value of the solution
@@ -200,4 +179,5 @@ namespace micm
     result.final_time_ = t;
     return result;
   }
+
 }  // namespace micm
