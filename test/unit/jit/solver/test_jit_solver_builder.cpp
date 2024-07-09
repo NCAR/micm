@@ -50,20 +50,3 @@ TEST(SolverBuilder, CanBuildJitRosenbrock)
                             .SetNumberOfGridCells(L)
                             .Build();
 }
-
-TEST(SolverBuilder, CanBuildCudaSolvers)
-{
-  // auto cuda_backward_euler = micm::CudaSolverBuilder<L>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::BackwardEulerSolverParameters{})
-  //                           .Build();
-
-  // auto cuda_rosenbrock = micm::CudaSolverBuilder<L>()
-  //                           .SetSystem(the_system)
-  //                           .SetReactions(reactions)
-  //                           .SetNumberOfGridCells(1)
-  //                           .SolverParameters(micm::ThreeStageRosenbockSolverParameters{})
-  //                           .Build();
-}
