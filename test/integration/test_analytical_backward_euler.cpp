@@ -1,13 +1,10 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
-#include "hires.hpp"
 
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 
 #include <gtest/gtest.h>
-
-using SparseMatrixTest = micm::SparseMatrix<double>;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 
@@ -81,19 +78,9 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(backward_euler, 0.05);
 }
 
-using LinearSolverTest = micm::LinearSolver<SparseMatrixTest, micm::LuDecomposition>;
-
-template<class RatesPolicy>
-using BackwardEulerTest = micm::BackwardEuler<RatesPolicy, LinearSolverTest>;
-
 TEST(AnalyticalExamples, HIRES)
 {
-  using HIRESTest = HIRES<micm::Matrix<double>, SparseMatrixTest>;
-
-  auto backward_euler_solver = HIRESTest::template CreateSolver<BackwardEulerTest<HIRESTest>, LinearSolverTest>(
-      micm::BackwardEulerSolverParameters(), 1);
-
-  test_analytical_hires(backward_euler_solver, 1e-1);
+  test_analytical_hires(backward_euler, 1e-1);
 }
 
 TEST(AnalyticalExamples, E5)

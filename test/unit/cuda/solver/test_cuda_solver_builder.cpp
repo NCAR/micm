@@ -1,10 +1,8 @@
+#include <micm/cuda/solver/cuda_solver_builder.hpp>
+#include <micm/cuda/solver/cuda_solver_parameters.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-
-#include <micm/cuda/solver/cuda_solver_builder.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
-
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -40,14 +38,13 @@ namespace
   std::vector<micm::Process> reactions = { r1, r2 };
 }  // namespace
 
-
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
   auto cuda_rosenbrock = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
-                            micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                            .SetSystem(the_system)
-                            .SetReactions(reactions)
-                            .SetNumberOfGridCells(L)
-                            .Build();
+                             micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                             .SetSystem(the_system)
+                             .SetReactions(reactions)
+                             .SetNumberOfGridCells(L)
+                             .Build();
 }
