@@ -13,9 +13,6 @@ namespace micm
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    // reset the upper, lower matrix. (this may not be needed anymore. see https://github.com/NCAR/micm/issues/587)
-    state.lower_matrix_.Fill(0.0);
-    state.upper_matrix_.Fill(0.0);
     MatrixPolicy Y = state.variables_;
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
