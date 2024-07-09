@@ -43,19 +43,16 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state)
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
     // This is a root finding problem because you need to know y_{n+1} to compute f(t_{n+1}, y_{n+1})
     // you need to solve the equation y_{n+1} - y_n - H f(t_{n+1}, y_{n+1}) = 0
-    // We will also use the same logic used by cam-chem to determine the time step
-    // That scheme is this:
-    // Start with H = time_step
-    // if that fails, try H = H/2 several times
-    // if that fails, try H = H/10 once
-    // if that fails, accept the current H but do not update the Yn vector
-    // the number of time step reduction is controlled by the time_step_reductions parameter
+    // A series of time step reductions are used after failed solves to try to find a solution
+    // These reductions are controlled by the time_step_reductions parameter in the solver parameters
+    // if the last attempt to reduce the timestep fails,
+    // accept the current H but do not update the Yn vector
 
     SolverResult result;
 
@@ -89,12 +86,12 @@ namespace micm
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
-        std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
+        forcing.Fill(0.0);
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
         result.stats_.function_calls_++;
 
         // calculate jacobian
-        std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
+        state.jacobian_.Fill(0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 

@@ -500,3 +500,37 @@ MatrixPolicy<double, OrderingPolicy> testSetScalar()
 
   return matrix;
 }
+
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
+{
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(3, 2)
+                     .WithElement(0, 1)
+                     .WithElement(2, 3)
+                     .WithElement(1, 1)
+                     .WithElement(2, 1)
+                     .InitialValue(24)
+                     .SetNumberOfBlocks(3);
+  // 0 X 0 0
+  // 0 X 0 0
+  // 0 X 0 X
+  // 0 0 X 0
+  auto row_ids = builder.RowIdsVector();
+  auto row_starts = builder.RowStartVector();
+
+  MatrixPolicy<int, OrderingPolicy> matrix{ builder };
+
+  matrix[0][1][1] = 1;
+  matrix[1][1][1] = 3;
+  matrix[2][1][1] = 5;
+
+  matrix.AddToDiagonal(7);
+
+  EXPECT_EQ(matrix[0][1][1], 8);
+  EXPECT_EQ(matrix[1][1][1], 10);
+  EXPECT_EQ(matrix[2][1][1], 12);
+
+  return matrix;
+}

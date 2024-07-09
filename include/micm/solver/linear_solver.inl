@@ -111,7 +111,7 @@ namespace micm
   inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
       SparseMatrixPolicy& lower_matrix,
-      SparseMatrixPolicy& upper_matrix)
+      SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -123,7 +123,7 @@ namespace micm
       const SparseMatrixPolicy& matrix,
       SparseMatrixPolicy& lower_matrix,
       SparseMatrixPolicy& upper_matrix,
-      bool& is_singular)
+      bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();
 

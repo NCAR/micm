@@ -49,6 +49,24 @@ namespace micm
       return std::size_t{ (elem - row_ids.begin()) * L + block % L + (block / L) * L * row_ids.size() };
     };
 
+    static void AddToDiagonal(
+        const std::vector<std::size_t>& diagonal_ids,
+        const std::size_t number_of_blocks,
+        const std::size_t block_size,
+        auto& data,
+        auto value)
+    {
+      for (std::size_t i_group = 0; i_group < number_of_blocks; i_group += L)
+      {
+        for (const auto& i : diagonal_ids)
+        {
+          auto elem = std::next(data.begin(), i_group * block_size + i);
+          for (std::size_t i_block = 0; i_block < L; ++i_block)
+            elem[i_block] += value;
+        }
+      }
+    };
+
    public:
     std::size_t GroupVectorSize() const
     {
