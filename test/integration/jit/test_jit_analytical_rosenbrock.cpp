@@ -1,9 +1,9 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
+#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/jit/solver/jit_solver_builder.hpp>
 #include <micm/jit/solver/jit_solver_parameters.hpp>
-#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 #include <gtest/gtest.h>
@@ -127,7 +127,8 @@ TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-10;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
     return builderType(params);
@@ -135,7 +136,7 @@ TEST(AnalyticalExamplesJitRosenbrock, Robertson)
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
   test_analytical_robertson<builderType, stateType>(solver, 2e-1);
-  
+
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_robertson<builderType, stateType>(solver, 2e-1);
 
@@ -160,7 +161,8 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 
 TEST(AnalyticalExamplesJitRosenbrock, E5)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-13;
     params.absolute_tolerance_ = std::vector<double>(6, 1e-17);
     // this paper https://archimede.uniba.it/~testset/report/e5.pdf
@@ -190,7 +192,8 @@ TEST(AnalyticalExamplesJitRosenbrock, E5)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     // anything below 1e-6 is too strict for the Oregonator
     params.relative_tolerance_ = 1e-6;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
@@ -215,7 +218,8 @@ TEST(AnalyticalExamples, Oregonator)
 
 TEST(AnalyticalExamples, HIRES)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-6;
     params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
     return builderType(params);

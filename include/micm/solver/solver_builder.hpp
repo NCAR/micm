@@ -40,6 +40,7 @@ namespace micm
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
+
    protected:
     SolverParametersPolicy options_;
     System system_;
