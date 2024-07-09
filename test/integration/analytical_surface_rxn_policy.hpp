@@ -9,10 +9,10 @@
 
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_surface_rxn(
-  BuilderPolicy& builder,
-  double tolerance = 1e-8,
-  std::function<void(StateType&)> prepare_for_solve = [](StateType& state){},
-  std::function<void(StateType&)> postpare_for_solve = [](StateType& state){})
+    BuilderPolicy& builder,
+    double tolerance = 1e-8,
+    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
+    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]

@@ -1,10 +1,8 @@
+#include <micm/jit/solver/jit_solver_builder.hpp>
+#include <micm/jit/solver/jit_solver_parameters.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-
-#include <micm/jit/solver/jit_solver_builder.hpp>
-#include <micm/jit/solver/jit_solver_parameters.hpp>
-
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>

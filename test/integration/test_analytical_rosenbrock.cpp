@@ -131,7 +131,8 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
 
 TEST(AnalyticalExamples, Robertson)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-10;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
     return builderType(params);
@@ -139,7 +140,7 @@ TEST(AnalyticalExamples, Robertson)
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
   test_analytical_robertson<builderType, stateType>(solver, 2e-1);
-  
+
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_robertson<builderType, stateType>(solver, 2e-1);
 
@@ -155,7 +156,8 @@ TEST(AnalyticalExamples, Robertson)
 
 TEST(AnalyticalExamples, E5)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-13;
     params.absolute_tolerance_ = std::vector<double>(6, 1e-17);
     // this paper https://archimede.uniba.it/~testset/report/e5.pdf
@@ -185,7 +187,8 @@ TEST(AnalyticalExamples, E5)
 
 TEST(AnalyticalExamples, Oregonator)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     // anything below 1e-6 is too strict for the Oregonator
     params.relative_tolerance_ = 1e-6;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
@@ -219,7 +222,8 @@ TEST(AnalyticalExamples, SurfaceRxn)
 
 TEST(AnalyticalExamples, HIRESConfig)
 {
-  auto rosenbrock_solver = [](auto params) {
+  auto rosenbrock_solver = [](auto params)
+  {
     params.relative_tolerance_ = 1e-6;
     params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
     return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
