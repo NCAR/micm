@@ -326,6 +326,19 @@ namespace micm
       if (other.AsVector().size() != this->data_.size())
       {
         std::cout << "left: " << other.AsVector().size() << ", " << "right: " <<  this->data_.size() << std::endl;
+
+        for (const auto& i : other.AsVector())
+        {
+          std::cout << "  [other.AsVector()]: " << i << std::endl;
+
+        }
+
+        for (const auto& i : this->data_)
+        {
+          std::cout << "  [this->data_.AsVector()]: " << i << std::endl;
+        }
+
+
         throw std::runtime_error("Both vector matrices must have the same size.");
       }
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
