@@ -1,6 +1,5 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
-#include "../hires.hpp"
 
 #include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/jit/solver/jit_solver_builder.hpp>

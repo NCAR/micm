@@ -3,7 +3,6 @@
 
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
-#include "../hires.hpp"
 
 #include <micm/cuda/solver/cuda_solver_builder.hpp>
 #include <micm/cuda/solver/cuda_solver_parameters.hpp>
