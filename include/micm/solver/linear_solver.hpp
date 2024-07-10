@@ -74,6 +74,8 @@ namespace micm
         typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
 
+    virtual ~LinearSolver() = default;
+    
     /// @brief Decompose the matrix into upper and lower triangular matrices
     void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
 

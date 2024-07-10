@@ -76,6 +76,8 @@ namespace micm
     /// @param variable_map A mapping of species names to concentration index
     ProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
+    virtual ~ProcessSet() = default;
+
     /// @brief Return the full set of non-zero Jacobian elements for the set of processes
     /// @return Jacobian elements as a set of index pairs
     std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const;

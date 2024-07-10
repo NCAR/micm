@@ -189,6 +189,7 @@ namespace micm
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct, d_is_singular);
       // Copy the boolean result from device back to host
       cudaMemcpy(&is_singular, d_is_singular, sizeof(bool), cudaMemcpyDeviceToHost);
+      cudaFree(d_is_singular);
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

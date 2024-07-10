@@ -24,6 +24,11 @@ namespace micm
     /// @param variable_map A mapping of species names to concentration index
     CudaProcessSet(const std::vector<Process>& processes, const std::map<std::string, std::size_t>& variable_map);
 
+    ~CudaProcessSet()
+    {
+      micm::cuda::FreeConstData(this->devstruct_);
+    }
+
     /// @brief Set the indexes for the elements of Jacobian matrix before we could copy it to the device;
     /// @brief this will override the "SetJacobianFlatIds" function from the "ProcessSet" class
     /// @param OrderingPolicy
@@ -73,7 +78,6 @@ namespace micm
     hoststruct.number_of_products_ = this->number_of_products_.data();
     hoststruct.product_ids_ = this->product_ids_.data();
     hoststruct.yields_ = this->yields_.data();
-    hoststruct.jacobian_flat_ids_ = nullptr;
 
     hoststruct.number_of_reactants_size_ = this->number_of_reactants_.size();
     hoststruct.reactant_ids_size_ = this->reactant_ids_.size();
