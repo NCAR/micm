@@ -171,9 +171,6 @@ namespace micm
       devstruct.number_of_products_size_ = hoststruct.number_of_products_size_;
       devstruct.product_ids_size_ = hoststruct.product_ids_size_;
       devstruct.yields_size_ = hoststruct.yields_size_;
-
-      // Initialize the jacobian_flat_ids_ to nullptr to avoid unnecessary cudaFree
-      devstruct.jacobian_flat_ids_ = nullptr;
       
       return devstruct;
     }
