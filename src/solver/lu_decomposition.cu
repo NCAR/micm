@@ -161,17 +161,17 @@ namespace micm
     ///   members of class "CudaLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
-      CHECK_CUDA_ERROR(cudaFree(devstruct.is_singular), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.niLU_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aik_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.aik_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.uik_nkj_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lij_ujk_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aki_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.aki_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lki_nkj_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lkj_uji_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.uii_), "cudaFree");
+      if (devstruct.is_singular != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.is_singular), "cudaFree");
+      if (devstruct.niLU_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.niLU_), "cudaFree");
+      if (devstruct.do_aik_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.do_aik_), "cudaFree");
+      if (devstruct.aik_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.aik_), "cudaFree");
+      if (devstruct.uik_nkj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.uik_nkj_), "cudaFree");
+      if (devstruct.lij_ujk_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lij_ujk_), "cudaFree");
+      if (devstruct.do_aki_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.do_aki_), "cudaFree");
+      if (devstruct.aki_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.aki_), "cudaFree");
+      if (devstruct.lki_nkj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lki_nkj_), "cudaFree");
+      if (devstruct.lkj_uji_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lkj_uji_), "cudaFree");
+      if (devstruct.uii_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.uii_), "cudaFree");
     }
 
     void DecomposeKernelDriver(

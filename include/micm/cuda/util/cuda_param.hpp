@@ -14,12 +14,12 @@ const std::size_t BLOCK_SIZE = 32;
 /// This struct could be allocated on the host or device;
 struct ProcessSetParam
 {
-  std::size_t* number_of_reactants_;
-  std::size_t* reactant_ids_;
-  std::size_t* number_of_products_;
-  std::size_t* product_ids_;
-  double* yields_;
-  std::size_t* jacobian_flat_ids_;
+  std::size_t* number_of_reactants_ = nullptr;
+  std::size_t* reactant_ids_ = nullptr;
+  std::size_t* number_of_products_ = nullptr;
+  std::size_t* product_ids_ = nullptr;
+  double* yields_ = nullptr;
+  std::size_t* jacobian_flat_ids_ = nullptr;
   std::size_t number_of_reactants_size_;
   std::size_t reactant_ids_size_;
   std::size_t number_of_products_size_;
@@ -33,17 +33,17 @@ struct ProcessSetParam
 /// This struct could be allocated on the host or device;
 struct LuDecomposeParam
 {
-  bool* is_singular;
-  std::pair<std::size_t, std::size_t>* niLU_;
-  char* do_aik_;
-  std::size_t* aik_;
-  std::pair<std::size_t, std::size_t>* uik_nkj_;
-  std::pair<std::size_t, std::size_t>* lij_ujk_;
-  char* do_aki_;
-  std::size_t* aki_;
-  std::pair<std::size_t, std::size_t>* lki_nkj_;
-  std::pair<std::size_t, std::size_t>* lkj_uji_;
-  std::size_t* uii_;
+  bool* is_singular = nullptr;
+  std::pair<std::size_t, std::size_t>* niLU_ = nullptr;
+  char* do_aik_ = nullptr;
+  std::size_t* aik_ = nullptr;
+  std::pair<std::size_t, std::size_t>* uik_nkj_ = nullptr;
+  std::pair<std::size_t, std::size_t>* lij_ujk_ = nullptr;
+  char* do_aki_ = nullptr;
+  std::size_t* aki_ = nullptr;
+  std::pair<std::size_t, std::size_t>* lki_nkj_ = nullptr;
+  std::pair<std::size_t, std::size_t>* lkj_uji_ = nullptr;
+  std::size_t* uii_ = nullptr;
   std::size_t niLU_size_;
   std::size_t do_aik_size_;
   std::size_t aik_size_;
@@ -61,10 +61,10 @@ struct LuDecomposeParam
 /// This struct could be allocated on the host or device;
 struct LinearSolverParam
 {
-  std::pair<std::size_t, std::size_t>* nLij_Lii_;
-  std::pair<std::size_t, std::size_t>* Lij_yj_;
-  std::pair<std::size_t, std::size_t>* nUij_Uii_;
-  std::pair<std::size_t, std::size_t>* Uij_xj_;
+  std::pair<std::size_t, std::size_t>* nLij_Lii_ = nullptr;
+  std::pair<std::size_t, std::size_t>* Lij_yj_ = nullptr;
+  std::pair<std::size_t, std::size_t>* nUij_Uii_ = nullptr;
+  std::pair<std::size_t, std::size_t>* Uij_xj_ = nullptr;
   std::size_t nLij_Lii_size_;
   std::size_t Lij_yj_size_;
   std::size_t nUij_Uii_size_;
@@ -75,7 +75,7 @@ struct LinearSolverParam
 ///   data allocated on a device.
 struct CudaMatrixParam
 {
-  double* d_data_;
+  double* d_data_ = nullptr;
   std::size_t number_of_elements_;
   std::size_t number_of_grid_cells_;
 };
@@ -86,12 +86,12 @@ struct CudaMatrixParam
 struct CudaRosenbrockSolverParam
 {
   // for NormalizedError function
-  double* errors_input_;
-  double* errors_output_;
-  double* absolute_tolerance_;
+  double* errors_input_ = nullptr;
+  double* errors_output_ = nullptr;
+  double* absolute_tolerance_ = nullptr;
   std::size_t absolute_tolerance_size_;
   std::size_t errors_size_;
   // for AlphaMinusJacobian function
-  std::size_t* jacobian_diagonal_elements_;
+  std::size_t* jacobian_diagonal_elements_ = nullptr;
   std::size_t jacobian_diagonal_elements_size_;
 };

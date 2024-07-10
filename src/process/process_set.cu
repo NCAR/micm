@@ -202,11 +202,11 @@ namespace micm
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct)
     {
-      CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_reactants_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.reactant_ids_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_products_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.product_ids_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.yields_), "cudaFree");
+      if (devstruct.number_of_reactants_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_reactants_), "cudaFree");
+      if (devstruct.reactant_ids_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.reactant_ids_), "cudaFree");
+      if (devstruct.number_of_products_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.number_of_products_), "cudaFree");
+      if (devstruct.product_ids_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.product_ids_), "cudaFree");
+      if (devstruct.yields_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.yields_), "cudaFree");
       if (devstruct.jacobian_flat_ids_ != nullptr)
       {
         CHECK_CUDA_ERROR(cudaFree(devstruct.jacobian_flat_ids_), "cudaFree");

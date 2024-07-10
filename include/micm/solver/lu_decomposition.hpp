@@ -87,9 +87,10 @@ namespace micm
 
     LuDecomposition(const LuDecomposition&) = delete;
     LuDecomposition& operator=(const LuDecomposition&) = delete;
-    LuDecomposition(LuDecomposition&&) = default;
+ 
+    LuDecomposition(LuDecomposition&& other) = default;
     LuDecomposition& operator=(LuDecomposition&&) = default;
-
+    
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>

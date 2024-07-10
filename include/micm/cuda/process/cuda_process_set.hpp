@@ -19,6 +19,21 @@ namespace micm
     ProcessSetParam devstruct_;
 
     CudaProcessSet() = default;
+
+    CudaProcessSet(const CudaProcessSet&) = delete;
+    CudaProcessSet& operator=(const CudaProcessSet&) = delete;
+    CudaProcessSet(CudaProcessSet&& other)
+        : ProcessSet(std::move(other))
+    {
+      std::swap(this->devstruct_, other.devstruct_); 
+    };
+    CudaProcessSet& operator=(CudaProcessSet&& other)
+    {
+      ProcessSet::operator=(std::move(other));
+      std::swap(this->devstruct_, other.devstruct_); 
+      return *this;
+    };
+
     /// @brief Create a process set calculator for a given set of processes
     /// @param processes Processes to create calculator for
     /// @param variable_map A mapping of species names to concentration index
