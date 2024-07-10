@@ -181,8 +181,6 @@ namespace micm
         const LuDecomposeParam& devstruct,
         bool& is_singular)
     {
-      // Copy the boolean result from host to device
-      cudaMemcpy(devstruct.is_singular, &is_singular, sizeof(bool), cudaMemcpyHostToDevice);
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct);
