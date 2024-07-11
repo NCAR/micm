@@ -76,7 +76,7 @@ void test_analytical_surface_rxn(
   state.SetConcentration(foo, conc_foo);
 
   // Surface reaction rate calculation
-  double mean_free_speed = std::sqrt(8.0 * GAS_CONSTANT / (M_PI * MW_foo) * temperature);
+  double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
   double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
 
   double time_step = 0.1 / k1;  // s

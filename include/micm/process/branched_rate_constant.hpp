@@ -79,8 +79,8 @@ namespace micm
 
   inline BranchedRateConstant::BranchedRateConstant(const BranchedRateConstantParameters& parameters)
       : parameters_(parameters),
-        k0_(2.0e-22 * AVOGADRO_CONSTANT * 1.0e-6 * std::exp(parameters_.n_)),
-        z_(A(293.0, 2.45e19 / AVOGADRO_CONSTANT * 1.0e6) * (1.0 - parameters_.a0_) / parameters_.a0_)
+        k0_(2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(parameters_.n_)),
+        z_(A(293.0, 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6) * (1.0 - parameters_.a0_) / parameters_.a0_)
   {
   }
 

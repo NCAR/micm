@@ -514,7 +514,7 @@ namespace micm
                                    "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
         }
         // Calculate 'C' using 'Ea'
-        parameters.C_ = -1 * object["Ea"].get<double>() / BOLTZMANN_CONSTANT;
+        parameters.C_ = -1 * object["Ea"].get<double>() / constants::BOLTZMANN_CONSTANT;
       }
       arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);

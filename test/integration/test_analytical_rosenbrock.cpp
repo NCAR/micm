@@ -4,11 +4,19 @@
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/util/vector_matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
 
-using builderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
-using stateType = micm::State<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
+using BuilderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
+using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
+
+template<std::size_t L>
+using VectorRosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+template<std::size_t L>
+using VectorStateType = micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
@@ -21,6 +29,12 @@ auto rosenbrock_4stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParamet
 auto rosenbrock_6stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
+auto rosenbrock_vector_1 = VectorRosenbrock<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_2 = VectorRosenbrock<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_3 = VectorRosenbrock<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+
+
 TEST(AnalyticalExamples, Troe)
 {
   test_analytical_troe(rosenbrock_2stage, 1e-3);
@@ -28,6 +42,10 @@ TEST(AnalyticalExamples, Troe)
   test_analytical_troe(rosenbrock_4stage);
   test_analytical_troe(rosenbrock_4stage_da);
   test_analytical_troe(rosenbrock_6stage_da);
+  test_analytical_troe<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_troe<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_troe<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_troe<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
@@ -135,23 +153,23 @@ TEST(AnalyticalExamples, Robertson)
   {
     params.relative_tolerance_ = 1e-10;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
-    return builderType(params);
+    return BuilderType(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<builderType, stateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
 }
 
 TEST(AnalyticalExamples, E5)
@@ -166,23 +184,23 @@ TEST(AnalyticalExamples, E5)
     // these last two aren't actually provided values and we don't care how they behave
     params.absolute_tolerance_[4] = 1e-7;
     params.absolute_tolerance_[5] = 1e-7;
-    return builderType(params);
+    return BuilderType(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<builderType, stateType>(solver, 1e-3);
+  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
 }
 
 TEST(AnalyticalExamples, Oregonator)
