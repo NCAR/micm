@@ -134,53 +134,22 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-template<class BuilderPolicy, class StateType = micm::State<>>
-void test_analytical_troe(
+
+// Test the analytical solution for a simple A-k1-> B -k2-> C system
+template<class BuilderPolicy, class StateType>
+void test_simple_system(
+    const std::string& test_label,
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double relative_tolerance,
+    std::vector<double> absolute_tolerances,
+    std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
+    std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
-  /*
-   * A -> B, k1
-   * B -> C, k2
-   *
-   * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_troe.F90
-   */
-
-  auto a = micm::Species("A");
-  auto b = micm::Species("B");
-  auto c = micm::Species("C");
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ a })
-                         .SetProducts({ Yields(b, 1) })
-                         .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 4.0e-11 }))
-                         .SetPhase(gas_phase);
-
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ b })
-                         .SetProducts({ Yields(c, 1) })
-                         .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
-                                                                   .k0_B_ = 1.6,
-                                                                   .k0_C_ = 3,
-                                                                   .kinf_A_ = 136,
-                                                                   .kinf_B_ = 5,
-                                                                   .kinf_C_ = 24,
-                                                                   .Fc_ = 0.9,
-                                                                   .N_ = 0.8 }))
-                         .SetPhase(gas_phase);
-
-  auto processes = std::vector<micm::Process>{ r1, r2 };
   auto solver = builder
-         .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-         .SetReactions(processes)
          .SetNumberOfGridCells(NUM_CELLS)
          .Build();
-
-  auto be_state = solver.GetState();
 
   std::vector<double> temperatures = { 272.5, 254.7, 312.6 };
   std::vector<double> pressures = { 101253.3, 100672.5, 101319.8 };
@@ -192,18 +161,8 @@ void test_analytical_troe(
     double temperature = temperatures[i];
     double pressure = pressures[i];
     double air_density = calculate_air_density_mol_m3(pressure, temperature);
-
-    // A->B reaction rate
-    double k_0 = 4.0e-11;
-    double k_inf = 1;
-    k1[i] = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
-
-    // B->C reaction rate
-    k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
-    k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
-    k2[i] = k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
-              std::pow(0.9, 0.8 / (0.8 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
+    k1[i] = calculate_k1(temperature, pressure, air_density);
+    k2[i] = calculate_k2(temperature, pressure, air_density);
   }
 
   double time_step = 1.0;
@@ -260,8 +219,8 @@ void test_analytical_troe(
   }
 
   std::vector<std::string> header = { "time", "cell", "A", "B", "C" };
-  writeCSV2D("troe_analytical_concentrations.csv", header, analytical_concentrations, times);
-  writeCSV2D("troe_model_concentrations.csv", header, model_concentrations, times);
+  writeCSV2D(test_label + "_analytical_concentrations.csv", header, analytical_concentrations, times);
+  writeCSV2D(test_label + "_model_concentrations.csv", header, model_concentrations, times);
 
   auto map = state.variable_map_;
 
@@ -273,14 +232,81 @@ void test_analytical_troe(
   {
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
-      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_a], analytical_concentrations[i_time][i_cell][0], 1.0e-7), 0, tolerance)
-          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ")";
-      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_b], analytical_concentrations[i_time][i_cell][1], 1.0e-7), 0, tolerance)
-          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ")";
-      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_c], analytical_concentrations[i_time][i_cell][2], 1.0e-7), 0, tolerance)
-          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ")";
+      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_a], analytical_concentrations[i_time][i_cell][0], 1.0e-7), 0, relative_tolerance)
+          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
+      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_b], analytical_concentrations[i_time][i_cell][1], 1.0e-7), 0, relative_tolerance)
+          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
+      EXPECT_NEAR(combined_error(model_concentrations[i_time][i_cell][_c], analytical_concentrations[i_time][i_cell][2], 1.0e-7), 0, relative_tolerance)
+          << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
   }
+}
+
+template<class BuilderPolicy, class StateType = micm::State<>>
+void test_analytical_troe(
+    BuilderPolicy builder,
+    double tolerance = 1e-6,
+    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
+    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+{
+  /*
+   * A -> B, k1
+   * B -> C, k2
+   *
+   * Copying the CAMP example: https://github.com/open-atmos/camp/blob/main/test/unit_rxn_data/test_rxn_troe.F90
+   */
+
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 4.0e-11 }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b })
+                         .SetProducts({ Yields(c, 1) })
+                         .SetRateConstant(micm::TroeRateConstant({ .k0_A_ = 1.2e-3,
+                                                                   .k0_B_ = 1.6,
+                                                                   .k0_C_ = 3,
+                                                                   .kinf_A_ = 136,
+                                                                   .kinf_B_ = 5,
+                                                                   .kinf_C_ = 24,
+                                                                   .Fc_ = 0.9,
+                                                                   .N_ = 0.8 }))
+                         .SetPhase(gas_phase);
+
+  auto processes = std::vector<micm::Process>{ r1, r2 };
+  builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+         .SetReactions(processes);
+
+  test_simple_system<BuilderPolicy, StateType>(
+      "troe",
+      builder,
+      tolerance,
+      { 1e-8, 1e-8, 1e-8 },
+      [](double temperature, double pressure, double air_density) {
+        // A->B reaction rate
+        double k_0 = 4.0e-11;
+        double k_inf = 1;
+        return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
+              std::pow(0.6, 1.0 / (1.0 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
+      },
+      [](double temperature, double pressure, double air_density) {
+         // B->C reaction rate
+         double k_0 = 1.2e-3 * std::exp(3.0 / temperature) * std::pow(temperature / 300.0, 1.6);
+         double k_inf = 136.0 * std::exp(24.0 / temperature) * std::pow(temperature / 300.0, 5.0);
+         return k_0 * air_density / (1.0 + k_0 * air_density / k_inf) *
+              std::pow(0.9, 0.8 / (0.8 + std::pow(std::log10(k_0 * air_density / k_inf), 2)));
+      },
+      prepare_for_solve,
+      postpare_for_solve);
+
 }
 
 template<class BuilderPolicy, class StateType = micm::State<>>
