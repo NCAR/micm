@@ -430,7 +430,7 @@ void test_analytical_troe(
 
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_troe(
-    BuilderPolicy& builder,
+    BuilderPolicy builder,
     double tolerance = 1e-5,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
@@ -490,7 +490,7 @@ void test_analytical_stiff_troe(
 
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-         .SetReactions(processes).Build();
+         .SetReactions(processes);
 
   test_simple_stiff_system<BuilderPolicy, StateType>(
       "troe",
