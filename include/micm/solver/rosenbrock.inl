@@ -250,13 +250,13 @@ namespace micm
       if (parameters_.check_singularity_)
       {
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
+        std::cout << "singular: " << (singular ? "true" : "false") << std::endl;
       }
       else
       {
         singular = false;
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
       }
-      singular = false;  // TODO This should be evaluated in some way
       stats.decompositions_ += 1;
       if (!singular)
         break;

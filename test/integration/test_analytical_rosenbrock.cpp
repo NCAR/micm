@@ -220,7 +220,7 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(rosenbrock_6stage_da, 1e-7);
 }
 
-TEST(AnalyticalExamples, HIRESConfig)
+TEST(AnalyticalExamples, HIRES)
 {
   auto rosenbrock_solver = [](auto params)
   {

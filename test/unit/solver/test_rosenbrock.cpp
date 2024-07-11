@@ -47,6 +47,34 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 }
 
 template<class SolverBuilderPolicy>
+SolverBuilderPolicy getSolverForSingularSystem(SolverBuilderPolicy builder)
+{
+  // A -> B
+  // B -> A
+
+  auto a = micm::Species("a");
+  auto b = micm::Species("b");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b } };
+
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
+
+  micm::Process r2 = micm::Process::Create()
+                          .SetReactants({ b })
+                          .SetProducts({ Yields(a, 1) })
+                          .SetPhase(gas_phase)
+                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
+
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2 })
+      .SetReorderState(false);
+}
+
+template<class SolverBuilderPolicy>
 void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
@@ -225,4 +253,41 @@ TEST(RosenbrockSolver, VectorNormalizedError)
   testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
   testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
   testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+}
+
+TEST(RosenbrockSolver, SingularSystem)
+{
+  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  params.check_singularity_ = true;
+  auto standard = StandardBuilder(params);
+  auto vector = VectorBuilder<1>(params);
+
+  auto standard_solver = getSolverForSingularSystem(standard).SetNumberOfGridCells(1).Build();
+  auto vector_solver = getSolverForSingularSystem(vector).SetNumberOfGridCells(1).Build();
+
+  auto standard_state = standard_solver.GetState();
+  auto vector_state = vector_solver.GetState();
+
+  double k1 = -2;
+  double k2 = 1.0;
+
+  standard_state.SetCustomRateParameter("r1", k1);
+  standard_state.SetCustomRateParameter("r2", k2);
+
+  vector_state.SetCustomRateParameter("r1", k1);
+  vector_state.SetCustomRateParameter("r2", k2);
+
+  standard_state.variables_[0] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[0] = { 1.0, 1.0, 1.0 };
+
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need alpha * I - jacobian to have an alpha value that is either 0 (useless) or - k1
+  // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value
+  // so H needs to be 1 / ( - k1 * gamma)
+  double H = 1 / ( (-k1 - k2) * params.gamma_[0]);
+  standard_solver.solver_.parameters_.h_start_ = H;
+    
+  standard_solver.CalculateRateConstants(standard_state);
+
+  auto standard_result = standard_solver.Solve(2*H, standard_state);
 }
