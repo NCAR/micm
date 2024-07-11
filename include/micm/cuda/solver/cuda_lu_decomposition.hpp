@@ -28,13 +28,13 @@ namespace micm
     CudaLuDecomposition(CudaLuDecomposition&& other)
         : LuDecomposition(std::move(other))
     {
-      std::swap(this->devstruct_, other.devstruct_); 
+      std::swap(this->devstruct_, other.devstruct_);
     };
 
     CudaLuDecomposition& operator=(CudaLuDecomposition&& other)
     {
       LuDecomposition::operator=(std::move(other));
-      std::swap(this->devstruct_, other.devstruct_); 
+      std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
 
