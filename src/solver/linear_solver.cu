@@ -116,10 +116,14 @@ namespace micm
     ///   members of class "CudaLinearSolver" on the device
     void FreeConstData(LinearSolverParam& devstruct)
     {
-      if (devstruct.nLij_Lii_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.nLij_Lii_), "cudaFree");
-      if (devstruct.Lij_yj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.Lij_yj_), "cudaFree");
-      if (devstruct.nUij_Uii_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.nUij_Uii_), "cudaFree");
-      if (devstruct.Uij_xj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.Uij_xj_), "cudaFree");
+      if (devstruct.nLij_Lii_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.nLij_Lii_), "cudaFree");
+      if (devstruct.Lij_yj_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.Lij_yj_), "cudaFree");
+      if (devstruct.nUij_Uii_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.nUij_Uii_), "cudaFree");
+      if (devstruct.Uij_xj_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.Uij_xj_), "cudaFree");
     }
 
     void SolveKernelDriver(

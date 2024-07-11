@@ -25,12 +25,12 @@ namespace micm
     CudaProcessSet(CudaProcessSet&& other)
         : ProcessSet(std::move(other))
     {
-      std::swap(this->devstruct_, other.devstruct_); 
+      std::swap(this->devstruct_, other.devstruct_);
     };
     CudaProcessSet& operator=(CudaProcessSet&& other)
     {
       ProcessSet::operator=(std::move(other));
-      std::swap(this->devstruct_, other.devstruct_); 
+      std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
 
