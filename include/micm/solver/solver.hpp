@@ -40,13 +40,13 @@ namespace micm
     Solver& operator=(const Solver&) = delete;
 
     Solver(Solver&& other)
-        : solver_(std::swap(other.solver_)),
-          number_of_grid_cells_(other.number_of_grid_cells_),
+        : number_of_grid_cells_(other.number_of_grid_cells_),
           number_of_species_(other.number_of_species_),
           number_of_reactions_(other.number_of_reactions_),
-          state_parameters_(other.state_parameters_),
-          processes_(std::swap(other.processes_))
+          state_parameters_(other.state_parameters_)
     {
+      std::swap(this->solver_,other.solver_);
+      std::swap(this->processes_,other.processes_); 
     }
     Solver& operator=(Solver&& other)
     {
