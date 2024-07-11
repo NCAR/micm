@@ -281,9 +281,14 @@ TEST(RosenbrockSolver, SingularSystem)
   vector_state.variables_[0] = { 1.0, 1.0, 1.0 };
 
   // to get a jacobian with an LU factorization that contains a zero on the diagonal
-  // of U, we need alpha * I - jacobian to have an alpha value that is either 0 (useless) or - k1
-  // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value
-  // so H needs to be 1 / ( - k1 * gamma)
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to have alpha + k1 + k2 = 0
+  // in this case, one of the reaction rates will be negative but it's good enough to 
+  // test the singularity check
+  // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value from 
+  // the rosenbrock paramters
+  // so H needs to be 1 / ( (-k1 - k2) * gamma)
+  // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
   double H = 1 / ( (-k1 - k2) * params.gamma_[0]);
   standard_solver.solver_.parameters_.h_start_ = H;
     
