@@ -33,6 +33,10 @@ TEST(AnalyticalExamples, Troe)
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
   test_analytical_stiff_troe(backward_euler, 5e-1);
+  test_analytical_stiff_troe<VectorBackwardEuler<1>, VectorStateType<1>>(backard_euler_vector_1, 5e-1);
+  test_analytical_stiff_troe<VectorBackwardEuler<2>, VectorStateType<2>>(backard_euler_vector_2, 5e-1);
+  test_analytical_stiff_troe<VectorBackwardEuler<3>, VectorStateType<3>>(backard_euler_vector_3, 5e-1);
+  test_analytical_stiff_troe<VectorBackwardEuler<4>, VectorStateType<4>>(backard_euler_vector_4, 5e-1);
 }
 
 TEST(AnalyticalExamples, Photolysis)

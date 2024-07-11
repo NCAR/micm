@@ -51,10 +51,14 @@ TEST(AnalyticalExamples, Troe)
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
   test_analytical_stiff_troe(rosenbrock_2stage, 1e-3);
-  test_analytical_stiff_troe(rosenbrock_3stage, 1e-3);
-  test_analytical_stiff_troe(rosenbrock_4stage, 1e-3);
-  test_analytical_stiff_troe(rosenbrock_4stage_da, 1e-3);
-  test_analytical_stiff_troe(rosenbrock_6stage_da, 1e-3);
+  test_analytical_stiff_troe(rosenbrock_3stage);
+  test_analytical_stiff_troe(rosenbrock_4stage);
+  test_analytical_stiff_troe(rosenbrock_4stage_da);
+  test_analytical_stiff_troe(rosenbrock_6stage_da);
+  test_analytical_troe<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_troe<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_troe<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_troe<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, Photolysis)

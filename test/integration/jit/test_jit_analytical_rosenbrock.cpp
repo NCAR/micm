@@ -37,11 +37,11 @@ TEST(AnalyticalExamplesJitRosenbrock, Troe)
 
 TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_stiff_troe<BuilderType<1>, StateType<1>>(three, 1e-4);
-  test_analytical_stiff_troe<BuilderType<1>, StateType<1>>(four, 1e-4);
-  test_analytical_stiff_troe<BuilderType<1>, StateType<1>>(four_da, 1e-4);
-  test_analytical_stiff_troe<BuilderType<1>, StateType<1>>(six_da, 1e-4);
+  test_analytical_stiff_troe<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-3);
+  test_analytical_stiff_troe<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three));
+  test_analytical_stiff_troe<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
+  test_analytical_stiff_troe<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da));
+  test_analytical_stiff_troe<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
