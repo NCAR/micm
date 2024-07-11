@@ -12,8 +12,7 @@ namespace micm
         const CudaMatrixParam A_param,
         CudaMatrixParam L_param,
         CudaMatrixParam U_param,
-        const LuDecomposeParam devstruct,
-        bool* d_is_singular)
+        const LuDecomposeParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -45,6 +44,7 @@ namespace micm
       double* d_L = L_param.d_data_;
       double* d_U = U_param.d_data_;
       size_t number_of_grid_cells = A_param.number_of_grid_cells_;
+      bool* d_is_singular = devstruct.is_singular;
       *d_is_singular = false;
 
       if (tid < number_of_grid_cells)
@@ -132,7 +132,8 @@ namespace micm
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.aki_), aki_bytes), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.lki_nkj_), lki_nkj_bytes), "cudaMalloc");
       CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.lkj_uji_), lkj_uji_bytes), "cudaMalloc");
-      cudaMalloc(&(devstruct.uii_), uii_bytes);
+      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.uii_), uii_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMalloc(&devstruct.is_singular, sizeof(bool)), "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(cudaMemcpy(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
@@ -160,16 +161,17 @@ namespace micm
     ///   members of class "CudaLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
-      CHECK_CUDA_ERROR(cudaFree(devstruct.niLU_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aik_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.aik_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.uik_nkj_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lij_ujk_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.do_aki_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.aki_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lki_nkj_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.lkj_uji_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.uii_), "cudaFree");
+      if (devstruct.is_singular != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.is_singular), "cudaFree");
+      if (devstruct.niLU_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.niLU_), "cudaFree");
+      if (devstruct.do_aik_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.do_aik_), "cudaFree");
+      if (devstruct.aik_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.aik_), "cudaFree");
+      if (devstruct.uik_nkj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.uik_nkj_), "cudaFree");
+      if (devstruct.lij_ujk_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lij_ujk_), "cudaFree");
+      if (devstruct.do_aki_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.do_aki_), "cudaFree");
+      if (devstruct.aki_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.aki_), "cudaFree");
+      if (devstruct.lki_nkj_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lki_nkj_), "cudaFree");
+      if (devstruct.lkj_uji_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.lkj_uji_), "cudaFree");
+      if (devstruct.uii_ != nullptr) CHECK_CUDA_ERROR(cudaFree(devstruct.uii_), "cudaFree");
     }
 
     void DecomposeKernelDriver(
@@ -179,16 +181,11 @@ namespace micm
         const LuDecomposeParam& devstruct,
         bool& is_singular)
     {
-      // Allocate device space for the boolean variable
-      bool* d_is_singular;
-      cudaMalloc(&d_is_singular, sizeof(bool));
-      // Copy the boolean result from host to device
-      cudaMemcpy(d_is_singular, &is_singular, sizeof(bool), cudaMemcpyHostToDevice);
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct, d_is_singular);
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE>>>(A_param, L_param, U_param, devstruct);
       // Copy the boolean result from device back to host
-      cudaMemcpy(&is_singular, d_is_singular, sizeof(bool), cudaMemcpyDeviceToHost);
+      cudaMemcpy(&is_singular, devstruct.is_singular, sizeof(bool), cudaMemcpyDeviceToHost);
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

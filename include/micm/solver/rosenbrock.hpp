@@ -153,7 +153,6 @@ namespace micm
               jacobian)
     {
     }
-
     RosenbrockSolver(const RosenbrockSolver&) = delete;
     RosenbrockSolver& operator=(const RosenbrockSolver&) = delete;
     RosenbrockSolver(RosenbrockSolver&&) = default;

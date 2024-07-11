@@ -26,35 +26,15 @@ namespace micm
     CudaLuDecomposition(const CudaLuDecomposition&) = delete;
     CudaLuDecomposition& operator=(const CudaLuDecomposition&) = delete;
     CudaLuDecomposition(CudaLuDecomposition&& other)
-        : LuDecomposition(std::move(other)),
-          devstruct_(std::move(other.devstruct_))
+        : LuDecomposition(std::move(other))
     {
-      other.devstruct_.niLU_ = nullptr;
-      other.devstruct_.do_aik_ = nullptr;
-      other.devstruct_.aik_ = nullptr;
-      other.devstruct_.uik_nkj_ = nullptr;
-      other.devstruct_.lij_ujk_ = nullptr;
-      other.devstruct_.do_aki_ = nullptr;
-      other.devstruct_.aki_ = nullptr;
-      other.devstruct_.lki_nkj_ = nullptr;
-      other.devstruct_.lkj_uji_ = nullptr;
-      other.devstruct_.uii_ = nullptr;
+      std::swap(this->devstruct_, other.devstruct_); 
     };
 
     CudaLuDecomposition& operator=(CudaLuDecomposition&& other)
     {
       LuDecomposition::operator=(std::move(other));
-      devstruct_ = std::move(other.devstruct_);
-      other.devstruct_.niLU_ = nullptr;
-      other.devstruct_.do_aik_ = nullptr;
-      other.devstruct_.aik_ = nullptr;
-      other.devstruct_.uik_nkj_ = nullptr;
-      other.devstruct_.lij_ujk_ = nullptr;
-      other.devstruct_.do_aki_ = nullptr;
-      other.devstruct_.aki_ = nullptr;
-      other.devstruct_.lki_nkj_ = nullptr;
-      other.devstruct_.lkj_uji_ = nullptr;
-      other.devstruct_.uii_ = nullptr;
+      std::swap(this->devstruct_, other.devstruct_); 
       return *this;
     };
 
