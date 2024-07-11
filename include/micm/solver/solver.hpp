@@ -50,12 +50,12 @@ namespace micm
     }
     Solver& operator=(Solver&& other)
     {
-      solver_ = std::swap(other.solver_);
+      std::swap(this->solver_,other.solver_);
       number_of_grid_cells_ = other.number_of_grid_cells_;
       number_of_species_ = other.number_of_species_;
       number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
-      processes_ = std::swap(other.processes_);
+      std::swap(this->solver_,other.processes_);
       return *this;
     }
 
