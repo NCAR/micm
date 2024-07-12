@@ -16,6 +16,7 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/vector_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <system_error>
 
