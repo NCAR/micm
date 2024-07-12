@@ -15,8 +15,8 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
 
@@ -126,27 +126,13 @@ namespace micm
       LinearSolver<SparseMatrixPolicy, LuDecomposition>,
       State<DenseMatrixPolicy, SparseMatrixPolicy>>;
 
-
-  /// @brief Builder of CPU-based general solvers
+  /// @brief Builder of Vectorized CPU-based general solvers
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  // template<
-  //     class SolverParametersPolicy,
-  //     class DenseMatrixVector = VectorMatrix<double, MICM_DEFAULT_VECTOR_SIZE>,
-  //     class SparseMatrixVector = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>>
-  // using VectorizedCpuSolverBuilder = SolverBuilder<
-  //     SolverParametersPolicy,
-  //     DenseMatrixVector,
-  //     SparseMatrixVector,
-  //     ProcessSet,
-  //     LinearSolver<SparseMatrixVector, LuDecomposition>,
-  //     State<DenseMatrixVector, SparseMatrixVector>>;
   template<class SolverParametersPolicy, std::size_t L>
-  using VectorizedCpuSolverBuilder = CpuSolverBuilder<
-      SolverParametersPolicy,
-      VectorMatrix<double, L>,
-      SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
+  using VectorizedCpuSolverBuilder =
+      CpuSolverBuilder<SolverParametersPolicy, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
 
 }  // namespace micm
 

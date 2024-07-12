@@ -52,11 +52,7 @@ TEST(RosenbrockSolver, Terminator)
 }
 
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder<
-    micm::RosenbrockSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
-
+using VectorBuilder = micm::VectorizedCpuSolverBuilder<micm::RosenbrockSolverParameters, L>;
 TEST(RosenbrockSolver, VectorTerminator)
 {
   auto parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();

@@ -9,8 +9,8 @@
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
@@ -30,9 +30,6 @@
 
 namespace fs = std::filesystem;
 using namespace micm;
-
-template<std::size_t L>
-using VectorBuilder = CpuSolverBuilder<RosenbrockSolverParameters, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
 
 template<std::size_t L>
 int Run(const char* filepath, const char* initial_conditions, const std::string& matrix_ordering_type)
@@ -65,7 +62,7 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.relative_tolerance_ = 0.1;
 
-  auto solver = VectorBuilder<L>(params)
+  auto solver = VectorizedCpuSolverBuilder<RosenbrockSolverParameters, L>(params)
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .Build();
