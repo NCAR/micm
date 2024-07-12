@@ -56,7 +56,6 @@ namespace micm
 
     SolverResult result;
 
-    double small = parameters_.small_;
     std::size_t max_iter = parameters_.max_number_of_steps_;
     const auto time_step_reductions = parameters_.time_step_reductions_;
 
