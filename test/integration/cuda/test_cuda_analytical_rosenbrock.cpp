@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-constexpr std::size_t L = 1;
+constexpr std::size_t L = 3;
 using builderType = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
 using stateType = micm::CudaState<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
 

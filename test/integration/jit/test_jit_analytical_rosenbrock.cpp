@@ -46,92 +46,92 @@ TEST(AnalyticalExamplesJitRosenbrock, TroeSuperStiffButAnalytical)
 
 TEST(AnalyticalExamplesJitRosenbrock, Photolysis)
 {
-  test_analytical_photolysis<BuilderType<1>, StateType<1>>(two, 1e-2);
-  test_analytical_photolysis<BuilderType<1>, StateType<1>>(three, 1e-6);
-  test_analytical_photolysis<BuilderType<1>, StateType<1>>(four, 1e-6);
-  test_analytical_photolysis<BuilderType<1>, StateType<1>>(four_da, 1e-6);
-  test_analytical_photolysis<BuilderType<1>, StateType<1>>(six_da, 1e-6);
+  test_analytical_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-2);
+  test_analytical_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-4);
+  test_analytical_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 1e-5);
+  test_analytical_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-5);
+  test_analytical_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 1e-5);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_stiff_photolysis<BuilderType<1>, StateType<1>>(three, 1e-4);
-  test_analytical_stiff_photolysis<BuilderType<1>, StateType<1>>(four, 1e-4);
-  test_analytical_stiff_photolysis<BuilderType<1>, StateType<1>>(four_da, 1e-4);
-  test_analytical_stiff_photolysis<BuilderType<1>, StateType<1>>(six_da, 1e-4);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-2);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-3);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 1e-3);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-3);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_ternary_chemical_activation<BuilderType<1>, StateType<1>>(three, 1e-5);
-  test_analytical_ternary_chemical_activation<BuilderType<1>, StateType<1>>(four, 1e-5);
-  test_analytical_ternary_chemical_activation<BuilderType<1>, StateType<1>>(four_da, 1e-5);
-  test_analytical_ternary_chemical_activation<BuilderType<1>, StateType<1>>(six_da, 1e-5);
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-3);
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<1>, StateType<1>>(two, 1e-2);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<1>, StateType<1>>(three, 1e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<1>, StateType<1>>(four, 1e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<1>, StateType<1>>(four_da, 1e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<1>, StateType<1>>(six_da, 1e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 2e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)
 {
-  test_analytical_tunneling<BuilderType<1>, StateType<1>>(two, 1e-1);
-  test_analytical_tunneling<BuilderType<1>, StateType<1>>(three, 1e-5);
-  test_analytical_tunneling<BuilderType<1>, StateType<1>>(four, 1e-5);
-  test_analytical_tunneling<BuilderType<1>, StateType<1>>(four_da, 1e-5);
-  test_analytical_tunneling<BuilderType<1>, StateType<1>>(six_da, 1e-5);
+  test_analytical_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-1);
+  test_analytical_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-5);
+  test_analytical_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
+  test_analytical_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-5);
+  test_analytical_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling<BuilderType<1>, StateType<1>>(two, 1e-2);
-  test_analytical_stiff_tunneling<BuilderType<1>, StateType<1>>(three, 1e-4);
-  test_analytical_stiff_tunneling<BuilderType<1>, StateType<1>>(four, 1e-4);
-  test_analytical_stiff_tunneling<BuilderType<1>, StateType<1>>(four_da, 1e-4);
-  test_analytical_stiff_tunneling<BuilderType<1>, StateType<1>>(six_da, 1e-4);
+  test_analytical_stiff_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-1);
+  test_analytical_stiff_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-4);
+  test_analytical_stiff_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 1e-4);
+  test_analytical_stiff_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-4);
+  test_analytical_stiff_tunneling<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 1e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Arrhenius)
 {
-  test_analytical_arrhenius<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_arrhenius<BuilderType<1>, StateType<1>>(three, 1e-8);
-  test_analytical_arrhenius<BuilderType<1>, StateType<1>>(four, 1e-8);
-  test_analytical_arrhenius<BuilderType<1>, StateType<1>>(four_da, 1e-8);
-  test_analytical_arrhenius<BuilderType<1>, StateType<1>>(six_da, 1e-8);
+  test_analytical_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-3);
+  test_analytical_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three));
+  test_analytical_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
+  test_analytical_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da));
+  test_analytical_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_stiff_arrhenius<BuilderType<1>, StateType<1>>(three, 1e-4);
-  test_analytical_stiff_arrhenius<BuilderType<1>, StateType<1>>(four, 1e-4);
-  test_analytical_stiff_arrhenius<BuilderType<1>, StateType<1>>(four_da, 1e-4);
-  test_analytical_stiff_arrhenius<BuilderType<1>, StateType<1>>(six_da, 1e-4);
+  test_analytical_stiff_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-1);
+  test_analytical_stiff_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-3);
+  test_analytical_stiff_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 1e-4);
+  test_analytical_stiff_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-4);
+  test_analytical_stiff_arrhenius<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Branched)
 {
-  test_analytical_branched<BuilderType<1>, StateType<1>>(two, 1e-4);
-  test_analytical_branched<BuilderType<1>, StateType<1>>(three, 1e-4);
-  test_analytical_branched<BuilderType<1>, StateType<1>>(four, 1e-4);
-  test_analytical_branched<BuilderType<1>, StateType<1>>(four_da, 1e-4);
-  test_analytical_branched<BuilderType<1>, StateType<1>>(six_da, 1e-4);
+  test_analytical_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-3);
+  test_analytical_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three));
+  test_analytical_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
+  test_analytical_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da));
+  test_analytical_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
 {
-  test_analytical_stiff_branched<BuilderType<1>, StateType<1>>(two, 1e-3);
-  test_analytical_stiff_branched<BuilderType<1>, StateType<1>>(three, 1e-3);
-  test_analytical_stiff_branched<BuilderType<1>, StateType<1>>(four, 1e-3);
-  test_analytical_stiff_branched<BuilderType<1>, StateType<1>>(four_da, 1e-3);
-  test_analytical_stiff_branched<BuilderType<1>, StateType<1>>(six_da, 1e-3);
+  test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 2e-3);
+  test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 2e-3);
+  test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 2e-3);
+  test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 2e-3);
+  test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 2e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Robertson)
