@@ -223,16 +223,19 @@ namespace micm
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
             ++lkj_uji;
           }
+
           if (U_vector[*uii] == 0.0)
           {
             is_singular = true;
-            return;
           }
           L_vector[lki_nkj->first] /= U_vector[*uii];
           ++lki_nkj;
           ++uii;
         }
       }
+      // the singularity check inside the for loop won't detect a zero in the bottom right position
+      auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize() + U.FlatBlockSize() - 1);
+      if (*cell_U_bottom_right == 0) is_singular = true;
     }
   }
 
@@ -316,7 +319,6 @@ namespace micm
             if (U_vector[uii_deref + i_cell] == 0.0)
             {
               is_singular = true;
-              return;
             }
             L_vector[lki_nkj_first + i_cell] /= U_vector[uii_deref + i_cell];
           }
@@ -324,6 +326,9 @@ namespace micm
           ++uii;
         }
       }
+
+      auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize + U_GroupSizeOfFlatBlockSize - 1);
+      if (*cell_U_bottom_right == 0) is_singular = true;
     }
   }
 

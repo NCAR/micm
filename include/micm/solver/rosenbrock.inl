@@ -240,21 +240,19 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto jacobian = state.jacobian_;
     uint64_t n_consecutive = 0;
     singular = false;
     while (true)
     {
+      auto jacobian = state.jacobian_;
       double alpha = 1 / (H * gamma);
       static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
       if (parameters_.check_singularity_)
       {
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
-        std::cout << "singular: " << (singular ? "true" : "false") << std::endl;
       }
       else
       {
-        singular = false;
         linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
       }
       stats.decompositions_ += 1;

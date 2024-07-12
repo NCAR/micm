@@ -260,10 +260,10 @@ TEST(RosenbrockSolver, SingularSystem)
   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.check_singularity_ = true;
   auto standard = StandardBuilder(params);
-  auto vector = VectorBuilder<1>(params);
+  auto vector = VectorBuilder<3>(params);
 
   auto standard_solver = getSolverForSingularSystem(standard).SetNumberOfGridCells(1).Build();
-  auto vector_solver = getSolverForSingularSystem(vector).SetNumberOfGridCells(1).Build();
+  auto vector_solver = getSolverForSingularSystem(vector).SetNumberOfGridCells(4).Build();
 
   auto standard_state = standard_solver.GetState();
   auto vector_state = vector_solver.GetState();
@@ -274,11 +274,14 @@ TEST(RosenbrockSolver, SingularSystem)
   standard_state.SetCustomRateParameter("r1", k1);
   standard_state.SetCustomRateParameter("r2", k2);
 
-  vector_state.SetCustomRateParameter("r1", k1);
-  vector_state.SetCustomRateParameter("r2", k2);
+  vector_state.SetCustomRateParameter("r1", {k1, k1, k1, k1});
+  vector_state.SetCustomRateParameter("r2", {k2, k2, k2, k2});
 
-  standard_state.variables_[0] = { 1.0, 1.0, 1.0 };
-  vector_state.variables_[0] = { 1.0, 1.0, 1.0 };
+  standard_state.variables_[0] = { 1.0, 1.0 };
+  vector_state.variables_[0] = { 1.0, 1.0 };
+  vector_state.variables_[1] = { 1.0, 1.0 };
+  vector_state.variables_[2] = { 1.0, 1.0 };
+  vector_state.variables_[3] = { 1.0, 1.0 };
 
   // to get a jacobian with an LU factorization that contains a zero on the diagonal
   // of U, we need det(alpha * I - jacobian) = 0
@@ -293,6 +296,11 @@ TEST(RosenbrockSolver, SingularSystem)
   standard_solver.solver_.parameters_.h_start_ = H;
     
   standard_solver.CalculateRateConstants(standard_state);
+  vector_solver.CalculateRateConstants(vector_state);
 
   auto standard_result = standard_solver.Solve(2*H, standard_state);
+  EXPECT_NE(standard_result.stats_.singular_, 0);
+
+  auto vector_result = vector_solver.Solve(2*H, vector_state);
+  EXPECT_NE(vector_result.stats_.singular_, 0);
 }
