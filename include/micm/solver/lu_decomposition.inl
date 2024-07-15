@@ -164,16 +164,6 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
-  {
-    bool is_singular = false;
-    Decompose<SparseMatrixPolicy>(A, L, U, is_singular);
-  }
-
-  template<class SparseMatrixPolicy>
   requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
@@ -328,7 +318,9 @@ namespace micm
       }
 
       auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize + U_GroupSizeOfFlatBlockSize - 1);
-      if (*cell_U_bottom_right == 0) is_singular = true;
+        if (*cell_U_bottom_right == 0){
+            is_singular = true;
+        }
     }
   }
 

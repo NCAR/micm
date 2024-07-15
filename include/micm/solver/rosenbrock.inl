@@ -247,17 +247,14 @@ namespace micm
       auto jacobian = state.jacobian_;
       double alpha = 1 / (H * gamma);
       static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
-      if (parameters_.check_singularity_)
-      {
-        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
-      }
-      else
-      {
-        linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_);
-      }
+      linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
       stats.decompositions_ += 1;
-      if (!singular)
+
+      // if we are checking for singularity and the matrix is not singular, we can break the loop
+      // if we are not checking for singularity, we always break the loop
+      if (!singular || !parameters_.check_singularity_)
         break;
+
       stats.singular_ += 1;
       if (++n_consecutive > 5)
         break;

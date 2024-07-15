@@ -47,7 +47,7 @@ SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 }
 
 template<class SolverBuilderPolicy>
-SolverBuilderPolicy getSolverForSingularSystem(SolverBuilderPolicy builder)
+SolverBuilderPolicy getSingularSystemZeroInBottomRightOfU(SolverBuilderPolicy builder)
 {
   // A -> B
   // B -> A
@@ -71,6 +71,42 @@ SolverBuilderPolicy getSolverForSingularSystem(SolverBuilderPolicy builder)
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::vector<micm::Process>{ r1, r2 })
+      .SetReorderState(false);
+}
+
+template<class SolverBuilderPolicy>
+SolverBuilderPolicy getSolverForSingularSystemOnDiagonal(SolverBuilderPolicy builder)
+{
+  // A -> B, k1
+  // B -> C, k2
+  // C -> A, k3
+
+  auto a = micm::Species("a");
+  auto b = micm::Species("b");
+  auto c = micm::Species("c");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
+
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
+
+  micm::Process r2 = micm::Process::Create()
+                          .SetReactants({ b })
+                          .SetProducts({ Yields(c, 1) })
+                          .SetPhase(gas_phase)
+                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
+
+  micm::Process r3 = micm::Process::Create()
+                          .SetReactants({ c })
+                          .SetProducts({ Yields(a, 1) })
+                          .SetPhase(gas_phase)
+                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r3"}));
+
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
       .SetReorderState(false);
 }
 
@@ -255,15 +291,15 @@ TEST(RosenbrockSolver, VectorNormalizedError)
   testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
 }
 
-TEST(RosenbrockSolver, SingularSystem)
+TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
 {
   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.check_singularity_ = true;
   auto standard = StandardBuilder(params);
   auto vector = VectorBuilder<3>(params);
 
-  auto standard_solver = getSolverForSingularSystem(standard).SetNumberOfGridCells(1).Build();
-  auto vector_solver = getSolverForSingularSystem(vector).SetNumberOfGridCells(4).Build();
+  auto standard_solver = getSingularSystemZeroInBottomRightOfU(standard).SetNumberOfGridCells(1).Build();
+  auto vector_solver = getSingularSystemZeroInBottomRightOfU(vector).SetNumberOfGridCells(4).Build();
 
   auto standard_state = standard_solver.GetState();
   auto vector_state = vector_solver.GetState();
@@ -294,6 +330,55 @@ TEST(RosenbrockSolver, SingularSystem)
   // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
   double H = 1 / ( (-k1 - k2) * params.gamma_[0]);
   standard_solver.solver_.parameters_.h_start_ = H;
+    
+  standard_solver.CalculateRateConstants(standard_state);
+  vector_solver.CalculateRateConstants(vector_state);
+
+  auto standard_result = standard_solver.Solve(2*H, standard_state);
+  EXPECT_NE(standard_result.stats_.singular_, 0);
+
+  auto vector_result = vector_solver.Solve(2*H, vector_state);
+  EXPECT_NE(vector_result.stats_.singular_, 0);
+}
+
+TEST(RosenbrockSolver, SingularSystemZeroAlongDiagonalNotBottomRight)
+{
+  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+
+  double k1 = -1.0;
+  double k2 = -1.0;
+  double k3 = 1.0;
+
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to set alpha = -k1, or alpha=-k2, or alpha=k3
+  double H = 1 / ( -k1* params.gamma_[0]);
+
+  params.check_singularity_ = true;
+  params.h_start_ = H;
+    
+  auto standard = StandardBuilder(params);
+  auto vector = VectorBuilder<3>(params);
+
+  auto standard_solver = getSolverForSingularSystemOnDiagonal(standard).SetNumberOfGridCells(1).Build();
+  auto vector_solver = getSolverForSingularSystemOnDiagonal(vector).SetNumberOfGridCells(4).Build();
+
+  auto standard_state = standard_solver.GetState();
+  auto vector_state = vector_solver.GetState();
+
+  standard_state.SetCustomRateParameter("r1", k1);
+  standard_state.SetCustomRateParameter("r2", k2);
+  standard_state.SetCustomRateParameter("r3", k3);
+
+  vector_state.SetCustomRateParameter("r1", {k1, k1, k1, k1});
+  vector_state.SetCustomRateParameter("r2", {k2, k2, k2, k2});
+  vector_state.SetCustomRateParameter("r3", {k3, k3, k3, k3});
+
+  standard_state.variables_[0] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[0] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[1] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[2] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[3] =   { 1.0, 1.0, 1.0 };
     
   standard_solver.CalculateRateConstants(standard_state);
   vector_solver.CalculateRateConstants(vector_state);
