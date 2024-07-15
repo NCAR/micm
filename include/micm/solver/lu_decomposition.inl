@@ -318,9 +318,7 @@ namespace micm
       }
 
       auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize + U_GroupSizeOfFlatBlockSize - 1);
-        if (*cell_U_bottom_right == 0){
-            is_singular = true;
-        }
+      if (*cell_U_bottom_right == 0) is_singular = true;
     }
   }
 
