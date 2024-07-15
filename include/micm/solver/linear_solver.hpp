@@ -75,9 +75,6 @@ namespace micm
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
-    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
-
-    /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
     /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
     void Factor(

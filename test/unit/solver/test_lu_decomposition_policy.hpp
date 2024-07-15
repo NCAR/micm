@@ -100,7 +100,8 @@ void testDenseMatrix()
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+  bool is_singular{ false };
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -149,7 +150,8 @@ void testRandomMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+  bool is_singular{ false };
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }
@@ -171,7 +173,8 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
-  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+  bool is_singular{ false };
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
 }

@@ -49,10 +49,6 @@ namespace micm
         SparseMatrixPolicy& upper_matrix,
         bool& is_singular);
 
-    /// @brief Decompose the matrix into upper and lower triangular matrices and general JIT functions
-    /// @param matrix Matrix that will be factored into lower and upper triangular matrices
-    void Factor(SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
-
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
     void Solve(MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);

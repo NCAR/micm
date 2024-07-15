@@ -57,7 +57,7 @@ namespace micm
                            .SetName(function_name)
                            .SetArguments({ { "A matrix", JitType::DoublePtr },
                                            { "lower matrix", JitType::DoublePtr },
-                                           { "upper matrix", JitType::DoublePtr } })
+                                           { "upper matrix", JitType::DoublePtr }})
                            .SetReturnType(JitType::Void);
     llvm::Type *double_type = func.GetType(JitType::Double);
     llvm::Value *zero = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 0));
@@ -179,26 +179,27 @@ namespace micm
     func.builder_->CreateRetVoid();
 
     auto target = func.Generate();
-    decompose_function_ = (void (*)(const double *, double *, double *))(intptr_t)target.second;
+    decompose_function_ = (FuncPtr)(intptr_t)target.second;
     decompose_function_resource_tracker_ = target.first;
   }
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitLuDecomposition<L>::Decompose(
-      const SparseMatrixPolicy &A,
-      SparseMatrixPolicy &lower,
-      SparseMatrixPolicy &upper,
-      bool &is_singular) const
+  void JitLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper, bool& is_singular) const
   {
-    LuDecomposition::Decompose<SparseMatrixPolicy>(A, lower, upper, is_singular);
-  }
-
-  template<std::size_t L>
-  template<class SparseMatrixPolicy>
-  void JitLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
-      const
-  {
+    is_singular = false;
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
+    for(size_t block = 0; block < A.NumberOfBlocks(); ++block)
+    {
+      auto diagonals = upper.DiagonalIndices(block);
+      for(const auto& diagonal : diagonals)
+      {
+        if(upper.AsVector()[diagonal] == 0)
+        {
+          is_singular = true;
+          return;
+        }
+      }
+    }
   }
 }  // namespace micm

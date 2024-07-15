@@ -18,7 +18,8 @@ namespace micm
   class JitLuDecomposition : public LuDecomposition
   {
     llvm::orc::ResourceTrackerSP decompose_function_resource_tracker_;
-    void (*decompose_function_)(const double *, double *, double *);
+    using FuncPtr = void (*)(const double *, double *, double *);
+    FuncPtr decompose_function_ = nullptr;
 
    public:
     JitLuDecomposition(){};
@@ -42,13 +43,6 @@ namespace micm
     template<class SparseMatrixPolicy>
     void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper, bool &is_singular)
         const;
-
-    /// @brief Create sparse L and U matrices for a given A matrix
-    /// @param A Sparse matrix that will be decomposed
-    /// @param lower The lower triangular matrix created by decomposition
-    /// @param upper The upper triangular matrix created by decomposition
-    template<class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper) const;
 
    private:
     /// @brief Generates a function to perform the LU decomposition for a specific matrix sparsity structure

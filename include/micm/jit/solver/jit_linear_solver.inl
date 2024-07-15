@@ -66,15 +66,6 @@ namespace micm
   }
 
   template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
-      SparseMatrixPolicy &matrix,
-      SparseMatrixPolicy &lower_matrix,
-      SparseMatrixPolicy &upper_matrix)
-  {
-    LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix);
-  }
-
-  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
   template<class MatrixPolicy>
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy &x,

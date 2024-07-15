@@ -111,6 +111,43 @@ SolverBuilderPolicy getSolverForSingularSystemOnDiagonal(SolverBuilderPolicy bui
 }
 
 template<class SolverBuilderPolicy>
+SolverBuilderPolicy NonReacting(SolverBuilderPolicy builder)
+{
+  // A -> B, k1
+  // B -> C, k2
+  // C -> A, k3
+
+  auto a = micm::Species("a");
+  auto b = micm::Species("b");
+  auto c = micm::Species("c");
+  auto d = micm::Species("d");
+
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, d } };
+
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
+
+  micm::Process r2 = micm::Process::Create()
+                          .SetReactants({ b })
+                          .SetProducts({ Yields(c, 1) })
+                          .SetPhase(gas_phase)
+                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
+
+  micm::Process r3 = micm::Process::Create()
+                          .SetReactants({ c })
+                          .SetProducts({ Yields(a, 1) })
+                          .SetPhase(gas_phase)
+                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r3"}));
+
+  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
+      .SetReorderState(false);
+}
+
+template<class SolverBuilderPolicy>
 void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
