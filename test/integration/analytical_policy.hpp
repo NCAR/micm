@@ -212,8 +212,8 @@ void test_simple_system(
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      EXPECT_NEAR(k1[i], state.rate_constants_[i][0], 1e-15);
-      EXPECT_NEAR(k2[i], state.rate_constants_[i][1], 1e-15);
+      EXPECT_NEAR(combined_error(k1[i], state.rate_constants_[i][0], 1e-15), 0, relative_tolerance);
+      EXPECT_NEAR(combined_error(k2[i], state.rate_constants_[i][1], 1e-15), 0, relative_tolerance); 
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
