@@ -30,10 +30,11 @@ namespace micm
     decompose_function_ = NULL;
     if (matrix.NumberOfBlocks() > L)
     {
-      std::string msg =
-          "JIT functions require the number of grid cells solved together to match the vector dimension template parameter, "
-          "currently: " +
-          std::to_string(L);
+      std::string msg = "JIT functions require the number of grid cells solved together (" +
+                        std::to_string(matrix.NumberOfBlocks()) +
+                        ") to match the vector dimension template parameter, "
+                        "currently: " +
+                        std::to_string(L);
       throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
     }
     GenerateDecomposeFunction();

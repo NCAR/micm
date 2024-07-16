@@ -44,5 +44,17 @@ namespace micm
         throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
       return std::size_t{ (elem - row_ids.begin()) + block * row_ids.size() };
     };
+
+    static void AddToDiagonal(
+        const std::vector<std::size_t>& diagonal_ids,
+        const std::size_t number_of_blocks,
+        const std::size_t block_size,
+        auto& data,
+        auto value)
+    {
+      for (std::size_t block_start = 0; block_start < number_of_blocks * block_size; block_start += block_size)
+        for (const auto& i : diagonal_ids)
+          data[block_start + i] += value;
+    };
   };
 }  // namespace micm

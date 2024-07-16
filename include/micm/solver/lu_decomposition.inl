@@ -224,6 +224,7 @@ namespace micm
           ++uii;
         }
       }
+      // check the bottom right corner of the matrix
       if (U_vector[*uii] == 0.0)
       {
         is_singular = true;
@@ -319,12 +320,14 @@ namespace micm
         }
       }
       std::size_t uii_deref = *uii;
-      std::size_t remaining_rows = A.NumRows() % A.GroupVectorSize();
-      for (std::size_t i_cell = 0; i_cell < remaining_rows; ++i_cell)
-      {
-        if (U_vector[uii_deref + i_cell] == 0.0)
+      if (n_cells != A_GroupVectorSize) {
+        // check the bottom right corner of the matrix
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
         {
-          is_singular = true;
+          if (U_vector[uii_deref + i_cell] == 0.0)
+          {
+            is_singular = true;
+          }
         }
       }
     }

@@ -74,6 +74,8 @@ namespace micm
         typename SparseMatrixPolicy::value_type initial_value,
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
 
+    virtual ~LinearSolver() = default;
+
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
     /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
@@ -81,7 +83,7 @@ namespace micm
         const SparseMatrixPolicy& matrix,
         SparseMatrixPolicy& lower_matrix,
         SparseMatrixPolicy& upper_matrix,
-        bool& is_singular);
+        bool& is_singular) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     template<class MatrixPolicy>

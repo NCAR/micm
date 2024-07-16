@@ -74,10 +74,14 @@ namespace micm
     ///   members and temporary variables of class "CudaLuDecomposition" on the device
     void FreeConstData(CudaRosenbrockSolverParam& devstruct)
     {
-      CHECK_CUDA_ERROR(cudaFree(devstruct.errors_input_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.errors_output_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.jacobian_diagonal_elements_), "cudaFree");
-      CHECK_CUDA_ERROR(cudaFree(devstruct.absolute_tolerance_), "cudaFree");
+      if (devstruct.errors_input_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.errors_input_), "cudaFree");
+      if (devstruct.errors_output_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.errors_output_), "cudaFree");
+      if (devstruct.jacobian_diagonal_elements_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.jacobian_diagonal_elements_), "cudaFree");
+      if (devstruct.absolute_tolerance_ != nullptr)
+        CHECK_CUDA_ERROR(cudaFree(devstruct.absolute_tolerance_), "cudaFree");
     }
 
     // Specific CUDA device function to do reduction within a warp

@@ -20,6 +20,13 @@ TEST(SparseVectorMatrix, SetScalar)
   testSetScalar<micm::SparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
 }
 
+TEST(SparseVectorMatrix, AddToDiagonal)
+{
+  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrdering<1>>();
+  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrdering<3>>();
+  testAddToDiagonal<micm::SparseMatrix, micm::SparseMatrixVectorOrdering<4>>();
+}
+
 TEST(SparseVectorMatrix, SingleBlockMatrix)
 {
   auto matrix = testSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrdering<4>>();
