@@ -13,6 +13,10 @@ namespace micm
     ///   for the "jacobian_flat_id" because it is unknown now
     ProcessSetParam CopyConstData(ProcessSetParam& hoststruct);
 
+    /// This is the function that will delete the constant data
+    ///   members of class "CudaProcessSet" on the device
+    void FreeConstData(ProcessSetParam& devstruct);
+
     /// This is the function that will copy the "jacobian_flat_id"
     ///   of class "ProcessSet" to the device, after the matrix
     ///   structure is known

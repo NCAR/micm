@@ -106,7 +106,6 @@ namespace micm
     ///   the constant data from the class "CudaRosenbrockSolver"
     ~CudaRosenbrockSolver()
     {
-      /// Free the device memory allocated by the members of "devstruct_"
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
