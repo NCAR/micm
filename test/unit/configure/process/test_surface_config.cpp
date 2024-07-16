@@ -59,7 +59,7 @@ TEST(SurfaceConfig, ParseConfig)
     EXPECT_EQ(surface_rate_constant->CustomParameters()[1], "SURF.kfoo.particle number concentration [# m-3]");
     EXPECT_EQ(surface_rate_constant->parameters_.reaction_probability_, 1.0);
     EXPECT_EQ(surface_rate_constant->diffusion_coefficient_, 2.3e-4);
-    EXPECT_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * GAS_CONSTANT / (M_PI * 0.123));
+    EXPECT_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * micm::constants::GAS_CONSTANT / (M_PI * 0.123));
   }
 
   // second reaction
@@ -78,7 +78,7 @@ TEST(SurfaceConfig, ParseConfig)
     EXPECT_EQ(surface_rate_constant->CustomParameters()[1], "SURF.kbar.particle number concentration [# m-3]");
     EXPECT_EQ(surface_rate_constant->parameters_.reaction_probability_, 0.5);
     EXPECT_EQ(surface_rate_constant->diffusion_coefficient_, 0.4e-5);
-    EXPECT_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * GAS_CONSTANT / (M_PI * 0.321));
+    EXPECT_EQ(surface_rate_constant->mean_free_speed_factor_, 8.0 * micm::constants::GAS_CONSTANT / (M_PI * 0.321));
   }
 }
 

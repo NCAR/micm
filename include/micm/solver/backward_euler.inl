@@ -43,25 +43,21 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state)
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
     // This is a root finding problem because you need to know y_{n+1} to compute f(t_{n+1}, y_{n+1})
     // you need to solve the equation y_{n+1} - y_n - H f(t_{n+1}, y_{n+1}) = 0
-    // We will also use the same logic used by cam-chem to determine the time step
-    // That scheme is this:
-    // Start with H = time_step
-    // if that fails, try H = H/2 several times
-    // if that fails, try H = H/10 once
-    // if that fails, accept the current H but do not update the Yn vector
-    // the number of time step reduction is controlled by the time_step_reductions parameter
+    // A series of time step reductions are used after failed solves to try to find a solution
+    // These reductions are controlled by the time_step_reductions parameter in the solver parameters
+    // if the last attempt to reduce the timestep fails,
+    // accept the current H but do not update the Yn vector
 
     SolverResult result;
 
-    double small = parameters_.small;
     std::size_t max_iter = parameters_.max_number_of_steps_;
-    const auto time_step_reductions = parameters_.time_step_reductions;
+    const auto time_step_reductions = parameters_.time_step_reductions_;
 
     double H = time_step;
     double t = 0.0;
@@ -89,28 +85,18 @@ namespace micm
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
-        std::fill(forcing.AsVector().begin(), forcing.AsVector().end(), 0.0);
+        forcing.Fill(0.0);
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
         result.stats_.function_calls_++;
 
-        // calculate jacobian
-        std::fill(state.jacobian_.AsVector().begin(), state.jacobian_.AsVector().end(), 0.0);
+        // calculate the negative jacobian
+        state.jacobian_.Fill(0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
-        // subtract the inverse of the time step from the diagonal
-        // TODO: handle vectorized jacobian matrix
-        for (auto& jac : state.jacobian_.AsVector())
-        {
-          jac *= -1;
-        }
-        for (std::size_t i_block = 0; i_block < state.jacobian_.NumberOfBlocks(); ++i_block)
-        {
-          auto jacobian_vector = std::next(state.jacobian_.AsVector().begin(), i_block * state.jacobian_.FlatBlockSize());
-          for (const auto& i_elem : jacobian_diagonal_elements_)
-            jacobian_vector[i_elem] -= 1 / H;
-        }
-
+        // add the inverse of the time step from the diagonal
+        state.jacobian_.AddToDiagonal(1 / H);
+        
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
@@ -118,17 +104,11 @@ namespace micm
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
         result.stats_.decompositions_++;
 
-        auto yn1_iter = Yn1.begin();
-        auto yn_iter = Yn.begin();
-        auto forcing_iter = forcing.begin();
         // forcing_blk in camchem
-        // residual = (Yn1 - Yn) / H - forcing;
+        // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
-        for (; yn1_iter != Yn1.end(); ++yn1_iter, ++yn_iter, ++forcing_iter)
-        {
-          *forcing_iter = (*yn1_iter - *yn_iter) / H - *forcing_iter;
-        }
-
+        forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
+        
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
         linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
@@ -137,31 +117,14 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        forcing_iter = forcing.begin();
-        yn1_iter = Yn1.begin();
-        for (; forcing_iter != forcing.end(); ++forcing_iter, ++yn1_iter)
-        {
-          *yn1_iter = std::max(0.0, *yn1_iter + *forcing_iter);
-        }
+        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max( 0.0, yn1 + f ); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
           continue;
 
         // check for convergence
-        forcing_iter = forcing.begin();
-        yn1_iter = Yn1.begin();
-
-        // convergence happens when the absolute value of the change to the solution
-        // is less than a tolerance times the absolute value of the solution
-        auto abs_tol_iter = parameters_.absolute_tolerance_.begin();
-        do
-        {
-          // changes that are much smaller than the tolerance are negligible and we assume can be accepted
-          converged = (std::abs(*forcing_iter) <= small) || (std::abs(*forcing_iter) <= *abs_tol_iter) ||
-                      (std::abs(*forcing_iter) <= parameters_.relative_tolerance_ * std::abs(*yn1_iter));
-          ++forcing_iter, ++yn1_iter, ++abs_tol_iter;
-        } while (converged && forcing_iter != forcing.end());
+        converged = IsConverged(parameters_, forcing, Yn1);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -202,5 +165,75 @@ namespace micm
     state.variables_ = Yn1;
     result.final_time_ = t;
     return result;
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class DenseMatrixPolicy>
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
+    requires(!VectorizableDense<DenseMatrixPolicy>)
+  {
+    double small = parameters.small_;
+    double rel_tol = parameters.relative_tolerance_;
+    auto& abs_tol = parameters.absolute_tolerance_;
+    auto residual_iter = residual.AsVector().begin();
+    auto state_iter = state.AsVector().begin();
+    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
+    const std::size_t n_vars = abs_tol.size();
+    for (std::size_t i = 0; i < n_elem; ++i)
+    {
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+      {
+        return false;
+      }
+      ++residual_iter, ++state_iter;
+    }
+    return true;
+  }
+
+  template<class RatesPolicy, class LinearSolverPolicy>
+  template<class DenseMatrixPolicy>
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
+    requires(VectorizableDense<DenseMatrixPolicy>)
+  {
+    double small = parameters.small_;
+    double rel_tol = parameters.relative_tolerance_;
+    auto& abs_tol = parameters.absolute_tolerance_;
+    auto residual_iter = residual.AsVector().begin();
+    auto state_iter = state.AsVector().begin();
+    const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
+    const std::size_t L = residual.GroupVectorSize();
+    const std::size_t n_vars = abs_tol.size();
+    const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
+
+    // evaluate the rows that fit exactly into the vectorizable dimension (L)
+    for (std::size_t i = 0; i < whole_blocks; ++i)
+    {
+      if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
+          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+      {
+        return false;
+      }
+      ++residual_iter, ++state_iter;
+    }
+
+    // evaluate the remaining rows
+    const std::size_t remaining_rows = residual.NumRows() % L;
+    if (remaining_rows > 0)
+    {
+      for (std::size_t y = 0; y < residual.NumColumns(); ++y)
+      {
+        const std::size_t offset = y * L;
+        for (std::size_t i = offset; i < offset + remaining_rows; ++i)
+        {
+          if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
+              std::abs(residual_iter[i]) > rel_tol * std::abs(state_iter[i]))
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 }  // namespace micm

@@ -4,5 +4,11 @@
 
 #include <string>
 
-static const std::string GAS_DIFFUSION_COEFFICIENT = "diffusion coefficient [m2 s-1]";
-static const std::string MOLECULAR_WEIGHT = "molecular weight [kg mol-1]";
+namespace micm
+{
+  namespace property_keys
+  {
+    static const std::string GAS_DIFFUSION_COEFFICIENT = "diffusion coefficient [m2 s-1]";
+    static const std::string MOLECULAR_WEIGHT = "molecular weight [kg mol-1]";
+  }
+}

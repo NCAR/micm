@@ -22,6 +22,11 @@ TEST(SparseMatrix, SetScalar)
   testSetScalar<micm::SparseMatrix, StandardOrdering>();
 }
 
+TEST(SparseMatrix, AddToDiagonal)
+{
+  testAddToDiagonal<micm::SparseMatrix, StandardOrdering>();
+}
+
 TEST(SparseMatrix, SingleBlockMatrix)
 {
   auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();

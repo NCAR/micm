@@ -77,7 +77,7 @@ namespace micm
     virtual ~LinearSolver() = default;
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
-    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
+    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
@@ -86,7 +86,7 @@ namespace micm
         const SparseMatrixPolicy& matrix,
         SparseMatrixPolicy& lower_matrix,
         SparseMatrixPolicy& upper_matrix,
-        bool& is_singular);
+        bool& is_singular) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     template<class MatrixPolicy>
