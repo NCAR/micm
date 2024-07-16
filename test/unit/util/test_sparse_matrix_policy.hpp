@@ -531,6 +531,18 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
   EXPECT_EQ(matrix[0][1][1], 8);
   EXPECT_EQ(matrix[1][1][1], 10);
   EXPECT_EQ(matrix[2][1][1], 12);
+  EXPECT_EQ(matrix[0][0][1], 24);
+  EXPECT_EQ(matrix[0][2][1], 24);
+  EXPECT_EQ(matrix[0][2][3], 24);
+  EXPECT_EQ(matrix[0][3][2], 24);
+  EXPECT_EQ(matrix[1][0][1], 24);
+  EXPECT_EQ(matrix[1][2][1], 24);
+  EXPECT_EQ(matrix[1][2][3], 24);
+  EXPECT_EQ(matrix[1][3][2], 24);
+  EXPECT_EQ(matrix[2][0][1], 24);
+  EXPECT_EQ(matrix[2][2][1], 24);
+  EXPECT_EQ(matrix[2][2][3], 24);
+  EXPECT_EQ(matrix[2][3][2], 24);
 
   return matrix;
 }

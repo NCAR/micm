@@ -12,7 +12,8 @@
 template<std::size_t L>
 using BuilderType = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 template<std::size_t L>
-using StateType = micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+using StateType =
+    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 auto two = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto three = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -21,7 +22,7 @@ auto four_da = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenb
 auto six_da = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 auto param_two = micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters();
-auto param_three = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();  
+auto param_three = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 auto param_four = micm::RosenbrockSolverParameters::FourStageRosenbrockParameters();
 auto param_four_da = micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters();
 auto param_six_da = micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters();
@@ -58,26 +59,37 @@ TEST(AnalyticalExamplesJitRosenbrock, PhotolysisSuperStiffButAnalytical)
   test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-2);
   test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 1e-3);
   test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 1e-3);
-  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 1e-3);
+  test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_four_da), 1e-3);
   test_analytical_stiff_photolysis<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 1e-3);
-  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three));
-  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four));
-  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da));
-  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_two), 1e-3);
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_three));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_four));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_four_da));
+  test_analytical_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_six_da));
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
 {
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_two), 2e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_three), 2e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four), 2e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_four_da), 2e-3);
-  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_two), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_three), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_four), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_four_da), 2e-3);
+  test_analytical_stiff_ternary_chemical_activation<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(
+      BuilderType<NUM_CELLS>(param_six_da), 2e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Tunneling)

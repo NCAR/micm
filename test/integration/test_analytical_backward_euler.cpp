@@ -10,16 +10,19 @@
 #include <gtest/gtest.h>
 
 template<std::size_t L>
-using VectorBackwardEuler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters, micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+using VectorBackwardEuler = micm::CpuSolverBuilder<
+    micm::BackwardEulerSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 template<std::size_t L>
-using VectorStateType = micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+using VectorStateType =
+    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_2 = VectorBackwardEuler<2>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_3 = VectorBackwardEuler<3>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_4 = VectorBackwardEuler<4>(micm::BackwardEulerSolverParameters());
-
 
 TEST(AnalyticalExamples, Troe)
 {
@@ -69,10 +72,14 @@ TEST(AnalyticalExamples, TernaryChemicalActivation)
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 {
   test_analytical_stiff_ternary_chemical_activation(backward_euler, 5e-1);
-  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<1>, VectorStateType<1>>(backard_euler_vector_1, 5e-1);
-  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<2>, VectorStateType<2>>(backard_euler_vector_2, 5e-1);
-  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<3>, VectorStateType<3>>(backard_euler_vector_3, 5e-1);
-  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<4>, VectorStateType<4>>(backard_euler_vector_4, 5e-1);
+  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<1>, VectorStateType<1>>(
+      backard_euler_vector_1, 5e-1);
+  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<2>, VectorStateType<2>>(
+      backard_euler_vector_2, 5e-1);
+  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<3>, VectorStateType<3>>(
+      backard_euler_vector_3, 5e-1);
+  test_analytical_stiff_ternary_chemical_activation<VectorBackwardEuler<4>, VectorStateType<4>>(
+      backard_euler_vector_4, 5e-1);
 }
 
 TEST(AnalyticalExamples, Tunneling)

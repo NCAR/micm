@@ -52,9 +52,7 @@ namespace micm
         auto& data,
         auto value)
     {
-      for (std::size_t block_start = 0;
-           block_start < number_of_blocks * block_size;
-           block_start += block_size)
+      for (std::size_t block_start = 0; block_start < number_of_blocks * block_size; block_start += block_size)
         for (const auto& i : diagonal_ids)
           data[block_start + i] += value;
     };
