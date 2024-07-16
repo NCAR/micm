@@ -111,43 +111,6 @@ SolverBuilderPolicy getSolverForSingularSystemOnDiagonal(SolverBuilderPolicy bui
 }
 
 template<class SolverBuilderPolicy>
-SolverBuilderPolicy NonReacting(SolverBuilderPolicy builder)
-{
-  // A -> B, k1
-  // B -> C, k2
-  // C -> A, k3
-
-  auto a = micm::Species("a");
-  auto b = micm::Species("b");
-  auto c = micm::Species("c");
-  auto d = micm::Species("d");
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, d } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ a })
-                         .SetProducts({ Yields(b, 1) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
-
-  micm::Process r2 = micm::Process::Create()
-                          .SetReactants({ b })
-                          .SetProducts({ Yields(c, 1) })
-                          .SetPhase(gas_phase)
-                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
-
-  micm::Process r3 = micm::Process::Create()
-                          .SetReactants({ c })
-                          .SetProducts({ Yields(a, 1) })
-                          .SetPhase(gas_phase)
-                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r3"}));
-
-  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
-      .SetReorderState(false);
-}
-
-template<class SolverBuilderPolicy>
 void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
@@ -260,72 +223,72 @@ using VectorBuilder = micm::CpuSolverBuilder<
 
 TEST(RosenbrockSolver, StandardAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+ testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+ testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+ testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ testAlphaMinusJacobian(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
 TEST(RosenbrockSolver, VectorAlphaMinusJacobian)
 {
-  testAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
-  testAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+ testAlphaMinusJacobian(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+ testAlphaMinusJacobian(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+ testAlphaMinusJacobian(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ testAlphaMinusJacobian(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
 }
 
 TEST(RosenbrockSolver, CanSetTolerances)
 {
-  auto foo = micm::Species("foo");
-  auto bar = micm::Species("bar");
+ auto foo = micm::Species("foo");
+ auto bar = micm::Species("bar");
 
-  foo.SetProperty("absolute tolerance", 1.0e-07);
-  bar.SetProperty("absolute tolerance", 1.0e-08);
+ foo.SetProperty("absolute tolerance", 1.0e-07);
+ bar.SetProperty("absolute tolerance", 1.0e-08);
 
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
+ micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar } };
 
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ foo })
-                         .SetProducts({ Yields(bar, 1) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
+ micm::Process r1 = micm::Process::Create()
+                        .SetReactants({ foo })
+                        .SetProducts({ Yields(bar, 1) })
+                        .SetPhase(gas_phase)
+                        .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
 
-  for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
-  {
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
-                      micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
-                      .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-                      .SetReactions(std::vector<micm::Process>{ r1 })
-                      .SetNumberOfGridCells(number_of_grid_cells)
-                      .Build();
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_.size(), 2);
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[0], 1.0e-07);
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[1], 1.0e-08);
-  }
+ for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
+ {
+   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+                     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
+                     .SetReactions(std::vector<micm::Process>{ r1 })
+                     .SetNumberOfGridCells(number_of_grid_cells)
+                     .Build();
+   EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_.size(), 2);
+   EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[0], 1.0e-07);
+   EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[1], 1.0e-08);
+ }
 }
 
 TEST(RosenbrockSolver, StandardNormalizedError)
 {
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+ testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+ testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+ testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ testNormalizedErrorDiff(StandardBuilder(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 }
 
 TEST(RosenbrockSolver, VectorNormalizedError)
 {
-  // Exact fits
-  testNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
+ // Exact fits
+ testNormalizedErrorDiff(VectorBuilder<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+ testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+ testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 4);
 
-  // Inexact fits
-  testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
-  testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
-  testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
-  testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
-  testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ // Inexact fits
+ testNormalizedErrorDiff(VectorBuilder<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 1);
+ testNormalizedErrorDiff(VectorBuilder<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 2);
+ testNormalizedErrorDiff(VectorBuilder<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
+ testNormalizedErrorDiff(VectorBuilder<8>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 5);
+ testNormalizedErrorDiff(VectorBuilder<10>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters()), 3);
 }
 
 TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)

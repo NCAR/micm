@@ -99,6 +99,7 @@ namespace micm
       }
       niLU_.push_back(iLU);
     }
+    uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
   }
 
   template<class SparseMatrixPolicy>
@@ -171,6 +172,7 @@ namespace micm
       bool& is_singular) const
   {
     MICM_PROFILE_FUNCTION();
+    is_singular = false;
 
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
@@ -187,7 +189,6 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
-      is_singular = false;
       for (auto& inLU : niLU_)
       {
         // Upper trianglur matrix
@@ -223,9 +224,10 @@ namespace micm
           ++uii;
         }
       }
-      // the singularity check inside the for loop won't detect a zero in the bottom right position
-      auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize() + U.FlatBlockSize() - 1);
-      if (*cell_U_bottom_right == 0) is_singular = true;
+      if (U_vector[*uii] == 0.0)
+      {
+        is_singular = true;
+      }
     }
   }
 
@@ -243,6 +245,7 @@ namespace micm
     std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
     std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
     std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
+    is_singular = false;
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
@@ -259,7 +262,6 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
-      is_singular = false;
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
       for (auto& inLU : niLU_)
       {
@@ -316,9 +318,15 @@ namespace micm
           ++uii;
         }
       }
-
-      auto cell_U_bottom_right = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize + U_GroupSizeOfFlatBlockSize - 1);
-      if (*cell_U_bottom_right == 0) is_singular = true;
+      std::size_t uii_deref = *uii;
+      std::size_t remaining_rows = A.NumRows() % A.GroupVectorSize();
+      for (std::size_t i_cell = 0; i_cell < remaining_rows; ++i_cell)
+      {
+        if (U_vector[uii_deref + i_cell] == 0.0)
+        {
+          is_singular = true;
+        }
+      }
     }
   }
 
