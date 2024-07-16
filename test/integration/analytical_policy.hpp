@@ -213,7 +213,7 @@ void test_simple_system(
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
       EXPECT_NEAR(combined_error(k1[i], state.rate_constants_[i][0], 1e-15), 0, relative_tolerance);
-      EXPECT_NEAR(combined_error(k2[i], state.rate_constants_[i][1], 1e-15), 0, relative_tolerance); 
+      EXPECT_NEAR(combined_error(k2[i], state.rate_constants_[i][1], 1e-15), 0, relative_tolerance);
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
@@ -597,8 +597,7 @@ void test_analytical_photolysis(
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
   std::unordered_map<std::string, std::vector<double>> custom_parameters = {
-    { "photoA", std::vector<double>(NUM_CELLS, 2e-3) },
-    { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
+    { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
   test_simple_system<BuilderPolicy, StateType>(

@@ -49,11 +49,11 @@ namespace micm
     using value_type = T;
 
    protected:
-    std::size_t number_of_blocks_;          // Number of block sub-matrices in the overall matrix
-    std::vector<std::size_t> row_ids_;      // Row indices of each non-zero element in a block
-    std::vector<std::size_t> row_start_;    // Index in data_ and row_ids_ of the start of each row in a block
-    std::vector<std::size_t> diagonal_ids_; // Indices of non-zero diagonal elements in each block
-    std::vector<T> data_;                   // Value of each non-zero matrix element
+    std::size_t number_of_blocks_;           // Number of block sub-matrices in the overall matrix
+    std::vector<std::size_t> row_ids_;       // Row indices of each non-zero element in a block
+    std::vector<std::size_t> row_start_;     // Index in data_ and row_ids_ of the start of each row in a block
+    std::vector<std::size_t> diagonal_ids_;  // Indices of non-zero diagonal elements in each block
+    std::vector<T> data_;                    // Value of each non-zero matrix element
 
    private:
     friend class SparseMatrixBuilder<T, OrderingPolicy>;

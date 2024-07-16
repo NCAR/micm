@@ -100,11 +100,11 @@ namespace micm
     {
       if (jacobian.GroupVectorSize() != jacobian.NumberOfBlocks())
       {
-        std::string msg =
-            "JIT functions require the number of grid cells solved together (" +
-            std::to_string(jacobian.NumberOfBlocks()) + ") to match the vector dimension template "
-            "parameter, currently: " +
-            std::to_string(jacobian.GroupVectorSize());
+        std::string msg = "JIT functions require the number of grid cells solved together (" +
+                          std::to_string(jacobian.NumberOfBlocks()) +
+                          ") to match the vector dimension template "
+                          "parameter, currently: " +
+                          std::to_string(jacobian.GroupVectorSize());
         throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
       }
       double a = alpha;

@@ -76,12 +76,15 @@ namespace micm
     /// @param state The current state being solved for
     /// @return true if the residual is small enough to stop the iteration
     template<class DenseMatrixPolicy>
-    static bool IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
-      requires(!VectorizableDense<DenseMatrixPolicy>);
+    static bool IsConverged(
+        const BackwardEulerSolverParameters& parameters,
+        const DenseMatrixPolicy& residual,
+        const DenseMatrixPolicy& state) requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
-    static bool IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
-      requires(VectorizableDense<DenseMatrixPolicy>);
-
+    static bool IsConverged(
+        const BackwardEulerSolverParameters& parameters,
+        const DenseMatrixPolicy& residual,
+        const DenseMatrixPolicy& state) requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm
