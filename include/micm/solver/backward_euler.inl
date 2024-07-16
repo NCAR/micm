@@ -96,7 +96,7 @@ namespace micm
 
         // add the inverse of the time step from the diagonal
         state.jacobian_.AddToDiagonal(1 / H);
-        
+
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
@@ -108,7 +108,7 @@ namespace micm
         // residual = forcing - (Yn1 - Yn) / H
         // since forcing is only used once, we can reuse it to store the residual
         forcing.ForEach([&](double& f, const double& yn1, const double& yn) { f -= (yn1 - yn) / H; }, Yn1, Yn);
-        
+
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
         linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
@@ -117,7 +117,7 @@ namespace micm
         // solution_blk in camchem
         // Yn1 = Yn1 + residual;
         // always make sure the solution is positive regardless of which iteration we are on
-        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max( 0.0, yn1 + f ); }, forcing);
+        Yn1.ForEach([&](double& yn1, const double& f) { yn1 = std::max(0.0, yn1 + f); }, forcing);
 
         // if this is the first iteration, we don't need to check for convergence
         if (iterations++ == 0)
@@ -169,8 +169,10 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
-    requires(!VectorizableDense<DenseMatrixPolicy>)
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+      const BackwardEulerSolverParameters& parameters,
+      const DenseMatrixPolicy& residual,
+      const DenseMatrixPolicy& state) requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = parameters.relative_tolerance_;
@@ -193,8 +195,10 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(const BackwardEulerSolverParameters& parameters, const DenseMatrixPolicy& residual, const DenseMatrixPolicy& state)
-    requires(VectorizableDense<DenseMatrixPolicy>)
+  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+      const BackwardEulerSolverParameters& parameters,
+      const DenseMatrixPolicy& residual,
+      const DenseMatrixPolicy& state) requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = parameters.relative_tolerance_;
