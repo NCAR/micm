@@ -287,8 +287,10 @@ TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
   vector_solver.solver_.parameters_.h_start_ = H;
     
   vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
 
   auto vector_result = vector_solver.Solve(2*H, vector_state);
+  vector_state.SyncOutputsToHost();
   EXPECT_NE(vector_result.stats_.singular_, 0);
 }
 
@@ -324,7 +326,9 @@ TEST(RosenbrockSolver, SingularSystemZeroAlongDiagonalNotBottomRight)
   vector_state.variables_[3] =   { 1.0, 1.0, 1.0 };
     
   vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
 
   auto vector_result = vector_solver.Solve(2*H, vector_state);
+  vector_state.SyncOutputsToHost();
   EXPECT_NE(vector_result.stats_.singular_, 0);
 }
