@@ -327,6 +327,7 @@ namespace micm
           if (U_vector[uii_deref + i_cell] == 0.0)
           {
             is_singular = true;
+            break;
           }
         }
       }
