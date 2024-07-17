@@ -320,7 +320,8 @@ namespace micm
         }
       }
       std::size_t uii_deref = *uii;
-      if (n_cells != A_GroupVectorSize) {
+      if (n_cells != A_GroupVectorSize)
+      {
         // check the bottom right corner of the matrix
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
         {

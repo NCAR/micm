@@ -1,6 +1,6 @@
-#include <cstddef>
-
 #include <gtest/gtest.h>
+
+#include <cstddef>
 
 template<class SolverBuilderPolicy>
 SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
@@ -105,13 +105,13 @@ SolverBuilderPolicy getSingularSystemZeroInBottomRightOfU(SolverBuilderPolicy bu
                          .SetReactants({ a })
                          .SetProducts({ Yields(b, 1) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }));
 
   micm::Process r2 = micm::Process::Create()
-                          .SetReactants({ b })
-                          .SetProducts({ Yields(a, 1) })
-                          .SetPhase(gas_phase)
-                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
+                         .SetReactants({ b })
+                         .SetProducts({ Yields(a, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }));
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::vector<micm::Process>{ r1, r2 })
@@ -135,19 +135,19 @@ SolverBuilderPolicy getSolverForSingularSystemOnDiagonal(SolverBuilderPolicy bui
                          .SetReactants({ a })
                          .SetProducts({ Yields(b, 1) })
                          .SetPhase(gas_phase)
-                         .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r1"}));
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }));
 
   micm::Process r2 = micm::Process::Create()
-                          .SetReactants({ b })
-                          .SetProducts({ Yields(c, 1) })
-                          .SetPhase(gas_phase)
-                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r2"}));
+                         .SetReactants({ b })
+                         .SetProducts({ Yields(c, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }));
 
   micm::Process r3 = micm::Process::Create()
-                          .SetReactants({ c })
-                          .SetProducts({ Yields(a, 1) })
-                          .SetPhase(gas_phase)
-                          .SetRateConstant(micm::UserDefinedRateConstant({.label_ = "r3"}));
+                         .SetReactants({ c })
+                         .SetProducts({ Yields(a, 1) })
+                         .SetPhase(gas_phase)
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }));
 
   return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
