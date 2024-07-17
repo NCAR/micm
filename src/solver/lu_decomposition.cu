@@ -102,6 +102,11 @@ namespace micm
             ++uii_offset;
           }
         }
+        // check the bottom right corner of the matrix
+        if (d_U[d_uii[uii_offset] + tid] == 0.0)
+        {
+          *d_is_singular = true;
+        }
       }
     }  // end of CUDA kernel
 

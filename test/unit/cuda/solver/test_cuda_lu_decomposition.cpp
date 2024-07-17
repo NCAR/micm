@@ -50,7 +50,8 @@ void testCudaRandomMatrix(size_t n_grids)
 
   micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
   auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
-  cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second);
+  bool singular{ false };
+  cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second, singular);
 
   // checking GPU result again CPU
   size_t L_size = cpu_LU.first.AsVector().size();

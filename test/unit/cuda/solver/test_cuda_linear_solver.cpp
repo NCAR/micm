@@ -75,7 +75,8 @@ std::vector<double> linearSolverGenerator(std::size_t number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
-  solver.Factor(A, lower_matrix, upper_matrix);
+  bool singular{ false };
+  solver.Factor(A, lower_matrix, upper_matrix, singular);
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix

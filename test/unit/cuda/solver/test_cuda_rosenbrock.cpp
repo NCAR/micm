@@ -15,52 +15,10 @@
 
 #include <iostream>
 
+#include "../../solver/test_rosenbrock_solver_policy.hpp"
+
 template<std::size_t L>
 using GpuBuilder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
-
-template<class SolverBuilderPolicy>
-SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
-{
-  // ---- foo  bar  baz  quz  quuz
-  // foo   0    1    2    -    -
-  // bar   3    4    5    -    -
-  // baz   6    -    7    -    -
-  // quz   -    8    -    9    -
-  // quuz 10    -   11    -    12
-
-  auto foo = micm::Species("foo");
-  auto bar = micm::Species("bar");
-  auto baz = micm::Species("baz");
-  auto quz = micm::Species("quz");
-  auto quuz = micm::Species("quuz");
-
-  foo.SetProperty("absolute tolerance", 1.0e-03);
-  bar.SetProperty("absolute tolerance", 1.0e-05);
-  baz.SetProperty("absolute tolerance", 1.0e-07);
-  quz.SetProperty("absolute tolerance", 1.0e-08);
-  quuz.SetProperty("absolute tolerance", 1.0e-10);
-
-  micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, baz, quz, quuz } };
-
-  micm::Process r1 = micm::Process::Create()
-                         .SetReactants({ foo, baz })
-                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.0e-11, .B_ = 0, .C_ = 110 }));
-
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ bar })
-                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
-                         .SetPhase(gas_phase)
-                         .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 1.0e-6 }));
-
-  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase).SetRateConstant(
-      micm::ArrheniusRateConstant({ .A_ = 3.5e-6 }));
-
-  return builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
-      .SetReactions(std::vector<micm::Process>{ r1, r2, r3 })
-      .SetReorderState(false);
-}
 
 template<std::size_t L>
 void testAlphaMinusJacobian()
@@ -293,4 +251,84 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   testNormalizedErrorDiff<200041>();
   testNormalizedErrorDiff<421875>();
   testNormalizedErrorDiff<3395043>();
+}
+
+TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
+{
+  auto params = micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  params.check_singularity_ = true;
+  auto vector = GpuBuilder<4>(params);
+
+  auto vector_solver = getSingularSystemZeroInBottomRightOfU(vector).SetNumberOfGridCells(4).Build();
+
+  auto vector_state = vector_solver.GetState();
+
+  double k1 = -2;
+  double k2 = 1.0;
+
+  vector_state.SetCustomRateParameter("r1", {k1, k1, k1, k1});
+  vector_state.SetCustomRateParameter("r2", {k2, k2, k2, k2});
+
+  vector_state.variables_[0] = { 1.0, 1.0 };
+  vector_state.variables_[1] = { 1.0, 1.0 };
+  vector_state.variables_[2] = { 1.0, 1.0 };
+  vector_state.variables_[3] = { 1.0, 1.0 };
+
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to have alpha + k1 + k2 = 0
+  // in this case, one of the reaction rates will be negative but it's good enough to 
+  // test the singularity check
+  // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value from 
+  // the rosenbrock paramters
+  // so H needs to be 1 / ( (-k1 - k2) * gamma)
+  // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
+  double H = 1 / ( (-k1 - k2) * params.gamma_[0]);
+  vector_solver.solver_.parameters_.h_start_ = H;
+    
+  vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
+
+  auto vector_result = vector_solver.Solve(2*H, vector_state);
+  vector_state.SyncOutputsToHost();
+  EXPECT_NE(vector_result.stats_.singular_, 0);
+}
+
+TEST(RosenbrockSolver, SingularSystemZeroAlongDiagonalNotBottomRight)
+{
+  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+
+  double k1 = -1.0;
+  double k2 = -1.0;
+  double k3 = 1.0;
+
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to set alpha = -k1, or alpha=-k2, or alpha=k3
+  double H = 1 / ( -k1* params.gamma_[0]);
+
+  params.check_singularity_ = true;
+  params.h_start_ = H;
+    
+  auto vector = GpuBuilder<4>(params);
+
+  auto vector_solver = getSolverForSingularSystemOnDiagonal(vector).SetNumberOfGridCells(4).Build();
+
+  auto vector_state = vector_solver.GetState();
+
+  vector_state.SetCustomRateParameter("r1", {k1, k1, k1, k1});
+  vector_state.SetCustomRateParameter("r2", {k2, k2, k2, k2});
+  vector_state.SetCustomRateParameter("r3", {k3, k3, k3, k3});
+
+  vector_state.variables_[0] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[1] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[2] =   { 1.0, 1.0, 1.0 };
+  vector_state.variables_[3] =   { 1.0, 1.0, 1.0 };
+    
+  vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
+
+  auto vector_result = vector_solver.Solve(2*H, vector_state);
+  vector_state.SyncOutputsToHost();
+  EXPECT_NE(vector_result.stats_.singular_, 0);
 }
