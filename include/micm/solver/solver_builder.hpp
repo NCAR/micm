@@ -133,7 +133,17 @@ namespace micm
   template<class SolverParametersPolicy, std::size_t L>
   using VectorizedCpuSolverBuilder =
       CpuSolverBuilder<SolverParametersPolicy, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
-
+//   template<
+//       class SolverParametersPolicy,
+//       class DenseMatrixPolicy = Matrix<double, MICM_DEFAULT_VECTOR_MATRIX_SIZE>,
+//       class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixVectorOrdering<L>>>
+//   using VectorizedCpuSolverBuilder = SolverBuilder<
+//       SolverParametersPolicy,
+//       DenseMatrixPolicy,
+//       SparseMatrixPolicy,
+//       ProcessSet,
+//       LinearSolver<SparseMatrixPolicy, LuDecomposition>,
+//       State<DenseMatrixPolicy, SparseMatrixPolicy>>;
 }  // namespace micm
 
 #include "solver_builder.inl"
