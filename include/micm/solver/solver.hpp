@@ -90,6 +90,11 @@ namespace micm
       return StatePolicy(state_parameters_);
     }
 
+    std::vector<micm::Process> GetProcesses() const
+    {
+      return processes_;
+    } 
+
     void CalculateRateConstants(StatePolicy& state)
     {
       Process::CalculateRateConstants(processes_, state);
