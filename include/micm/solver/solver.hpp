@@ -93,7 +93,7 @@ namespace micm
     std::vector<micm::Process> GetProcesses() const
     {
       return processes_;
-    } 
+    }
 
     void CalculateRateConstants(StatePolicy& state)
     {
