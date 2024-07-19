@@ -2,6 +2,14 @@
 
 #include <cstddef>
 
+#include <micm/process/arrhenius_rate_constant.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/util/matrix.hpp>
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/vector_matrix.hpp>
+
 template<class SolverBuilderPolicy>
 SolverBuilderPolicy getSolver(SolverBuilderPolicy builder)
 {
