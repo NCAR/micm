@@ -202,7 +202,7 @@ namespace micm
       SparseMatrixPolicy,
       RatesPolicy,
       LinearSolverPolicy,
-      StatePolicy>::UnusedSpeciesCheck()
+      StatePolicy>::UnusedSpeciesCheck() const
   {
     if (ignore_unused_species_)
     {
@@ -355,7 +355,7 @@ namespace micm
       SparseMatrixPolicy,
       RatesPolicy,
       LinearSolverPolicy,
-      StatePolicy>::Build()
+      StatePolicy>::Build() const
   {
     // make a copy of the options so that the builder can be used repeatedly
     // this matters because the absolute tolerances must be set to match the system size, and that may change
