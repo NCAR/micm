@@ -41,7 +41,7 @@ namespace
         case MicmSolverBuilderErrc::MissingChemicalSpecies:
           return "Provided chemical system contains no species.";
         case MicmSolverBuilderErrc::InvalidToleranceSize:
-          return "Provided tolerances do not match the number of species in the chemical system.";
+          return "Provided tolerances do not match the number of species in the chemical system. Either provide none and allow defaults to be set or pass in a number equal to the number of chemical species.";
         default: return "Unknown error";
       }
     }
@@ -293,7 +293,7 @@ namespace micm
     {
       throw std::system_error(
           make_error_code(MicmSolverBuilderErrc::InvalidToleranceSize),
-          "You provided a list tolerances that does not match the number of species in the chemical system. Either provide the correct length or pass none in and a default value will be set for all species.");
+          "Invalid absolute tolerance vector size");
     }
     // if the tolerances aren't already set, initialize them and then set based off of information in the system
     if (tolerances.size() != species_map.size())
@@ -357,6 +357,10 @@ namespace micm
       LinearSolverPolicy,
       StatePolicy>::Build()
   {
+    // make a copy of the options so that the builder can be used repeatedly
+    // this matters because the absolute tolerances must be set to match the system size, and that may change
+    auto options = this->options_;
+
     if (!valid_system_)
     {
       throw std::system_error(make_error_code(MicmSolverBuilderErrc::MissingChemicalSystem), "Missing chemical system.");
@@ -376,7 +380,7 @@ namespace micm
     }
 
     this->UnusedSpeciesCheck();
-    this->SetAbsoluteTolerances(this->options_.absolute_tolerance_, species_map);
+    this->SetAbsoluteTolerances(options.absolute_tolerance_, species_map);
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
@@ -397,7 +401,7 @@ namespace micm
                                          .nonzero_jacobian_elements_ = nonzero_elements };
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(this->options_, std::move(linear_solver), std::move(rates), jacobian),
+        SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),
         state_parameters,
         this->number_of_grid_cells_,
         number_of_species,
