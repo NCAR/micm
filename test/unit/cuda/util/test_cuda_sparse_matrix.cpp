@@ -2,7 +2,7 @@
 #include "cuda_matrix_utils.cuh"
 
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/cuda/util/sparse_matrix_vector_ordering.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
 
 #include <gtest/gtest.h>
 
