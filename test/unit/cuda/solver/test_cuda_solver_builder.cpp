@@ -58,21 +58,9 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
   constexpr std::size_t L = 4;
   using cuda_builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
 
-  EXPECT_ANY_THROW(
-    cuda_builder(params)
-      .SetSystem(the_system)
-      .SetReactions(reactions)
-      .SetNumberOfGridCells(L)
-      .Build();
-  );
+  EXPECT_ANY_THROW(cuda_builder(params).SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(L).Build(););
 
   // too few
   params.absolute_tolerance_ = { 1e-6, 1e-6 };
-  EXPECT_ANY_THROW(
-    cuda_builder(params)
-      .SetSystem(the_system)
-      .SetReactions(reactions)
-      .SetNumberOfGridCells(L)
-      .Build();
-  );
+  EXPECT_ANY_THROW(cuda_builder(params).SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(L).Build(););
 }
