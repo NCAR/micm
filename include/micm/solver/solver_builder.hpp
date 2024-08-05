@@ -88,12 +88,12 @@ namespace micm
 
     /// @brief Creates an instance of Solver with a properly configured ODE solver
     /// @return An instance of Solver
-    auto Build();
+    auto Build() const;
 
    protected:
     /// @brief Checks for unused species
     /// @throws std::system_error if an unused species is found
-    void UnusedSpeciesCheck();
+    void UnusedSpeciesCheck() const;
 
     /// @brief Gets a map of species to their index
     /// @return The species map

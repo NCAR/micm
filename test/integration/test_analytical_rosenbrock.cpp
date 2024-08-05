@@ -199,7 +199,7 @@ TEST(AnalyticalExamples, Robertson)
   auto rosenbrock_solver = [](auto params)
   {
     params.relative_tolerance_ = 1e-10;
-    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    params.absolute_tolerance_ = std::vector<double>(3, params.relative_tolerance_ * 1e-2);
     return BuilderType(params);
   };
 
