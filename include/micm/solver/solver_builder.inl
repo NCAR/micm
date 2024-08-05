@@ -3,11 +3,11 @@
 
 enum class MicmSolverBuilderErrc
 {
-  UnusedSpecies = 1,          // Unused species present in the chemical system
-  MissingChemicalSystem = 2,  // Missing chemical system
-  MissingReactions = 3,       // Missing processes
-  MissingChemicalSpecies = 4, // Missing chemical species
-  InvalidToleranceSize = 5    // Invalid tolerance size
+  UnusedSpecies = 1,           // Unused species present in the chemical system
+  MissingChemicalSystem = 2,   // Missing chemical system
+  MissingReactions = 3,        // Missing processes
+  MissingChemicalSpecies = 4,  // Missing chemical species
+  InvalidToleranceSize = 5     // Invalid tolerance size
 };
 
 namespace std
@@ -38,10 +38,10 @@ namespace
           return "Missing chemical system. Use the SetSystem function to set the chemical system.";
         case MicmSolverBuilderErrc::MissingReactions:
           return "Missing reactions. Use the SetReactions function to set the processes.";
-        case MicmSolverBuilderErrc::MissingChemicalSpecies:
-          return "Provided chemical system contains no species.";
+        case MicmSolverBuilderErrc::MissingChemicalSpecies: return "Provided chemical system contains no species.";
         case MicmSolverBuilderErrc::InvalidToleranceSize:
-          return "Provided tolerances do not match the number of species in the chemical system. Either provide none and allow defaults to be set or pass in a number equal to the number of chemical species.";
+          return "Provided tolerances do not match the number of species in the chemical system. Either provide none and "
+                 "allow defaults to be set or pass in a number equal to the number of chemical species.";
         default: return "Unknown error";
       }
     }
@@ -292,8 +292,7 @@ namespace micm
     if (tolerances.size() > 0 && tolerances.size() != species_map.size())
     {
       throw std::system_error(
-          make_error_code(MicmSolverBuilderErrc::InvalidToleranceSize),
-          "Invalid absolute tolerance vector size");
+          make_error_code(MicmSolverBuilderErrc::InvalidToleranceSize), "Invalid absolute tolerance vector size");
     }
     // if the tolerances aren't already set, initialize them and then set based off of information in the system
     if (tolerances.size() != species_map.size())
