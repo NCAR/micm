@@ -36,7 +36,7 @@ namespace micm
     {
     }
 
-    Solver(const Solver&) = delete;
+    // Solver(const Solver&) = delete;
     Solver& operator=(const Solver&) = delete;
 
     Solver(Solver&& other)
@@ -48,6 +48,7 @@ namespace micm
       std::swap(this->solver_, other.solver_);
       std::swap(this->processes_, other.processes_);
     }
+
     Solver& operator=(Solver&& other)
     {
       std::swap(this->solver_, other.solver_);
