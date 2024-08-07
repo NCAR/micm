@@ -117,9 +117,9 @@ TEST(SolverConfig, ReadAndParseSystemObject)
 
   // Check 'name' and 'properties' in 'Species'
   std::vector<std::pair<std::string, short>> species_name_and_num_properties = {
-    std::make_pair("Ar", 1), std::make_pair("CO2", 1), std::make_pair("H2O", 1),
-    std::make_pair("M", 0), std::make_pair("N2", 2), std::make_pair("O", 1),
-    std::make_pair("O1D", 1), std::make_pair("O2", 1), std::make_pair("O3", 1)
+    std::make_pair("Ar", 1),  std::make_pair("CO2", 1), std::make_pair("H2O", 1),
+    std::make_pair("M", 0),   std::make_pair("N2", 2),  std::make_pair("O", 1),
+    std::make_pair("O1D", 1), std::make_pair("O2", 1),  std::make_pair("O3", 1)
   };
 
   short idx = 0;

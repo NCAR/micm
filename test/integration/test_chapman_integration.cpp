@@ -57,10 +57,10 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   }
 
   // User gives an input of concentrations
-  std::unordered_map<std::string, std::vector<double>> concentrations = {
-    { "O", { 0.1 } },  { "O1D", { 0.1 } }, { "O2", { 0.1 } },  { "O3", { 0.2 } },
-    { "Ar", { 0.2 } }, { "N2", { 0.3 } },  { "H2O", { 0.3 } }, { "CO2", { 0.3 } }
-  };
+  std::unordered_map<std::string, std::vector<double>> concentrations = { { "O", { 0.1 } },   { "O1D", { 0.1 } },
+                                                                          { "O2", { 0.1 } },  { "O3", { 0.2 } },
+                                                                          { "Ar", { 0.2 } },  { "N2", { 0.3 } },
+                                                                          { "H2O", { 0.3 } }, { "CO2", { 0.3 } } };
 
   state.SetConcentrations(concentrations);
 
