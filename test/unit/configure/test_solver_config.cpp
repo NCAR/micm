@@ -117,9 +117,9 @@ TEST(SolverConfig, ReadAndParseSystemObject)
 
   // Check 'name' and 'properties' in 'Species'
   std::vector<std::pair<std::string, short>> species_name_and_num_properties = {
-    std::make_pair("M", 0),   std::make_pair("Ar", 1), std::make_pair("CO2", 1),
-    std::make_pair("H2O", 1), std::make_pair("N2", 2), std::make_pair("O1D", 1),
-    std::make_pair("O", 1),   std::make_pair("O2", 1), std::make_pair("O3", 1)
+    std::make_pair("Ar", 1), std::make_pair("CO2", 1), std::make_pair("H2O", 1),
+    std::make_pair("M", 0), std::make_pair("N2", 2), std::make_pair("O", 1),
+    std::make_pair("O1D", 1), std::make_pair("O2", 1), std::make_pair("O3", 1)
   };
 
   short idx = 0;
@@ -147,9 +147,9 @@ TEST(SolverConfig, ReadAndParseThirdBodySpecies)
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].name_, "FOO");
-  EXPECT_TRUE(solver_params.system_.gas_phase_.species_[0].IsParameterized());
-  EXPECT_EQ(solver_params.system_.gas_phase_.species_[0].parameterize_({ .air_density_ = 42.4 }), 42.4);
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[2].name_, "FOO");
+  EXPECT_TRUE(solver_params.system_.gas_phase_.species_[2].IsParameterized());
+  EXPECT_EQ(solver_params.system_.gas_phase_.species_[2].parameterize_({ .air_density_ = 42.4 }), 42.4);
 }
 
 TEST(SolverConfig, ReadAndParseProcessObjects)

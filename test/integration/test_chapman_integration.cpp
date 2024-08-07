@@ -46,7 +46,6 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
   {
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["M"]], 1.0e-3);
     EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
     EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
     EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
@@ -59,7 +58,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   // User gives an input of concentrations
   std::unordered_map<std::string, std::vector<double>> concentrations = {
-    { "O", { 0.1 } },  { "O1D", { 0.1 } }, { "O2", { 0.1 } },  { "O3", { 0.2 } }, { "M", { 0.2 } },
+    { "O", { 0.1 } },  { "O1D", { 0.1 } }, { "O2", { 0.1 } },  { "O3", { 0.2 } },
     { "Ar", { 0.2 } }, { "N2", { 0.3 } },  { "H2O", { 0.3 } }, { "CO2", { 0.3 } }
   };
 
@@ -74,6 +73,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   state.conditions_[0].temperature_ = 2;
   state.conditions_[0].pressure_ = 3;
+  state.conditions_[0].air_density_ = 0.2;
 
   for (double t{}; t < 100; ++t)
   {

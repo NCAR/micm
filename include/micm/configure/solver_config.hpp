@@ -122,7 +122,7 @@ namespace micm
     using json = nlohmann::json;
 
    public:
-    std::vector<Species> species_arr_;
+    std::map<std::string, Species> species_;
 
     std::vector<UserDefinedRateConstant> user_defined_rate_arr_;
     std::vector<ArrheniusRateConstant> arrhenius_rate_arr_;
@@ -247,7 +247,7 @@ namespace micm
       }
 
       // Clear vectors and maps
-      species_arr_.clear();
+      species_.clear();
       user_defined_rate_arr_.clear();
       arrhenius_rate_arr_.clear();
       troe_rate_arr_.clear();
@@ -262,7 +262,12 @@ namespace micm
       ParseSpeciesArray(species_objects);
 
       // Assign the parsed 'Species' to 'Phase'
-      gas_phase_ = Phase(species_arr_);
+      std::vector<Species> species_arr;
+      for (const auto& [name, species] : species_)
+      {
+        species_arr.push_back(species);
+      }
+      gas_phase_ = Phase(species_arr);
 
       // Parse mechanism object array
       ParseMechanismArray(mechanism_objects);
@@ -394,7 +399,7 @@ namespace micm
           }
         }
       }
-      species_arr_.push_back(species);
+      species_[name] = species;
     }
 
     void ParseRelativeTolerance(const json& object)
@@ -426,7 +431,7 @@ namespace micm
         if (value.contains(QTY))
           qty = value[QTY];
         for (std::size_t i = 0; i < qty; ++i)
-          reactants.push_back(Species(key));
+          reactants.push_back(species_[key]);
       }
       return reactants;
     }
@@ -440,13 +445,14 @@ namespace micm
       for (auto& [key, value] : object.items())
       {
         ValidateSchema(value, {}, { "yield" });
+        auto species = species_[key];
         if (value.contains(YIELD))
         {
-          products.push_back(std::make_pair(Species(key), value[YIELD]));
+          products.push_back(std::make_pair(species, value[YIELD]));
         }
         else
         {
-          products.push_back(std::make_pair(Species(key), DEFAULT_YIELD));
+          products.push_back(std::make_pair(species, DEFAULT_YIELD));
         }
       }
       return products;
@@ -781,14 +787,7 @@ namespace micm
       auto products = ParseProducts(object[PRODUCTS]);
 
       Species reactant_species = Species("");
-      for (auto& species : species_arr_)
-      {
-        if (species.name_ == species_name)
-        {
-          reactant_species = species;
-          break;
-        }
-      }
+      reactant_species = species_[species_name];
       SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
                                                 .species_ = reactant_species };
 
