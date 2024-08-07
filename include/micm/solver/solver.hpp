@@ -55,7 +55,7 @@ namespace micm
       number_of_species_ = other.number_of_species_;
       number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
-      std::swap(this->solver_, other.processes_);
+      std::swap(this->processes_, other.processes_);
       return *this;
     }
 
