@@ -43,8 +43,9 @@ namespace micm
         : number_of_grid_cells_(other.number_of_grid_cells_),
           number_of_species_(other.number_of_species_),
           number_of_reactions_(other.number_of_reactions_),
-          state_parameters_(other.state_parameters_)
+          state_parameters_(std::move(other.state_parameters_))
     {
+      std::cout << "     move constructor" << std::endl;
       std::swap(this->solver_, other.solver_);
       std::swap(this->processes_, other.processes_);
     }
@@ -57,6 +58,7 @@ namespace micm
       number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
       std::swap(this->processes_, other.processes_);
+      std::cout << "     moved" << std::endl;
       return *this;
     }
 
