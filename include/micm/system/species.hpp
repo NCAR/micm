@@ -76,6 +76,9 @@ namespace micm
     ///        the solver state.
     std::function<double(const Conditions)> parameterize_{ nullptr };
 
+    /// @brief Default constructor
+    Species() = default;
+
     /// @brief Copy assignment
     /// @param other species to copy
     Species& operator=(const Species& other);
