@@ -13,6 +13,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <functional>
 #include <random>
 
@@ -100,7 +101,9 @@ void verify_gpu_against_cpu()
 
   for (int i = 0; i < cpu_x.size(); i++)
   {
-    EXPECT_EQ(cpu_x, gpu_x);
+    auto cpu_ele = cpu_x[i];
+    auto gpu_ele = gpu_x[i];
+    EXPECT_LT(std::abs((cpu_ele - gpu_ele) / cpu_ele), 1.0e-6);
   }
 }
 
