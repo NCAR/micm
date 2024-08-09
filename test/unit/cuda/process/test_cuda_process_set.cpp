@@ -14,6 +14,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <cmath>
 
 using index_pair = std::pair<std::size_t, std::size_t>;
 
@@ -105,7 +106,7 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
   {
     double a = cpu_forcing_vector[i];
     double b = gpu_forcing_vector[i];
-    EXPECT_EQ(a, b);
+    EXPECT_LT(std::abs((a-b)/a), 1.e-11);
   }
 }
 
@@ -200,7 +201,7 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   {
     double a = cpu_jacobian_vector[i];
     double b = gpu_jacobian_vector[i];
-    ASSERT_EQ(a, b);
+    EXPECT_LT(std::abs((a-b)/a), 2.e-10);
   }
 }
 

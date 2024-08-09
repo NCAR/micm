@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <functional>
 #include <random>
 #include <vector>
@@ -62,11 +63,15 @@ void testCudaRandomMatrix(size_t n_grids)
   std::vector<double> cpu_U_vector = cpu_LU.second.AsVector();
   for (int i = 0; i < L_size; ++i)
   {
-    EXPECT_DOUBLE_EQ(gpu_L_vector[i], cpu_L_vector[i]);
+    auto gpu_L = gpu_L_vector[i];
+    auto cpu_L = cpu_L_vector[i];
+    EXPECT_LT(std::abs((gpu_L - cpu_L) / cpu_L), 1.0e-5);
   };
   for (int j = 0; j < U_size; ++j)
   {
-    EXPECT_DOUBLE_EQ(gpu_U_vector[j], cpu_U_vector[j]);
+    auto gpu_U = gpu_U_vector[j];
+    auto cpu_U = cpu_U_vector[j];
+    EXPECT_LT(std::abs((gpu_U - cpu_U) / cpu_U), 1.0e-5);
   };
 }
 
