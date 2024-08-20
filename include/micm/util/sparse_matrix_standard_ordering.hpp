@@ -25,7 +25,7 @@ namespace micm
         const std::vector<std::size_t>& row_start)
     {
       return number_of_blocks * row_ids.size();
-    };
+    }
 
     static std::size_t VectorIndex(
         std::size_t number_of_blocks,
@@ -43,7 +43,7 @@ namespace micm
       if (elem == end)
         throw std::system_error(make_error_code(MicmMatrixErrc::ZeroElementAccess));
       return std::size_t{ (elem - row_ids.begin()) + block * row_ids.size() };
-    };
+    }
 
     static void AddToDiagonal(
         const std::vector<std::size_t>& diagonal_ids,
@@ -55,6 +55,6 @@ namespace micm
       for (std::size_t block_start = 0; block_start < number_of_blocks * block_size; block_start += block_size)
         for (const auto& i : diagonal_ids)
           data[block_start + i] += value;
-    };
+    }
   };
 }  // namespace micm

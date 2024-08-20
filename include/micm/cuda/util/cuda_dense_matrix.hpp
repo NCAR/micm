@@ -232,10 +232,11 @@ namespace micm
       if constexpr (std::is_same_v<T, int>)
       {
         // the cudaMemset function only works for integer types and is an asynchronous function: https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gf7338650f7683c51ee26aadc6973c63a
-        CHECK_CUDA_ERROR(cudaMemset(this->param_.d_data_, val, sizeof(double) * param.number_of_elements_), "cudaMemset");
+        CHECK_CUDA_ERROR(cudaMemset(this->param_.d_data_, val, sizeof(double) * this->param_.number_of_elements_), "cudaMemset");
+      }
       else
       {
-        CHECK_CUDA_ERROR(micm::cuda::FillCudaMatrix(this->param_, val), "FillCudaMatrix");
+        CHECK_CUDA_ERROR(micm::cuda::FillCudaMatrix<T>(this->param_, val), "FillCudaMatrix");
       }
     }
 

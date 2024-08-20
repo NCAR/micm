@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/util/internal_error.hpp>
-#include <micm/util/cuda/cuda/cuda_param.hpp>
+#include <micm/cuda/util/cuda_param.hpp>
 #include <cuda_runtime.h>
 
 #include <vector>
@@ -74,5 +74,7 @@ namespace micm
       cudaError_t err = cudaGetLastError();
       return err;
     }
+
+    template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
   }  // namespace cuda
 }  // namespace micm
