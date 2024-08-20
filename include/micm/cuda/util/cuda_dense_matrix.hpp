@@ -229,8 +229,14 @@ namespace micm
     /// @param val Value to set each element to
     void Fill(T val)
     {
-      std::fill(this->data_.begin(), this->data_.end(), val);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
+      if constexpr (std::is_same_v<T, int>)
+      {
+        // the cudaMemset function only works for integer types and is an asynchronous function: https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gf7338650f7683c51ee26aadc6973c63a
+        CHECK_CUDA_ERROR(cudaMemset(this->param_.d_data_, val, sizeof(double) * param.number_of_elements_), "cudaMemset");
+      else
+      {
+        CHECK_CUDA_ERROR(micm::cuda::FillCudaMatrix(this->param_, val), "FillCudaMatrix");
+      }
     }
 
   };  // class CudaDenseMatrix
