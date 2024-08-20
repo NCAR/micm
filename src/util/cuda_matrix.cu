@@ -75,6 +75,7 @@ namespace micm
       return err;
     }
 
+    // source code needs the instantiation of the template
     template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
   }  // namespace cuda
 }  // namespace micm
