@@ -67,7 +67,7 @@ jobs:
     strategy:
       matrix:
         compiler:
-          - { cpp: g++-11, c: gcc-11}
+          - { cpp: g++-14, c: gcc-14}
           - { cpp: g++-12, c: gcc-12}
           - { cpp: clang++, c: clang}
         build_type: [Release]
