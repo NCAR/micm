@@ -40,5 +40,12 @@ namespace micm
     /// @param vectorMatrixSrc Struct containing allocated source device memory to copy from
     /// @returns Error code from copying to destination device memory from source device memory, if any
     cudaError_t CopyToDeviceFromDevice(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
+
+
+    /// @brief Fills a CUDA matrix with a specified value
+    /// @param param Struct containing allocated device memory
+    /// @param val Value to fill the matrix with
+    template<typename T>
+    cudaError_t FillCudaMatrix(CudaMatrixParam& param, T val);
   }  // namespace cuda
 }  // namespace micm

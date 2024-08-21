@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/util/internal_error.hpp>
-
+#include <micm/cuda/util/cuda_param.hpp>
 #include <cuda_runtime.h>
 
 #include <vector>
@@ -55,5 +55,27 @@ namespace micm
           cudaMemcpyDeviceToDevice);
       return err;
     }
+
+    template<typename T>
+    __global__ void FillCudaMatrixKernel(T* d_data, std::size_t number_of_elements, T val)
+    {
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      if (tid < number_of_elements)
+      {
+        d_data[tid] = val;
+      }
+    }
+
+    template<typename T>
+    cudaError_t FillCudaMatrix(CudaMatrixParam& param, T val)
+    {
+      std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      FillCudaMatrixKernel<<<number_of_blocks, BLOCK_SIZE>>>(param.d_data_, param.number_of_elements_, val);
+      cudaError_t err = cudaGetLastError();
+      return err;
+    }
+
+    // source code needs the instantiation of the template
+    template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
   }  // namespace cuda
 }  // namespace micm
