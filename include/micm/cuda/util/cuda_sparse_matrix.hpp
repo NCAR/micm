@@ -32,47 +32,28 @@ namespace micm
       this->param_.d_data_ = nullptr;
     }
 
-    CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(std::is_same_v<T, double>)
-        : SparseMatrix<T, OrderingPolicy>(builder)
-    {
-      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
-    }
     CudaSparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
         : SparseMatrix<T, OrderingPolicy>(builder)
     {
-      this->param_.d_data_ = nullptr;
-    }
-
-    CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder) requires(
-        std::is_same_v<T, double>)
-    {
-      SparseMatrix<T, OrderingPolicy>::operator=(builder);
       this->param_.number_of_grid_cells_ = this->number_of_blocks_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
-      return *this;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
     }
 
     CudaSparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
       SparseMatrix<T, OrderingPolicy>::operator=(builder);
-      this->param_.d_data_ = nullptr;
+      this->param_.number_of_grid_cells_ = this->number_of_blocks_;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
       return *this;
-    }
-
-    CudaSparseMatrix(const CudaSparseMatrix& other) requires(std::is_same_v<T, double>)
-        : SparseMatrix<T, OrderingPolicy>(other)
-    {
-      this->param_ = other.param_;
-      this->param_.d_data_ = nullptr;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     CudaSparseMatrix(const CudaSparseMatrix& other)
         : SparseMatrix<T, OrderingPolicy>(other)
     {
+      this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     CudaSparseMatrix(CudaSparseMatrix&& other) noexcept
@@ -87,8 +68,8 @@ namespace micm
       SparseMatrix<T, OrderingPolicy>::operator=(other);
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->data_.size()), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->data_.size()), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
       return *this;
     }
 
@@ -102,27 +83,20 @@ namespace micm
       return *this;
     }
 
-    ~CudaSparseMatrix() requires(std::is_same_v<T, double>)
+    ~CudaSparseMatrix()
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_.d_data_ = nullptr;
     }
 
-    ~CudaSparseMatrix()
-    {
-      this->param_.d_data_ = nullptr;
-    }
-
     void CopyToDevice()
     {
-      static_assert(std::is_same_v<T, double>);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<T>(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
 
     void CopyToHost()
     {
-      static_assert(std::is_same_v<T, double>);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToHost<T>(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
 
     /// @brief Set every matrix element to a given value on the GPU
@@ -134,7 +108,7 @@ namespace micm
         // the cudaMemset function only works for integer types and is an asynchronous function:
         // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gf7338650f7683c51ee26aadc6973c63a
         CHECK_CUDA_ERROR(
-            cudaMemset(this->param_.d_data_, val, sizeof(double) * this->param_.number_of_elements_), "cudaMemset");
+            cudaMemset(this->param_.d_data_, val, sizeof(T) * this->param_.number_of_elements_), "cudaMemset");
       }
       else
       {

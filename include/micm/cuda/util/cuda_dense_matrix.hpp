@@ -69,48 +69,35 @@ namespace micm
 
    public:
 
-    CudaDenseMatrix() requires(std::is_same_v<T, double>)
+    CudaDenseMatrix()
         : VectorMatrix<T, L>()
     {
       this->param_.number_of_grid_cells_ = 0;
       this->param_.number_of_elements_ = this->data_.size();
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
-    }
-    CudaDenseMatrix()
-        : VectorMatrix<T, L>()
-    {
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
         : VectorMatrix<T, L>(x_dim, y_dim)
     {
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
-    }
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim)
-        : VectorMatrix<T, L>(x_dim, y_dim)
-    {
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
         : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
     {
       this->param_.number_of_elements_ = this->data_.size();
       this->param_.number_of_grid_cells_ = x_dim;
       if (this->param_.number_of_elements_ != 0)
       {
-        CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
         Fill(initial_value);
       }
     }
 
-    CudaDenseMatrix(std::size_t x_dim, std::size_t y_dim, T initial_value)
-        : VectorMatrix<T, L>(x_dim, y_dim, initial_value)
-    {
-    } 
-    
-    CudaDenseMatrix(const std::vector<std::vector<T>> other) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const std::vector<std::vector<T>> other)
         : VectorMatrix<T, L>(other)
     {
       this->param_.number_of_grid_cells_ = 0;
@@ -119,28 +106,18 @@ namespace micm
       {
         this->param_.number_of_elements_ += inner_vector.size();
       }
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
     }
 
-    CudaDenseMatrix(const std::vector<std::vector<T>> other)
-        : VectorMatrix<T, L>(other)
-    {
-    }
-
-    CudaDenseMatrix(const CudaDenseMatrix& other) requires(std::is_same_v<T, double>)
+    CudaDenseMatrix(const CudaDenseMatrix& other)
         : VectorMatrix<T, L>(other)
     {
       this->param_ = other.param_;
       this->param_.d_data_ = nullptr;
       this->param_.number_of_elements_ = other.param_.number_of_elements_;
       this->param_.number_of_grid_cells_ = other.param_.number_of_grid_cells_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
-    }
-
-    CudaDenseMatrix(const CudaDenseMatrix& other)
-        : VectorMatrix<T, L>(other)
-    {
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     CudaDenseMatrix(CudaDenseMatrix&& other) noexcept
@@ -156,8 +133,8 @@ namespace micm
       if (this->param_.d_data_ != nullptr)
         CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_ = other.param_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector(this->param_, this->param_.number_of_elements_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
       return *this;
     }
 
@@ -183,14 +160,12 @@ namespace micm
 
     void CopyToDevice()
     {
-      static_assert(std::is_same_v<T, double>);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice(this->param_, this->data_), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<T>(this->param_, this->data_), "cudaMemcpyHostToDevice");
     }
 
     void CopyToHost()
     {
-      static_assert(std::is_same_v<T, double>);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToHost(this->param_, this->data_), "cudaMemcpyDeviceToHost");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToHost<T>(this->param_, this->data_), "cudaMemcpyDeviceToHost");
     }
 
     CudaMatrixParam AsDeviceParam() const
@@ -227,7 +202,7 @@ namespace micm
       {
         throw std::runtime_error("Both CUDA dense matrices must have the same size.");
       }
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
     /// @brief Set every matrix element to a given value on the GPU
@@ -239,7 +214,7 @@ namespace micm
         // the cudaMemset function only works for integer types and is an asynchronous function:
         // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gf7338650f7683c51ee26aadc6973c63a
         CHECK_CUDA_ERROR(
-            cudaMemset(this->param_.d_data_, val, sizeof(double) * this->param_.number_of_elements_), "cudaMemset");
+            cudaMemset(this->param_.d_data_, val, sizeof(T) * this->param_.number_of_elements_), "cudaMemset");
       }
       else
       {
