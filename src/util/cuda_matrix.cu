@@ -85,8 +85,12 @@ namespace micm
     template cudaError_t MallocVector<int>(CudaMatrixParam& param, std::size_t number_of_elements);
     template cudaError_t CopyToDevice<double>(CudaMatrixParam& param, std::vector<double>& h_data);
     template cudaError_t CopyToHost<double>(CudaMatrixParam& param, std::vector<double>& h_data);
-    template cudaError_t CopyToDeviceFromDevice<double>(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
-    template cudaError_t CopyToDeviceFromDevice<int>(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
+    template cudaError_t CopyToDeviceFromDevice<double>(
+        CudaMatrixParam& vectorMatrixDest,
+        const CudaMatrixParam& vectorMatrixSrc);
+    template cudaError_t CopyToDeviceFromDevice<int>(
+        CudaMatrixParam& vectorMatrixDest,
+        const CudaMatrixParam& vectorMatrixSrc);
     template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
   }  // namespace cuda
 }  // namespace micm
