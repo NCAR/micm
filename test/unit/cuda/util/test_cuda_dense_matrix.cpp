@@ -24,10 +24,10 @@ TEST(CudaDenseMatrix, DeviceMemCopy)
   std::size_t num_elements = h_vector.size();
   CudaMatrixParam param;
 
-  micm::cuda::MallocVector(param, num_elements);
-  micm::cuda::CopyToDevice(param, h_vector);
+  micm::cuda::MallocVector<double>(param, num_elements);
+  micm::cuda::CopyToDevice<double>(param, h_vector);
   micm::cuda::SquareDriver(param);
-  micm::cuda::CopyToHost(param, h_vector);
+  micm::cuda::CopyToHost<double>(param, h_vector);
 
   EXPECT_EQ(h_vector[0], 1 * 1);
   EXPECT_EQ(h_vector[1], 2 * 2);

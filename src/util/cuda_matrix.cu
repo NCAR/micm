@@ -12,10 +12,11 @@ namespace micm
 {
   namespace cuda
   {
+    template<typename T>
     cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements)
     {
       param.number_of_elements_ = number_of_elements;
-      cudaError_t err = cudaMalloc(&(param.d_data_), sizeof(double) * number_of_elements);
+      cudaError_t err = cudaMalloc(&(param.d_data_), sizeof(T) * number_of_elements);
       return err;
     }
 
@@ -32,27 +33,30 @@ namespace micm
       return err;
     }
 
-    cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<double>& h_data)
+    template<typename T>
+    cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<T>& h_data)
     {
       cudaError_t err =
-          cudaMemcpy(param.d_data_, h_data.data(), sizeof(double) * param.number_of_elements_, cudaMemcpyHostToDevice);
+          cudaMemcpy(param.d_data_, h_data.data(), sizeof(T) * param.number_of_elements_, cudaMemcpyHostToDevice);
       return err;
     }
 
-    cudaError_t CopyToHost(CudaMatrixParam& param, std::vector<double>& h_data)
+    template<typename T>
+    cudaError_t CopyToHost(CudaMatrixParam& param, std::vector<T>& h_data)
     {
       cudaDeviceSynchronize();
       cudaError_t err =
-          cudaMemcpy(h_data.data(), param.d_data_, sizeof(double) * param.number_of_elements_, cudaMemcpyDeviceToHost);
+          cudaMemcpy(h_data.data(), param.d_data_, sizeof(T) * param.number_of_elements_, cudaMemcpyDeviceToHost);
       return err;
     }
 
+    template<typename T>
     cudaError_t CopyToDeviceFromDevice(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc)
     {
       cudaError_t err = cudaMemcpy(
           vectorMatrixDest.d_data_,
           vectorMatrixSrc.d_data_,
-          sizeof(double) * vectorMatrixSrc.number_of_elements_,
+          sizeof(T) * vectorMatrixSrc.number_of_elements_,
           cudaMemcpyDeviceToDevice);
       return err;
     }
@@ -77,6 +81,12 @@ namespace micm
     }
 
     // source code needs the instantiation of the template
+    template cudaError_t MallocVector<double>(CudaMatrixParam& param, std::size_t number_of_elements);
+    template cudaError_t MallocVector<int>(CudaMatrixParam& param, std::size_t number_of_elements);
+    template cudaError_t CopyToDevice<double>(CudaMatrixParam& param, std::vector<double>& h_data);
+    template cudaError_t CopyToHost<double>(CudaMatrixParam& param, std::vector<double>& h_data);
+    template cudaError_t CopyToDeviceFromDevice<double>(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
+    template cudaError_t CopyToDeviceFromDevice<int>(CudaMatrixParam& vectorMatrixDest, const CudaMatrixParam& vectorMatrixSrc);
     template cudaError_t FillCudaMatrix<double>(CudaMatrixParam& param, double val);
   }  // namespace cuda
 }  // namespace micm
