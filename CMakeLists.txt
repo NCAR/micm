@@ -29,7 +29,7 @@ option(MICM_ENABLE_MPI "Enable MPI parallel support" OFF)
 option(MICM_ENABLE_OPENMP "Enable OpenMP support" OFF)
 option(MICM_ENABLE_COVERAGE "Enable code coverage output" OFF)
 option(MICM_ENABLE_MEMCHECK "Enable memory checking in tests" OFF)
-option(MICM_ENABLE_JSON "Enable json configuration file reading" ON)
+option(MICM_ENABLE_CONFIG_READER "Enable yaml configuration file reading" ON)
 option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
@@ -99,7 +99,7 @@ endif()
 ################################################################################
 # Command-line driver examples / Command-line profiler
 
-if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_JSON AND (MICM_ENABLE_EXAMPLES OR MICM_ENABLE_PROFILE))
+if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_CONFIG_READER AND (MICM_ENABLE_EXAMPLES OR MICM_ENABLE_PROFILE))
   add_subdirectory(examples)
 endif()
 

@@ -17,7 +17,7 @@
 #include <micm/util/constants.hpp>
 #include <micm/util/error.hpp>
 
-#include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <array>
 #include <filesystem>
@@ -119,7 +119,7 @@ namespace micm
 
   class JsonReaderPolicy
   {
-    using json = nlohmann::json;
+    using json = YAML::Node;
 
    public:
     std::map<std::string, Species> species_;
@@ -183,8 +183,8 @@ namespace micm
       }
 
       // Load the CAMP file list JSON
-      json camp_data = json::parse(std::ifstream(config_file));
-      if (!camp_data.contains(CAMP_FILES))
+      json camp_data = YAML::LoadFile(config_file);
+      if (!camp_data[CAMP_FILES])
       {
         throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), config_file.string() };
       }
@@ -193,7 +193,7 @@ namespace micm
       std::vector<std::filesystem::path> camp_files;
       for (const auto& element : camp_data[CAMP_FILES])
       {
-        std::filesystem::path camp_file = config_dir / element.get<std::string>();
+        std::filesystem::path camp_file = config_dir / element.as<std::string>();
         if (!std::filesystem::exists(camp_file))
         {
           throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), camp_file.string() };
@@ -213,25 +213,30 @@ namespace micm
       // Iterate CAMP file list and form CAMP data object arrays
       for (const auto& camp_file : camp_files)
       {
-        json config_subset = json::parse(std::ifstream(camp_file));
+        json config_subset = YAML::LoadFile(camp_file);
 
-        if (!config_subset.contains(CAMP_DATA))
+        if (!config_subset[CAMP_DATA])
         {
-          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), config_subset.dump() };
+          YAML::Emitter out;
+          out << config_subset;
+          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), out.c_str()};
         }
         // Iterate JSON objects from CAMP data entry
         for (const auto& object : config_subset[CAMP_DATA])
         {
-          if (!object.is_null())
+          if (object)
           {
             // Require object to have a type entry
-            if (!object.contains(TYPE))
+            if (!object[TYPE])
             {
-              std::string msg = "object: " + object.dump() + "; type: " + TYPE;
+              YAML::Emitter out;
+              out << object;
+              std::string msg = "object: " + std::string(out.c_str()) + "; type: " + TYPE;
+              
               throw std::system_error{ make_error_code(MicmConfigErrc::ObjectTypeNotFound), msg };
             }
             // Sort into object arrays by type
-            std::string type = object[TYPE].get<std::string>();
+            std::string type = object[TYPE].as<std::string>();
             // CHEM_SPEC and RELATIVE_TOLERANCE parsed first by ParseSpeciesArray
             if ((type == "CHEM_SPEC") || (type == "RELATIVE_TOLERANCE"))
             {
@@ -278,7 +283,7 @@ namespace micm
     {
       for (const auto& object : objects)
       {
-        std::string type = object[TYPE].get<std::string>();
+        std::string type = object[TYPE].as<std::string>();
 
         if (type == "CHEM_SPEC")
         {
@@ -295,7 +300,7 @@ namespace micm
     {
       for (const auto& object : objects)
       {
-        std::string type = object[TYPE].get<std::string>();
+        std::string type = object[TYPE].as<std::string>();
 
         if (type == "MECHANISM")
         {
@@ -362,40 +367,53 @@ namespace micm
 
       ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
 
-      std::string name = object[NAME].get<std::string>();
+      std::string name = object[NAME].as<std::string>();
       Species species{ name };
 
       // Load remaining keys as properties
-      for (auto& [key, value] : object.items())
+      for(auto it = object.begin(); it != object.end(); ++it)
       {
+        auto key = it->first.as<std::string>();
+        auto value = it->second;
+
         if (key != NAME && key != TYPE)
         {
-          if (value.is_string())
+          try // Try to convert the value to a string
           {
-            if (key == TRACER_TYPE && value == THIRD_BODY)
+            std::string stringValue = value.as<std::string>();
+            if (key == TRACER_TYPE && stringValue == THIRD_BODY)
             {
               species.SetThirdBody();
             }
             else
             {
-              species.SetProperty<std::string>(key, value);
+              species.SetProperty<std::string>(key, stringValue);
             }
           }
-          else if (value.is_number_integer())
+          catch (const YAML::BadConversion& e)
           {
-            species.SetProperty<int>(key, value);
-          }
-          else if (value.is_number_float())
-          {
-            species.SetProperty<double>(key, value);
-          }
-          else if (value.is_boolean())
-          {
-            species.SetProperty<bool>(key, value);
-          }
-          else
-          {
-            throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
+            try
+            {
+              species.SetProperty<int>(key, value.as<int>()); // Try to convert the value to a int
+            }
+            catch (const YAML::BadConversion& e)
+            {
+              try
+              {
+                species.SetProperty<double>(key, value.as<double>()); // Try to convert the value to a double
+              }
+              catch (const YAML::BadConversion& e)
+              {
+                try
+                {
+                species.SetProperty<bool>(key, value.as<bool>()); // Try to convert the value to a bool
+                }
+                catch (const YAML::BadConversion& e)
+                {
+                  throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
+                }
+              }
+            }
           }
         }
       }
@@ -405,7 +423,7 @@ namespace micm
     void ParseRelativeTolerance(const json& object)
     {
       ValidateSchema(object, { "value", "type" }, {});
-      this->parameters_.relative_tolerance_ = object["value"].get<double>();
+      this->parameters_.relative_tolerance_ = object["value"].as<double>();
     }
 
     void ParseMechanism(const json& object)
@@ -424,12 +442,15 @@ namespace micm
       const std::string QTY = "qty";
       std::vector<Species> reactants;
 
-      for (auto& [key, value] : object.items())
+      for (auto it = object.begin(); it != object.end(); ++it)
       {
+        auto key = it->first.as<std::string>();
+        auto value = it->second; 
+
         std::size_t qty = 1;
         ValidateSchema(value, {}, { "qty" });
-        if (value.contains(QTY))
-          qty = value[QTY];
+        if (value[QTY])
+          qty = value[QTY].as<std::size_t>();
         for (std::size_t i = 0; i < qty; ++i)
           reactants.push_back(species_[key]);
       }
@@ -442,13 +463,17 @@ namespace micm
 
       constexpr double DEFAULT_YIELD = 1.0;
       std::vector<std::pair<Species, double>> products;
-      for (auto& [key, value] : object.items())
+      for (auto it = object.begin(); it != object.end(); ++it)
       {
+        auto key = it->first.as<std::string>();
+        auto value = it->second; 
+
         ValidateSchema(value, {}, { "yield" });
         auto species = species_[key];
-        if (value.contains(YIELD))
+        if (value[YIELD])
         {
-          products.push_back(std::make_pair(species, value[YIELD]));
+          double yield = value[YIELD].as<double>();
+          products.push_back(std::make_pair(species, yield));
         }
         else
         {
@@ -469,9 +494,9 @@ namespace micm
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      double scaling_factor = object[SCALING_FACTOR] ? object[SCALING_FACTOR].as<double>() : 1.0;
 
-      std::string name = "PHOTO." + object[MUSICA_NAME].get<std::string>();
+      std::string name = "PHOTO." + object[MUSICA_NAME].as<std::string>();
 
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
 
@@ -491,28 +516,28 @@ namespace micm
       auto products = ParseProducts(object[PRODUCTS]);
 
       ArrheniusRateConstantParameters parameters;
-      if (object.contains("A"))
+      if (object["A"])
       {
-        parameters.A_ = object["A"].get<double>();
+        parameters.A_ = object["A"].as<double>();
       }
       parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
-      if (object.contains("B"))
+      if (object["B"])
       {
-        parameters.B_ = object["B"].get<double>();
+        parameters.B_ = object["B"].as<double>();
       }
-      if (object.contains("C"))
+      if (object["C"])
       {
-        parameters.C_ = object["C"].get<double>();
+        parameters.C_ = object["C"].as<double>();
       }
-      if (object.contains("D"))
+      if (object["D"])
       {
-        parameters.D_ = object["D"].get<double>();
+        parameters.D_ = object["D"].as<double>();
       }
-      if (object.contains("E"))
+      if (object["E"])
       {
-        parameters.E_ = object["E"].get<double>();
+        parameters.E_ = object["E"].as<double>();
       }
-      if (object.contains("Ea"))
+      if (object["Ea"])
       {
         if (parameters.C_ != 0)
         {
@@ -520,7 +545,7 @@ namespace micm
                                    "Ea is specified when C is also specified for an Arrhenius reaction. Pick one." };
         }
         // Calculate 'C' using 'Ea'
-        parameters.C_ = -1 * object["Ea"].get<double>() / constants::BOLTZMANN_CONSTANT;
+        parameters.C_ = -1 * object["Ea"].as<double>() / constants::BOLTZMANN_CONSTANT;
       }
       arrhenius_rate_arr_.push_back(ArrheniusRateConstant(parameters));
       std::unique_ptr<ArrheniusRateConstant> rate_ptr = std::make_unique<ArrheniusRateConstant>(parameters);
@@ -539,41 +564,41 @@ namespace micm
       auto products = ParseProducts(object[PRODUCTS]);
 
       TroeRateConstantParameters parameters;
-      if (object.contains("k0_A"))
+      if (object["k0_A"])
       {
-        parameters.k0_A_ = object["k0_A"].get<double>();
+        parameters.k0_A_ = object["k0_A"].as<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
       parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size());
-      if (object.contains("k0_B"))
+      if (object["k0_B"])
       {
-        parameters.k0_B_ = object["k0_B"].get<double>();
+        parameters.k0_B_ = object["k0_B"].as<double>();
       }
-      if (object.contains("k0_C"))
+      if (object["k0_C"])
       {
-        parameters.k0_C_ = object["k0_C"].get<double>();
+        parameters.k0_C_ = object["k0_C"].as<double>();
       }
-      if (object.contains("kinf_A"))
+      if (object["kinf_A"])
       {
-        parameters.kinf_A_ = object["kinf_A"].get<double>();
+        parameters.kinf_A_ = object["kinf_A"].as<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
       parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
-      if (object.contains("kinf_B"))
+      if (object["kinf_B"])
       {
-        parameters.kinf_B_ = object["kinf_B"].get<double>();
+        parameters.kinf_B_ = object["kinf_B"].as<double>();
       }
-      if (object.contains("kinf_C"))
+      if (object["kinf_C"])
       {
-        parameters.kinf_C_ = object["kinf_C"].get<double>();
+        parameters.kinf_C_ = object["kinf_C"].as<double>();
       }
-      if (object.contains("Fc"))
+      if (object["Fc"])
       {
-        parameters.Fc_ = object["Fc"].get<double>();
+        parameters.Fc_ = object["Fc"].as<double>();
       }
-      if (object.contains("N"))
+      if (object["N"])
       {
-        parameters.N_ = object["N"].get<double>();
+        parameters.N_ = object["N"].as<double>();
       }
       troe_rate_arr_.push_back(TroeRateConstant(parameters));
       std::unique_ptr<TroeRateConstant> rate_ptr = std::make_unique<TroeRateConstant>(parameters);
@@ -592,41 +617,41 @@ namespace micm
       auto products = ParseProducts(object[PRODUCTS]);
 
       TernaryChemicalActivationRateConstantParameters parameters;
-      if (object.contains("k0_A"))
+      if (object["k0_A"])
       {
-        parameters.k0_A_ = object["k0_A"].get<double>();
+        parameters.k0_A_ = object["k0_A"].as<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
       parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
-      if (object.contains("k0_B"))
+      if (object["k0_B"])
       {
-        parameters.k0_B_ = object["k0_B"].get<double>();
+        parameters.k0_B_ = object["k0_B"].as<double>();
       }
-      if (object.contains("k0_C"))
+      if (object["k0_C"])
       {
-        parameters.k0_C_ = object["k0_C"].get<double>();
+        parameters.k0_C_ = object["k0_C"].as<double>();
       }
-      if (object.contains("kinf_A"))
+      if (object["kinf_A"])
       {
-        parameters.kinf_A_ = object["kinf_A"].get<double>();
+        parameters.kinf_A_ = object["kinf_A"].as<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
       parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 2);
-      if (object.contains("kinf_B"))
+      if (object["kinf_B"])
       {
-        parameters.kinf_B_ = object["kinf_B"].get<double>();
+        parameters.kinf_B_ = object["kinf_B"].as<double>();
       }
-      if (object.contains("kinf_C"))
+      if (object["kinf_C"])
       {
-        parameters.kinf_C_ = object["kinf_C"].get<double>();
+        parameters.kinf_C_ = object["kinf_C"].as<double>();
       }
-      if (object.contains("Fc"))
+      if (object["Fc"])
       {
-        parameters.Fc_ = object["Fc"].get<double>();
+        parameters.Fc_ = object["Fc"].as<double>();
       }
-      if (object.contains("N"))
+      if (object["N"])
       {
-        parameters.N_ = object["N"].get<double>();
+        parameters.N_ = object["N"].as<double>();
       }
 
       ternary_rate_arr_.push_back(TernaryChemicalActivationRateConstant(parameters));
@@ -652,12 +677,12 @@ namespace micm
       auto nitrate_products = ParseProducts(object[NITRATE_PRODUCTS]);
 
       BranchedRateConstantParameters parameters;
-      parameters.X_ = object[X].get<double>();
+      parameters.X_ = object[X].as<double>();
       // Account for the conversion of reactant concentrations to molecules cm-3
       parameters.X_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
-      parameters.Y_ = object[Y].get<double>();
-      parameters.a0_ = object[A0].get<double>();
-      parameters.n_ = object[N].get<int>();
+      parameters.Y_ = object[Y].as<double>();
+      parameters.a0_ = object[A0].as<double>();
+      parameters.n_ = object[N].as<int>();
 
       // Alkoxy branch
       parameters.branch_ = BranchedRateConstantParameters::Branch::Alkoxy;
@@ -683,19 +708,19 @@ namespace micm
       auto products = ParseProducts(object[PRODUCTS]);
 
       TunnelingRateConstantParameters parameters;
-      if (object.contains("A"))
+      if (object["A"])
       {
-        parameters.A_ = object["A"].get<double>();
+        parameters.A_ = object["A"].as<double>();
       }
       // Account for the conversion of reactant concentrations to molecules cm-3
       parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
-      if (object.contains("B"))
+      if (object["B"])
       {
-        parameters.B_ = object["B"].get<double>();
+        parameters.B_ = object["B"].as<double>();
       }
-      if (object.contains("C"))
+      if (object["C"])
       {
-        parameters.C_ = object["C"].get<double>();
+        parameters.C_ = object["C"].as<double>();
       }
 
       tunneling_rate_arr_.push_back(TunnelingRateConstant(parameters));
@@ -712,15 +737,15 @@ namespace micm
 
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR, PRODUCTS });
 
-      std::string species = object["species"].get<std::string>();
+      std::string species = object["species"].as<std::string>();
       json reactants_object{};
       json products_object{};
-      products_object[species] = { { "yield", 1.0 } };
+      products_object[species]["yield"] = 1.0;
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
-      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      double scaling_factor = object[SCALING_FACTOR] ? object[SCALING_FACTOR].as<double>() : 1.0;
 
-      std::string name = "EMIS." + object[MUSICA_NAME].get<std::string>();
+      std::string name = "EMIS." + object[MUSICA_NAME].as<std::string>();
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
@@ -735,15 +760,15 @@ namespace micm
 
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
 
-      std::string species = object["species"].get<std::string>();
+      std::string species = object["species"].as<std::string>();
       json reactants_object{};
       json products_object{};
       reactants_object[species] = {};
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
-      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      double scaling_factor = object[SCALING_FACTOR] ? object[SCALING_FACTOR].as<double>() : 1.0;
 
-      std::string name = "LOSS." + object[MUSICA_NAME].get<std::string>();
+      std::string name = "LOSS." + object[MUSICA_NAME].as<std::string>();
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
@@ -761,9 +786,9 @@ namespace micm
 
       auto reactants = ParseReactants(object[REACTANTS]);
       auto products = ParseProducts(object[PRODUCTS]);
-      double scaling_factor = object.contains(SCALING_FACTOR) ? object[SCALING_FACTOR].get<double>() : 1.0;
+      double scaling_factor = object[SCALING_FACTOR] ? object[SCALING_FACTOR].as<double>() : 1.0;
 
-      std::string name = "USER." + object[MUSICA_NAME].get<std::string>();
+      std::string name = "USER." + object[MUSICA_NAME].as<std::string>();
       user_defined_rate_arr_.push_back(UserDefinedRateConstant({ .label_ = name, .scaling_factor_ = scaling_factor }));
       std::unique_ptr<UserDefinedRateConstant> rate_ptr = std::make_unique<UserDefinedRateConstant>(
           UserDefinedRateConstantParameters{ .label_ = name, .scaling_factor_ = scaling_factor });
@@ -779,7 +804,7 @@ namespace micm
 
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
 
-      std::string species_name = object[REACTANTS].get<std::string>();
+      std::string species_name = object[REACTANTS].as<std::string>();
       json reactants_object{};
       reactants_object[species_name] = {};
 
@@ -788,12 +813,12 @@ namespace micm
 
       Species reactant_species = Species("");
       reactant_species = species_[species_name];
-      SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].get<std::string>(),
+      SurfaceRateConstantParameters parameters{ .label_ = "SURF." + object[MUSICA_NAME].as<std::string>(),
                                                 .species_ = reactant_species };
 
-      if (object.contains(PROBABILITY))
+      if (object[PROBABILITY])
       {
-        parameters.reaction_probability_ = object[PROBABILITY].get<double>();
+        parameters.reaction_probability_ = object[PROBABILITY].as<double>();
       }
 
       surface_rate_arr_.push_back(SurfaceRateConstant(parameters));
@@ -810,20 +835,24 @@ namespace micm
         const std::vector<std::string>& required_keys,
         const std::vector<std::string>& optional_keys)
     {
+      YAML::Emitter out;
+      out << object;  // Serialize the object to a string
+
       // standard keys are:
       // those in required keys
       // those in optional keys
       // starting with __
       // anything else is reported as an error so that typos are caught, specifically for optional keys
-
-      if (!object.empty() && object.begin().value().is_null())
+      if (object && object.size() > 0 && object.begin()->second.IsNull())
       {
         return;
       }
 
       std::vector<std::string> sorted_object_keys;
-      for (auto& [key, value] : object.items())
+      for (auto it = object.begin(); it != object.end(); ++it) {
+        std::string key = it->first.as<std::string>();
         sorted_object_keys.push_back(key);
+      }
 
       auto sorted_required_keys = required_keys;
       auto sorted_optional_keys = optional_keys;
@@ -852,8 +881,9 @@ namespace micm
             sorted_object_keys.end(),
             std::back_inserter(missing_keys));
         std::string msg;
-        for (auto& key : missing_keys)
-          msg += "Missing required key '" + key + "' in object: " + object.dump();
+        for (auto& key : missing_keys){          
+          msg += "Missing required key '" + key + "' in object: " + out.c_str() + "\n";
+        }
 
         throw std::system_error{ make_error_code(MicmConfigErrc::RequiredKeyNotFound), msg };
       }
@@ -871,7 +901,7 @@ namespace micm
       {
         if (!key.starts_with("__"))
         {
-          std::string msg = "Non-standard key '" + key + "' found in object" + object.dump();
+          std::string msg = "Non-standard key '" + key + "' found in object" + out.c_str();
           throw std::system_error{ make_error_code(MicmConfigErrc::ContainsNonStandardKey), msg };
         }
       }

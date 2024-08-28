@@ -43,7 +43,7 @@ Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
 - JSON configuration support
-  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DMICM_ENABLE_JSON=ON ..``
+  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DMICM_ENABLE_CONFIG_READER=ON ..``
 - JIT-compiled chemistry functions 
   - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
