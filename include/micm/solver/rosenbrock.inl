@@ -98,6 +98,10 @@ namespace micm
               stats.function_calls_ += 1;
             }
           }
+          if (stage + 1 < parameters_.stages_ && !parameters_.new_function_evaluation_[stage + 1])
+          {
+            K[stage + 1].Copy(K[stage]);
+          }
           for (uint64_t j = 0; j < stage; ++j)
           {
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
