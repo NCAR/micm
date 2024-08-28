@@ -17,8 +17,6 @@ namespace micm
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
     MatrixPolicy Ynew(num_rows, num_cols, 0.0);
-    MatrixPolicy initial_forcing(num_rows, num_cols, 0.0);
-    MatrixPolicy forcing(num_rows, num_cols, 0.0);
     std::vector<MatrixPolicy> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
@@ -28,7 +26,7 @@ namespace micm
 
     K.reserve(parameters_.stages_);
     for (std::size_t i = 0; i < parameters_.stages_; ++i)
-      K.emplace_back(num_rows, num_cols, 0.0);
+      K.emplace_back(num_rows, num_cols);
 
     double present_time = 0.0;
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
@@ -60,8 +58,8 @@ namespace micm
       H = std::min(H, std::abs(time_step - present_time));
 
       // compute the forcing at the beginning of the current time
-      initial_forcing.Fill(0.0);
-      rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+      K[0].Fill(0.0);
+      rates_.AddForcingTerms(state.rate_constants_, Y, K[0]);
       stats.function_calls_ += 1;
 
       // compute the negative jacobian at the beginning of the current time
@@ -86,11 +84,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
-          if (stage == 0)
-          {
-            forcing = initial_forcing;
-          }
-          else
+          if (stage != 0)
           {
             if (parameters_.new_function_evaluation_[stage])
             {
@@ -99,12 +93,11 @@ namespace micm
               {
                 Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
               }
-              forcing.Fill(0.0);
-              rates_.AddForcingTerms(state.rate_constants_, Ynew, forcing);
+              K[stage].Fill(0.0);
+              rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
               stats.function_calls_ += 1;
             }
           }
-          K[stage].Copy(forcing);
           for (uint64_t j = 0; j < stage; ++j)
           {
             K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
