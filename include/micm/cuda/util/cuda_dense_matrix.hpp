@@ -129,10 +129,12 @@ namespace micm
     CudaDenseMatrix& operator=(const CudaDenseMatrix& other)
     {
       VectorMatrix<T, L>::operator=(other);
-      if (this->param_.d_data_ != nullptr)
+      if (this->param_.number_of_elements_ != other.param_.number_of_elements_)
+      {
         CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
-      this->param_ = other.param_;
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+        this->param_ = other.param_;
+        CHECK_CUDA_ERROR(micm::cuda::MallocVector<T>(this->param_, this->param_.number_of_elements_), "cudaMalloc");
+      }
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
       return *this;
     }
