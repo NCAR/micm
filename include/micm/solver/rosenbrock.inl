@@ -57,11 +57,6 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
-      // compute the forcing at the beginning of the current time
-      K[0].Fill(0.0);
-      rates_.AddForcingTerms(state.rate_constants_, Y, K[0]);
-      stats.function_calls_ += 1;
-
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0.0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
@@ -71,6 +66,11 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
+        // compute the forcing term; have to do it here if a sub-stepping is needed (or do it outside the while loop and save the initial forcing with a temporary variable)
+        K[0].Fill(0.0);
+        rates_.AddForcingTerms(state.rate_constants_, Y, K[0]);
+        stats.function_calls_ += 1;
+        
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
