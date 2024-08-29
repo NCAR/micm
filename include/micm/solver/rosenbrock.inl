@@ -16,7 +16,8 @@ namespace micm
     MatrixPolicy Y = state.variables_;
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
-    MatrixPolicy Ynew(num_rows, num_cols, 0.0);
+    MatrixPolicy Ynew(num_rows, num_cols);
+    MatrixPolicy initial_forcing(num_rows, num_cols);
     std::vector<MatrixPolicy> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
@@ -57,6 +58,11 @@ namespace micm
       //  Limit H if necessary to avoid going beyond the specified chemistry time step
       H = std::min(H, std::abs(time_step - present_time));
 
+      // compute the initial forcing at the beginning of the current time
+      initial_forcing.Fill(0.0);
+      rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
+      stats.function_calls_ += 1;
+
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0.0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
@@ -66,11 +72,6 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        // compute the forcing term; have to do it here if a sub-stepping is needed (or do it outside the while loop and save the initial forcing with a temporary variable)
-        K[0].Fill(0.0);
-        rates_.AddForcingTerms(state.rate_constants_, Y, K[0]);
-        stats.function_calls_ += 1;
-        
         bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
@@ -84,7 +85,11 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
         {
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
-          if (stage != 0)
+          if (stage == 0)
+          {
+            K[stage].Copy(initial_forcing);
+          }
+          else
           {
             if (parameters_.new_function_evaluation_[stage])
             {
