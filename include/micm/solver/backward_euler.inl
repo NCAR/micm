@@ -67,7 +67,7 @@ namespace micm
     bool singular = false;
 
     auto Yn = state.variables_;
-    auto& Yn1 = state.variables_; // Yn1 will hold the new solution at the end of the solve
+    auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto forcing = state.variables_;
 
     while (t < time_step)
