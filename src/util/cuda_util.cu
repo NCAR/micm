@@ -32,6 +32,10 @@ namespace micm
       }
     }
 
+    /*
+       The following functions are used to create and manage cublas handles
+    */
+
     // Define a functor for the cublasHandle_t unique pointer deleter
     struct CublasHandleDeleter
     {
@@ -56,6 +60,7 @@ namespace micm
       return CublasHandlePtr(handle, CublasHandleDeleter());
     }
 
+    // Get the cublas handle for the current device
     cublasHandle_t& GetCublasHandle()
     {
       static std::map<int, CublasHandlePtr> cublas_handles_map;
@@ -69,5 +74,44 @@ namespace micm
       }
       return *cublas_handles_map[device_id];
     }
+
+    /*
+        The following functions are used to create and manage cuda streams
+    */
+
+    // Define a functor for the cudaStream unique pointer deleter
+    struct CudaStreamDeleter
+    {
+      void operator()(cudaStream_t* cuda_streams) const
+      {
+        if (cuda_streams != nullptr)
+        {
+          CHECK_CUDA_ERROR(cudaStreamDestroy(*cuda_streams), "CUDA stream finalization failed");
+          delete cuda_streams;
+        }
+      }
+    };
+
+    // Define the smart pointer type using the functor for the custom deleter
+    using CudaStreamPtr = std::unique_ptr<cudaStream_t, CudaStreamDeleter>;
+
+    // Create a CUDA stream and return a unique pointer to it
+    CudaStreamPtr CreateCudaStream()
+    {
+      cudaStream_t* cuda_streams = new cudaStream_t;
+      CHECK_CUDA_ERROR(cudaStreamCreate(cuda_streams), "CUDA stream initialization failed...");
+      return CudaStreamPtr(cuda_streams, CudaStreamDeleter());
+    }
+
+    // Get the CUDA stream given a stream ID
+    cudaStream_t& GetCudaStream(std::size_t stream_id)
+    {
+      static std::map<int, CudaStreamPtr> cuda_streams_map;
+      if (auto search = cuda_streams_map.find(stream_id); search == cuda_streams_map.end())
+      {
+        cuda_streams_map[stream_id] = std::move(CreateCudaStream());
+      }
+      return *cuda_streams_map[stream_id];
+    } 
   }  // namespace cuda
 }  // namespace micm

@@ -30,5 +30,8 @@ namespace micm
 
     /// @brief Get the cuBLAS handle for the current device
     cublasHandle_t& GetCublasHandle();
+
+    /// @brief Get the CUDA stream give a stream ID
+    cudaStream_t& GetCudaStream(std::size_t stream_id);
   }  // namespace cuda
 }  // namespace micm
