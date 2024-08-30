@@ -71,6 +71,7 @@ namespace micm
       if (auto search = cublas_handles_map.find(device_id); search == cublas_handles_map.end())
       {
         cublas_handles_map[device_id] = std::move(CreateCublasHandle());
+        cublasSetStream(*cublas_handles_map[device_id], micm::cuda::GetCudaStream(0));
       }
       return *cublas_handles_map[device_id];
     }
