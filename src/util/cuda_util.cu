@@ -82,12 +82,13 @@ namespace micm
     // Define a functor for the cudaStream unique pointer deleter
     struct CudaStreamDeleter
     {
-      void operator()(cudaStream_t* cuda_streams) const
+      void operator()(cudaStream_t* cuda_stream) const
       {
-        if (cuda_streams != nullptr)
+        if (cuda_stream != nullptr)
         {
-          CHECK_CUDA_ERROR(cudaStreamDestroy(*cuda_streams), "CUDA stream finalization failed");
-          delete cuda_streams;
+          cudaStreamSynchronize(*cuda_stream);
+          CHECK_CUDA_ERROR(cudaStreamDestroy(*cuda_stream), "CUDA stream finalization failed");
+          delete cuda_stream;
         }
       }
     };
@@ -98,9 +99,9 @@ namespace micm
     // Create a CUDA stream and return a unique pointer to it
     CudaStreamPtr CreateCudaStream()
     {
-      cudaStream_t* cuda_streams = new cudaStream_t;
-      CHECK_CUDA_ERROR(cudaStreamCreate(cuda_streams), "CUDA stream initialization failed...");
-      return CudaStreamPtr(cuda_streams, CudaStreamDeleter());
+      cudaStream_t* cuda_stream = new cudaStream_t;
+      CHECK_CUDA_ERROR(cudaStreamCreate(cuda_stream), "CUDA stream initialization failed...");
+      return CudaStreamPtr(cuda_stream, CudaStreamDeleter());
     }
 
     // Get the CUDA stream given a stream ID
