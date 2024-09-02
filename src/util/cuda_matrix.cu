@@ -17,7 +17,7 @@ namespace micm
     cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements)
     {
       param.number_of_elements_ = number_of_elements;
-      cudaError_t err = cudaMallocAsync(&(param.d_data_), sizeof(T) * number_of_elements, micm::cuda::GetCudaStream(0));
+      cudaError_t err = cudaMallocAsync(&(param.d_data_), sizeof(T) * number_of_elements, cudastreams.GetCudaStream(0));
       return err;
     }
 
@@ -29,7 +29,7 @@ namespace micm
       {
         return cudaError_t::cudaSuccess;
       }
-      cudaError_t err = cudaFreeAsync(param.d_data_, micm::cuda::GetCudaStream(0));
+      cudaError_t err = cudaFreeAsync(param.d_data_, cudastreams.GetCudaStream(0));
       param.d_data_ = nullptr;
       return err;
     }
@@ -38,7 +38,7 @@ namespace micm
     cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<T>& h_data)
     {
       cudaError_t err =
-      cudaMemcpyAsync(param.d_data_, h_data.data(), sizeof(T) * param.number_of_elements_, cudaMemcpyHostToDevice, micm::cuda::GetCudaStream(0));
+      cudaMemcpyAsync(param.d_data_, h_data.data(), sizeof(T) * param.number_of_elements_, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0));
       return err;
     }
 
@@ -46,8 +46,8 @@ namespace micm
     cudaError_t CopyToHost(CudaMatrixParam& param, std::vector<T>& h_data)
     {
       cudaError_t err =
-        cudaMemcpyAsync(h_data.data(), param.d_data_, sizeof(T) * param.number_of_elements_, cudaMemcpyDeviceToHost, micm::cuda::GetCudaStream(0));
-      cudaStreamSynchronize(micm::cuda::GetCudaStream(0));
+        cudaMemcpyAsync(h_data.data(), param.d_data_, sizeof(T) * param.number_of_elements_, cudaMemcpyDeviceToHost, cudastreams.GetCudaStream(0));
+      cudaStreamSynchronize(cudastreams.GetCudaStream(0));
       return err;
     }
 
@@ -59,7 +59,7 @@ namespace micm
           vectorMatrixSrc.d_data_,
           sizeof(T) * vectorMatrixSrc.number_of_elements_,
           cudaMemcpyDeviceToDevice,
-          micm::cuda::GetCudaStream(0));
+          cudastreams.GetCudaStream(0));
       return err;
     }
 
@@ -77,7 +77,7 @@ namespace micm
     cudaError_t FillCudaMatrix(CudaMatrixParam& param, T val)
     {
       std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      FillCudaMatrixKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::GetCudaStream(0)>>>(param.d_data_, param.number_of_elements_, val);
+      FillCudaMatrixKernel<<<number_of_blocks, BLOCK_SIZE, 0, cudastreams.GetCudaStream(0)>>>(param.d_data_, param.number_of_elements_, val);
       cudaError_t err = cudaGetLastError();
       return err;
     }

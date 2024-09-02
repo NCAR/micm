@@ -4,10 +4,12 @@
 
 #include <cstddef>
 #include <utility>
+#include <micm/cuda/util/cuda_util.cuh>
 
 // To make the NormalizedError function works properly on GPU,
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
 const std::size_t BLOCK_SIZE = 32;
+micm::cuda::CudaStreamSingleton cudastreams;
 
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "ProcessSet";
