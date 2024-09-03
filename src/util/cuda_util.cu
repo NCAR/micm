@@ -39,6 +39,7 @@ namespace micm
         {
           CHECK_CUBLAS_ERROR(cublasDestroy(*handle), "CUBLAS finalization failed");
           delete handle;
+          handle = nullptr;
         }
       }
     };
@@ -65,7 +66,7 @@ namespace micm
       if (auto search = cublas_handles_map.find(device_id); search == cublas_handles_map.end())
       {
         cublas_handles_map[device_id] = std::move(CreateCublasHandle());
-        cublasSetStream(*cublas_handles_map[device_id], cudastreams.GetCudaStream(0));
+        cublasSetStream(*cublas_handles_map[device_id], micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       }
       return *cublas_handles_map[device_id];
     }
@@ -73,6 +74,13 @@ namespace micm
     /*
         Define the following functions used in the CudaStreamSingleton class
     */
+
+    CudaStreamSingleton& CudaStreamSingleton::GetInstance()
+    {
+        static CudaStreamSingleton instance;
+        return instance;
+    }
+
     // Create a CUDA stream and return a unique pointer to it
     CudaStreamPtr CudaStreamSingleton::CreateCudaStream()
     {

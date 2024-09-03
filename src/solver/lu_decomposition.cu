@@ -128,35 +128,35 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.niLU_), niLU_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.do_aik_), do_aik_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.aik_), aik_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.uik_nkj_), uik_nkj_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lij_ujk_), lij_ujk_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.do_aki_), do_aki_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.aki_), aki_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lki_nkj_), lki_nkj_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lkj_uji_), lkj_uji_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.uii_), uii_bytes, cudastreams.GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&devstruct.is_singular, sizeof(bool), cudastreams.GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.niLU_), niLU_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.do_aik_), do_aik_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.aik_), aik_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.uik_nkj_), uik_nkj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lij_ujk_), lij_ujk_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.do_aki_), do_aki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.aki_), aki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lki_nkj_), lki_nkj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.lkj_uji_), lkj_uji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.uii_), uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&devstruct.is_singular, sizeof(bool), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
 
       /// Copy the data from host to device
-      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.niLU_, hoststruct.niLU_, niLU_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.do_aik_, hoststruct.do_aik_, do_aik_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.aik_, hoststruct.aik_, aik_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.uik_nkj_, hoststruct.uik_nkj_, uik_nkj_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.lij_ujk_, hoststruct.lij_ujk_, lij_ujk_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.do_aki_, hoststruct.do_aki_, do_aki_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.aki_, hoststruct.aki_, aki_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.lki_nkj_, hoststruct.lki_nkj_, lki_nkj_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
-      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice, cudastreams.GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.lkj_uji_, hoststruct.lkj_uji_, lkj_uji_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
+      CHECK_CUDA_ERROR(cudaMemcpyAsync(devstruct.uii_, hoststruct.uii_, uii_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       devstruct.niLU_size_ = hoststruct.niLU_size_;
 
       return devstruct;
@@ -167,27 +167,27 @@ namespace micm
     void FreeConstData(LuDecomposeParam& devstruct)
     {
       if (devstruct.is_singular != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.is_singular, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.is_singular, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.niLU_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.niLU_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.niLU_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.do_aik_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.do_aik_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.do_aik_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.aik_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.aik_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.aik_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.uik_nkj_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.uik_nkj_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.uik_nkj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.lij_ujk_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lij_ujk_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lij_ujk_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.do_aki_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.do_aki_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.do_aki_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.aki_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.aki_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.aki_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.lki_nkj_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lki_nkj_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lki_nkj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.lkj_uji_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lkj_uji_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.lkj_uji_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.uii_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.uii_, cudastreams.GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.uii_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
     }
 
     void DecomposeKernelDriver(
@@ -199,9 +199,9 @@ namespace micm
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, cudastreams.GetCudaStream(0)>>>(A_param, L_param, U_param, devstruct);
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(A_param, L_param, U_param, devstruct);
       // Copy the boolean result from device back to host
-      cudaMemcpyAsync(&is_singular, devstruct.is_singular, sizeof(bool), cudaMemcpyDeviceToHost, cudastreams.GetCudaStream(0));
+      cudaMemcpyAsync(&is_singular, devstruct.is_singular, sizeof(bool), cudaMemcpyDeviceToHost, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

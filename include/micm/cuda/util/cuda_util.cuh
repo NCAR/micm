@@ -41,9 +41,9 @@ namespace micm
       {
         if (cuda_stream != nullptr)
         {
-          cudaStreamSynchronize(*cuda_stream);
           CHECK_CUDA_ERROR(cudaStreamDestroy(*cuda_stream), "CUDA stream finalization failed");
           delete cuda_stream;
+          cuda_stream = nullptr;
         }
       }
     };
@@ -58,22 +58,25 @@ namespace micm
 
       CudaStreamSingleton() = default;
       
-      ~CudaStreamSingleton(){ CleanUp(); }
+      ~CudaStreamSingleton() = default;
       
       CudaStreamSingleton(const CudaStreamSingleton&) = delete;
 
       CudaStreamSingleton& operator=(const CudaStreamSingleton&) = delete;
 
+      // Get the only one instance of the singleton class
+      static CudaStreamSingleton& GetInstance();
+      
       // Get the CUDA stream given a stream ID
       cudaStream_t& GetCudaStream(std::size_t stream_id);
 
+      // Empty the map variable to clean up all CUDA streams
+      void CleanUp();
+      
     private:
 
       // Create a CUDA stream and return a unique pointer to it
       CudaStreamPtr CreateCudaStream();
-
-      // Empty the map variable to clean up all CUDA streams
-      void CleanUp();
 
       std::map<int, CudaStreamPtr> cuda_streams_map_;
 
