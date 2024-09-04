@@ -55,8 +55,6 @@ namespace micm
     class CudaStreamSingleton
     {
     public:
-
-      CudaStreamSingleton() = default;
       
       ~CudaStreamSingleton() = default;
       
@@ -74,6 +72,8 @@ namespace micm
       void CleanUp();
       
     private:
+      // Private constructor to prevent direct instantiation
+      CudaStreamSingleton() = default;
 
       // Create a CUDA stream and return a unique pointer to it
       CudaStreamPtr CreateCudaStream();
