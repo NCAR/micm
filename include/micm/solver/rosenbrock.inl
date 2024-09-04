@@ -13,7 +13,7 @@ namespace micm
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    MatrixPolicy Y = state.variables_;
+    MatrixPolicy& Y = state.variables_;  // Y will hold the new solution at the end of the solve
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
     MatrixPolicy Ynew(num_rows, num_cols);
@@ -192,7 +192,6 @@ namespace micm
 
     result.final_time_ = present_time;
     result.stats_ = stats;
-    state.variables_ = Y;
 
     return result;
   }
