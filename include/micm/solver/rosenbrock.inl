@@ -262,7 +262,7 @@ namespace micm
       // Reconstruct the Jacobian matrix if a substepping is performed here
       state.jacobian_.Fill(0.0);
       rates_.SubtractJacobianTerms(state.rate_constants_, number_densities, state.jacobian_);
-      stats.jacobian_updates_ += 1; 
+      stats.jacobian_updates_ += 1;
     }
   }
 
