@@ -245,10 +245,9 @@ namespace micm
     singular = false;
     while (true)
     {
-      auto jacobian = state.jacobian_;
       double alpha = 1 / (H * gamma);
-      static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
-      linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
+      static_cast<Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
+      linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
       stats.decompositions_ += 1;
 
       // if we are checking for singularity and the matrix is not singular, we can break the loop
@@ -260,6 +259,10 @@ namespace micm
       if (++n_consecutive > 5)
         break;
       H /= 2;
+      // Reconstruct the Jacobian matrix if a substepping is performed here
+      state.jacobian_.Fill(0.0);
+      rates_.SubtractJacobianTerms(state.rate_constants_, number_densities, state.jacobian_);
+      stats.jacobian_updates_ += 1; 
     }
   }
 
