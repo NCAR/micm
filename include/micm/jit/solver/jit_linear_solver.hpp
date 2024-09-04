@@ -47,11 +47,11 @@ namespace micm
         SparseMatrixPolicy& matrix,
         SparseMatrixPolicy& lower_matrix,
         SparseMatrixPolicy& upper_matrix,
-        bool& is_singular);
+        bool& is_singular) const;
 
     /// @brief Solve for x in Ax = b
     template<class MatrixPolicy>
-    void Solve(MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix);
+    void Solve(MatrixPolicy& x, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
    private:
     /// @brief Generates the JIT-ed Solve function

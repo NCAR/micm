@@ -6,7 +6,7 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
       double time_step,
-      auto& state) noexcept
+      auto& state) const noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
@@ -126,7 +126,7 @@ namespace micm
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         // Compute the normalized error
-        auto error = static_cast<Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
+        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
@@ -237,7 +237,7 @@ namespace micm
       bool& singular,
       const auto& number_densities,
       SolverStats& stats,
-      auto& state)
+      auto& state) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -247,7 +247,7 @@ namespace micm
     {
       auto jacobian = state.jacobian_;
       double alpha = 1 / (H * gamma);
-      static_cast<Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
+      static_cast<const Derived*>(this)->AlphaMinusJacobian(jacobian, alpha);
       linear_solver_.Factor(jacobian, state.lower_matrix_, state.upper_matrix_, singular);
       stats.decompositions_ += 1;
 
