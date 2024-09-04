@@ -151,10 +151,6 @@ namespace micm
 
     ~CudaDenseMatrix()
     {
-    }
-
-    ~CudaDenseMatrix() requires(std::is_same_v<T, double>)
-    {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(this->param_), "cudaFree");
       this->param_.d_data_ = nullptr;
     }
@@ -214,7 +210,7 @@ namespace micm
       {
         // the cudaMemset function only works for integer types and is an asynchronous function:
         // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__MEMORY.html#group__CUDART__MEMORY_1gf7338650f7683c51ee26aadc6973c63a
-        CHECK_CUDA_ERROR(cudaMemset(this->param_.d_data_, val, sizeof(T) * this->param_.number_of_elements_), "cudaMemset");
+        CHECK_CUDA_ERROR(cudaMemsetAsync(this->param_.d_data_, val, sizeof(T) * this->param_.number_of_elements_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemset");
       }
       else
       {

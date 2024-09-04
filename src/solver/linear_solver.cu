@@ -89,20 +89,20 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverParam devstruct;
-      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.nLij_Lii_), nLij_Lii_bytes), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.Lij_yj_), Lij_yj_bytes), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.nUij_Uii_), nUij_Uii_bytes), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMalloc(&(devstruct.Uij_xj_), Uij_xj_bytes), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.nLij_Lii_), nLij_Lii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.Lij_yj_), Lij_yj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.nUij_Uii_), nUij_Uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.Uij_xj_), Uij_xj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
-          cudaMemcpy(devstruct.nLij_Lii_, hoststruct.nLij_Lii_, nLij_Lii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.nLij_Lii_, hoststruct.nLij_Lii_, nLij_Lii_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpy(devstruct.Lij_yj_, hoststruct.Lij_yj_, Lij_yj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.Lij_yj_, hoststruct.Lij_yj_, Lij_yj_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpy(devstruct.nUij_Uii_, hoststruct.nUij_Uii_, nUij_Uii_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.nUij_Uii_, hoststruct.nUij_Uii_, nUij_Uii_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpy(devstruct.Uij_xj_, hoststruct.Uij_xj_, Uij_xj_bytes, cudaMemcpyHostToDevice), "cudaMemcpy");
+          cudaMemcpyAsync(devstruct.Uij_xj_, hoststruct.Uij_xj_, Uij_xj_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
 
       devstruct.nLij_Lii_size_ = hoststruct.nLij_Lii_size_;
       devstruct.Lij_yj_size_ = hoststruct.Lij_yj_size_;
@@ -117,13 +117,13 @@ namespace micm
     void FreeConstData(LinearSolverParam& devstruct)
     {
       if (devstruct.nLij_Lii_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFree(devstruct.nLij_Lii_), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.nLij_Lii_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.Lij_yj_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFree(devstruct.Lij_yj_), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.Lij_yj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.nUij_Uii_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFree(devstruct.nUij_Uii_), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.nUij_Uii_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.Uij_xj_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFree(devstruct.Uij_xj_), "cudaFree");
+        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.Uij_xj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
     }
 
     void SolveKernelDriver(
@@ -133,7 +133,7 @@ namespace micm
         const LinearSolverParam& devstruct)
     {
       size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      SolveKernel<<<number_of_blocks, BLOCK_SIZE>>>(x_param, L_param, U_param, devstruct);
+      SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(x_param, L_param, U_param, devstruct);
     }
   }  // namespace cuda
 }  // namespace micm
