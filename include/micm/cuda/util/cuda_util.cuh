@@ -6,9 +6,9 @@
 #include <cuda_runtime.h>
 
 #include <map>
-#include <string>
 #include <memory>
 #include <mutex>
+#include <string>
 
 #define CHECK_CUDA_ERROR(err, msg)   micm::cuda::CheckCudaError(err, __FILE__, __LINE__, msg)
 #define CHECK_CUBLAS_ERROR(err, msg) micm::cuda::CheckCublasError(err, __FILE__, __LINE__, msg)
@@ -54,24 +54,23 @@ namespace micm
     /// @brief Singleton class to manage CUDA streams
     class CudaStreamSingleton
     {
-    public:
-      
+     public:
       ~CudaStreamSingleton() = default;
-      
+
       CudaStreamSingleton(const CudaStreamSingleton&) = delete;
 
       CudaStreamSingleton& operator=(const CudaStreamSingleton&) = delete;
 
       // Get the only one instance of the singleton class
       static CudaStreamSingleton& GetInstance();
-      
+
       // Get the CUDA stream given a stream ID
       cudaStream_t& GetCudaStream(std::size_t stream_id);
 
       // Empty the map variable to clean up all CUDA streams
       void CleanUp();
-      
-    private:
+
+     private:
       // Private constructor to prevent direct instantiation
       CudaStreamSingleton() = default;
 

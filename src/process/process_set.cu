@@ -136,11 +136,32 @@ namespace micm
       ProcessSetParam devstruct;
 
       /// Allocate memory space on the device
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.number_of_reactants_), number_of_reactants_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.reactant_ids_), reactant_ids_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.number_of_products_), number_of_products_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.product_ids_), product_ids_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.yields_), yields_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.number_of_reactants_),
+              number_of_reactants_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.reactant_ids_),
+              reactant_ids_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.number_of_products_),
+              number_of_products_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.product_ids_), product_ids_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.yields_), yields_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -152,7 +173,12 @@ namespace micm
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.reactant_ids_, hoststruct.reactant_ids_, reactant_ids_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMemcpyAsync(
+              devstruct.reactant_ids_,
+              hoststruct.reactant_ids_,
+              reactant_ids_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
@@ -163,10 +189,21 @@ namespace micm
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.product_ids_, hoststruct.product_ids_, product_ids_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMemcpyAsync(
+              devstruct.product_ids_,
+              hoststruct.product_ids_,
+              product_ids_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.yields_, hoststruct.yields_, yields_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMemcpy");
+          cudaMemcpyAsync(
+              devstruct.yields_,
+              hoststruct.yields_,
+              yields_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
 
       devstruct.number_of_reactants_size_ = hoststruct.number_of_reactants_size_;
       devstruct.reactant_ids_size_ = hoststruct.reactant_ids_size_;
@@ -186,12 +223,21 @@ namespace micm
       size_t jacobian_flat_ids_bytes = sizeof(size_t) * hoststruct.jacobian_flat_ids_size_;
 
       /// Allocate memory space on the device
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.jacobian_flat_ids_), jacobian_flat_ids_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.jacobian_flat_ids_),
+              jacobian_flat_ids_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              devstruct.jacobian_flat_ids_, hoststruct.jacobian_flat_ids_, jacobian_flat_ids_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+              devstruct.jacobian_flat_ids_,
+              hoststruct.jacobian_flat_ids_,
+              jacobian_flat_ids_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
       devstruct.jacobian_flat_ids_size_ = hoststruct.jacobian_flat_ids_size_;
@@ -202,18 +248,29 @@ namespace micm
     void FreeConstData(ProcessSetParam& devstruct)
     {
       if (devstruct.number_of_reactants_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.number_of_reactants_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.number_of_reactants_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.reactant_ids_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.reactant_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.reactant_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.number_of_products_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.number_of_products_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.number_of_products_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.product_ids_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.product_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.product_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.yields_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.yields_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.yields_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.jacobian_flat_ids_ != nullptr)
       {
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_flat_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.jacobian_flat_ids_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       }
     }
 
@@ -224,7 +281,11 @@ namespace micm
         const ProcessSetParam& devstruct)
     {
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      SubtractJacobianTermsKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+      SubtractJacobianTermsKernel<<<
+          number_of_blocks,
+          BLOCK_SIZE,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           rate_constants_param, state_variables_param, jacobian_param, devstruct);
     }  // end of SubtractJacobianTermsKernelDriver
 
@@ -235,7 +296,11 @@ namespace micm
         const ProcessSetParam& devstruct)
     {
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      AddForcingTermsKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+      AddForcingTermsKernel<<<
+          number_of_blocks,
+          BLOCK_SIZE,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           rate_constants_param, state_variables_param, forcing_param, devstruct);
     }  // end of AddForcingTermsKernelDriver
   }    // namespace cuda
