@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <utility>
-#include <micm/cuda/util/cuda_util.cuh>
 
 // To make the NormalizedError function works properly on GPU,
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
