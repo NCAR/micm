@@ -26,7 +26,11 @@ function(create_standard_test)
 
   add_executable(test_${TEST_NAME} ${TEST_SOURCES})
 
-  target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
+  if(TEST_IS_CUDA_TEST)
+    target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm cuda_gtest_main)
+  else()
+    target_link_libraries(test_${TEST_NAME} PUBLIC musica::micm GTest::gtest_main)
+  endif()
 
   # link additional libraries
   foreach(library ${TEST_LIBRARIES})
