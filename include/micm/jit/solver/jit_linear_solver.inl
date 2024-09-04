@@ -61,7 +61,7 @@ namespace micm
       SparseMatrixPolicy &matrix,
       SparseMatrixPolicy &lower_matrix,
       SparseMatrixPolicy &upper_matrix,
-      bool &is_singular)
+      bool &is_singular) const
   {
     LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(matrix, lower_matrix, upper_matrix, is_singular);
   }
@@ -71,7 +71,7 @@ namespace micm
   inline void JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::Solve(
       MatrixPolicy &x,
       SparseMatrixPolicy &lower_matrix,
-      SparseMatrixPolicy &upper_matrix)
+      SparseMatrixPolicy &upper_matrix) const
   {
     solve_function_(x.AsVector().data(), lower_matrix.AsVector().data(), upper_matrix.AsVector().data());
   }
