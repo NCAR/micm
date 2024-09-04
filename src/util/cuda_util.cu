@@ -76,8 +76,8 @@ namespace micm
 
     CudaStreamSingleton& CudaStreamSingleton::GetInstance()
     {
-        static CudaStreamSingleton instance;
-        return instance;
+      static CudaStreamSingleton instance;
+      return instance;
     }
 
     // Create a CUDA stream and return a unique pointer to it
@@ -86,18 +86,18 @@ namespace micm
       cudaStream_t* cuda_stream = new cudaStream_t;
       CHECK_CUDA_ERROR(cudaStreamCreate(cuda_stream), "CUDA stream initialization failed...");
       return CudaStreamPtr(cuda_stream, CudaStreamDeleter());
-    }   
+    }
 
     // Get the CUDA stream given a stream ID
     cudaStream_t& CudaStreamSingleton::GetCudaStream(std::size_t stream_id)
     {
-      std::lock_guard<std::mutex> lock(mutex_);     
+      std::lock_guard<std::mutex> lock(mutex_);
       if (auto search = cuda_streams_map_.find(stream_id); search == cuda_streams_map_.end())
       {
         cuda_streams_map_[stream_id] = std::move(CreateCudaStream());
       }
       return *cuda_streams_map_[stream_id];
-    }      
+    }
 
     // Empty the map variable to clean up all CUDA streams
     void CudaStreamSingleton::CleanUp()

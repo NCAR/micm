@@ -45,10 +45,26 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.errors_input_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.errors_output_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
-      CHECK_CUDA_ERROR(cudaMallocAsync(&(devstruct.absolute_tolerance_), tolerance_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.errors_input_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.errors_output_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.jacobian_diagonal_elements_),
+              jacobian_diagonal_elements_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.absolute_tolerance_),
+              tolerance_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -61,7 +77,12 @@ namespace micm
           "cudaMemcpy");
 
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.absolute_tolerance_, hoststruct.absolute_tolerance_, tolerance_bytes, cudaMemcpyHostToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMemcpyAsync(
+              devstruct.absolute_tolerance_,
+              hoststruct.absolute_tolerance_,
+              tolerance_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
       devstruct.errors_size_ = hoststruct.errors_size_;
@@ -76,13 +97,22 @@ namespace micm
     void FreeConstData(CudaRosenbrockSolverParam& devstruct)
     {
       if (devstruct.errors_input_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.errors_input_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.errors_input_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.errors_output_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.errors_output_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.errors_output_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.jacobian_diagonal_elements_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.jacobian_diagonal_elements_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(
+                devstruct.jacobian_diagonal_elements_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.absolute_tolerance_ != nullptr)
-        CHECK_CUDA_ERROR(cudaFreeAsync(devstruct.absolute_tolerance_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.absolute_tolerance_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
     }
 
     // Specific CUDA device function to do reduction within a warp
@@ -246,7 +276,11 @@ namespace micm
     {
       size_t number_of_blocks =
           (devstruct.jacobian_diagonal_elements_size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      AlphaMinusJacobianKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, devstruct);
+      AlphaMinusJacobianKernel<<<
+          number_of_blocks,
+          BLOCK_SIZE,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, devstruct);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
@@ -268,14 +302,23 @@ namespace micm
       }
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              devstruct.errors_input_, errors_param.d_data_, sizeof(double) * number_of_elements, cudaMemcpyDeviceToDevice, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+              devstruct.errors_input_,
+              errors_param.d_data_,
+              sizeof(double) * number_of_elements,
+              cudaMemcpyDeviceToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
       if (number_of_elements > 1000000)
       {
         // call cublas APIs
         size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        ScaledErrorKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(y_old_param, y_new_param, ros_param, devstruct);
+        ScaledErrorKernel<<<
+            number_of_blocks,
+            BLOCK_SIZE,
+            0,
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+            y_old_param, y_new_param, ros_param, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
@@ -293,7 +336,11 @@ namespace micm
         bool is_first_call = true;
 
         // Kernel call
-        NormalizedErrorKernel<<<number_of_blocks, BLOCK_SIZE, BLOCK_SIZE * sizeof(double), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+        NormalizedErrorKernel<<<
+            number_of_blocks,
+            BLOCK_SIZE,
+            BLOCK_SIZE * sizeof(double),
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
             y_old_param, y_new_param, ros_param, devstruct, number_of_elements, is_first_call);
         is_first_call = false;
         while (number_of_blocks > 1)
@@ -303,17 +350,30 @@ namespace micm
           new_number_of_blocks = std::ceil(std::ceil(number_of_blocks * 1.0 / BLOCK_SIZE) / 2.0);
           if (new_number_of_blocks <= 1)
           {
-            NormalizedErrorKernel<<<1, BLOCK_SIZE, BLOCK_SIZE * sizeof(double), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+            NormalizedErrorKernel<<<
+                1,
+                BLOCK_SIZE,
+                BLOCK_SIZE * sizeof(double),
+                micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
                 y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
             break;
           }
-          NormalizedErrorKernel<<<new_number_of_blocks, BLOCK_SIZE, BLOCK_SIZE * sizeof(double), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          NormalizedErrorKernel<<<
+              new_number_of_blocks,
+              BLOCK_SIZE,
+              BLOCK_SIZE * sizeof(double),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
               y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
           number_of_blocks = new_number_of_blocks;
         }
 
         CHECK_CUDA_ERROR(
-            cudaMemcpyAsync(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            cudaMemcpyAsync(
+                &normalized_error,
+                &devstruct.errors_output_[0],
+                sizeof(double),
+                cudaMemcpyDeviceToHost,
+                micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
             "cudaMemcpy");
         cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
         normalized_error = std::sqrt(normalized_error / number_of_elements);
