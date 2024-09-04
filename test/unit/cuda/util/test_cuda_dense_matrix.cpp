@@ -28,7 +28,8 @@ TEST(CudaDenseMatrix, DeviceMemCopy)
   micm::cuda::CopyToDevice<double>(param, h_vector);
   micm::cuda::SquareDriver(param);
   micm::cuda::CopyToHost<double>(param, h_vector);
-
+  micm::cuda::FreeVector(param);
+  
   EXPECT_EQ(h_vector[0], 1 * 1);
   EXPECT_EQ(h_vector[1], 2 * 2);
   EXPECT_EQ(h_vector[2], 3 * 3);
