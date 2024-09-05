@@ -39,6 +39,20 @@ namespace micm
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
 
+    template<class DenseMatrixPolicy>
+    class TemporaryVariables
+    {
+        TemporaryVariables() = delete;
+        TemporaryVariables(const TemporaryVariables& other) = delete;
+        TemporaryVariables(Temporary&& other) = default;
+        TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
+        TemporaryVariables& operator=(TemporaryVariables&& other) = default;
+        ~TemporaryVariables() = default;
+
+        TemporaryVariables(const auto& state, const ParametersType& parameters)
+        { }
+    }
+
     /// @brief Default constructor
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver

@@ -40,6 +40,7 @@ namespace micm
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
+    using TemporaryVariablePolicy = SolverParamatersPolicy::SolverType::TemporaryVariables<DenseMatrixPolicy>;
 
    protected:
     SolverParametersPolicy options_;
@@ -123,7 +124,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet,
       LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
+      State<TemporaryVariablePolicy, DenseMatrixPolicy, SparseMatrixPolicy>>;
 
 }  // namespace micm
 

@@ -32,7 +32,7 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class TemporaryVariablePolicy, class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
     /// @brief The concentration of chemicals, varies through time
@@ -53,6 +53,8 @@ namespace micm
     SparseMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
+    /// @brief Temporary solver variables
+    TemporaryVariablePolicy temporary_variables_;
 
     /// @brief
     State();
@@ -60,6 +62,10 @@ namespace micm
     /// @brief
     /// @param parameters State dimension information
     State(const StateParameters& parameters);
+
+    /// @brief Sets the temporary variables for the state
+    /// @param temporary_variables variables to take ownership of
+    void SetTemporaryVariables(TemporaryVariablesPolicy&& temporary_variables);
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration

@@ -11,6 +11,11 @@ namespace micm
   class Solver
   {
    private:
+    using SolverParamatersPolicy = SolverPolicy::ParametersType;
+    using DenseMatrixPolicy = StatePolicy::DenseMatrixPolicyType;
+    using TemporaryVariablePolicy = SolverPolicy::TemporaryVariables<DenseMatrixPolicy>;
+    
+    SolverParametersPolicy options_;
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
@@ -22,12 +27,14 @@ namespace micm
 
     Solver(
         SolverPolicy&& solver,
+        SolverParametersPolicy options,
         StateParameters state_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
         std::size_t number_of_reactions,
         std::vector<micm::Process> processes)
         : solver_(std::move(solver)),
+          options_(options),
           number_of_grid_cells_(number_of_grid_cells),
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions),
@@ -87,7 +94,10 @@ namespace micm
 
     StatePolicy GetState() const
     {
-      return StatePolicy(state_parameters_);
+      auto state = StatePolicy(state_parameters_);
+      TemporaryVariablePolicy temporary_variables(state, options_);
+      state.SetTemporaryVariables(std::move(temporary_variables));
+      return state;
     }
 
     std::vector<micm::Process> GetProcesses() const

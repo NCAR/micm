@@ -60,6 +60,32 @@ namespace micm
     /// @brief Solver parameters typename
     using ParametersType = RosenbrockSolverParameters;
 
+    template<class DenseMatrixPolicy>
+    class TemporaryVariables
+    {
+        DenseMatrixPolicy Ynew_;
+        DenseMatrixPolicy initial_forcing_;
+        std::vector<DenseMatrixPolicy> K_;
+        DenseMatrixPolicy Yerror_;
+
+        TemporaryVariables() = delete;
+        TemporaryVariables(const TemporaryVariables& other) = delete;
+        TemporaryVariables(Temporary&& other) = default;
+        TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
+        TemporaryVariables& operator=(TemporaryVariables&& other) = default;
+        ~TemporaryVariables() = default;
+        
+        TemporaryVariables(const auto& state, const ParametersType& parameters) :
+            Ynew_(state.variables_.NumRows(), state.variables_.NumColumns()),
+            initial_forcing_(state.variables_.NumRows(), state.variables_.NumColumns()),
+            Yerror_(state.variables_.NumRows(), state.variables_.NumColumns())
+        {
+            K.reserve(parameters.stages_);
+            for (std::size_t i = 0; i < parameters.stages_; ++i)
+                K.emplace_back(num_rows, num_cols);
+        }
+    }
+
     /// @brief Default constructor
     /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
