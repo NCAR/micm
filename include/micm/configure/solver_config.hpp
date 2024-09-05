@@ -213,7 +213,7 @@ namespace micm
       // Iterate CAMP file list and form CAMP data object arrays
       for (const auto& camp_file : camp_files)
       {
-        json config_subset = YAML::LoadFile(camp_file);
+        json config_subset = YAML::LoadFile(camp_file.string());
 
         if (!config_subset[CAMP_DATA])
         {
