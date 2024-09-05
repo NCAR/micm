@@ -400,7 +400,7 @@ namespace micm
               species.SetProperty<std::string>(key, stringValue);
             }
           }
-        }
+        } 
       }
       species_[name] = species;
     }        
