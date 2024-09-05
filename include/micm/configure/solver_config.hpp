@@ -366,7 +366,7 @@ namespace micm
       const std::string THIRD_BODY = "THIRD_BODY";
 
       ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
-
+      
       std::string name = object[NAME].as<std::string>();
       Species species{ name };
 
@@ -377,10 +377,20 @@ namespace micm
         auto value = it->second;
 
         if (key != NAME && key != TYPE)
-        {
-          try // Try to convert the value to a string
+        {       
+          std::string stringValue = value.as<std::string>();
+          if (!stringValue.empty() && isInt(stringValue)) {
+            species.SetProperty<int>(key, value.as<int>());
+          }
+          else if (!stringValue.empty() && isFloat(stringValue)) {
+            species.SetProperty<double>(key, value.as<double>());
+          }
+          else if (!stringValue.empty() && isBool(stringValue))
           {
-            std::string stringValue = value.as<std::string>();
+            species.SetProperty<bool>(key, value.as<bool>());
+          }
+          else
+          {
             if (key == TRACER_TYPE && stringValue == THIRD_BODY)
             {
               species.SetThirdBody();
@@ -390,34 +400,26 @@ namespace micm
               species.SetProperty<std::string>(key, stringValue);
             }
           }
-          catch (const YAML::BadConversion& e)
-          {
-            try
-            {
-              species.SetProperty<int>(key, value.as<int>()); // Try to convert the value to a int
-            }
-            catch (const YAML::BadConversion& e)
-            {
-              try
-              {
-                species.SetProperty<double>(key, value.as<double>()); // Try to convert the value to a double
-              }
-              catch (const YAML::BadConversion& e)
-              {
-                try
-                {
-                species.SetProperty<bool>(key, value.as<bool>()); // Try to convert the value to a bool
-                }
-                catch (const YAML::BadConversion& e)
-                {
-                  throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
-                }
-              }
-            }
-          }
         }
       }
       species_[name] = species;
+    }        
+
+    // Utility functions to check types and perform conversions
+    bool isBool(const std::string& value) {
+        return (value == "true" || value == "false");
+    }
+
+    bool isInt(const std::string& value) {
+        std::istringstream iss(value);
+        int result;
+        return (iss >> result >> std::ws).eof();  // Check if the entire string is an integer
+    }
+
+    bool isFloat(const std::string& value) {
+        std::istringstream iss(value);
+        float result;
+        return (iss >> result >> std::ws).eof();  // Check if the entire string is a float
     }
 
     void ParseRelativeTolerance(const json& object)
