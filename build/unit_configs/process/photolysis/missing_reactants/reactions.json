@@ -1,0 +1,18 @@
+{
+  "camp-data": [
+    {
+      "name": "Photolysis missing reactants",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "PHOTOLYSIS",
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          },
+          "MUSICA name" : "jfoo"
+        }
+      ]
+    }
+  ]
+}

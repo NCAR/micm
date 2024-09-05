@@ -1,0 +1,19 @@
+{
+  "camp-data": [
+    {
+      "name": "missing reacants",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "WENNBERG_NO_RO2",
+          "alkoxy products": {
+            "foo": { "yield" : 2.3  }
+          },
+          "nitrate products": {
+            "baz": {}
+          }
+        }
+      ]
+    }
+  ]
+}

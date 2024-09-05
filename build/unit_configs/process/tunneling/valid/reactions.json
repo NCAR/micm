@@ -1,0 +1,36 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid tunneling reactions",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "TUNNELING",
+          "reactants": {
+            "foo" : { },
+            "quz" : { "qty" :2 }
+          },
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          }
+        },
+        {
+          "type": "TUNNELING",
+          "reactants": {
+            "bar" : { },
+            "baz" : { }
+          },
+          "products": {
+            "bar": { "yield": 0.5 },
+            "foo": { }
+          },
+          "A": 32.1,
+          "B": -2.3,
+          "C": 102.3
+        }
+      ]
+    }
+  ]
+}

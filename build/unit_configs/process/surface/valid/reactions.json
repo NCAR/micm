@@ -1,0 +1,30 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid surface reactions",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": "asdf",
+          "type": "SURFACE",
+          "gas-phase reactant": "foo",
+          "gas-phase products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          },
+          "MUSICA name": "kfoo"
+        },
+        {
+          "type": "SURFACE",
+          "gas-phase reactant": "bar",
+          "gas-phase products": {
+            "bar": { "yield": 0.5 },
+            "foo": { }
+          },
+          "reaction probability": 0.5,
+          "MUSICA name": "kbar"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "camp-data": [
+    {
+      "name": "Branched missing nitrate products",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "WENNBERG_NO_RO2",
+          "reactants": {
+            "bar": { },
+            "baz": { "qty": 2 }
+          },
+          "alkoxy products": {
+            "foo": { }
+          }
+        }
+      ]
+    }
+  ]
+}

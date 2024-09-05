@@ -1,0 +1,22 @@
+{
+  "camp-data": [
+    {
+      "name": "nonstandard key",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "TUNNELING",
+          "reactants": {
+            "foo" : { },
+            "quz" : { "qty" :2 }
+          },
+          "products": {
+            "bar": { "yield": 1.0 },
+            "baz": { "yield": 3.2 }
+          },
+          "a": 0
+        }
+      ]
+    }
+  ]
+}

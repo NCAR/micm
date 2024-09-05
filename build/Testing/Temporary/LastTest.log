@@ -1,0 +1,1817 @@
+Start testing: Sep 05 15:39 PDT
+----------------------------------------------------------
+1/45 Testing: process
+1/45 Test: process
+Command: "/Users/mthind/Desktop/code/micm/build/test_process"
+Directory: /Users/mthind/Desktop/code/micm/build
+"process" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from Process
+[ RUN      ] Process.Matrix
+[       OK ] Process.Matrix (0 ms)
+[ RUN      ] Process.VectorMatrix
+[       OK ] Process.VectorMatrix (0 ms)
+[ RUN      ] Process.SurfaceRateConstantOnlyHasOneReactant
+[       OK ] Process.SurfaceRateConstantOnlyHasOneReactant (0 ms)
+[----------] 3 tests from Process (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.27 sec
+----------------------------------------------------------
+Test Passed.
+"process" end time: Sep 05 15:39 PDT
+"process" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/45 Testing: process_set
+2/45 Test: process_set
+Command: "/Users/mthind/Desktop/code/micm/build/test_process_set"
+Directory: /Users/mthind/Desktop/code/micm/build
+"process_set" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from ProcessSet
+[ RUN      ] ProcessSet.Matrix
+[       OK ] ProcessSet.Matrix (0 ms)
+[ RUN      ] ProcessSet.VectorMatrix
+[       OK ] ProcessSet.VectorMatrix (0 ms)
+[----------] 2 tests from ProcessSet (0 ms total)
+
+[----------] 1 test from RandomProcessSet
+[ RUN      ] RandomProcessSet.Matrix
+[       OK ] RandomProcessSet.Matrix (8 ms)
+[----------] 1 test from RandomProcessSet (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (8 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.17 sec
+----------------------------------------------------------
+Test Passed.
+"process_set" end time: Sep 05 15:39 PDT
+"process_set" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/45 Testing: arrhenius_rate_constant
+3/45 Test: arrhenius_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_arrhenius_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"arrhenius_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from ArrheniusRateConstant
+[ RUN      ] ArrheniusRateConstant.CalculateWithSystem
+[       OK ] ArrheniusRateConstant.CalculateWithSystem (0 ms)
+[ RUN      ] ArrheniusRateConstant.CalculateWithPrescribedArugments
+[       OK ] ArrheniusRateConstant.CalculateWithPrescribedArugments (0 ms)
+[----------] 2 tests from ArrheniusRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"arrhenius_rate_constant" end time: Sep 05 15:39 PDT
+"arrhenius_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/45 Testing: branched_rate_constant
+4/45 Test: branched_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_branched_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"branched_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from BranchedRateConstant
+[ RUN      ] BranchedRateConstant.CalculateAlkoxyBranchWithAllArugments
+[       OK ] BranchedRateConstant.CalculateAlkoxyBranchWithAllArugments (0 ms)
+[ RUN      ] BranchedRateConstant.CalculateNitrateBranchWithAllArugments
+[       OK ] BranchedRateConstant.CalculateNitrateBranchWithAllArugments (0 ms)
+[----------] 2 tests from BranchedRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"branched_rate_constant" end time: Sep 05 15:39 PDT
+"branched_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/45 Testing: surface_rate_constant
+5/45 Test: surface_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_surface_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"surface_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from SurfaceRateConstant
+[ RUN      ] SurfaceRateConstant.CalculateDefaultProbability
+[       OK ] SurfaceRateConstant.CalculateDefaultProbability (0 ms)
+[ RUN      ] SurfaceRateConstant.CalculateSpecifiedProbability
+[       OK ] SurfaceRateConstant.CalculateSpecifiedProbability (0 ms)
+[----------] 2 tests from SurfaceRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"surface_rate_constant" end time: Sep 05 15:39 PDT
+"surface_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/45 Testing: ternary_chemical_activation_rate_constant
+6/45 Test: ternary_chemical_activation_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_ternary_chemical_activation_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"ternary_chemical_activation_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from TernaryChemicalActivationRateConstant
+[ RUN      ] TernaryChemicalActivationRateConstant.CalculateWithMinimalArugments
+[       OK ] TernaryChemicalActivationRateConstant.CalculateWithMinimalArugments (0 ms)
+[ RUN      ] TernaryChemicalActivationRateConstant.CalculateWithAllArugments
+[       OK ] TernaryChemicalActivationRateConstant.CalculateWithAllArugments (0 ms)
+[----------] 2 tests from TernaryChemicalActivationRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"ternary_chemical_activation_rate_constant" end time: Sep 05 15:39 PDT
+"ternary_chemical_activation_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/45 Testing: troe_rate_constant
+7/45 Test: troe_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_troe_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"troe_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from TroeRateConstant
+[ RUN      ] TroeRateConstant.CalculateWithMinimalArugments
+[       OK ] TroeRateConstant.CalculateWithMinimalArugments (0 ms)
+[ RUN      ] TroeRateConstant.CalculateWithAllArugments
+[       OK ] TroeRateConstant.CalculateWithAllArugments (0 ms)
+[ RUN      ] TroeRateConstant.AnalyticalTroeExampleAB
+[       OK ] TroeRateConstant.AnalyticalTroeExampleAB (0 ms)
+[ RUN      ] TroeRateConstant.AnalyticalTroeExampleBC
+[       OK ] TroeRateConstant.AnalyticalTroeExampleBC (0 ms)
+[----------] 4 tests from TroeRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 4 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"troe_rate_constant" end time: Sep 05 15:39 PDT
+"troe_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/45 Testing: tunneling_rate_constant
+8/45 Test: tunneling_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_tunneling_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"tunneling_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from TunnelingRateConstant
+[ RUN      ] TunnelingRateConstant.CalculateWithMinimalArugments
+[       OK ] TunnelingRateConstant.CalculateWithMinimalArugments (0 ms)
+[ RUN      ] TunnelingRateConstant.CalculateWithAllArugments
+[       OK ] TunnelingRateConstant.CalculateWithAllArugments (0 ms)
+[----------] 2 tests from TunnelingRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"tunneling_rate_constant" end time: Sep 05 15:39 PDT
+"tunneling_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/45 Testing: user_defined_rate_constant
+9/45 Test: user_defined_rate_constant
+Command: "/Users/mthind/Desktop/code/micm/build/test_user_defined_rate_constant"
+Directory: /Users/mthind/Desktop/code/micm/build
+"user_defined_rate_constant" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from UserDefinedRateConstant
+[ RUN      ] UserDefinedRateConstant.CalculateWithSystem
+[       OK ] UserDefinedRateConstant.CalculateWithSystem (0 ms)
+[ RUN      ] UserDefinedRateConstant.ConstructorWithRate
+[       OK ] UserDefinedRateConstant.ConstructorWithRate (0 ms)
+[ RUN      ] UserDefinedRateConstant.ConstructorWithRateAndName
+[       OK ] UserDefinedRateConstant.ConstructorWithRateAndName (0 ms)
+[ RUN      ] UserDefinedRateConstant.CustomScalingFactor
+[       OK ] UserDefinedRateConstant.CustomScalingFactor (0 ms)
+[----------] 4 tests from UserDefinedRateConstant (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 4 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"user_defined_rate_constant" end time: Sep 05 15:39 PDT
+"user_defined_rate_constant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/45 Testing: chapman_ode_solver
+10/45 Test: chapman_ode_solver
+Command: "/Users/mthind/Desktop/code/micm/build/test_chapman_ode_solver"
+Directory: /Users/mthind/Desktop/code/micm/build
+"chapman_ode_solver" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 12 tests from ChapmanMechanismHardCodedAndGeneral
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.DefaultConstructor
+[       OK ] ChapmanMechanismHardCodedAndGeneral.DefaultConstructor (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.lin_solve
+[       OK ] ChapmanMechanismHardCodedAndGeneral.lin_solve (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.ReactionNames
+[       OK ] ChapmanMechanismHardCodedAndGeneral.ReactionNames (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.PhotolysisNames
+[       OK ] ChapmanMechanismHardCodedAndGeneral.PhotolysisNames (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.SpeciesNames
+[       OK ] ChapmanMechanismHardCodedAndGeneral.SpeciesNames (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.simple_force
+[       OK ] ChapmanMechanismHardCodedAndGeneral.simple_force (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.smaller_force
+[       OK ] ChapmanMechanismHardCodedAndGeneral.smaller_force (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.factored_alpha_minus_jac
+[       OK ] ChapmanMechanismHardCodedAndGeneral.factored_alpha_minus_jac (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.dforce_dy_times_vector
+[       OK ] ChapmanMechanismHardCodedAndGeneral.dforce_dy_times_vector (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.Solve
+[       OK ] ChapmanMechanismHardCodedAndGeneral.Solve (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.solve_10_times_larger
+[       OK ] ChapmanMechanismHardCodedAndGeneral.solve_10_times_larger (0 ms)
+[ RUN      ] ChapmanMechanismHardCodedAndGeneral.solve_with_random_number_densities
+[       OK ] ChapmanMechanismHardCodedAndGeneral.solve_with_random_number_densities (0 ms)
+[----------] 12 tests from ChapmanMechanismHardCodedAndGeneral (0 ms total)
+
+[----------] 1 test from RegressionChapmanODESolver
+[ RUN      ] RegressionChapmanODESolver.solve_10_times_smaller
+[       OK ] RegressionChapmanODESolver.solve_10_times_smaller (0 ms)
+[----------] 1 test from RegressionChapmanODESolver (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 13 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"chapman_ode_solver" end time: Sep 05 15:39 PDT
+"chapman_ode_solver" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/45 Testing: linear_solver
+11/45 Test: linear_solver
+Command: "/Users/mthind/Desktop/code/micm/build/test_linear_solver"
+Directory: /Users/mthind/Desktop/code/micm/build
+"linear_solver" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from LinearSolver
+[ RUN      ] LinearSolver.DenseMatrixStandardOrdering
+[       OK ] LinearSolver.DenseMatrixStandardOrdering (0 ms)
+[ RUN      ] LinearSolver.RandomMatrixStandardOrdering
+[       OK ] LinearSolver.RandomMatrixStandardOrdering (0 ms)
+[ RUN      ] LinearSolver.DiagonalMatrixStandardOrdering
+[       OK ] LinearSolver.DiagonalMatrixStandardOrdering (0 ms)
+[ RUN      ] LinearSolver.DiagonalMarkowitzReorder
+[       OK ] LinearSolver.DiagonalMarkowitzReorder (6 ms)
+[ RUN      ] LinearSolver.DenseMatrixVectorOrdering
+[       OK ] LinearSolver.DenseMatrixVectorOrdering (0 ms)
+[ RUN      ] LinearSolver.RandomMatrixVectorOrdering
+[       OK ] LinearSolver.RandomMatrixVectorOrdering (0 ms)
+[ RUN      ] LinearSolver.DiagonalMatrixVectorOrdering
+[       OK ] LinearSolver.DiagonalMatrixVectorOrdering (0 ms)
+[ RUN      ] LinearSolver.VectorDiagonalMarkowitzReordering
+[       OK ] LinearSolver.VectorDiagonalMarkowitzReordering (23 ms)
+[----------] 8 tests from LinearSolver (31 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (31 ms total)
+[  PASSED  ] 8 tests.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"linear_solver" end time: Sep 05 15:39 PDT
+"linear_solver" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/45 Testing: lu_decomposition
+12/45 Test: lu_decomposition
+Command: "/Users/mthind/Desktop/code/micm/build/test_lu_decomposition"
+Directory: /Users/mthind/Desktop/code/micm/build
+"lu_decomposition" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from LuDecomposition
+[ RUN      ] LuDecomposition.DenseMatrixStandardOrdering
+[       OK ] LuDecomposition.DenseMatrixStandardOrdering (0 ms)
+[ RUN      ] LuDecomposition.SingularMatrixStandardOrdering
+[       OK ] LuDecomposition.SingularMatrixStandardOrdering (0 ms)
+[ RUN      ] LuDecomposition.RandomMatrixStandardOrdering
+[       OK ] LuDecomposition.RandomMatrixStandardOrdering (0 ms)
+[ RUN      ] LuDecomposition.DiagonalMatrixStandardOrdering
+[       OK ] LuDecomposition.DiagonalMatrixStandardOrdering (0 ms)
+[ RUN      ] LuDecomposition.DenseMatrixVectorOrdering
+[       OK ] LuDecomposition.DenseMatrixVectorOrdering (0 ms)
+[ RUN      ] LuDecomposition.SingluarMatrixVectorOrdering
+[       OK ] LuDecomposition.SingluarMatrixVectorOrdering (0 ms)
+[ RUN      ] LuDecomposition.RandomMatrixVectorOrdering
+[       OK ] LuDecomposition.RandomMatrixVectorOrdering (0 ms)
+[ RUN      ] LuDecomposition.DiagonalMatrixVectorOrdering
+[       OK ] LuDecomposition.DiagonalMatrixVectorOrdering (0 ms)
+[----------] 8 tests from LuDecomposition (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 8 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"lu_decomposition" end time: Sep 05 15:39 PDT
+"lu_decomposition" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/45 Testing: rosenbrock
+13/45 Test: rosenbrock
+Command: "/Users/mthind/Desktop/code/micm/build/test_rosenbrock"
+Directory: /Users/mthind/Desktop/code/micm/build
+"rosenbrock" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from RosenbrockSolver
+[ RUN      ] RosenbrockSolver.StandardAlphaMinusJacobian
+[       OK ] RosenbrockSolver.StandardAlphaMinusJacobian (0 ms)
+[ RUN      ] RosenbrockSolver.VectorAlphaMinusJacobian
+[       OK ] RosenbrockSolver.VectorAlphaMinusJacobian (0 ms)
+[ RUN      ] RosenbrockSolver.CanSetTolerances
+[       OK ] RosenbrockSolver.CanSetTolerances (0 ms)
+[ RUN      ] RosenbrockSolver.StandardNormalizedError
+[       OK ] RosenbrockSolver.StandardNormalizedError (0 ms)
+[ RUN      ] RosenbrockSolver.VectorNormalizedError
+[       OK ] RosenbrockSolver.VectorNormalizedError (0 ms)
+[ RUN      ] RosenbrockSolver.SingularSystemZeroInBottomRightOfU
+[       OK ] RosenbrockSolver.SingularSystemZeroInBottomRightOfU (0 ms)
+[ RUN      ] RosenbrockSolver.SingularSystemZeroAlongDiagonalNotBottomRight
+[       OK ] RosenbrockSolver.SingularSystemZeroAlongDiagonalNotBottomRight (0 ms)
+[----------] 7 tests from RosenbrockSolver (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 7 tests.
+<end of output>
+Test time =   0.17 sec
+----------------------------------------------------------
+Test Passed.
+"rosenbrock" end time: Sep 05 15:39 PDT
+"rosenbrock" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/45 Testing: state
+14/45 Test: state
+Command: "/Users/mthind/Desktop/code/micm/build/test_state"
+Directory: /Users/mthind/Desktop/code/micm/build
+"state" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 13 tests from State
+[ RUN      ] State.Constructor
+[       OK ] State.Constructor (0 ms)
+[ RUN      ] State.SettingSingleConcentrationWithInvalidArgumentsThowsException
+[       OK ] State.SettingSingleConcentrationWithInvalidArgumentsThowsException (0 ms)
+[ RUN      ] State.SetSingleConcentration
+[       OK ] State.SetSingleConcentration (0 ms)
+[ RUN      ] State.SettingConcentrationsWithInvalidArguementsThrowsException
+[       OK ] State.SettingConcentrationsWithInvalidArguementsThrowsException (0 ms)
+[ RUN      ] State.SetConcentrations
+[       OK ] State.SetConcentrations (0 ms)
+[ RUN      ] State.SettingCustomRateParameterWithInvalidVectorSizeThrowsException
+[       OK ] State.SettingCustomRateParameterWithInvalidVectorSizeThrowsException (0 ms)
+[ RUN      ] State.SettingCustomRateParameterWithInvalidLabelThrowsException
+[       OK ] State.SettingCustomRateParameterWithInvalidLabelThrowsException (0 ms)
+[ RUN      ] State.SetCustomRateParameter
+[       OK ] State.SetCustomRateParameter (0 ms)
+[ RUN      ] State.SetCustomRateParameters
+[       OK ] State.SetCustomRateParameters (0 ms)
+[ RUN      ] State.UnsafelySetCustomRateParameterOneCell
+[       OK ] State.UnsafelySetCustomRateParameterOneCell (0 ms)
+[ RUN      ] State.UnsafelySetCustomRateParameterMultiCell
+[       OK ] State.UnsafelySetCustomRateParameterMultiCell (0 ms)
+[ RUN      ] State.UnsafelySetCustomRateParameterCatchesTooFewGridCells
+[       OK ] State.UnsafelySetCustomRateParameterCatchesTooFewGridCells (0 ms)
+[ RUN      ] State.UnsafelySetCustomRateParameterCatchesTooParameters
+[       OK ] State.UnsafelySetCustomRateParameterCatchesTooParameters (0 ms)
+[----------] 13 tests from State (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 13 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"state" end time: Sep 05 15:39 PDT
+"state" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/45 Testing: backward_euler
+15/45 Test: backward_euler
+Command: "/Users/mthind/Desktop/code/micm/build/test_backward_euler"
+Directory: /Users/mthind/Desktop/code/micm/build
+"backward_euler" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from BackwardEuler
+[ RUN      ] BackwardEuler.CanCallSolve
+[       OK ] BackwardEuler.CanCallSolve (0 ms)
+[ RUN      ] BackwardEuler.IsConverged
+[       OK ] BackwardEuler.IsConverged (0 ms)
+[----------] 2 tests from BackwardEuler (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"backward_euler" end time: Sep 05 15:39 PDT
+"backward_euler" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/45 Testing: solver_builder
+16/45 Test: solver_builder
+Command: "/Users/mthind/Desktop/code/micm/build/test_solver_builder"
+Directory: /Users/mthind/Desktop/code/micm/build
+"solver_builder" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from SolverBuilder
+[ RUN      ] SolverBuilder.ThrowsMissingSystem
+[       OK ] SolverBuilder.ThrowsMissingSystem (0 ms)
+[ RUN      ] SolverBuilder.ThrowsMissingReactions
+[       OK ] SolverBuilder.ThrowsMissingReactions (0 ms)
+[ RUN      ] SolverBuilder.CanBuildBackwardEuler
+[       OK ] SolverBuilder.CanBuildBackwardEuler (0 ms)
+[ RUN      ] SolverBuilder.CanBuildRosenbrock
+[       OK ] SolverBuilder.CanBuildRosenbrock (0 ms)
+[ RUN      ] SolverBuilder.MismatchedToleranceSizeIsCaught
+[       OK ] SolverBuilder.MismatchedToleranceSizeIsCaught (0 ms)
+[----------] 5 tests from SolverBuilder (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 5 tests.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"solver_builder" end time: Sep 05 15:39 PDT
+"solver_builder" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/45 Testing: phase
+17/45 Test: phase
+Command: "/Users/mthind/Desktop/code/micm/build/test_phase"
+Directory: /Users/mthind/Desktop/code/micm/build
+"phase" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from Phase
+[ RUN      ] Phase.ConstructorWithVector
+[       OK ] Phase.ConstructorWithVector (0 ms)
+[ RUN      ] Phase.ConstructorWithParameterizedSpecies
+[       OK ] Phase.ConstructorWithParameterizedSpecies (0 ms)
+[----------] 2 tests from Phase (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"phase" end time: Sep 05 15:39 PDT
+"phase" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/45 Testing: species
+18/45 Test: species
+Command: "/Users/mthind/Desktop/code/micm/build/test_species"
+Directory: /Users/mthind/Desktop/code/micm/build
+"species" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from Species
+[ RUN      ] Species.StringConstructor
+[       OK ] Species.StringConstructor (0 ms)
+[ RUN      ] Species.StringAndVectorConstructor
+[       OK ] Species.StringAndVectorConstructor (0 ms)
+[ RUN      ] Species.GetProperty
+[       OK ] Species.GetProperty (0 ms)
+[ RUN      ] Species.SetThirdBody
+[       OK ] Species.SetThirdBody (0 ms)
+[ RUN      ] Species.CopyConstructor
+[       OK ] Species.CopyConstructor (0 ms)
+[ RUN      ] Species.CopyAssignment
+[       OK ] Species.CopyAssignment (0 ms)
+[----------] 6 tests from Species (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"species" end time: Sep 05 15:39 PDT
+"species" time elapsed: 00:00:00
+----------------------------------------------------------
+
+19/45 Testing: system
+19/45 Test: system
+Command: "/Users/mthind/Desktop/code/micm/build/test_system"
+Directory: /Users/mthind/Desktop/code/micm/build
+"system" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from System
+[ RUN      ] System.ConstructorWithAllParameters
+[       OK ] System.ConstructorWithAllParameters (0 ms)
+[ RUN      ] System.ConstructorWithParameterizedSpecies
+[       OK ] System.ConstructorWithParameterizedSpecies (0 ms)
+[----------] 2 tests from System (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"system" end time: Sep 05 15:39 PDT
+"system" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/45 Testing: matrix
+20/45 Test: matrix
+Command: "/Users/mthind/Desktop/code/micm/build/test_matrix"
+Directory: /Users/mthind/Desktop/code/micm/build
+"matrix" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 14 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 14 tests from Matrix
+[ RUN      ] Matrix.SmallMatrix
+[       OK ] Matrix.SmallMatrix (0 ms)
+[ RUN      ] Matrix.SmallConstMatrix
+[       OK ] Matrix.SmallConstMatrix (0 ms)
+[ RUN      ] Matrix.InitializeMatrix
+[       OK ] Matrix.InitializeMatrix (0 ms)
+[ RUN      ] Matrix.InitializeConstMatrix
+[       OK ] Matrix.InitializeConstMatrix (0 ms)
+[ RUN      ] Matrix.LoopOverMatrix
+[       OK ] Matrix.LoopOverMatrix (0 ms)
+[ RUN      ] Matrix.LoopOverConstMatrix
+[       OK ] Matrix.LoopOverConstMatrix (0 ms)
+[ RUN      ] Matrix.IterateOverMatrix
+[       OK ] Matrix.IterateOverMatrix (0 ms)
+[ RUN      ] Matrix.ConversionToVector
+[       OK ] Matrix.ConversionToVector (0 ms)
+[ RUN      ] Matrix.ConstConversionToVector
+[       OK ] Matrix.ConstConversionToVector (0 ms)
+[ RUN      ] Matrix.ConversionFromVector
+[       OK ] Matrix.ConversionFromVector (0 ms)
+[ RUN      ] Matrix.AssignmentFromVector
+[       OK ] Matrix.AssignmentFromVector (0 ms)
+[ RUN      ] Matrix.Axpy
+[       OK ] Matrix.Axpy (0 ms)
+[ RUN      ] Matrix.ForEach
+[       OK ] Matrix.ForEach (0 ms)
+[ RUN      ] Matrix.SetScaler
+[       OK ] Matrix.SetScaler (0 ms)
+[----------] 14 tests from Matrix (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 14 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 14 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"matrix" end time: Sep 05 15:39 PDT
+"matrix" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/45 Testing: sparse_matrix_standard_ordering
+21/45 Test: sparse_matrix_standard_ordering
+Command: "/Users/mthind/Desktop/code/micm/build/test_sparse_matrix_standard_ordering"
+Directory: /Users/mthind/Desktop/code/micm/build
+"sparse_matrix_standard_ordering" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from SparseMatrix
+[ RUN      ] SparseMatrix.ZeroMatrix
+[       OK ] SparseMatrix.ZeroMatrix (0 ms)
+[ RUN      ] SparseMatrix.ConstZeroMatrix
+[       OK ] SparseMatrix.ConstZeroMatrix (0 ms)
+[ RUN      ] SparseMatrix.SetScalar
+[       OK ] SparseMatrix.SetScalar (0 ms)
+[ RUN      ] SparseMatrix.AddToDiagonal
+[       OK ] SparseMatrix.AddToDiagonal (0 ms)
+[ RUN      ] SparseMatrix.SingleBlockMatrix
+[       OK ] SparseMatrix.SingleBlockMatrix (0 ms)
+[ RUN      ] SparseMatrix.ConstSingleBlockMatrix
+[       OK ] SparseMatrix.ConstSingleBlockMatrix (0 ms)
+[ RUN      ] SparseMatrix.MultiBlockMatrix
+[       OK ] SparseMatrix.MultiBlockMatrix (0 ms)
+[----------] 7 tests from SparseMatrix (1 ms total)
+
+[----------] 1 test from SparseMatrixBuilder
+[ RUN      ] SparseMatrixBuilder.BadConfiguration
+[       OK ] SparseMatrixBuilder.BadConfiguration (0 ms)
+[----------] 1 test from SparseMatrixBuilder (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 8 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"sparse_matrix_standard_ordering" end time: Sep 05 15:39 PDT
+"sparse_matrix_standard_ordering" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/45 Testing: sparse_matrix_vector_ordering
+22/45 Test: sparse_matrix_vector_ordering
+Command: "/Users/mthind/Desktop/code/micm/build/test_sparse_matrix_vector_ordering"
+Directory: /Users/mthind/Desktop/code/micm/build
+"sparse_matrix_vector_ordering" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from SparseVectorMatrix
+[ RUN      ] SparseVectorMatrix.ZeroMatrix
+[       OK ] SparseVectorMatrix.ZeroMatrix (0 ms)
+[ RUN      ] SparseVectorMatrix.ConstZeroMatrix
+[       OK ] SparseVectorMatrix.ConstZeroMatrix (0 ms)
+[ RUN      ] SparseVectorMatrix.SetScalar
+[       OK ] SparseVectorMatrix.SetScalar (0 ms)
+[ RUN      ] SparseVectorMatrix.AddToDiagonal
+[       OK ] SparseVectorMatrix.AddToDiagonal (0 ms)
+[ RUN      ] SparseVectorMatrix.SingleBlockMatrix
+[       OK ] SparseVectorMatrix.SingleBlockMatrix (0 ms)
+[ RUN      ] SparseVectorMatrix.ConstSingleBlockMatrix
+[       OK ] SparseVectorMatrix.ConstSingleBlockMatrix (0 ms)
+[ RUN      ] SparseVectorMatrix.MultiBlockMatrix
+[       OK ] SparseVectorMatrix.MultiBlockMatrix (0 ms)
+[----------] 7 tests from SparseVectorMatrix (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 7 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"sparse_matrix_vector_ordering" end time: Sep 05 15:39 PDT
+"sparse_matrix_vector_ordering" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/45 Testing: vector_matrix
+23/45 Test: vector_matrix
+Command: "/Users/mthind/Desktop/code/micm/build/test_vector_matrix"
+Directory: /Users/mthind/Desktop/code/micm/build
+"vector_matrix" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 13 tests from VectorMatrix
+[ RUN      ] VectorMatrix.SmallVectorMatrix
+[       OK ] VectorMatrix.SmallVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.SmallConstVectorMatrix
+[       OK ] VectorMatrix.SmallConstVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.InitializeVectorMatrix
+[       OK ] VectorMatrix.InitializeVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.InitializeConstVectorMatrix
+[       OK ] VectorMatrix.InitializeConstVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.LoopOverVectorMatrix
+[       OK ] VectorMatrix.LoopOverVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.LoopOverConstVectorMatrix
+[       OK ] VectorMatrix.LoopOverConstVectorMatrix (0 ms)
+[ RUN      ] VectorMatrix.ConversionToVector
+[       OK ] VectorMatrix.ConversionToVector (0 ms)
+[ RUN      ] VectorMatrix.ConstConversionToVector
+[       OK ] VectorMatrix.ConstConversionToVector (0 ms)
+[ RUN      ] VectorMatrix.ConversionFromVector
+[       OK ] VectorMatrix.ConversionFromVector (0 ms)
+[ RUN      ] VectorMatrix.AssignmentFromVector
+[       OK ] VectorMatrix.AssignmentFromVector (0 ms)
+[ RUN      ] VectorMatrix.Axpy
+[       OK ] VectorMatrix.Axpy (0 ms)
+[ RUN      ] VectorMatrix.ForEach
+[       OK ] VectorMatrix.ForEach (0 ms)
+[ RUN      ] VectorMatrix.SetScaler
+[       OK ] VectorMatrix.SetScaler (0 ms)
+[----------] 13 tests from VectorMatrix (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 13 tests.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"vector_matrix" end time: Sep 05 15:39 PDT
+"vector_matrix" time elapsed: 00:00:00
+----------------------------------------------------------
+
+24/45 Testing: version
+24/45 Test: version
+Command: "/Users/mthind/Desktop/code/micm/build/test_version"
+Directory: /Users/mthind/Desktop/code/micm/build
+"version" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from Version
+[ RUN      ] Version.FullVersion
+[       OK ] Version.FullVersion (0 ms)
+[ RUN      ] Version.VersionMajor
+[       OK ] Version.VersionMajor (0 ms)
+[ RUN      ] Version.VersionMinor
+[       OK ] Version.VersionMinor (0 ms)
+[ RUN      ] Version.VersionPatch
+[       OK ] Version.VersionPatch (0 ms)
+[ RUN      ] Version.VersionTweak
+[       OK ] Version.VersionTweak (0 ms)
+[----------] 5 tests from Version (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 5 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"version" end time: Sep 05 15:39 PDT
+"version" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/45 Testing: regression_test_rosenbrock_p_force
+25/45 Test: regression_test_rosenbrock_p_force
+Command: "/Users/mthind/Desktop/code/micm/build/test_regression_test_rosenbrock_p_force"
+Directory: /Users/mthind/Desktop/code/micm/build
+"regression_test_rosenbrock_p_force" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from RegressionRosenbrock
+[ RUN      ] RegressionRosenbrock.RateConstants
+[       OK ] RegressionRosenbrock.RateConstants (0 ms)
+[ RUN      ] RegressionRosenbrock.VectorRateConstants
+[       OK ] RegressionRosenbrock.VectorRateConstants (0 ms)
+[ RUN      ] RegressionRosenbrock.Forcing
+[       OK ] RegressionRosenbrock.Forcing (0 ms)
+[ RUN      ] RegressionRosenbrock.VectorForcing
+[       OK ] RegressionRosenbrock.VectorForcing (0 ms)
+[----------] 4 tests from RegressionRosenbrock (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 4 tests.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"regression_test_rosenbrock_p_force" end time: Sep 05 15:39 PDT
+"regression_test_rosenbrock_p_force" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/45 Testing: regression_test_rosenbrock_dforce_dy
+26/45 Test: regression_test_rosenbrock_dforce_dy
+Command: "/Users/mthind/Desktop/code/micm/build/test_regression_test_rosenbrock_dforce_dy"
+Directory: /Users/mthind/Desktop/code/micm/build
+"regression_test_rosenbrock_dforce_dy" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RegressionRosenbrock
+[ RUN      ] RegressionRosenbrock.Jacobian
+[       OK ] RegressionRosenbrock.Jacobian (0 ms)
+[ RUN      ] RegressionRosenbrock.VectorJacobian
+[       OK ] RegressionRosenbrock.VectorJacobian (0 ms)
+[----------] 2 tests from RegressionRosenbrock (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"regression_test_rosenbrock_dforce_dy" end time: Sep 05 15:39 PDT
+"regression_test_rosenbrock_dforce_dy" time elapsed: 00:00:00
+----------------------------------------------------------
+
+27/45 Testing: regression_test_solve
+27/45 Test: regression_test_solve
+Command: "/Users/mthind/Desktop/code/micm/build/test_regression_test_solve"
+Directory: /Users/mthind/Desktop/code/micm/build
+"regression_test_solve" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from RegressionRosenbrock
+[ RUN      ] RegressionRosenbrock.TwoStageSolve
+[       OK ] RegressionRosenbrock.TwoStageSolve (0 ms)
+[ RUN      ] RegressionRosenbrock.ThreeStageSolve
+[       OK ] RegressionRosenbrock.ThreeStageSolve (0 ms)
+[ RUN      ] RegressionRosenbrock.FourStageSolve
+[       OK ] RegressionRosenbrock.FourStageSolve (0 ms)
+[ RUN      ] RegressionRosenbrock.FourStageDASolve
+[       OK ] RegressionRosenbrock.FourStageDASolve (0 ms)
+[ RUN      ] RegressionRosenbrock.SixStageDASolve
+[       OK ] RegressionRosenbrock.SixStageDASolve (0 ms)
+[ RUN      ] RegressionRosenbrock.VectorSolve
+[       OK ] RegressionRosenbrock.VectorSolve (1 ms)
+[----------] 6 tests from RegressionRosenbrock (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (3 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"regression_test_solve" end time: Sep 05 15:39 PDT
+"regression_test_solve" time elapsed: 00:00:00
+----------------------------------------------------------
+
+28/45 Testing: chapman_integration
+28/45 Test: chapman_integration
+Command: "/Users/mthind/Desktop/code/micm/build/test_chapman_integration"
+Directory: /Users/mthind/Desktop/code/micm/build
+"chapman_integration" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from ChapmanIntegration
+[ RUN      ] ChapmanIntegration.CanBuildChapmanSystemUsingConfig
+[       OK ] ChapmanIntegration.CanBuildChapmanSystemUsingConfig (11 ms)
+[ RUN      ] ChapmanIntegration.CanBuildChapmanSystem
+[       OK ] ChapmanIntegration.CanBuildChapmanSystem (1 ms)
+[----------] 2 tests from ChapmanIntegration (13 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (13 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.57 sec
+----------------------------------------------------------
+Test Passed.
+"chapman_integration" end time: Sep 05 15:39 PDT
+"chapman_integration" time elapsed: 00:00:00
+----------------------------------------------------------
+
+29/45 Testing: analytical_rosenbrock_integration
+29/45 Test: analytical_rosenbrock_integration
+Command: "/Users/mthind/Desktop/code/micm/build/test_analytical_rosenbrock_integration"
+Directory: /Users/mthind/Desktop/code/micm/build
+"analytical_rosenbrock_integration" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 17 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 17 tests from AnalyticalExamples
+[ RUN      ] AnalyticalExamples.Troe
+[       OK ] AnalyticalExamples.Troe (113 ms)
+[ RUN      ] AnalyticalExamples.TroeSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TroeSuperStiffButAnalytical (113 ms)
+[ RUN      ] AnalyticalExamples.Photolysis
+[       OK ] AnalyticalExamples.Photolysis (98 ms)
+[ RUN      ] AnalyticalExamples.PhotolysisSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.PhotolysisSuperStiffButAnalytical (112 ms)
+[ RUN      ] AnalyticalExamples.TernaryChemicalActivation
+[       OK ] AnalyticalExamples.TernaryChemicalActivation (134 ms)
+[ RUN      ] AnalyticalExamples.TernaryChemicalActivationSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TernaryChemicalActivationSuperStiffButAnalytical (114 ms)
+[ RUN      ] AnalyticalExamples.Tunneling
+[       OK ] AnalyticalExamples.Tunneling (96 ms)
+[ RUN      ] AnalyticalExamples.TunnelingSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TunnelingSuperStiffButAnalytical (112 ms)
+[ RUN      ] AnalyticalExamples.Arrhenius
+[       OK ] AnalyticalExamples.Arrhenius (100 ms)
+[ RUN      ] AnalyticalExamples.ArrheniusSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.ArrheniusSuperStiffButAnalytical (114 ms)
+[ RUN      ] AnalyticalExamples.Branched
+[       OK ] AnalyticalExamples.Branched (103 ms)
+[ RUN      ] AnalyticalExamples.BranchedSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.BranchedSuperStiffButAnalytical (117 ms)
+[ RUN      ] AnalyticalExamples.Robertson
+[       OK ] AnalyticalExamples.Robertson (428 ms)
+[ RUN      ] AnalyticalExamples.E5
+[       OK ] AnalyticalExamples.E5 (95 ms)
+[ RUN      ] AnalyticalExamples.Oregonator
+[       OK ] AnalyticalExamples.Oregonator (7 ms)
+[ RUN      ] AnalyticalExamples.SurfaceRxn
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9049145  0.0951626  0.0950855  0.0380650  0.0380342  
+  2  14.14  0.8187308  0.8188777  0.1812692  0.1811223  0.0725077  0.0724489  
+  3  21.20  0.7408182  0.7410296  0.2591818  0.2589704  0.1036727  0.1035882  
+  4  28.27  0.6703200  0.6705916  0.3296800  0.3294084  0.1318720  0.1317634  
+  5  35.34  0.6065307  0.6068552  0.3934693  0.3931448  0.1573877  0.1572579  
+  6  42.41  0.5488116  0.5491772  0.4511884  0.4508228  0.1804753  0.1803291  
+  7  49.48  0.4965853  0.4969824  0.5034147  0.5030176  0.2013659  0.2012070  
+  8  56.54  0.4493290  0.4497504  0.5506710  0.5502496  0.2202684  0.2200998  
+  9  63.61  0.4065697  0.4070101  0.5934303  0.5929899  0.2373721  0.2371960  
+ 10  70.68  0.3678794  0.3683350  0.6321206  0.6316650  0.2528482  0.2526660  
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9048368  0.0951626  0.0951632  0.0380650  0.0380653  
+  2  14.14  0.8187308  0.8187297  0.1812692  0.1812703  0.0725077  0.0725081  
+  3  21.20  0.7408182  0.7408168  0.2591818  0.2591832  0.1036727  0.1036733  
+  4  28.27  0.6703200  0.6703183  0.3296800  0.3296817  0.1318720  0.1318727  
+  5  35.34  0.6065307  0.6065287  0.3934693  0.3934713  0.1573877  0.1573885  
+  6  42.41  0.5488116  0.5488095  0.4511884  0.4511905  0.1804753  0.1804762  
+  7  49.48  0.4965853  0.4965830  0.5034147  0.5034170  0.2013659  0.2013668  
+  8  56.54  0.4493290  0.4493266  0.5506710  0.5506734  0.2202684  0.2202694  
+  9  63.61  0.4065697  0.4065673  0.5934303  0.5934327  0.2373721  0.2373731  
+ 10  70.68  0.3678794  0.3678770  0.6321206  0.6321230  0.2528482  0.2528492  
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9048374  0.0951626  0.0951626  0.0380650  0.0380650  
+  2  14.14  0.8187308  0.8187307  0.1812692  0.1812693  0.0725077  0.0725077  
+  3  21.20  0.7408182  0.7408181  0.2591818  0.2591819  0.1036727  0.1036728  
+  4  28.27  0.6703200  0.6703199  0.3296800  0.3296801  0.1318720  0.1318720  
+  5  35.34  0.6065307  0.6065305  0.3934693  0.3934695  0.1573877  0.1573878  
+  6  42.41  0.5488116  0.5488115  0.4511884  0.4511885  0.1804753  0.1804754  
+  7  49.48  0.4965853  0.4965851  0.5034147  0.5034149  0.2013659  0.2013659  
+  8  56.54  0.4493290  0.4493288  0.5506710  0.5506712  0.2202684  0.2202685  
+  9  63.61  0.4065697  0.4065695  0.5934303  0.5934305  0.2373721  0.2373722  
+ 10  70.68  0.3678794  0.3678793  0.6321206  0.6321207  0.2528482  0.2528483  
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9048369  0.0951626  0.0951631  0.0380650  0.0380652  
+  2  14.14  0.8187308  0.8187299  0.1812692  0.1812701  0.0725077  0.0725080  
+  3  21.20  0.7408182  0.7408170  0.2591818  0.2591830  0.1036727  0.1036732  
+  4  28.27  0.6703200  0.6703186  0.3296800  0.3296814  0.1318720  0.1318726  
+  5  35.34  0.6065307  0.6065290  0.3934693  0.3934710  0.1573877  0.1573884  
+  6  42.41  0.5488116  0.5488099  0.4511884  0.4511901  0.1804753  0.1804761  
+  7  49.48  0.4965853  0.4965834  0.5034147  0.5034166  0.2013659  0.2013666  
+  8  56.54  0.4493290  0.4493270  0.5506710  0.5506730  0.2202684  0.2202692  
+  9  63.61  0.4065697  0.4065677  0.5934303  0.5934323  0.2373721  0.2373729  
+ 10  70.68  0.3678794  0.3678775  0.6321206  0.6321225  0.2528482  0.2528490  
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9048374  0.0951626  0.0951626  0.0380650  0.0380650  
+  2  14.14  0.8187308  0.8187308  0.1812692  0.1812692  0.0725077  0.0725077  
+  3  21.20  0.7408182  0.7408182  0.2591818  0.2591818  0.1036727  0.1036727  
+  4  28.27  0.6703200  0.6703200  0.3296800  0.3296800  0.1318720  0.1318720  
+  5  35.34  0.6065307  0.6065307  0.3934693  0.3934693  0.1573877  0.1573877  
+  6  42.41  0.5488116  0.5488116  0.4511884  0.4511884  0.1804753  0.1804753  
+  7  49.48  0.4965853  0.4965853  0.5034147  0.5034147  0.2013659  0.2013659  
+  8  56.54  0.4493290  0.4493290  0.5506710  0.5506710  0.2202684  0.2202684  
+  9  63.61  0.4065697  0.4065697  0.5934303  0.5934303  0.2373721  0.2373721  
+ 10  70.68  0.3678794  0.3678794  0.6321206  0.6321206  0.2528482  0.2528482  
+[       OK ] AnalyticalExamples.SurfaceRxn (0 ms)
+[ RUN      ] AnalyticalExamples.HIRES
+[       OK ] AnalyticalExamples.HIRES (882 ms)
+[----------] 17 tests from AnalyticalExamples (2747 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 1 test suite ran. (2747 ms total)
+[  PASSED  ] 17 tests.
+<end of output>
+Test time =   2.99 sec
+----------------------------------------------------------
+Test Passed.
+"analytical_rosenbrock_integration" end time: Sep 05 15:39 PDT
+"analytical_rosenbrock_integration" time elapsed: 00:00:02
+----------------------------------------------------------
+
+30/45 Testing: analytical_backward_euler
+30/45 Test: analytical_backward_euler
+Command: "/Users/mthind/Desktop/code/micm/build/test_analytical_backward_euler"
+Directory: /Users/mthind/Desktop/code/micm/build
+"analytical_backward_euler" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 16 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 16 tests from AnalyticalExamples
+[ RUN      ] AnalyticalExamples.Troe
+[       OK ] AnalyticalExamples.Troe (55 ms)
+[ RUN      ] AnalyticalExamples.TroeSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TroeSuperStiffButAnalytical (37 ms)
+[ RUN      ] AnalyticalExamples.Photolysis
+[       OK ] AnalyticalExamples.Photolysis (31 ms)
+[ RUN      ] AnalyticalExamples.PhotolysisSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.PhotolysisSuperStiffButAnalytical (31 ms)
+[ RUN      ] AnalyticalExamples.TernaryChemicalActivation
+[       OK ] AnalyticalExamples.TernaryChemicalActivation (30 ms)
+[ RUN      ] AnalyticalExamples.TernaryChemicalActivationSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TernaryChemicalActivationSuperStiffButAnalytical (32 ms)
+[ RUN      ] AnalyticalExamples.Tunneling
+[       OK ] AnalyticalExamples.Tunneling (29 ms)
+[ RUN      ] AnalyticalExamples.TunnelingSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.TunnelingSuperStiffButAnalytical (32 ms)
+[ RUN      ] AnalyticalExamples.Arrhenius
+[       OK ] AnalyticalExamples.Arrhenius (32 ms)
+[ RUN      ] AnalyticalExamples.ArrheniusSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.ArrheniusSuperStiffButAnalytical (32 ms)
+[ RUN      ] AnalyticalExamples.Branched
+[       OK ] AnalyticalExamples.Branched (31 ms)
+[ RUN      ] AnalyticalExamples.BranchedSuperStiffButAnalytical
+[       OK ] AnalyticalExamples.BranchedSuperStiffButAnalytical (34 ms)
+[ RUN      ] AnalyticalExamples.Robertson
+[       OK ] AnalyticalExamples.Robertson (0 ms)
+[ RUN      ] AnalyticalExamples.SurfaceRxn
+  i   time   true foo  model foo   true bar  model bar   true baz  model baz
+  1   7.07  0.9048374  0.9090909  0.0951626  0.0909091  0.0380650  0.0363636  
+  2  14.14  0.8187308  0.8264463  0.1812692  0.1735537  0.0725077  0.0694215  
+  3  21.20  0.7408182  0.7513148  0.2591818  0.2486852  0.1036727  0.0994741  
+  4  28.27  0.6703200  0.6830135  0.3296800  0.3169865  0.1318720  0.1267946  
+  5  35.34  0.6065307  0.6209213  0.3934693  0.3790787  0.1573877  0.1516315  
+  6  42.41  0.5488116  0.5644739  0.4511884  0.4355261  0.1804753  0.1742104  
+  7  49.48  0.4965853  0.5131581  0.5034147  0.4868419  0.2013659  0.1947368  
+  8  56.54  0.4493290  0.4665074  0.5506710  0.5334926  0.2202684  0.2133970  
+  9  63.61  0.4065697  0.4240976  0.5934303  0.5759024  0.2373721  0.2303610  
+ 10  70.68  0.3678794  0.3855433  0.6321206  0.6144567  0.2528482  0.2457827  
+[       OK ] AnalyticalExamples.SurfaceRxn (0 ms)
+[ RUN      ] AnalyticalExamples.HIRES
+[       OK ] AnalyticalExamples.HIRES (0 ms)
+[ RUN      ] AnalyticalExamples.E5
+[       OK ] AnalyticalExamples.E5 (0 ms)
+[----------] 16 tests from AnalyticalExamples (413 ms total)
+
+[----------] Global test environment tear-down
+[==========] 16 tests from 1 test suite ran. (413 ms total)
+[  PASSED  ] 16 tests.
+<end of output>
+Test time =   0.63 sec
+----------------------------------------------------------
+Test Passed.
+"analytical_backward_euler" end time: Sep 05 15:39 PDT
+"analytical_backward_euler" time elapsed: 00:00:00
+----------------------------------------------------------
+
+31/45 Testing: terminator
+31/45 Test: terminator
+Command: "/Users/mthind/Desktop/code/micm/build/test_terminator"
+Directory: /Users/mthind/Desktop/code/micm/build
+"terminator" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from RosenbrockSolver
+[ RUN      ] RosenbrockSolver.Terminator
+[       OK ] RosenbrockSolver.Terminator (102 ms)
+[ RUN      ] RosenbrockSolver.VectorTerminator
+[       OK ] RosenbrockSolver.VectorTerminator (45 ms)
+[----------] 2 tests from RosenbrockSolver (147 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (147 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.32 sec
+----------------------------------------------------------
+Test Passed.
+"terminator" end time: Sep 05 15:39 PDT
+"terminator" time elapsed: 00:00:00
+----------------------------------------------------------
+
+32/45 Testing: integrated_reaction_rates
+32/45 Test: integrated_reaction_rates
+Command: "/Users/mthind/Desktop/code/micm/build/test_integrated_reaction_rates"
+Directory: /Users/mthind/Desktop/code/micm/build
+"integrated_reaction_rates" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Running main() from /Users/mthind/Desktop/code/micm/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ChapmanIntegration
+[ RUN      ] ChapmanIntegration.CanBuildChapmanSystem
+0 0
+9.65051e-10 9.32931e-10
+1.9301e-09 1.89793e-09
+2.89515e-09 2.86298e-09
+3.8602e-09 3.82803e-09
+4.82525e-09 4.79309e-09
+5.7903e-09 5.75814e-09
+6.75536e-09 6.72319e-09
+7.72041e-09 7.68824e-09
+8.68546e-09 8.65329e-09
+9.65051e-09 9.61834e-09
+1.06156e-08 1.05834e-08
+1.15806e-08 1.15484e-08
+1.25457e-08 1.25135e-08
+1.35107e-08 1.34785e-08
+1.44758e-08 1.44436e-08
+1.54408e-08 1.54086e-08
+1.64059e-08 1.63737e-08
+1.73709e-08 1.73387e-08
+1.8336e-08 1.83038e-08
+1.9301e-08 1.92688e-08
+2.02661e-08 2.02339e-08
+2.12311e-08 2.11989e-08
+2.21962e-08 2.2164e-08
+2.31612e-08 2.31291e-08
+2.41263e-08 2.40941e-08
+2.50913e-08 2.50592e-08
+2.60564e-08 2.60242e-08
+2.70214e-08 2.69893e-08
+2.79865e-08 2.79543e-08
+2.89515e-08 2.89194e-08
+2.99166e-08 2.98844e-08
+3.08816e-08 3.08495e-08
+3.18467e-08 3.18145e-08
+3.28117e-08 3.27796e-08
+3.37768e-08 3.37446e-08
+3.47418e-08 3.47097e-08
+3.57069e-08 3.56747e-08
+3.66719e-08 3.66398e-08
+3.7637e-08 3.76048e-08
+3.8602e-08 3.85699e-08
+3.95671e-08 3.95349e-08
+4.05321e-08 4.05e-08
+4.14972e-08 4.1465e-08
+4.24622e-08 4.24301e-08
+4.34273e-08 4.33951e-08
+4.43923e-08 4.43602e-08
+4.53574e-08 4.53252e-08
+4.63224e-08 4.62903e-08
+4.72875e-08 4.72553e-08
+4.82525e-08 4.82204e-08
+4.92176e-08 4.91854e-08
+5.01826e-08 4.91854e-08
+5.11477e-08 4.91854e-08
+5.21127e-08 4.91854e-08
+5.30778e-08 4.91854e-08
+5.40428e-08 4.91854e-08
+5.50079e-08 4.91854e-08
+5.59729e-08 4.91854e-08
+5.6938e-08 4.91854e-08
+5.7903e-08 4.91854e-08
+5.88681e-08 4.91854e-08
+5.98331e-08 4.91854e-08
+6.07982e-08 4.91854e-08
+6.17632e-08 4.91854e-08
+6.27283e-08 4.91854e-08
+6.36933e-08 4.91854e-08
+6.46584e-08 4.91854e-08
+6.56235e-08 4.91854e-08
+6.65885e-08 4.91854e-08
+6.75536e-08 4.91854e-08
+6.85186e-08 4.91854e-08
+6.94837e-08 4.91854e-08
+7.04487e-08 4.91854e-08
+7.14138e-08 4.91854e-08
+7.23788e-08 4.91854e-08
+7.33439e-08 4.91854e-08
+7.43089e-08 4.91854e-08
+7.5274e-08 4.91854e-08
+7.6239e-08 4.91854e-08
+7.72041e-08 4.91854e-08
+7.81691e-08 4.91854e-08
+7.91342e-08 4.91854e-08
+8.00992e-08 4.91854e-08
+8.10643e-08 4.91854e-08
+8.20293e-08 4.91854e-08
+8.29944e-08 4.91854e-08
+8.39594e-08 4.91854e-08
+8.49245e-08 4.91854e-08
+8.58895e-08 4.91854e-08
+8.68546e-08 4.91854e-08
+8.78196e-08 4.91854e-08
+8.87847e-08 4.91854e-08
+8.97497e-08 4.91854e-08
+9.07148e-08 4.91854e-08
+9.16798e-08 4.91854e-08
+9.26449e-08 4.91854e-08
+9.36099e-08 4.91854e-08
+9.4575e-08 4.91854e-08
+9.554e-08 4.91854e-08
+9.65051e-08 4.91854e-08
+[       OK ] ChapmanIntegration.CanBuildChapmanSystem (1 ms)
+[----------] 1 test from ChapmanIntegration (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"integrated_reaction_rates" end time: Sep 05 15:39 PDT
+"integrated_reaction_rates" time elapsed: 00:00:00
+----------------------------------------------------------
+
+33/45 Testing: README_example
+33/45 Test: README_example
+Command: "/Users/mthind/Desktop/code/micm/build/test_README_example"
+Directory: /Users/mthind/Desktop/code/micm/build
+"README_example" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,        Bar,        Baz,        Foo
+     0,   5.90e+00,   1.91e+00,   1.18e+01
+   500,   9.05e+00,   3.32e+00,   6.79e+00
+  1000,   1.07e+01,   4.21e+00,   3.83e+00
+  1500,   1.17e+01,   4.74e+00,   2.14e+00
+  2000,   1.22e+01,   5.04e+00,   1.19e+00
+  2500,   1.24e+01,   5.21e+00,   6.58e-01
+  3000,   1.26e+01,   5.31e+00,   3.64e-01
+  3500,   1.27e+01,   5.36e+00,   2.01e-01
+  4000,   1.27e+01,   5.39e+00,   1.11e-01
+  4500,   1.28e+01,   5.41e+00,   6.13e-02
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"README_example" end time: Sep 05 15:39 PDT
+"README_example" time elapsed: 00:00:00
+----------------------------------------------------------
+
+34/45 Testing: solve_results
+34/45 Test: solve_results
+Command: "/Users/mthind/Desktop/code/micm/build/test_solve_results"
+Directory: /Users/mthind/Desktop/code/micm/build
+"solve_results" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Solver state: Converged
+accepted: 20
+function_calls: 40
+jacobian_updates: 20
+number_of_steps: 20
+accepted: 20
+rejected: 0
+decompositions: 20
+solves: 60
+singular: 0
+final simulation time: 200
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"solve_results" end time: Sep 05 15:39 PDT
+"solve_results" time elapsed: 00:00:00
+----------------------------------------------------------
+
+35/45 Testing: multiple_grid_cells
+35/45 Test: multiple_grid_cells
+Command: "/Users/mthind/Desktop/code/micm/build/test_multiple_grid_cells"
+Directory: /Users/mthind/Desktop/code/micm/build
+"multiple_grid_cells" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,  grid,          A,          B,          C
+     0,     0,   1.00e+00,   0.00e+00,   0.00e+00
+     0,     1,   2.00e+00,   0.00e+00,   0.00e+00
+     0,     2,   5.00e-01,   0.00e+00,   0.00e+00
+   200,     0,   5.35e-01,   4.50e-06,   4.65e-01
+   200,     1,   1.21e+00,   6.02e-06,   7.89e-01
+   200,     2,   2.30e-01,   3.31e-06,   2.70e-01
+   400,     0,   4.50e-01,   3.23e-06,   5.50e-01
+   400,     1,   1.05e+00,   4.42e-06,   9.45e-01
+   400,     2,   1.85e-01,   2.32e-06,   3.15e-01
+   600,     0,   4.00e-01,   2.63e-06,   6.00e-01
+   600,     1,   9.59e-01,   3.65e-06,   1.04e+00
+   600,     2,   1.60e-01,   1.85e-06,   3.40e-01
+   800,     0,   3.64e-01,   2.27e-06,   6.36e-01
+   800,     1,   8.90e-01,   3.18e-06,   1.11e+00
+   800,     2,   1.42e-01,   1.57e-06,   3.58e-01
+  1000,     0,   3.37e-01,   2.01e-06,   6.63e-01
+  1000,     1,   8.35e-01,   2.85e-06,   1.16e+00
+  1000,     2,   1.29e-01,   1.38e-06,   3.71e-01
+  1200,     0,   3.15e-01,   1.82e-06,   6.85e-01
+  1200,     1,   7.91e-01,   2.60e-06,   1.21e+00
+  1200,     2,   1.19e-01,   1.24e-06,   3.81e-01
+  1400,     0,   2.96e-01,   1.67e-06,   7.04e-01
+  1400,     1,   7.54e-01,   2.40e-06,   1.25e+00
+  1400,     2,   1.11e-01,   1.13e-06,   3.89e-01
+  1600,     0,   2.81e-01,   1.55e-06,   7.19e-01
+  1600,     1,   7.21e-01,   2.24e-06,   1.28e+00
+  1600,     2,   1.04e-01,   1.04e-06,   3.96e-01
+  1800,     0,   2.67e-01,   1.45e-06,   7.33e-01
+  1800,     1,   6.93e-01,   2.11e-06,   1.31e+00
+  1800,     2,   9.77e-02,   9.65e-07,   4.02e-01
+  2000,     0,   2.55e-01,   1.37e-06,   7.45e-01
+  2000,     1,   6.68e-01,   2.00e-06,   1.33e+00
+  2000,     2,   9.25e-02,   9.02e-07,   4.07e-01
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"multiple_grid_cells" end time: Sep 05 15:39 PDT
+"multiple_grid_cells" time elapsed: 00:00:00
+----------------------------------------------------------
+
+36/45 Testing: rate_constants_no_user_defined_example_by_hand
+36/45 Test: rate_constants_no_user_defined_example_by_hand
+Command: "/Users/mthind/Desktop/code/micm/build/test_rate_constants_no_user_defined_example_by_hand"
+Directory: /Users/mthind/Desktop/code/micm/build
+"rate_constants_no_user_defined_example_by_hand" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          A,          B,          C,          D,          E,          F,          G
+     0,   1.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00
+   500,   2.99e-09,   3.44e-09,   9.83e-01,   3.64e-14,   1.41e-03,   1.90e-13,   7.92e-03
+  1000,   1.07e-14,   1.23e-14,   9.66e-01,   1.30e-19,   1.40e-03,   6.79e-19,   1.64e-02
+  1500,   3.84e-20,   4.42e-20,   9.49e-01,   4.67e-25,   1.39e-03,   2.43e-24,   2.48e-02
+  2000,   1.38e-25,   1.58e-25,   9.33e-01,   1.68e-30,   1.38e-03,   8.73e-30,   3.30e-02
+  2500,   4.94e-31,   5.68e-31,   9.17e-01,   6.01e-36,   1.37e-03,   3.13e-35,   4.11e-02
+  3000,   1.77e-36,   2.04e-36,   9.01e-01,   2.15e-41,   1.36e-03,   1.12e-40,   4.90e-02
+  3500,   6.35e-42,   7.30e-42,   8.85e-01,   7.73e-47,   1.34e-03,   4.02e-46,   5.68e-02
+  4000,   2.28e-47,   2.62e-47,   8.70e-01,   2.77e-52,   1.33e-03,   1.44e-51,   6.44e-02
+  4500,   8.17e-53,   9.39e-53,   8.55e-01,   9.93e-58,   1.32e-03,   5.17e-57,   7.20e-02
+  5000,   2.93e-58,   3.37e-58,   8.40e-01,   3.56e-63,   1.31e-03,   1.85e-62,   7.94e-02
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"rate_constants_no_user_defined_example_by_hand" end time: Sep 05 15:39 PDT
+"rate_constants_no_user_defined_example_by_hand" time elapsed: 00:00:00
+----------------------------------------------------------
+
+37/45 Testing: rate_constants_user_defined_example_by_hand
+37/45 Test: rate_constants_user_defined_example_by_hand
+Command: "/Users/mthind/Desktop/code/micm/build/test_rate_constants_user_defined_example_by_hand"
+Directory: /Users/mthind/Desktop/code/micm/build
+"rate_constants_user_defined_example_by_hand" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          A,          B,          C,          D,          E,          F,          G
+     0,   1.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00
+   500,   2.99e-09,   3.44e-09,   9.83e-01,   3.64e-14,   1.41e-03,   1.90e-13,   7.92e-03
+  1000,   1.07e-14,   1.23e-14,   9.66e-01,   1.30e-19,   1.40e-03,   6.79e-19,   1.64e-02
+  1500,   7.01e-20,   6.11e-20,   9.49e-01,   6.22e-25,   1.39e-03,   3.03e-24,   2.48e-02
+  2000,   3.17e-20,   1.70e-20,   9.33e-01,   1.55e-25,   1.38e-03,   5.92e-25,   3.30e-02
+  2500,   3.17e-20,   1.70e-20,   9.17e-01,   1.55e-25,   1.37e-03,   5.92e-25,   4.11e-02
+  3000,   3.17e-20,   1.70e-20,   9.01e-01,   1.55e-25,   1.36e-03,   5.92e-25,   4.90e-02
+  3500,   3.17e-20,   1.70e-20,   8.85e-01,   1.55e-25,   1.34e-03,   5.92e-25,   5.68e-02
+  4000,   3.17e-20,   1.70e-20,   8.70e-01,   1.55e-25,   1.33e-03,   5.92e-25,   6.44e-02
+  4500,   3.17e-20,   1.70e-20,   8.55e-01,   1.55e-25,   1.32e-03,   5.92e-25,   7.20e-02
+  5000,   3.17e-20,   1.70e-20,   8.40e-01,   1.55e-25,   1.31e-03,   5.92e-25,   7.94e-02
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"rate_constants_user_defined_example_by_hand" end time: Sep 05 15:39 PDT
+"rate_constants_user_defined_example_by_hand" time elapsed: 00:00:00
+----------------------------------------------------------
+
+38/45 Testing: solver_configuration
+38/45 Test: solver_configuration
+Command: "/Users/mthind/Desktop/code/micm/build/test_solver_configuration"
+Directory: /Users/mthind/Desktop/code/micm/build
+"solver_configuration" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+Two stages: 
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.37e-01,   4.50e-06,   4.63e-01
+   400,   4.51e-01,   3.23e-06,   5.49e-01
+   600,   4.01e-01,   2.64e-06,   5.99e-01
+   800,   3.65e-01,   2.28e-06,   6.35e-01
+  1000,   3.38e-01,   2.02e-06,   6.62e-01
+  1200,   3.16e-01,   1.83e-06,   6.84e-01
+  1400,   2.97e-01,   1.68e-06,   7.03e-01
+  1600,   2.82e-01,   1.56e-06,   7.18e-01
+  1800,   2.68e-01,   1.46e-06,   7.32e-01
+  2000,   2.56e-01,   1.37e-06,   7.44e-01
+Total solve time: 188333 nanoseconds
+accepted: 179
+function_calls: 358
+jacobian_updates: 179
+number_of_steps: 179
+accepted: 179
+rejected: 0
+decompositions: 179
+solves: 358
+singular: 0
+
+Three stages: 
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.35e-01,   4.48e-06,   4.65e-01
+   400,   4.50e-01,   3.23e-06,   5.50e-01
+   600,   4.00e-01,   2.63e-06,   6.00e-01
+   800,   3.64e-01,   2.27e-06,   6.36e-01
+  1000,   3.37e-01,   2.01e-06,   6.63e-01
+  1200,   3.15e-01,   1.82e-06,   6.85e-01
+  1400,   2.96e-01,   1.67e-06,   7.04e-01
+  1600,   2.81e-01,   1.55e-06,   7.19e-01
+  1800,   2.67e-01,   1.45e-06,   7.33e-01
+  2000,   2.55e-01,   1.37e-06,   7.45e-01
+Total solve time: 146999 nanoseconds
+accepted: 128
+function_calls: 256
+jacobian_updates: 128
+number_of_steps: 128
+accepted: 128
+rejected: 0
+decompositions: 128
+solves: 384
+singular: 0
+
+Four stages: 
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.36e-01,   4.48e-06,   4.64e-01
+   400,   4.50e-01,   3.20e-06,   5.50e-01
+   600,   4.00e-01,   2.62e-06,   6.00e-01
+   800,   3.64e-01,   2.26e-06,   6.36e-01
+  1000,   3.37e-01,   2.01e-06,   6.63e-01
+  1200,   3.15e-01,   1.82e-06,   6.85e-01
+  1400,   2.97e-01,   1.67e-06,   7.03e-01
+  1600,   2.81e-01,   1.55e-06,   7.19e-01
+  1800,   2.67e-01,   1.45e-06,   7.33e-01
+  2000,   2.56e-01,   1.37e-06,   7.44e-01
+Total solve time: 168249 nanoseconds
+accepted: 127
+function_calls: 381
+jacobian_updates: 127
+number_of_steps: 127
+accepted: 127
+rejected: 0
+decompositions: 127
+solves: 508
+singular: 0
+
+Four stages differential algebraic: 
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.36e-01,   4.49e-06,   4.64e-01
+   400,   4.51e-01,   3.23e-06,   5.49e-01
+   600,   4.00e-01,   2.63e-06,   6.00e-01
+   800,   3.64e-01,   2.27e-06,   6.36e-01
+  1000,   3.37e-01,   2.01e-06,   6.63e-01
+  1200,   3.15e-01,   1.82e-06,   6.85e-01
+  1400,   2.97e-01,   1.68e-06,   7.03e-01
+  1600,   2.81e-01,   1.55e-06,   7.19e-01
+  1800,   2.68e-01,   1.45e-06,   7.32e-01
+  2000,   2.56e-01,   1.37e-06,   7.44e-01
+Total solve time: 174084 nanoseconds
+accepted: 128
+function_calls: 384
+jacobian_updates: 128
+number_of_steps: 128
+accepted: 128
+rejected: 0
+decompositions: 128
+solves: 512
+singular: 0
+
+Six stages differential algebraic: 
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.36e-01,   4.49e-06,   4.64e-01
+   400,   4.51e-01,   3.22e-06,   5.49e-01
+   600,   4.00e-01,   2.63e-06,   6.00e-01
+   800,   3.64e-01,   2.27e-06,   6.36e-01
+  1000,   3.37e-01,   2.01e-06,   6.63e-01
+  1200,   3.15e-01,   1.82e-06,   6.85e-01
+  1400,   2.97e-01,   1.67e-06,   7.03e-01
+  1600,   2.81e-01,   1.55e-06,   7.19e-01
+  1800,   2.67e-01,   1.45e-06,   7.33e-01
+  2000,   2.56e-01,   1.37e-06,   7.44e-01
+Total solve time: 294083 nanoseconds
+accepted: 127
+function_calls: 762
+jacobian_updates: 127
+number_of_steps: 127
+accepted: 127
+rejected: 0
+decompositions: 127
+solves: 762
+singular: 0
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"solver_configuration" end time: Sep 05 15:39 PDT
+"solver_configuration" time elapsed: 00:00:00
+----------------------------------------------------------
+
+39/45 Testing: vectorized_matrix_solver
+39/45 Test: vectorized_matrix_solver
+Command: "/Users/mthind/Desktop/code/micm/build/test_vectorized_matrix_solver"
+Directory: /Users/mthind/Desktop/code/micm/build
+"vectorized_matrix_solver" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+1.1
+1.2
+1.3
+2.1
+2.2
+2.3
+3.1
+3.2
+3.3
+
+1.1
+2.1
+3.1
+1.2
+2.2
+3.2
+1.3
+2.3
+3.3
+
+Cell 0
+   Species             Regular          Vectorized
+         A                 1.1                 1.1
+         B                 1.2                 1.2
+         C                 1.3                 1.3
+
+Cell 1
+   Species             Regular          Vectorized
+         A                 2.1                 2.1
+         B                 2.2                 2.2
+         C                 2.3                 2.3
+
+Cell 2
+   Species             Regular          Vectorized
+         A                 3.1                 3.1
+         B                 3.2                 3.2
+         C                 3.3                 3.3
+
+
+Sparse matrix standard ordering elements
+0.0.1
+0.2.1
+0.2.3
+0.3.2
+1.0.1
+1.2.1
+1.2.3
+1.3.2
+2.0.1
+2.2.1
+2.2.3
+2.3.2
+
+Sparse matrix vector ordering elements
+0.0.1
+1.0.1
+2.0.1
+0.2.1
+1.2.1
+2.2.1
+0.2.3
+1.2.3
+2.2.3
+0.3.2
+1.3.2
+2.3.2
+<end of output>
+Test time =   0.14 sec
+----------------------------------------------------------
+Test Passed.
+"vectorized_matrix_solver" end time: Sep 05 15:39 PDT
+"vectorized_matrix_solver" time elapsed: 00:00:00
+----------------------------------------------------------
+
+40/45 Testing: rate_constants_no_user_defined_example_with_config
+40/45 Test: rate_constants_no_user_defined_example_with_config
+Command: "/Users/mthind/Desktop/code/micm/build/test_rate_constants_no_user_defined_example_with_config"
+Directory: /Users/mthind/Desktop/code/micm/build
+"rate_constants_no_user_defined_example_with_config" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          A,          B,          C,          D,          E,          F,          G
+     0,   1.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00
+   500,   2.68e-09,   3.09e-09,   9.83e-01,   2.29e-14,  -6.25e-13,   1.63e-13,   8.63e-03
+  1000,   9.63e-15,   1.11e-14,   9.66e-01,   8.22e-20,  -4.84e-13,   5.85e-19,   1.71e-02
+  1500,   3.45e-20,   3.97e-20,   9.49e-01,   2.95e-25,  -4.80e-13,   2.10e-24,   2.55e-02
+  2000,   1.24e-25,   1.42e-25,   9.33e-01,   1.06e-30,  -4.76e-13,   7.52e-30,   3.37e-02
+  2500,   4.44e-31,   5.10e-31,   9.17e-01,   3.79e-36,  -4.72e-13,   2.69e-35,   4.17e-02
+  3000,   1.59e-36,   1.83e-36,   9.01e-01,   1.36e-41,  -4.67e-13,   9.66e-41,   4.97e-02
+  3500,   5.71e-42,   6.56e-42,   8.85e-01,   4.87e-47,  -4.63e-13,   3.46e-46,   5.74e-02
+  4000,   2.05e-47,   2.35e-47,   8.70e-01,   1.75e-52,  -4.59e-13,   1.24e-51,   6.51e-02
+  4500,   7.34e-53,   8.43e-53,   8.55e-01,   6.26e-58,  -4.55e-13,   4.45e-57,   7.26e-02
+  5000,   2.63e-58,   3.02e-58,   8.40e-01,   2.25e-63,  -4.51e-13,   1.60e-62,   8.00e-02
+<end of output>
+Test time =   0.44 sec
+----------------------------------------------------------
+Test Passed.
+"rate_constants_no_user_defined_example_with_config" end time: Sep 05 15:39 PDT
+"rate_constants_no_user_defined_example_with_config" time elapsed: 00:00:00
+----------------------------------------------------------
+
+41/45 Testing: rate_constants_user_defined_example_with_config
+41/45 Test: rate_constants_user_defined_example_with_config
+Command: "/Users/mthind/Desktop/code/micm/build/test_rate_constants_user_defined_example_with_config"
+Directory: /Users/mthind/Desktop/code/micm/build
+"rate_constants_user_defined_example_with_config" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          A,          B,          C,          D,          E,          F,          G
+     0,   1.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00
+   500,   2.68e-09,   3.09e-09,   9.83e-01,   2.29e-14,  -6.25e-13,   1.63e-13,   8.63e-03
+  1000,   9.63e-15,   1.11e-14,   9.66e-01,   8.22e-20,  -4.84e-13,   5.85e-19,   1.71e-02
+  1500,   6.62e-20,   5.66e-20,   9.49e-01,   4.08e-25,  -4.80e-13,   2.69e-24,   2.55e-02
+  2000,   3.17e-20,   1.70e-20,   9.33e-01,   1.13e-25,  -4.76e-13,   5.92e-25,   3.37e-02
+  2500,   3.17e-20,   1.70e-20,   9.17e-01,   1.13e-25,  -4.72e-13,   5.92e-25,   4.17e-02
+  3000,   3.17e-20,   1.70e-20,   9.01e-01,   1.13e-25,  -4.67e-13,   5.92e-25,   4.97e-02
+  3500,   3.17e-20,   1.70e-20,   8.85e-01,   1.13e-25,  -4.63e-13,   5.92e-25,   5.75e-02
+  4000,   3.17e-20,   1.70e-20,   8.70e-01,   1.13e-25,  -4.59e-13,   5.92e-25,   6.51e-02
+  4500,   3.17e-20,   1.70e-20,   8.55e-01,   1.13e-25,  -4.55e-13,   5.92e-25,   7.26e-02
+  5000,   3.17e-20,   1.70e-20,   8.40e-01,   1.13e-25,  -4.51e-13,   5.92e-25,   8.00e-02
+<end of output>
+Test time =   0.47 sec
+----------------------------------------------------------
+Test Passed.
+"rate_constants_user_defined_example_with_config" end time: Sep 05 15:39 PDT
+"rate_constants_user_defined_example_with_config" time elapsed: 00:00:00
+----------------------------------------------------------
+
+42/45 Testing: carbon_bond_5_example
+42/45 Test: carbon_bond_5_example
+Command: "/Users/mthind/Desktop/code/micm/build/micm" "/Users/mthind/Desktop/code/micm/build/examples/configs/carbon_bond_5" "/Users/mthind/Desktop/code/micm/build/examples/configs/carbon_bond_5/initial_conditions.csv"
+Directory: /Users/mthind/Desktop/code/micm/build
+"carbon_bond_5_example" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,       AACD,       ALD2,       ALDX,    BENZENE,    BENZRO2,       C2O3,        CH4,         CL,        CL2,        CLO,         CO,       CRES,        CRO,       CXO3,        ETH,       ETHA,       ETOH,       FACD,       FMCL,       FORM,         H2,        H2O,       H2O2,        HCL,       HCO3,       HNO3,        HO2,       HOCL,       HONO,       IOLE,       ISOP,       ISPD,       MEO2,       MEOH,       MEPX,       MGLY,       N2O5,         NO,        NO2,        NO3,        NTR,          O,        O1D,         O2,         O3,         OH,        OLE,       OPEN,       PACD,        PAN,       PANX,        PAR,        PNA,       ROOH,        ROR,       SESQ,        SO2,       SULF,       TERP,        TO2,        TOL,     TOLRO2,        XO2,       XO2N,        XYL,     XYLRO2
+     0,   2.00e-09,   1.00e-08,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   9.00e-05,   0.00e+00,   0.00e+00,   0.00e+00,   6.00e-06,   0.00e+00,   0.00e+00,   0.00e+00,   2.00e-09,   1.00e-08,   0.00e+00,   0.00e+00,   0.00e+00,   9.00e-08,   3.00e-05,   1.28e+02,   5.00e-08,   9.00e-08,   0.00e+00,   1.00e-08,   0.00e+00,   0.00e+00,   0.00e+00,   3.00e-11,   2.00e-07,   0.00e+00,   0.00e+00,   9.00e-09,   2.00e-08,   0.00e+00,   0.00e+00,   1.00e-09,   1.00e-08,   0.00e+00,   1.00e-09,   0.00e+00,   0.00e+00,   5.60e+01,   2.00e-06,   0.00e+00,   4.00e-10,   0.00e+00,   0.00e+00,   3.00e-08,   0.00e+00,   2.00e-08,   0.00e+00,   1.00e-09,   0.00e+00,   0.00e+00,   3.00e-08,   0.00e+00,   0.00e+00,   0.00e+00,   1.00e-09,   0.00e+00,   0.00e+00,   0.00e+00,   1.00e-09,   0.00e+00
+    60,   2.56e-09,   1.70e-08,   2.47e-08,   0.00e+00,   0.00e+00,   2.17e-10,   9.00e-05,   1.48e-16,   2.04e-21,   1.39e-13,   6.12e-06,   1.01e-12,   8.07e-14,   4.62e-09,   2.60e-09,   9.99e-09,   0.00e+00,   7.15e-10,   3.24e-13,   1.42e-07,   3.00e-05,   1.28e+02,   5.16e-08,   9.00e-08,   5.76e-24,   1.20e-08,   1.59e-08,   1.28e-13,   3.10e-14,   6.89e-10,   1.04e-07,   5.54e-08,   1.26e-08,   9.18e-09,   2.15e-08,   2.74e-11,   3.33e-13,   4.39e-11,   1.36e-09,   3.35e-10,   1.35e-08,   9.17e-16,   2.43e-22,   5.60e+01,   1.88e-06,   1.85e-12,   9.62e-10,   4.00e-16,   6.59e-10,   3.00e-08,   3.27e-09,   1.11e-07,   6.56e-10,   7.73e-09,   7.86e-29,   0.00e+00,   9.36e-08,   4.34e-12,   0.00e+00,   3.01e-15,   1.92e-09,   1.45e-13,   2.99e-08,   2.21e-11,   1.84e-09,   1.40e-12
+<end of output>
+Test time =   0.56 sec
+----------------------------------------------------------
+Test Passed.
+"carbon_bond_5_example" end time: Sep 05 15:39 PDT
+"carbon_bond_5_example" time elapsed: 00:00:00
+----------------------------------------------------------
+
+43/45 Testing: chapman_example
+43/45 Test: chapman_example
+Command: "/Users/mthind/Desktop/code/micm/build/micm" "/Users/mthind/Desktop/code/micm/build/examples/configs/chapman" "/Users/mthind/Desktop/code/micm/build/examples/configs/chapman/initial_conditions.csv"
+Directory: /Users/mthind/Desktop/code/micm/build
+"chapman_example" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          O,        O1D,         O2,         O3
+     0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
+    60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"chapman_example" end time: Sep 05 15:39 PDT
+"chapman_example" time elapsed: 00:00:00
+----------------------------------------------------------
+
+44/45 Testing: robertson_example
+44/45 Test: robertson_example
+Command: "/Users/mthind/Desktop/code/micm/build/micm" "/Users/mthind/Desktop/code/micm/build/examples/configs/robertson" "/Users/mthind/Desktop/code/micm/build/examples/configs/robertson/initial_conditions.csv"
+Directory: /Users/mthind/Desktop/code/micm/build
+"robertson_example" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,          A,          B,          C
+     0,   1.00e+00,   0.00e+00,   0.00e+00
+   200,   5.35e-01,   4.48e-06,   4.65e-01
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"robertson_example" end time: Sep 05 15:39 PDT
+"robertson_example" time elapsed: 00:00:00
+----------------------------------------------------------
+
+45/45 Testing: ts1_example
+45/45 Test: ts1_example
+Command: "/Users/mthind/Desktop/code/micm/build/micm" "/Users/mthind/Desktop/code/micm/build/examples/configs/TS1" "/Users/mthind/Desktop/code/micm/build/examples/configs/TS1/initial_conditions.csv"
+Directory: /Users/mthind/Desktop/code/micm/build
+"ts1_example" start time: Sep 05 15:39 PDT
+Output:
+----------------------------------------------------------
+  time,      ACBZO2,      ALKNIT,       ALKO2,      ALKOOH,       BCARY,  BCARYO2VBS,     BENZENE,      BENZO2,   BENZO2VBS,     BENZOOH,     BEPOMUC,      BIGALD,     BIGALD1,     BIGALD2,     BIGALD3,     BIGALD4,      BIGALK,      BIGENE,          BR,        BRCL,         BRO,      BRONO2,       BZALD,        BZOO,       BZOOH,        C2H2,        C2H4,      C2H5O2,      C2H5OH,     C2H5OOH,        C2H6,        C3H6,      C3H7O2,     C3H7OOH,        C3H8,      C6H5O2,     C6H5OOH,        CCL4,     CF2CLBR,       CF3BR,       CFC11,      CFC113,      CFC114,      CFC115,       CFC12,      CH2BR2,        CH2O,       CH3BR,     CH3CCL3,      CH3CHO,       CH3CL,       CH3CN,      CH3CO3,    CH3COCH3,    CH3COCHO,     CH3COOH,    CH3COOOH,       CH3O2,       CH3OH,      CH3OOH,         CH4,       CHBR3,          CL,         CL2,       CL2O2,         CLO,      CLONO2,          CO,         CO2,        COF2,       COFCL,      CRESOL,    DICARBO2,         DMS,         E90,       ENEO2,          EO,         EO2,        EOOH,           F,      GLYALD,     GLYOXAL,           H,          H2,       H2402,         H2O,        H2O2,       H2SO4,         HBR,    HCFC141B,    HCFC142B,      HCFC22,         HCL,         HCN,       HCOOH,          HF,        HNO3,         HO2,      HO2NO2,        HOBR,     HOCH2OO,        HOCL,      HONITR,       HPALD,        HYAC,     HYDRALD,       IEPOX,        ISOP,     ISOPAO2,     ISOPBO2,    ISOPNITA,    ISOPNITB,     ISOPNO3,    ISOPNOOH,   ISOPO2VBS,     ISOPOOH,        IVOC,   IVOCO2VBS,        MACR,      MACRO2,     MACROOH,       MALO2,        MCO3,     MDIALO2,         MEK,       MEKO2,      MEKOOH,        MPAN,       MTERP,  MTERPO2VBS,         MVK,           N,          N2,         N2O,        N2O5,    NC4CH2OH,      NC4CHO,         NH3,         NH4,        NH_5,       NH_50,          NO,         NO2,         NO3,         NOA,     NTERPO2,    NTERPOOH,           O,         O1D,          O2,          O3,        OCLO,         OCS,          OH,       ONITR,         PAN,      PBZNIT,       PHENO,      PHENO2,      PHENOL,     PHENOOH,         PO2,        POOH,         RO2,        ROOH,           S,         SF6,          SO,         SO2,         SO3,       SOAG0,       SOAG1,       SOAG2,       SOAG3,       SOAG4,     ST80_25,        SVOC,     TEPOMUC,     TERP2O2,    TERP2OOH,     TERPNIT,      TERPO2,     TERPOOH,    TERPROD1,    TERPROD2,       TOLO2,      TOLOOH,     TOLUENE,   TOLUO2VBS,         XO2,        XOOH,     XYLENES,     XYLENO2,    XYLENOOH,   XYLEO2VBS,       XYLOL,     XYLOLO2,    XYLOLOOH,        sink,     soa1_a1,     soa1_a2,     soa2_a1,     soa2_a2,     soa3_a1,     soa3_a2,     soa4_a1,     soa4_a2,     soa5_a1,     soa5_a2
+     0,    3.54e-13,    8.72e-10,    1.39e-11,    3.79e-10,    5.04e-12,    0.00e+00,    2.67e-09,    2.09e-13,    0.00e+00,    5.78e-12,    5.40e-12,    1.33e-11,    6.47e-11,    6.58e-11,    6.83e-11,    7.34e-10,    1.90e-08,    6.59e-10,    3.67e-14,    9.18e-19,    1.95e-13,    1.22e-11,    4.70e-10,    8.81e-13,    2.68e-11,    2.13e-08,    2.51e-08,    1.55e-12,    2.75e-08,    7.99e-11,    2.93e-08,    2.42e-09,    2.31e-12,    7.87e-11,    9.70e-09,    6.23e-12,    4.20e-10,    2.96e-09,    1.24e-10,    1.26e-10,    8.50e-09,    2.66e-09,    6.19e-10,    3.29e-10,    1.92e-08,    4.32e-11,    2.44e-07,    2.37e-10,    5.55e-11,    2.51e-08,    2.07e-08,    4.66e-09,    8.32e-11,    7.37e-08,    1.95e-08,    8.20e-09,    7.19e-09,    3.34e-10,    2.74e-07,    1.69e-08,    7.03e-05,    3.87e-11,    1.07e-15,    1.01e-16,    1.89e-23,    8.06e-14,    4.09e-11,    3.25e-06,    1.56e-02,    5.24e-11,    7.92e-12,    1.06e-10,    1.55e-13,    1.74e-10,    0.00e+00,    7.98e-12,    9.93e-18,    4.04e-11,    3.56e-09,    3.89e-28,    4.58e-08,    1.25e-08,    9.67e-18,    1.93e-05,    1.52e-11,    7.46e-01,    7.36e-08,    2.27e-11,    4.48e-11,    9.29e-10,    8.24e-10,    9.07e-09,    8.17e-10,    1.90e-08,    8.79e-09,    1.81e-11,    1.04e-07,    1.69e-09,    7.99e-10,    1.65e-12,    1.07e-13,    2.11e-12,    6.79e-09,    3.56e-10,    4.88e-08,    1.49e-08,    5.84e-09,    1.23e-08,    1.39e-10,    9.08e-11,    1.62e-09,    1.05e-09,    5.35e-13,    9.16e-11,    0.00e+00,    4.68e-09,    2.06e-09,    0.00e+00,    1.06e-08,    1.09e-10,    1.21e-09,    1.07e-13,    9.23e-12,    1.61e-13,    1.04e-08,    2.81e-12,    6.15e-11,    3.11e-09,    1.09e-09,    0.00e+00,    2.61e-08,    0.00e+00,    3.31e+01,    1.27e-05,    1.00e-11,    7.30e-13,    3.67e-11,    7.59e-08,    0.00e+00,    0.00e+00,    0.00e+00,    1.47e-08,    6.37e-08,    9.32e-12,    5.46e-09,    9.18e-13,    9.37e-11,    2.85e-14,    1.53e-19,    8.90e+00,    2.49e-06,    7.68e-19,    1.96e-08,    2.52e-11,    2.67e-09,    4.25e-08,    1.78e-10,    1.00e-12,    2.54e-13,    9.49e-11,    9.15e-12,    1.46e-11,    9.24e-10,    7.13e-12,    4.40e-10,    1.10e-26,    0.00e+00,    1.22e-20,    6.15e-08,    1.75e-17,    3.33e-11,    2.14e-10,    1.40e-09,    4.27e-09,    2.25e-08,    0.00e+00,    1.98e-10,    2.21e-10,    2.15e-11,    5.96e-10,    8.28e-10,    1.29e-11,    2.46e-10,    1.68e-09,    3.81e-09,    3.23e-12,    9.69e-11,    4.88e-09,    0.00e+00,    1.12e-10,    7.93e-09,    2.82e-09,    4.98e-12,    1.50e-10,    0.00e+00,    9.92e-11,    4.62e-13,    1.31e-11,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00
+    60,    1.63e-13,    8.78e-10,    1.00e-11,    3.81e-10,    1.44e-12,    4.18e-14,    2.67e-09,    1.40e-13,    3.95e-13,    5.80e-12,    5.36e-12,    1.28e-11,    6.42e-11,    6.50e-11,    6.75e-11,    7.36e-10,    1.90e-08,    6.33e-10,    4.18e-14,    7.66e-19,    1.75e-13,    1.23e-11,    4.69e-10,    6.16e-13,    2.69e-11,    2.13e-08,    2.49e-08,    9.63e-13,    2.74e-08,    7.98e-11,    2.93e-08,    2.37e-09,    1.51e-12,    7.89e-11,    9.69e-09,    4.92e-12,    4.19e-10,    2.96e-09,    1.24e-10,    1.26e-10,    8.50e-09,    2.66e-09,    6.19e-10,    3.29e-10,    1.92e-08,    4.32e-11,    2.44e-07,    2.37e-10,    5.55e-11,    2.50e-08,    2.07e-08,    4.66e-09,    3.98e-11,    7.38e-08,    1.95e-08,    8.20e-09,    7.20e-09,    1.65e-10,    2.74e-07,    1.68e-08,    7.03e-05,    3.87e-11,    8.61e-16,    9.94e-17,    3.07e-23,    5.41e-14,    4.11e-11,    3.25e-06,    1.56e-02,    5.24e-11,    7.92e-12,    1.06e-10,    1.45e-13,    1.73e-10,    0.00e+00,    5.32e-12,    1.32e-17,    3.00e-11,    3.57e-09,    3.54e-28,    4.60e-08,    1.25e-08,    6.50e-18,    1.93e-05,    1.52e-11,    7.46e-01,    7.38e-08,    6.98e-11,    4.48e-11,    9.29e-10,    8.24e-10,    9.07e-09,    8.17e-10,    1.90e-08,    8.80e-09,    1.81e-11,    1.05e-07,    1.09e-09,    2.10e-09,    1.58e-12,    2.13e-13,    2.10e-12,    6.71e-09,    3.48e-10,    4.90e-08,    1.48e-08,    5.85e-09,    1.13e-08,    9.95e-11,    6.60e-11,    1.59e-09,    1.03e-09,    2.43e-13,    8.90e-11,    1.45e-10,    4.64e-09,    2.04e-09,    3.45e-12,    1.05e-08,    8.07e-11,    1.20e-09,    9.95e-14,    5.33e-12,    1.50e-13,    1.04e-08,    1.97e-12,    6.18e-11,    3.14e-09,    1.04e-09,    6.52e-12,    2.60e-08,    0.00e+00,    3.31e+01,    1.27e-05,    1.81e-11,    6.83e-13,    3.36e-11,    7.59e-08,    0.00e+00,    0.00e+00,    0.00e+00,    1.73e-08,    5.85e-08,    5.75e-12,    5.47e-09,    5.64e-13,    9.03e-11,    2.01e-14,    1.38e-19,    8.90e+00,    2.50e-06,    5.03e-19,    1.96e-08,    2.09e-11,    2.65e-09,    4.32e-08,    1.81e-10,    9.96e-13,    1.84e-13,    9.38e-11,    9.17e-12,    1.03e-11,    9.23e-10,    4.92e-12,    4.39e-10,    9.82e-27,    0.00e+00,    8.06e-21,    6.15e-08,    5.99e-18,    5.23e-11,    2.21e-10,    1.41e-09,    4.28e-09,    2.26e-08,    0.00e+00,    1.96e-10,    2.18e-10,    1.54e-11,    5.92e-10,    8.05e-10,    9.42e-12,    2.44e-10,    1.67e-09,    3.79e-09,    2.34e-12,    9.73e-11,    4.86e-09,    3.54e-12,    7.93e-11,    7.94e-09,    2.78e-09,    3.40e-12,    1.50e-10,    5.98e-12,    9.83e-11,    3.17e-13,    1.32e-11,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00,    0.00e+00
+<end of output>
+Test time =   0.50 sec
+----------------------------------------------------------
+Test Passed.
+"ts1_example" end time: Sep 05 15:39 PDT
+"ts1_example" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 05 15:39 PDT

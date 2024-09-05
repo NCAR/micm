@@ -1,0 +1,14 @@
+{
+  "camp-data": [
+    {
+      "name": "First-order loss missing reactants",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "type": "FIRST_ORDER_LOSS",
+          "MUSICA name" : "foo"
+        }
+      ]
+    }
+  ]
+}

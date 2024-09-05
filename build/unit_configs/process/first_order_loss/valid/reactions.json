@@ -1,0 +1,22 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid first-order-loss",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "FIRST_ORDER_LOSS",
+          "species": "foo",
+          "MUSICA name": "foo"
+        },
+        {
+          "type": "FIRST_ORDER_LOSS",
+          "species": "bar",
+          "MUSICA name": "bar",
+          "scaling factor": 2.5
+        }
+      ]
+    }
+  ]
+}

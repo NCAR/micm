@@ -1,0 +1,22 @@
+{
+  "camp-data": [
+    {
+      "name": "Valid emissions",
+      "type": "MECHANISM",
+      "reactions": [
+        {
+          "__my comment": {},
+          "type": "EMISSION",
+          "species": "foo",
+          "MUSICA name": "foo"
+        },
+        {
+          "type": "EMISSION",
+          "species": "bar",
+          "MUSICA name": "bar",
+          "scaling factor": 2.5
+        }
+      ]
+    }
+  ]
+}
