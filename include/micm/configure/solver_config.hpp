@@ -183,7 +183,7 @@ namespace micm
       }
 
       // Load the CAMP file list JSON
-      json camp_data = YAML::LoadFile(config_file);
+      json camp_data = YAML::LoadFile(config_file.string());
       if (!camp_data[CAMP_FILES])
       {
         throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), config_file.string() };
