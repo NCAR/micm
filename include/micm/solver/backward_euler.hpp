@@ -4,6 +4,7 @@
 
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
@@ -25,7 +26,6 @@
 
 namespace micm
 {
-
   /// @brief An implementation of the fully implicit backward euler method
   template<class RatesPolicy, class LinearSolverPolicy>
   class BackwardEuler
@@ -39,19 +39,9 @@ namespace micm
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
 
+    /// @brief Temporary variables type
     template<class DenseMatrixPolicy>
-    class TemporaryVariables
-    {
-        TemporaryVariables() = delete;
-        TemporaryVariables(const TemporaryVariables& other) = delete;
-        TemporaryVariables(Temporary&& other) = default;
-        TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
-        TemporaryVariables& operator=(TemporaryVariables&& other) = default;
-        ~TemporaryVariables() = default;
-
-        TemporaryVariables(const auto& state, const ParametersType& parameters)
-        { }
-    }
+    using TemporaryVariablesType = BackwardEulerTemporaryVariables<DenseMatrixPolicy>;
 
     /// @brief Default constructor
     /// @param parameters Solver parameters

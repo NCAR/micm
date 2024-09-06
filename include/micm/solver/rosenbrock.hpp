@@ -15,6 +15,7 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
@@ -35,7 +36,6 @@
 
 namespace micm
 {
-
   /// @brief An implementation of the Rosenbrock ODE solver
   /// @tparam RatesPolicy Calculator of forcing and Jacobian terms
   /// @tparam LinearSolverPolicy Linear solver
@@ -60,31 +60,9 @@ namespace micm
     /// @brief Solver parameters typename
     using ParametersType = RosenbrockSolverParameters;
 
+    /// @brief Temporary variables type
     template<class DenseMatrixPolicy>
-    class TemporaryVariables
-    {
-        DenseMatrixPolicy Ynew_;
-        DenseMatrixPolicy initial_forcing_;
-        std::vector<DenseMatrixPolicy> K_;
-        DenseMatrixPolicy Yerror_;
-
-        TemporaryVariables() = delete;
-        TemporaryVariables(const TemporaryVariables& other) = delete;
-        TemporaryVariables(Temporary&& other) = default;
-        TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
-        TemporaryVariables& operator=(TemporaryVariables&& other) = default;
-        ~TemporaryVariables() = default;
-        
-        TemporaryVariables(const auto& state, const ParametersType& parameters) :
-            Ynew_(state.variables_.NumRows(), state.variables_.NumColumns()),
-            initial_forcing_(state.variables_.NumRows(), state.variables_.NumColumns()),
-            Yerror_(state.variables_.NumRows(), state.variables_.NumColumns())
-        {
-            K.reserve(parameters.stages_);
-            for (std::size_t i = 0; i < parameters.stages_; ++i)
-                K.emplace_back(num_rows, num_cols);
-        }
-    }
+    using TemporaryVariablesType = RosenbrockTemporaryVariables<DenseMatrixPolicy>;
 
     /// @brief Default constructor
     /// @param parameters Solver parameters

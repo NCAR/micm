@@ -399,9 +399,10 @@ namespace micm
                                          .custom_rate_parameter_labels_ = labels,
                                          .nonzero_jacobian_elements_ = nonzero_elements };
 
-    return Solver<SolverPolicy, StatePolicy>(
+    using TemporaryVariablesPolicy = SolverPolicy::TemporaryVaraiblesPolicyType<DenseMatrixPolicy>;
+
+    return Solver<SolverPolicy, StatePolicy, TemporaryVariablesPolicy>(
         SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),
-        options,
         state_parameters,
         this->number_of_grid_cells_,
         number_of_species,

@@ -40,7 +40,6 @@ namespace micm
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
-    using TemporaryVariablePolicy = SolverParamatersPolicy::SolverType::TemporaryVariables<DenseMatrixPolicy>;
 
    protected:
     SolverParametersPolicy options_;
@@ -110,6 +109,7 @@ namespace micm
     std::vector<std::string> GetCustomParameterLabels() const;
   };
 
+  
   /// @brief Builder of CPU-based general solvers
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
@@ -124,8 +124,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet,
       LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<TemporaryVariablePolicy, DenseMatrixPolicy, SparseMatrixPolicy>>;
-
+      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
 }  // namespace micm
 
 #include "solver_builder.inl"

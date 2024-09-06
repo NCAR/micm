@@ -8,6 +8,8 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -17,10 +19,18 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <variant>
+
+namespace
+{
+  // Empty class
+  class EmptyClass
+  {
+  };
+}
 
 namespace micm
 {
-
   /// @brief Invariants that can be used to construct a state
   struct StateParameters
   {
@@ -32,9 +42,12 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class TemporaryVariablePolicy, class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix, class TemporaryVariablesPolicy = EmptyClass>
   struct State
   {
+    /// Type of the DenseMatrixPolicy
+    using DenseMatrixPolicyType = DenseMatrixPolicy;
+    
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
     /// @brief Rate paramters particular to user-defined rate constants, may vary in time
@@ -53,8 +66,8 @@ namespace micm
     SparseMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
-    /// @brief Temporary solver variables
-    TemporaryVariablePolicy temporary_variables_;
+    // @brief Temporary variables used by the solver
+    TemporaryVariablesPolicy temporaries_;
 
     /// @brief
     State();
