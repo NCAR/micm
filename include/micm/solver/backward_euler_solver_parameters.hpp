@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/solver/backward_euler_temporary_variables.hpp>
+
 #include <array>
 #include <cstddef>
 #include <iostream>
@@ -18,6 +20,9 @@ namespace micm
   {
     template<class RatesPolicy, class LinearSolverPolicy>
     using SolverType = BackwardEuler<RatesPolicy, LinearSolverPolicy>;
+
+    template<class DenseMatrixPolicy>
+    using TemporaryVariablesType = BackwardEulerTemporaryVariables<DenseMatrixPolicy>;
 
     std::vector<double> absolute_tolerance_;
     double relative_tolerance_{ 1.0e-8 };

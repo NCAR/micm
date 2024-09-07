@@ -13,21 +13,18 @@ namespace micm
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    MatrixPolicy& Y = state.variables_;  // Y will hold the new solution at the end of the solve
+    auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
+    auto& Ynew = state.temporary_variables_.Ynew_;
+    auto& initial_forcing = state.temporary_variables_.initial_forcing_;
+    auto& K = state.temporary_variables_.K_;
+    auto& Yerror = state.temporary_variables_.Yerror_;
     std::size_t num_rows = Y.NumRows();
     std::size_t num_cols = Y.NumColumns();
-    MatrixPolicy Ynew(num_rows, num_cols);
-    MatrixPolicy initial_forcing(num_rows, num_cols);
-    std::vector<MatrixPolicy> K{};
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
-
-    K.reserve(parameters_.stages_);
-    for (std::size_t i = 0; i < parameters_.stages_; ++i)
-      K.emplace_back(num_rows, num_cols);
 
     double present_time = 0.0;
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));

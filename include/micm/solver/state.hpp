@@ -21,14 +21,6 @@
 #include <vector>
 #include <variant>
 
-namespace
-{
-  // Empty class
-  class EmptyClass
-  {
-  };
-}
-
 namespace micm
 {
   /// @brief Invariants that can be used to construct a state
@@ -42,7 +34,7 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix, class TemporaryVariablesPolicy = EmptyClass>
+  template<class TemporaryVariablesPolicy, class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
     /// Type of the DenseMatrixPolicy
@@ -67,18 +59,15 @@ namespace micm
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     // @brief Temporary variables used by the solver
-    TemporaryVariablesPolicy temporaries_;
+    TemporaryVariablesPolicy temporary_variables_;
 
     /// @brief
     State();
 
     /// @brief
     /// @param parameters State dimension information
-    State(const StateParameters& parameters);
-
-    /// @brief Sets the temporary variables for the state
-    /// @param temporary_variables variables to take ownership of
-    void SetTemporaryVariables(TemporaryVariablesPolicy&& temporary_variables);
+    /// @param solver_parameters Solver parameters
+    State(const StateParameters& parameters, const auto& solver_parameters);
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration

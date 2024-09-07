@@ -7,6 +7,16 @@
 using yields = std::pair<micm::Species, double>;
 using index_pair = std::pair<std::size_t, std::size_t>;
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 void compare_pair(const index_pair& a, const index_pair& b)
 {
   EXPECT_EQ(a.first, b.first);
@@ -27,10 +37,10 @@ void testProcessSet()
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
 
-  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
+  micm::State<EmptyTemporaryVariables, DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_grid_cells_ = 2,
                              .number_of_rate_constants_ = 3,
-                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
+                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 0);
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ foo, baz })
@@ -149,11 +159,11 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
+  micm::State<EmptyTemporaryVariables, DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
-  } };
+  }, 0};
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {

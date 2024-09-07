@@ -9,6 +9,16 @@
 
 #include <random>
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 template<class DenseMatrixPolicy>
 void testProcessUpdateState(const std::size_t number_of_grid_cells)
 {
@@ -29,12 +39,12 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   for (const auto& process : processes)
     for (auto& label : process.rate_constant_->CustomParameters())
       param_labels.push_back(label);
-  micm::State<DenseMatrixPolicy> state{ micm::StateParameters{
+  micm::State<EmptyTemporaryVariables, DenseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = number_of_grid_cells,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = { "foo", "bar'" },
       .custom_rate_parameter_labels_ = param_labels,
-  } };
+  }, 0 };
 
   DenseMatrixPolicy expected_rate_constants(number_of_grid_cells, 3, 0.0);
   std::vector<double> params = { 0.0, 0.0, 0.0 };

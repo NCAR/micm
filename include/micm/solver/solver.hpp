@@ -5,26 +5,19 @@
 #include <micm/process/process.hpp>
 #include <micm/solver/solver_result.hpp>
 
-namespace
-{
-  // Empty class
-  class EmptyClass
-  {
-  };
-}
-
 namespace micm
 {
-  template<class SolverPolicy, class StatePolicy, class TemporaryVariablesPolicy = EmptyClass>
+  template<class SolverPolicy, class StatePolicy>
   class Solver
   {
    private:
-    using DenseMatrixPolicy = StatePolicy::DenseMatrixPolicyType;
+    using SolverParametersType = SolverPolicy::ParametersType;
 
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;
     std::size_t number_of_reactions_;
     StateParameters state_parameters_;
+    SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
 
    public:
@@ -33,6 +26,7 @@ namespace micm
     Solver(
         SolverPolicy&& solver,
         StateParameters state_parameters,
+        SolverParametersType solver_parameters,
         std::size_t number_of_grid_cells,
         std::size_t number_of_species,
         std::size_t number_of_reactions,
@@ -42,6 +36,7 @@ namespace micm
           number_of_species_(number_of_species),
           number_of_reactions_(number_of_reactions),
           state_parameters_(state_parameters),
+          solver_parameters_(solver_parameters),
           processes_(std::move(processes))
     {
     }
@@ -55,7 +50,8 @@ namespace micm
           number_of_grid_cells_(other.number_of_grid_cells_),
           number_of_species_(other.number_of_species_),
           number_of_reactions_(other.number_of_reactions_),
-          state_parameters_(other.state_parameters_)
+          state_parameters_(other.state_parameters_),
+          solver_parameters_(other.solver_parameters_)
     {
     }
     Solver& operator=(Solver&& other)
@@ -65,6 +61,7 @@ namespace micm
       number_of_species_ = other.number_of_species_;
       number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
+      solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
       return *this;
     }
@@ -97,10 +94,7 @@ namespace micm
 
     StatePolicy GetState() const
     {
-      auto state = StatePolicy(state_parameters_);
-      auto temporary_variables = TemporaryVariablesPolicy();
-      state.SetTemporaryVariables(std::move(temporary_variables));
-      return state;
+      return StatePolicy(state_parameters_, solver_parameters_);
     }
 
     std::vector<micm::Process> GetProcesses() const

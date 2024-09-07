@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
-
 namespace micm
 {
     template<class DenseMatrixPolicy>
@@ -16,21 +14,21 @@ namespace micm
         std::vector<DenseMatrixPolicy> K_;
         DenseMatrixPolicy Yerror_;
 
-        RosenbrockTemporaryVariables() = delete;
+        RosenbrockTemporaryVariables() = default;
         RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = delete;
         RosenbrockTemporaryVariables(RosenbrockTemporaryVariables&& other) = default;
         RosenbrockTemporaryVariables& operator=(const RosenbrockTemporaryVariables& other) = delete;
         RosenbrockTemporaryVariables& operator=(RosenbrockTemporaryVariables&& other) = default;
         ~RosenbrockTemporaryVariables() = default;
         
-        RosenbrockTemporaryVariables(const auto& state, const RosenbrockSolverParameters& parameters) :
+        RosenbrockTemporaryVariables(const auto& state, const auto& parameters) :
             Ynew_(state.variables_.NumRows(), state.variables_.NumColumns()),
             initial_forcing_(state.variables_.NumRows(), state.variables_.NumColumns()),
             Yerror_(state.variables_.NumRows(), state.variables_.NumColumns())
         {
-            K.reserve(parameters.stages_);
+            K_.reserve(parameters.stages_);
             for (std::size_t i = 0; i < parameters.stages_; ++i)
-                K.emplace_back(num_rows, num_cols);
+                K_.emplace_back(state.variables_.NumRows(), state.variables_.NumColumns());
         }
     };
 }  // namespace micm

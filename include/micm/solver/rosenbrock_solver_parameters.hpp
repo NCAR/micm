@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
+
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -20,6 +22,9 @@ namespace micm
   {
     template<class RatesPolicy, class LinearSolverPolicy>
     using SolverType = RosenbrockSolver<RatesPolicy, LinearSolverPolicy>;
+
+    template<class DenseMatrixPolicy>
+    using TemporaryVariablesType = RosenbrockTemporaryVariables<DenseMatrixPolicy>;
 
     std::size_t stages_{};
     std::size_t upper_limit_tolerance_{};
