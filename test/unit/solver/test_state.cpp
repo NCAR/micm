@@ -2,14 +2,22 @@
 
 #include <gtest/gtest.h>
 
+namespace
+{
+  // Empty class
+  class EmptyClass
+  {
+  };
+}
+
 TEST(State, Constructor)
 {
-  micm::State state{ micm::StateParameters{
+  micm::State<EmptyClass> state{ micm::StateParameters{
       .number_of_grid_cells_ = 3,
       .number_of_rate_constants_ = 10,
       .variable_names_{ "foo", "bar", "baz", "quz" },
       .custom_rate_parameter_labels_{ "quux", "corge" },
-  } };
+  }, 0 };
 
   EXPECT_EQ(state.conditions_.size(), 3);
   EXPECT_EQ(state.variable_map_["foo"], 0);

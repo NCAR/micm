@@ -27,5 +27,5 @@ namespace micm
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaProcessSet,
       CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>,
-      CudaState<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
+      CudaState<typename SolverParametersPolicy::TemporaryVariablesType<CudaDenseMatrix<double, L>>, CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
 }  // namespace micm

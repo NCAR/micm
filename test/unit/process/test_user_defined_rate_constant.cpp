@@ -4,6 +4,16 @@
 
 #include <gtest/gtest.h>
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 TEST(UserDefinedRateConstant, CalculateWithSystem)
 {
   auto state_parameters_ = micm::StateParameters{
@@ -13,7 +23,7 @@ TEST(UserDefinedRateConstant, CalculateWithSystem)
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters_, 0 };
   state.custom_rate_parameters_[0][0] = 0.5;
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -31,7 +41,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRate)
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters_, 0 };
   state.custom_rate_parameters_[0][0] = 1.1;
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -49,7 +59,7 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters_, 0 };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name" });
@@ -67,7 +77,7 @@ TEST(UserDefinedRateConstant, CustomScalingFactor)
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters, 0 };
   state.custom_rate_parameters_[0][0] = 1.2;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name", .scaling_factor_ = 2.0 });

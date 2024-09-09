@@ -16,6 +16,16 @@
 #include <random>
 #include <vector>
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 using index_pair = std::pair<std::size_t, std::size_t>;
 
 void compare_pair(const index_pair& a, const index_pair& b)
@@ -41,18 +51,18 @@ void testRandomSystemAddForcingTerms(std::size_t n_cells, std::size_t n_reaction
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
+  micm::State<EmptyTemporaryVariables, CPUMatrixPolicy> cpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
       .custom_rate_parameter_labels_{},
-  } };
-  micm::State<GPUMatrixPolicy> gpu_state{ micm::StateParameters{
+  }, 0 };
+  micm::State<EmptyTemporaryVariables, GPUMatrixPolicy> gpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
       .custom_rate_parameter_labels_{},
-  } };
+  }, 0 };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
@@ -128,18 +138,18 @@ void testRandomSystemSubtractJacobianTerms(std::size_t n_cells, std::size_t n_re
   }
   micm::Phase gas_phase{ species };
 
-  micm::State<CPUMatrixPolicy> cpu_state{ micm::StateParameters{
+  micm::State<EmptyTemporaryVariables, CPUMatrixPolicy> cpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
       .custom_rate_parameter_labels_{},
-  } };
-  micm::State<GPUDenseMatrixPolicy> gpu_state{ micm::StateParameters{
+  }, 0 };
+  micm::State<EmptyTemporaryVariables, GPUDenseMatrixPolicy> gpu_state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
       .custom_rate_parameter_labels_{},
-  } };
+  }, 0 };
 
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)

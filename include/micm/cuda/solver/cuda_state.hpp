@@ -10,7 +10,7 @@
 namespace micm
 {
   /// @brief Construct a state variable for CUDA tests
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  template<class TemporaryVariablesPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy>
   struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:

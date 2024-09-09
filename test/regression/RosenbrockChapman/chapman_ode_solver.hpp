@@ -12,6 +12,16 @@
 #include <string>
 #include <vector>
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 namespace micm
 {
 
@@ -106,14 +116,14 @@ namespace micm
 
     /// Returns a state variable for the Chapman system
     /// @return State variable for Chapman
-    State<> GetState() const;
+    State<EmptyTemporaryVariables> GetState() const;
 
     /// @brief A virtual function to be defined by any solver baseclass
     /// @param time_start Time step to start at
     /// @param time_end Time step to end at
     /// @param state The system state to solve for
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_start, double time_end, State<>& state) noexcept;
+    SolverResult Solve(double time_start, double time_end, State<EmptyTemporaryVariables>& state) noexcept;
 
     /// @brief Returns a list of reaction names
     /// @return vector of strings
@@ -151,7 +161,7 @@ namespace micm
 
     /// @brief Update the rate constants for the environment state
     /// @param state The current state of the chemical system
-    void UpdateState(State<>& state);
+    void UpdateState(State<EmptyTemporaryVariables>& state);
 
     /// @brief Solve the system
     /// @param K idk, something
@@ -300,7 +310,7 @@ namespace micm
     parameters_.gamma_[2] = 0.21851380027664058511513169485832e+01;
   }
 
-  inline State<> ChapmanODESolver::GetState() const
+  inline State<EmptyTemporaryVariables> ChapmanODESolver::GetState() const
   {
     auto state_parameters = micm::StateParameters{
       .number_of_grid_cells_ = 1,
@@ -309,10 +319,10 @@ namespace micm
       .custom_rate_parameter_labels_ = photolysis_names(),
     };
 
-    return micm::State{ state_parameters };
+    return micm::State<EmptyTemporaryVariables>{ state_parameters, 0 };
   }
 
-  inline ChapmanODESolver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<>& state) noexcept
+  inline ChapmanODESolver::SolverResult ChapmanODESolver::Solve(double time_start, double time_end, State<EmptyTemporaryVariables>& state) noexcept
   {
     std::vector<std::vector<double>> K(parameters_.stages_, std::vector<double>(parameters_.N_, 0));
     std::vector<double> Y(state.variables_[0]);
@@ -740,7 +750,7 @@ namespace micm
     return x;
   }
 
-  inline void ChapmanODESolver::UpdateState(State<>& state)
+  inline void ChapmanODESolver::UpdateState(State<EmptyTemporaryVariables>& state)
   {
     double temperature = state.conditions_[0].temperature_;
     double pressure = state.conditions_[0].pressure_;
