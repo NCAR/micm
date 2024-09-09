@@ -20,6 +20,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <array>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -117,9 +118,9 @@ namespace micm
     }
   };
 
-  class JsonReaderPolicy
+  class ConfigReaderPolicy
   {
-    using json = YAML::Node;
+    using objectType = YAML::Node;
 
    public:
     std::map<std::string, Species> species_;
@@ -138,8 +139,9 @@ namespace micm
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
 
-    // Common JSON
-    inline static const std::string DEFAULT_CONFIG_FILE = "config.json";
+    // Common YAML
+    inline static const std::string DEFAULT_CONFIG_FILE_JSON = "config.json";
+    inline static const std::string DEFAULT_CONFIG_FILE_YAML = "config.yaml";
     inline static const std::string CAMP_FILES = "camp-files";
     inline static const std::string CAMP_DATA = "camp-data";
     inline static const std::string TYPE = "type";
@@ -149,7 +151,7 @@ namespace micm
 
     // Constructor
 
-    JsonReaderPolicy(const RosenbrockSolverParameters& parameters)
+    ConfigReaderPolicy(const RosenbrockSolverParameters& parameters)
         : parameters_(parameters)
     {
     }
@@ -173,7 +175,13 @@ namespace micm
       {
         // If config path is a directory, use default config file name
         config_dir = config_path;
-        config_file = config_dir / DEFAULT_CONFIG_FILE;
+        if (std::filesystem::exists(config_dir / DEFAULT_CONFIG_FILE_YAML))
+        {
+          config_file = config_dir / DEFAULT_CONFIG_FILE_YAML;
+        }
+        else{
+          config_file = config_dir / DEFAULT_CONFIG_FILE_JSON;
+        }        
       }
       else
       {
@@ -182,8 +190,8 @@ namespace micm
         config_file = config_path;
       }
 
-      // Load the CAMP file list JSON
-      json camp_data = YAML::LoadFile(config_file.string());
+      // Load the CAMP file list YAML
+      objectType camp_data = YAML::LoadFile(config_file.string());
       if (!camp_data[CAMP_FILES])
       {
         throw std::system_error{ make_error_code(MicmConfigErrc::CAMPFilesNotFound), config_file.string() };
@@ -207,13 +215,13 @@ namespace micm
         throw std::system_error{ make_error_code(MicmConfigErrc::NoConfigFilesFound), config_file.string() };
       }
 
-      std::vector<json> species_objects;
-      std::vector<json> mechanism_objects;
+      std::vector<objectType> species_objects;
+      std::vector<objectType> mechanism_objects;
 
       // Iterate CAMP file list and form CAMP data object arrays
       for (const auto& camp_file : camp_files)
       {
-        json config_subset = YAML::LoadFile(camp_file.string());
+        objectType config_subset = YAML::LoadFile(camp_file.string());
 
         if (!config_subset[CAMP_DATA])
         {
@@ -221,7 +229,7 @@ namespace micm
           out << config_subset;
           throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), out.c_str()};
         }
-        // Iterate JSON objects from CAMP data entry
+        // Iterate YAML objects from CAMP data entry
         for (const auto& object : config_subset[CAMP_DATA])
         {
           if (object)
@@ -279,7 +287,7 @@ namespace micm
     }
 
    private:
-    void ParseSpeciesArray(const std::vector<json>& objects)
+    void ParseSpeciesArray(const std::vector<objectType>& objects)
     {
       for (const auto& object : objects)
       {
@@ -296,7 +304,7 @@ namespace micm
       }
     }
 
-    void ParseMechanismArray(const std::vector<json>& objects)
+    void ParseMechanismArray(const std::vector<objectType>& objects)
     {
       for (const auto& object : objects)
       {
@@ -353,7 +361,7 @@ namespace micm
       }
     }
 
-    void ParseChemicalSpecies(const json& object)
+    void ParseChemicalSpecies(const objectType& object)
     {
       // required keys
       const std::string NAME = "name";
@@ -375,63 +383,55 @@ namespace micm
       {
         auto key = it->first.as<std::string>();
         auto value = it->second;
-
+        
+        if(key.empty())
+        {
+          throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
+        }
+          
         if (key != NAME && key != TYPE)
         {       
           std::string stringValue = value.as<std::string>();
-          if (!stringValue.empty() && isInt(stringValue)) {
+
+          if(stringValue.empty())
+          {
+            species.SetProperty<std::string>(key, stringValue);
+          }
+          else if (IsInt(stringValue))
+          {
             species.SetProperty<int>(key, value.as<int>());
           }
-          else if (!stringValue.empty() && isFloat(stringValue)) {
+          else if (IsFloat(stringValue))
+          {
             species.SetProperty<double>(key, value.as<double>());
           }
-          else if (!stringValue.empty() && isBool(stringValue))
+          else if (IsBool(stringValue))
           {
             species.SetProperty<bool>(key, value.as<bool>());
           }
+          else if (key == TRACER_TYPE && stringValue == THIRD_BODY)
+          {
+            species.SetThirdBody();
+          }  
           else
           {
-            if (key == TRACER_TYPE && stringValue == THIRD_BODY)
-            {
-              species.SetThirdBody();
-            }
-            else
-            {
-              species.SetProperty<std::string>(key, stringValue);
-            }
-          }
-        } 
+            species.SetProperty<std::string>(key, stringValue);
+          }              
+        }       
       }
       species_[name] = species;
-    }        
-
-    // Utility functions to check types and perform conversions
-    bool isBool(const std::string& value) {
-        return (value == "true" || value == "false");
     }
 
-    bool isInt(const std::string& value) {
-        std::istringstream iss(value);
-        int result;
-        return (iss >> result >> std::ws).eof();  // Check if the entire string is an integer
-    }
-
-    bool isFloat(const std::string& value) {
-        std::istringstream iss(value);
-        float result;
-        return (iss >> result >> std::ws).eof();  // Check if the entire string is a float
-    }
-
-    void ParseRelativeTolerance(const json& object)
+    void ParseRelativeTolerance(const objectType& object)
     {
       ValidateSchema(object, { "value", "type" }, {});
       this->parameters_.relative_tolerance_ = object["value"].as<double>();
     }
 
-    void ParseMechanism(const json& object)
+    void ParseMechanism(const objectType& object)
     {
       ValidateSchema(object, { "name", "reactions", "type" }, {});
-      std::vector<json> objects;
+      std::vector<objectType> objects;
       for (const auto& element : object["reactions"])
       {
         objects.push_back(element);
@@ -439,7 +439,7 @@ namespace micm
       ParseMechanismArray(objects);
     }
 
-    std::vector<Species> ParseReactants(const json& object)
+    std::vector<Species> ParseReactants(const objectType& object)
     {
       const std::string QTY = "qty";
       std::vector<Species> reactants;
@@ -459,7 +459,7 @@ namespace micm
       return reactants;
     }
 
-    std::vector<std::pair<Species, double>> ParseProducts(const json& object)
+    std::vector<std::pair<Species, double>> ParseProducts(const objectType& object)
     {
       const std::string YIELD = "yield";
 
@@ -485,7 +485,7 @@ namespace micm
       return products;
     }
 
-    void ParsePhotolysis(const json& object)
+    void ParsePhotolysis(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -507,7 +507,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseArrhenius(const json& object)
+    void ParseArrhenius(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -554,7 +554,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseTroe(const json& object)
+    void ParseTroe(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -607,7 +607,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseTernaryChemicalActivation(const json& object)
+    void ParseTernaryChemicalActivation(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -662,7 +662,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseBranched(const json& object)
+    void ParseBranched(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string ALKOXY_PRODUCTS = "alkoxy products";
@@ -699,7 +699,7 @@ namespace micm
       processes_.push_back(Process(reactants, nitrate_products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseTunneling(const json& object)
+    void ParseTunneling(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -730,7 +730,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseEmission(const json& object)
+    void ParseEmission(const objectType& object)
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
@@ -740,8 +740,8 @@ namespace micm
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR, PRODUCTS });
 
       std::string species = object["species"].as<std::string>();
-      json reactants_object{};
-      json products_object{};
+      objectType reactants_object{};
+      objectType products_object{};
       products_object[species]["yield"] = 1.0;
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
@@ -754,7 +754,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseFirstOrderLoss(const json& object)
+    void ParseFirstOrderLoss(const objectType& object)
     {
       const std::string SPECIES = "species";
       const std::string MUSICA_NAME = "MUSICA name";
@@ -763,8 +763,8 @@ namespace micm
       ValidateSchema(object, { "type", SPECIES, MUSICA_NAME }, { SCALING_FACTOR });
 
       std::string species = object["species"].as<std::string>();
-      json reactants_object{};
-      json products_object{};
+      objectType reactants_object{};
+      objectType products_object{};
       reactants_object[species] = {};
       auto reactants = ParseReactants(reactants_object);
       auto products = ParseProducts(products_object);
@@ -777,7 +777,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseUserDefined(const json& object)
+    void ParseUserDefined(const objectType& object)
     {
       const std::string REACTANTS = "reactants";
       const std::string PRODUCTS = "products";
@@ -797,7 +797,7 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
-    void ParseSurface(const json& object)
+    void ParseSurface(const objectType& object)
     {
       const std::string REACTANTS = "gas-phase reactant";
       const std::string PRODUCTS = "gas-phase products";
@@ -807,7 +807,7 @@ namespace micm
       ValidateSchema(object, { "type", REACTANTS, PRODUCTS, MUSICA_NAME }, { PROBABILITY });
 
       std::string species_name = object[REACTANTS].as<std::string>();
-      json reactants_object{};
+      objectType reactants_object{};
       reactants_object[species_name] = {};
 
       auto reactants = ParseReactants(reactants_object);
@@ -828,12 +828,32 @@ namespace micm
       processes_.push_back(Process(reactants, products, std::move(rate_ptr), gas_phase_));
     }
 
+    // Utility functions to check types and perform conversions
+    bool IsBool(const std::string& value)
+    {
+        return (value == "true" || value == "false");
+    }
+
+    bool IsInt(const std::string& value)
+    {
+        std::istringstream iss(value);
+        int result;
+        return (iss >> result >> std::ws).eof();  // Check if the entire string is an integer
+    }
+
+    bool IsFloat(const std::string& value)
+    {
+        std::istringstream iss(value);
+        float result;
+        return (iss >> result >> std::ws).eof();  // Check if the entire string is a float
+    }
+
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
     /// @param object the object whose keys need to be validated
     /// @param required_keys The required keys
     /// @param optional_keys The optional keys
     void ValidateSchema(
-        const json& object,
+        const objectType& object,
         const std::vector<std::string>& required_keys,
         const std::vector<std::string>& optional_keys)
     {
@@ -911,7 +931,7 @@ namespace micm
   };
 
   /// @brief Public interface to read and parse config
-  template<class ConfigTypePolicy = JsonReaderPolicy>
+  template<class ConfigTypePolicy = ConfigReaderPolicy>
   class SolverConfig : public ConfigTypePolicy
   {
    public:

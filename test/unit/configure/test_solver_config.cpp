@@ -154,7 +154,7 @@ TEST(SolverConfig, ReadAndParseThirdBodySpecies)
 
 TEST(SolverConfig, ReadAndParseProcessObjects)
 {
-  micm::SolverConfig<micm::JsonReaderPolicy> solverConfig;
+  micm::SolverConfig<micm::ConfigReaderPolicy> solverConfig;
 
   // Read and parse the configure files
   EXPECT_NO_THROW(solverConfig.ReadAndParse("./unit_configs/small_mechanism/config.json"));
