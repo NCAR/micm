@@ -20,7 +20,7 @@ using VectorRosenbrock = micm::CpuSolverBuilder<
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 template<std::size_t L>
 using VectorStateType =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::State<micm::RosenbrockTemporaryVariables<micm::VectorMatrix<double, L>>, micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());

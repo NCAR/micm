@@ -83,14 +83,12 @@ namespace micm
     /// @brief Recalculate the rate constants for each process for the current state
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
-    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+    template<class DenseMatrixPolicy>
     requires(!VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
-        const std::vector<Process>& processes,
-        State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
-    template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+        const std::vector<Process>& processes, auto& state);
+    template<class DenseMatrixPolicy>
     requires(VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
-        const std::vector<Process>& processes,
-        State<DenseMatrixPolicy, SparseMatrixPolicy>& state);
+        const std::vector<Process>& processes, auto& state);
 
     friend class ProcessBuilder;
     static ProcessBuilder Create();
@@ -146,10 +144,9 @@ namespace micm
     ProcessBuilder& SetPhase(const Phase& phase);
   };
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  template<class DenseMatrixPolicy>
   requires(!VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
-      const std::vector<Process>& processes,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
+      const std::vector<Process>& processes, auto& state) 
   {
     MICM_PROFILE_FUNCTION();
 
@@ -171,10 +168,9 @@ namespace micm
     }
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  template<class DenseMatrixPolicy>
   requires(VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
-      const std::vector<Process>& processes,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>& state)
+      const std::vector<Process>& processes, auto& state)
   {
     MICM_PROFILE_FUNCTION();
 

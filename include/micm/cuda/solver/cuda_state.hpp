@@ -11,7 +11,7 @@ namespace micm
 {
   /// @brief Construct a state variable for CUDA tests
   template<class TemporaryVariablesPolicy, class DenseMatrixPolicy, class SparseMatrixPolicy>
-  struct CudaState : public State<DenseMatrixPolicy, SparseMatrixPolicy>
+  struct CudaState : public State<TemporaryVariablesPolicy, DenseMatrixPolicy, SparseMatrixPolicy>
   {
    public:
     CudaState(const CudaState&) = delete;
@@ -21,8 +21,8 @@ namespace micm
 
     /// @brief Constructor which takes the state dimension information as input
     /// @param parameters State dimension information
-    CudaState(const StateParameters& parameters)
-        : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters){};
+    CudaState(const StateParameters& parameters, const auto& solver_parameters)
+        : State<TemporaryVariablesPolicy, DenseMatrixPolicy, SparseMatrixPolicy>(parameters, solver_parameters){};
 
     /// @brief Copy input variables to the device
     void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)

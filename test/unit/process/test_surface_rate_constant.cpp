@@ -4,6 +4,16 @@
 
 #include <gtest/gtest.h>
 
+namespace
+{
+  class EmptyTemporaryVariables
+  {
+    public:
+    EmptyTemporaryVariables() = default;
+    EmptyTemporaryVariables(const auto& state, const auto& parameters) {} 
+  };
+}
+
 TEST(SurfaceRateConstant, CalculateDefaultProbability)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
@@ -15,7 +25,7 @@ TEST(SurfaceRateConstant, CalculateDefaultProbability)
     .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters_, 0 };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
   state.conditions_[0].temperature_ = 273.65;    // K
@@ -40,7 +50,7 @@ TEST(SurfaceRateConstant, CalculateSpecifiedProbability)
     .custom_rate_parameter_labels_ = { "effective radius [m]", "particle number concentration [# m-3]" },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State<EmptyTemporaryVariables> state{ state_parameters_, 0 };
   state.custom_rate_parameters_[0][0] = 1.0e-7;  // effective radius [m]
   state.custom_rate_parameters_[0][1] = 2.5e6;   // particle concentration [# m-3]
   state.conditions_[0].temperature_ = 273.65;    // K

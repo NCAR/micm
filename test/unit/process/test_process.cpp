@@ -19,7 +19,7 @@ namespace
   };
 }
 
-template<class DenseMatrixPolicy>
+template<class TemporaryVariablesPolicy, class DenseMatrixPolicy>
 void testProcessUpdateState(const std::size_t number_of_grid_cells)
 {
   micm::Species foo("foo", { { "molecular weight [kg mol-1]", 0.025 }, { "diffusion coefficient [m2 s-1]", 2.3e2 } });
@@ -39,7 +39,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
   for (const auto& process : processes)
     for (auto& label : process.rate_constant_->CustomParameters())
       param_labels.push_back(label);
-  micm::State<EmptyTemporaryVariables, DenseMatrixPolicy> state{ micm::StateParameters{
+  micm::State<TemporaryVariablesPolicy, DenseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = number_of_grid_cells,
       .number_of_rate_constants_ = processes.size(),
       .variable_names_ = { "foo", "bar'" },
@@ -73,7 +73,7 @@ void testProcessUpdateState(const std::size_t number_of_grid_cells)
     param_iter += rc3.SizeCustomParameters();
   }
 
-  micm::Process::CalculateRateConstants(processes, state);
+  micm::Process::CalculateRateConstants<DenseMatrixPolicy>(processes, state);
 
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
     for (std::size_t i_rxn = 0; i_rxn < processes.size(); ++i_rxn)
@@ -92,15 +92,15 @@ using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
 
 TEST(Process, Matrix)
 {
-  testProcessUpdateState<micm::Matrix<double>>(5);
+  testProcessUpdateState<EmptyTemporaryVariables, micm::Matrix<double>>(5);
 }
 
 TEST(Process, VectorMatrix)
 {
-  testProcessUpdateState<Group1VectorMatrix<double>>(5);
-  testProcessUpdateState<Group2VectorMatrix<double>>(5);
-  testProcessUpdateState<Group3VectorMatrix<double>>(5);
-  testProcessUpdateState<Group4VectorMatrix<double>>(5);
+  testProcessUpdateState<EmptyTemporaryVariables, Group1VectorMatrix<double>>(5);
+  testProcessUpdateState<EmptyTemporaryVariables, Group2VectorMatrix<double>>(5);
+  testProcessUpdateState<EmptyTemporaryVariables, Group3VectorMatrix<double>>(5);
+  testProcessUpdateState<EmptyTemporaryVariables, Group4VectorMatrix<double>>(5);
 }
 
 TEST(Process, SurfaceRateConstantOnlyHasOneReactant)

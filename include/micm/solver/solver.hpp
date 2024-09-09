@@ -104,7 +104,7 @@ namespace micm
 
     void CalculateRateConstants(StatePolicy& state)
     {
-      Process::CalculateRateConstants(processes_, state);
+      Process::CalculateRateConstants<StatePolicy::DenseMatrixPolicyType>(processes_, state);
     }
   };
 
