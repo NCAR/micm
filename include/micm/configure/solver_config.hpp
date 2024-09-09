@@ -179,9 +179,10 @@ namespace micm
         {
           config_file = config_dir / DEFAULT_CONFIG_FILE_YAML;
         }
-        else{
+        else
+        {
           config_file = config_dir / DEFAULT_CONFIG_FILE_JSON;
-        }        
+        }
       }
       else
       {
@@ -227,7 +228,7 @@ namespace micm
         {
           YAML::Emitter out;
           out << config_subset;
-          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), out.c_str()};
+          throw std::system_error{ make_error_code(MicmConfigErrc::CAMPDataNotFound), out.c_str() };
         }
         // Iterate YAML objects from CAMP data entry
         for (const auto& object : config_subset[CAMP_DATA])
@@ -240,7 +241,7 @@ namespace micm
               YAML::Emitter out;
               out << object;
               std::string msg = "object: " + std::string(out.c_str()) + "; type: " + TYPE;
-              
+
               throw std::system_error{ make_error_code(MicmConfigErrc::ObjectTypeNotFound), msg };
             }
             // Sort into object arrays by type
@@ -374,26 +375,26 @@ namespace micm
       const std::string THIRD_BODY = "THIRD_BODY";
 
       ValidateSchema(object, { NAME, TYPE }, { TRACER_TYPE, ABS_TOLERANCE, DIFFUSION_COEFF, MOL_WEIGHT });
-      
+
       std::string name = object[NAME].as<std::string>();
       Species species{ name };
 
       // Load remaining keys as properties
-      for(auto it = object.begin(); it != object.end(); ++it)
+      for (auto it = object.begin(); it != object.end(); ++it)
       {
         auto key = it->first.as<std::string>();
         auto value = it->second;
-        
-        if(key.empty())
+
+        if (key.empty())
         {
           throw std::system_error{ make_error_code(MicmConfigErrc::InvalidType), key };
         }
-          
+
         if (key != NAME && key != TYPE)
-        {       
+        {
           std::string stringValue = value.as<std::string>();
 
-          if(stringValue.empty())
+          if (stringValue.empty())
           {
             species.SetProperty<std::string>(key, stringValue);
           }
@@ -412,12 +413,12 @@ namespace micm
           else if (key == TRACER_TYPE && stringValue == THIRD_BODY)
           {
             species.SetThirdBody();
-          }  
+          }
           else
           {
             species.SetProperty<std::string>(key, stringValue);
-          }              
-        }       
+          }
+        }
       }
       species_[name] = species;
     }
@@ -447,7 +448,7 @@ namespace micm
       for (auto it = object.begin(); it != object.end(); ++it)
       {
         auto key = it->first.as<std::string>();
-        auto value = it->second; 
+        auto value = it->second;
 
         std::size_t qty = 1;
         ValidateSchema(value, {}, { "qty" });
@@ -468,7 +469,7 @@ namespace micm
       for (auto it = object.begin(); it != object.end(); ++it)
       {
         auto key = it->first.as<std::string>();
-        auto value = it->second; 
+        auto value = it->second;
 
         ValidateSchema(value, {}, { "yield" });
         auto species = species_[key];
@@ -831,21 +832,21 @@ namespace micm
     // Utility functions to check types and perform conversions
     bool IsBool(const std::string& value)
     {
-        return (value == "true" || value == "false");
+      return (value == "true" || value == "false");
     }
 
     bool IsInt(const std::string& value)
     {
-        std::istringstream iss(value);
-        int result;
-        return (iss >> result >> std::ws).eof();  // Check if the entire string is an integer
+      std::istringstream iss(value);
+      int result;
+      return (iss >> result >> std::ws).eof();  // Check if the entire string is an integer
     }
 
     bool IsFloat(const std::string& value)
     {
-        std::istringstream iss(value);
-        float result;
-        return (iss >> result >> std::ws).eof();  // Check if the entire string is a float
+      std::istringstream iss(value);
+      float result;
+      return (iss >> result >> std::ws).eof();  // Check if the entire string is a float
     }
 
     /// @brief Search for nonstandard keys. Only nonstandard keys starting with __ are allowed. Others are considered typos
@@ -871,7 +872,8 @@ namespace micm
       }
 
       std::vector<std::string> sorted_object_keys;
-      for (auto it = object.begin(); it != object.end(); ++it) {
+      for (auto it = object.begin(); it != object.end(); ++it)
+      {
         std::string key = it->first.as<std::string>();
         sorted_object_keys.push_back(key);
       }
@@ -903,7 +905,8 @@ namespace micm
             sorted_object_keys.end(),
             std::back_inserter(missing_keys));
         std::string msg;
-        for (auto& key : missing_keys){          
+        for (auto& key : missing_keys)
+        {
           msg += "Missing required key '" + key + "' in object: " + out.c_str() + "\n";
         }
 
