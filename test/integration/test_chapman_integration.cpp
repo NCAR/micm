@@ -17,7 +17,7 @@ using yields = std::pair<micm::Species, double>;
 
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
-#ifdef USE_JSON
+#ifdef USE_YAML
   #include <micm/configure/solver_config.hpp>
 
 TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
