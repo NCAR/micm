@@ -406,7 +406,7 @@ void test_simple_stiff_system(
 // Specific analytical tests //
 ///////////////////////////////
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_troe(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -473,7 +473,7 @@ void test_analytical_troe(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_troe(
     BuilderPolicy builder,
     double tolerance = 1e-5,
@@ -561,7 +561,7 @@ void test_analytical_stiff_troe(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_photolysis(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -620,7 +620,7 @@ void test_analytical_photolysis(
       custom_parameters);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_photolysis(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -702,7 +702,7 @@ void test_analytical_stiff_photolysis(
       custom_parameters);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_ternary_chemical_activation(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -770,7 +770,7 @@ void test_analytical_ternary_chemical_activation(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_ternary_chemical_activation(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -858,7 +858,7 @@ void test_analytical_stiff_ternary_chemical_activation(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_tunneling(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -915,7 +915,7 @@ void test_analytical_tunneling(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_tunneling(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -992,7 +992,7 @@ void test_analytical_stiff_tunneling(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_arrhenius(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -1048,7 +1048,7 @@ void test_analytical_arrhenius(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_arrhenius(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -1126,7 +1126,7 @@ void test_analytical_stiff_arrhenius(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_branched(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -1210,7 +1210,7 @@ void test_analytical_branched(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_stiff_branched(
     BuilderPolicy builder,
     double tolerance = 1e-6,
@@ -1320,7 +1320,7 @@ void test_analytical_stiff_branched(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_robertson(
     BuilderPolicy builder,
     double tolerance = 1e-8,
@@ -1465,7 +1465,7 @@ void test_analytical_robertson(
   }
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_oregonator(
     BuilderPolicy builder,
     double tolerance = 1e-8,
@@ -1634,7 +1634,7 @@ void test_analytical_oregonator(
   }
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_hires(
     BuilderPolicy builder,
     double tolerance = 1e-8,
@@ -1828,7 +1828,7 @@ void test_analytical_hires(
   }
 }
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType>
 void test_analytical_e5(
     BuilderPolicy builder,
     double tolerance = 1e-8,
