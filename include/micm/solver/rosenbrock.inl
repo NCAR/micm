@@ -68,6 +68,9 @@ namespace micm
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
       stats.jacobian_updates_ += 1;
 
+      // Compute the error estimation
+      MatrixPolicy Yerror(num_rows, num_cols, 0);
+
       bool accepted = false;
       //  Repeat step calculation until current step accepted
       while (!accepted)
@@ -120,8 +123,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
-        // Compute the error estimation
-        MatrixPolicy Yerror(num_rows, num_cols, 0);
+        
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
