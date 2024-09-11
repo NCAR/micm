@@ -41,6 +41,9 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
+    // Compute the error estimation
+    MatrixPolicy Yerror(num_rows, num_cols, 0);
+
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
       if (stats.number_of_steps_ > parameters_.max_number_of_steps_)
@@ -66,10 +69,7 @@ namespace micm
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0.0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates_ += 1;
-
-      // Compute the error estimation
-      MatrixPolicy Yerror(num_rows, num_cols, 0);
+      stats.jacobian_updates_ += 1;      
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -123,6 +123,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
+        Yerror.Fill(0.0); 
         
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
