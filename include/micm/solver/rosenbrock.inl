@@ -69,7 +69,7 @@ namespace micm
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0.0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-      stats.jacobian_updates_ += 1;      
+      stats.jacobian_updates_ += 1;
 
       bool accepted = false;
       //  Repeat step calculation until current step accepted
@@ -123,8 +123,8 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
-        Yerror.Fill(0.0); 
-        
+        Yerror.Fill(0.0);
+
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
