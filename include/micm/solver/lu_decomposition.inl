@@ -189,7 +189,7 @@ namespace micm
       auto lki_nkj = lki_nkj_.begin();
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
-      for (auto& inLU : niLU_)
+      for (const auto& inLU : niLU_)
       {
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
@@ -241,11 +241,11 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    std::size_t A_BlockSize = A.NumberOfBlocks();
-    std::size_t A_GroupVectorSize = A.GroupVectorSize();
-    std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
-    std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
-    std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
+    const std::size_t A_BlockSize = A.NumberOfBlocks();
+    const std::size_t A_GroupVectorSize = A.GroupVectorSize();
+    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
+    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
+    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
     is_singular = false;
 
     // Loop over groups of blocks
@@ -264,12 +264,12 @@ namespace micm
       auto lkj_uji = lkj_uji_.begin();
       auto uii = uii_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (auto& inLU : niLU_)
+      for (const auto& inLU : niLU_)
       {
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
-          std::size_t uik_nkj_first = uik_nkj->first;
+          const std::size_t uik_nkj_first = uik_nkj->first;
           if (*(do_aik++))
           {
             std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
@@ -277,8 +277,8 @@ namespace micm
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
-            std::size_t lij_ujk_first = lij_ujk->first;
-            std::size_t lij_ujk_second = lij_ujk->second;
+            const std::size_t lij_ujk_first = lij_ujk->first;
+            const std::size_t lij_ujk_second = lij_ujk->second;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
             ++lij_ujk;
@@ -286,13 +286,12 @@ namespace micm
           ++uik_nkj;
         }
         // Lower triangular matrix
-        std::size_t lki_nkj_first = lki_nkj->first;
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[lki_nkj_first + i_cell] = 1.0;
+          L_vector[lki_nkj->first + i_cell] = 1.0;
         ++lki_nkj;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
-          lki_nkj_first = lki_nkj->first;
+          const std::size_t lki_nkj_first = lki_nkj->first;
           if (*(do_aki++))
           {
             std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
@@ -300,13 +299,13 @@ namespace micm
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
-            std::size_t lkj_uji_first = lkj_uji->first;
-            std::size_t lkj_uji_second = lkj_uji->second;
+            const std::size_t lkj_uji_first = lkj_uji->first;
+            const std::size_t lkj_uji_second = lkj_uji->second;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
             ++lkj_uji;
           }
-          std::size_t uii_deref = *uii;
+          const std::size_t uii_deref = *uii;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           {
             if (U_vector[uii_deref + i_cell] == 0.0)
@@ -319,7 +318,7 @@ namespace micm
           ++uii;
         }
       }
-      std::size_t uii_deref = *uii;
+      const std::size_t uii_deref = *uii;
       if (n_cells != A_GroupVectorSize)
       {
         // check the bottom right corner of the matrix
