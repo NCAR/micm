@@ -20,7 +20,7 @@ RUN mkdir /build \
       && cmake \
         -D CMAKE_BUILD_TYPE=release \
         -D MICM_ENABLE_LLVM:BOOL=TRUE \
-        -D MICM_ENABLE_JSON:BOOL=TRUE \
+        -D MICM_ENABLE_CONFIG_READER:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

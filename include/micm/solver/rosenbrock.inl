@@ -38,6 +38,9 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
+    // Compute the error estimation
+    MatrixPolicy Yerror(num_rows, num_cols, 0);
+
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
       if (stats.number_of_steps_ > parameters_.max_number_of_steps_)
@@ -117,8 +120,8 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
-        // Compute the error estimation
-        MatrixPolicy Yerror(num_rows, num_cols, 0);
+        Yerror.Fill(0.0);
+
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
@@ -278,8 +281,8 @@ namespace micm
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
-    std::size_t N = Y.AsVector().size();
-    std::size_t n_vars = parameters_.absolute_tolerance_.size();
+    const std::size_t N = Y.AsVector().size();
+    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -313,11 +316,11 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
-    std::size_t N = Y.NumRows() * Y.NumColumns();
+    const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t L = Y.GroupVectorSize();
-    std::size_t n_vars = parameters_.absolute_tolerance_.size();
+    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
 
-    std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
+    const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
 
     double errors_over_scale = 0;
     double error = 0;
@@ -335,7 +338,7 @@ namespace micm
     }
 
     // compute the error over the remaining elements that are in the next group but didn't fill a full group
-    std::size_t remaining_rows = Y.NumRows() % Y.GroupVectorSize();
+    const std::size_t remaining_rows = Y.NumRows() % Y.GroupVectorSize();
 
     if (remaining_rows > 0)
     {
@@ -343,7 +346,7 @@ namespace micm
       {
         for (std::size_t x = 0; x < remaining_rows; ++x)
         {
-          std::size_t idx = y * L + x;
+          const std::size_t idx = y * L + x;
           errors_over_scale = errors_iter[idx] /
                               (parameters_.absolute_tolerance_[y] +
                                parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));

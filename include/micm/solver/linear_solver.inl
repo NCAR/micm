@@ -198,13 +198,13 @@ namespace micm
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
-            std::size_t Lij_yj_first = (*Lij_yj).first;
-            std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
+            const std::size_t Lij_yj_first = (*Lij_yj).first;
+            const std::size_t Lij_yj_second_times_n_cells = (*Lij_yj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               y_elem[i_cell] -= L_group[Lij_yj_first + i_cell] * x_group[Lij_yj_second_times_n_cells + i_cell];
             ++Lij_yj;
           }
-          std::size_t nLij_Lii_second = nLij_Lii.second;
+          const std::size_t nLij_Lii_second = nLij_Lii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             y_elem[i_cell] /= L_group[nLij_Lii_second + i_cell];
           y_elem += n_cells;
@@ -220,18 +220,18 @@ namespace micm
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
-            std::size_t Uij_xj_first = (*Uij_xj).first;
-            std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
+            const std::size_t Uij_xj_first = (*Uij_xj).first;
+            const std::size_t Uij_xj_second_times_n_cells = (*Uij_xj).second * n_cells;
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               x_elem[i_cell] -= U_group[Uij_xj_first + i_cell] * x_group[Uij_xj_second_times_n_cells + i_cell];
             ++Uij_xj;
           }
-          std::size_t nUij_Uii_second = nUij_Uii.second;
+          const std::size_t nUij_Uii_second = nUij_Uii.second;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
             x_elem[i_cell] /= U_group[nUij_Uii_second + i_cell];
 
           // don't iterate before the beginning of the vector
-          std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
+          const std::size_t x_elem_distance = std::distance(x.AsVector().begin(), x_elem);
           x_elem -= std::min(n_cells, x_elem_distance);
         }
       }

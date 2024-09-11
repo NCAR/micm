@@ -12,7 +12,7 @@ add_subdirectory(solver)
 add_subdirectory(system)
 add_subdirectory(util)
 add_subdirectory(version)
-if(MICM_ENABLE_OPENMP AND MICM_ENABLE_JSON)
+if(MICM_ENABLE_OPENMP AND MICM_ENABLE_CONFIG_READER)
   add_subdirectory(openmp)
 endif()
 
