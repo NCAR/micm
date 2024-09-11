@@ -18,8 +18,6 @@ namespace micm
     auto& initial_forcing = state.temporary_variables_.initial_forcing_;
     auto& K = state.temporary_variables_.K_;
     auto& Yerror = state.temporary_variables_.Yerror_;
-    std::size_t num_rows = Y.NumRows();
-    std::size_t num_cols = Y.NumColumns();
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
@@ -37,9 +35,6 @@ namespace micm
 
     bool reject_last_h = false;
     bool reject_more_h = false;
-
-    // Compute the error estimation
-    MatrixPolicy Yerror(num_rows, num_cols, 0);
 
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
@@ -120,8 +115,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
-        Yerror.Fill(0.0);
-
+        Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 

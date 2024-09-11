@@ -9,6 +9,9 @@ namespace micm
   struct BackwardEulerTemporaryVariables
   {
   public:
+      DenseMatrixPolicy Yn_;
+      DenseMatrixPolicy forcing_;
+      
       BackwardEulerTemporaryVariables() = default;
       BackwardEulerTemporaryVariables(const BackwardEulerTemporaryVariables& other) = delete;
       BackwardEulerTemporaryVariables(BackwardEulerTemporaryVariables&& other) = default;
@@ -16,7 +19,10 @@ namespace micm
       BackwardEulerTemporaryVariables& operator=(BackwardEulerTemporaryVariables&& other) = default;
       ~BackwardEulerTemporaryVariables() = default;
 
-      BackwardEulerTemporaryVariables(const auto& state, const auto& parameters)
-      { }
+      BackwardEulerTemporaryVariables(const auto& state, const auto& parameters):
+          Yn_(state.variables_.NumRows(), state.variables_.NumColumns()),
+          forcing_(state.variables_.NumRows(), state.variables_.NumColumns())
+      {
+      }
   };
 } // namespace name
