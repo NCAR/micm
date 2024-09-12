@@ -124,7 +124,7 @@ namespace micm
       SparseMatrixPolicy,
       ProcessSet,
       LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<typename SolverParametersPolicy::TemporaryVariablesType<DenseMatrixPolicy>, DenseMatrixPolicy, SparseMatrixPolicy>>;
+      State<typename SolverParametersPolicy::template TemporaryVariablesType<DenseMatrixPolicy>, DenseMatrixPolicy, SparseMatrixPolicy>>;
 }  // namespace micm
 
 #include "solver_builder.inl"

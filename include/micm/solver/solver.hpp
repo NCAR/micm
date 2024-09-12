@@ -11,7 +11,7 @@ namespace micm
   class Solver
   {
    private:
-    using SolverParametersType = SolverPolicy::ParametersType;
+    using SolverParametersType = typename SolverPolicy::ParametersType;
 
     std::size_t number_of_grid_cells_;
     std::size_t number_of_species_;

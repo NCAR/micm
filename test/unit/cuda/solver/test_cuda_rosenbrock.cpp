@@ -253,82 +253,82 @@ TEST(RosenbrockSolver, CudaNormalizedError)
   testNormalizedErrorDiff<3395043>();
 }
 
-// TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
-// {
-//   auto params = micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-//   params.check_singularity_ = true;
-//   auto vector = GpuBuilder<4>(params);
+TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
+{
+  auto params = micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  params.check_singularity_ = true;
+  auto vector = GpuBuilder<4>(params);
 
-//   auto vector_solver = getSingularSystemZeroInBottomRightOfU(vector).SetNumberOfGridCells(4).Build();
+  auto vector_solver = getSingularSystemZeroInBottomRightOfU(vector).SetNumberOfGridCells(4).Build();
 
-//   auto vector_state = vector_solver.GetState();
+  auto vector_state = vector_solver.GetState();
 
-//   double k1 = -2;
-//   double k2 = 1.0;
+  double k1 = -2;
+  double k2 = 1.0;
 
-//   vector_state.SetCustomRateParameter("r1", { k1, k1, k1, k1 });
-//   vector_state.SetCustomRateParameter("r2", { k2, k2, k2, k2 });
+  vector_state.SetCustomRateParameter("r1", { k1, k1, k1, k1 });
+  vector_state.SetCustomRateParameter("r2", { k2, k2, k2, k2 });
 
-//   vector_state.variables_[0] = { 1.0, 1.0 };
-//   vector_state.variables_[1] = { 1.0, 1.0 };
-//   vector_state.variables_[2] = { 1.0, 1.0 };
-//   vector_state.variables_[3] = { 1.0, 1.0 };
+  vector_state.variables_[0] = { 1.0, 1.0 };
+  vector_state.variables_[1] = { 1.0, 1.0 };
+  vector_state.variables_[2] = { 1.0, 1.0 };
+  vector_state.variables_[3] = { 1.0, 1.0 };
 
-//   // to get a jacobian with an LU factorization that contains a zero on the diagonal
-//   // of U, we need det(alpha * I - jacobian) = 0
-//   // for the system above, that means we have to have alpha + k1 + k2 = 0
-//   // in this case, one of the reaction rates will be negative but it's good enough to
-//   // test the singularity check
-//   // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value from
-//   // the rosenbrock paramters
-//   // so H needs to be 1 / ( (-k1 - k2) * gamma)
-//   // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
-//   double H = 1 / ((-k1 - k2) * params.gamma_[0]);
-//   vector_solver.solver_.parameters_.h_start_ = H;
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to have alpha + k1 + k2 = 0
+  // in this case, one of the reaction rates will be negative but it's good enough to
+  // test the singularity check
+  // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value from
+  // the rosenbrock paramters
+  // so H needs to be 1 / ( (-k1 - k2) * gamma)
+  // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
+  double H = 1 / ((-k1 - k2) * params.gamma_[0]);
+  vector_solver.solver_.parameters_.h_start_ = H;
 
-//   vector_solver.CalculateRateConstants(vector_state);
-//   vector_state.SyncInputsToDevice();
+  vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
 
-//   auto vector_result = vector_solver.Solve(2 * H, vector_state);
-//   vector_state.SyncOutputsToHost();
-//   EXPECT_NE(vector_result.stats_.singular_, 0);
-// }
+  auto vector_result = vector_solver.Solve(2 * H, vector_state);
+  vector_state.SyncOutputsToHost();
+  EXPECT_NE(vector_result.stats_.singular_, 0);
+}
 
-// TEST(RosenbrockSolver, SingularSystemZeroAlongDiagonalNotBottomRight)
-// {
-//   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+TEST(RosenbrockSolver, SingularSystemZeroAlongDiagonalNotBottomRight)
+{
+  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-//   double k1 = -1.0;
-//   double k2 = -1.0;
-//   double k3 = 1.0;
+  double k1 = -1.0;
+  double k2 = -1.0;
+  double k3 = 1.0;
 
-//   // to get a jacobian with an LU factorization that contains a zero on the diagonal
-//   // of U, we need det(alpha * I - jacobian) = 0
-//   // for the system above, that means we have to set alpha = -k1, or alpha=-k2, or alpha=k3
-//   double H = 1 / (-k1 * params.gamma_[0]);
+  // to get a jacobian with an LU factorization that contains a zero on the diagonal
+  // of U, we need det(alpha * I - jacobian) = 0
+  // for the system above, that means we have to set alpha = -k1, or alpha=-k2, or alpha=k3
+  double H = 1 / (-k1 * params.gamma_[0]);
 
-//   params.check_singularity_ = true;
-//   params.h_start_ = H;
+  params.check_singularity_ = true;
+  params.h_start_ = H;
 
-//   auto vector = GpuBuilder<4>(params);
+  auto vector = GpuBuilder<4>(params);
 
-//   auto vector_solver = getSolverForSingularSystemOnDiagonal(vector).SetNumberOfGridCells(4).Build();
+  auto vector_solver = getSolverForSingularSystemOnDiagonal(vector).SetNumberOfGridCells(4).Build();
 
-//   auto vector_state = vector_solver.GetState();
+  auto vector_state = vector_solver.GetState();
 
-//   vector_state.SetCustomRateParameter("r1", { k1, k1, k1, k1 });
-//   vector_state.SetCustomRateParameter("r2", { k2, k2, k2, k2 });
-//   vector_state.SetCustomRateParameter("r3", { k3, k3, k3, k3 });
+  vector_state.SetCustomRateParameter("r1", { k1, k1, k1, k1 });
+  vector_state.SetCustomRateParameter("r2", { k2, k2, k2, k2 });
+  vector_state.SetCustomRateParameter("r3", { k3, k3, k3, k3 });
 
-//   vector_state.variables_[0] = { 1.0, 1.0, 1.0 };
-//   vector_state.variables_[1] = { 1.0, 1.0, 1.0 };
-//   vector_state.variables_[2] = { 1.0, 1.0, 1.0 };
-//   vector_state.variables_[3] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[0] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[1] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[2] = { 1.0, 1.0, 1.0 };
+  vector_state.variables_[3] = { 1.0, 1.0, 1.0 };
 
-//   vector_solver.CalculateRateConstants(vector_state);
-//   vector_state.SyncInputsToDevice();
+  vector_solver.CalculateRateConstants(vector_state);
+  vector_state.SyncInputsToDevice();
 
-//   auto vector_result = vector_solver.Solve(2 * H, vector_state);
-//   vector_state.SyncOutputsToHost();
-//   EXPECT_NE(vector_result.stats_.singular_, 0);
-// }
+  auto vector_result = vector_solver.Solve(2 * H, vector_state);
+  vector_state.SyncOutputsToHost();
+  EXPECT_NE(vector_result.stats_.singular_, 0);
+}
