@@ -76,8 +76,15 @@ namespace micm
       bool converged = false;
       std::size_t iterations = 0;
 
-      Yn1 = Yn;
-
+      if (result.stats_.number_of_steps_ == 0)
+      {
+        Yn.Copy(Yn1);
+      }
+      else
+      {
+        Yn1.Copy(Yn);
+      }
+      
       do
       {
         result.stats_.number_of_steps_++;

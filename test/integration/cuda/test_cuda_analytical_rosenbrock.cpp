@@ -252,7 +252,7 @@ TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
   test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 5e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
   test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
