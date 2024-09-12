@@ -43,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state, auto& temporary_variables) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -66,9 +66,9 @@ namespace micm
 
     bool singular = false;
 
-    auto Yn = state.variables_;
+    auto& Yn = temporary_variables_.Yn_;
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
-    auto forcing = state.variables_;
+    auto& forcing = temporary_variables_.forcing_;
 
     while (t < time_step)
     {

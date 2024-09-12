@@ -35,6 +35,9 @@ namespace micm
   template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
+    /// Type of the DenseMatrixPolicy
+    using DenseMatrixPolicyType = DenseMatrixPolicy;
+
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
     /// @brief Rate paramters particular to user-defined rate constants, may vary in time

@@ -6,28 +6,24 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
       double time_step,
-      auto& state) const noexcept
+      auto& state,
+      auto& temporary_variables) const noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
 
     SolverResult result{};
     result.state_ = SolverState::Running;
-    MatrixPolicy& Y = state.variables_;  // Y will hold the new solution at the end of the solve
-    std::size_t num_rows = Y.NumRows();
-    std::size_t num_cols = Y.NumColumns();
-    MatrixPolicy Ynew(num_rows, num_cols);
-    MatrixPolicy initial_forcing(num_rows, num_cols);
-    std::vector<MatrixPolicy> K{};
+    auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
+    auto& Ynew = temporary_variables.Ynew_;
+    auto& initial_forcing = temporary_variables.initial_forcing_;
+    auto& K = temporary_variables.K_;
+    auto& Yerror = temporary_variables.Yerror_;
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
 
     SolverStats stats;
-
-    K.reserve(parameters_.stages_);
-    for (std::size_t i = 0; i < parameters_.stages_; ++i)
-      K.emplace_back(num_rows, num_cols);
 
     double present_time = 0.0;
     double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
@@ -40,9 +36,6 @@ namespace micm
 
     bool reject_last_h = false;
     bool reject_more_h = false;
-
-    // Compute the error estimation
-    MatrixPolicy Yerror(num_rows, num_cols, 0);
 
     while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
