@@ -20,9 +20,6 @@ namespace micm
     using SolverParametersType = typename SolverPolicy::ParametersType;
     using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
 
-    std::size_t number_of_grid_cells_;
-    std::size_t number_of_species_;
-    std::size_t number_of_reactions_;
     StateParameters state_parameters_;
     SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
@@ -34,14 +31,8 @@ namespace micm
         SolverPolicy&& solver,
         StateParameters state_parameters,
         SolverParametersType solver_parameters,
-        std::size_t number_of_grid_cells,
-        std::size_t number_of_species,
-        std::size_t number_of_reactions,
         std::vector<micm::Process> processes)
         : solver_(std::move(solver)),
-          number_of_grid_cells_(number_of_grid_cells),
-          number_of_species_(number_of_species),
-          number_of_reactions_(number_of_reactions),
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
           processes_(std::move(processes))
@@ -54,9 +45,6 @@ namespace micm
     Solver(Solver&& other)
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
-          number_of_grid_cells_(other.number_of_grid_cells_),
-          number_of_species_(other.number_of_species_),
-          number_of_reactions_(other.number_of_reactions_),
           state_parameters_(other.state_parameters_),
           solver_parameters_(other.solver_parameters_)
     {
@@ -64,9 +52,6 @@ namespace micm
     Solver& operator=(Solver&& other)
     {
       std::swap(this->solver_, other.solver_);
-      number_of_grid_cells_ = other.number_of_grid_cells_;
-      number_of_species_ = other.number_of_species_;
-      number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
@@ -82,21 +67,21 @@ namespace micm
     /// @return
     std::size_t GetNumberOfGridCells() const
     {
-      return number_of_grid_cells_;
+      return state_parameters_.number_of_grid_cells_;
     }
 
     /// @brief Returns the number of species
     /// @return
     std::size_t GetNumberOfSpecies() const
     {
-      return number_of_species_;
+      return state_parameters_.number_of_species_;
     }
 
     /// @brief Returns the number of reactions
     /// @return
     std::size_t GetNumberOfReactions() const
     {
-      return number_of_reactions_;
+      return state_parameters_.number_of_reactions_;
     }
 
     StatePolicy GetState() const

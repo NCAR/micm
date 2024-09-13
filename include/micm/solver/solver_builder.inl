@@ -403,9 +403,6 @@ namespace micm
         SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),
         state_parameters,
         options,
-        this->number_of_grid_cells_,
-        number_of_species,
-        this->reactions_.size(),
         this->reactions_);
   }
 
