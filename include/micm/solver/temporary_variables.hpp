@@ -14,6 +14,6 @@ namespace micm
         TemporaryVariables(TemporaryVariables&& other) = default;
         TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
         TemporaryVariables& operator=(TemporaryVariables&& other) = default;
-        ~TemporaryVariables() = default;
+        virtual ~TemporaryVariables() = default;
     };
 }  // namespace micm
