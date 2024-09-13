@@ -10,9 +10,9 @@ namespace micm
     {
     public:
         TemporaryVariables() = default;
-        TemporaryVariables(const TemporaryVariables& other) = delete;
+        TemporaryVariables(const TemporaryVariables& other) = default;
         TemporaryVariables(TemporaryVariables&& other) = default;
-        TemporaryVariables& operator=(const TemporaryVariables& other) = delete;
+        TemporaryVariables& operator=(const TemporaryVariables& other) = default;
         TemporaryVariables& operator=(TemporaryVariables&& other) = default;
         virtual ~TemporaryVariables() = default;
     };

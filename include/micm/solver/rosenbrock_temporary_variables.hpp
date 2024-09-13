@@ -18,9 +18,9 @@ namespace micm
         DenseMatrixPolicy Yerror_;
 
         RosenbrockTemporaryVariables() = default;
-        RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = delete;
+        RosenbrockTemporaryVariables(const RosenbrockTemporaryVariables& other) = default;
         RosenbrockTemporaryVariables(RosenbrockTemporaryVariables&& other) = default;
-        RosenbrockTemporaryVariables& operator=(const RosenbrockTemporaryVariables& other) = delete;
+        RosenbrockTemporaryVariables& operator=(const RosenbrockTemporaryVariables& other) = default;
         RosenbrockTemporaryVariables& operator=(RosenbrockTemporaryVariables&& other) = default;
         ~RosenbrockTemporaryVariables() = default;
 

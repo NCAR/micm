@@ -77,13 +77,6 @@ namespace micm
       return state_parameters_.number_of_species_;
     }
 
-    /// @brief Returns the number of reactions
-    /// @return
-    std::size_t GetNumberOfReactions() const
-    {
-      return state_parameters_.number_of_reactions_;
-    }
-
     StatePolicy GetState() const
     {
       auto state = StatePolicy(state_parameters_);
