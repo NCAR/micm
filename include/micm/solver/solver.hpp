@@ -6,7 +6,10 @@
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
-#include <variant>
+#include <micm/solver/backward_euler.hpp>
+#include <micm/solver/rosenbrock.hpp>
+
+#include <type_traits>
 
 namespace micm
 {
@@ -99,11 +102,11 @@ namespace micm
     StatePolicy GetState() const
     {
       auto state = StatePolicy(state_parameters_);
-      if (std::is_same<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>::value)
+      if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
       }
-      else if (std::is_same<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>::value)
+      else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_);
       }
