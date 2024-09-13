@@ -3,10 +3,12 @@
 
 #pragma once
 
+#include <micm/solver/temporary_variables.hpp>
+
 namespace micm 
 {
   template<class DenseMatrixPolicy>
-  class BackwardEulerTemporaryVariables : public EmptyTemporaryVariables
+  class BackwardEulerTemporaryVariables : public TemporaryVariables
   {
   public:
       DenseMatrixPolicy Yn_;

@@ -112,7 +112,7 @@ namespace micm
       }
       else
       {
-        throw std::runtime_error("Solver type not supported!");
+        throw std::runtime_error("Solver type not supported! Parameter type: " + std::string(typeid(typename SolverPolicy::ParametersType).name()));
       }
       return state;
     }

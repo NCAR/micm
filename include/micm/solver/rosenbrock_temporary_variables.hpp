@@ -3,12 +3,13 @@
 
 #pragma once
 
+#include <micm/solver/temporary_variables.hpp>
 #include <vector>
 
 namespace micm
 {
     template<class DenseMatrixPolicy>
-    class RosenbrockTemporaryVariables : public EmptyTemporaryVariables
+    class RosenbrockTemporaryVariables : public TemporaryVariables
     {
     public:
         DenseMatrixPolicy Ynew_;
