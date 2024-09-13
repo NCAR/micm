@@ -80,7 +80,7 @@ namespace micm
     StatePolicy GetState() const
     {
       auto state = StatePolicy(state_parameters_);
-      if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters> || std::is_same_v<typename SolverPolicy::ParametersType, JitRosenbrockSolverParameters>)
+      if constexpr (std::is_base_of_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
       }
