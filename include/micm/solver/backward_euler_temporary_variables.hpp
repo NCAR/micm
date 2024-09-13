@@ -6,7 +6,7 @@
 namespace micm 
 {
   template<class DenseMatrixPolicy>
-  class BackwardEulerTemporaryVariables
+  class BackwardEulerTemporaryVariables : public EmptyTemporaryVariables
   {
   public:
       DenseMatrixPolicy Yn_;

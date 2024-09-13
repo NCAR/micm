@@ -8,7 +8,7 @@
 namespace micm
 {
     template<class DenseMatrixPolicy>
-    class RosenbrockTemporaryVariables
+    class RosenbrockTemporaryVariables : public EmptyTemporaryVariables
     {
     public:
         DenseMatrixPolicy Ynew_;

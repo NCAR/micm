@@ -90,7 +90,7 @@ namespace micm
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by
     /// @return A struct containing results and a status code
-    SolverResult Solve(double time_step, auto& state, auto& temporary_variables) const noexcept;
+    SolverResult Solve(double time_step, auto& state) const noexcept;
 
     /// @brief compute [alpha * I - dforce_dy]
     /// @param jacobian Jacobian matrix (dforce_dy)

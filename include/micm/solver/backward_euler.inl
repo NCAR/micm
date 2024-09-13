@@ -43,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state, auto& temporary_variables) const
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -53,6 +53,8 @@ namespace micm
     // These reductions are controlled by the time_step_reductions parameter in the solver parameters
     // if the last attempt to reduce the timestep fails,
     // accept the current H but do not update the Yn vector
+
+    using MatrixPolicy = decltype(state.variables_);
 
     SolverResult result;
 
@@ -66,9 +68,10 @@ namespace micm
 
     bool singular = false;
 
-    auto& Yn = temporary_variables_.Yn_;
+    auto derived_class_temporary_variables = static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+    auto& Yn = derived_class_temporary_variables->Yn_;
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
-    auto& forcing = temporary_variables_.forcing_;
+    auto& forcing = derived_class_temporary_variables->forcing_;
 
     while (t < time_step)
     {
@@ -76,7 +79,14 @@ namespace micm
       bool converged = false;
       std::size_t iterations = 0;
 
-      Yn1 = Yn;
+      if (result.stats_.number_of_steps_ == 0)
+      {
+        Yn.Copy(Yn1);
+      }
+      else
+      {
+        Yn1.Copy(Yn);
+      }
 
       do
       {

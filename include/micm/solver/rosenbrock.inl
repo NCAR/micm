@@ -6,8 +6,7 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
       double time_step,
-      auto& state,
-      auto& temporary_variables) const noexcept
+      auto& state) const noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
@@ -15,10 +14,11 @@ namespace micm
     SolverResult result{};
     result.state_ = SolverState::Running;
     auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
-    auto& Ynew = temporary_variables.Ynew_;
-    auto& initial_forcing = temporary_variables.initial_forcing_;
-    auto& K = temporary_variables.K_;
-    auto& Yerror = temporary_variables.Yerror_;
+    auto derived_class_temporary_variables = static_cast<RosenbrockTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+    auto& Ynew = derived_class_temporary_variables->Ynew_;
+    auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
+    auto& K = derived_class_temporary_variables->K_;
+    auto& Yerror = derived_class_temporary_variables->Yerror_;
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
@@ -116,8 +116,7 @@ namespace micm
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Ynew.Axpy(parameters_.m_[stage], K[stage]);
 
-        Yerror.Fill(0.0);
-
+        Yerror.Fill(0);
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 

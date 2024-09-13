@@ -8,6 +8,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/solver/empty_temporary_variables.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -56,6 +57,7 @@ namespace micm
     SparseMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
+    std::unique_ptr<EmptyTemporaryVariables> temporary_variables_;
 
     /// @brief
     State();

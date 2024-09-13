@@ -23,7 +23,6 @@ namespace micm
     StateParameters state_parameters_;
     SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
-    std::variant<RosenbrockTemporaryVariables<DenseMatrixType>, BackwardEulerTemporaryVariables<DenseMatrixType>> temporary_variables_;
 
    public:
     SolverPolicy solver_;
@@ -44,18 +43,6 @@ namespace micm
           solver_parameters_(solver_parameters),
           processes_(std::move(processes))
     {
-      if (std::is_same<SolverParametersType, RosenbrockSolverParameters>::value)
-      {
-        temporary_variables_ = RosenbrockTemporaryVariables<DenseMatrixType>(state_parameters_, solver_parameters_);
-      }
-      else if (std::is_same<SolverParametersType, BackwardEulerSolverParameters>::value)
-      {
-        temporary_variables_ = BackwardEulerTemporaryVariables<DenseMatrixType>(state_parameters_);
-      }
-      else
-      {
-        throw std::runtime_error("Unrecognized solver parameters: " + std::string(typeid(SolverParametersType).name()));
-      }
     }
 
     Solver(const Solver&) = delete;
@@ -85,14 +72,7 @@ namespace micm
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      if (std::is_same<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>::value)
-      {
-      return solver_.Solve(time_step, state, std::get<RosenbrockTemporaryVariables<DenseMatrixType>>(temporary_variables_));
-      }
-      else
-      {
-      return solver_.Solve(time_step, state, std::get<BackwardEulerTemporaryVariables<DenseMatrixType>>(temporary_variables_));
-      }
+      return solver_.Solve(time_step, state); 
     }
 
     /// @brief Returns the number of grid cells
@@ -118,7 +98,20 @@ namespace micm
 
     StatePolicy GetState() const
     {
-      return StatePolicy(state_parameters_);
+      auto state = StatePolicy(state_parameters_);
+      if (std::is_same<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>::value)
+      {
+        state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
+      }
+      else if (std::is_same<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>::value)
+      {
+        state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_);
+      }
+      else
+      {
+        throw std::runtime_error("Solver type not supported!");
+      }
+      return state;
     }
 
     std::vector<micm::Process> GetProcesses() const
@@ -128,7 +121,7 @@ namespace micm
 
     void CalculateRateConstants(StatePolicy& state)
     {
-      Process::CalculateRateConstants<typename StatePolicy::DenseMatrixPolicyType>(processes_, state);
+      Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
     }
   };
 

@@ -68,7 +68,7 @@ namespace micm
     /// @param time_step Time [s] to advance the state by
     /// @param state The state to advance
     /// @return result of the solver (success or failure, and statistics)
-    SolverResult Solve(double time_step, auto& state, auto& temporary_variables) const;
+    SolverResult Solve(double time_step, auto& state) const;
 
     /// @brief Determines whether the residual is small enough to stop the
     ///        internal solver iteration
