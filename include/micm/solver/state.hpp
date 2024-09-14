@@ -3,12 +3,12 @@
 #pragma once
 
 #include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/temporary_variables.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
-#include <micm/solver/temporary_variables.hpp>
 
 #include <algorithm>
 #include <cstddef>

@@ -68,7 +68,8 @@ namespace micm
 
     bool singular = false;
 
-    auto derived_class_temporary_variables = static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+    auto derived_class_temporary_variables =
+        static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
     auto& Yn = derived_class_temporary_variables->Yn_;
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;

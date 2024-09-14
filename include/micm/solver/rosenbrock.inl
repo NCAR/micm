@@ -14,7 +14,8 @@ namespace micm
     SolverResult result{};
     result.state_ = SolverState::Running;
     auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
-    auto derived_class_temporary_variables = static_cast<RosenbrockTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+    auto derived_class_temporary_variables =
+        static_cast<RosenbrockTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
     auto& Ynew = derived_class_temporary_variables->Ynew_;
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     auto& K = derived_class_temporary_variables->K_;
