@@ -10,6 +10,7 @@
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
 
 #include <algorithm>
 #include <array>

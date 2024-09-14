@@ -54,6 +54,8 @@ namespace micm
     // if the last attempt to reduce the timestep fails,
     // accept the current H but do not update the Yn vector
 
+    using MatrixPolicy = decltype(state.variables_);
+
     SolverResult result;
 
     std::size_t max_iter = parameters_.max_number_of_steps_;
@@ -66,9 +68,10 @@ namespace micm
 
     bool singular = false;
 
-    auto Yn = state.variables_;
+    auto derived_class_temporary_variables = static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+    auto& Yn = derived_class_temporary_variables->Yn_;
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
-    auto forcing = state.variables_;
+    auto& forcing = derived_class_temporary_variables->forcing_;
 
     while (t < time_step)
     {
@@ -76,7 +79,14 @@ namespace micm
       bool converged = false;
       std::size_t iterations = 0;
 
-      Yn1 = Yn;
+      if (result.stats_.number_of_steps_ == 0)
+      {
+        Yn.Copy(Yn1);
+      }
+      else
+      {
+        Yn1.Copy(Yn);
+      }
 
       do
       {

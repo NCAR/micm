@@ -4,6 +4,12 @@
 
 #include <micm/process/process.hpp>
 #include <micm/solver/solver_result.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
+#include <micm/solver/backward_euler.hpp>
+#include <micm/solver/rosenbrock.hpp>
+
+#include <type_traits>
 
 namespace micm
 {
@@ -11,10 +17,11 @@ namespace micm
   class Solver
   {
    private:
-    std::size_t number_of_grid_cells_;
-    std::size_t number_of_species_;
-    std::size_t number_of_reactions_;
+    using SolverParametersType = typename SolverPolicy::ParametersType;
+    using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
+
     StateParameters state_parameters_;
+    SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
 
    public:
@@ -23,15 +30,11 @@ namespace micm
     Solver(
         SolverPolicy&& solver,
         StateParameters state_parameters,
-        std::size_t number_of_grid_cells,
-        std::size_t number_of_species,
-        std::size_t number_of_reactions,
+        SolverParametersType solver_parameters,
         std::vector<micm::Process> processes)
         : solver_(std::move(solver)),
-          number_of_grid_cells_(number_of_grid_cells),
-          number_of_species_(number_of_species),
-          number_of_reactions_(number_of_reactions),
           state_parameters_(state_parameters),
+          solver_parameters_(solver_parameters),
           processes_(std::move(processes))
     {
     }
@@ -42,52 +45,54 @@ namespace micm
     Solver(Solver&& other)
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
-          number_of_grid_cells_(other.number_of_grid_cells_),
-          number_of_species_(other.number_of_species_),
-          number_of_reactions_(other.number_of_reactions_),
-          state_parameters_(other.state_parameters_)
+          state_parameters_(other.state_parameters_),
+          solver_parameters_(other.solver_parameters_)
     {
     }
     Solver& operator=(Solver&& other)
     {
       std::swap(this->solver_, other.solver_);
-      number_of_grid_cells_ = other.number_of_grid_cells_;
-      number_of_species_ = other.number_of_species_;
-      number_of_reactions_ = other.number_of_reactions_;
       state_parameters_ = other.state_parameters_;
+      solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
       return *this;
     }
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      return solver_.Solve(time_step, state);
+      return solver_.Solve(time_step, state); 
     }
 
     /// @brief Returns the number of grid cells
     /// @return
     std::size_t GetNumberOfGridCells() const
     {
-      return number_of_grid_cells_;
+      return state_parameters_.number_of_grid_cells_;
     }
 
     /// @brief Returns the number of species
     /// @return
     std::size_t GetNumberOfSpecies() const
     {
-      return number_of_species_;
-    }
-
-    /// @brief Returns the number of reactions
-    /// @return
-    std::size_t GetNumberOfReactions() const
-    {
-      return number_of_reactions_;
+      return state_parameters_.number_of_species_;
     }
 
     StatePolicy GetState() const
     {
-      return StatePolicy(state_parameters_);
+      auto state = std::move(StatePolicy(state_parameters_));
+      if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
+      {
+        state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
+      }
+      else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
+      {
+        state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_);
+      }
+      else
+      {
+        throw std::runtime_error("Solver type not supported! Parameter type: " + std::string(typeid(typename SolverPolicy::ParametersType).name()));
+      }
+      return state;
     }
 
     std::vector<micm::Process> GetProcesses() const
@@ -97,7 +102,7 @@ namespace micm
 
     void CalculateRateConstants(StatePolicy& state)
     {
-      Process::CalculateRateConstants(processes_, state);
+      Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
     }
   };
 

@@ -8,6 +8,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/solver/temporary_variables.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -35,6 +36,9 @@ namespace micm
   template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
   struct State
   {
+    /// Type of the DenseMatrixPolicy
+    using DenseMatrixPolicyType = DenseMatrixPolicy;
+
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
     /// @brief Rate paramters particular to user-defined rate constants, may vary in time
@@ -53,6 +57,50 @@ namespace micm
     SparseMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
+    std::unique_ptr<TemporaryVariables> temporary_variables_;
+
+    /// @brief Copy constructor
+    /// @param other The state object to be copied
+    State(const State& other)
+    {
+      variables_ = other.variables_;
+      custom_rate_parameters_ = other.custom_rate_parameters_;
+      rate_constants_ = other.rate_constants_;
+      conditions_ = other.conditions_;
+      jacobian_ = other.jacobian_;
+      variable_map_ = other.variable_map_;
+      custom_rate_parameter_map_ = other.custom_rate_parameter_map_;
+      variable_names_ = other.variable_names_;
+      lower_matrix_ = other.lower_matrix_;
+      upper_matrix_ = other.upper_matrix_;
+      state_size_ = other.state_size_;
+      number_of_grid_cells_ = other.number_of_grid_cells_;
+      temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+    }
+
+    /// @brief Assignment operator
+    /// @param other The state object to be assigned
+    /// @return Reference to the assigned state object
+    State& operator=(const State& other)
+    {
+      if (this != &other)
+      {
+        variables_ = other.variables_;
+        custom_rate_parameters_ = other.custom_rate_parameters_;
+        rate_constants_ = other.rate_constants_;
+        conditions_ = other.conditions_;
+        jacobian_ = other.jacobian_;
+        variable_map_ = other.variable_map_;
+        custom_rate_parameter_map_ = other.custom_rate_parameter_map_;
+        variable_names_ = other.variable_names_;
+        lower_matrix_ = other.lower_matrix_;
+        upper_matrix_ = other.upper_matrix_;
+        state_size_ = other.state_size_;
+        number_of_grid_cells_ = other.number_of_grid_cells_;
+        temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+      }
+      return *this;
+    }
 
     /// @brief
     State();

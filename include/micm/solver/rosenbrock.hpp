@@ -21,6 +21,7 @@
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
 
 #include <algorithm>
 #include <cassert>
