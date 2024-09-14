@@ -3,11 +3,11 @@
 #pragma once
 
 #include <micm/process/process.hpp>
-#include <micm/solver/solver_result.hpp>
-#include <micm/solver/backward_euler_temporary_variables.hpp>
-#include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/backward_euler.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/rosenbrock_temporary_variables.hpp>
+#include <micm/solver/solver_result.hpp>
 
 #include <type_traits>
 
@@ -60,7 +60,7 @@ namespace micm
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      return solver_.Solve(time_step, state); 
+      return solver_.Solve(time_step, state);
     }
 
     /// @brief Returns the number of grid cells
@@ -82,7 +82,8 @@ namespace micm
       auto state = std::move(StatePolicy(state_parameters_));
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
-        state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
+        state.temporary_variables_ =
+            std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
       }
       else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
       {
@@ -90,7 +91,9 @@ namespace micm
       }
       else
       {
-        throw std::runtime_error("Solver type not supported! Parameter type: " + std::string(typeid(typename SolverPolicy::ParametersType).name()));
+        throw std::runtime_error(
+            "Solver type not supported! Parameter type: " +
+            std::string(typeid(typename SolverPolicy::ParametersType).name()));
       }
       return state;
     }

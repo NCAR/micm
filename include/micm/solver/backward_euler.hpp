@@ -4,13 +4,13 @@
 
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
+#include <micm/solver/backward_euler_temporary_variables.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
 #include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
-#include <micm/solver/backward_euler_temporary_variables.hpp>
 
 #include <algorithm>
 #include <array>
