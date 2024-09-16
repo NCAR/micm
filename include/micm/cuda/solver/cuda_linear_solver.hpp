@@ -8,9 +8,6 @@
 #include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 
-#include <chrono>
-#include <functional>
-
 namespace micm
 {
   template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>

@@ -7,9 +7,6 @@
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 
-#include <chrono>
-#include <stdexcept>
-
 namespace micm
 {
   /// This CudaLuDecomposition class inherits everything from the base class "LuDecomposition"

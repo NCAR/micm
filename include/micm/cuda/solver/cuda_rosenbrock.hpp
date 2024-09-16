@@ -7,26 +7,12 @@
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/process/process.hpp>
-#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/jacobian.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstddef>
-#include <functional>
-#include <string>
-#include <vector>
 
 namespace micm
 {
+  struct CudaRosenbrockSolverParameters;
 
   template<class RatesPolicy, class LinearSolverPolicy>
   class CudaRosenbrockSolver : public AbstractRosenbrockSolver<
@@ -41,7 +27,7 @@ namespace micm
     CudaRosenbrockSolverParam devstruct_;
 
     /// @brief Solver parameters typename
-    using ParametersType = RosenbrockSolverParameters;
+    using ParametersType = CudaRosenbrockSolverParameters;
 
     CudaRosenbrockSolver(const CudaRosenbrockSolver&) = delete;
     CudaRosenbrockSolver& operator=(const CudaRosenbrockSolver&) = delete;
