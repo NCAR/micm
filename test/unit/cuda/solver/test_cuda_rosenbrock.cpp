@@ -2,8 +2,8 @@
 
 #include <micm/cuda/solver/cuda_rosenbrock.cuh>
 #include <micm/cuda/solver/cuda_rosenbrock.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
 #include <micm/cuda/solver/cuda_solver_builder.hpp>
+#include <micm/cuda/solver/cuda_solver_parameters.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/process/arrhenius_rate_constant.hpp>
