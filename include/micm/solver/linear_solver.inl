@@ -91,7 +91,7 @@ namespace micm
       // There must always be a non-zero element on the diagonal
       nLij_Lii_.push_back(std::make_pair(nLij, lower_matrix.VectorIndex(0, i, i)));
     }
-    for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
+    for (std::size_t i = upper_matrix.NumRows(); i--;)
     {
       std::size_t nUij = 0;
       for (std::size_t j_id = upper_matrix.RowStartVector()[i]; j_id < upper_matrix.RowStartVector()[i + 1]; ++j_id)
@@ -128,6 +128,9 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
+    auto& lower_matrix_vector = lower_matrix.AsVector();
+    auto& upper_matrix_vector = upper_matrix.AsVector();
+
     for (std::size_t i_cell = 0; i_cell < x.NumRows(); ++i_cell)
     {
       auto x_cell = x[i_cell];
@@ -143,10 +146,10 @@ namespace micm
         {
           for (std::size_t i = 0; i < nLij_Lii.first; ++i)
           {
-            *y_elem -= lower_matrix.AsVector()[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
+            *y_elem -= lower_matrix_vector[lower_grid_offset + (*Lij_yj).first] * y_cell[(*Lij_yj).second];
             ++Lij_yj;
           }
-          *(y_elem++) /= lower_matrix.AsVector()[lower_grid_offset + nLij_Lii.second];
+          *(y_elem++) /= lower_matrix_vector[lower_grid_offset + nLij_Lii.second];
         }
       }
 
@@ -159,11 +162,11 @@ namespace micm
           // x_elem starts out as y_elem from the previous loop
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
-            *x_elem -= upper_matrix.AsVector()[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
+            *x_elem -= upper_matrix_vector[upper_grid_offset + (*Uij_xj).first] * x_cell[(*Uij_xj).second];
             ++Uij_xj;
           }
 
-          *(x_elem) /= upper_matrix.AsVector()[upper_grid_offset + nUij_Uii.second];
+          *(x_elem) /= upper_matrix_vector[upper_grid_offset + nUij_Uii.second];
           // don't iterate before the beginning of the vector
           if (x_elem != x_cell.begin())
           {

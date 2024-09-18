@@ -24,7 +24,7 @@ namespace micm
   /// The LU decomposition uses the Doolittle algorithm following the
   /// naming used here: https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
   ///
-  /// The sudo-code for the corresponding dense matrix algorithm for matrix A
+  /// The psuedo-code for the corresponding dense matrix algorithm for matrix A
   /// and lower (upper) triangular matrix L(U) would be:
   ///
   /// for i = 0...n-1                 // Outer loop over rows (columns) for upper (lower) triangular matrix

@@ -19,7 +19,7 @@ namespace micm
       const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, INFINITY);
     return lu_decomp;
   }
 
@@ -36,7 +36,9 @@ namespace micm
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
     const auto& U_row_ids = LU.second.RowIdsVector();
-    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
+    const auto& lower_matrix = LU.first;
+    const auto& upper_matrix = LU.second;
+    for (std::size_t i = 0; i < n; ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
       // Upper triangular matrix
@@ -48,12 +50,12 @@ namespace micm
           std::size_t j = L_row_ids[j_id];
           if (j >= i)
             break;
-          if (LU.second.IsZero(j, k))
+          if (upper_matrix.IsZero(j, k))
             continue;
           ++nkj;
-          lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
+          lij_ujk_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, j), upper_matrix.VectorIndex(0, j, k)));
         }
-        if (matrix.IsZero(i, k))
+        if (upper_matrix.IsZero(i, k))
         {
           if (nkj == 0 && k != i)
             continue;
@@ -62,13 +64,19 @@ namespace micm
         else
         {
           do_aik_.push_back(true);
-          aik_.push_back(matrix.VectorIndex(0, i, k));
+            if (matrix.IsZero(i, k)) {
+                aik_.push_back(std::numeric_limits<std::size_t>::max());
+            }
+            else {
+                aik_.push_back(matrix.VectorIndex(0, i, k));
+            }
+          
         }
-        uik_nkj_.push_back(std::make_pair(LU.second.VectorIndex(0, i, k), nkj));
+        uik_nkj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, k), nkj));
         ++(iLU.second);
       }
       // Lower triangular matrix
-      lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, i, i), 0));
+      lki_nkj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, i), 0));
       for (std::size_t k = i + 1; k < n; ++k)
       {
         std::size_t nkj = 0;
@@ -77,12 +85,12 @@ namespace micm
           std::size_t j = L_row_ids[j_id];
           if (j >= i)
             break;
-          if (LU.second.IsZero(j, i))
+          if (upper_matrix.IsZero(j, i))
             continue;
           ++nkj;
-          lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
+          lkj_uji_.push_back(std::make_pair(lower_matrix.VectorIndex(0, k, j), upper_matrix.VectorIndex(0, j, i)));
         }
-        if (matrix.IsZero(k, i))
+        if (lower_matrix.IsZero(k, i))
         {
           if (nkj == 0)
             continue;
@@ -91,15 +99,20 @@ namespace micm
         else
         {
           do_aki_.push_back(true);
-          aki_.push_back(matrix.VectorIndex(0, k, i));
+            if (matrix.IsZero(k, i)) {
+                aki_.push_back(std::numeric_limits<std::size_t>::max());
+            }
+            else {
+                aki_.push_back(matrix.VectorIndex(0, k, i));
+            }
         }
-        uii_.push_back(LU.second.VectorIndex(0, i, i));
-        lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, k, i), nkj));
+        uii_.push_back(upper_matrix.VectorIndex(0, i, i));
+        lki_nkj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, k, i), nkj));
         ++(iLU.first);
       }
       niLU_.push_back(iLU);
     }
-    uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
+    uii_.push_back(upper_matrix.VectorIndex(0, n - 1, n - 1));
   }
 
   template<class SparseMatrixPolicy>
@@ -194,8 +207,16 @@ namespace micm
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
-          if (*(do_aik++))
-            U_vector[uik_nkj->first] = A_vector[*(aik++)];
+            if (*(do_aik++)) {
+                auto elem = *(aik++);
+                if (elem == std::numeric_limits<std::size_t>::max()) {
+                    U_vector[uik_nkj->first] = 0;
+                }
+                else {
+                    U_vector[uik_nkj->first] = A_vector[elem];
+                }
+            }
+            
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
@@ -207,8 +228,15 @@ namespace micm
         L_vector[(lki_nkj++)->first] = 1.0;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
-          if (*(do_aki++))
-            L_vector[lki_nkj->first] = A_vector[*(aki++)];
+            if (*(do_aki++)){
+                auto elem = *(aki++);
+                if (elem == std::numeric_limits<std::size_t>::max()) {
+                    L_vector[lki_nkj->first] = 0;
+                }
+                else {
+                    L_vector[lki_nkj->first] = A_vector[elem];
+                }
+            }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
@@ -272,8 +300,15 @@ namespace micm
           std::size_t uik_nkj_first = uik_nkj->first;
           if (*(do_aik++))
           {
-            std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
-            ++aik;
+            auto elem = *(aik++);
+            
+                  
+                  if (elem == std::numeric_limits<std::size_t>::max()) {
+                      std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
+                  }
+                  else {
+                      std::copy(A_vector + elem, A_vector + elem + n_cells, U_vector + uik_nkj_first);
+                  }
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
@@ -295,8 +330,14 @@ namespace micm
           lki_nkj_first = lki_nkj->first;
           if (*(do_aki++))
           {
-            std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
-            ++aki;
+              auto elem = *(aki++);
+              
+              if (elem == std::numeric_limits<std::size_t>::max()) {
+                  std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
+              }
+              else {
+                  std::copy(A_vector + elem, A_vector + elem + n_cells, L_vector + lki_nkj_first);
+              }
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {

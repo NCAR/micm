@@ -17,8 +17,7 @@ namespace micm
 {
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableSparse = requires(T t)
-  {
+  concept VectorizableSparse = requires(T t) {
     t.GroupSize(0);
     t.GroupVectorSize();
     t.NumberOfGroups(0);
@@ -184,6 +183,28 @@ namespace micm
       data_ = std::vector<T>(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_);
 
       return *this;
+    }
+
+    void print() const
+    {
+      for (std::size_t block = 0; block < number_of_blocks_; ++block)
+      {
+        for (std::size_t i = 0; i < row_start_.size() - 1; ++i)
+        {
+          for (std::size_t j = 0; j < row_start_.size() - 1; ++j)
+          {
+            if (IsZero(i, j))
+            {
+              std::cout << "0 ";
+            }
+            else
+            {
+              std::cout << data_[VectorIndex(block, i, j)] << " ";
+            }
+          }
+          std::cout << std::endl;
+        }
+      }
     }
 
     void AddToDiagonal(T value)
