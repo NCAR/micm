@@ -223,6 +223,17 @@ namespace micm
       return L * y_dim_;
     }
 
+    void print() const {
+      for (std::size_t i = 0; i < x_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < y_dim_; ++j)
+        {
+          std::cout << (*this)[i][j] << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+
     constexpr std::size_t GroupVectorSize() const
     {
       return L;

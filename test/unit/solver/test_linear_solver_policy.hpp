@@ -214,7 +214,7 @@ void testLargeMatrix(std::size_t number_of_blocks, double initial_value)
 
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), generator);
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), generator);
-  const size_t size = 4;
+  const size_t size = 20;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
   for (std::size_t i = 0; i < size; ++i)
@@ -259,7 +259,7 @@ void testLargeMatrix(std::size_t number_of_blocks, double initial_value)
   CopyToHostDense<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-13); });
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-11); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
