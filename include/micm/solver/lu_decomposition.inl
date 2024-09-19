@@ -9,14 +9,15 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecomposition::LuDecomposition(const SparseMatrixPolicy& matrix)
   {
     Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecomposition LuDecomposition::Create(
-      const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecomposition LuDecomposition::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
     lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
@@ -24,9 +25,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecomposition::Initialize(
-      const SparseMatrixPolicy& matrix,
-      auto initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline void LuDecomposition::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -64,13 +64,14 @@ namespace micm
         else
         {
           do_aik_.push_back(true);
-            if (matrix.IsZero(i, k)) {
-                aik_.push_back(std::numeric_limits<std::size_t>::max());
-            }
-            else {
-                aik_.push_back(matrix.VectorIndex(0, i, k));
-            }
-          
+          if (matrix.IsZero(i, k))
+          {
+            aik_.push_back(std::numeric_limits<std::size_t>::max());
+          }
+          else
+          {
+            aik_.push_back(matrix.VectorIndex(0, i, k));
+          }
         }
         uik_nkj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, k), nkj));
         ++(iLU.second);
@@ -99,12 +100,14 @@ namespace micm
         else
         {
           do_aki_.push_back(true);
-            if (matrix.IsZero(k, i)) {
-                aki_.push_back(std::numeric_limits<std::size_t>::max());
-            }
-            else {
-                aki_.push_back(matrix.VectorIndex(0, k, i));
-            }
+          if (matrix.IsZero(k, i))
+          {
+            aki_.push_back(std::numeric_limits<std::size_t>::max());
+          }
+          else
+          {
+            aki_.push_back(matrix.VectorIndex(0, k, i));
+          }
         }
         uii_.push_back(upper_matrix.VectorIndex(0, i, i));
         lki_nkj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, k, i), nkj));
@@ -116,9 +119,10 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(
-      SparseMatrixConcept<SparseMatrixPolicy>) inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::
-      GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecomposition::GetLUMatrices(
+      const SparseMatrixPolicy& A,
+      typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -178,7 +182,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
+    requires(!VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U,
@@ -207,16 +212,19 @@ namespace micm
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
-            if (*(do_aik++)) {
-                auto elem = *(aik++);
-                if (elem == std::numeric_limits<std::size_t>::max()) {
-                    U_vector[uik_nkj->first] = 0;
-                }
-                else {
-                    U_vector[uik_nkj->first] = A_vector[elem];
-                }
+          if (*(do_aik++))
+          {
+            auto elem = *(aik++);
+            if (elem == std::numeric_limits<std::size_t>::max())
+            {
+              U_vector[uik_nkj->first] = 0;
             }
-            
+            else
+            {
+              U_vector[uik_nkj->first] = A_vector[elem];
+            }
+          }
+
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
@@ -228,15 +236,18 @@ namespace micm
         L_vector[(lki_nkj++)->first] = 1.0;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
-            if (*(do_aki++)){
-                auto elem = *(aki++);
-                if (elem == std::numeric_limits<std::size_t>::max()) {
-                    L_vector[lki_nkj->first] = 0;
-                }
-                else {
-                    L_vector[lki_nkj->first] = A_vector[elem];
-                }
+          if (*(do_aki++))
+          {
+            auto elem = *(aki++);
+            if (elem == std::numeric_limits<std::size_t>::max())
+            {
+              L_vector[lki_nkj->first] = 0;
             }
+            else
+            {
+              L_vector[lki_nkj->first] = A_vector[elem];
+            }
+          }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
@@ -261,7 +272,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
+    requires(VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U,
@@ -301,12 +313,14 @@ namespace micm
           if (*(do_aik++))
           {
             auto elem = *(aik++);
-              if (elem == std::numeric_limits<std::size_t>::max()) {
-                  std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
-              }
-              else {
-                  std::copy(A_vector + elem, A_vector + elem + n_cells, U_vector + uik_nkj_first);
-              }
+            if (elem == std::numeric_limits<std::size_t>::max())
+            {
+              std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
+            }
+            else
+            {
+              std::copy(A_vector + elem, A_vector + elem + n_cells, U_vector + uik_nkj_first);
+            }
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
@@ -326,16 +340,18 @@ namespace micm
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
           lki_nkj_first = lki_nkj->first;
-            if (*(do_aki++))
+          if (*(do_aki++))
+          {
+            auto elem = *(aki++);
+            if (elem == std::numeric_limits<std::size_t>::max())
             {
-              auto elem = *(aki++);
-                if (elem == std::numeric_limits<std::size_t>::max()) {
-                    std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
-                }
-                else {
-                    std::copy(A_vector + elem, A_vector + elem + n_cells, L_vector + lki_nkj_first);
-                }
+              std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
             }
+            else
+            {
+              std::copy(A_vector + elem, A_vector + elem + n_cells, L_vector + lki_nkj_first);
+            }
+          }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
             std::size_t lkj_uji_first = lkj_uji->first;
