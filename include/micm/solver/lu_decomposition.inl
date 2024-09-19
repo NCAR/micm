@@ -19,7 +19,7 @@ namespace micm
       const SparseMatrixPolicy& matrix)
   {
     LuDecomposition lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, INFINITY);
+    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
@@ -304,10 +304,11 @@ namespace micm
             
                   
                   if (elem == std::numeric_limits<std::size_t>::max()) {
+                      U_vector[uik_nkj->first] = 0;
                       std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
                   }
                   else {
-                      std::copy(A_vector + elem, A_vector + elem + n_cells, U_vector + uik_nkj_first);
+                      std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
                   }
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -330,14 +331,8 @@ namespace micm
           lki_nkj_first = lki_nkj->first;
           if (*(do_aki++))
           {
-              auto elem = *(aki++);
-              
-              if (elem == std::numeric_limits<std::size_t>::max()) {
-                  std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
-              }
-              else {
-                  std::copy(A_vector + elem, A_vector + elem + n_cells, L_vector + lki_nkj_first);
-              }
+            std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
+            ++aki;
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
