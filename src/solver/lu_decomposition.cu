@@ -304,7 +304,7 @@ namespace micm
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(1)>>>(
           A_param, L_param, U_param, devstruct);
       // Copy the boolean result from device back to host
       cudaMemcpyAsync(
@@ -313,6 +313,8 @@ namespace micm
           sizeof(bool),
           cudaMemcpyDeviceToHost,
           micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      cudaEventRecord(CudaStreamSingleton::GetInstance().GetCudaEvent(1), CudaStreamSingleton::GetInstance().GetCudaStream(1));
+      cudaStreamWaitEvent(CudaStreamSingleton::GetInstance().GetCudaStream(0), CudaStreamSingleton::GetInstance().GetCudaEvent(1), 0);
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

@@ -44,6 +44,7 @@ namespace micm
           sizeof(T) * param.number_of_elements_,
           cudaMemcpyHostToDevice,
           micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+      cudaEventRecord(CudaStreamSingleton::GetInstance().GetCudaEvent(0), CudaStreamSingleton::GetInstance().GetCudaStream(0));
       return err;
     }
 

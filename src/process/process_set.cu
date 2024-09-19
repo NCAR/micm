@@ -281,11 +281,12 @@ namespace micm
         const ProcessSetParam& devstruct)
     {
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      cudaStreamWaitEvent(CudaStreamSingleton::GetInstance().GetCudaStream(1), CudaStreamSingleton::GetInstance().GetCudaEvent(0), 0);
       SubtractJacobianTermsKernel<<<
           number_of_blocks,
           BLOCK_SIZE,
           0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(1)>>>(
           rate_constants_param, state_variables_param, jacobian_param, devstruct);
     }  // end of SubtractJacobianTermsKernelDriver
 

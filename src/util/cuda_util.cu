@@ -99,11 +99,31 @@ namespace micm
       return *cuda_streams_map_[stream_id];
     }
 
+    // Create a CUDA event and return a unique pointer to it
+    CudaEventPtr CudaStreamSingleton::CreateCudaEvent()
+    {
+      cudaEvent_t* cuda_event = new cudaEvent_t;
+      CHECK_CUDA_ERROR(cudaEventCreate(cuda_event), "CUDA event initialization failed...");
+      return CudaEventPtr(cuda_event, CudaEventDeleter());
+    }
+
+    // Get the CUDA event given an event ID
+    cudaEvent_t& CudaStreamSingleton::GetCudaEvent(std::size_t event_id)
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (auto search = cuda_events_map_.find(event_id); search == cuda_events_map_.end())
+      {
+        cuda_events_map_[event_id] = std::move(CreateCudaEvent());
+      }
+      return *cuda_events_map_[event_id];
+    }
+
     // Empty the map variable to clean up all CUDA streams
     void CudaStreamSingleton::CleanUp()
     {
       std::lock_guard<std::mutex> lock(mutex_);
       cuda_streams_map_.clear();
+      cuda_events_map_.clear();
     }
   }  // namespace cuda
 }  // namespace micm

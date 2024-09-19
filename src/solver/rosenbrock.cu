@@ -280,7 +280,7 @@ namespace micm
           number_of_blocks,
           BLOCK_SIZE,
           0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, devstruct);
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(1)>>>(jacobian_param, alpha, devstruct);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel

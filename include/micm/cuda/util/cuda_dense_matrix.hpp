@@ -222,6 +222,7 @@ namespace micm
       {
         CHECK_CUDA_ERROR(micm::cuda::FillCudaMatrix<T>(this->param_, val), "FillCudaMatrix");
       }
+      cudaEventRecord(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaEvent(0), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
     }
 
   };  // class CudaDenseMatrix
