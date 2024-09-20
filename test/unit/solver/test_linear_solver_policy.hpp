@@ -205,6 +205,64 @@ void testRandomMatrix(std::size_t number_of_blocks)
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
+void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
+{
+  using FloatingPointType = typename MatrixPolicy::value_type;
+
+  const unsigned int seed = 12345;
+  std::default_random_engine generator(seed);
+
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), generator);
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), generator);
+  const size_t size = 30;
+
+  auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (i == j || gen_bool())
+        builder = builder.WithElement(i, j);
+
+  SparseMatrixPolicy A(builder);
+  MatrixPolicy b(number_of_blocks, size, 0.0);
+  MatrixPolicy x(number_of_blocks, size, 0.0);
+
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (!A.IsZero(i, j))
+        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+          A[i_block][i][j] = get_double();
+
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+      b[i_block][i] = get_double();
+
+  x = b;
+
+  // Only copy the data to the device when it is a CudaMatrix
+  CopyToDeviceSparse<SparseMatrixPolicy>(A);
+  CopyToDeviceDense<MatrixPolicy>(x);
+
+  LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
+  auto lower_matrix = std::move(lu.first);
+  auto upper_matrix = std::move(lu.second);
+  bool is_singular = false;
+
+  // Only copy the data to the device when it is a CudaMatrix
+  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
+
+  solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+
+  // Only copy the data to the host when it is a CudaMatrix
+  CopyToHostDense<MatrixPolicy>(x);
+
+  check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
+}
+
+template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
 void testDiagonalMatrix(std::size_t number_of_blocks)
 {
   using FloatingPointType = typename MatrixPolicy::value_type;

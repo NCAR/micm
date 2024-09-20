@@ -1,4 +1,4 @@
-if(MICM_ENABLE_JSON)
+if(MICM_ENABLE_CONFIG_READER)
   add_subdirectory(configure)
 endif()
 if(MICM_ENABLE_CUDA)

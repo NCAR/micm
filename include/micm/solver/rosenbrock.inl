@@ -23,7 +23,7 @@ namespace micm
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
-
+    
     SolverStats stats;
 
     double present_time = 0.0;
@@ -243,6 +243,17 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
+
+      // Our LU Decomposition only assigns the values of the jacobian to the LU matrices
+      // when the *jacobian* is nonzero. However, the sparsity pattern of the jacobian doesn't
+      // necessarily match that of the LU matrices. There can be more nonzero elements in the LU matrices
+      // than in the jacobian. When this happens, we still need to assign the value of the jacobian matrix
+      // to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
+      // here do this implicit assignment
+      // More detail in this issue: https://github.com/NCAR/micm/issues/625
+      state.lower_matrix_.Fill(0);
+      state.upper_matrix_.Fill(0);
+
       linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
       stats.decompositions_ += 1;
 
