@@ -1,4 +1,5 @@
 FROM fedora:37
+# We need llvm version 15.0.7
 
 RUN dnf -y update \
     && dnf -y install \
@@ -9,7 +10,7 @@ RUN dnf -y update \
         git \
         make \
         zlib-devel \
-        llvm-devel \
+        llvm-devel \ 
         openmpi-devel \
         valgrind \
     && dnf clean all
