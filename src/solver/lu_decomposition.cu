@@ -49,6 +49,7 @@ namespace micm
       *d_is_singular = false;
 
       size_t sentinel = ::cuda::std::numeric_limits<size_t>::max();
+      std::cout << "sentinel: " << sentinel << std::endl;
 
       if (tid < number_of_grid_cells)
       {

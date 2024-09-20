@@ -52,6 +52,7 @@ void testCudaRandomMatrix(size_t n_grids)
   micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
   auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
   bool singular{ false };
+  std::cout << "CPU sentinel: " << std::numeric_limits<std::size_t>::max() << std::endl;
   cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second, singular);
 
   // checking GPU result again CPU
