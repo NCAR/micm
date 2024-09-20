@@ -89,6 +89,15 @@ namespace micm
           func.SetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double, A_val);
           func.EndLoop(loop);
         }
+        else {
+          auto loop = func.StartLoop("Uik_eq_zero_loop", 0, L);
+          llvm::Value *zero_val = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(0.0));
+          llvm::Value *iUf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, uik_nkj->first));
+          llvm::Value *U_ptr_index[1];
+          U_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iUf);
+          func.SetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double, zero_val);
+          func.EndLoop(loop);
+        }
         for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
         {
           auto loop = func.StartLoop("Uik_seq_Lij_Ujk_loop", 0, L);
@@ -135,6 +144,15 @@ namespace micm
           llvm::Value *L_ptr_index[1];
           L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
           func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, A_val);
+          func.EndLoop(loop);
+        }
+        else {
+          auto loop = func.StartLoop("Lki_eq_zero_loop", 0, L);
+          llvm::Value *zero_val = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(0.0));
+          llvm::Value *iLf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, lki_nkj->first));
+          llvm::Value *L_ptr_index[1];
+          L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
+          func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, zero_val);
           func.EndLoop(loop);
         }
         for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
