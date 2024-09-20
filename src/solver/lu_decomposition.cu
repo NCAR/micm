@@ -3,7 +3,7 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <cuda/std/limits>
-#include <iostream>
+#include <stdio.h>
 
 namespace micm
 {
@@ -50,7 +50,7 @@ namespace micm
       *d_is_singular = false;
 
       size_t sentinel = ::cuda::std::numeric_limits<size_t>::max();
-      std::cout << "sentinel: " << sentinel << std::endl;
+      printf("sentinel: %zu\n", sentinel);
 
       if (tid < number_of_grid_cells)
       {
