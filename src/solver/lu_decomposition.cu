@@ -62,6 +62,10 @@ namespace micm
               size_t A_idx = d_aik[aik_offset++] + tid;
               d_U[U_idx] = d_A[A_idx];
             }
+            else {
+              size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
+              d_U[U_idx] = 0;
+            }
 
             for (size_t ikj = 0; ikj < d_uik_nkj[uik_nkj_offset].second; ++ikj)
             {
@@ -85,6 +89,11 @@ namespace micm
               size_t A_idx = d_aki[aki_offset++] + tid;
               d_L[L_idx] = d_A[A_idx];
             }
+            else {
+              size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
+              d_L[L_idx] = 0;
+            }
+
             for (size_t ikj = 0; ikj < d_lki_nkj[lki_nkj_offset].second; ++ikj)
             {
               size_t L_idx_1 = d_lki_nkj[lki_nkj_offset].first + tid;
