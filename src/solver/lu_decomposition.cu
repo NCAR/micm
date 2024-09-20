@@ -3,6 +3,7 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 #include <cuda/std/limits>
+#include <iostream>
 
 namespace micm
 {
