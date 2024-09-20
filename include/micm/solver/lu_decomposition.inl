@@ -36,8 +36,6 @@ namespace micm
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
     const auto& U_row_ids = LU.second.RowIdsVector();
-    const auto& lower_matrix = LU.first;
-    const auto& upper_matrix = LU.second;
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -55,7 +53,7 @@ namespace micm
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
         }
-        if (upper_matrix.IsZero(i, k) || matrix.IsZero(i, k))
+        if (matrix.IsZero(i, k))
         {
           if (nkj == 0 && k != i)
             continue;
@@ -84,7 +82,7 @@ namespace micm
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
         }
-        if (lower_matrix.IsZero(k, i) || matrix.IsZero(k, i))
+        if (matrix.IsZero(k, i))
         {
           if (nkj == 0)
             continue;
