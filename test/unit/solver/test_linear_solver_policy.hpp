@@ -201,7 +201,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToHostDense<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-06); });
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
@@ -308,7 +308,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToHostDense<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-8); });
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-13); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy>

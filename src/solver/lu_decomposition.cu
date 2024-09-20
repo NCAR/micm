@@ -62,12 +62,12 @@ namespace micm
             if (d_do_aik[do_aik_offset++])
             {
               size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
-              size_t A_idx = d_aik[aik_offset++];
+              size_t A_idx = d_aik[aik_offset++] + tid;
               if (A_idx == sentinel) {
                 d_U[U_idx] = 0;
               }
               else {
-                d_U[U_idx] = d_A[A_idx + tid];
+                d_U[U_idx] = d_A[A_idx];
               }
             }
 
@@ -90,12 +90,12 @@ namespace micm
             if (d_do_aki[do_aki_offset++])
             {
               size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
-              size_t A_idx = d_aki[aki_offset++];
+              size_t A_idx = d_aki[aki_offset++] + tid;
               if (A_idx == sentinel) {
                 d_L[L_idx] = 0;
               }
               else {
-                d_L[L_idx] = d_A[A_idx + tid];
+                d_L[L_idx] = d_A[A_idx];
               }
             }
             for (size_t ikj = 0; ikj < d_lki_nkj[lki_nkj_offset].second; ++ikj)
