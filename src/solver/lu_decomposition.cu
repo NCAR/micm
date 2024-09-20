@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+#include <cuda/std/limits>
 
 namespace micm
 {
@@ -47,6 +48,8 @@ namespace micm
       bool* d_is_singular = devstruct.is_singular;
       *d_is_singular = false;
 
+      size_t sentinel = ::cuda::std::numeric_limits<size_t>::max();
+
       if (tid < number_of_grid_cells)
       {
         // loop through every element in niLU
@@ -59,8 +62,13 @@ namespace micm
             if (d_do_aik[do_aik_offset++])
             {
               size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
-              size_t A_idx = d_aik[aik_offset++] + tid;
-              d_U[U_idx] = d_A[A_idx];
+              size_t A_idx = d_aik[aik_offset++];
+              if (A_idx == sentinel) {
+                d_U[U_idx] = 0;
+              }
+              else {
+                d_U[U_idx] = d_A[A_idx + tid];
+              }
             }
 
             for (size_t ikj = 0; ikj < d_uik_nkj[uik_nkj_offset].second; ++ikj)
@@ -82,8 +90,13 @@ namespace micm
             if (d_do_aki[do_aki_offset++])
             {
               size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
-              size_t A_idx = d_aki[aki_offset++] + tid;
-              d_L[L_idx] = d_A[A_idx];
+              size_t A_idx = d_aki[aki_offset++];
+              if (A_idx == sentinel) {
+                d_L[L_idx] = 0;
+              }
+              else {
+                d_L[L_idx] = d_A[A_idx + tid];
+              }
             }
             for (size_t ikj = 0; ikj < d_lki_nkj[lki_nkj_offset].second; ++ikj)
             {
