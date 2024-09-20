@@ -46,23 +46,31 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.errors_input_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.errors_output_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.jacobian_diagonal_elements_),
-              jacobian_diagonal_elements_bytes,
+          cudaMallocFromPoolAsync(
+              &(devstruct.errors_input_),
+              errors_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
+          cudaMallocFromPoolAsync(
+              &(devstruct.errors_output_),
+              errors_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocFromPoolAsync(
+              &(devstruct.jacobian_diagonal_elements_),
+              jacobian_diagonal_elements_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocFromPoolAsync(
               &(devstruct.absolute_tolerance_),
               tolerance_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 

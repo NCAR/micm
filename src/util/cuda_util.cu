@@ -88,6 +88,23 @@ namespace micm
       return CudaStreamPtr(cuda_stream, CudaStreamDeleter());
     }
 
+    CudaMempoolPtr CudaStreamSingleton::CreateCudaMempool()
+    {
+      cudaMemPool_t* mem_pool = new cudaMemPool_t;
+      cudaMemPoolProps poolProps = {};
+      int device_id;
+      CHECK_CUDA_ERROR(cudaGetDevice(&device_id), "Failed to get device ID...");
+      uint64_t threshold = UINT64_MAX;
+      poolProps.location.type = cudaMemLocationTypeDevice;
+      poolProps.location.id = device_id;
+      poolProps.allocType = cudaMemAllocationTypePinned;
+      // poolProps.maxSize = 1073741824; //1GB
+      poolProps.maxSize = 8589934592; //8GB
+      CHECK_CUDA_ERROR(cudaMemPoolCreate(mem_pool, &poolProps), "Error creating mem pool...");
+      CHECK_CUDA_ERROR(cudaMemPoolSetAttribute(*mem_pool, cudaMemPoolAttrReleaseThreshold, &threshold), "Failed to set memory threshold on device...");
+      return CudaMempoolPtr(mem_pool, CudaMempoolDeleter());
+    }
+
     // Get the CUDA stream given a stream ID
     cudaStream_t& CudaStreamSingleton::GetCudaStream(std::size_t stream_id)
     {
@@ -95,14 +112,26 @@ namespace micm
       if (auto search = cuda_streams_map_.find(stream_id); search == cuda_streams_map_.end())
       {
         cuda_streams_map_[stream_id] = std::move(CreateCudaStream());
+        cuda_mempools_map_[stream_id] = std::move(CreateCudaMempool());
       }
       return *cuda_streams_map_[stream_id];
+    }
+
+    cudaMemPool_t& CudaStreamSingleton::GetMemoryPool(std::size_t stream_id)
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (auto search = cuda_mempools_map_.find(stream_id); search == cuda_mempools_map_.end())
+      {
+        throw std::runtime_error("Invalid stream id used for mem pool lookup");
+      }
+      return *cuda_mempools_map_[stream_id];
     }
 
     // Empty the map variable to clean up all CUDA streams
     void CudaStreamSingleton::CleanUp()
     {
       std::lock_guard<std::mutex> lock(mutex_);
+      cuda_mempools_map_.clear();
       cuda_streams_map_.clear();
     }
   }  // namespace cuda

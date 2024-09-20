@@ -48,8 +48,22 @@ namespace micm
       }
     };
 
+    struct CudaMempoolDeleter
+    {
+      void operator()(cudaMemPool_t* cuda_mempool) const
+      {
+        if(cuda_mempool != nullptr)
+        {
+          CHECK_CUDA_ERROR(cudaMemPoolDestroy(*cuda_mempool), "CUDA memory pool destory failed");
+          delete cuda_mempool;
+          cuda_mempool = nullptr;
+        }
+      }
+    };
+
     /// @brief Define the smart pointer type using the functor for the custom deleter
     using CudaStreamPtr = std::unique_ptr<cudaStream_t, CudaStreamDeleter>;
+    using CudaMempoolPtr = std::unique_ptr<cudaMemPool_t, CudaMempoolDeleter>;
 
     /// @brief Singleton class to manage CUDA streams
     class CudaStreamSingleton
@@ -67,6 +81,8 @@ namespace micm
       // Get the CUDA stream given a stream ID
       cudaStream_t& GetCudaStream(std::size_t stream_id);
 
+      cudaMemPool_t& GetMemoryPool(std::size_t stream_id);
+
       // Empty the map variable to clean up all CUDA streams
       void CleanUp();
 
@@ -77,7 +93,11 @@ namespace micm
       // Create a CUDA stream and return a unique pointer to it
       CudaStreamPtr CreateCudaStream();
 
+      // Create a CUDA mempool and return a unique pointer to it
+      CudaMempoolPtr CreateCudaMempool();
+
       std::map<int, CudaStreamPtr> cuda_streams_map_;
+      std::map<int, CudaMempoolPtr> cuda_mempools_map_;
 
       std::mutex mutex_;
     };

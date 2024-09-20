@@ -90,20 +90,32 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverParam devstruct;
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.nLij_Lii_), nLij_Lii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.nLij_Lii_),
+              nLij_Lii_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.Lij_yj_), Lij_yj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.Lij_yj_),
+              Lij_yj_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.nUij_Uii_), nUij_Uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.nUij_Uii_),
+              nUij_Uii_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.Uij_xj_), Uij_xj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.Uij_xj_),
+              Uij_xj_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device

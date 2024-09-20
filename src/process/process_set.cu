@@ -137,30 +137,39 @@ namespace micm
 
       /// Allocate memory space on the device
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
+          cudaMallocFromPoolAsync(
               &(devstruct.number_of_reactants_),
               number_of_reactants_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
+          cudaMallocFromPoolAsync(
               &(devstruct.reactant_ids_),
               reactant_ids_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
+          cudaMallocFromPoolAsync(
               &(devstruct.number_of_products_),
               number_of_products_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.product_ids_), product_ids_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.product_ids_),
+              product_ids_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.yields_), yields_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.yields_),
+              yields_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device
@@ -224,9 +233,10 @@ namespace micm
 
       /// Allocate memory space on the device
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
+          cudaMallocFromPoolAsync(
               &(devstruct.jacobian_flat_ids_),
               jacobian_flat_ids_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 

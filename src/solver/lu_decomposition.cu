@@ -129,44 +129,80 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.niLU_), niLU_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+            &(devstruct.niLU_),
+            niLU_bytes,
+            micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.do_aik_), do_aik_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.do_aik_),
+              do_aik_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.aik_), aik_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+            &(devstruct.aik_),
+            aik_bytes,
+            micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.uik_nkj_), uik_nkj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.uik_nkj_),
+              uik_nkj_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.lij_ujk_), lij_ujk_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.lij_ujk_),
+              lij_ujk_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.do_aki_), do_aki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.do_aki_),
+              do_aki_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.aki_), aki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(&(devstruct.aki_),
+          aki_bytes,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.lki_nkj_), lki_nkj_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.lki_nkj_),
+              lki_nkj_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.lkj_uji_), lkj_uji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &(devstruct.lkj_uji_),
+              lkj_uji_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.uii_), uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+            &(devstruct.uii_),
+            uii_bytes,
+            micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &devstruct.is_singular, sizeof(bool), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocFromPoolAsync(
+              &devstruct.is_singular,
+              sizeof(bool),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetMemoryPool(0),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device
