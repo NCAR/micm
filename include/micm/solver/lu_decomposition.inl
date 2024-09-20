@@ -311,7 +311,7 @@ namespace micm
             ++aki;
           }
           else {
-            std::fill(L_vector + lki_nkj_first, U_vector + lki_nkj_first + n_cells, 0);
+            std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
