@@ -225,7 +225,6 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
         builder = builder.WithElement(i, j);
       }
     }
-    std::cout << std::endl;
   }
 
   SparseMatrixPolicy A(builder);
