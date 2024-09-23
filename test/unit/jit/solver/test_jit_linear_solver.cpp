@@ -43,3 +43,11 @@ TEST(JitLinearSolver, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group3VectorMatrix, Group3SparseVectorMatrix, micm::JitLinearSolver<3, Group3SparseVectorMatrix>>(3);
   testDiagonalMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::JitLinearSolver<4, Group4SparseVectorMatrix>>(4);
 }
+
+TEST(JitLinearSolver, AgnosticToInitialValue)
+{
+  double initial_values[5] = { -INFINITY, INFINITY };
+  for(auto initial_value : initial_values) {
+    testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::JitLinearSolver<1, Group1SparseVectorMatrix>>(1, initial_value);
+  }
+}
