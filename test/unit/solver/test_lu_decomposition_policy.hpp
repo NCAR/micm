@@ -16,6 +16,7 @@ void check_results(
 {
   EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
   EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
+  std::cout << "A.NumRows: " << A.NumRows() << " A.NumColumns: " A.NumColumns() << std::endl;
   for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
     for (std::size_t i = 0; i < A.NumRows(); ++i)
