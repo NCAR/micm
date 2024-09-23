@@ -45,13 +45,11 @@ using SparseMatrixTest = micm::SparseMatrix<FloatingPointType>;
 
 using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
 using Group2VectorMatrix = micm::VectorMatrix<FloatingPointType, 2>;
-using Group4000VectorMatrix = micm::VectorMatrix<FloatingPointType, 4000>;
 using Group3VectorMatrix = micm::VectorMatrix<FloatingPointType, 3>;
 using Group4VectorMatrix = micm::VectorMatrix<FloatingPointType, 4>;
 
 using Group1SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
 using Group2SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<2>>;
-using Group4000SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<4000>>;
 using Group3SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<3>>;
 using Group4SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<4>>;
 
@@ -73,13 +71,12 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::Spa
 
 TEST(LinearSolver, VectorOrderingAgnosticToInitialValue)
 {
-  // double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  double initial_values[1] = { INFINITY };
+  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for(auto initial_value : initial_values) {
-    // testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1, initial_value);
-    testExtremeInitialValue<Group4000VectorMatrix, Group4000SparseVectorMatrix, micm::LinearSolver<Group4000SparseVectorMatrix>>(4000, initial_value);
-    // testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5, initial_value);
-    // testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5, initial_value);
+    testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1, initial_value);
+    testExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(2, initial_value);
+    testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5, initial_value);
+    testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5, initial_value);
   }
 }
 
