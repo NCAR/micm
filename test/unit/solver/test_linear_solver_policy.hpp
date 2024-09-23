@@ -253,6 +253,11 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+
+  // Only copy the data to the host when it is a CudaMatrix
+  CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
+  CopyToHostDense<SparseMatrixPolicy>(upper_matrix);
+
   std::cout << "Lower:\n";
   lower_matrix.print();
   std::cout << std::endl;
