@@ -36,6 +36,7 @@ void testCudaRandomMatrix(size_t n_grids)
         {
           cpu_A[i_block][i][j] = get_double();
           gpu_A[i_block][i][j] = cpu_A[i_block][i][j];
+          EXPECT_EQ(cpu_A[i_block][i][j], gpu_A[i_block][i][j]);
         }
   
 
