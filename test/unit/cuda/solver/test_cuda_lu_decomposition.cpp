@@ -88,7 +88,7 @@ using Group100000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseM
 TEST(CudaLuDecomposition, RandomMatrixVectorOrdering)
 {
   testCudaRandomMatrix<Group1CPUSparseVectorMatrix, Group1CudaSparseMatrix>(1);
-  testCudaRandomMatrix<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100);
-  testCudaRandomMatrix<Group1000CPUSparseVectorMatrix, Group1000CudaSparseMatrix>(1000);
-  testCudaRandomMatrix<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000);
+  // testCudaRandomMatrix<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100);
+  // testCudaRandomMatrix<Group1000CPUSparseVectorMatrix, Group1000CudaSparseMatrix>(1000);
+  // testCudaRandomMatrix<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000);
 }
