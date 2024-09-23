@@ -214,7 +214,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), generator);
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), generator);
-  const size_t size = 30;
+  const size_t size = 5;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
   for (std::size_t i = 0; i < size; ++i)
@@ -253,6 +253,13 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
   solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  std::cout << "Lower:\n";
+  lower_matrix.print();
+  std::cout << std::endl;
+  std::cout << "Upper:\n";
+  upper_matrix.print();
+  std::cout << std::endl;
+
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix

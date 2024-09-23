@@ -191,6 +191,28 @@ namespace micm
       OrderingPolicy::AddToDiagonal(diagonal_ids_, number_of_blocks_, row_ids_.size(), data_, value);
     }
 
+     void print() const
+    {
+      for (std::size_t block = 0; block < number_of_blocks_; ++block)
+      {
+        for (std::size_t i = 0; i < row_start_.size() - 1; ++i)
+        {
+          for (std::size_t j = 0; j < row_start_.size() - 1; ++j)
+          {
+            if (IsZero(i, j))
+            {
+              std::cout << "0 ";
+            }
+            else
+            {
+              std::cout << data_[VectorIndex(block, i, j)] << " ";
+            }
+          }
+          std::cout << std::endl;
+        }
+      }
+    }
+
     std::vector<T>& AsVector()
     {
       return data_;

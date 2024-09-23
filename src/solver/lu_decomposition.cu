@@ -56,23 +56,21 @@ namespace micm
           auto inLU = d_niLU[i];
           for (size_t iU = 0; iU < inLU.second; ++iU)
           {
+            size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
             if (d_do_aik[do_aik_offset++])
             {
-              size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
               size_t A_idx = d_aik[aik_offset++] + tid;
               d_U[U_idx] = d_A[A_idx];
             }
             else {
-              size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
               d_U[U_idx] = 0;
             }
 
             for (size_t ikj = 0; ikj < d_uik_nkj[uik_nkj_offset].second; ++ikj)
             {
-              size_t U_idx_1 = d_uik_nkj[uik_nkj_offset].first + tid;
               size_t L_idx = d_lij_ujk[lij_ujk_offset].first + tid;
               size_t U_idx_2 = d_lij_ujk[lij_ujk_offset].second + tid;
-              d_U[U_idx_1] -= d_L[L_idx] * d_U[U_idx_2];
+              d_U[U_idx] -= d_L[L_idx] * d_U[U_idx_2];
               ++lij_ujk_offset;
             }
             ++uik_nkj_offset;
