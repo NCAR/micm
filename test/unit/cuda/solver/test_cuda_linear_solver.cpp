@@ -30,6 +30,7 @@ using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 10000
 using Group10000SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<10000>>;
 
 using Group1CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
+using Group2CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<2>>;
 using Group20CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<20>>;
 using Group300CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<300>>;
 using Group4000CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<4000>>;
@@ -141,15 +142,15 @@ void verify_gpu_against_cpu()
 
 TEST(CudaLinearSolver, AgnosticToInitialValue)
 {
-  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(2, INFINITY);
-  // for(auto initial_value : initial_values)
-  // {
-  //   testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1, initial_value);
-  //   // testExtremeInitialValue<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20, initial_value);
-  //   // testExtremeInitialValue<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(
-  //   //     300, initial_value);
-  //   // testExtremeInitialValue<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
-  //   //     4000, initial_value);
-  // }
+  // double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  double initial_values[1] = { INFINITY };
+  for(auto initial_value : initial_values)
+  {
+    // testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1, initial_value);
+    testExtremeInitialValue<Group2CudaDenseMatrix, Group2CudaSparseMatrix, micm::CudaLinearSolver<Group2CudaSparseMatrix>>(2, initial_value);
+    // testExtremeInitialValue<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(
+    //     300, initial_value);
+    // testExtremeInitialValue<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
+    //     4000, initial_value);
+  }
 }
