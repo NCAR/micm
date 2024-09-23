@@ -210,10 +210,27 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   const unsigned int seed = 12345;
-  std::default_random_engine generator(seed);
+  std::mersenne_twister_engine<uint64_t,
+   (uint64_t)32,
+   (uint64_t)624, 
+   (uint64_t)397,
+   (uint64_t)31,
+   (uint64_t)0x9908b0df,
+   (uint64_t)11,
+   (uint64_t)0xffffffff,
+   (uint64_t)7,
+   (uint64_t)0x9d2c5680,
+   (uint64_t)15,
+   (uint64_t)0xefc60000,
+   (uint64_t)18,
+   (uint64_t)1812433253
+  > generator(seed);
+  // std::default_random_engine generator(seed);
+  const double point_five = 0.5;
+  const double two = 2.0;
 
-  auto gen_bool = std::bind(std::bernoulli_distribution(0.5), generator);
-  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), generator);
+  auto gen_bool = std::bind(std::bernoulli_distribution(point_five), generator);
+  auto get_double = std::bind(std::lognormal_distribution(-two, two), generator);
   const size_t size = 5;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
