@@ -142,7 +142,7 @@ void verify_gpu_against_cpu()
 TEST(CudaLinearSolver, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1, INFINITY);
+  testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(2, INFINITY);
   // for(auto initial_value : initial_values)
   // {
   //   testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1, initial_value);
