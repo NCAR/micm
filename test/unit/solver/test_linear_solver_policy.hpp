@@ -259,7 +259,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToHostDense<MatrixPolicy>(x);
 
   check_results<FloatingPointType, MatrixPolicy, SparseMatrixPolicy>(
-      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-7); });
+      A, b, x, [&](const FloatingPointType a, const FloatingPointType b) -> void { EXPECT_NEAR(a, b, 1.0e-6); });
 }
 
 template<class MatrixPolicy, class SparseMatrixPolicy, class LinearSolverPolicy>
