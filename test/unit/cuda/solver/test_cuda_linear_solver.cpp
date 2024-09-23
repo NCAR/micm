@@ -148,7 +148,7 @@ TEST(CudaLinearSolver, AgnosticToInitialValue)
   for(auto initial_value : initial_values)
   {
     // testExtremeInitialValue<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1, initial_value);
-    testExtremeInitialValue<Group2CudaDenseMatrix, Group2CudaSparseMatrix, micm::CudaLinearSolver<Group2CudaSparseMatrix>>(2, initial_value);
+    testExtremeInitialValue<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20, initial_value);
     // testExtremeInitialValue<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(
     //     300, initial_value);
     // testExtremeInitialValue<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
