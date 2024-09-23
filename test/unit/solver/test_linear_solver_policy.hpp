@@ -230,7 +230,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   const double two = 2.0;
 
   auto gen_bool = std::bind(std::bernoulli_distribution(point_five), generator);
-  auto get_double = std::bind(std::lognormal_distribution(-two, two), generator);
+  auto get_double = std::bind(std::lognormal_distribution<double>(-two, two), generator);
   const size_t size = 5;
 
   auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
