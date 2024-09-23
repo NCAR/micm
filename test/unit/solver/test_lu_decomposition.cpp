@@ -26,7 +26,7 @@ TEST(LuDecomposition, SingularMatrixStandardOrdering)
 TEST(LuDecomposition, RandomMatrixStandardOrdering)
 {
   testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(1);
-  // testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(5);
+  testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(5);
 }
 
 TEST(LuDecomposition, DiagonalMatrixStandardOrdering)
