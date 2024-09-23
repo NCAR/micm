@@ -254,6 +254,9 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   solver.Factor(A, lower_matrix, upper_matrix, is_singular);
 
+  std::cout << "A:\n";
+  A.print();
+
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
   CopyToHostDense<SparseMatrixPolicy>(upper_matrix);
