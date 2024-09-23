@@ -212,7 +212,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   const unsigned int seed = 12345;
   std::default_random_engine generator(seed);
 
-  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), generator);
+  auto gen_bool = std::bind(std::bernoulli_distribution(0.5), generator);
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), generator);
   const size_t size = 5;
 
