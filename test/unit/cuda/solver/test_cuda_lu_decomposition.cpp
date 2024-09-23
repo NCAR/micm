@@ -47,8 +47,8 @@ void testCudaRandomMatrix(size_t n_grids)
   gpu_lud.Decompose<GPUSparseMatrixPolicy>(gpu_A, gpu_LU.first, gpu_LU.second);
   gpu_LU.first.CopyToHost();
   gpu_LU.second.CopyToHost();
-  // check_results<typename GPUSparseMatrixPolicy::value_type, GPUSparseMatrixPolicy>(
-  //     gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_LT(std::abs((a-b)/b), 1.0e-10); });
+  check_results<typename GPUSparseMatrixPolicy::value_type, GPUSparseMatrixPolicy>(
+      gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_LT(std::abs((a-b)/b), 1.0e-10); });
 
   micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
   auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
@@ -66,13 +66,13 @@ void testCudaRandomMatrix(size_t n_grids)
   {
     auto gpu_L = gpu_L_vector[i];
     auto cpu_L = cpu_L_vector[i];
-    EXPECT_LT(std::abs((gpu_L - cpu_L) / cpu_L), 1.0e-10);
+    EXPECT_LT(std::abs((gpu_L - cpu_L) / cpu_L), 1.0e-13);
   };
   for (int j = 0; j < U_size; ++j)
   {
     auto gpu_U = gpu_U_vector[j];
     auto cpu_U = cpu_U_vector[j];
-    EXPECT_LT(std::abs((gpu_U - cpu_U) / cpu_U), 1.0e-10);
+    EXPECT_LT(std::abs((gpu_U - cpu_U) / cpu_U), 1.0e-13);
   };
 }
 
