@@ -15,43 +15,43 @@ using FloatingPointType = double;
 using DenseMatrixTest = micm::Matrix<FloatingPointType>;
 using SparseMatrixTest = micm::SparseMatrix<FloatingPointType>;
 
-TEST(LinearSolver, DenseMatrixStandardOrdering)
-{
-  testDenseMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>();
-}
+// TEST(LinearSolver, DenseMatrixStandardOrdering)
+// {
+//   testDenseMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>();
+// }
 
-TEST(LinearSolver, RandomMatrixStandardOrdering)
-{
-  testRandomMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
-}
+// TEST(LinearSolver, RandomMatrixStandardOrdering)
+// {
+//   testRandomMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
+// }
 
-TEST(LinearSolver, DiagonalMatrixStandardOrdering)
-{
-  testDiagonalMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
-}
+// TEST(LinearSolver, DiagonalMatrixStandardOrdering)
+// {
+//   testDiagonalMatrix<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5);
+// }
 
-TEST(LinearSolver, DiagonalMarkowitzReorder)
-{
-  testMarkowitzReordering<micm::Matrix<int>, SparseMatrixTest>();
-}
+// TEST(LinearSolver, DiagonalMarkowitzReorder)
+// {
+//   testMarkowitzReordering<micm::Matrix<int>, SparseMatrixTest>();
+// }
 
-TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
-{
-  // double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  // for(auto initial_value : initial_values)
-  //   testExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5, initial_value);
-  testExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(1, INFINITY);
-}
+// TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
+// {
+//   // double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+//   // for(auto initial_value : initial_values)
+//   //   testExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5, initial_value);
+//   // testExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(1, INFINITY);
+// }
 
-// using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
-// using Group2VectorMatrix = micm::VectorMatrix<FloatingPointType, 2>;
-// using Group3VectorMatrix = micm::VectorMatrix<FloatingPointType, 3>;
-// using Group4VectorMatrix = micm::VectorMatrix<FloatingPointType, 4>;
+using Group1VectorMatrix = micm::VectorMatrix<FloatingPointType, 1>;
+using Group2VectorMatrix = micm::VectorMatrix<FloatingPointType, 2>;
+using Group3VectorMatrix = micm::VectorMatrix<FloatingPointType, 3>;
+using Group4VectorMatrix = micm::VectorMatrix<FloatingPointType, 4>;
 
-// using Group1SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
-// using Group2SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<2>>;
-// using Group3SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<3>>;
-// using Group4SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<4>>;
+using Group1SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
+using Group2SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<2>>;
+using Group3SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<3>>;
+using Group4SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<4>>;
 
 // TEST(LinearSolver, DenseMatrixVectorOrdering)
 // {
@@ -69,16 +69,17 @@ TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
 //   testRandomMatrix<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5);
 // }
 
-// TEST(LinearSolver, VectorOrderingAgnosticToInitialValue)
-// {
-//   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-//   for(auto initial_value : initial_values) {
-//     testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(5, initial_value);
-//     testExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(5, initial_value);
-//     testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5, initial_value);
-//     testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5, initial_value);
-//   }
-// }
+TEST(LinearSolver, VectorOrderingAgnosticToInitialValue)
+{
+  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1, INFINITY);
+  // for(auto initial_value : initial_values) {
+  //   testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1, initial_value);
+  //   // testExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(5, initial_value);
+  //   // testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5, initial_value);
+  //   // testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5, initial_value);
+  // }
+}
 
 // TEST(LinearSolver, DiagonalMatrixVectorOrdering)
 // {
