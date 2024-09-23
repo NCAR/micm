@@ -109,6 +109,7 @@ namespace micm
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
+    std::cout << "Calling kernel driver\n";
     micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_, is_singular);
   }
 
@@ -121,6 +122,7 @@ namespace micm
     bool is_singular = false;
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
+    std::cout << "Calling kernel driver\n";
     micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_, is_singular);
   }
 }  // end of namespace micm
