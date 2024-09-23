@@ -222,7 +222,6 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   for (std::size_t i = 0; i < size; ++i) {
     for (std::size_t j = 0; j < size; ++j) {
       if (i == j || gen_bool()) {
-        std::cout << i << ", " << j << "; ";
         builder = builder.WithElement(i, j);
       }
     }
@@ -261,19 +260,9 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   solver.Factor(A, lower_matrix, upper_matrix, is_singular);
 
-  // std::cout << "A:\n";
-  // A.print();
-
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
   CopyToHostDense<SparseMatrixPolicy>(upper_matrix);
-
-  // std::cout << "Lower:\n";
-  // lower_matrix.print();
-  // std::cout << std::endl;
-  // std::cout << "Upper:\n";
-  // upper_matrix.print();
-  // std::cout << std::endl;
 
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 

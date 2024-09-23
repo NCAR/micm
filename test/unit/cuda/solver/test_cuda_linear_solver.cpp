@@ -107,37 +107,37 @@ void verify_gpu_against_cpu()
   }
 }
 
-// TEST(CudaLinearSolver, DenseMatrixVectorOrderingPolicy)
-// {
-//   testDenseMatrix<
-//       Group1CudaDenseMatrix,
-//       Group1CudaSparseMatrix,
-//       micm::CudaLinearSolver<Group1CudaSparseMatrix, micm::CudaLuDecomposition>>();
-// }
+TEST(CudaLinearSolver, DenseMatrixVectorOrderingPolicy)
+{
+  testDenseMatrix<
+      Group1CudaDenseMatrix,
+      Group1CudaSparseMatrix,
+      micm::CudaLinearSolver<Group1CudaSparseMatrix, micm::CudaLuDecomposition>>();
+}
 
-// TEST(CudaLinearSolver, RandomMatrixVectorOrderingPolicy)
-// {
-//   testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
-//   testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
-//   testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(300);
-//   testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
-//       4000);
-// }
+TEST(CudaLinearSolver, RandomMatrixVectorOrderingPolicy)
+{
+  testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
+  testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
+  testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(300);
+  testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
+      4000);
+}
 
-// TEST(CudaLinearSolver, DiagonalMatrixVectorOrderingPolicy)
-// {
-//   testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
-//   testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
-//   testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(
-//       300);
-//   testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
-//       4000);
-// }
+TEST(CudaLinearSolver, DiagonalMatrixVectorOrderingPolicy)
+{
+  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolver<Group1CudaSparseMatrix>>(1);
+  testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolver<Group20CudaSparseMatrix>>(20);
+  testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolver<Group300CudaSparseMatrix>>(
+      300);
+  testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolver<Group4000CudaSparseMatrix>>(
+      4000);
+}
 
-// TEST(CudaLinearSolver, RandomMatrixVectorOrderingForGPU)
-// {
-//   verify_gpu_against_cpu();
-// }
+TEST(CudaLinearSolver, RandomMatrixVectorOrderingForGPU)
+{
+  verify_gpu_against_cpu();
+}
 
 TEST(CudaLinearSolver, AgnosticToInitialValue)
 {
