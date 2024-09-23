@@ -22,7 +22,7 @@ void check_results(
     {
       for (std::size_t j = 0; j < A.NumColumns(); ++j)
       {
-        T result{};
+        T result{0};
         for (std::size_t k = 0; k < A.NumRows(); ++k)
         {
           if (!(L.IsZero(i, k) || U.IsZero(k, j)))
