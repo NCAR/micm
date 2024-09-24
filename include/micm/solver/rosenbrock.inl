@@ -23,7 +23,7 @@ namespace micm
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
-    
+
     SolverStats stats;
 
     double present_time = 0.0;

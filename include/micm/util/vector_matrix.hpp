@@ -228,7 +228,8 @@ namespace micm
       return L;
     }
 
-    void Print() const {
+    void Print() const
+    {
       for (std::size_t i = 0; i < x_dim_; ++i)
       {
         for (std::size_t j = 0; j < y_dim_; ++j)

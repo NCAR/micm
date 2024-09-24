@@ -62,7 +62,8 @@ namespace micm
               size_t A_idx = d_aik[aik_offset++] + tid;
               d_U[U_idx] = d_A[A_idx];
             }
-            else {
+            else
+            {
               d_U[U_idx] = 0;
             }
 
@@ -87,7 +88,8 @@ namespace micm
               size_t A_idx = d_aki[aki_offset++] + tid;
               d_L[L_idx] = d_A[A_idx];
             }
-            else {
+            else
+            {
               d_L[L_idx] = 0;
             }
 

@@ -29,13 +29,14 @@ void testCudaRandomMatrix(size_t n_grids)
   CPUSparseMatrixPolicy cpu_A(builder);
   GPUSparseMatrixPolicy gpu_A(builder);
 
-  // for nvhpc, the lognormal distribution produces significantly different values 
+  // for nvhpc, the lognormal distribution produces significantly different values
   // for very large numbers of grid cells
   // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
   // random values and then copy that into every other block
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
-      if (!cpu_A.IsZero(i, j)) {
+      if (!cpu_A.IsZero(i, j))
+      {
         cpu_A[0][i][j] = get_double();
         gpu_A[0][i][j] = cpu_A[0][i][j];
         for (std::size_t i_block = 1; i_block < n_grids; ++i_block)
@@ -43,7 +44,7 @@ void testCudaRandomMatrix(size_t n_grids)
           cpu_A[i_block][i][j] = cpu_A[0][i][j];
           gpu_A[i_block][i][j] = cpu_A[0][i][j];
         }
-      }  
+      }
 
   micm::CudaLuDecomposition gpu_lud(gpu_A);
   auto gpu_LU = micm::CudaLuDecomposition::GetLUMatrices(gpu_A, 0);
@@ -72,13 +73,13 @@ void testCudaRandomMatrix(size_t n_grids)
   {
     auto gpu_L = gpu_L_vector[i];
     auto cpu_L = cpu_L_vector[i];
-    EXPECT_LT(std::abs((gpu_L-cpu_L)/cpu_L), 1.0e-10);
+    EXPECT_LT(std::abs((gpu_L - cpu_L) / cpu_L), 1.0e-10);
   };
   for (int j = 0; j < U_size; ++j)
   {
     auto gpu_U = gpu_U_vector[j];
     auto cpu_U = cpu_U_vector[j];
-    EXPECT_LT(std::abs((gpu_U-cpu_U)/cpu_U), 1.0e-10);
+    EXPECT_LT(std::abs((gpu_U - cpu_U) / cpu_U), 1.0e-10);
   };
 }
 
@@ -103,7 +104,8 @@ TEST(CudaLuDecomposition, RandomMatrixVectorOrdering)
 TEST(CudaLuDecomposition, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  for(auto& value : initial_values) {
+  for (auto& value : initial_values)
+  {
     testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecomposition>(1, value);
     testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaLuDecomposition>(100, value);
     testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaLuDecomposition>(1000, value);

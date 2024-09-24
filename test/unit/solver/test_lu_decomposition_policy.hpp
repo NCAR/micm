@@ -132,8 +132,7 @@ template<class SparseMatrixPolicy, class LuDecompositionPolicy>
 void testSingularMatrix()
 {
   SparseMatrixPolicy A = SparseMatrixPolicy(
-      SparseMatrixPolicy::Create(2).InitialValue(0).WithElement(0, 0).WithElement(0, 1).WithElement(1, 0).WithElement(
-          1, 1));
+      SparseMatrixPolicy::Create(2).InitialValue(0).WithElement(0, 0).WithElement(0, 1).WithElement(1, 0).WithElement(1, 1));
 
   A[0][0][0] = 0;
   A[0][0][1] = 1;
@@ -175,9 +174,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   bool is_singular{ false };
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_NEAR(a, b, 1.0e-9); 
-      });
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -195,13 +192,14 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 
   SparseMatrixPolicy A(builder);
 
-  // for nvhpc, the lognormal distribution produces significantly different values 
+  // for nvhpc, the lognormal distribution produces significantly different values
   // for very large numbers of grid cells
   // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
   // random values and then copy that into every other block
   for (std::size_t i = 0; i < size; ++i)
     for (std::size_t j = 0; j < size; ++j)
-      if (!A.IsZero(i, j)){
+      if (!A.IsZero(i, j))
+      {
         A[0][i][j] = get_double();
         for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
           A[i_block][i][j] = A[0][i][j];
@@ -223,9 +221,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   CopyToHost<SparseMatrixPolicy>(LU.second);
 
   check_results<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_NEAR(a, b, 1.0e-09); 
-      });
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>

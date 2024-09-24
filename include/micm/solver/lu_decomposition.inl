@@ -194,10 +194,12 @@ namespace micm
         // Upper trianglur matrix
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
-          if (*(do_aik++)){
+          if (*(do_aik++))
+          {
             U_vector[uik_nkj->first] = A_vector[*(aik++)];
           }
-          else {
+          else
+          {
             U_vector[uik_nkj->first] = 0;
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -211,10 +213,12 @@ namespace micm
         L_vector[(lki_nkj++)->first] = 1.0;
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
-          if (*(do_aki++)){
+          if (*(do_aki++))
+          {
             L_vector[lki_nkj->first] = A_vector[*(aki++)];
           }
-          else {
+          else
+          {
             L_vector[lki_nkj->first] = 0;
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
@@ -283,7 +287,8 @@ namespace micm
             std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
             ++aik;
           }
-          else {
+          else
+          {
             std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
           }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
@@ -308,7 +313,8 @@ namespace micm
             std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
             ++aki;
           }
-          else {
+          else
+          {
             std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
           }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
