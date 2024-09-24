@@ -81,14 +81,13 @@ namespace micm
 
           for (size_t iL = 0; iL < inLU.first; ++iL)
           {
+            size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
             if (d_do_aki[do_aki_offset++])
             {
-              size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
               size_t A_idx = d_aki[aki_offset++] + tid;
               d_L[L_idx] = d_A[A_idx];
             }
             else {
-              size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
               d_L[L_idx] = 0;
             }
 
