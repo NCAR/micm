@@ -98,9 +98,9 @@ TEST(CudaLuDecomposition, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for(auto& value : initial_values) {
-    testExtremeValueInitialization<Group1CPUSparseVectorMatrix, Group1CudaSparseMatrix>(1, value);
-    testExtremeValueInitialization<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100, value);
-    testExtremeValueInitialization<Group1000CPUSparseVectorMatrix, Group1000CudaSparseMatrix>(1000, value);
-    testExtremeValueInitialization<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000, value);
+    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecomposition>(1, value);
+    testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaLuDecomposition>(100, value);
+    testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaLuDecomposition>(1000, value);
+    testExtremeValueInitialization<Group100000CudaSparseMatrix, micm::CudaLuDecomposition>(100000, value);
   }
 }

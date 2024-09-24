@@ -7,6 +7,28 @@
 #include <functional>
 #include <random>
 
+template<class MatrixPolicy>
+void CopyToDevice(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  {
+                    matrix.CopyToDevice()
+                    } -> std::same_as<void>;
+                })
+    matrix.CopyToDevice();
+}
+
+template<class MatrixPolicy>
+void CopyToHost(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  {
+                    matrix.CopyToHost()
+                    } -> std::same_as<void>;
+                })
+    matrix.CopyToHost();
+}
+
 template<typename T, class SparseMatrixPolicy>
 void check_results(
     const SparseMatrixPolicy& A,
@@ -180,9 +202,18 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
           A[i_block][i][j] = get_double();
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
+
   auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
-  bool is_singular{ false };
-  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+
+  CopyToDevice<SparseMatrixPolicy>(A);
+  CopyToDevice<SparseMatrixPolicy>(LU.first);
+  CopyToDevice<SparseMatrixPolicy>(LU.second);
+
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+
+  CopyToHost<SparseMatrixPolicy>(LU.first);
+  CopyToHost<SparseMatrixPolicy>(LU.second);
+
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
         EXPECT_LT(std::abs((a-b)/b), 1.0e-9); 
