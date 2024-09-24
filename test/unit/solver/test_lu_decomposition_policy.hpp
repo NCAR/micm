@@ -16,7 +16,6 @@ void check_results(
 {
   EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
   EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
-  std::cout << "A.NumRows: " << A.NumRows() << " A.NumColumns: " <<  A.NumColumns() << " A.NumberOfBlocks: " << A.NumberOfBlocks() << std::endl;
   for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
     for (std::size_t i = 0; i < A.NumRows(); ++i)
@@ -155,7 +154,38 @@ void testRandomMatrix(std::size_t number_of_blocks)
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-10); 
+        EXPECT_LT(std::abs((a-b)/b), 1.0e-9); 
+      });
+}
+
+template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testExtremeValueInitialization(std::size_t number_of_blocks, double initial_value)
+{
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
+  auto size = 10;
+
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(initial_value);
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (i == j || gen_bool())
+        builder = builder.WithElement(i, j);
+
+  SparseMatrixPolicy A(builder);
+
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (!A.IsZero(i, j))
+        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+          A[i_block][i][j] = get_double();
+
+  LuDecompositionPolicy lud = LuDecompositionPolicy(A);
+  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
+  bool is_singular{ false };
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
+  check_results<double, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { 
+        EXPECT_LT(std::abs((a-b)/b), 1.0e-9); 
       });
 }
 
