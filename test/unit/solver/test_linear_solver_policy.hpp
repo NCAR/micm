@@ -218,7 +218,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   auto get_double = std::bind(std::lognormal_distribution<double>(-two, two), generator);
   const size_t size = 30;
 
-  auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(1e-30);
+  auto builder = SparseMatrixPolicy::Create(size).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < size; ++i) {
     for (std::size_t j = 0; j < size; ++j) {
       if (i == j || gen_bool()) {
