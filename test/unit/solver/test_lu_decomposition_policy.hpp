@@ -99,7 +99,7 @@ template<class SparseMatrixPolicy, class LuDecompositionPolicy>
 void testDenseMatrix()
 {
   SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
-                                                .InitialValue(1.0e-30)
+                                                .InitialValue(0)
                                                 .WithElement(0, 0)
                                                 .WithElement(0, 1)
                                                 .WithElement(0, 2)
@@ -121,7 +121,7 @@ void testDenseMatrix()
   A[0][2][2] = 8;
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   bool is_singular{ false };
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
@@ -132,7 +132,7 @@ template<class SparseMatrixPolicy, class LuDecompositionPolicy>
 void testSingularMatrix()
 {
   SparseMatrixPolicy A = SparseMatrixPolicy(
-      SparseMatrixPolicy::Create(2).InitialValue(1.0e-30).WithElement(0, 0).WithElement(0, 1).WithElement(1, 0).WithElement(
+      SparseMatrixPolicy::Create(2).InitialValue(0).WithElement(0, 0).WithElement(0, 1).WithElement(1, 0).WithElement(
           1, 1));
 
   A[0][0][0] = 0;
@@ -156,7 +156,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
@@ -171,7 +171,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
           A[i_block][i][j] = get_double();
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   bool is_singular{ false };
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
@@ -233,7 +233,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.WithElement(i, i);
 
@@ -244,7 +244,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
       A[i_block][i][i] = get_double();
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   bool is_singular{ false };
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(

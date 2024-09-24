@@ -96,7 +96,7 @@ void testDenseMatrix()
   using FloatingPointType = typename MatrixPolicy::value_type;
 
   SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
-                                                .InitialValue(1.0e-30)
+                                                .InitialValue(0)
                                                 .WithElement(0, 0)
                                                 .WithElement(0, 1)
                                                 .WithElement(0, 2)
@@ -130,8 +130,8 @@ void testDenseMatrix()
   CopyToDeviceDense<MatrixPolicy>(b);
   CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   bool is_singular = false;
@@ -158,7 +158,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
@@ -184,8 +184,8 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   bool is_singular = false;
@@ -279,7 +279,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 6; ++i)
     builder = builder.WithElement(i, i);
 
@@ -301,8 +301,8 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
+  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
   bool is_singular = false;

@@ -41,7 +41,7 @@ std::vector<double> linearSolverGenerator(std::size_t number_of_blocks)
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
@@ -66,9 +66,9 @@ std::vector<double> linearSolverGenerator(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(b);
   CopyToDeviceDense<MatrixPolicy>(x);
 
-  LinearSolverPolicy solver = LinearSolverPolicy(A, 1.0e-30);
+  LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
   std::pair<SparseMatrixPolicy, SparseMatrixPolicy> lu =
-      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 1.0e-30);
+      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   SparseMatrixPolicy lower_matrix = std::move(lu.first);
   SparseMatrixPolicy upper_matrix = std::move(lu.second);
 
