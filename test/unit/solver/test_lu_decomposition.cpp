@@ -37,7 +37,8 @@ TEST(LuDecomposition, DiagonalMatrixStandardOrdering)
 TEST(LuDecomposition, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  for(auto& value : initial_values) {
+  for (auto& value : initial_values)
+  {
     testExtremeValueInitialization<SparseMatrixTest, micm::LuDecomposition>(5, value);
   }
 }
@@ -77,7 +78,8 @@ TEST(LuDecomposition, DiagonalMatrixVectorOrdering)
 TEST(LuDecomposition, VectorOrderingAgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  for(auto& value : initial_values) {
+  for (auto& value : initial_values)
+  {
     testExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecomposition>(5, value);
     testExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecomposition>(5, value);
     testExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecomposition>(5, value);

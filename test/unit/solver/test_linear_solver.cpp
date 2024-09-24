@@ -38,7 +38,7 @@ TEST(LinearSolver, DiagonalMarkowitzReorder)
 TEST(LinearSolver, StandardOrderingAgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  for(auto initial_value : initial_values)
+  for (auto initial_value : initial_values)
     testExtremeInitialValue<DenseMatrixTest, SparseMatrixTest, micm::LinearSolver<SparseMatrixTest>>(5, initial_value);
 }
 
@@ -71,11 +71,16 @@ TEST(LinearSolver, RandomMatrixVectorOrdering)
 TEST(LinearSolver, VectorOrderingAgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
-  for(auto initial_value : initial_values) {
-    testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(1, initial_value);
-    testExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(2, initial_value);
-    testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(5, initial_value);
-    testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(5, initial_value);
+  for (auto initial_value : initial_values)
+  {
+    testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::LinearSolver<Group1SparseVectorMatrix>>(
+        1, initial_value);
+    testExtremeInitialValue<Group2VectorMatrix, Group2SparseVectorMatrix, micm::LinearSolver<Group2SparseVectorMatrix>>(
+        2, initial_value);
+    testExtremeInitialValue<Group3VectorMatrix, Group3SparseVectorMatrix, micm::LinearSolver<Group3SparseVectorMatrix>>(
+        5, initial_value);
+    testExtremeInitialValue<Group4VectorMatrix, Group4SparseVectorMatrix, micm::LinearSolver<Group4SparseVectorMatrix>>(
+        5, initial_value);
   }
 }
 

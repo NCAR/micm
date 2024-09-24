@@ -47,7 +47,11 @@ TEST(JitLinearSolver, DiagonalMatrixVectorOrdering)
 TEST(JitLinearSolver, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, INFINITY };
-  for(auto initial_value : initial_values) {
-    testExtremeInitialValue<Group1VectorMatrix, Group1SparseVectorMatrix, micm::JitLinearSolver<1, Group1SparseVectorMatrix>>(1, initial_value);
+  for (auto initial_value : initial_values)
+  {
+    testExtremeInitialValue<
+        Group1VectorMatrix,
+        Group1SparseVectorMatrix,
+        micm::JitLinearSolver<1, Group1SparseVectorMatrix>>(1, initial_value);
   }
 }
