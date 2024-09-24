@@ -17,7 +17,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
 {
   builder = getSolver(builder);
   auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  std::vector<double> atol = solver.solver_.parameters_.absolute_tolerance_;
+  std::vector<double> atol = solver.solver_.parameters_.absolute_tolerance_;  
   double rtol = solver.solver_.parameters_.relative_tolerance_;
 
   auto state = solver.GetState();
@@ -172,18 +172,17 @@ TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
   // alpha is 1 / (H * gamma), where H is the time step and gamma is the gamma value from
   // the rosenbrock paramters
   // so H needs to be 1 / ( (-k1 - k2) * gamma)
-  // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
+  // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1  
   double H = 1 / ((-k1 - k2) * params.gamma_[0]);
-  standard_solver.solver_.parameters_.h_start_ = H;
-  vector_solver.solver_.parameters_.h_start_ = H;
+  params.h_start_ = H;
 
   standard_solver.CalculateRateConstants(standard_state);
   vector_solver.CalculateRateConstants(vector_state);
 
-  auto standard_result = standard_solver.Solve(2 * H, standard_state);
+  auto standard_result = standard_solver.Solve(2 * H, standard_state, params);
   EXPECT_NE(standard_result.stats_.singular_, 0);
 
-  auto vector_result = vector_solver.Solve(2 * H, vector_state);
+  auto vector_result = vector_solver.Solve(2 * H, vector_state, params);
   EXPECT_NE(vector_result.stats_.singular_, 0);
 }
 

@@ -284,12 +284,12 @@ TEST(RosenbrockSolver, SingularSystemZeroInBottomRightOfU)
   // so H needs to be 1 / ( (-k1 - k2) * gamma)
   // since H is positive we need -k1 -k2 to be positive, hence the smaller, negative value for k1
   double H = 1 / ((-k1 - k2) * params.gamma_[0]);
-  vector_solver.solver_.parameters_.h_start_ = H;
+  params.h_start_ = H;
 
   vector_solver.CalculateRateConstants(vector_state);
   vector_state.SyncInputsToDevice();
 
-  auto vector_result = vector_solver.Solve(2 * H, vector_state);
+  auto vector_result = vector_solver.Solve(2 * H, vector_state, params);
   vector_state.SyncOutputsToHost();
   EXPECT_NE(vector_result.stats_.singular_, 0);
 }

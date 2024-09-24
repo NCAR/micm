@@ -63,6 +63,13 @@ namespace micm
       return solver_.Solve(time_step, state);
     }
 
+    // Overloaded Solve function to change parameters
+    SolverResult Solve(double time_step, StatePolicy& state, RosenbrockSolverParameters params)
+    {
+      solver_.parameters_.h_start_ = params.h_start_;
+      return solver_.Solve(time_step, state);
+    }
+
     /// @brief Returns the number of grid cells
     /// @return
     std::size_t GetNumberOfGridCells() const
