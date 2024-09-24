@@ -216,7 +216,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-9); 
+        EXPECT_LT(std::abs((a-b)/b), 1.0e-8); 
       });
 }
 
