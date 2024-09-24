@@ -66,7 +66,7 @@ void testCudaRandomMatrix(size_t n_grids)
   {
     auto gpu_L = gpu_L_vector[i];
     auto cpu_L = cpu_L_vector[i];
-    EXPECT_LT(std::abs((gpu_L-cpu_L)/cpu_U), 1.0e-10);
+    EXPECT_LT(std::abs((gpu_L-cpu_L)/cpu_L), 1.0e-10);
   };
   for (int j = 0; j < U_size; ++j)
   {
