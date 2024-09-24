@@ -40,7 +40,7 @@ void testCudaRandomMatrix(size_t n_grids)
   
 
   micm::CudaLuDecomposition gpu_lud(gpu_A);
-  auto gpu_LU = micm::CudaLuDecomposition::GetLUMatrices(gpu_A, 1.0e-30);
+  auto gpu_LU = micm::CudaLuDecomposition::GetLUMatrices(gpu_A, 0);
   gpu_A.CopyToDevice();
   gpu_LU.first.CopyToDevice();
   gpu_LU.second.CopyToDevice();
@@ -51,7 +51,7 @@ void testCudaRandomMatrix(size_t n_grids)
       gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_LT(std::abs((a-b)/b), 1.0e-03); });
 
   micm::LuDecomposition cpu_lud = micm::LuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
-  auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 1.0e-30);
+  auto cpu_LU = micm::LuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 0);
   bool singular{ false };
   cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second, singular);
 
