@@ -195,11 +195,17 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 
   SparseMatrixPolicy A(builder);
 
+  // for nvhpc, the lognormal distribution produces significantly different values 
+  // for very large numbers of grid cells
+  // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
+  // random values and then copy that into every other block
   for (std::size_t i = 0; i < size; ++i)
     for (std::size_t j = 0; j < size; ++j)
-      if (!A.IsZero(i, j))
-        for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
-          A[i_block][i][j] = get_double();
+      if (!A.IsZero(i, j)){
+        A[0][i][j] = get_double();
+        for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
+          A[i_block][i][j] = A[0][i][j];
+      }
 
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
 
@@ -218,7 +224,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-3); 
+        EXPECT_LT(std::abs((a-b)/b), 1.0e-09); 
       });
 }
 
