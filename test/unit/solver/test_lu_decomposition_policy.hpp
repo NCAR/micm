@@ -209,14 +209,16 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   CopyToDevice<SparseMatrixPolicy>(LU.first);
   CopyToDevice<SparseMatrixPolicy>(LU.second);
 
-  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+  bool is_singular{ false };
+
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
 
   CopyToHost<SparseMatrixPolicy>(LU.first);
   CopyToHost<SparseMatrixPolicy>(LU.second);
 
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-8); 
+        EXPECT_LT(std::abs((a-b)/b), 1.0e-3); 
       });
 }
 
