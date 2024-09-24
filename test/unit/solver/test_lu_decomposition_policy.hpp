@@ -57,7 +57,7 @@ void check_results(
         EXPECT_TRUE(j >= i || U.IsZero(i, j));
         if (A.IsZero(i, j))
         {
-          // f(result, T{});
+          f(result, T{});
         }
         else
         {
@@ -176,7 +176,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-9); 
+        EXPECT_NEAR(a, b, 1.0e-9); 
       });
 }
 
@@ -224,7 +224,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
 
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { 
-        EXPECT_LT(std::abs((a-b)/b), 1.0e-09); 
+        EXPECT_NEAR(a, b, 1.0e-09); 
       });
 }
 
