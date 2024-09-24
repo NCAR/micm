@@ -23,7 +23,7 @@ namespace micm
     const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
     const double h_start =
         parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
-
+    
     SolverStats stats;
 
     double present_time = 0.0;
@@ -243,6 +243,7 @@ namespace micm
     {
       double alpha = 1 / (H * gamma);
       static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
+
       linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
       stats.decompositions_ += 1;
 

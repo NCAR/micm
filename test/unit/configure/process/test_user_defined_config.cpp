@@ -46,9 +46,9 @@ TEST(UserDefinedConfig, ParseConfig)
   // first reaction
   {
     EXPECT_EQ(process_vector[0].reactants_.size(), 3);
-    EXPECT_EQ(process_vector[0].reactants_[0].name_, "bar");
+    EXPECT_EQ(process_vector[0].reactants_[0].name_, "foo");
     EXPECT_EQ(process_vector[0].reactants_[1].name_, "bar");
-    EXPECT_EQ(process_vector[0].reactants_[2].name_, "foo");
+    EXPECT_EQ(process_vector[0].reactants_[2].name_, "bar");
     EXPECT_EQ(process_vector[0].products_.size(), 2);
     EXPECT_EQ(process_vector[0].products_[0].first.name_, "baz");
     EXPECT_EQ(process_vector[0].products_[0].second, 1.4);
