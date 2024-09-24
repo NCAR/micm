@@ -42,3 +42,14 @@ TEST(JitLuDecomposition, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>(3);
   testDiagonalMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>(4);
 }
+
+TEST(JitLuDecomposition, AgnosticToInitialValue)
+{
+  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  for(auto& value : initial_values) {
+    testExtremeValueInitialization<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>(1, value);
+    testExtremeValueInitialization<Group2SparseVectorMatrix, micm::JitLuDecomposition<2>>(2, value);
+    testExtremeValueInitialization<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>(3, value);
+    testExtremeValueInitialization<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>(4, value);
+  }
+}
