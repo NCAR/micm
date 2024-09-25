@@ -30,7 +30,7 @@ constexpr size_t NUM_CELLS = 3;
 
 double relative_error(double a, double b)
 {
-  return abs(a - b) / abs(a);
+  return abs(a - b) / abs(b);
 }
 
 double relative_difference(double a, double b)
@@ -212,8 +212,8 @@ void test_simple_system(
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
     for (std::size_t i = 0; i < NUM_CELLS; ++i)
     {
-      EXPECT_NEAR(combined_error(k1[i], state.rate_constants_[i][0], 1e-15), 0, relative_tolerance);
-      EXPECT_NEAR(combined_error(k2[i], state.rate_constants_[i][1], 1e-15), 0, relative_tolerance);
+      EXPECT_NEAR(k1[i], state.rate_constants_[i][0], relative_tolerance);
+      EXPECT_NEAR(k2[i], state.rate_constants_[i][1], relative_tolerance);
       model_concentrations[i_time][i][idx_A] = state.variables_[i][_a];
       model_concentrations[i_time][i][idx_B] = state.variables_[i][_b];
       model_concentrations[i_time][i][idx_C] = state.variables_[i][_c];
@@ -244,27 +244,18 @@ void test_simple_system(
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_A],
-              analytical_concentrations[i_time][i_cell][idx_A],
-              absolute_tolerances[0]),
-          0,
+          model_concentrations[i_time][i_cell][idx_A],
+          analytical_concentrations[i_time][i_cell][idx_A],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_B],
-              analytical_concentrations[i_time][i_cell][idx_B],
-              absolute_tolerances[1]),
-          0,
+          model_concentrations[i_time][i_cell][idx_B],
+          analytical_concentrations[i_time][i_cell][idx_B],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_C],
-              analytical_concentrations[i_time][i_cell][idx_C],
-              absolute_tolerances[2]),
-          0,
+          model_concentrations[i_time][i_cell][idx_C],
+          analytical_concentrations[i_time][i_cell][idx_C],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
@@ -375,27 +366,18 @@ void test_simple_stiff_system(
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_A],
-              analytical_concentrations[i_time][i_cell][idx_A],
-              absolute_tolerances[0]),
-          0,
+          model_concentrations[i_time][i_cell][idx_A],
+          analytical_concentrations[i_time][i_cell][idx_A],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_B],
-              analytical_concentrations[i_time][i_cell][idx_B],
-              absolute_tolerances[1]),
-          0,
+          model_concentrations[i_time][i_cell][idx_B],
+          analytical_concentrations[i_time][i_cell][idx_B],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          combined_error(
-              model_concentrations[i_time][i_cell][idx_C],
-              analytical_concentrations[i_time][i_cell][idx_C],
-              absolute_tolerances[2]),
-          0,
+          model_concentrations[i_time][i_cell][idx_C],
+          analytical_concentrations[i_time][i_cell][idx_C],
           relative_tolerance)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
@@ -409,7 +391,7 @@ void test_simple_stiff_system(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_troe(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 1e-10,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -564,7 +546,7 @@ void test_analytical_stiff_troe(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_photolysis(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 2e-6,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -623,7 +605,7 @@ void test_analytical_photolysis(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_stiff_photolysis(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 2e-5,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -705,7 +687,7 @@ void test_analytical_stiff_photolysis(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_ternary_chemical_activation(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 1e-08,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -861,7 +843,7 @@ void test_analytical_stiff_ternary_chemical_activation(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_tunneling(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 1e-8,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -995,7 +977,7 @@ void test_analytical_stiff_tunneling(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_arrhenius(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 1e-9,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -1129,7 +1111,7 @@ void test_analytical_stiff_arrhenius(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_branched(
     BuilderPolicy builder,
-    double tolerance = 1e-6,
+    double tolerance = 1e-13,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {

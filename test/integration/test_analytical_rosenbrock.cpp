@@ -40,7 +40,7 @@ auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters:
 
 TEST(AnalyticalExamples, Troe)
 {
-  test_analytical_troe(rosenbrock_2stage, 1e-3);
+  test_analytical_troe(rosenbrock_2stage);
   test_analytical_troe(rosenbrock_3stage);
   test_analytical_troe(rosenbrock_4stage);
   test_analytical_troe(rosenbrock_4stage_da);
@@ -53,7 +53,7 @@ TEST(AnalyticalExamples, Troe)
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe(rosenbrock_2stage, 1e-3);
+  test_analytical_stiff_troe(rosenbrock_2stage);
   test_analytical_stiff_troe(rosenbrock_3stage);
   test_analytical_stiff_troe(rosenbrock_4stage);
   test_analytical_stiff_troe(rosenbrock_4stage_da);
@@ -66,41 +66,41 @@ TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
 
 TEST(AnalyticalExamples, Photolysis)
 {
-  test_analytical_photolysis(rosenbrock_2stage, 1e-2);
-  test_analytical_photolysis(rosenbrock_3stage, 1e-4);
-  test_analytical_photolysis(rosenbrock_4stage, 1e-5);
-  test_analytical_photolysis(rosenbrock_4stage_da, 1e-5);
-  test_analytical_photolysis(rosenbrock_6stage_da, 1e-5);
-  test_analytical_photolysis<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 1e-4);
-  test_analytical_photolysis<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 1e-4);
-  test_analytical_photolysis<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 1e-4);
-  test_analytical_photolysis<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 1e-4);
+  test_analytical_photolysis(rosenbrock_2stage);
+  test_analytical_photolysis(rosenbrock_3stage);
+  test_analytical_photolysis(rosenbrock_4stage);
+  test_analytical_photolysis(rosenbrock_4stage_da);
+  test_analytical_photolysis(rosenbrock_6stage_da);
+  test_analytical_photolysis<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_photolysis<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_photolysis<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_photolysis<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis(rosenbrock_2stage, 1e-2);
-  test_analytical_stiff_photolysis(rosenbrock_3stage, 1e-3);
-  test_analytical_stiff_photolysis(rosenbrock_4stage, 1e-3);
-  test_analytical_stiff_photolysis(rosenbrock_4stage_da, 1e-3);
-  test_analytical_stiff_photolysis(rosenbrock_6stage_da, 1e-3);
-  test_analytical_stiff_photolysis<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 1e-3);
-  test_analytical_stiff_photolysis<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 1e-3);
-  test_analytical_stiff_photolysis<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 1e-3);
-  test_analytical_stiff_photolysis<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 1e-3);
+  test_analytical_stiff_photolysis(rosenbrock_2stage);
+  test_analytical_stiff_photolysis(rosenbrock_3stage);
+  test_analytical_stiff_photolysis(rosenbrock_4stage);
+  test_analytical_stiff_photolysis(rosenbrock_4stage_da);
+  test_analytical_stiff_photolysis(rosenbrock_6stage_da);
+  test_analytical_stiff_photolysis<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_stiff_photolysis<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_stiff_photolysis<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_stiff_photolysis<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation(rosenbrock_2stage, 1e-3);
-  test_analytical_ternary_chemical_activation(rosenbrock_3stage, 1e-5);
-  test_analytical_ternary_chemical_activation(rosenbrock_4stage, 1e-5);
-  test_analytical_ternary_chemical_activation(rosenbrock_4stage_da, 1e-5);
-  test_analytical_ternary_chemical_activation(rosenbrock_6stage_da, 1e-5);
-  test_analytical_ternary_chemical_activation<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 1e-5);
-  test_analytical_ternary_chemical_activation<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 1e-5);
-  test_analytical_ternary_chemical_activation<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 1e-5);
-  test_analytical_ternary_chemical_activation<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 1e-5);
+  test_analytical_ternary_chemical_activation(rosenbrock_2stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_3stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_4stage);
+  test_analytical_ternary_chemical_activation(rosenbrock_4stage_da);
+  test_analytical_ternary_chemical_activation(rosenbrock_6stage_da);
+  test_analytical_ternary_chemical_activation<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_ternary_chemical_activation<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_ternary_chemical_activation<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_ternary_chemical_activation<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -118,20 +118,20 @@ TEST(AnalyticalExamples, TernaryChemicalActivationSuperStiffButAnalytical)
 
 TEST(AnalyticalExamples, Tunneling)
 {
-  test_analytical_tunneling(rosenbrock_2stage, 1e-1);
-  test_analytical_tunneling(rosenbrock_3stage, 1e-5);
+  test_analytical_tunneling(rosenbrock_2stage, 2e-5);
+  test_analytical_tunneling(rosenbrock_3stage);
   test_analytical_tunneling(rosenbrock_4stage);
-  test_analytical_tunneling(rosenbrock_4stage_da, 1e-5);
+  test_analytical_tunneling(rosenbrock_4stage_da);
   test_analytical_tunneling(rosenbrock_6stage_da);
-  test_analytical_tunneling<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 1e-5);
-  test_analytical_tunneling<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 1e-5);
-  test_analytical_tunneling<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 1e-5);
-  test_analytical_tunneling<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 1e-5);
+  test_analytical_tunneling<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1);
+  test_analytical_tunneling<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2);
+  test_analytical_tunneling<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3);
+  test_analytical_tunneling<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4);
 }
 
 TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling(rosenbrock_2stage, 1e-1);
+  test_analytical_stiff_tunneling(rosenbrock_2stage, 1e-4);
   test_analytical_stiff_tunneling(rosenbrock_3stage, 1e-4);
   test_analytical_stiff_tunneling(rosenbrock_4stage, 1e-4);
   test_analytical_stiff_tunneling(rosenbrock_4stage_da, 1e-4);
@@ -144,7 +144,7 @@ TEST(AnalyticalExamples, TunnelingSuperStiffButAnalytical)
 
 TEST(AnalyticalExamples, Arrhenius)
 {
-  test_analytical_arrhenius(rosenbrock_2stage, 1e-3);
+  test_analytical_arrhenius(rosenbrock_2stage, 4e-6);
   test_analytical_arrhenius(rosenbrock_3stage);
   test_analytical_arrhenius(rosenbrock_4stage);
   test_analytical_arrhenius(rosenbrock_4stage_da);
@@ -157,20 +157,20 @@ TEST(AnalyticalExamples, Arrhenius)
 
 TEST(AnalyticalExamples, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius(rosenbrock_2stage, 1e-1);
-  test_analytical_stiff_arrhenius(rosenbrock_3stage, 1e-3);
-  test_analytical_stiff_arrhenius(rosenbrock_4stage, 1e-4);
-  test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 1e-4);
-  test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-3);
-  test_analytical_stiff_arrhenius<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 1e-3);
-  test_analytical_stiff_arrhenius<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 1e-3);
-  test_analytical_stiff_arrhenius<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 1e-3);
-  test_analytical_stiff_arrhenius<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 1e-3);
+  test_analytical_stiff_arrhenius(rosenbrock_2stage, 1e-4);
+  test_analytical_stiff_arrhenius(rosenbrock_3stage, 2e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage, 2e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_4stage_da, 2e-5);
+  test_analytical_stiff_arrhenius(rosenbrock_6stage_da, 1e-5);
+  test_analytical_stiff_arrhenius<VectorRosenbrock<1>, VectorStateType<1>>(rosenbrock_vector_1, 2e-5);
+  test_analytical_stiff_arrhenius<VectorRosenbrock<2>, VectorStateType<2>>(rosenbrock_vector_2, 2e-5);
+  test_analytical_stiff_arrhenius<VectorRosenbrock<3>, VectorStateType<3>>(rosenbrock_vector_3, 2e-5);
+  test_analytical_stiff_arrhenius<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 2e-5);
 }
 
 TEST(AnalyticalExamples, Branched)
 {
-  test_analytical_branched(rosenbrock_2stage, 1e-3);
+  test_analytical_branched(rosenbrock_2stage, 1e-10);
   test_analytical_branched(rosenbrock_3stage);
   test_analytical_branched(rosenbrock_4stage);
   test_analytical_branched(rosenbrock_4stage_da);
@@ -204,19 +204,19 @@ TEST(AnalyticalExamples, Robertson)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 2e-1);
+  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
 }
 
 TEST(AnalyticalExamples, E5)

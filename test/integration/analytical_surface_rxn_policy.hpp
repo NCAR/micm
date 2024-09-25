@@ -90,9 +90,9 @@ void test_analytical_surface_rxn(
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  std::cout << std::setw(3) << "i" << std::setw(7) << "time" << std::setw(11) << "true foo" << std::setw(11) << "model foo"
-            << std::setw(11) << "true bar" << std::setw(11) << "model bar" << std::setw(11) << "true baz" << std::setw(11)
-            << "model baz" << std::endl;
+  // std::cout << std::setw(3) << "i" << std::setw(7) << "time" << std::setw(11) << "true foo" << std::setw(11) << "model foo"
+  //           << std::setw(11) << "true bar" << std::setw(11) << "model bar" << std::setw(11) << "true baz" << std::setw(11)
+  //           << "model baz" << std::endl;
 
   for (int i = 1; i <= nstep; ++i)
   {
@@ -122,9 +122,9 @@ void test_analytical_surface_rxn(
     EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
     EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
 
-    std::cout << std::setw(3) << i << "  " << std::fixed << std::setprecision(2) << std::setw(5) << time << "  "
-              << std::fixed << std::setprecision(7) << analytic_conc[i][idx_foo] << "  " << model_conc[i][idx_foo] << "  "
-              << analytic_conc[i][idx_bar] << "  " << model_conc[i][idx_bar] << "  " << analytic_conc[i][idx_baz] << "  "
-              << model_conc[i][idx_baz] << "  " << std::endl;
+    // std::cout << std::setw(3) << i << "  " << std::fixed << std::setprecision(2) << std::setw(5) << time << "  "
+    //           << std::fixed << std::setprecision(7) << analytic_conc[i][idx_foo] << "  " << model_conc[i][idx_foo] << "  "
+    //           << analytic_conc[i][idx_bar] << "  " << model_conc[i][idx_bar] << "  " << analytic_conc[i][idx_baz] << "  "
+    //           << model_conc[i][idx_baz] << "  " << std::endl;
   }
 }
