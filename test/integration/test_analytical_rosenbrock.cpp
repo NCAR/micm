@@ -261,7 +261,7 @@ TEST(AnalyticalExamples, Oregonator)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-3);
+  test_analytical_oregonator(solver, 1e-4);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   test_analytical_oregonator(solver, 1e-3);

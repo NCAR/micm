@@ -1305,7 +1305,7 @@ void test_analytical_stiff_branched(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_robertson(
     BuilderPolicy builder,
-    double tolerance = 1e-8,
+    double relative_tolerance = 1e-8,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -1429,19 +1429,19 @@ void test_analytical_robertson(
   {
     double rel_error = relative_error(model_concentrations[i][_a], analytical_concentrations[i][0]);
     double abs_error = std::abs(model_concentrations[i][_a] - analytical_concentrations[i][0]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     rel_error = relative_error(model_concentrations[i][_b], analytical_concentrations[i][1]);
     abs_error = std::abs(model_concentrations[i][_b] - analytical_concentrations[i][1]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     rel_error = relative_error(model_concentrations[i][_c], analytical_concentrations[i][2]);
     abs_error = std::abs(model_concentrations[i][_c] - analytical_concentrations[i][2]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
   }
@@ -1450,7 +1450,7 @@ void test_analytical_robertson(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_oregonator(
     BuilderPolicy builder,
-    double tolerance = 1e-8,
+    double absolute_tolerance = 1e-8,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -1458,6 +1458,8 @@ void test_analytical_oregonator(
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 144. It actually comes from Field and Noyes (1974)
+   * A driver for a version of this is from here, but this needs a custom forcing and jacobian and so we tried to translate it
+   * https://www.unige.ch/~hairer/testset/testset.html
    *
    * Field, R.J., Noyes, R.M., 1974. Oscillations in chemical systems. IV. Limit cycle behavior in a model of a real chemical
    * reaction. The Journal of Chemical Physics 60, 1877–1884. https://doi.org/10.1063/1.1681288
@@ -1610,9 +1612,9 @@ void test_analytical_oregonator(
 
   for (size_t i = 0; i < model_concentrations.size(); ++i)
   {
-    EXPECT_NEAR(model_concentrations[i][_x], analytical_concentrations[i][0], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_y], analytical_concentrations[i][1], tolerance);
-    EXPECT_NEAR(model_concentrations[i][_z], analytical_concentrations[i][2], tolerance);
+    EXPECT_NEAR(model_concentrations[i][_x], analytical_concentrations[i][0], absolute_tolerance);
+    EXPECT_NEAR(model_concentrations[i][_y], analytical_concentrations[i][1], absolute_tolerance);
+    EXPECT_NEAR(model_concentrations[i][_z], analytical_concentrations[i][2], absolute_tolerance);
   }
 }
 
@@ -1813,7 +1815,7 @@ void test_analytical_hires(
 template<class BuilderPolicy, class StateType = micm::State<>>
 void test_analytical_e5(
     BuilderPolicy builder,
-    double tolerance = 1e-8,
+    double relative_tolerance = 1e-8,
     std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
     std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
 {
@@ -1936,28 +1938,28 @@ void test_analytical_e5(
     double absolute_tolerance = 1e-6;
     double rel_error = relative_error(model_concentrations[i][0], analytical_concentrations[i][0]);
     double abs_error = std::abs(model_concentrations[i][0] - analytical_concentrations[i][0]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 0 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
     rel_error = relative_error(model_concentrations[i][1], analytical_concentrations[i][1]);
     abs_error = std::abs(model_concentrations[i][1] - analytical_concentrations[i][1]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 1 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
     rel_error = relative_error(model_concentrations[i][2], analytical_concentrations[i][2]);
     abs_error = std::abs(model_concentrations[i][2] - analytical_concentrations[i][2]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 2 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
 
     absolute_tolerance = 1e-13;
     rel_error = relative_error(model_concentrations[i][3], analytical_concentrations[i][3]);
     abs_error = std::abs(model_concentrations[i][3] - analytical_concentrations[i][3]);
-    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < tolerance)
+    EXPECT_TRUE(abs_error < absolute_tolerance || rel_error < relative_tolerance)
         << "Arrays differ at index (" << i << ", " << 3 << ") with relative error " << rel_error << " and absolute error "
         << abs_error;
   }
