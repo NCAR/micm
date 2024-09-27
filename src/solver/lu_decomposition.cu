@@ -18,17 +18,17 @@ namespace micm
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
-      std::pair<size_t, size_t>* d_niLU = devstruct.niLU_;
-      char* d_do_aik = devstruct.do_aik_;
-      size_t* d_aik = devstruct.aik_;
-      std::pair<size_t, size_t>* d_uik_nkj = devstruct.uik_nkj_;
-      std::pair<size_t, size_t>* d_lij_ujk = devstruct.lij_ujk_;
-      char* d_do_aki = devstruct.do_aki_;
-      size_t* d_aki = devstruct.aki_;
-      std::pair<size_t, size_t>* d_lki_nkj = devstruct.lki_nkj_;
-      std::pair<size_t, size_t>* d_lkj_uji = devstruct.lkj_uji_;
-      size_t* d_uii = devstruct.uii_;
-      size_t niLU_size = devstruct.niLU_size_;
+      const std::pair<size_t, size_t>* const d_niLU = devstruct.niLU_;
+      const char* const d_do_aik = devstruct.do_aik_;
+      const size_t* const d_aik = devstruct.aik_;
+      const std::pair<size_t, size_t>* const d_uik_nkj = devstruct.uik_nkj_;
+      const std::pair<size_t, size_t>* const d_lij_ujk = devstruct.lij_ujk_;
+      const char* const d_do_aki = devstruct.do_aki_;
+      const size_t* const d_aki = devstruct.aki_;
+      const std::pair<size_t, size_t>* const d_lki_nkj = devstruct.lki_nkj_;
+      const std::pair<size_t, size_t>* const d_lkj_uji = devstruct.lkj_uji_;
+      const size_t* const d_uii = devstruct.uii_;
+      const size_t niLU_size = devstruct.niLU_size_;
 
       size_t do_aik_offset = 0;
       size_t aik_offset = 0;
@@ -40,10 +40,10 @@ namespace micm
       size_t lki_nkj_offset = 0;
       size_t uii_offset = 0;
 
-      double* d_A = A_param.d_data_;
-      double* d_L = L_param.d_data_;
-      double* d_U = U_param.d_data_;
-      size_t number_of_grid_cells = A_param.number_of_grid_cells_;
+      const double* const d_A = A_param.d_data_;
+      double* const d_L = L_param.d_data_;
+      double* const d_U = U_param.d_data_;
+      const size_t number_of_grid_cells = A_param.number_of_grid_cells_;
       bool* d_is_singular = devstruct.is_singular;
       *d_is_singular = false;
 
