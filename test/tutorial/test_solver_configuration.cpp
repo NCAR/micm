@@ -64,7 +64,6 @@ void test_solver_type(auto& solver)
       total_stats.rejected_ += result.stats_.rejected_;
       total_stats.decompositions_ += result.stats_.decompositions_;
       total_stats.solves_ += result.stats_.solves_;
-      total_stats.singular_ += result.stats_.singular_;
 
       elapsed_solve_time = result.final_time_;
     }
@@ -80,7 +79,6 @@ void test_solver_type(auto& solver)
   std::cout << "rejected: " << total_stats.rejected_ << std::endl;
   std::cout << "decompositions: " << total_stats.decompositions_ << std::endl;
   std::cout << "solves: " << total_stats.solves_ << std::endl;
-  std::cout << "singular: " << total_stats.singular_ << std::endl;
 }
 
 int main()

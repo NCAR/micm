@@ -72,7 +72,6 @@ namespace micm
       uint64_t rejected{};          // Nrej
       uint64_t decompositions{};    // Ndec
       uint64_t solves{};            // Nsol
-      uint64_t singular{};          // Nsng
       uint64_t total_steps{};       // Ntotstp
 
       void Reset();
@@ -173,11 +172,9 @@ namespace micm
     /// @param H time step (seconds)
     /// @param gamma time step factor for specific rosenbrock method
     /// @param Y  constituent concentration (molec/cm^3)
-    /// @param singular indicates if the matrix is singular
     std::vector<double> lin_factor(
         double& H,
         const double& gamma,
-        bool& singular,
         const std::vector<double>& number_densities,
         const double& number_density_air,
         const std::vector<double>& rate_constants);
@@ -209,7 +206,6 @@ namespace micm
     rejected = 0;
     decompositions = 0;
     solves = 0;
-    singular = 0;
     total_steps = 0;
   }
 
@@ -365,15 +361,9 @@ namespace micm
         {
           break;
         }
-        bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], is_singular, Y, number_density_air, rate_constants);
+        auto ode_jacobian = lin_factor(H, parameters_.gamma_[0], Y, number_density_air, rate_constants);
         stats_.jacobian_updates += 1;
-        if (is_singular)
-        {
-          result.state_ = SolverState::RepeatedlySingularMatrix;
-          break;
-        }
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
@@ -787,7 +777,6 @@ namespace micm
   inline std::vector<double> ChapmanODESolver::lin_factor(
       double& H,
       const double& gamma,
-      bool& singular,
       const std::vector<double>& number_densities,
       const double& number_density_air,
       const std::vector<double>& rate_constants)
@@ -801,35 +790,11 @@ namespace micm
     std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     std::vector<double> ode_jacobian;
     uint64_t n_consecutive = 0;
-    singular = true;
 
-    while (true)
-    {
-      double alpha = 1 / (H * gamma);
-      // compute jacobian decomposition of alpha*I - dforce_dy
-      ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
-      stats_.decompositions += 1;
-
-      if (is_successful(ode_jacobian))
-      {
-        singular = false;
-        break;
-      }
-      else
-      {
-        stats_.singular += 1;
-        n_consecutive += 1;
-
-        if (n_consecutive <= 5)
-        {
-          H /= 2;
-        }
-        else
-        {
-          break;
-        }
-      }
-    }
+    double alpha = 1 / (H * gamma);
+    // compute jacobian decomposition of alpha*I - dforce_dy
+    ode_jacobian = factored_alpha_minus_jac(dforce_dy(rate_constants, number_densities, number_density_air), alpha);
+    stats_.decompositions += 1;
 
     return ode_jacobian;
   }

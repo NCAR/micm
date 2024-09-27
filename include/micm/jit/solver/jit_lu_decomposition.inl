@@ -209,22 +209,12 @@ namespace micm
   void JitLuDecomposition<L>::Decompose(
       const SparseMatrixPolicy &A,
       SparseMatrixPolicy &lower,
-      SparseMatrixPolicy &upper,
-      bool &is_singular) const
+      SparseMatrixPolicy &upper) const
   {
-    is_singular = false;
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
     for (size_t block = 0; block < A.NumberOfBlocks(); ++block)
     {
       auto diagonals = upper.DiagonalIndices(block);
-      for (const auto &diagonal : diagonals)
-      {
-        if (upper.AsVector()[diagonal] == 0)
-        {
-          is_singular = true;
-          return;
-        }
-      }
     }
   }
 }  // namespace micm

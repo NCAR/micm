@@ -45,9 +45,6 @@ namespace micm
     uint64_t decompositions_{};
     /// @brief The number of linear solves
     uint64_t solves_{};
-    /// @brief The number of times a singular matrix is detected. For now, this will always be zero as we assume the matrix
-    /// is never singular
-    uint64_t singular_{};
 
     /// @brief Set all member variables to zero
     void Reset();
@@ -62,7 +59,6 @@ namespace micm
     rejected_ = 0;
     decompositions_ = 0;
     solves_ = 0;
-    singular_ = 0;
   }
 
   inline std::string SolverStateToString(const SolverState& state)

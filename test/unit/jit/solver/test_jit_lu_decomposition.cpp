@@ -19,14 +19,6 @@ TEST(JitLuDecomposition, DenseMatrixVectorOrdering)
   testDenseMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>();
 }
 
-TEST(JitLuDecomposition, SingularMatrixVectorOrdering)
-{
-  testSingularMatrix<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>();
-  testSingularMatrix<Group2SparseVectorMatrix, micm::JitLuDecomposition<2>>();
-  testSingularMatrix<Group3SparseVectorMatrix, micm::JitLuDecomposition<3>>();
-  testSingularMatrix<Group4SparseVectorMatrix, micm::JitLuDecomposition<4>>();
-}
-
 TEST(JitLuDecomposition, RandomMatrixVectorOrdering)
 {
   testRandomMatrix<Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>(1);

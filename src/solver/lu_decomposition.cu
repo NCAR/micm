@@ -44,8 +44,6 @@ namespace micm
       double* const d_L = L_param.d_data_;
       double* const d_U = U_param.d_data_;
       const size_t number_of_grid_cells = A_param.number_of_grid_cells_;
-      bool* d_is_singular = devstruct.is_singular;
-      *d_is_singular = false;
 
       if (tid < number_of_grid_cells)
       {
@@ -101,19 +99,10 @@ namespace micm
               d_L[L_idx_1] -= d_L[L_idx_2] * d_U[U_idx];
               ++lkj_uji_offset;
             }
-            if (d_U[d_uii[uii_offset] + tid] == 0.0)
-            {
-              *d_is_singular = true;
-            }
             d_L[d_lki_nkj[lki_nkj_offset].first + tid] /= d_U[d_uii[uii_offset] + tid];
             ++lki_nkj_offset;
             ++uii_offset;
           }
-        }
-        // check the bottom right corner of the matrix
-        if (d_U[d_uii[uii_offset] + tid] == 0.0)
-        {
-          *d_is_singular = true;
         }
       }
     }  // end of CUDA kernel
@@ -171,10 +160,6 @@ namespace micm
           "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMallocAsync(&(devstruct.uii_), uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &devstruct.is_singular, sizeof(bool), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device
@@ -267,10 +252,6 @@ namespace micm
     ///   members of class "CudaLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
-      if (devstruct.is_singular != nullptr)
-        CHECK_CUDA_ERROR(
-            cudaFreeAsync(devstruct.is_singular, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-            "cudaFree");
       if (devstruct.niLU_ != nullptr)
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.niLU_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
@@ -307,20 +288,12 @@ namespace micm
         const CudaMatrixParam& A_param,
         CudaMatrixParam& L_param,
         CudaMatrixParam& U_param,
-        const LuDecomposeParam& devstruct,
-        bool& is_singular)
+        const LuDecomposeParam& devstruct)
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           A_param, L_param, U_param, devstruct);
-      // Copy the boolean result from device back to host
-      cudaMemcpyAsync(
-          &is_singular,
-          devstruct.is_singular,
-          sizeof(bool),
-          cudaMemcpyDeviceToHost,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

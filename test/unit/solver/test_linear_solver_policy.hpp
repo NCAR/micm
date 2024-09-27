@@ -134,13 +134,12 @@ void testDenseMatrix()
   auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
-  bool is_singular = false;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
-  solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
@@ -188,13 +187,12 @@ void testRandomMatrix(std::size_t number_of_blocks)
   auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
-  bool is_singular = false;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
-  solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
@@ -254,13 +252,12 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
-  bool is_singular = false;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
-  solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  solver.Factor(A, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
@@ -308,13 +305,12 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
-  bool is_singular = false;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
   CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
 
-  solver.Factor(A, lower_matrix, upper_matrix, is_singular);
+  solver.Factor(A, lower_matrix, upper_matrix);
   solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
 
   // Only copy the data to the host when it is a CudaMatrix
