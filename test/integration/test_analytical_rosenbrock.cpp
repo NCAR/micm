@@ -255,25 +255,25 @@ TEST(AnalyticalExamples, Oregonator)
   auto rosenbrock_solver = [](auto params)
   {
     // anything below 1e-6 is too strict for the Oregonator
-    params.relative_tolerance_ = 1e-6;
-    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
+    params.relative_tolerance_ = 1e-8;
+    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-6);
     return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-4);
+  test_analytical_oregonator(solver, 4e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-3);
+  test_analytical_oregonator(solver, 4e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-3);
+  test_analytical_oregonator(solver, 4e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-3);
+  test_analytical_oregonator(solver, 4e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator(solver, 1e-3);
+  test_analytical_oregonator(solver, 4e-6);
 }
 
 TEST(AnalyticalExamples, SurfaceRxn)
@@ -295,17 +295,17 @@ TEST(AnalyticalExamples, HIRES)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires(solver, 5e-2);
+  test_analytical_hires(solver, 1e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_hires(solver, 1e-3);
+  test_analytical_hires(solver, 1e-7);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_hires(solver, 1e-3);
+  test_analytical_hires(solver, 1e-7);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires(solver, 1e-3);
+  test_analytical_hires(solver, 1e-6);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires(solver, 1e-3);
+  test_analytical_hires(solver, 1e-6);
 }

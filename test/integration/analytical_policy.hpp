@@ -1478,6 +1478,9 @@ void test_analytical_oregonator(
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
+   * 
+   * I don't understand the transfomrations. Multiplying the timestep by tau, and the concnetrations by the constants
+   * in the paper give very similar values.
    */
 
   auto X = micm::Species("X");
@@ -1524,7 +1527,8 @@ void test_analytical_oregonator(
                     .SetReactions(processes)
                     .Build();
 
-  double time_step = 30;
+  double tau = 0.1610;
+  double time_step = 30 * tau;
   size_t N = 12;
 
   std::vector<std::vector<double>> model_concentrations(N + 1, std::vector<double>(5));
