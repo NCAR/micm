@@ -26,7 +26,7 @@ namespace micm
       const double* const d_yields = devstruct.yields_;
       const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const size_t number_of_reactions =
-           rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
+          rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
       const double* const d_rate_constants = rate_constants_param.d_data_;
       const double* const d_state_variables = state_variables_param.d_data_;
       double* const d_forcing = forcing_param.d_data_;

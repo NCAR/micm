@@ -78,10 +78,7 @@ namespace micm
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
-    void Factor(
-        const SparseMatrixPolicy& matrix,
-        SparseMatrixPolicy& lower_matrix,
-        SparseMatrixPolicy& upper_matrix) const;
+    void Factor(const SparseMatrixPolicy& matrix, SparseMatrixPolicy& lower_matrix, SparseMatrixPolicy& upper_matrix) const;
 
     /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
     template<class MatrixPolicy>

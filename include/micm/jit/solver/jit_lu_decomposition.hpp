@@ -40,8 +40,7 @@ namespace micm
     /// @param lower The lower triangular matrix created by decomposition
     /// @param upper The upper triangular matrix created by decomposition
     template<class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
-        const;
+    void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper) const;
 
    private:
     /// @brief Generates a function to perform the LU decomposition for a specific matrix sparsity structure
