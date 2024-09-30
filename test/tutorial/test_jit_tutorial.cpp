@@ -61,7 +61,6 @@ auto run_solver(auto& solver)
       total_stats.rejected_ += result.stats_.rejected_;
       total_stats.decompositions_ += result.stats_.decompositions_;
       total_stats.solves_ += result.stats_.solves_;
-      total_stats.singular_ += result.stats_.singular_;
     }
   }
 
@@ -132,7 +131,6 @@ int main(const int argc, const char* argv[])
   std::cout << "\trejected: " << result_stats.rejected_ << std::endl;
   std::cout << "\tdecompositions: " << result_stats.decompositions_ << std::endl;
   std::cout << "\tsolves: " << result_stats.solves_ << std::endl;
-  std::cout << "\tsingular: " << result_stats.singular_ << std::endl;
 
   auto jit_result_stats = std::get<1>(jit_result_tuple);
   std::cout << "JIT solve stats: " << std::endl;
@@ -144,7 +142,6 @@ int main(const int argc, const char* argv[])
   std::cout << "\trejected: " << jit_result_stats.rejected_ << std::endl;
   std::cout << "\tdecompositions: " << jit_result_stats.decompositions_ << std::endl;
   std::cout << "\tsolves: " << jit_result_stats.solves_ << std::endl;
-  std::cout << "\tsingular: " << jit_result_stats.singular_ << std::endl;
 
   auto result = std::get<0>(result_tuple);
   auto jit_result = std::get<0>(jit_result_tuple);

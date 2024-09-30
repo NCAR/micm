@@ -18,11 +18,6 @@ TEST(LuDecomposition, DenseMatrixStandardOrdering)
   testDenseMatrix<SparseMatrixTest, micm::LuDecomposition>();
 }
 
-TEST(LuDecomposition, SingularMatrixStandardOrdering)
-{
-  testSingularMatrix<SparseMatrixTest, micm::LuDecomposition>();
-}
-
 TEST(LuDecomposition, RandomMatrixStandardOrdering)
 {
   testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(1);
@@ -49,14 +44,6 @@ TEST(LuDecomposition, DenseMatrixVectorOrdering)
   testDenseMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>();
   testDenseMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>();
   testDenseMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>();
-}
-
-TEST(LuDecomposition, SingluarMatrixVectorOrdering)
-{
-  testSingularMatrix<Group1SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>();
 }
 
 TEST(LuDecomposition, RandomMatrixVectorOrdering)

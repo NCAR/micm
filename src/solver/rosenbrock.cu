@@ -142,11 +142,11 @@ namespace micm
         const size_t n,
         bool is_first_call)
     {
-      double* d_y_old = y_old_param.d_data_;
-      double* d_y_new = y_new_param.d_data_;
-      double* d_errors_input = devstruct.errors_input_;
-      double* d_errors_output = devstruct.errors_output_;
-      const double* atol = devstruct.absolute_tolerance_;
+      const double* const d_y_old = y_old_param.d_data_;
+      const double* const d_y_new = y_new_param.d_data_;
+      double* const d_errors_input = devstruct.errors_input_;
+      double* const d_errors_output = devstruct.errors_output_;
+      const double* const atol = devstruct.absolute_tolerance_;
       const double rtol = ros_param.relative_tolerance_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
@@ -250,11 +250,11 @@ namespace micm
     {
       // Local device variables
       double d_ymax, d_scale;
-      double* d_y_old = y_old_param.d_data_;
-      double* d_y_new = y_new_param.d_data_;
-      double* d_errors = devstruct.errors_input_;
-      const double* atol = devstruct.absolute_tolerance_;
-      double rtol = ros_param.relative_tolerance_;
+      const double* const d_y_old = y_old_param.d_data_;
+      const double* const d_y_new = y_new_param.d_data_;
+      double* const d_errors = devstruct.errors_input_;
+      const double* const atol = devstruct.absolute_tolerance_;
+      const double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 

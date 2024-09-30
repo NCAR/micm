@@ -19,17 +19,17 @@ namespace micm
 
       // Local device variables
       size_t react_id_offset, prod_id_offset, yield_offset;
-      size_t* d_number_of_reactants = devstruct.number_of_reactants_;
-      size_t* d_reactant_ids = devstruct.reactant_ids_;
-      size_t* d_number_of_products = devstruct.number_of_products_;
-      size_t* d_product_ids = devstruct.product_ids_;
-      double* d_yields = devstruct.yields_;
+      const size_t* const d_number_of_reactants = devstruct.number_of_reactants_;
+      const size_t* const d_reactant_ids = devstruct.reactant_ids_;
+      const size_t* const d_number_of_products = devstruct.number_of_products_;
+      const size_t* const d_product_ids = devstruct.product_ids_;
+      const double* const d_yields = devstruct.yields_;
       const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const size_t number_of_reactions =
-          rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
-      const double* d_rate_constants = rate_constants_param.d_data_;
-      const double* d_state_variables = state_variables_param.d_data_;
-      double* d_forcing = forcing_param.d_data_;
+           rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
+      const double* const d_rate_constants = rate_constants_param.d_data_;
+      const double* const d_state_variables = state_variables_param.d_data_;
+      double* const d_forcing = forcing_param.d_data_;
 
       if (tid < number_of_grid_cells)
       {
@@ -73,17 +73,17 @@ namespace micm
       size_t react_ids_offset = 0;
       size_t yields_offset = 0;
       size_t flat_id_offset = 0;
-      size_t* d_number_of_reactants = devstruct.number_of_reactants_;
-      size_t* d_reactant_ids = devstruct.reactant_ids_;
-      size_t* d_number_of_products = devstruct.number_of_products_;
-      size_t* d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
-      double* d_yields = devstruct.yields_;
+      const size_t* const d_number_of_reactants = devstruct.number_of_reactants_;
+      const size_t* const d_reactant_ids = devstruct.reactant_ids_;
+      const size_t* const d_number_of_products = devstruct.number_of_products_;
+      const size_t* const d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
+      const double* const d_yields = devstruct.yields_;
       const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
       const size_t number_of_reactions =
           rate_constants_param.number_of_elements_ / rate_constants_param.number_of_grid_cells_;
-      const double* d_rate_constants = rate_constants_param.d_data_;
-      const double* d_state_variables = state_variables_param.d_data_;
-      double* d_jacobian = jacobian_param.d_data_;
+      const double* const d_rate_constants = rate_constants_param.d_data_;
+      const double* const d_state_variables = state_variables_param.d_data_;
+      double* const d_jacobian = jacobian_param.d_data_;
 
       if (tid < number_of_grid_cells)
       {

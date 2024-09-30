@@ -82,6 +82,5 @@ int main()
   std::cout << "rejected: " << result.stats_.rejected_ << std::endl;
   std::cout << "decompositions: " << result.stats_.decompositions_ << std::endl;
   std::cout << "solves: " << result.stats_.solves_ << std::endl;
-  std::cout << "singular: " << result.stats_.singular_ << std::endl;
   std::cout << "final simulation time: " << result.final_time_ << std::endl;
 }

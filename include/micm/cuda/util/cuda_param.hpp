@@ -33,7 +33,6 @@ struct ProcessSetParam
 /// This struct could be allocated on the host or device;
 struct LuDecomposeParam
 {
-  bool* is_singular = nullptr;
   std::pair<std::size_t, std::size_t>* niLU_ = nullptr;
   char* do_aik_ = nullptr;
   std::size_t* aik_ = nullptr;

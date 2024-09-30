@@ -20,17 +20,17 @@ namespace micm
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
-      std::pair<size_t, size_t>* d_nLij_Lii = devstruct.nLij_Lii_;
-      std::pair<size_t, size_t>* d_Lij_yj = devstruct.Lij_yj_;
-      std::pair<size_t, size_t>* d_nUij_Uii = devstruct.nUij_Uii_;
-      std::pair<size_t, size_t>* d_Uij_xj = devstruct.Uij_xj_;
-      size_t nLij_Lii_size = devstruct.nLij_Lii_size_;
-      size_t nUij_Uii_size = devstruct.nUij_Uii_size_;
+      const std::pair<size_t, size_t>* const d_nLij_Lii = devstruct.nLij_Lii_;
+      const std::pair<size_t, size_t>* const d_Lij_yj = devstruct.Lij_yj_;
+      const std::pair<size_t, size_t>* const d_nUij_Uii = devstruct.nUij_Uii_;
+      const std::pair<size_t, size_t>* const d_Uij_xj = devstruct.Uij_xj_;
+      const size_t nLij_Lii_size = devstruct.nLij_Lii_size_;
+      const size_t nUij_Uii_size = devstruct.nUij_Uii_size_;
 
-      double* d_L = L_param.d_data_;
-      double* d_U = U_param.d_data_;
-      double* d_x = x_param.d_data_;
-      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
+      const double* const d_L = L_param.d_data_;
+      const double* const d_U = U_param.d_data_;
+      double* const d_x = x_param.d_data_;
+      double* const d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
       const size_t number_of_grid_cells = x_param.number_of_grid_cells_;
       const size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
 
