@@ -1395,11 +1395,11 @@ void test_analytical_robertson(
   double time_step = 1.0;
   std::vector<double> times;
   times.push_back(0);
+  solver.CalculateRateConstants(state);
   for (size_t i_time = 0; i_time < N; ++i_time)
   {
     double solve_time = time_step + i_time * time_step;
     times.push_back(solve_time);
-    solver.CalculateRateConstants(state);
     prepare_for_solve(state);
     // Model results
     double actual_solve = 0;
