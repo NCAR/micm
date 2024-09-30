@@ -31,6 +31,8 @@ namespace micm
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
+    double relative_tolerance_;
+    std::vector<double> absolute_tolerance_ {};
   };
 
   template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
@@ -58,6 +60,8 @@ namespace micm
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
+    double relative_tolerance_;
+    std::vector<double> absolute_tolerance_;
 
     /// @brief Copy constructor
     /// @param other The state object to be copied
@@ -76,6 +80,8 @@ namespace micm
       state_size_ = other.state_size_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
       temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+      relative_tolerance_ = other.relative_tolerance_;
+      absolute_tolerance_ = other.absolute_tolerance_;
     }
 
     /// @brief Assignment operator
@@ -98,6 +104,8 @@ namespace micm
         state_size_ = other.state_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+        relative_tolerance_ = other.relative_tolerance_;
+        absolute_tolerance_ = other.absolute_tolerance_;
       }
       return *this;
     }

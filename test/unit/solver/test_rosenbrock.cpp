@@ -16,11 +16,11 @@ template<class SolverBuilderPolicy>
 void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_grid_cells)
 {
   builder = getSolver(builder);
-  auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  std::vector<double> atol = solver.solver_.parameters_.absolute_tolerance_;  
-  double rtol = solver.solver_.parameters_.relative_tolerance_;
-
+  auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();  
   auto state = solver.GetState();
+  std::vector<double> atol = state.absolute_tolerance_;  
+  double rtol = state.relative_tolerance_;
+
   using MatrixPolicy = decltype(state.variables_);
   auto y_old = MatrixPolicy(number_of_grid_cells, state.state_size_, 7.7);
   auto y_new = MatrixPolicy(number_of_grid_cells, state.state_size_, -13.9);
@@ -42,7 +42,7 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
   double error_min_ = 1.0e-10;
   expected_error = std::max(std::sqrt(expected_error / (number_of_grid_cells * state.state_size_)), error_min_);
 
-  double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors);
+  double computed_error = solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));
@@ -106,9 +106,10 @@ TEST(RosenbrockSolver, CanSetTolerances)
                       .SetReactions(std::vector<micm::Process>{ r1 })
                       .SetNumberOfGridCells(number_of_grid_cells)
                       .Build();
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_.size(), 2);
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[0], 1.0e-07);
-    EXPECT_EQ(solver.solver_.parameters_.absolute_tolerance_[1], 1.0e-08);
+    auto state = solver.GetState();
+    EXPECT_EQ(state.absolute_tolerance_.size(), 2);    
+    EXPECT_EQ(state.absolute_tolerance_[0], 1.0e-07);
+    EXPECT_EQ(state.absolute_tolerance_[1], 1.0e-08);
   }
 }
 

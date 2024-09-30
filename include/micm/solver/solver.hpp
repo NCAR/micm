@@ -64,9 +64,9 @@ namespace micm
     }
 
     // Overloaded Solve function to change parameters
-    SolverResult Solve(double time_step, StatePolicy& state, RosenbrockSolverParameters params)
+    SolverResult Solve(double time_step, StatePolicy& state, SolverParametersType& params)
     {
-      solver_.parameters_.h_start_ = params.h_start_;
+      solver_.parameters_ = params;
       return solver_.Solve(time_step, state);
     }
 
@@ -88,7 +88,7 @@ namespace micm
     {
       return state_parameters_.number_of_rate_constants_;
     }
-
+    
     StatePolicy GetState() const
     {
       auto state = std::move(StatePolicy(state_parameters_));

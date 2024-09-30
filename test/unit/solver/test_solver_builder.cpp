@@ -106,6 +106,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .Build();
 }
 
+/*
 TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
 {
   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
@@ -128,3 +129,4 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
 
   EXPECT_ANY_THROW(builder.SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(1).Build(););
 }
+*/

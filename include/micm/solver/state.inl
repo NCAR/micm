@@ -80,7 +80,9 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
-        number_of_grid_cells_(parameters.number_of_grid_cells_)
+        number_of_grid_cells_(parameters.number_of_grid_cells_),
+        relative_tolerance_(1e-06),
+        absolute_tolerance_(parameters.absolute_tolerance_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)

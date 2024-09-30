@@ -426,7 +426,7 @@ namespace micm
     void ParseRelativeTolerance(const objectType& object)
     {
       ValidateSchema(object, { "value", "type" }, {});
-      this->parameters_.relative_tolerance_ = object["value"].as<double>();
+      //this->parameters_.relative_tolerance_ = object["value"].as<double>();
     }
 
     void ParseMechanism(const objectType& object)

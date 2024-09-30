@@ -123,10 +123,10 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
+    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors, auto& state) const
         requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
+    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors, auto& state) const
         requires(VectorizableDense<DenseMatrixPolicy>);
   };  // end of Abstract Rosenbrock Solver
 
