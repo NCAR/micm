@@ -43,6 +43,13 @@ namespace micm
   /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
   /// several arrays during construction. These arrays are iterated through during
   /// calls to Decompose to do the actual decomposition.
+  /// Our LU Decomposition only assigns the values of the jacobian to the LU matrices
+  /// when the *jacobian* is nonzero. However, the sparsity pattern of the jacobian doesn't
+  /// necessarily match that of the LU matrices. There can be more nonzero elements in the LU matrices
+  /// than in the jacobian. When this happens, we still need to assign the value of the jacobian matrix
+  /// to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
+  /// here do this implicit assignment
+  /// More detail in this issue: https://github.com/NCAR/micm/issues/625
   class LuDecomposition
   {
    protected:
@@ -115,19 +122,16 @@ namespace micm
     /// @param A Sparse matrix to decompose
     /// @param L The lower triangular matrix created by decomposition
     /// @param U The upper triangular matrix created by decomposition
-    /// @param is_singular Flag that is set to true if A is singular; false otherwise
     template<class SparseMatrixPolicy>
     requires(!VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
         SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U,
-        bool& is_singular) const;
+        SparseMatrixPolicy& U) const;
     template<class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
         SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U,
-        bool& is_singular) const;
+        SparseMatrixPolicy& U) const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition

@@ -85,14 +85,6 @@ namespace micm
     /// @param A is the sparse matrix to decompose
     /// @param L is the lower triangular matrix created by decomposition
     /// @param U is the upper triangular matrix created by decomposition
-    /// @param is_singular Flag that is set to true if A is singular; false otherwise
-    template<class SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U,
-        bool& is_singular) const;
-
     template<class SparseMatrixPolicy>
     requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
@@ -104,23 +96,10 @@ namespace micm
   requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U,
-      bool& is_singular) const
-  {
-    auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
-    auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
-    micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_, is_singular);
-  }
-
-  template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
       SparseMatrixPolicy& U) const
   {
-    bool is_singular = false;
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue
-    micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_, is_singular);
+    micm::cuda::DecomposeKernelDriver(A.AsDeviceParam(), L_param, U_param, this->devstruct_);
   }
 }  // end of namespace micm

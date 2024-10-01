@@ -168,11 +168,9 @@ namespace micm
   requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U,
-      bool& is_singular) const
+      SparseMatrixPolicy& U) const
   {
     MICM_PROFILE_FUNCTION();
-    is_singular = false;
 
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
@@ -195,7 +193,13 @@ namespace micm
         for (std::size_t iU = 0; iU < inLU.second; ++iU)
         {
           if (*(do_aik++))
+          {
             U_vector[uik_nkj->first] = A_vector[*(aik++)];
+          }
+          else
+          {
+            U_vector[uik_nkj->first] = 0;
+          }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
@@ -208,26 +212,22 @@ namespace micm
         for (std::size_t iL = 0; iL < inLU.first; ++iL)
         {
           if (*(do_aki++))
+          {
             L_vector[lki_nkj->first] = A_vector[*(aki++)];
+          }
+          else
+          {
+            L_vector[lki_nkj->first] = 0;
+          }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
             L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
             ++lkj_uji;
           }
-
-          if (U_vector[*uii] == 0.0)
-          {
-            is_singular = true;
-          }
           L_vector[lki_nkj->first] /= U_vector[*uii];
           ++lki_nkj;
           ++uii;
         }
-      }
-      // check the bottom right corner of the matrix
-      if (U_vector[*uii] == 0.0)
-      {
-        is_singular = true;
       }
     }
   }
@@ -236,8 +236,7 @@ namespace micm
   requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U,
-      bool& is_singular) const
+      SparseMatrixPolicy& U) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -246,7 +245,6 @@ namespace micm
     const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
     const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
     const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
-    is_singular = false;
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
@@ -275,6 +273,10 @@ namespace micm
             std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
             ++aik;
           }
+          else
+          {
+            std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
+          }
           for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
           {
             const std::size_t lij_ujk_first = lij_ujk->first;
@@ -297,6 +299,10 @@ namespace micm
             std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
             ++aki;
           }
+          else
+          {
+            std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
+          }
           for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
           {
             const std::size_t lkj_uji_first = lkj_uji->first;
@@ -308,27 +314,10 @@ namespace micm
           const std::size_t uii_deref = *uii;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           {
-            if (U_vector[uii_deref + i_cell] == 0.0)
-            {
-              is_singular = true;
-            }
             L_vector[lki_nkj_first + i_cell] /= U_vector[uii_deref + i_cell];
           }
           ++lki_nkj;
           ++uii;
-        }
-      }
-      const std::size_t uii_deref = *uii;
-      if (n_cells != A_GroupVectorSize)
-      {
-        // check the bottom right corner of the matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-        {
-          if (U_vector[uii_deref + i_cell] == 0.0)
-          {
-            is_singular = true;
-            break;
-          }
         }
       }
     }

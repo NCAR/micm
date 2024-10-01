@@ -66,8 +66,6 @@ namespace micm
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
 
-    bool singular = false;
-
     auto derived_class_temporary_variables =
         static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
     auto& Yn = derived_class_temporary_variables->Yn_;
@@ -112,7 +110,7 @@ namespace micm
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
-        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
+        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
         result.stats_.decompositions_++;
 
         // forcing_blk in camchem

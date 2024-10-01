@@ -228,6 +228,18 @@ namespace micm
       return L;
     }
 
+    void Print() const
+    {
+      for (std::size_t i = 0; i < x_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < y_dim_; ++j)
+        {
+          std::cout << (*this)[i][j] << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+
     /// @brief Set every matrix element to a given value
     /// @param val Value to set each element to
     void Fill(T val)

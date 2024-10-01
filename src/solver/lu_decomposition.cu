@@ -18,17 +18,17 @@ namespace micm
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
-      std::pair<size_t, size_t>* d_niLU = devstruct.niLU_;
-      char* d_do_aik = devstruct.do_aik_;
-      size_t* d_aik = devstruct.aik_;
-      std::pair<size_t, size_t>* d_uik_nkj = devstruct.uik_nkj_;
-      std::pair<size_t, size_t>* d_lij_ujk = devstruct.lij_ujk_;
-      char* d_do_aki = devstruct.do_aki_;
-      size_t* d_aki = devstruct.aki_;
-      std::pair<size_t, size_t>* d_lki_nkj = devstruct.lki_nkj_;
-      std::pair<size_t, size_t>* d_lkj_uji = devstruct.lkj_uji_;
-      size_t* d_uii = devstruct.uii_;
-      size_t niLU_size = devstruct.niLU_size_;
+      const std::pair<size_t, size_t>* const d_niLU = devstruct.niLU_;
+      const char* const d_do_aik = devstruct.do_aik_;
+      const size_t* const d_aik = devstruct.aik_;
+      const std::pair<size_t, size_t>* const d_uik_nkj = devstruct.uik_nkj_;
+      const std::pair<size_t, size_t>* const d_lij_ujk = devstruct.lij_ujk_;
+      const char* const d_do_aki = devstruct.do_aki_;
+      const size_t* const d_aki = devstruct.aki_;
+      const std::pair<size_t, size_t>* const d_lki_nkj = devstruct.lki_nkj_;
+      const std::pair<size_t, size_t>* const d_lkj_uji = devstruct.lkj_uji_;
+      const size_t* const d_uii = devstruct.uii_;
+      const size_t niLU_size = devstruct.niLU_size_;
 
       size_t do_aik_offset = 0;
       size_t aik_offset = 0;
@@ -40,12 +40,10 @@ namespace micm
       size_t lki_nkj_offset = 0;
       size_t uii_offset = 0;
 
-      double* d_A = A_param.d_data_;
-      double* d_L = L_param.d_data_;
-      double* d_U = U_param.d_data_;
-      size_t number_of_grid_cells = A_param.number_of_grid_cells_;
-      bool* d_is_singular = devstruct.is_singular;
-      *d_is_singular = false;
+      const double* const d_A = A_param.d_data_;
+      double* const d_L = L_param.d_data_;
+      double* const d_U = U_param.d_data_;
+      const size_t number_of_grid_cells = A_param.number_of_grid_cells_;
 
       if (tid < number_of_grid_cells)
       {
@@ -56,19 +54,22 @@ namespace micm
           auto inLU = d_niLU[i];
           for (size_t iU = 0; iU < inLU.second; ++iU)
           {
+            size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
             if (d_do_aik[do_aik_offset++])
             {
-              size_t U_idx = d_uik_nkj[uik_nkj_offset].first + tid;
               size_t A_idx = d_aik[aik_offset++] + tid;
               d_U[U_idx] = d_A[A_idx];
+            }
+            else
+            {
+              d_U[U_idx] = 0;
             }
 
             for (size_t ikj = 0; ikj < d_uik_nkj[uik_nkj_offset].second; ++ikj)
             {
-              size_t U_idx_1 = d_uik_nkj[uik_nkj_offset].first + tid;
               size_t L_idx = d_lij_ujk[lij_ujk_offset].first + tid;
               size_t U_idx_2 = d_lij_ujk[lij_ujk_offset].second + tid;
-              d_U[U_idx_1] -= d_L[L_idx] * d_U[U_idx_2];
+              d_U[U_idx] -= d_L[L_idx] * d_U[U_idx_2];
               ++lij_ujk_offset;
             }
             ++uik_nkj_offset;
@@ -79,12 +80,17 @@ namespace micm
 
           for (size_t iL = 0; iL < inLU.first; ++iL)
           {
+            size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
             if (d_do_aki[do_aki_offset++])
             {
-              size_t L_idx = d_lki_nkj[lki_nkj_offset].first + tid;
               size_t A_idx = d_aki[aki_offset++] + tid;
               d_L[L_idx] = d_A[A_idx];
             }
+            else
+            {
+              d_L[L_idx] = 0;
+            }
+
             for (size_t ikj = 0; ikj < d_lki_nkj[lki_nkj_offset].second; ++ikj)
             {
               size_t L_idx_1 = d_lki_nkj[lki_nkj_offset].first + tid;
@@ -93,19 +99,10 @@ namespace micm
               d_L[L_idx_1] -= d_L[L_idx_2] * d_U[U_idx];
               ++lkj_uji_offset;
             }
-            if (d_U[d_uii[uii_offset] + tid] == 0.0)
-            {
-              *d_is_singular = true;
-            }
             d_L[d_lki_nkj[lki_nkj_offset].first + tid] /= d_U[d_uii[uii_offset] + tid];
             ++lki_nkj_offset;
             ++uii_offset;
           }
-        }
-        // check the bottom right corner of the matrix
-        if (d_U[d_uii[uii_offset] + tid] == 0.0)
-        {
-          *d_is_singular = true;
         }
       }
     }  // end of CUDA kernel
@@ -163,10 +160,6 @@ namespace micm
           "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMallocAsync(&(devstruct.uii_), uii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &devstruct.is_singular, sizeof(bool), micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device
@@ -259,10 +252,6 @@ namespace micm
     ///   members of class "CudaLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
-      if (devstruct.is_singular != nullptr)
-        CHECK_CUDA_ERROR(
-            cudaFreeAsync(devstruct.is_singular, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-            "cudaFree");
       if (devstruct.niLU_ != nullptr)
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.niLU_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
@@ -299,20 +288,12 @@ namespace micm
         const CudaMatrixParam& A_param,
         CudaMatrixParam& L_param,
         CudaMatrixParam& U_param,
-        const LuDecomposeParam& devstruct,
-        bool& is_singular)
+        const LuDecomposeParam& devstruct)
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (A_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           A_param, L_param, U_param, devstruct);
-      // Copy the boolean result from device back to host
-      cudaMemcpyAsync(
-          &is_singular,
-          devstruct.is_singular,
-          sizeof(bool),
-          cudaMemcpyDeviceToHost,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
     }  // end of DecomposeKernelDriver
   }    // end of namespace cuda
 }  // end of namespace micm

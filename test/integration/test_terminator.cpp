@@ -31,7 +31,6 @@ TEST(RosenbrockSolver, Terminator)
     auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
-  parameters.check_singularity_ = true;
   {
     auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);

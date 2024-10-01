@@ -385,7 +385,7 @@ namespace micm
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
 
     rates.SetJacobianFlatIds(jacobian);
-    LinearSolverPolicy linear_solver(jacobian, 1e-30);
+    LinearSolverPolicy linear_solver(jacobian, 0);
 
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)

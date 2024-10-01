@@ -69,14 +69,8 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        bool is_singular{ false };
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], is_singular, Y, stats, state);
-        if (is_singular)
-        {
-          result.state_ = SolverState::RepeatedlySingularMatrix;
-          break;
-        }
+        LinearFactor(H, parameters_.gamma_[0], Y, stats, state);
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
@@ -230,36 +224,17 @@ namespace micm
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
       double& H,
       const double gamma,
-      bool& singular,
       const auto& number_densities,
       SolverStats& stats,
       auto& state) const
   {
     MICM_PROFILE_FUNCTION();
 
-    uint64_t n_consecutive = 0;
-    singular = false;
-    while (true)
-    {
-      double alpha = 1 / (H * gamma);
-      static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
-      linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_, singular);
-      stats.decompositions_ += 1;
+    double alpha = 1 / (H * gamma);
+    static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
-      // if we are checking for singularity and the matrix is not singular, we can break the loop
-      // if we are not checking for singularity, we always break the loop
-      if (!singular || !parameters_.check_singularity_)
-        break;
-
-      stats.singular_ += 1;
-      if (++n_consecutive > 5)
-        break;
-      H /= 2;
-      // Reconstruct the Jacobian matrix if a substepping is performed here
-      state.jacobian_.Fill(0);
-      rates_.SubtractJacobianTerms(state.rate_constants_, number_densities, state.jacobian_);
-      stats.jacobian_updates_ += 1;
-    }
+    linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+    stats.decompositions_ += 1;
   }
 
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>

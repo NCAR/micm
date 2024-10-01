@@ -18,13 +18,9 @@ TEST(LuDecomposition, DenseMatrixStandardOrdering)
   testDenseMatrix<SparseMatrixTest, micm::LuDecomposition>();
 }
 
-TEST(LuDecomposition, SingularMatrixStandardOrdering)
-{
-  testSingularMatrix<SparseMatrixTest, micm::LuDecomposition>();
-}
-
 TEST(LuDecomposition, RandomMatrixStandardOrdering)
 {
+  testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(1);
   testRandomMatrix<SparseMatrixTest, micm::LuDecomposition>(5);
 }
 
@@ -33,20 +29,21 @@ TEST(LuDecomposition, DiagonalMatrixStandardOrdering)
   testDiagonalMatrix<SparseMatrixTest, micm::LuDecomposition>(5);
 }
 
+TEST(LuDecomposition, AgnosticToInitialValue)
+{
+  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  for (auto& value : initial_values)
+  {
+    testExtremeValueInitialization<SparseMatrixTest, micm::LuDecomposition>(5, value);
+  }
+}
+
 TEST(LuDecomposition, DenseMatrixVectorOrdering)
 {
   testDenseMatrix<Group1SparseVectorMatrix, micm::LuDecomposition>();
   testDenseMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>();
   testDenseMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>();
   testDenseMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>();
-}
-
-TEST(LuDecomposition, SingluarMatrixVectorOrdering)
-{
-  testSingularMatrix<Group1SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>();
-  testSingularMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>();
 }
 
 TEST(LuDecomposition, RandomMatrixVectorOrdering)
@@ -63,4 +60,16 @@ TEST(LuDecomposition, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group2SparseVectorMatrix, micm::LuDecomposition>(5);
   testDiagonalMatrix<Group3SparseVectorMatrix, micm::LuDecomposition>(5);
   testDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecomposition>(5);
+}
+
+TEST(LuDecomposition, VectorOrderingAgnosticToInitialValue)
+{
+  double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
+  for (auto& value : initial_values)
+  {
+    testExtremeValueInitialization<Group1SparseVectorMatrix, micm::LuDecomposition>(5, value);
+    testExtremeValueInitialization<Group2SparseVectorMatrix, micm::LuDecomposition>(5, value);
+    testExtremeValueInitialization<Group3SparseVectorMatrix, micm::LuDecomposition>(5, value);
+    testExtremeValueInitialization<Group4SparseVectorMatrix, micm::LuDecomposition>(5, value);
+  }
 }

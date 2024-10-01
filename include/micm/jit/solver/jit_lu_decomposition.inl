@@ -89,6 +89,16 @@ namespace micm
           func.SetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double, A_val);
           func.EndLoop(loop);
         }
+        else
+        {
+          auto loop = func.StartLoop("Uik_eq_zero_loop", 0, L);
+          llvm::Value *zero_val = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(0.0));
+          llvm::Value *iUf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, uik_nkj->first));
+          llvm::Value *U_ptr_index[1];
+          U_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iUf);
+          func.SetArrayElement(func.arguments_[2], U_ptr_index, JitType::Double, zero_val);
+          func.EndLoop(loop);
+        }
         for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
         {
           auto loop = func.StartLoop("Uik_seq_Lij_Ujk_loop", 0, L);
@@ -135,6 +145,16 @@ namespace micm
           llvm::Value *L_ptr_index[1];
           L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
           func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, A_val);
+          func.EndLoop(loop);
+        }
+        else
+        {
+          auto loop = func.StartLoop("Lki_eq_zero_loop", 0, L);
+          llvm::Value *zero_val = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(0.0));
+          llvm::Value *iLf = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, lki_nkj->first));
+          llvm::Value *L_ptr_index[1];
+          L_ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, iLf);
+          func.SetArrayElement(func.arguments_[1], L_ptr_index, JitType::Double, zero_val);
           func.EndLoop(loop);
         }
         for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
@@ -186,25 +206,13 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitLuDecomposition<L>::Decompose(
-      const SparseMatrixPolicy &A,
-      SparseMatrixPolicy &lower,
-      SparseMatrixPolicy &upper,
-      bool &is_singular) const
+  void JitLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
+      const
   {
-    is_singular = false;
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
     for (size_t block = 0; block < A.NumberOfBlocks(); ++block)
     {
       auto diagonals = upper.DiagonalIndices(block);
-      for (const auto &diagonal : diagonals)
-      {
-        if (upper.AsVector()[diagonal] == 0)
-        {
-          is_singular = true;
-          return;
-        }
-      }
     }
   }
 }  // namespace micm
