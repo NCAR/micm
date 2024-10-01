@@ -59,6 +59,10 @@ namespace micm
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
 
+    /// @brief Constructor with parameters
+    /// @param parameters State dimension information
+    State(const StateParameters& parameters);
+
     /// @brief Copy constructor
     /// @param other The state object to be copied
     State(const State& other)
@@ -102,12 +106,51 @@ namespace micm
       return *this;
     }
 
-    /// @brief
-    State();
+    /// @brief Move constructor
+    /// @param other The state object to be moved
+    State(State&& other) noexcept
+        : variables_(std::move(other.variables_)),
+          custom_rate_parameters_(std::move(other.custom_rate_parameters_)),
+          rate_constants_(std::move(other.rate_constants_)),
+          conditions_(std::move(other.conditions_)),
+          jacobian_(std::move(other.jacobian_)),
+          variable_map_(std::move(other.variable_map_)),
+          custom_rate_parameter_map_(std::move(other.custom_rate_parameter_map_)),
+          variable_names_(std::move(other.variable_names_)),
+          lower_matrix_(std::move(other.lower_matrix_)),
+          upper_matrix_(std::move(other.upper_matrix_)),
+          state_size_(other.state_size_),
+          number_of_grid_cells_(other.number_of_grid_cells_),
+          temporary_variables_(std::move(other.temporary_variables_))
+    {
+    }
 
-    /// @brief
-    /// @param parameters State dimension information
-    State(const StateParameters& parameters);
+    /// @brief Move assignment operator
+    /// @param other The state object to be moved
+    /// @return Reference to the moved state object
+    State& operator=(State&& other) noexcept
+    {
+      if (this != &other)
+      {
+        variables_ = std::move(other.variables_);
+        custom_rate_parameters_ = std::move(other.custom_rate_parameters_);
+        rate_constants_ = std::move(other.rate_constants_);
+        conditions_ = std::move(other.conditions_);
+        jacobian_ = std::move(other.jacobian_);
+        variable_map_ = std::move(other.variable_map_);
+        custom_rate_parameter_map_ = std::move(other.custom_rate_parameter_map_);
+        variable_names_ = std::move(other.variable_names_);
+        lower_matrix_ = std::move(other.lower_matrix_);
+        upper_matrix_ = std::move(other.upper_matrix_);
+        state_size_ = other.state_size_;
+        number_of_grid_cells_ = other.number_of_grid_cells_;
+        temporary_variables_ = std::move(other.temporary_variables_);
+
+        other.state_size_ = 0;
+        other.number_of_grid_cells_ = 0;
+      }
+      return *this;
+    }
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration
@@ -139,6 +182,10 @@ namespace micm
     /// @brief Print state (concentrations) at the given time
     /// @param time solving time
     void PrintState(double time);
+
+   private:
+    /// @brief Default constructor cannot be used
+    State();
   };
 
 }  // namespace micm
