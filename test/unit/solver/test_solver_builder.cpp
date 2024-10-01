@@ -105,7 +105,6 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .SetNumberOfGridCells(1)
                                .Build();
 }
-
 /*
 TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
 {
@@ -128,5 +127,4 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
       micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(params);
 
   EXPECT_ANY_THROW(builder.SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(1).Build(););
-}
-*/
+}*/

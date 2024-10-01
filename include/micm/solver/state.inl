@@ -187,6 +187,12 @@ namespace micm
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
+  
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetRelativeTolerances(double relativeTolerance)
+  {
+    this->relative_tolerance_ = relativeTolerance;
+  }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
   inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::PrintHeader()

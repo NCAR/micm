@@ -316,7 +316,7 @@ namespace micm
         }
       }
     }
-  }
+  }  
 
   template<
       class SolverParametersPolicy,
@@ -399,7 +399,7 @@ namespace micm
                                          .nonzero_jacobian_elements_ = nonzero_elements };
                                          
 
-    this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map); //WHERE TO ADD THIS??????
+    this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
         SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),

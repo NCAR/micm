@@ -9,8 +9,6 @@
 #include <limits>
 #include <vector>
 
-//#include "../include/micm/solver/solver.hpp"
-
 namespace micm
 {
 

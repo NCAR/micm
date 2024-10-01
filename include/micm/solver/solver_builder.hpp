@@ -50,6 +50,7 @@ namespace micm
     bool reorder_state_ = true;
     bool valid_system_ = false;
     bool valid_reactions_ = false;
+    double relative_tolerance_ = 1e-06;
 
    public:
     SolverBuilder() = delete;

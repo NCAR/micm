@@ -31,7 +31,7 @@ namespace micm
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
-    double relative_tolerance_;
+    double relative_tolerance_{ 1e-06 };
     std::vector<double> absolute_tolerance_ {};
   };
 
@@ -140,6 +140,7 @@ namespace micm
     /// @param value new parameter value
     void SetCustomRateParameter(const std::string& label, double value);
     void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
+    void SetRelativeTolerances(double relativeTolerance);
 
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
