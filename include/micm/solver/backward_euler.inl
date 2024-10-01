@@ -219,7 +219,6 @@ namespace micm
     const std::size_t L = residual.GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
-
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {

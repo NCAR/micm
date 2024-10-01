@@ -86,8 +86,8 @@ void CheckIsConverged()
   residual[3][2] = 1e-1;
   ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state));
   parameters.absolute_tolerance_[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));
-  */
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));*/
+  
 }
 
 TEST(BackwardEuler, IsConverged)
