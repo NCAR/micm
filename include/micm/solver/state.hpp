@@ -185,7 +185,7 @@ namespace micm
 
     /// @brief Default constructor
     /// Only defined to be used to create default values in types, but a default constructed state is not useable
-    State() : {};
+    State();
   };
 
 }  // namespace micm
