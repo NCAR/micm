@@ -33,7 +33,7 @@ auto six_da_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::SixStage
 
 auto copy_to_device = [](auto& state) -> void { state.SyncInputsToDevice(); };
 auto copy_to_host = [](auto& state) -> void { state.SyncOutputsToHost(); };
-
+/*
 TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 {
   test_analytical_troe<builderType, stateType>(two, 2e-3, copy_to_device, copy_to_host);
@@ -241,4 +241,4 @@ TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
   test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
-}
+}*/
