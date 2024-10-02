@@ -183,9 +183,9 @@ namespace micm
     /// @param time solving time
     void PrintState(double time);
 
-   private:
-    /// @brief Default constructor cannot be used
-    State();
+    /// @brief Default constructor
+    /// Only defined to be used to create default values in types, but a default constructed state is not useable
+    State() : {};
   };
 
 }  // namespace micm
