@@ -69,25 +69,25 @@ void CheckIsConverged()
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };
   DenseMatrixPolicy state{ 4, 3, 0.0 };
+  micm::StateParameters state_params;
 
   parameters.small_ = 1e-6;
-  /*parameters.relative_tolerance_ = 1e-3;
-  parameters.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
+  state_params.relative_tolerance_ = 1e-3;
+  state_params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
 
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
   residual[0][1] = 1e-5;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
   parameters.small_ = 1e-4;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
   residual[3][2] = 1e-3;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
   state[3][2] = 10.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
   residual[3][2] = 1e-1;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state));
-  parameters.absolute_tolerance_[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state));*/
-  
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
+  state_params.absolute_tolerance_[2] = 1.0;
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));  
 }
 
 TEST(BackwardEuler, IsConverged)

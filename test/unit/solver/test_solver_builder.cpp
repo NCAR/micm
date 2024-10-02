@@ -105,26 +105,3 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .SetNumberOfGridCells(1)
                                .Build();
 }
-/*
-TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
-{
-  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  // too many
-  params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
-  EXPECT_ANY_THROW(micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
-                       .SetSystem(the_system)
-                       .SetReactions(reactions)
-                       .SetNumberOfGridCells(1)
-                       .Build(););
-
-  constexpr std::size_t L = 4;
-  // too few
-  params.absolute_tolerance_ = { 1e-6, 1e-6 };
-
-  auto builder = micm::CpuSolverBuilder<
-      micm::RosenbrockSolverParameters,
-      micm::VectorMatrix<double, L>,
-      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(params);
-
-  EXPECT_ANY_THROW(builder.SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(1).Build(););
-}*/
