@@ -133,7 +133,7 @@ void testNormalizedErrorConst()
   y_new.CopyToDevice();
   errors.CopyToDevice();
 
-  double error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors);
+  double error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto expected_error = 0.0;
   for (size_t i = 0; i < state.state_size_; ++i)
@@ -192,7 +192,7 @@ void testNormalizedErrorDiff()
   y_new.CopyToDevice();
   errors.CopyToDevice();
 
-  double computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors);
+  double computed_error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
   auto relative_error =
       std::abs(computed_error - expected_error) / std::max(std::abs(computed_error), std::abs(expected_error));

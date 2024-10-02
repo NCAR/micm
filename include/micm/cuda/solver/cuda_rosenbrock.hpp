@@ -116,7 +116,7 @@ namespace micm
     /// @return The scaled norm of the errors
     template<class DenseMatrixPolicy>
     double NormalizedError(const DenseMatrixPolicy& y_old, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors)
-        const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+        const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>, auto& state)
     {
       return micm::cuda::NormalizedErrorDriver(
           y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, this->devstruct_);
