@@ -59,6 +59,10 @@ namespace micm
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
 
+    /// @brief Default constructor
+    /// Only defined to be used to create default values in types, but a default constructed state is not useable
+    State();
+
     /// @brief Constructor with parameters
     /// @param parameters State dimension information
     State(const StateParameters& parameters);
@@ -182,10 +186,6 @@ namespace micm
     /// @brief Print state (concentrations) at the given time
     /// @param time solving time
     void PrintState(double time);
-
-    /// @brief Default constructor
-    /// Only defined to be used to create default values in types, but a default constructed state is not useable
-    State();
   };
 
 }  // namespace micm
