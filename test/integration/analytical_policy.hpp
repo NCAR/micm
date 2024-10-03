@@ -243,19 +243,13 @@ void test_simple_system(
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_A],
-          analytical_concentrations[i_time][i_cell][idx_A],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_B],
-          analytical_concentrations[i_time][i_cell][idx_B],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_C],
-          analytical_concentrations[i_time][i_cell][idx_C],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
   }
@@ -364,19 +358,13 @@ void test_simple_stiff_system(
     for (std::size_t i_cell = 0; i_cell < model_concentrations[i_time].size(); ++i_cell)
     {
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_A],
-          analytical_concentrations[i_time][i_cell][idx_A],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_A], analytical_concentrations[i_time][i_cell][idx_A], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 0 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_B],
-          analytical_concentrations[i_time][i_cell][idx_B],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_B], analytical_concentrations[i_time][i_cell][idx_B], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 1 << ") for " << test_label;
       EXPECT_NEAR(
-          model_concentrations[i_time][i_cell][idx_C],
-          analytical_concentrations[i_time][i_cell][idx_C],
-          absolute_tolerances)
+          model_concentrations[i_time][i_cell][idx_C], analytical_concentrations[i_time][i_cell][idx_C], absolute_tolerances)
           << "Arrays differ at index (" << i_time << ", " << i_cell << ", " << 2 << ") for " << test_label;
     }
   }
@@ -1444,8 +1432,8 @@ void test_analytical_oregonator(
    * This problem is described in
    * Hairer, E., Wanner, G., 1996. Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic Problems, 2nd
    * edition. ed. Springer, Berlin ; New York. Page 144. It actually comes from Field and Noyes (1974)
-   * A driver for a version of this is from here, but this needs a custom forcing and jacobian and so we tried to translate it
-   * https://www.unige.ch/~hairer/testset/testset.html
+   * A driver for a version of this is from here, but this needs a custom forcing and jacobian and so we tried to translate
+   * it https://www.unige.ch/~hairer/testset/testset.html
    *
    * Field, R.J., Noyes, R.M., 1974. Oscillations in chemical systems. IV. Limit cycle behavior in a model of a real chemical
    * reaction. The Journal of Chemical Physics 60, 1877–1884. https://doi.org/10.1063/1.1681288
@@ -1464,7 +1452,7 @@ void test_analytical_oregonator(
    *
    * solutions are provided here
    * https://www.unige.ch/~hairer/testset/testset.html
-   * 
+   *
    * I don't understand the transfomrations. Multiplying the timestep by tau, and the concnetrations by the constants
    * in the paper give very similar values.
    */
