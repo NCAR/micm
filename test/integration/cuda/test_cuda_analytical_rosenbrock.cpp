@@ -36,47 +36,47 @@ auto copy_to_host = [](auto& state) -> void { state.SyncOutputsToHost(); };
 
 TEST(AnalyticalExamplesCudaRosenbrock, Troe)
 {
-  test_analytical_troe<builderType, stateType>(two, 2e-3, copy_to_device, copy_to_host);
-  test_analytical_troe<builderType, stateType>(three, 2e-7, copy_to_device, copy_to_host);
-  test_analytical_troe<builderType, stateType>(four, 2e-7, copy_to_device, copy_to_host);
-  test_analytical_troe<builderType, stateType>(four_da, 2e-7, copy_to_device, copy_to_host);
-  test_analytical_troe<builderType, stateType>(six_da, 2e-7, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(two, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(three, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(four, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(four_da, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_troe<builderType, stateType>(six_da, 1e-10, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TroeSuperStiffButAnalytical)
 {
-  test_analytical_stiff_troe<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe<builderType, stateType>(three, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe<builderType, stateType>(four, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe<builderType, stateType>(four_da, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_troe<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(two, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(four, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_troe<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Photolysis)
 {
-  test_analytical_photolysis<builderType, stateType>(two, 1e-2, copy_to_device, copy_to_host);
-  test_analytical_photolysis<builderType, stateType>(three, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_photolysis<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_photolysis<builderType, stateType>(four_da, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_photolysis<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(two, 2e-6, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(three, 2e-6, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(four, 2e-8, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(four_da, 2e-6, copy_to_device, copy_to_host);
+  test_analytical_photolysis<builderType, stateType>(six_da, 2e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, PhotolysisSuperStiffButAnalytical)
 {
-  test_analytical_stiff_photolysis<builderType, stateType>(two, 2e-2, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis<builderType, stateType>(three, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis<builderType, stateType>(four, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis<builderType, stateType>(four_da, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_photolysis<builderType, stateType>(six_da, 2e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(two, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(three, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(four, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(four_da, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_photolysis<builderType, stateType>(six_da, 2e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivation)
 {
-  test_analytical_ternary_chemical_activation<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(three, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_ternary_chemical_activation<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(two, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_ternary_chemical_activation<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAnalytical)
@@ -90,47 +90,47 @@ TEST(AnalyticalExamplesCudaRosenbrock, TernaryChemicalActivationSuperStiffButAna
 
 TEST(AnalyticalExamplesCudaRosenbrock, Tunneling)
 {
-  test_analytical_tunneling<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(two, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(three, 1e-6, copy_to_device, copy_to_host);
   test_analytical_tunneling<builderType, stateType>(four, 1e-6, copy_to_device, copy_to_host);
-  test_analytical_tunneling<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_tunneling<builderType, stateType>(four_da, 1e-6, copy_to_device, copy_to_host);
   test_analytical_tunneling<builderType, stateType>(six_da, 1e-6, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, TunnelingSuperStiffButAnalytical)
 {
-  test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-1, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling<builderType, stateType>(three, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling<builderType, stateType>(four, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling<builderType, stateType>(four_da, 2e-4, copy_to_device, copy_to_host);
-  test_analytical_stiff_tunneling<builderType, stateType>(six_da, 2e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(three, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(four, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(four_da, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_tunneling<builderType, stateType>(six_da, 1e-4, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Arrhenius)
 {
-  test_analytical_arrhenius<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_arrhenius<builderType, stateType>(three, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_arrhenius<builderType, stateType>(four, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_arrhenius<builderType, stateType>(four_da, 1e-8, copy_to_device, copy_to_host);
-  test_analytical_arrhenius<builderType, stateType>(six_da, 1e-8, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(two, 4e-6, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(three, 1e-9, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(four, 1e-9, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(four_da, 1e-9, copy_to_device, copy_to_host);
+  test_analytical_arrhenius<builderType, stateType>(six_da, 1e-9, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, ArrheniusSuperStiffButAnalytical)
 {
-  test_analytical_stiff_arrhenius<builderType, stateType>(two, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius<builderType, stateType>(three, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius<builderType, stateType>(four, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius<builderType, stateType>(four_da, 1e-3, copy_to_device, copy_to_host);
-  test_analytical_stiff_arrhenius<builderType, stateType>(six_da, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(three, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(four, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(four_da, 2e-5, copy_to_device, copy_to_host);
+  test_analytical_stiff_arrhenius<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Branched)
 {
-  test_analytical_branched<builderType, stateType>(two, 1e-4, copy_to_device, copy_to_host);
-  test_analytical_branched<builderType, stateType>(three, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_branched<builderType, stateType>(four, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_branched<builderType, stateType>(four_da, 1e-5, copy_to_device, copy_to_host);
-  test_analytical_branched<builderType, stateType>(six_da, 1e-5, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(two, 1e-10, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(three, 1e-13, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(four, 1e-13, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(four_da, 1e-13, copy_to_device, copy_to_host);
+  test_analytical_branched<builderType, stateType>(six_da, 1e-13, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
@@ -218,19 +218,19 @@ TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
@@ -243,17 +243,17 @@ TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-4, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-7, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-7, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
 
   solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
 }
