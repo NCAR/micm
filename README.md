@@ -125,10 +125,12 @@ The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM docu
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
 ```c++
-#include <iomanip>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+
+#include <iomanip>
+#include <iostream>
 
 using namespace micm;
 
@@ -156,7 +158,10 @@ int main(const int argc, const char *argv[])
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::ThreeStageRosenbrockParameters() };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
   State state = solver.GetState();
 
@@ -167,9 +172,9 @@ int main(const int argc, const char *argv[])
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(500.0, state);
-    state.variables_ = result.result_;
-    state.PrintState(i*500);
+    state.PrintState(i * 500);
   }
 
   return 0;
@@ -178,7 +183,7 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.3.1/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.6.0/include -std=c++20
 ./foo_chem
 ```
 
