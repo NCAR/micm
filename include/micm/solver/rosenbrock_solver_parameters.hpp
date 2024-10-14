@@ -59,9 +59,6 @@ namespace micm
     std::array<double, 6> alpha_{};
     // Gamma_i = \sum_j  gamma_{i,j}
     std::array<double, 6> gamma_{};
-    
-    //std::vector<double> absolute_tolerance_;
-    //double relative_tolerance_{ 1e-6 };
 
     // Print RosenbrockSolverParameters to console
     void Print() const;
