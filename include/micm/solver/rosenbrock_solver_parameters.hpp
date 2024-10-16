@@ -60,6 +60,10 @@ namespace micm
     // Gamma_i = \sum_j  gamma_{i,j}
     std::array<double, 6> gamma_{};
 
+    //We have this to pass CUDA Tests. once we figure out a path forward we can get rid of these. 
+    std::vector<double> absolute_tolerance_;
+    double relative_tolerance_{ 1e-6 };
+
     // Print RosenbrockSolverParameters to console
     void Print() const;
 

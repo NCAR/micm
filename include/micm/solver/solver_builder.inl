@@ -400,6 +400,7 @@ namespace micm
                                          
 
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
+    options.absolute_tolerance_ = state_parameters.absolute_tolerance_;
 
     return Solver<SolverPolicy, StatePolicy>(
         SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),
