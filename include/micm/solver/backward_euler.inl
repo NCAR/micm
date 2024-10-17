@@ -133,7 +133,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1);
+        converged = IsConverged(parameters_, forcing, Yn1, state);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -180,11 +180,11 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state) requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& state, auto& stateParams) requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = parameters.relative_tolerance_;
-    auto& abs_tol = parameters.absolute_tolerance_;
+    double rel_tol = stateParams.relative_tolerance_;
+    auto& abs_tol = stateParams.absolute_tolerance_;
     auto residual_iter = residual.AsVector().begin();
     auto state_iter = state.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
@@ -206,18 +206,17 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state) requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& state, auto& stateParams) requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = parameters.relative_tolerance_;
-    auto& abs_tol = parameters.absolute_tolerance_;
+    double rel_tol = stateParams.relative_tolerance_;
+    auto& abs_tol = stateParams.absolute_tolerance_;
     auto residual_iter = residual.AsVector().begin();
     auto state_iter = state.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     const std::size_t L = residual.GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
-
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {

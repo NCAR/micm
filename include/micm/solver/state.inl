@@ -80,7 +80,9 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
-        number_of_grid_cells_(parameters.number_of_grid_cells_)
+        number_of_grid_cells_(parameters.number_of_grid_cells_),
+        relative_tolerance_(1e-06),
+        absolute_tolerance_(parameters.absolute_tolerance_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
@@ -184,6 +186,12 @@ namespace micm
           make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
+  }
+  
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetRelativeTolerances(double relativeTolerance)
+  {
+    this->relative_tolerance_ = relativeTolerance;
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>

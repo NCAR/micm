@@ -14,7 +14,6 @@
 TEST(RosenbrockSolver, Terminator)
 {
   auto parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {
     auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
@@ -59,7 +58,6 @@ using VectorBuilder = micm::CpuSolverBuilder<
 TEST(RosenbrockSolver, VectorTerminator)
 {
   auto parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {
     auto builder = VectorBuilder<1>(parameters).SetIgnoreUnusedSpecies(true);

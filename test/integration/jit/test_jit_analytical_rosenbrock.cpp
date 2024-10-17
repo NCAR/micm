@@ -182,14 +182,6 @@ TEST(AnalyticalExamplesJitRosenbrock, E5)
 {
   auto rosenbrock_solver = [](auto params)
   {
-    params.relative_tolerance_ = 1e-13;
-    params.absolute_tolerance_ = std::vector<double>(6, 1e-17);
-    // this paper https://archimede.uniba.it/~testset/report/e5.pdf
-    // says that the first variable should have a much looser tolerance than the other species
-    params.absolute_tolerance_[0] = 1e-7;
-    // these last two aren't actually provided values and we don't care how they behave
-    params.absolute_tolerance_[4] = 1e-7;
-    params.absolute_tolerance_[5] = 1e-7;
     return BuilderType<1>(params);
   };
 
@@ -213,9 +205,6 @@ TEST(AnalyticalExamplesJitRosenbrock, Oregonator)
 {
   auto rosenbrock_solver = [](auto params)
   {
-    // anything below 1e-6 is too strict for the Oregonator
-    params.relative_tolerance_ = 1e-6;
-    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-2);
     return BuilderType<1>(params);
   };
 
@@ -239,8 +228,6 @@ TEST(AnalyticalExamplesJitRosenbrock, HIRES)
 {
   auto rosenbrock_solver = [](auto params)
   {
-    params.relative_tolerance_ = 1e-6;
-    params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
     return BuilderType<1>(params);
   };
 

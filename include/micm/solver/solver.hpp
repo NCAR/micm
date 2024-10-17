@@ -63,6 +63,13 @@ namespace micm
       return solver_.Solve(time_step, state);
     }
 
+    // Overloaded Solve function to change parameters
+    SolverResult Solve(double time_step, StatePolicy& state, SolverParametersType& params)
+    {
+      solver_.parameters_ = params;
+      return solver_.Solve(time_step, state);
+    }
+
     /// @brief Returns the number of grid cells
     /// @return
     std::size_t GetNumberOfGridCells() const
@@ -81,7 +88,7 @@ namespace micm
     {
       return state_parameters_.number_of_rate_constants_;
     }
-
+    
     StatePolicy GetState() const
     {
       auto state = std::move(StatePolicy(state_parameters_));

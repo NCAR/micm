@@ -789,7 +789,6 @@ namespace micm
 
     std::function<bool(const std::vector<double>)> is_successful = [](const std::vector<double>& jacobian) { return true; };
     std::vector<double> ode_jacobian;
-    uint64_t n_consecutive = 0;
 
     double alpha = 1 / (H * gamma);
     // compute jacobian decomposition of alpha*I - dforce_dy
