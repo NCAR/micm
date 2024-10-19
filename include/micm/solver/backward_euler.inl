@@ -61,7 +61,7 @@ namespace micm
     std::size_t max_iter = parameters_.max_number_of_steps_;
     const auto time_step_reductions = parameters_.time_step_reductions_;
 
-    double H = time_step;
+    double H = parameters_.h_start_ == 0.0 ? time_step : parameters_.h_start_;
     double t = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
