@@ -137,6 +137,7 @@ namespace micm
     __global__ void NormalizedErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
+        const CudaMatrixParam absolute_tolerance_param,
         const RosenbrockSolverParameters ros_param,
         CudaRosenbrockSolverParam devstruct,
         const size_t n,
@@ -245,6 +246,7 @@ namespace micm
     __global__ void ScaledErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
+        const CudaMatrixParam absolute_tolerance_param,
         const RosenbrockSolverParameters ros_param,
         CudaRosenbrockSolverParam devstruct)
     {
@@ -253,7 +255,7 @@ namespace micm
       const double* const d_y_old = y_old_param.d_data_;
       const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors = devstruct.errors_input_;
-      const double* const atol = devstruct.absolute_tolerance_;
+      const double* const atol = absolute_tolerance_param.d_data_;
       const double rtol = ros_param.relative_tolerance_;
       const size_t num_elements = devstruct.errors_size_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
@@ -288,6 +290,7 @@ namespace micm
         const CudaMatrixParam& y_old_param,
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
+        const CudaMatrixParam& absolute_tolerance_param,
         const RosenbrockSolverParameters& ros_param,
         CudaRosenbrockSolverParam devstruct)
     {
@@ -318,7 +321,7 @@ namespace micm
             BLOCK_SIZE,
             0,
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, ros_param, devstruct);
+            y_old_param, y_new_param, absolute_tolerance_param, ros_param, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
@@ -341,7 +344,7 @@ namespace micm
             BLOCK_SIZE,
             BLOCK_SIZE * sizeof(double),
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, ros_param, devstruct, number_of_elements, is_first_call);
+            y_old_param, y_new_param, absolute_tolerance_param, ros_param, devstruct, number_of_elements, is_first_call);
         is_first_call = false;
         while (number_of_blocks > 1)
         {
@@ -355,7 +358,7 @@ namespace micm
                 BLOCK_SIZE,
                 BLOCK_SIZE * sizeof(double),
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-                y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
+                y_old_param, y_new_param, absolute_tolerance_param, ros_param, devstruct, number_of_blocks, is_first_call);
             break;
           }
           NormalizedErrorKernel<<<
@@ -363,7 +366,7 @@ namespace micm
               BLOCK_SIZE,
               BLOCK_SIZE * sizeof(double),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-              y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
+              y_old_param, y_new_param, absolute_tolerance_param, ros_param, devstruct, number_of_blocks, is_first_call);
           number_of_blocks = new_number_of_blocks;
         }
 

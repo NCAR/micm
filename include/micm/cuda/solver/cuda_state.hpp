@@ -29,6 +29,7 @@ namespace micm
     {
       this->variables_.CopyToDevice();
       this->rate_constants_.CopyToDevice();
+      this->absolute_tolerance_.CopyToDevice();
     }
 
     /// @brief Copy output variables to the host

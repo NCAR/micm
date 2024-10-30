@@ -82,8 +82,6 @@ namespace micm
       hoststruct.errors_size_ = jacobian.GroupVectorSize() * this->parameters_.absolute_tolerance_.size();
       hoststruct.jacobian_diagonal_elements_ = this->jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->jacobian_diagonal_elements_.size();
-      hoststruct.absolute_tolerance_ = this->parameters_.absolute_tolerance_.data();
-      hoststruct.absolute_tolerance_size_ = this->parameters_.absolute_tolerance_.size();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
@@ -119,7 +117,7 @@ namespace micm
         const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
       return micm::cuda::NormalizedErrorDriver(
-          y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, this->devstruct_);
+          y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, state.absolute_tolerance_.AsDeviceParam(), this->devstruct_);
     }
   };  // end CudaRosenbrockSolver
 }  // namespace micm

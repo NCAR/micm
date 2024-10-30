@@ -61,7 +61,7 @@ namespace micm
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
-    std::vector<double> absolute_tolerance_;
+    DenseMatrixPolicy absolute_tolerance_;
 
     /// @brief Default constructor
     /// Only defined to be used to create default values in types, but a default constructed state is not useable
