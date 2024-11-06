@@ -153,6 +153,8 @@ namespace micm
         timer[4] = timer[4] + end_time - start_time;
       } while (!converged && iterations < max_iter);
 
+      std::cout << "addforcing = " << timer[0] << ", jacobian = " << timer[1] << ", LU decomp = " << timer[2] << ", LU solver = " << timer[3] << ", convergence check = " << timer[4] << std::endl;
+      
       if (!converged)
       {
         result.stats_.rejected_++;
