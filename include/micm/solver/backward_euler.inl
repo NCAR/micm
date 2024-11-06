@@ -72,6 +72,8 @@ namespace micm
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
 
+    double timer[5] = {0, 0, 0, 0, 0};
+
     while (t < time_step)
     {
       result.state_ = SolverState::Running;
@@ -95,22 +97,31 @@ namespace micm
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
         forcing.Fill(0.0);
+        double start_time = omp_get_wtime();
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
+        double end_time = omp_get_wtime();
+        timer[0] = timer[0] + end_time - start_time;
         result.stats_.function_calls_++;
 
         // calculate the negative jacobian
         state.jacobian_.Fill(0.0);
+        start_time = omp_get_wtime();
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
         // add the inverse of the time step from the diagonal
         state.jacobian_.AddToDiagonal(1 / H);
+        end_time = omp_get_wtime();
+        timer[1] = timer[1] + end_time - start_time;
 
         // We want to solve this equation for a zero
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
+        start_time = omp_get_wtime();
         linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+        end_time = omp_get_wtime();
+        timer[2] = timer[2] + end_time - start_time;
         result.stats_.decompositions_++;
 
         // forcing_blk in camchem
@@ -120,7 +131,10 @@ namespace micm
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
+        start_time = omp_get_wtime();
         linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
+        end_time = omp_get_wtime();
+        timer[3] = timer[3] + end_time - start_time;
         result.stats_.solves_++;
 
         // solution_blk in camchem
@@ -133,7 +147,10 @@ namespace micm
           continue;
 
         // check for convergence
+        start_time = omp_get_wtime();
         converged = IsConverged(parameters_, forcing, Yn1);
+        end_time = omp_get_wtime();
+        timer[4] = timer[4] + end_time - start_time;
       } while (!converged && iterations < max_iter);
 
       if (!converged)
