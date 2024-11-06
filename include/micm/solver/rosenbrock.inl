@@ -254,7 +254,7 @@ namespace micm
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
     const std::size_t N = Y.AsVector().size();
-    const std::size_t n_vars = state.absolute_tolerance_.size();
+    const std::size_t n_vars = state.absolute_tolerance_.AsVector().size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -264,7 +264,7 @@ namespace micm
     {
       ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       errors_over_scale =
-          _errors[i] / (state.absolute_tolerance_[i % n_vars] + state.relative_tolerance_ * ymax);
+          _errors[i] / (state.absolute_tolerance_.AsVector()[i % n_vars] + state.relative_tolerance_ * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
@@ -291,7 +291,7 @@ namespace micm
     auto errors_iter = errors.AsVector().begin();
     const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t L = Y.GroupVectorSize();
-    const std::size_t n_vars = state.absolute_tolerance_.size();
+    const std::size_t n_vars = state.absolute_tolerance_.AsVector().size();
 
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
 
@@ -302,7 +302,7 @@ namespace micm
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
       errors_over_scale =
-          *errors_iter / (state.absolute_tolerance_[(i / L) % n_vars] +
+          *errors_iter / (state.absolute_tolerance_.AsVector()[(i / L) % n_vars] +
                           state.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
       ++y_iter;
@@ -321,7 +321,7 @@ namespace micm
         {
           const std::size_t idx = y * L + x;
           errors_over_scale = errors_iter[idx] /
-                              (state.absolute_tolerance_[y] +
+                              (state.absolute_tolerance_.AsVector()[y] +
                                state.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
         }

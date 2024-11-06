@@ -69,17 +69,19 @@ namespace micm
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian,
+              number_of_species)
     {
       CudaRosenbrockSolverParam hoststruct;
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
       // the absolute tolerance size is the same as the number of solved variables in one grid cell
-      hoststruct.errors_size_ = jacobian.GroupVectorSize() * this->parameters_.absolute_tolerance_.size();
+      hoststruct.errors_size_ = jacobian.GroupVectorSize() * number_of_species;
       hoststruct.jacobian_diagonal_elements_ = this->jacobian_diagonal_elements_.data();
       hoststruct.jacobian_diagonal_elements_size_ = this->jacobian_diagonal_elements_.size();
       // Copy the data from host struct to device struct
@@ -117,7 +119,12 @@ namespace micm
         const requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
       return micm::cuda::NormalizedErrorDriver(
-          y_old.AsDeviceParam(), y_new.AsDeviceParam(), errors.AsDeviceParam(), this->parameters_, state.absolute_tolerance_.AsDeviceParam(), this->devstruct_);
+          y_old.AsDeviceParam(),
+          y_new.AsDeviceParam(),
+          errors.AsDeviceParam(),
+          state.absolute_tolerance_.AsDeviceParam(), 
+          this->parameters_, 
+          this->devstruct_);
     }
   };  // end CudaRosenbrockSolver
 }  // namespace micm

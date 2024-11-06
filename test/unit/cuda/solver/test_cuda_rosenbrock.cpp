@@ -122,7 +122,7 @@ void testNormalizedErrorConst()
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto state = gpu_solver.GetState();  
-  std::vector<double> atol = state.absolute_tolerance_;
+  std::vector<double> atol = state.absolute_tolerance_.AsVector();
   double rtol = state.relative_tolerance_;
 
   auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 1.0);
@@ -166,7 +166,7 @@ void testNormalizedErrorDiff()
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto state = gpu_solver.GetState();
-  std::vector<double> atol = state.absolute_tolerance_;  
+  std::vector<double> atol = state.absolute_tolerance_.AsVector();  
   double rtol = state.relative_tolerance_;
   auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 7.7);
   auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, -13.9);

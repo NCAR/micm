@@ -72,7 +72,8 @@ namespace micm
         const RosenbrockSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : parameters_(parameters),
           linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
@@ -139,12 +140,14 @@ namespace micm
         const RosenbrockSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian,
+              number_of_species)
     {
     }
     RosenbrockSolver(const RosenbrockSolver&) = delete;
