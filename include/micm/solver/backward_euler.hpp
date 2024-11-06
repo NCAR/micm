@@ -23,6 +23,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <omp.h>
 
 namespace micm
 {
