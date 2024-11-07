@@ -43,17 +43,18 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   micm::State state = solver.GetState();
   state.SetRelativeTolerances(solver_params.relative_tolerance_); 
   EXPECT_EQ(state.relative_tolerance_, 1.0e-4);
+  auto& abs_tol = state.absolute_tolerance_.AsVector();
 
   for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
   {
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["Ar"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["CO2"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["H2O"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["N2"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["O1D"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["O"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["O2"]], 1.0e-12);
-    EXPECT_EQ(state.absolute_tolerance_[state.variable_map_["O3"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["Ar"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["CO2"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["H2O"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["N2"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["O1D"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["O"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["O2"]], 1.0e-12);
+    EXPECT_EQ(abs_tol[state.variable_map_["O3"]], 1.0e-12);
   }
 
   // User gives an input of concentrations

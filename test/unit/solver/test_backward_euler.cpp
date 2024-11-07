@@ -68,26 +68,25 @@ void CheckIsConverged()
 
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };
-  DenseMatrixPolicy state{ 4, 3, 0.0 };
-  micm::StateParameters state_params;
+  DenseMatrixPolicy Yn1{ 4, 3, 0.0 };
 
   parameters.small_ = 1e-6;
-  state_params.relative_tolerance_ = 1e-3;
-  state_params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
+  double relative_tolerance = 1e-3;
+  std::vector<double> absolute_tolerance = { 1e-6, 1e-6, 1e-6 };
 
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[0][1] = 1e-5;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   parameters.small_ = 1e-4;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-3;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
-  state[3][2] = 10.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  Yn1[3][2] = 10.0;
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
   residual[3][2] = 1e-1;
-  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, state, state_params));
-  state_params.absolute_tolerance_[2] = 1.0;
-  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, state, state_params));  
+  ASSERT_FALSE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));
+  absolute_tolerance[2] = 1.0;
+  ASSERT_TRUE(BackwardEuler::IsConverged(parameters, residual, Yn1, absolute_tolerance, relative_tolerance));  
 }
 
 TEST(BackwardEuler, IsConverged)

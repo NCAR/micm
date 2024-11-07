@@ -133,7 +133,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1, state);
+        converged = IsConverged(parameters_, forcing, Yn1, state.absolute_tolerance_.AsVector(), state.relative_tolerance_);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -180,23 +180,23 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state, auto& stateParams) requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = stateParams.relative_tolerance_;
-    auto& abs_tol = stateParams.absolute_tolerance_;
+    double rel_tol = relative_tolerance;
+    auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto state_iter = state.AsVector().begin();
+    auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     const std::size_t n_vars = abs_tol.size();
     for (std::size_t i = 0; i < n_elem; ++i)
     {
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
         return false;
       }
-      ++residual_iter, ++state_iter;
+      ++residual_iter, ++Yn1_iter;
     }
     return true;
   }
@@ -206,13 +206,13 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state, auto& stateParams) requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = stateParams.relative_tolerance_;
-    auto& abs_tol = stateParams.absolute_tolerance_;
+    double rel_tol = relative_tolerance;
+    auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto state_iter = state.AsVector().begin();
+    auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     const std::size_t L = residual.GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
@@ -221,11 +221,11 @@ namespace micm
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
         return false;
       }
-      ++residual_iter, ++state_iter;
+      ++residual_iter, ++Yn1_iter;
     }
 
     // evaluate the remaining rows
@@ -238,7 +238,7 @@ namespace micm
         for (std::size_t i = offset; i < offset + remaining_rows; ++i)
         {
           if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
-              std::abs(residual_iter[i]) > rel_tol * std::abs(state_iter[i]))
+              std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
           {
             return false;
           }

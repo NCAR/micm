@@ -49,7 +49,8 @@ namespace micm
         const BackwardEulerSolverParameters& parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : parameters_(parameters),
           linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
@@ -78,14 +79,14 @@ namespace micm
     /// @return true if the residual is small enough to stop the iteration
     template<class DenseMatrixPolicy>
     static bool IsConverged(
-        const BackwardEulerSolverParameters& parameters,
-        const DenseMatrixPolicy& residual,
-        const DenseMatrixPolicy& state, auto& stateParams) requires(!VectorizableDense<DenseMatrixPolicy>);
+      const BackwardEulerSolverParameters& parameters,
+      const DenseMatrixPolicy& residual,
+      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     static bool IsConverged(
-        const BackwardEulerSolverParameters& parameters,
-        const DenseMatrixPolicy& residual,
-        const DenseMatrixPolicy& state, auto& stateParams) requires(VectorizableDense<DenseMatrixPolicy>);
+      const BackwardEulerSolverParameters& parameters,
+      const DenseMatrixPolicy& residual,
+      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm
