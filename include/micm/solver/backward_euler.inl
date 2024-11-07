@@ -182,6 +182,11 @@ namespace micm
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>)
   {
+    std::cout << "rel_tol: " << relative_tolerance << std::endl;
+    for(auto& val : absolute_tolerance)
+    {
+      std::cout << "abs_tol: " << val << std::endl;
+    }
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
     auto& abs_tol = absolute_tolerance;

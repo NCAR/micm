@@ -81,11 +81,12 @@ namespace micm
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
         number_of_grid_cells_(parameters.number_of_grid_cells_),
-        relative_tolerance_(1e-06),
+        relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_()
   {
-    absolute_tolerance_ = DenseMatrixPolicy(1, parameters.variable_names_.size());
+    std::cout << "absolute tolerance size" << absolute_tolerance_.AsVector().size() << std::endl;
     absolute_tolerance_.AsVector() = parameters.absolute_tolerance_;
+    std::cout << "absolute tolerance size" << absolute_tolerance_.AsVector().size() << std::endl;
 
     std::size_t index = 0;
     for (auto& name : variable_names_)

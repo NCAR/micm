@@ -133,7 +133,9 @@ namespace micm
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
           number_of_grid_cells_(other.number_of_grid_cells_),
-          temporary_variables_(std::move(other.temporary_variables_))
+          temporary_variables_(std::move(other.temporary_variables_)),
+          relative_tolerance_(other.relative_tolerance_),
+          absolute_tolerance_(std::move(other.absolute_tolerance_))
     {
     }
 
