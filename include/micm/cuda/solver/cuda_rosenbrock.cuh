@@ -42,7 +42,7 @@ namespace micm
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
         const CudaMatrixParam& absolute_tolerance_param,
-        const RosenbrockSolverParameters& ros_param,
+        const double* relative_tolerance,
         CudaRosenbrockSolverParam devstruct);
   }  // namespace cuda
 }  // namespace micm

@@ -164,6 +164,8 @@ namespace micm
       return *this;
     }
 
+    virtual ~State() = default;
+
     /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);

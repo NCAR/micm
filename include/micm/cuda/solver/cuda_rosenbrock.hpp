@@ -38,7 +38,6 @@ namespace micm
     {
       other.devstruct_.errors_input_ = nullptr;
       other.devstruct_.errors_output_ = nullptr;
-      other.devstruct_.absolute_tolerance_ = nullptr;
       other.devstruct_.jacobian_diagonal_elements_ = nullptr;
     };
 
@@ -123,7 +122,7 @@ namespace micm
           y_new.AsDeviceParam(),
           errors.AsDeviceParam(),
           state.absolute_tolerance_.AsDeviceParam(), 
-          this->parameters_, 
+          state.cuda_relative_tolerance_,
           this->devstruct_);
     }
   };  // end CudaRosenbrockSolver

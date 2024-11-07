@@ -7,6 +7,8 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
+#include <cublas_v2.h>
+
 namespace micm
 {
   /// @brief Construct a state variable for CUDA tests
@@ -19,6 +21,13 @@ namespace micm
     CudaState(CudaState&&) = default;
     CudaState& operator=(CudaState&&) = default;
 
+    double* cuda_relative_tolerance_{ nullptr };
+
+    ~CudaState()
+    {
+      CHECK_CUDA_ERROR(cudaFree(cuda_relative_tolerance_), "cudaFree");
+    }
+
     /// @brief Constructor which takes the state dimension information as input
     /// @param parameters State dimension information
     CudaState(const StateParameters& parameters)
@@ -30,6 +39,13 @@ namespace micm
       this->variables_.CopyToDevice();
       this->rate_constants_.CopyToDevice();
       this->absolute_tolerance_.CopyToDevice();
+
+      size_t relative_tolerance_bytes = sizeof(double);
+
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(cuda_relative_tolerance_), relative_tolerance_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
     }
 
     /// @brief Copy output variables to the host
