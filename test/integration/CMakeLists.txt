@@ -17,5 +17,5 @@ if(MICM_ENABLE_LLVM)
 endif()
 
 if(MICM_ENABLE_CUDA)
-  add_subdirectory(cuda)
+  add_subdirectory(gpu/cuda)
 endif()

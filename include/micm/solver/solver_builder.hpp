@@ -2,20 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/process/process.hpp>
-#include <micm/process/process_set.hpp>
-#include <micm/solver/backward_euler.hpp>
-#include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/linear_solver.hpp>
-#include <micm/solver/lu_decomposition.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
-#include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
-#include <micm/util/jacobian.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
 
 #include <system_error>
 
@@ -109,23 +97,6 @@ namespace micm
     /// @return The labels of the custom parameters
     std::vector<std::string> GetCustomParameterLabels() const;
   };
-
-  /// @brief Builder of CPU-based general solvers
-  /// @tparam SolverParametersPolicy Parameters for the ODE solver
-  /// @tparam DenseMatrixPolicy Policy for dense matrices
-  /// @tparam SparseMatrixPolicy Policy for sparse matrices
-  template<
-      class SolverParametersPolicy,
-      class DenseMatrixPolicy = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
-  using CpuSolverBuilder = SolverBuilder<
-      SolverParametersPolicy,
-      DenseMatrixPolicy,
-      SparseMatrixPolicy,
-      ProcessSet,
-      LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
-
 }  // namespace micm
 
 #include "solver_builder.inl"

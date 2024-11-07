@@ -1,0 +1,14 @@
+// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
+// clang-format off
+#pragma once
+
+// A convenience header to include all the headers in the micm library and define several
+// typedefs
+
+#include <micm/gpu/cuda/solver/cuda_rosenbrock.cuh>
+#include <micm/gpu/cuda/solver/cuda_rosenbrock.hpp>
+#include <micm/gpu/cuda/solver/cuda_solver_builder.hpp>
+#include <micm/gpu/cuda/solver/cuda_solver_parameters.hpp>
+#include <micm/gpu/cuda/util/cuda_dense_matrix.hpp>
+#include <micm/gpu/cuda/util/cuda_sparse_matrix.hpp>

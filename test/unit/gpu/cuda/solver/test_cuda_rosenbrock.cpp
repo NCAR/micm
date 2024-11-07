@@ -1,17 +1,7 @@
 #include "../../solver/test_rosenbrock_solver_policy.hpp"
 
-#include <micm/cuda/solver/cuda_rosenbrock.cuh>
-#include <micm/cuda/solver/cuda_rosenbrock.hpp>
-#include <micm/cuda/solver/cuda_solver_builder.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
-#include <micm/cuda/util/cuda_dense_matrix.hpp>
-#include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/core>
+#include <micm/cuda>
 
 #include <gtest/gtest.h>
 
