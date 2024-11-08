@@ -41,7 +41,7 @@ namespace
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
-  auto cuda_rosenbrock = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
+  auto cuda_rosenbrock = micm::CudaSolverBuilder_Doolittle<micm::CudaRosenbrockSolverParameters, L>(
                              micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)
@@ -56,7 +56,7 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
 
   constexpr std::size_t L = 4;
-  using cuda_builder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
+  using cuda_builder = micm::CudaSolverBuilder_Doolittle<micm::CudaRosenbrockSolverParameters, L>;
 
   EXPECT_ANY_THROW(cuda_builder(params).SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(L).Build(););
 

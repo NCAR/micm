@@ -6,7 +6,7 @@
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 
 template<std::size_t L>
-using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
+using JitBuilder = micm::JitSolverBuilder_Doolittle<micm::JitRosenbrockSolverParameters, L>;
 
 template<std::size_t L>
 auto getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)

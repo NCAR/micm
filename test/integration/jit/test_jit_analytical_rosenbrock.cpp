@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 
 template<std::size_t L>
-using BuilderType = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
+using BuilderType = micm::JitSolverBuilder_Doolittle<micm::JitRosenbrockSolverParameters, L>;
 template<std::size_t L>
 using StateType =
     micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;

@@ -18,7 +18,7 @@
 #include <iostream>
 
 template<std::size_t L>
-using GpuBuilder = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
+using GpuBuilder = micm::CudaSolverBuilder_Doolittle<micm::CudaRosenbrockSolverParameters, L>;
 
 template<std::size_t L>
 void testAlphaMinusJacobian()

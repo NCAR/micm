@@ -41,7 +41,7 @@ namespace
 TEST(SolverBuilder, CanBuildJitRosenbrock)
 {
   constexpr std::size_t L = 4;
-  auto jit_rosenbrock = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>(
+  auto jit_rosenbrock = micm::JitSolverBuilder_Doolittle<micm::JitRosenbrockSolverParameters, L>(
                             micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                             .SetSystem(the_system)
                             .SetReactions(reactions)
@@ -56,7 +56,7 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
 
   constexpr std::size_t L = 4;
-  using jit_builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
+  using jit_builder = micm::JitSolverBuilder_Doolittle<micm::JitRosenbrockSolverParameters, L>;
 
   EXPECT_ANY_THROW(jit_builder(params).SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(L).Build(););
 
