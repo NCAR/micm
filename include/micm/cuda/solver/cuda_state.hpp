@@ -21,11 +21,12 @@ namespace micm
     CudaState(CudaState&&) = default;
     CudaState& operator=(CudaState&&) = default;
 
-    double* cuda_relative_tolerance_{ nullptr };
+    CudaMatrixParam absolute_tolerance_param_;
 
     ~CudaState()
     {
-      CHECK_CUDA_ERROR(cudaFree(cuda_relative_tolerance_), "cudaFree");
+      CHECK_CUDA_ERROR(micm::cuda::FreeVector(absolute_tolerance_param_), "cudaFree");
+      absolute_tolerance_param_.d_data_ = nullptr;
     }
 
     /// @brief Constructor which takes the state dimension information as input
@@ -38,14 +39,12 @@ namespace micm
     {
       this->variables_.CopyToDevice();
       this->rate_constants_.CopyToDevice();
-      this->absolute_tolerance_.CopyToDevice();
 
-      size_t relative_tolerance_bytes = sizeof(double);
+      absolute_tolerance_param_.number_of_elements_ = this->absolute_tolerance_.size();
+      absolute_tolerance_param_.number_of_grid_cells_ = 1;
 
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(cuda_relative_tolerance_), relative_tolerance_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, this->absolute_tolerance_), "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy output variables to the host

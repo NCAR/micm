@@ -122,7 +122,7 @@ void testNormalizedErrorConst()
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto state = gpu_solver.GetState();  
-  std::vector<double> atol = state.absolute_tolerance_.AsVector();
+  auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;
 
   auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 1.0);
@@ -132,6 +132,8 @@ void testNormalizedErrorConst()
   y_old.CopyToDevice();
   y_new.CopyToDevice();
   errors.CopyToDevice();
+
+  state.SyncInputsToDevice();
 
   double error = gpu_solver.solver_.NormalizedError(y_old, y_new, errors, state);
 
@@ -166,11 +168,13 @@ void testNormalizedErrorDiff()
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
   auto state = gpu_solver.GetState();
-  std::vector<double> atol = state.absolute_tolerance_.AsVector();  
+  auto& atol = state.absolute_tolerance_;  
   double rtol = state.relative_tolerance_;
   auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 7.7);
   auto y_new = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, -13.9);
   auto errors = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 81.57);
+
+  state.SyncInputsToDevice();
 
   double expected_error = 0.0;
   for (size_t i = 0; i < number_of_grid_cells; ++i)

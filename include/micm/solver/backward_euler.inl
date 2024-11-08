@@ -133,7 +133,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1, state.absolute_tolerance_.AsVector(), state.relative_tolerance_);
+        converged = IsConverged(parameters_, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
       } while (!converged && iterations < max_iter);
 
       if (!converged)

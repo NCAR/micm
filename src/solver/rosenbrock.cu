@@ -117,7 +117,7 @@ namespace micm
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
         const CudaMatrixParam absolute_tolerance_param,
-        const double* relative_tolerance,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct,
         const size_t n,
         bool is_first_call)
@@ -127,7 +127,7 @@ namespace micm
       double* const d_errors_input = devstruct.errors_input_;
       double* const d_errors_output = devstruct.errors_output_;
       const double* const atol = absolute_tolerance_param.d_data_;
-      const double rtol = *relative_tolerance;
+      const double rtol = relative_tolerance;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Declares a dynamically-sized shared memory array.
@@ -226,7 +226,7 @@ namespace micm
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
         const CudaMatrixParam absolute_tolerance_param,
-        const double* relative_tolerance,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
       // Local device variables
@@ -235,7 +235,7 @@ namespace micm
       const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors = devstruct.errors_input_;
       const double* const atol = absolute_tolerance_param.d_data_;
-      const double rtol = *relative_tolerance;
+      const double rtol = relative_tolerance;
       const size_t num_elements = devstruct.errors_size_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
@@ -270,7 +270,7 @@ namespace micm
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
         const CudaMatrixParam& absolute_tolerance_param,
-        const double* relative_tolerance,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;

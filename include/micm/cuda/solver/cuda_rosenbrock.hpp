@@ -121,8 +121,8 @@ namespace micm
           y_old.AsDeviceParam(),
           y_new.AsDeviceParam(),
           errors.AsDeviceParam(),
-          state.absolute_tolerance_.AsDeviceParam(), 
-          state.cuda_relative_tolerance_,
+          state.absolute_tolerance_param_, 
+          state.relative_tolerance_,
           this->devstruct_);
     }
   };  // end CudaRosenbrockSolver
