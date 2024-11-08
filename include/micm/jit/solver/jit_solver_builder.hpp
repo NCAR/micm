@@ -6,7 +6,7 @@
 
 #include <micm/jit/process/jit_process_set.hpp>
 #include <micm/jit/solver/jit_linear_solver.hpp>
-#include <micm/jit/solver/jit_lu_decomposition.hpp>
+#include <micm/jit/solver/jit_doolittle_lu_decomposition.hpp>
 #include <micm/solver/solver_builder.hpp>
 
 namespace micm
