@@ -79,7 +79,7 @@ namespace micm
               parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian, number_of_species)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }
