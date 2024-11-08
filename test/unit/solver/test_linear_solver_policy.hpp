@@ -1,5 +1,5 @@
 #include <micm/solver/linear_solver.hpp>
-#include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/doolittle_lu_decomposition.hpp>
 
 #include <gtest/gtest.h>
 
@@ -131,7 +131,7 @@ void testDenseMatrix()
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  auto lu = micm::DoolittleLuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -184,7 +184,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  auto lu = micm::DoolittleLuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -249,7 +249,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
+  auto lu = micm::DoolittleLuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -302,7 +302,7 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  auto lu = micm::DoolittleLuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -347,8 +347,8 @@ void testMarkowitzReordering()
         builder = builder.WithElement(i, j);
   SparseMatrixPolicy reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy>(orig_jac);
-  auto reordered_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy>(reordered_jac);
+  auto orig_LU_calc = micm::DoolittleLuDecomposition::Create<SparseMatrixPolicy>(orig_jac);
+  auto reordered_LU_calc = micm::DoolittleLuDecomposition::Create<SparseMatrixPolicy>(reordered_jac);
 
   auto orig_LU = orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy>(orig_jac, 0.0);
   auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy>(reordered_jac, 0.0);

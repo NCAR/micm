@@ -56,12 +56,12 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
   }
 }
 
-using StandardBuilder = micm::CpuSolverBuilder<
+using StandardBuilder = micm::CpuSolverBuilder_DoolittleLU<
     micm::RosenbrockSolverParameters,
     micm::Matrix<double>,
     micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>>;
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder<
+using VectorBuilder = micm::CpuSolverBuilder_DoolittleLU<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
@@ -100,7 +100,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
 
   for (size_t number_of_grid_cells = 1; number_of_grid_cells <= 10; ++number_of_grid_cells)
   {
-    auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+    auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
                       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                       .SetReactions(std::vector<micm::Process>{ r1 })

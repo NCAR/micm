@@ -10,11 +10,11 @@
 
 #include <gtest/gtest.h>
 
-using BuilderType = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>;
+using BuilderType = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>;
 using StateType = micm::State<BuilderType::DenseMatrixPolicyType, BuilderType::SparseMatrixPolicyType>;
 
 template<std::size_t L>
-using VectorRosenbrock = micm::CpuSolverBuilder<
+using VectorRosenbrock = micm::CpuSolverBuilder_DoolittleLU<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
@@ -22,15 +22,15 @@ template<std::size_t L>
 using VectorStateType =
     micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
-auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+auto rosenbrock_2stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-auto rosenbrock_3stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+auto rosenbrock_3stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_4stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+auto rosenbrock_4stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-auto rosenbrock_4stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+auto rosenbrock_4stage_da = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-auto rosenbrock_6stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+auto rosenbrock_6stage_da = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
     micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
 auto rosenbrock_vector_1 = VectorRosenbrock<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -257,7 +257,7 @@ TEST(AnalyticalExamples, Oregonator)
     // anything below 1e-6 is too strict for the Oregonator
     params.relative_tolerance_ = 1e-8;
     params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-6);
-    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
+    return micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
@@ -291,7 +291,7 @@ TEST(AnalyticalExamples, HIRES)
   {
     params.relative_tolerance_ = 1e-6;
     params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
-    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
+    return micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(params);
   };
 
   auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());

@@ -36,7 +36,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
 
   EXPECT_EQ(options.relative_tolerance_, 1.0e-4);
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(solver_params.system_)
                     .SetReactions(solver_params.processes_)
                     .SetIgnoreUnusedSpecies(true)
@@ -146,7 +146,7 @@ TEST(ChapmanIntegration, CanBuildChapmanSystem)
 
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+  auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ r1, r2, r3, r4, photo_1, photo_2, photo_3 })
                     .SetIgnoreUnusedSpecies(true)

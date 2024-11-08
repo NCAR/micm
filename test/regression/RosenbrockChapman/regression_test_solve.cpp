@@ -7,14 +7,14 @@
 
 #include <gtest/gtest.h>
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder<
+using VectorBuilder = micm::CpuSolverBuilder_DoolittleLU<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RegressionRosenbrock, TwoStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-2);
@@ -22,7 +22,7 @@ TEST(RegressionRosenbrock, TwoStageSolve)
 
 TEST(RegressionRosenbrock, ThreeStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver);
@@ -30,7 +30,7 @@ TEST(RegressionRosenbrock, ThreeStageSolve)
 
 TEST(RegressionRosenbrock, FourStageSolve)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);
@@ -38,7 +38,7 @@ TEST(RegressionRosenbrock, FourStageSolve)
 
 TEST(RegressionRosenbrock, FourStageDASolve)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);
@@ -46,7 +46,7 @@ TEST(RegressionRosenbrock, FourStageDASolve)
 
 TEST(RegressionRosenbrock, SixStageDASolve)
 {
-  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testSolve(solver, 1.0e-4);

@@ -17,7 +17,7 @@ namespace micm
   ///
   /// See LinearSolver class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitLuDecomposition<L>>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitDoolittleLuDecomposition<L>>
   class JitLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;

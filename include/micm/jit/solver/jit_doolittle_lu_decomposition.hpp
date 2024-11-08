@@ -3,7 +3,7 @@
 #pragma once
 
 #include <micm/jit/jit_function.hpp>
-#include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/doolittle_lu_decomposition.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
@@ -12,28 +12,28 @@ namespace micm
 
   /// @brief LU decomposer for SparseMatrix with vector-ordering optimized with JIT-compilation
   ///
-  /// See LuDecomposition class description for algorithm details
+  /// See DoolittleLuDecomposition class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  class JitLuDecomposition : public LuDecomposition
+  class JitDoolittleLuDecomposition : public DoolittleLuDecomposition
   {
     llvm::orc::ResourceTrackerSP decompose_function_resource_tracker_;
     using FuncPtr = void (*)(const double *, double *, double *);
     FuncPtr decompose_function_ = nullptr;
 
    public:
-    JitLuDecomposition(){};
+    JitDoolittleLuDecomposition(){};
 
-    JitLuDecomposition(const JitLuDecomposition &) = delete;
-    JitLuDecomposition &operator=(const JitLuDecomposition &) = delete;
-    JitLuDecomposition(JitLuDecomposition &&other);
-    JitLuDecomposition &operator=(JitLuDecomposition &&other);
+    JitDoolittleLuDecomposition(const JitDoolittleLuDecomposition &) = delete;
+    JitDoolittleLuDecomposition &operator=(const JitDoolittleLuDecomposition &) = delete;
+    JitDoolittleLuDecomposition(JitDoolittleLuDecomposition &&other);
+    JitDoolittleLuDecomposition &operator=(JitDoolittleLuDecomposition &&other);
 
     /// @brief Create a JITed LU decomposer for a given sparse matrix structure
     /// @param matrix Sparse matrix to create LU decomposer for
-    JitLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
+    JitDoolittleLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix);
 
-    ~JitLuDecomposition();
+    ~JitDoolittleLuDecomposition();
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
@@ -49,4 +49,4 @@ namespace micm
 
 }  // namespace micm
 
-#include "jit_lu_decomposition.inl"
+#include "jit_doolittle_lu_decomposition.inl"

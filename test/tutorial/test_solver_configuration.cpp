@@ -110,27 +110,27 @@ int main()
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
 
-  auto two_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
+  auto two_stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
                        .SetSystem(system)
                        .SetReactions(reactions)
                        .Build();
 
-  auto three_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto three_stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                          .SetSystem(system)
                          .SetReactions(reactions)
                          .Build();
 
-  auto four_stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
+  auto four_stage = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
                         .SetSystem(system)
                         .SetReactions(reactions)
                         .Build();
 
-  auto four_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
+  auto four_stage_da = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
                             .SetSystem(system)
                             .SetReactions(reactions)
                             .Build();
 
-  auto six_stage_da = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
+  auto six_stage_da = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
                             .SetSystem(system)
                             .SetReactions(reactions)
                             .Build();

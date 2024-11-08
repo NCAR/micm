@@ -6,7 +6,7 @@ namespace micm
 
   template<std::size_t L>
   inline JitLuDecomposition<L>::JitLuDecomposition(JitLuDecomposition &&other)
-      : LuDecomposition(std::move(other)),
+      : DoolittleLuDecomposition(std::move(other)),
         decompose_function_resource_tracker_(std::move(other.decompose_function_resource_tracker_)),
         decompose_function_(std::move(other.decompose_function_))
   {
@@ -16,7 +16,7 @@ namespace micm
   template<std::size_t L>
   inline JitLuDecomposition<L> &JitLuDecomposition<L>::operator=(JitLuDecomposition &&other)
   {
-    LuDecomposition::operator=(std::move(other));
+    DoolittleLuDecomposition::operator=(std::move(other));
     decompose_function_resource_tracker_ = std::move(other.decompose_function_resource_tracker_);
     decompose_function_ = std::move(other.decompose_function_);
     other.decompose_function_ = NULL;
@@ -25,7 +25,7 @@ namespace micm
 
   template<std::size_t L>
   inline JitLuDecomposition<L>::JitLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
-      : LuDecomposition(LuDecomposition::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
+      : DoolittleLuDecomposition(DoolittleLuDecomposition::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
   {
     decompose_function_ = NULL;
     if (matrix.NumberOfBlocks() > L)

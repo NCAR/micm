@@ -43,7 +43,7 @@ namespace
 TEST(SolverBuilder, ThrowsMissingSystem)
 {
   EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+      micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
           .SetNumberOfGridCells(1)
           .Build(),
       std::system_error);
@@ -52,13 +52,13 @@ TEST(SolverBuilder, ThrowsMissingSystem)
 TEST(SolverBuilder, ThrowsMissingReactions)
 {
   EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+      micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
           .SetSystem(the_system)
           .SetNumberOfGridCells(1)
           .Build(),
       std::system_error);
   EXPECT_THROW(
-      micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+      micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
           .SetSystem(the_system)
           .SetReactions({})
           .Build(),
@@ -67,7 +67,7 @@ TEST(SolverBuilder, ThrowsMissingReactions)
 
 TEST(SolverBuilder, CanBuildBackwardEuler)
 {
-  auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+  auto backward_euler = micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
                             .SetSystem(the_system)
                             .SetReactions(reactions)
                             .SetNumberOfGridCells(1)
@@ -75,7 +75,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
 
   constexpr std::size_t L = 4;
   auto backward_euler_vector =
-      micm::CpuSolverBuilder<
+      micm::CpuSolverBuilder_DoolittleLU<
           micm::BackwardEulerSolverParameters,
           micm::VectorMatrix<double, L>,
           micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(micm::BackwardEulerSolverParameters{})
@@ -87,7 +87,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
 
 TEST(SolverBuilder, CanBuildRosenbrock)
 {
-  auto rosenbrock = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto rosenbrock = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
                         micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                         .SetSystem(the_system)
                         .SetReactions(reactions)
@@ -95,7 +95,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                         .Build();
 
   constexpr std::size_t L = 4;
-  auto rosenbrock_vector = micm::CpuSolverBuilder<
+  auto rosenbrock_vector = micm::CpuSolverBuilder_DoolittleLU<
                                micm::RosenbrockSolverParameters,
                                micm::VectorMatrix<double, L>,
                                micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(
@@ -111,7 +111,7 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   // too many
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
-  EXPECT_ANY_THROW(micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
+  EXPECT_ANY_THROW(micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(params)
                        .SetSystem(the_system)
                        .SetReactions(reactions)
                        .SetNumberOfGridCells(1)
@@ -121,7 +121,7 @@ TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
   // too few
   params.absolute_tolerance_ = { 1e-6, 1e-6 };
 
-  auto builder = micm::CpuSolverBuilder<
+  auto builder = micm::CpuSolverBuilder_DoolittleLU<
       micm::RosenbrockSolverParameters,
       micm::VectorMatrix<double, L>,
       micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(params);

@@ -93,7 +93,7 @@ int main(const int argc, const char* argv[])
 
   auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(solver_parameters)
+  auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(solver_parameters)
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .SetNumberOfGridCells(n_grid_cells)

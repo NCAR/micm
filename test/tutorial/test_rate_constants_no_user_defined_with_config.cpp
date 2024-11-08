@@ -36,7 +36,7 @@ int main(const int argc, const char* argv[])
   auto chemical_system = solver_params.system_;
   auto reactions = solver_params.processes_;
 
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .Build();

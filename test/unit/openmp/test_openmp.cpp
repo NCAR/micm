@@ -26,7 +26,7 @@ TEST(OpenMP, OneSolverManyStates)
   std::vector<std::vector<double>> results(n_threads);
 
   auto solver =
-      CpuSolverBuilder<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+      CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
           .SetSystem(chemical_system)
           .SetReactions(reactions)
           .Build();

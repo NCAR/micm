@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 using namespace micm;
 
 template<std::size_t L>
-using VectorBuilder = CpuSolverBuilder<RosenbrockSolverParameters, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
+using VectorBuilder = CpuSolverBuilder_DoolittleLU<RosenbrockSolverParameters, VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>;
 
 template<std::size_t L>
 int Run(const char* filepath, const char* initial_conditions, const std::string& matrix_ordering_type)

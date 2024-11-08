@@ -27,7 +27,7 @@ void testAlphaMinusJacobian()
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto cpu_builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
+  auto cpu_builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   cpu_builder = getSolver(cpu_builder);
   auto cpu_solver = cpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();

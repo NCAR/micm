@@ -93,7 +93,7 @@ namespace micm
     }
 
     /// This is the function that will delete the constant data
-    ///   members and temporary variables of class "CudaLuDecomposition" on the device
+    ///   members and temporary variables of class "CudaDoolittleLuDecomposition" on the device
     void FreeConstData(CudaRosenbrockSolverParam& devstruct)
     {
       if (devstruct.errors_input_ != nullptr)
