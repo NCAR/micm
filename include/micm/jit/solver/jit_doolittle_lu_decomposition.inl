@@ -5,7 +5,7 @@ namespace micm
 {
 
   template<std::size_t L>
-  inline JitLuDecomposition<L>::JitLuDecomposition(JitLuDecomposition &&other)
+  inline JitDoolittleLuDecomposition<L>::JitDoolittleLuDecomposition(JitDoolittleLuDecomposition &&other)
       : DoolittleLuDecomposition(std::move(other)),
         decompose_function_resource_tracker_(std::move(other.decompose_function_resource_tracker_)),
         decompose_function_(std::move(other.decompose_function_))
@@ -14,7 +14,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  inline JitLuDecomposition<L> &JitLuDecomposition<L>::operator=(JitLuDecomposition &&other)
+  inline JitDoolittleLuDecomposition<L> &JitDoolittleLuDecomposition<L>::operator=(JitDoolittleLuDecomposition &&other)
   {
     DoolittleLuDecomposition::operator=(std::move(other));
     decompose_function_resource_tracker_ = std::move(other.decompose_function_resource_tracker_);
@@ -24,7 +24,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  inline JitLuDecomposition<L>::JitLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
+  inline JitDoolittleLuDecomposition<L>::JitDoolittleLuDecomposition(const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
       : DoolittleLuDecomposition(DoolittleLuDecomposition::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
   {
     decompose_function_ = NULL;
@@ -41,7 +41,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  JitLuDecomposition<L>::~JitLuDecomposition()
+  JitDoolittleLuDecomposition<L>::~JitDoolittleLuDecomposition()
   {
     if (decompose_function_ != NULL)
     {
@@ -51,7 +51,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  void JitLuDecomposition<L>::GenerateDecomposeFunction()
+  void JitDoolittleLuDecomposition<L>::GenerateDecomposeFunction()
   {
     std::string function_name = "lu_decompose_" + GenerateRandomString();
     JitFunction func = JitFunction::Create()
@@ -206,7 +206,7 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
+  void JitDoolittleLuDecomposition<L>::Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper)
       const
   {
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
