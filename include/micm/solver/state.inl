@@ -84,9 +84,7 @@ namespace micm
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_()
   {
-    std::cout << "absolute tolerance size" << absolute_tolerance_.AsVector().size() << std::endl;
     absolute_tolerance_.AsVector() = parameters.absolute_tolerance_;
-    std::cout << "absolute tolerance size" << absolute_tolerance_.AsVector().size() << std::endl;
 
     std::size_t index = 0;
     for (auto& name : variable_names_)
