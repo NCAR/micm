@@ -41,7 +41,7 @@ TEST(BackwardEuler, CanCallSolve)
   auto params = micm::BackwardEulerSolverParameters();
   params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
 
-  auto be = micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(params)
+  auto be = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(params)
                 .SetSystem(the_system)
                 .SetReactions(reactions)
                 .SetNumberOfGridCells(1)

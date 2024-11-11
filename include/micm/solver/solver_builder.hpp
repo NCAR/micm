@@ -117,7 +117,7 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<double>,
       class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
-  using CpuSolverBuilder_DoolittleLU = SolverBuilder<
+  using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,

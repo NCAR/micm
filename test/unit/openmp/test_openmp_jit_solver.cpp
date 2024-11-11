@@ -13,7 +13,7 @@
 using namespace micm;
 
 template<std::size_t L>
-using JitBuilder = JitSolverBuilder_Doolittle<JitRosenbrockSolverParameters, L>;
+using JitBuilder = JitSolverBuilder<JitRosenbrockSolverParameters, L>;
 
 TEST(OpenMP, JITOneSolverManyStates)
 {

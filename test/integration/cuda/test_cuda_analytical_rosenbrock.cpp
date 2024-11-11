@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 
 constexpr std::size_t L = 3;
-using builderType = micm::CudaSolverBuilder_Doolittle<micm::CudaRosenbrockSolverParameters, L>;
+using builderType = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
 using stateType = micm::CudaState<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
@@ -21,7 +21,7 @@ auto four = builderType(micm::RosenbrockSolverParameters::FourStageRosenbrockPar
 auto four_da = builderType(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
 auto six_da = builderType(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
-using builderType1Cell = micm::CudaSolverBuilder_Doolittle<micm::CudaRosenbrockSolverParameters, 1>;
+using builderType1Cell = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, 1>;
 using stateType1Cell = micm::CudaState<builderType1Cell::DenseMatrixPolicyType, builderType1Cell::SparseMatrixPolicyType>;
 
 auto two_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());

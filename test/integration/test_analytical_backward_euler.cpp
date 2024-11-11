@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 template<std::size_t L>
-using VectorBackwardEuler = micm::CpuSolverBuilder_DoolittleLU<
+using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
@@ -18,7 +18,7 @@ template<std::size_t L>
 using VectorStateType =
     micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
-auto backward_euler = micm::CpuSolverBuilder_DoolittleLU<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
+auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_2 = VectorBackwardEuler<2>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_3 = VectorBackwardEuler<3>(micm::BackwardEulerSolverParameters());

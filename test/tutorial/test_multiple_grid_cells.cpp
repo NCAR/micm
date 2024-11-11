@@ -36,7 +36,7 @@ int main()
 
   const std::size_t number_of_grid_cells = 3;
 
-  auto solver = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                     .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions({ r1, r2, r3 })
                     .SetNumberOfGridCells(number_of_grid_cells)

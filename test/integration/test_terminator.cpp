@@ -17,41 +17,41 @@ TEST(RosenbrockSolver, Terminator)
   parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 2);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 3);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 1);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 2);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 3);
   }
   {
-    auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
+    auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(parameters).SetIgnoreUnusedSpecies(true);
     TestTerminator(builder, 4);
   }
 }
 
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder_DoolittleLU<
+using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;

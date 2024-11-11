@@ -17,7 +17,7 @@ namespace micm
   ///
   /// JIT-compiled solvers only work with vector-ordered matrices
   template<class SolverParametersPolicy, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using JitSolverBuilder_Doolittle = SolverBuilder<
+  using JitSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       VectorMatrix<double, L>,
       SparseMatrix<double, SparseMatrixVectorOrdering<L>>,

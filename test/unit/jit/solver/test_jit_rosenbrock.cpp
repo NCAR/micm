@@ -40,7 +40,7 @@ void run_solver(auto& solver)
 }
 
 template<std::size_t L>
-using JitBuilder = micm::JitSolverBuilder_Doolittle<micm::JitRosenbrockSolverParameters, L>;
+using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 
 TEST(JitRosenbrockSolver, AlphaMinusJacobian)
 {

@@ -84,7 +84,7 @@ int main()
   auto reactions = std::vector<Process>{ r1, r2, r3 };
   const std::size_t number_of_grid_cells = 3;
 
-  auto solver = CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(params)
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
       .SetSystem(system)
       .SetReactions(reactions)
       .SetNumberOfGridCells(number_of_grid_cells)
@@ -103,7 +103,7 @@ int main()
 
   std::cout << std::endl;
 
-  auto vectorized_solver = CpuSolverBuilder_DoolittleLU<RosenbrockSolverParameters,
+  auto vectorized_solver = CpuSolverBuilder<RosenbrockSolverParameters,
                                             VectorMatrix<double, 3>,
                                             SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
                                .SetSystem(system)

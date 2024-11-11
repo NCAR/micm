@@ -8,14 +8,14 @@
 #include <gtest/gtest.h>
 
 template<std::size_t L>
-using VectorBuilder = micm::CpuSolverBuilder_DoolittleLU<
+using VectorBuilder = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 
 TEST(RegressionRosenbrock, Jacobian)
 {
-  auto builder = micm::CpuSolverBuilder_DoolittleLU<micm::RosenbrockSolverParameters>(
+  auto builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   auto solver = getChapmanSolver(builder, 3);
   testJacobian(solver);
