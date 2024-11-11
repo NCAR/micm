@@ -2,35 +2,35 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/cuda/solver/cuda_lu_decomposition.cuh>
+#include <micm/cuda/solver/cuda_doolittle_lu_decomposition.cuh>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/doolittle_lu_decomposition.hpp>
 
 namespace micm
 {
-  /// This CudaLuDecomposition class inherits everything from the base class "LuDecomposition"
-  class CudaLuDecomposition : public LuDecomposition
+  /// This CudaDoolittleLuDecomposition class inherits everything from the base class "LuDecomposition"
+  class CudaDoolittleLuDecomposition : public DoolittleLuDecomposition
   {
    public:
     /// This is an instance of struct "LuDecomposeParam" that holds
-    ///   the constant data of "CudaLuDecomposition" class on the device
+    ///   the constant data of "CudaDoolittleLuDecomposition" class on the device
     LuDecomposeParam devstruct_;
 
     /// This is the default constructor, taking no arguments;
-    CudaLuDecomposition(){};
+    CudaDoolittleLuDecomposition(){};
 
-    CudaLuDecomposition(const CudaLuDecomposition&) = delete;
-    CudaLuDecomposition& operator=(const CudaLuDecomposition&) = delete;
-    CudaLuDecomposition(CudaLuDecomposition&& other)
-        : LuDecomposition(std::move(other))
+    CudaDoolittleLuDecomposition(const CudaDoolittleLuDecomposition&) = delete;
+    CudaDoolittleLuDecomposition& operator=(const CudaDoolittleLuDecomposition&) = delete;
+    CudaDoolittleLuDecomposition(CudaDoolittleLuDecomposition&& other)
+        : DoolittleLuDecomposition(std::move(other))
     {
       std::swap(this->devstruct_, other.devstruct_);
     };
 
-    CudaLuDecomposition& operator=(CudaLuDecomposition&& other)
+    CudaDoolittleLuDecomposition& operator=(CudaDoolittleLuDecomposition&& other)
     {
-      LuDecomposition::operator=(std::move(other));
+      DoolittleLuDecomposition::operator=(std::move(other));
       std::swap(this->devstruct_, other.devstruct_);
       return *this;
     };
@@ -39,8 +39,8 @@ namespace micm
     /// We need to specify the type (e.g., double, int, etc) and
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
     template<class SparseMatrixPolicy>
-    CudaLuDecomposition(const SparseMatrixPolicy& matrix)
-        : LuDecomposition(LuDecomposition::Create<SparseMatrixPolicy>(matrix))
+    CudaDoolittleLuDecomposition(const SparseMatrixPolicy& matrix)
+        : DoolittleLuDecomposition(DoolittleLuDecomposition::Create<SparseMatrixPolicy>(matrix))
     {
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to
@@ -74,8 +74,8 @@ namespace micm
     };
 
     /// This is destructor that will free the device memory of
-    ///   the constant data from the class "CudaLuDecomposition"
-    ~CudaLuDecomposition()
+    ///   the constant data from the class "CudaDoolittleLuDecomposition"
+    ~CudaDoolittleLuDecomposition()
     {
       /// Free the device memory allocated by the members of "devstruct_"
       micm::cuda::FreeConstData(this->devstruct_);
@@ -93,7 +93,7 @@ namespace micm
   };
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecomposition::Decompose(
+  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaDoolittleLuDecomposition::Decompose(
       const SparseMatrixPolicy& A,
       SparseMatrixPolicy& L,
       SparseMatrixPolicy& U) const

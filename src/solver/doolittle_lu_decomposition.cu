@@ -108,7 +108,7 @@ namespace micm
     }  // end of CUDA kernel
 
     /// This is the function that will copy the constant data
-    ///   members of class "CudaLuDecomposition" to the device
+    ///   members of class "CudaDoolittleLuDecomposition" to the device
     LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
@@ -249,7 +249,7 @@ namespace micm
     }
 
     /// This is the function that will delete the constant data
-    ///   members of class "CudaLuDecomposition" on the device
+    ///   members of class "CudaDoolittleLuDecomposition" on the device
     void FreeConstData(LuDecomposeParam& devstruct)
     {
       if (devstruct.niLU_ != nullptr)

@@ -7,7 +7,7 @@
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
 #include <micm/solver/linear_solver.hpp>
-#include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/doolittle_lu_decomposition.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/system/conditions.hpp>
@@ -122,7 +122,7 @@ namespace micm
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet,
-      LinearSolver<SparseMatrixPolicy, LuDecomposition>,
+      LinearSolver<SparseMatrixPolicy, DoolittleLuDecomposition>,
       State<DenseMatrixPolicy, SparseMatrixPolicy>>;
 
 }  // namespace micm

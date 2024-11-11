@@ -25,7 +25,7 @@ TEST(JitLinearSolver, DenseMatrixVectorOrdering)
   testDenseMatrix<
       Group1VectorMatrix,
       Group1SparseVectorMatrix,
-      micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitLuDecomposition<1>>>();
+      micm::JitLinearSolver<1, Group1SparseVectorMatrix, micm::JitDoolittleLuDecomposition<1>>>();
 }
 
 TEST(JitLinearSolver, RandomMatrixVectorOrdering)

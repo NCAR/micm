@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/doolittle_lu_decomposition.hpp>
 #include <micm/solver/temporary_variables.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
