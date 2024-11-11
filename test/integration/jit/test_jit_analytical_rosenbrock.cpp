@@ -144,24 +144,6 @@ TEST(AnalyticalExamplesJitRosenbrock, BranchedSuperStiffButAnalytical)
   test_analytical_stiff_branched<BuilderType<NUM_CELLS>, StateType<NUM_CELLS>>(BuilderType<NUM_CELLS>(param_six_da), 2e-3);
 }
 
-TEST(AnalyticalExamplesJitRosenbrock, Robertson)
-{
-  auto solver = BuilderType<1>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType<1>, StateType<1>>(solver, 1e-1);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType<1>, StateType<1>>(solver, 1e-1);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType<1>, StateType<1>>(solver, 1e-1);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType<1>, StateType<1>>(solver, 1e-1);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType<1>, StateType<1>>(solver, 1e-1);
-}
-
 TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
 {
   test_analytical_surface_rxn<BuilderType<1>, StateType<1>>(two, 1e-4);
@@ -171,56 +153,38 @@ TEST(AnalyticalExamplesJitRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<BuilderType<1>, StateType<1>>(six_da, 1e-5);
 }
 
+TEST(AnalyticalExamplesJitRosenbrock, Robertson)
+{
+  test_analytical_robertson<BuilderType<1>, StateType<1>>(BuilderType<1>(param_two), 1e-1);
+  test_analytical_robertson<BuilderType<1>, StateType<1>>(BuilderType<1>(param_three), 1e-1);
+  test_analytical_robertson<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four), 1e-1);
+  test_analytical_robertson<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four_da), 1e-1);
+  test_analytical_robertson<BuilderType<1>, StateType<1>>(BuilderType<1>(param_six_da), 1e-1);
+}
+
 TEST(AnalyticalExamplesJitRosenbrock, E5)
 {
-  auto solver = BuilderType<1>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_e5<BuilderType<1>, StateType<1>>(solver, 1e-3);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_e5<BuilderType<1>, StateType<1>>(solver, 1e-3);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_e5<BuilderType<1>, StateType<1>>(solver, 1e-3);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<BuilderType<1>, StateType<1>>(solver, 1e-3);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<BuilderType<1>, StateType<1>>(solver, 1e-3);
+  test_analytical_e5<BuilderType<1>, StateType<1>>(BuilderType<1>(param_two), 1e-3);
+  test_analytical_e5<BuilderType<1>, StateType<1>>(BuilderType<1>(param_three), 1e-3);
+  test_analytical_e5<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four), 1e-3);
+  test_analytical_e5<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four_da), 1e-3);
+  test_analytical_e5<BuilderType<1>, StateType<1>>(BuilderType<1>(param_six_da), 1e-3);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, Oregonator)
 {
-  auto solver = BuilderType<1>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator<BuilderType<1>, StateType<1>>(solver, 4e-4);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator<BuilderType<1>, StateType<1>>(solver, 4e-4);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator<BuilderType<1>, StateType<1>>(solver, 4e-4);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<BuilderType<1>, StateType<1>>(solver, 4e-4);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<BuilderType<1>, StateType<1>>(solver, 4e-4);
+  test_analytical_oregonator<BuilderType<1>, StateType<1>>(BuilderType<1>(param_two), 4e-4);
+  test_analytical_oregonator<BuilderType<1>, StateType<1>>(BuilderType<1>(param_three), 4e-4);
+  test_analytical_oregonator<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four), 4e-4);
+  test_analytical_oregonator<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four_da), 4e-4);
+  test_analytical_oregonator<BuilderType<1>, StateType<1>>(BuilderType<1>(param_six_da), 4e-4);
 }
 
 TEST(AnalyticalExamplesJitRosenbrock, HIRES)
 {
-  auto solver = BuilderType<1>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires<BuilderType<1>, StateType<1>>(solver, 1e-6);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_hires<BuilderType<1>, StateType<1>>(solver, 1e-7);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_hires<BuilderType<1>, StateType<1>>(solver, 1e-7);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<BuilderType<1>, StateType<1>>(solver, 1e-6);
-
-  solver = BuilderType<1>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<BuilderType<1>, StateType<1>>(solver, 1e-6);
+  test_analytical_hires<BuilderType<1>, StateType<1>>(BuilderType<1>(param_two), 1e-6);
+  test_analytical_hires<BuilderType<1>, StateType<1>>(BuilderType<1>(param_three), 1e-7);
+  test_analytical_hires<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four), 1e-7);
+  test_analytical_hires<BuilderType<1>, StateType<1>>(BuilderType<1>(param_four_da), 1e-6);
+  test_analytical_hires<BuilderType<1>, StateType<1>>(BuilderType<1>(param_six_da), 1e-6);
 }
