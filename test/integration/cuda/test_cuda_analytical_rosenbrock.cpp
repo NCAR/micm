@@ -142,24 +142,6 @@ TEST(AnalyticalExamplesCudaRosenbrock, BranchedSuperStiffButAnalytical)
   test_analytical_stiff_branched<builderType, stateType>(six_da, 2e-3, copy_to_device, copy_to_host);
 }
 
-TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
-{
-  auto solver = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_robertson<builderType1Cell, stateType1Cell>(solver, 2e-1, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson<builderType1Cell, stateType1Cell>(solver, 2e-1, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_robertson<builderType1Cell, stateType1Cell>(solver, 2e-1, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<builderType1Cell, stateType1Cell>(solver, 2e-1, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<builderType1Cell, stateType1Cell>(solver, 2e-1, copy_to_device, copy_to_host);
-}
-
 TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
 {
   test_analytical_surface_rxn<builderType1Cell, stateType1Cell>(two_1_cell, 1e-2, copy_to_device, copy_to_host);
@@ -169,56 +151,38 @@ TEST(AnalyticalExamplesCudaRosenbrock, SurfaceRxn)
   test_analytical_surface_rxn<builderType1Cell, stateType1Cell>(six_da_1_cell, 1e-7, copy_to_device, copy_to_host);
 }
 
+TEST(AnalyticalExamplesCudaRosenbrock, Robertson)
+{
+  test_analytical_robertson<builderType1Cell, stateType1Cell>(two_1_cell, 2e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType1Cell, stateType1Cell>(three_1_cell, 2e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType1Cell, stateType1Cell>(four_1_cell, 2e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType1Cell, stateType1Cell>(four_da_1_cell, 2e-1, copy_to_device, copy_to_host);
+  test_analytical_robertson<builderType1Cell, stateType1Cell>(six_da_1_cell, 2e-1, copy_to_device, copy_to_host);
+}
+
 TEST(AnalyticalExamplesCudaRosenbrock, E5)
 {
-  auto solver = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_e5<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_e5<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_e5<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<builderType1Cell, stateType1Cell>(solver, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType1Cell, stateType1Cell>(two_1_cell, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType1Cell, stateType1Cell>(three_1_cell, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType1Cell, stateType1Cell>(four_1_cell, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType1Cell, stateType1Cell>(four_da_1_cell, 1e-3, copy_to_device, copy_to_host);
+  test_analytical_e5<builderType1Cell, stateType1Cell>(six_da_1_cell, 1e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
 {
-  auto solver = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator<builderType1Cell, stateType1Cell>(solver, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(two_1_cell, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(three_1_cell, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(four_1_cell, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(four_da_1_cell, 2e-3, copy_to_device, copy_to_host);
+  test_analytical_oregonator<builderType1Cell, stateType1Cell>(six_da_1_cell, 2e-3, copy_to_device, copy_to_host);
 }
 
 TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
 {
-  auto solver = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-7, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-7, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
-
-  solver = builderType1Cell(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires<builderType1Cell, stateType1Cell>(solver, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(two_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(three_1_cell, 1e-7, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(four_1_cell, 1e-7, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
 }
