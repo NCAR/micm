@@ -1,5 +1,5 @@
-#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/doolittle_lu_decomposition.hpp>
+#include <micm/solver/linear_solver.hpp>
 
 #include <gtest/gtest.h>
 

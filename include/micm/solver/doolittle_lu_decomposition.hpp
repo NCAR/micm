@@ -108,7 +108,8 @@ namespace micm
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static DoolittleLuDecomposition Create(const SparseMatrixPolicy& matrix);
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static DoolittleLuDecomposition
+        Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
