@@ -5,8 +5,8 @@
 #pragma once
 
 #include <micm/cuda/process/cuda_process_set.hpp>
-#include <micm/cuda/solver/cuda_linear_solver.hpp>
 #include <micm/cuda/solver/cuda_doolittle_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_linear_solver.hpp>
 #include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
