@@ -27,7 +27,6 @@ using Group4SparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVe
 TEST(JitRosenbrockSolver, Terminator)
 {
   auto parameters = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  parameters.relative_tolerance_ = 1.0e-8;
   parameters.max_number_of_steps_ = 100000;
   {
     auto builder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, 1>(parameters).SetIgnoreUnusedSpecies(true);
