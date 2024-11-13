@@ -7,8 +7,6 @@
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
-#include <cublas_v2.h>
-
 namespace micm
 {
   /// @brief Construct a state variable for CUDA tests

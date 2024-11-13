@@ -105,3 +105,61 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .SetNumberOfGridCells(1)
                                .Build();
 }
+
+TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
+{
+  auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+                            .SetSystem(the_system)
+                            .SetReactions(reactions)
+                            .SetNumberOfGridCells(1)
+                            .Build();
+  auto state = solver.GetState();
+  auto options = micm::BackwardEulerSolverParameters();
+  auto solve = solver.Solve(5, state, options);
+
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 2);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 2);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 2);
+  ASSERT_EQ(solve.stats_.solves_, 2);
+  
+  options.small_ = 1.0;
+  options.max_number_of_steps_ = 1.0;
+
+  solve = solver.Solve(5, state, options);
+
+  ASSERT_EQ(solve.final_time_, 0.03125);
+  ASSERT_EQ(solve.stats_.function_calls_, 6);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 6);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 6);
+  ASSERT_EQ(solve.stats_.solves_, 6);
+}
+
+TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
+{
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                        .SetSystem(the_system)
+                        .SetReactions(reactions)
+                        .SetNumberOfGridCells(1)
+                        .Build();
+  auto state = solver.GetState();
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solve = solver.Solve(5, state, options);
+
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 20);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 10);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 10);
+  ASSERT_EQ(solve.stats_.solves_, 30);
+  
+  options.h_min_ = 15.0;
+  options.max_number_of_steps_ = 6.0;
+
+  solve = solver.Solve(5, state, options);
+
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 2);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 1);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 1);
+  ASSERT_EQ(solve.stats_.solves_, 3);
+}
