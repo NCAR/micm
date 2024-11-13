@@ -10,24 +10,85 @@ namespace micm
 
   /// @brief LU decomposer for SparseMatrix
   ///
-  /// This LU decomposition uses the Doolittle algorithm following the
-  /// naming used here: https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
+  /// This LU decomposition uses the algorithm from the CHEM_PREPROCESSOR at: 
+  /// https://github.com/ESCOMP/CHEM_PREPROCESSOR/blob/f923081508f4264e61fcef2753a9898e55d1598e/src/cam_chempp/make_lu_fac.f#L127-L214
   ///
-  /// The sudo-code for the corresponding dense matrix algorithm for matrix A
+  /// The pseudo-code in C++ for the corresponding sparse matrix algorithm for matrix A (inline change) would be: 
+  ///
+  /// for i = 0...n-1                       // Outer loop over columns of the sparse matrix A
+  ///     if (A[i][i] != 0)
+  ///     {
+  ///         A[i][i] = 1 / A[i][i]         // Form diagonal inverse
+  ///     }
+  ///     for j = i+1...n-1                 // Multiply column below diagonal
+  ///         if (A[j][i] != 0)
+  ///         {
+  ///             A[j][i] = A[j][i] * A[i][i]
+  ///         } 
+  ///     for k = i+1...n-1                 // Modify sub-matrix
+  ///         if (A[i][k] != 0)
+  ///         {
+  ///             for j = i+1...n-1
+  ///                 if (A[j][i] != 0)
+  ///                 {
+  ///                     if (A[j][k] != 0)
+  ///                     {
+  ///                         A[j][k] = A[j][k] – A[j][i] * A[i][k]
+  ///                     }                     
+  ///                     else
+  ///                     {
+  ///                         A[j][k] = - A[j][i] * A[i][k]
+  ///                     }
+  ///                 }
+  ///         }
+  /// 
+  /// The pseudo-code in C++ for the corresponding sparse matrix algorithm for matrix A
   /// and lower (upper) triangular matrix L(U) would be:
-  ///
-  /// for i = 0...n-1                 // Outer loop over rows (columns) for upper (lower) triangular matrix
-  ///   for k = i...n-1               // Middle loop over columns for upper triangular matrix
-  ///     sum = 0
-  ///     for j = 0...i-1             // Inner loop over columns (rows) for lower (upper) triangular matrix
-  ///       sum += L[i][j] * U[j][k]
-  ///     U[i][k] = A[i][k] - sum
-  ///   L[i][i] = 1                   // Lower triangular matrix is 1 along the diagonal
-  ///   for k = i+1...n-1             // Middle loop over rows for lower triangular matrix
-  ///     sum = 0
-  ///     for j = 0...i-1             // Inner loop over columns (rows) for lower (upper) triangular matrix
-  ///       sum += L[k][j] * U[j][i];
-  ///     L[k][i] = (A[k][i] - sum) / U[i][i]
+  /// 
+  /// for j = 1...n-1                       // Initialize the L matrix
+  ///     for k = 0...j-1
+  ///         L[j][k] = A[j][k]
+  /// for k = 0...n-1                       // Initialize the U matrix
+  ///     for j = k...n-1
+  ///         U[j][k] = A[j][k]
+  /// for i = 0...n-1                       // Outer loop over columns of the sparse matrix A
+  ///     if (U[i][i] != 0)
+  ///     {
+  ///         U[i][i] = 1 / U[i][i]         // Form diagonal inverse
+  ///     }
+  ///     for j = i+1...n-1                 // Multiply column below diagonal
+  ///         if (L[j][i] != 0)
+  ///         {
+  ///             L[j][i] = L[j][i] * U[i][i]
+  ///         } 
+  ///     for k = i+1...n-1                 // Modify sub-matrix
+  ///         if (U[i][k] != 0)
+  ///         {
+  ///             for j = i+1...k           // Modify upper triangular matrix
+  ///                 if (L[j][i] != 0)
+  ///                 {
+  ///                     if (U[j][k] != 0)
+  ///                     {
+  ///                         U[j][k] = U[j][k] – L[j][i] * U[i][k]
+  ///                     }                     
+  ///                     else
+  ///                     {
+  ///                         U[j][k] = - L[j][i] * U[i][k]
+  ///                     }
+  ///                 }
+  ///             for j = k+1...n-1         // Modify lower triangular matrix
+  ///                 if (L[j][i] != 0)
+  ///                 {
+  ///                     if (L[j][k] != 0)
+  ///                     {
+  ///                         L[j][k] = L[j][k] – L[j][i] * U[i][k]
+  ///                     }                     
+  ///                     else
+  ///                     {
+  ///                         L[j][k] = - L[j][i] * U[i][k]
+  ///                     }
+  ///                 }
+  ///         }
   ///
   /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
   /// several arrays during construction. These arrays are iterated through during
@@ -39,7 +100,7 @@ namespace micm
   /// to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
   /// here do this implicit assignment
   /// More detail in this issue: https://github.com/NCAR/micm/issues/625
-  class DoolittleLuDecomposition
+  class ChempreprocessorLuDecomposition
   {
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
@@ -79,25 +140,25 @@ namespace micm
 
    public:
     /// @brief default constructor
-    DoolittleLuDecomposition();
+    ChempreprocessorLuDecomposition();
 
-    DoolittleLuDecomposition(const DoolittleLuDecomposition&) = delete;
-    DoolittleLuDecomposition& operator=(const DoolittleLuDecomposition&) = delete;
+    ChempreprocessorLuDecomposition(const ChempreprocessorLuDecomposition&) = delete;
+    ChempreprocessorLuDecomposition& operator=(const ChempreprocessorLuDecomposition&) = delete;
 
-    DoolittleLuDecomposition(DoolittleLuDecomposition&& other) = default;
-    DoolittleLuDecomposition& operator=(DoolittleLuDecomposition&&) = default;
+    ChempreprocessorLuDecomposition(ChempreprocessorLuDecomposition&& other) = default;
+    ChempreprocessorLuDecomposition& operator=(ChempreprocessorLuDecomposition&&) = default;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) DoolittleLuDecomposition(const SparseMatrixPolicy& matrix);
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) ChempreprocessorLuDecomposition(const SparseMatrixPolicy& matrix);
 
-    ~DoolittleLuDecomposition() = default;
+    ~ChempreprocessorLuDecomposition() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static DoolittleLuDecomposition
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static ChempreprocessorLuDecomposition
         Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
@@ -132,4 +193,4 @@ namespace micm
 
 }  // namespace micm
 
-#include "doolittle_lu_decomposition.inl"
+#include "chempreprocessor_lu_decomposition.inl"
