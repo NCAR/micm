@@ -53,14 +53,11 @@ namespace micm
   ///     for j = k...n-1
   ///         U[j][k] = A[j][k]
   /// for i = 0...n-1                       // Outer loop over columns of the sparse matrix A
-  ///     if (U[i][i] != 0)
-  ///     {
-  ///         U[i][i] = 1 / U[i][i]         // Form diagonal inverse
-  ///     }
+  ///     denom = 1 / U[i][i]               // Save the inverse of diagonal (may check if U[i][i] equals to zero or not)
   ///     for j = i+1...n-1                 // Multiply column below diagonal
   ///         if (L[j][i] != 0)
   ///         {
-  ///             L[j][i] = L[j][i] * U[i][i]
+  ///             L[j][i] = L[j][i] * denom
   ///         } 
   ///     for k = i+1...n-1                 // Modify sub-matrix
   ///         if (U[i][k] != 0)
@@ -90,7 +87,6 @@ namespace micm
   ///                     }
   ///                 }
   ///         }
-  ///     U[i][i] = 1 / U[i][i];            // Inverse diagonal again so that L*U = A
   ///
   /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
   /// several arrays during construction. These arrays are iterated through during
