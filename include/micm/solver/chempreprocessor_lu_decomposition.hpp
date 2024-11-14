@@ -41,6 +41,7 @@ namespace micm
   ///                     }
   ///                 }
   ///         }
+  ///     A[i][i] = 1 / A[i][i];            // Inverse diagonal again so that L*U = A
   /// 
   /// The pseudo-code in C++ for the corresponding sparse matrix algorithm for matrix A
   /// and lower (upper) triangular matrix L(U) would be:
@@ -89,6 +90,7 @@ namespace micm
   ///                     }
   ///                 }
   ///         }
+  ///     U[i][i] = 1 / U[i][i];            // Inverse diagonal again so that L*U = A
   ///
   /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
   /// several arrays during construction. These arrays are iterated through during
