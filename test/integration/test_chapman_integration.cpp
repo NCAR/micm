@@ -41,9 +41,9 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
                     .Build(); 
 
   micm::State state = solver.GetState();
-  state.SetRelativeTolerances(solver_params.relative_tolerance_); 
-  EXPECT_EQ(state.relative_tolerance_, 1.0e-4);
-  auto& abs_tol = state.absolute_tolerance_;
+  state.SetRelativeTolerance(solver_params.relative_tolerance_); 
+  EXPECT_EQ(state.GetRelativeTolerance(), 1.0e-4);
+  auto& abs_tol = state.GetAbsoluteTolerances();
 
   for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
   {

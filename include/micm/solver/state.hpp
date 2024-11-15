@@ -60,9 +60,12 @@ namespace micm
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
-    double relative_tolerance_;
-    std::vector<double> absolute_tolerance_;
 
+    private:
+        double relative_tolerance_;
+        std::vector<double> absolute_tolerance_;
+
+    public:
     /// @brief Default constructor
     /// Only defined to be used to create default values in types, but a default constructed state is not useable
     State();
@@ -191,8 +194,19 @@ namespace micm
     /// @param value new parameter value
     void SetCustomRateParameter(const std::string& label, double value);
     void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
-    void SetRelativeTolerances(double relativeTolerance);
 
+    /// @brief Set the relative tolerances
+    /// @param relativeTolerance relative tolerance
+    void SetRelativeTolerance(double relativeTolerance);
+
+    /// @brief Set the absolute tolerances per species
+    /// @param absoluteTolerance absolute tolerance
+    virtual void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance);
+
+    double GetRelativeTolerance() const;
+
+    const std::vector<double>& GetAbsoluteTolerances() const;
+    
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
 

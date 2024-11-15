@@ -18,33 +18,59 @@ namespace micm
    public:
     CudaState(const CudaState&) = delete;
     CudaState& operator=(const CudaState&) = delete;
-    CudaState(CudaState&&) = default;
-    CudaState& operator=(CudaState&&) = default;
 
     CudaMatrixParam absolute_tolerance_param_;
 
     ~CudaState()
     {
       CHECK_CUDA_ERROR(micm::cuda::FreeVector(absolute_tolerance_param_), "cudaFree");
-      absolute_tolerance_param_.d_data_ = nullptr;
     }
 
     /// @brief Constructor which takes the state dimension information as input
     /// @param parameters State dimension information
     CudaState(const StateParameters& parameters)
-        : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters){};
+        : State<DenseMatrixPolicy, SparseMatrixPolicy>(parameters)
+    {
+      const auto& atol = this->GetAbsoluteTolerances();
+
+      absolute_tolerance_param_.number_of_elements_ = atol.size();
+      absolute_tolerance_param_.number_of_grid_cells_ = 1;
+
+      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
+    };
+
+    /// @brief Move constructor
+    CudaState(CudaState&& other)
+        : State<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other))
+    {
+      absolute_tolerance_param_ = other.absolute_tolerance_param_;
+      other.absolute_tolerance_param_.d_data_ = nullptr;
+    }
+
+    /// @brief Move assignment operator
+    CudaState& operator=(CudaState&& other)
+    {
+      if (this != &other)
+      {
+        State<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
+        absolute_tolerance_param_ = other.absolute_tolerance_param_;
+        other.absolute_tolerance_param_.d_data_ = nullptr;
+      }
+      return *this;
+    }
+
+    void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance) override
+    {
+      State<DenseMatrixPolicy, SparseMatrixPolicy>::SetAbsoluteTolerances(absoluteTolerance);
+      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
+    }
 
     /// @brief Copy input variables to the device
     void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
     {
       this->variables_.CopyToDevice();
       this->rate_constants_.CopyToDevice();
-
-      absolute_tolerance_param_.number_of_elements_ = this->absolute_tolerance_.size();
-      absolute_tolerance_param_.number_of_grid_cells_ = 1;
-
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, this->absolute_tolerance_), "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy output variables to the host

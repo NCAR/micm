@@ -133,7 +133,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
+        converged = IsConverged(parameters_, forcing, Yn1, state.GetAbsoluteTolerances(), state.GetRelativeTolerance());
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -180,7 +180,7 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
@@ -206,7 +206,7 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;

@@ -1331,8 +1331,8 @@ void test_analytical_robertson(
   double air_density = 1e6;
 
   auto state = solver.GetState();
-  state.relative_tolerance_ = 1e-10;
-  state.absolute_tolerance_ = std::vector<double>(3, state.relative_tolerance_ * 1e-2);
+  state.SetRelativeTolerance(1e-10);
+  state.SetAbsoluteTolerances(std::vector<double>(3, state.GetRelativeTolerance() * 1e-2));
 
   double k1 = 0.04;
   double k2 = 3e7;
@@ -1547,8 +1547,8 @@ void test_analytical_oregonator(
 
   auto state = solver.GetState();
 
-  state.relative_tolerance_ = 1e-8;
-  state.absolute_tolerance_ = std::vector<double>(5, state.relative_tolerance_ * 1e-6);
+  state.SetRelativeTolerance(1e-8);
+  state.SetAbsoluteTolerances(std::vector<double>(5, state.GetRelativeTolerance() * 1e-6));
 
   state.SetCustomRateParameter("r1", 1.34 * 0.06);
   state.SetCustomRateParameter("r2", 1.6e9);
@@ -1725,8 +1725,8 @@ void test_analytical_hires(
   };
 
   auto state = solver.GetState();
-  state.relative_tolerance_ = 1e-6;
-  state.absolute_tolerance_ = std::vector<double>(8, state.relative_tolerance_ * 1e-2);
+  state.SetRelativeTolerance(1e-6);
+  state.SetAbsoluteTolerances(std::vector<double>(8, state.GetRelativeTolerance() * 1e-2));
 
   state.SetCustomRateParameter("r1", 1.71);
   state.SetCustomRateParameter("r2", 8.75);
@@ -1885,11 +1885,13 @@ void test_analytical_e5(
 
   auto state = solver.GetState();
 
-  state.relative_tolerance_ = 1e-13;
-  state.absolute_tolerance_ = std::vector<double>(6, 1e-17);
-  state.absolute_tolerance_[0] = 1e-7;
-  state.absolute_tolerance_[4] = 1e-7;
-  state.absolute_tolerance_[5] = 1e-7;
+  state.SetRelativeTolerance(1e-13);
+  state.SetAbsoluteTolerances(std::vector<double>(6, 1e-17));
+  auto atol = state.GetAbsoluteTolerances();
+  atol[0] = 1e-7;
+  atol[4] = 1e-7;
+  atol[5] = 1e-7;
+  state.SetAbsoluteTolerances(atol);
   
   state.SetCustomRateParameter("r1", 7.89e-10);
   state.SetCustomRateParameter("r2", 1.13e9);

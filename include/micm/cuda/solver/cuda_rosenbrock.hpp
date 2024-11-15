@@ -122,7 +122,7 @@ namespace micm
           y_new.AsDeviceParam(),
           errors.AsDeviceParam(),
           state.absolute_tolerance_param_, 
-          state.relative_tolerance_,
+          state.GetRelativeTolerance(),
           this->devstruct_);
     }
   };  // end CudaRosenbrockSolver

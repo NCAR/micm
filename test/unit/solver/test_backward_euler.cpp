@@ -48,7 +48,7 @@ TEST(BackwardEuler, CanCallSolve)
   double time_step = 1.0;
 
   auto state = be.GetState();
-  state.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6 };
+  state.SetAbsoluteTolerances({ 1e-6, 1e-6, 1e-6 });
 
   state.variables_[0] = { 1.0, 0.0, 0.0 };
   state.conditions_[0].temperature_ = 272.5;

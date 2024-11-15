@@ -189,9 +189,27 @@ namespace micm
   }
   
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetRelativeTolerances(double relativeTolerance)
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetRelativeTolerance(double relativeTolerance)
   {
     this->relative_tolerance_ = relativeTolerance;
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance)
+  {
+    this->absolute_tolerance_ = absoluteTolerance;
+  }
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline double State<DenseMatrixPolicy, SparseMatrixPolicy>::GetRelativeTolerance() const
+  {
+    return this->relative_tolerance_;
+  } 
+
+  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
+  inline const std::vector<double>& State<DenseMatrixPolicy, SparseMatrixPolicy>::GetAbsoluteTolerances() const
+  {
+    return this->absolute_tolerance_;
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy>
