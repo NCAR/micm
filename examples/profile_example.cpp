@@ -72,7 +72,7 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
                     .SetReactions(reactions)
                     .Build();
   auto state = solver.GetState();
-  state.SetRelativeTolerances(0.1);
+  state.SetRelativeTolerance(0.1);
   
   state.conditions_[0].temperature_ = dataMap.environments["temperature"];  // K
   state.conditions_[0].pressure_ = dataMap.environments["pressure"];        // Pa
