@@ -178,11 +178,11 @@ TEST(AnalyticalExamplesCudaRosenbrock, Oregonator)
   test_analytical_oregonator<builderType1Cell, stateType1Cell>(six_da_1_cell, 2e-3, copy_to_device, copy_to_host);
 }
 
-// TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
-// {
-//   test_analytical_hires<builderType1Cell, stateType1Cell>(two_1_cell, 1e-6, copy_to_device, copy_to_host);
-//   test_analytical_hires<builderType1Cell, stateType1Cell>(three_1_cell, 1e-7, copy_to_device, copy_to_host);
-//   test_analytical_hires<builderType1Cell, stateType1Cell>(four_1_cell, 1e-7, copy_to_device, copy_to_host);
-//   test_analytical_hires<builderType1Cell, stateType1Cell>(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
-//   test_analytical_hires<builderType1Cell, stateType1Cell>(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
-// }
+TEST(AnalyticalExamplesCudaRosenbrock, HIRES)
+{
+  test_analytical_hires<builderType1Cell, stateType1Cell>(two_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(three_1_cell, 1e-7, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(four_1_cell, 1e-7, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(four_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+  test_analytical_hires<builderType1Cell, stateType1Cell>(six_da_1_cell, 1e-6, copy_to_device, copy_to_host);
+}
