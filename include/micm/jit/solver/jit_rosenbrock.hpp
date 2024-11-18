@@ -73,12 +73,13 @@ namespace micm
         RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
         RatesPolicy rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian, number_of_species)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

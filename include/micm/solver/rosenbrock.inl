@@ -116,7 +116,7 @@ namespace micm
           Yerror.Axpy(parameters_.e_[stage], K[stage]);
 
         // Compute the normalized error
-        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
+        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
@@ -242,7 +242,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors, 
+      auto& state) const requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -252,8 +253,10 @@ namespace micm
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
+    const auto& atol = state.GetAbsoluteTolerances();
+    const auto& rtol = state.GetRelativeTolerance();
     const std::size_t N = Y.AsVector().size();
-    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
+    const std::size_t n_vars = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -263,7 +266,7 @@ namespace micm
     {
       ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       errors_over_scale =
-          _errors[i] / (parameters_.absolute_tolerance_[i % n_vars] + parameters_.relative_tolerance_ * ymax);
+          _errors[i] / (atol[i % n_vars] + rtol * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
@@ -277,7 +280,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors, 
+      auto& state) const requires(VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -287,9 +291,11 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
+    const auto& atol = state.GetAbsoluteTolerances();
+    auto rtol = state.GetRelativeTolerance();
     const std::size_t N = Y.NumRows() * Y.NumColumns();
     const std::size_t L = Y.GroupVectorSize();
-    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
+    const std::size_t n_vars = atol.size();
 
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
 
@@ -300,8 +306,8 @@ namespace micm
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
       errors_over_scale =
-          *errors_iter / (parameters_.absolute_tolerance_[(i / L) % n_vars] +
-                          parameters_.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
+          *errors_iter / (atol[(i / L) % n_vars] +
+                          rtol * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
       ++y_iter;
       ++ynew_iter;
@@ -319,8 +325,8 @@ namespace micm
         {
           const std::size_t idx = y * L + x;
           errors_over_scale = errors_iter[idx] /
-                              (parameters_.absolute_tolerance_[y] +
-                               parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
+                              (atol[y] +
+                               rtol * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
         }
       }

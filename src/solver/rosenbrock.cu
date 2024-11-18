@@ -41,7 +41,6 @@ namespace micm
 
       /// Calculate the memory space of each temporary variable
       size_t errors_bytes = sizeof(double) * hoststruct.errors_size_;
-      size_t tolerance_bytes = sizeof(double) * hoststruct.absolute_tolerance_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
@@ -59,12 +58,6 @@ namespace micm
               jacobian_diagonal_elements_bytes,
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
-      CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.absolute_tolerance_),
-              tolerance_bytes,
-              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
@@ -76,18 +69,8 @@ namespace micm
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
-      CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(
-              devstruct.absolute_tolerance_,
-              hoststruct.absolute_tolerance_,
-              tolerance_bytes,
-              cudaMemcpyHostToDevice,
-              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-          "cudaMemcpy");
-
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
-      devstruct.absolute_tolerance_size_ = hoststruct.absolute_tolerance_size_;
 
       return devstruct;
     }
@@ -108,10 +91,6 @@ namespace micm
         CHECK_CUDA_ERROR(
             cudaFreeAsync(
                 devstruct.jacobian_diagonal_elements_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
-            "cudaFree");
-      if (devstruct.absolute_tolerance_ != nullptr)
-        CHECK_CUDA_ERROR(
-            cudaFreeAsync(devstruct.absolute_tolerance_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
             "cudaFree");
     }
 
@@ -137,7 +116,8 @@ namespace micm
     __global__ void NormalizedErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
-        const RosenbrockSolverParameters ros_param,
+        const CudaMatrixParam absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct,
         const size_t n,
         bool is_first_call)
@@ -146,8 +126,8 @@ namespace micm
       const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors_input = devstruct.errors_input_;
       double* const d_errors_output = devstruct.errors_output_;
-      const double* const atol = devstruct.absolute_tolerance_;
-      const double rtol = ros_param.relative_tolerance_;
+      const double* const atol = absolute_tolerance_param.d_data_;
+      const double rtol = relative_tolerance;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Declares a dynamically-sized shared memory array.
@@ -245,7 +225,8 @@ namespace micm
     __global__ void ScaledErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
-        const RosenbrockSolverParameters ros_param,
+        const CudaMatrixParam absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
       // Local device variables
@@ -253,8 +234,8 @@ namespace micm
       const double* const d_y_old = y_old_param.d_data_;
       const double* const d_y_new = y_new_param.d_data_;
       double* const d_errors = devstruct.errors_input_;
-      const double* const atol = devstruct.absolute_tolerance_;
-      const double rtol = ros_param.relative_tolerance_;
+      const double* const atol = absolute_tolerance_param.d_data_;
+      const double rtol = relative_tolerance;
       const size_t num_elements = devstruct.errors_size_;
       const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
@@ -288,7 +269,8 @@ namespace micm
         const CudaMatrixParam& y_old_param,
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
-        const RosenbrockSolverParameters& ros_param,
+        const CudaMatrixParam& absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
@@ -318,7 +300,7 @@ namespace micm
             BLOCK_SIZE,
             0,
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, ros_param, devstruct);
+            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
         CHECK_CUBLAS_ERROR(
@@ -341,7 +323,7 @@ namespace micm
             BLOCK_SIZE,
             BLOCK_SIZE * sizeof(double),
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, ros_param, devstruct, number_of_elements, is_first_call);
+            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_elements, is_first_call);
         is_first_call = false;
         while (number_of_blocks > 1)
         {
@@ -355,7 +337,7 @@ namespace micm
                 BLOCK_SIZE,
                 BLOCK_SIZE * sizeof(double),
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-                y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
+                y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_blocks, is_first_call);
             break;
           }
           NormalizedErrorKernel<<<
@@ -363,7 +345,7 @@ namespace micm
               BLOCK_SIZE,
               BLOCK_SIZE * sizeof(double),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-              y_old_param, y_new_param, ros_param, devstruct, number_of_blocks, is_first_call);
+              y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_blocks, is_first_call);
           number_of_blocks = new_number_of_blocks;
         }
 

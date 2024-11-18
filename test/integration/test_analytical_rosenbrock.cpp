@@ -194,88 +194,6 @@ TEST(AnalyticalExamples, BranchedSuperStiffButAnalytical)
   test_analytical_stiff_branched<VectorRosenbrock<4>, VectorStateType<4>>(rosenbrock_vector_4, 2e-3);
 }
 
-TEST(AnalyticalExamples, Robertson)
-{
-  auto rosenbrock_solver = [](auto params)
-  {
-    params.relative_tolerance_ = 1e-10;
-    params.absolute_tolerance_ = std::vector<double>(3, params.relative_tolerance_ * 1e-2);
-    return BuilderType(params);
-  };
-
-  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_robertson<BuilderType, StateType>(solver, 1e-1);
-}
-
-TEST(AnalyticalExamples, E5)
-{
-  auto rosenbrock_solver = [](auto params)
-  {
-    params.relative_tolerance_ = 1e-13;
-    params.absolute_tolerance_ = std::vector<double>(6, 1e-17);
-    // this paper https://archimede.uniba.it/~testset/report/e5.pdf
-    // says that the first variable should have a much looser tolerance than the other species
-    params.absolute_tolerance_[0] = 1e-7;
-    // these last two aren't actually provided values and we don't care how they behave
-    params.absolute_tolerance_[4] = 1e-7;
-    params.absolute_tolerance_[5] = 1e-7;
-    return BuilderType(params);
-  };
-
-  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_e5<BuilderType, StateType>(solver, 1e-3);
-}
-
-TEST(AnalyticalExamples, Oregonator)
-{
-  auto rosenbrock_solver = [](auto params)
-  {
-    // anything below 1e-6 is too strict for the Oregonator
-    params.relative_tolerance_ = 1e-8;
-    params.absolute_tolerance_ = std::vector<double>(5, params.relative_tolerance_ * 1e-6);
-    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
-  };
-
-  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 4e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 4e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_oregonator(solver, 4e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator(solver, 4e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_oregonator(solver, 4e-6);
-}
-
 TEST(AnalyticalExamples, SurfaceRxn)
 {
   test_analytical_surface_rxn(rosenbrock_2stage, 1e-2);
@@ -285,27 +203,38 @@ TEST(AnalyticalExamples, SurfaceRxn)
   test_analytical_surface_rxn(rosenbrock_6stage_da, 1e-7);
 }
 
+TEST(AnalyticalExamples, Robertson)
+{
+  test_analytical_robertson(rosenbrock_2stage, 1e-1);
+  test_analytical_robertson(rosenbrock_3stage, 1e-1);
+  test_analytical_robertson(rosenbrock_4stage, 1e-1);
+  test_analytical_robertson(rosenbrock_4stage_da, 1e-1);
+  test_analytical_robertson(rosenbrock_6stage_da, 1e-1);
+}
+
+TEST(AnalyticalExamples, E5)
+{
+  test_analytical_e5(rosenbrock_2stage, 1e-3);
+  test_analytical_e5(rosenbrock_3stage, 1e-3);
+  test_analytical_e5(rosenbrock_4stage, 1e-3);
+  test_analytical_e5(rosenbrock_4stage_da, 1e-3);
+  test_analytical_e5(rosenbrock_6stage_da, 1e-3);
+}
+
+TEST(AnalyticalExamples, Oregonator)
+{
+  test_analytical_oregonator(rosenbrock_2stage, 4e-6);
+  test_analytical_oregonator(rosenbrock_3stage, 4e-6);
+  test_analytical_oregonator(rosenbrock_4stage, 4e-6);
+  test_analytical_oregonator(rosenbrock_4stage_da, 4e-6);
+  test_analytical_oregonator(rosenbrock_6stage_da, 4e-6);
+}
+
 TEST(AnalyticalExamples, HIRES)
 {
-  auto rosenbrock_solver = [](auto params)
-  {
-    params.relative_tolerance_ = 1e-6;
-    params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
-    return micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params);
-  };
-
-  auto solver = rosenbrock_solver(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
-  test_analytical_hires(solver, 1e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-  test_analytical_hires(solver, 1e-7);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters());
-  test_analytical_hires(solver, 1e-7);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires(solver, 1e-6);
-
-  solver = rosenbrock_solver(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
-  test_analytical_hires(solver, 1e-6);
+  test_analytical_hires(rosenbrock_2stage, 1e-6);
+  test_analytical_hires(rosenbrock_3stage, 1e-7);
+  test_analytical_hires(rosenbrock_4stage, 1e-7);
+  test_analytical_hires(rosenbrock_4stage_da, 1e-6);
+  test_analytical_hires(rosenbrock_6stage_da, 1e-6);
 }
