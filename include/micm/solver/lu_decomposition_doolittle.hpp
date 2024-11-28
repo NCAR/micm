@@ -5,23 +5,12 @@
 #include <micm/profiler/instrumentation.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
-namespace
-{
-  template<typename T>
-  concept SparseMatrixConcept = requires(T t)
-  {
-    t.NumRows();
-    t.NumColumns();
-    t.NumberOfBlocks();
-  };
-}  // namespace
-
 namespace micm
 {
 
-  /// @brief LU decomposer for SparseMatrix
+  /// @brief LU decomposer for SparseMatrix following the Doolittle algorithm
   ///
-  /// This LU decomposition uses the Doolittle algorithm following the
+  /// The LU decomposition uses the Doolittle algorithm following the
   /// naming used here: https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
   ///
   /// The sudo-code for the corresponding dense matrix algorithm for matrix A
@@ -50,7 +39,7 @@ namespace micm
   /// to the LU matrix. This value is implicitly zero when the sparsity pattern differs. The Fill values
   /// here do this implicit assignment
   /// More detail in this issue: https://github.com/NCAR/micm/issues/625
-  class DoolittleLuDecomposition
+  class LuDecompositionDoolittle
   {
    protected:
     /// number of elements in the middle (k) loops for lower and upper triangular matrices, respectively,
@@ -90,26 +79,25 @@ namespace micm
 
    public:
     /// @brief default constructor
-    DoolittleLuDecomposition();
+    LuDecompositionDoolittle();
 
-    DoolittleLuDecomposition(const DoolittleLuDecomposition&) = delete;
-    DoolittleLuDecomposition& operator=(const DoolittleLuDecomposition&) = delete;
+    LuDecompositionDoolittle(const LuDecompositionDoolittle&) = delete;
+    LuDecompositionDoolittle& operator=(const LuDecompositionDoolittle&) = delete;
 
-    DoolittleLuDecomposition(DoolittleLuDecomposition&& other) = default;
-    DoolittleLuDecomposition& operator=(DoolittleLuDecomposition&&) = default;
+    LuDecompositionDoolittle(LuDecompositionDoolittle&& other) = default;
+    LuDecompositionDoolittle& operator=(LuDecompositionDoolittle&&) = default;
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) DoolittleLuDecomposition(const SparseMatrixPolicy& matrix);
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) LuDecompositionDoolittle(const SparseMatrixPolicy& matrix);
 
-    ~DoolittleLuDecomposition() = default;
+    ~LuDecompositionDoolittle() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static DoolittleLuDecomposition
-        Create(const SparseMatrixPolicy& matrix);
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static LuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
@@ -143,4 +131,4 @@ namespace micm
 
 }  // namespace micm
 
-#include "doolittle_lu_decomposition.inl"
+#include "lu_decomposition_doolittle.inl"

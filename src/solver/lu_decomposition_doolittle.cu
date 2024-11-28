@@ -109,7 +109,7 @@ namespace micm
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaDoolittleLuDecomposition" to the device
-    LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
+    LuDecomposeDoolittleParam CopyConstData(LuDecomposeDoolittleParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
       size_t niLU_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
@@ -250,7 +250,7 @@ namespace micm
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaDoolittleLuDecomposition" on the device
-    void FreeConstData(LuDecomposeParam& devstruct)
+    void FreeConstData(LuDecomposeDoolittleParam& devstruct)
     {
       if (devstruct.niLU_ != nullptr)
         CHECK_CUDA_ERROR(

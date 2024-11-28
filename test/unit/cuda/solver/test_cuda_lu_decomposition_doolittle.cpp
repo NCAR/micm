@@ -1,9 +1,9 @@
 #include "../../solver/test_lu_decomposition_policy.hpp"
 
-#include <micm/cuda/solver/cuda_doolittle_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition_doolittle.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/solver/doolittle_lu_decomposition.hpp>
+#include <micm/solver/lu_decomposition_doolittle.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
@@ -46,8 +46,8 @@ void testCudaRandomMatrix(size_t n_grids)
         }
       }
 
-  micm::CudaDoolittleLuDecomposition gpu_lud(gpu_A);
-  auto gpu_LU = micm::CudaDoolittleLuDecomposition::GetLUMatrices(gpu_A, 0);
+  micm::CudaLuDecompositionDoolittle gpu_lud(gpu_A);
+  auto gpu_LU = micm::CudaLuDecompositionDoolittle::GetLUMatrices(gpu_A, 0);
   gpu_A.CopyToDevice();
   gpu_LU.first.CopyToDevice();
   gpu_LU.second.CopyToDevice();
@@ -57,8 +57,8 @@ void testCudaRandomMatrix(size_t n_grids)
   check_results<typename GPUSparseMatrixPolicy::value_type, GPUSparseMatrixPolicy>(
       gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 
-  micm::DoolittleLuDecomposition cpu_lud = micm::DoolittleLuDecomposition::Create<CPUSparseMatrixPolicy>(cpu_A);
-  auto cpu_LU = micm::DoolittleLuDecomposition::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 0);
+  micm::LuDecompositionDoolittle cpu_lud = micm::LuDecompositionDoolittle::Create<CPUSparseMatrixPolicy>(cpu_A);
+  auto cpu_LU = micm::LuDecompositionDoolittle::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 0);
   cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second);
 
   // checking GPU result again CPU
@@ -92,7 +92,7 @@ using Group100CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatr
 using Group1000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<1000>>;
 using Group100000CudaSparseMatrix = micm::CudaSparseMatrix<double, micm::SparseMatrixVectorOrdering<100000>>;
 
-TEST(CudaDoolittleLuDecomposition, RandomMatrixVectorOrdering)
+TEST(CudaLuDecompositionDoolittle, RandomMatrixVectorOrdering)
 {
   testCudaRandomMatrix<Group1CPUSparseVectorMatrix, Group1CudaSparseMatrix>(1);
   testCudaRandomMatrix<Group100CPUSparseVectorMatrix, Group100CudaSparseMatrix>(100);
@@ -100,14 +100,14 @@ TEST(CudaDoolittleLuDecomposition, RandomMatrixVectorOrdering)
   testCudaRandomMatrix<Group100000CPUSparseVectorMatrix, Group100000CudaSparseMatrix>(100000);
 }
 
-TEST(CudaDoolittleLuDecomposition, AgnosticToInitialValue)
+TEST(CudaLuDecompositionDoolittle, AgnosticToInitialValue)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
   {
-    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaDoolittleLuDecomposition>(1, value);
-    testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaDoolittleLuDecomposition>(100, value);
-    testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaDoolittleLuDecomposition>(1000, value);
-    testExtremeValueInitialization<Group100000CudaSparseMatrix, micm::CudaDoolittleLuDecomposition>(100000, value);
+    testExtremeValueInitialization<Group1CudaSparseMatrix, micm::CudaLuDecompositionDoolittle>(1, value);
+    testExtremeValueInitialization<Group100CudaSparseMatrix, micm::CudaLuDecompositionDoolittle>(100, value);
+    testExtremeValueInitialization<Group1000CudaSparseMatrix, micm::CudaLuDecompositionDoolittle>(1000, value);
+    testExtremeValueInitialization<Group100000CudaSparseMatrix, micm::CudaLuDecompositionDoolittle>(100000, value);
   }
 }

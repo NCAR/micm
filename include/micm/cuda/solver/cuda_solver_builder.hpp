@@ -5,7 +5,7 @@
 #pragma once
 
 #include <micm/cuda/process/cuda_process_set.hpp>
-#include <micm/cuda/solver/cuda_doolittle_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/cuda/solver/cuda_linear_solver.hpp>
 #include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
@@ -26,6 +26,7 @@ namespace micm
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaProcessSet,
-      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaDoolittleLuDecomposition>,
-      CudaState<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
+      CudaLuDecomposition,
+      CudaLinearSolver<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>,
+      CudaState<CudaDenseMatrix<double, L>, CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, CudaLuDecomposition>>;
 }  // namespace micm

@@ -5,8 +5,8 @@ namespace micm
 {
 
   template<std::size_t L>
-  inline JitDoolittleLuDecomposition<L>::JitDoolittleLuDecomposition(JitDoolittleLuDecomposition &&other)
-      : DoolittleLuDecomposition(std::move(other)),
+  inline JitLuDecompositionDoolittle<L>::JitLuDecompositionDoolittle(JitLuDecompositionDoolittle &&other)
+      : LuDecompositionDoolittle(std::move(other)),
         decompose_function_resource_tracker_(std::move(other.decompose_function_resource_tracker_)),
         decompose_function_(std::move(other.decompose_function_))
   {
@@ -14,9 +14,9 @@ namespace micm
   }
 
   template<std::size_t L>
-  inline JitDoolittleLuDecomposition<L> &JitDoolittleLuDecomposition<L>::operator=(JitDoolittleLuDecomposition &&other)
+  inline JitLuDecompositionDoolittle<L> &JitLuDecompositionDoolittle<L>::operator=(JitLuDecompositionDoolittle &&other)
   {
-    DoolittleLuDecomposition::operator=(std::move(other));
+    LuDecompositionDoolittle::operator=(std::move(other));
     decompose_function_resource_tracker_ = std::move(other.decompose_function_resource_tracker_);
     decompose_function_ = std::move(other.decompose_function_);
     other.decompose_function_ = NULL;
@@ -24,10 +24,10 @@ namespace micm
   }
 
   template<std::size_t L>
-  inline JitDoolittleLuDecomposition<L>::JitDoolittleLuDecomposition(
+  inline JitLuDecompositionDoolittle<L>::JitLuDecompositionDoolittle(
       const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
-      : DoolittleLuDecomposition(
-            DoolittleLuDecomposition::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
+      : LuDecompositionDoolittle(
+            LuDecompositionDoolittle::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
   {
     decompose_function_ = NULL;
     if (matrix.NumberOfBlocks() > L)
@@ -43,7 +43,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  JitDoolittleLuDecomposition<L>::~JitDoolittleLuDecomposition()
+  JitLuDecompositionDoolittle<L>::~JitLuDecompositionDoolittle()
   {
     if (decompose_function_ != NULL)
     {
@@ -53,7 +53,7 @@ namespace micm
   }
 
   template<std::size_t L>
-  void JitDoolittleLuDecomposition<L>::GenerateDecomposeFunction()
+  void JitLuDecompositionDoolittle<L>::GenerateDecomposeFunction()
   {
     std::string function_name = "lu_decompose_" + GenerateRandomString();
     JitFunction func = JitFunction::Create()
@@ -208,7 +208,7 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitDoolittleLuDecomposition<L>::Decompose(
+  void JitLuDecompositionDoolittle<L>::Decompose(
       const SparseMatrixPolicy &A,
       SparseMatrixPolicy &lower,
       SparseMatrixPolicy &upper) const
