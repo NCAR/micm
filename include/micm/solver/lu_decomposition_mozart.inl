@@ -247,10 +247,11 @@ namespace micm
 
     const std::size_t n = A.NumRows();
     const std::size_t A_BlockSize = A.NumberOfBlocks();
-    const std::size_t A_GroupVectorSize = A.GroupVectorSize();
+    constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
     const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
     const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
+    double Uii_inverse[A_GroupVectorSize];
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)
@@ -266,7 +267,6 @@ namespace micm
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      double Uii_inverse[n_cells];
       for (auto& lii_nuij_nlij : lii_nuij_nlij_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
