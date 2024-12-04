@@ -14,29 +14,32 @@ namespace micm
   /// https://github.com/ESCOMP/CHEM_PREPROCESSOR/blob/f923081508f4264e61fcef2753a9898e55d1598e/src/cam_chempp/make_lu_fac.f#L127-L214
   ///
   /// The MOZART function overwrote the A matrix with the L and U matrices. The pseudo-code
-  /// in C++ for the corresponding sparse matrix algorithm for matrix A (inline change) would be: 
+  /// in C++ for the corresponding dense matrix algorithm for matrix A (inline change) would be: 
   ///
   /// for i = 0...n-1                     // Outer loop over columns of the sparse matrix A
-  ///   A[i][i] = 1 / A[i][i]             // Form diagonal inverse
   ///   for j = i+1...n-1                 // Multiply column below diagonal
-  ///     A[j][i] = A[j][i] * A[i][i]
+  ///     A[j][i] = A[j][i] / A[i][i]
   ///   for k = i+1...n-1                 // Modify sub-matrix
   ///     for j = i+1...n-1
   ///       A[j][k] = A[j][k] – A[j][i] * A[i][k]
-  ///   A[i][i] = 1 / A[i][i];            // Inverse diagonal again so that L*U = A
   /// 
-  /// The pseudo-code in C++ for the corresponding sparse matrix algorithm for matrix A
+  /// The pseudo-code in C++ for the corresponding dense matrix algorithm for matrix A
   /// and separate lower (upper) triangular matrix L(U) would be:
   /// 
-  ///  for 1 = 0...n-1
-  ///    U[i][i] = 1 / A[i][i]
-  ///    for j = i+1...n-1
-  ///      L[j][i] = A[j][i] * U[i][i]
-  ///    for k = i+1...n-1
-  ///      for j = i+1...k
-  ///        U[j][k] = A[j][k] - L[j][i] * U[i][k]
-  ///      for j = k+1...n-1
-  ///        L[j][k] = A[j][k] - L[j][i] * U[i][k]
+  /// for i = 0...n-1                     // Initialize U and L matrices to the A values
+  ///   for j = i...n-1                   // Initialize U matrix including diagonal
+  ///     U[i][j] = A[i][j]
+  ///   L[i][i] = 1                       // Lower triangular matrix is 1 along the diagonal
+  ///   for j = 0...i-1                   // Initialize L matrix excluding diagonal
+  ///     L[i][j] = A[i][j]
+  /// for i = 0...n-1
+  ///   for j = i+1...n-1                 // Multiply column below diagonal
+  ///     L[j][i] = L[j][i] / U[i][i]
+  ///   for k = i+1...n-1                 // Modify sub-matrix
+  ///     for j = i+1...k
+  ///       U[j][k] = U[j][k] - L[j][i] * U[i][k]
+  ///     for j = k+1...n-1
+  ///       L[j][k] = L[j][k] - L[j][i] * U[i][k]
   ///
   /// For the sparse matrix algorithm, the indices of non-zero terms are stored in
   /// several arrays during construction. These arrays are iterated through during
@@ -51,18 +54,34 @@ namespace micm
   class LuDecompositionMozart
   {
    protected:
-    /// Index in U.data_ and A.data_ for U[i][i] and A[i][i] and the number of elements in the
-    /// middle (j) loop for each iteration of the outer (i) loop
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> uii_aii_nj_;
+    /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
+    /// used to set the initial value for the L and U matrices
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> lii_nuij_nlij_;
+    /// Index in U.data_ and A.data_ for U[i][j] and A[i][j] for each iteration of the inner (j) loop
+    /// used to set the initial value for the U matrix
+    std::vector<std::pair<std::size_t, std::size_t>> uij_aij_;
+    /// Index in L.data_ and A.data_ for L[i][j] and A[i][j] for each iteration of the inner (j) loop
+    /// used to set the initial value for the L matrix
+    std::vector<std::pair<std::size_t, std::size_t>> lij_aij_;
+    /// Index in U.data_ for each non-zero element in U that is zero in A
+    std::vector<std::size_t> fill_uij_;
+    /// Index in L.data_ for each non-zero element in L that is zero in A
+    std::vector<std::size_t> fill_lij_;
+    /// Index in U.data_ for U[i][i] and the number of elements in the middle (j) and (k) loops
+    /// for each iteration of the outer (i) loop
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> uii_nj_nk_;
+    /// Index in L.data_ for L[j][i] for each iteration of the middle (j) loop
+    /// for the lower triangular matrix
+    std::vector<std::size_t> lji_;
     /// Number of elements in the inner (j) loops for each iteration of the middle (k) loop for the
-    /// upper and lower triangular matrices
-    std::vector<std::pair<std::size_t, std::size_t>> nujk_nljk_;
-    /// Index in U.data_ for U[j][k], in A.data_ for A[j][k], in L.data_ for L[j][i], and
-    /// in U.data_ for U[i][k] for each iteration of the inner (j) loop for the upper triangular matrix
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> ujk_ajk_lji_uik_;
-    /// Index in L.data_ for L[j][k], in A.data_ for A[j][k], and in L.data_ for L[j][i], and
-    /// in U.data_ for U[i][k] for each iteration of the inner (j) loop for the lower triangular matrix
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> ljk_ajk_lji_uik_;
+    /// upper and lower triangular matrices, and the index in U.data_ for U[j][k] for each iteration
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> nujk_nljk_uik_;
+    /// Index in U.data_ for U[j][k] and in L.data_ for L[j][i]
+    /// for each iteration of the inner (j) loop for the upper triangular matrix
+    std::vector<std::pair<std::size_t, std::size_t>> ujk_lji_;
+    /// Index in L.data_ for L[j][k] and in L.data_ for L[j][i]
+    /// for each iteration of the inner (j) loop for the lower triangular matrix
+    std::vector<std::pair<std::size_t, std::size_t>> ljk_lji_;
 
    public:
     /// @brief default constructor

@@ -36,70 +36,82 @@ namespace micm
     const auto& L_row_ids = LU.first.RowIdsVector();
     const auto& U_row_start = LU.second.RowStartVector();
     const auto& U_row_ids = LU.second.RowIdsVector();
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      std::tuple<std::size_t, std::size_t, std::size_t> lii_nuij_nlij(0, 0, 0);
+      std::get<0>(lii_nuij_nlij) = LU.first.VectorIndex(0, i, i);
+      // set initial values for U matrix
+      for (std::size_t j = i; j < n; ++j)
+      {
+        if (matrix.IsZero(i, j))
+        {
+          if (!LU.second.IsZero(i, j))
+            fill_uij_.push_back(LU.second.VectorIndex(0, i, j));
+          continue;
+        }
+        uij_aij_.push_back(std::make_pair(LU.second.VectorIndex(0, i, j), matrix.VectorIndex(0, i, j)));
+        ++(std::get<1>(lii_nuij_nlij));
+      }
+      // set initial values for L matrix
+      for (std::size_t j = 0; j < i; ++j)
+      {
+        if (matrix.IsZero(i, j))
+        {
+          if (!LU.first.IsZero(i, j))
+            fill_lij_.push_back(LU.first.VectorIndex(0, i, j));
+          continue;
+        }
+        lij_aij_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), matrix.VectorIndex(0, i, j)));
+        ++(std::get<2>(lii_nuij_nlij));
+      }
+      lii_nuij_nlij_.push_back(lii_nuij_nlij);
+    }
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
-      std::pair<std::size_t, std::size_t> iLU(0, 0);
-      // Upper triangular matrix
-      for (std::size_t k = i; k < n; ++k)
+      std::tuple<std::size_t, std::size_t, std::size_t> uii_nj_nk(0, 0, 0);
+      std::get<0>(uii_nj_nk) = LU.second.VectorIndex(0, i, i);
+      // middle j loop to set L[j][i]
+      for (std::size_t j = i + 1; j < n; ++j)
       {
-        std::size_t nkj = 0;
-        for (std::size_t j_id = L_row_start[i]; j_id < L_row_start[i + 1]; ++j_id)
-        {
-          std::size_t j = L_row_ids[j_id];
-          if (j >= i)
-            break;
-          if (LU.second.IsZero(j, k))
-            continue;
-          ++nkj;
-          lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
-        }
-        if (matrix.IsZero(i, k))
-        {
-          if (nkj == 0 && k != i)
-            continue;
-          do_aik_.push_back(false);
-        }
-        else
-        {
-          do_aik_.push_back(true);
-          aik_.push_back(matrix.VectorIndex(0, i, k));
-        }
-        uik_nkj_.push_back(std::make_pair(LU.second.VectorIndex(0, i, k), nkj));
-        ++(iLU.second);
+        if (LU.first.IsZero(j, i))
+          continue;
+        lji_.push_back(LU.first.VectorIndex(0, j, i));
+        ++(std::get<1>(uii_nj_nk));
       }
-      // Lower triangular matrix
-      lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, i, i), 0));
-      for (std::size_t k = i + 1; k < n; ++k)
+      // middle k loop to set U[j][k] and L[j][k]
+      for (std::size_t k = i+1; k < n; ++k)
       {
-        std::size_t nkj = 0;
-        for (std::size_t j_id = L_row_start[k]; j_id < L_row_start[k + 1]; ++j_id)
+        if (LU.second.IsZero(i, k))
+          continue;
+        std::tuple<std::size_t, std::size_t, std::size_t> nujk_nljk_uik(0, 0, 0);
+        std::get<2>(nujk_nljk_uik) = LU.second.VectorIndex(0, i, k);
+        // inner j loop to set U[j][k]
+        for (std::size_t j = i + 1; j <= k; ++j)
         {
-          std::size_t j = L_row_ids[j_id];
-          if (j >= i)
-            break;
-          if (LU.second.IsZero(j, i))
+          if (LU.first.IsZero(j, i))
             continue;
-          ++nkj;
-          lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
+          std::pair<std::size_t, std::size_t> ujk_lji(0, 0);
+          ujk_lji.first = LU.second.VectorIndex(0, j, k);
+          ujk_lji.second = LU.first.VectorIndex(0, j, i);
+          ujk_lji_.push_back(ujk_lji);
+          ++(std::get<0>(nujk_nljk_uik));
         }
-        if (matrix.IsZero(k, i))
+        // inner j loop to set L[j][k]
+        for (std::size_t j = k + 1; j < n; ++j)
         {
-          if (nkj == 0)
+          if (LU.first.IsZero(j, i))
             continue;
-          do_aki_.push_back(false);
+          std::pair<std::size_t, std::size_t> ljk_lji(0, 0);
+          ljk_lji.first = LU.first.VectorIndex(0, j, k);
+          ljk_lji.second = LU.first.VectorIndex(0, j, i);
+          ljk_lji_.push_back(ljk_lji);
+          ++(std::get<1>(nujk_nljk_uik));
         }
-        else
-        {
-          do_aki_.push_back(true);
-          aki_.push_back(matrix.VectorIndex(0, k, i));
-        }
-        uii_.push_back(LU.second.VectorIndex(0, i, i));
-        lki_nkj_.push_back(std::make_pair(LU.first.VectorIndex(0, k, i), nkj));
-        ++(iLU.first);
+        nujk_nljk_uik_.push_back(nujk_nljk_uik);
+        ++(std::get<2>(uii_nj_nk));
       }
-      niLU_.push_back(iLU);
+      uii_nj_nk_.push_back(uii_nj_nk);
     }
-    uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
   }
 
   template<class SparseMatrixPolicy>
@@ -115,39 +127,31 @@ namespace micm
     const auto& row_ids = A.RowIdsVector();
     for (std::size_t i = 0; i < n; ++i)
     {
-      // Upper triangular matrix
-      for (std::size_t k = i; k < n; ++k)
+      for (std::size_t j = i; j < n; ++j)
+        if (!A.IsZero(i, j))
+          U_ids.insert(std::make_pair(i, j));
+      L_ids.insert(std::make_pair(i, i));
+      for (std::size_t j = 0; j < i; ++j)
+        if (!A.IsZero(i, j))
+          L_ids.insert(std::make_pair(i, j));
+    }
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      for (std::size_t j = i + 1; j < n; ++j)
       {
-        if (!A.IsZero(i, k) || k == i)
-        {
-          U_ids.insert(std::make_pair(i, k));
-          continue;
-        }
-        for (std::size_t j = 0; j < i; ++j)
-        {
-          if (L_ids.find(std::make_pair(i, j)) != L_ids.end() && U_ids.find(std::make_pair(j, k)) != U_ids.end())
-          {
-            U_ids.insert(std::make_pair(i, k));
-            break;
-          }
-        }
+        if (!A.IsZero(j, i))
+          L_ids.insert(std::make_pair(j, i));
       }
-      // Lower triangular matrix
-      for (std::size_t k = i; k < n; ++k)
+      for (std::size_t k = i + 1; k < n; ++k)
       {
-        if (!A.IsZero(k, i) || k == i)
-        {
-          L_ids.insert(std::make_pair(k, i));
+        if (!(std::find(U_ids.begin(), U_ids.end(), std::make_pair(i, k)) != U_ids.end()))
           continue;
-        }
-        for (std::size_t j = 0; j < i; ++j)
-        {
-          if (L_ids.find(std::make_pair(k, j)) != L_ids.end() && U_ids.find(std::make_pair(j, i)) != U_ids.end())
-          {
-            L_ids.insert(std::make_pair(k, i));
-            break;
-          }
-        }
+        for (std::size_t j = i + 1; j <= k; ++j)
+          if(std::find(L_ids.begin(), L_ids.end(), std::make_pair(j, i)) != L_ids.end())
+            U_ids.insert(std::make_pair(j, k));
+        for (std::size_t j = k + 1; j < n; ++j)
+          if(std::find(L_ids.begin(), L_ids.end(), std::make_pair(j, i)) != L_ids.end())
+            L_ids.insert(std::make_pair(j, k));
       }
     }
     auto L_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
@@ -171,6 +175,7 @@ namespace micm
       SparseMatrixPolicy& U) const
   {
     MICM_PROFILE_FUNCTION();
+    const std::size_t n = A.NumRows();
 
     // Loop over blocks
     for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
@@ -178,56 +183,56 @@ namespace micm
       auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
       auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
       auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
-      auto do_aik = do_aik_.begin();
-      auto aik = aik_.begin();
-      auto uik_nkj = uik_nkj_.begin();
-      auto lij_ujk = lij_ujk_.begin();
-      auto do_aki = do_aki_.begin();
-      auto aki = aki_.begin();
-      auto lki_nkj = lki_nkj_.begin();
-      auto lkj_uji = lkj_uji_.begin();
-      auto uii = uii_.begin();
-      for (const auto& inLU : niLU_)
+      auto uij_aij = uij_aij_.begin();
+      auto lij_aij = lij_aij_.begin();
+      auto uii_nj_nk = uii_nj_nk_.begin();
+      auto lji = lji_.begin();
+      auto nujk_nljk_uik = nujk_nljk_uik_.begin();
+      auto ujk_lji = ujk_lji_.begin();
+      auto ljk_lji = ljk_lji_.begin();
+      
+      for (auto& lii_nuij_nlij : lii_nuij_nlij_)
       {
-        // Upper trianglur matrix
-        for (std::size_t iU = 0; iU < inLU.second; ++iU)
+        for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
         {
-          if (*(do_aik++))
-          {
-            U_vector[uik_nkj->first] = A_vector[*(aik++)];
-          }
-          else
-          {
-            U_vector[uik_nkj->first] = 0;
-          }
-          for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
-          {
-            U_vector[uik_nkj->first] -= L_vector[lij_ujk->first] * U_vector[lij_ujk->second];
-            ++lij_ujk;
-          }
-          ++uik_nkj;
+          U_vector[uij_aij->first] = A_vector[uij_aij->second];
+          ++uij_aij;
         }
-        // Lower triangular matrix
-        L_vector[(lki_nkj++)->first] = 1.0;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
+        L_vector[std::get<0>(lii_nuij_nlij)] = 1.0;
+        for (std::size_t i = 0; i < std::get<2>(lii_nuij_nlij); ++i)
         {
-          if (*(do_aki++))
-          {
-            L_vector[lki_nkj->first] = A_vector[*(aki++)];
-          }
-          else
-          {
-            L_vector[lki_nkj->first] = 0;
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            L_vector[lki_nkj->first] -= L_vector[lkj_uji->first] * U_vector[lkj_uji->second];
-            ++lkj_uji;
-          }
-          L_vector[lki_nkj->first] /= U_vector[*uii];
-          ++lki_nkj;
-          ++uii;
+          L_vector[lij_aij->first] = A_vector[lij_aij->second];
+          ++lij_aij;
         }
+      }
+      for (auto& fill_uij : fill_uij_)
+        U_vector[fill_uij] = 0;
+      for (auto& fill_lij : fill_lij_)
+        L_vector[fill_lij] = 0;
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        auto Uii_inverse = 1.0 / U_vector[std::get<0>(*uii_nj_nk)];
+        for (std::size_t ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
+        {
+          L_vector[*lji] = L_vector[*lji] * Uii_inverse;
+          ++lji;
+        }
+        for (std::size_t ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
+        {
+          const std::size_t uik = std::get<2>(*nujk_nljk_uik);
+          for (std::size_t ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+          {
+            U_vector[ujk_lji->first] -= L_vector[ujk_lji->second] * U_vector[uik];
+            ++ujk_lji;
+          }
+          for (std::size_t ij = 0 ; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+          {
+            L_vector[ljk_lji->first] -= L_vector[ljk_lji->second] * U_vector[uik];
+            ++ljk_lji;
+          }
+          ++nujk_nljk_uik;
+        }
+        ++uii_nj_nk;
       }
     }
   }
@@ -240,6 +245,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
+    const std::size_t n = A.NumRows();
     const std::size_t A_BlockSize = A.NumberOfBlocks();
     const std::size_t A_GroupVectorSize = A.GroupVectorSize();
     const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
@@ -252,73 +258,66 @@ namespace micm
       auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
       auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
       auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
-      auto do_aik = do_aik_.begin();
-      auto aik = aik_.begin();
-      auto uik_nkj = uik_nkj_.begin();
-      auto lij_ujk = lij_ujk_.begin();
-      auto do_aki = do_aki_.begin();
-      auto aki = aki_.begin();
-      auto lki_nkj = lki_nkj_.begin();
-      auto lkj_uji = lkj_uji_.begin();
-      auto uii = uii_.begin();
+      auto uij_aij = uij_aij_.begin();
+      auto lij_aij = lij_aij_.begin();
+      auto uii_nj_nk = uii_nj_nk_.begin();
+      auto lji = lji_.begin();
+      auto nujk_nljk_uik = nujk_nljk_uik_.begin();
+      auto ujk_lji = ujk_lji_.begin();
+      auto ljk_lji = ljk_lji_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (const auto& inLU : niLU_)
+      for (auto& lii_nuij_nlij : lii_nuij_nlij_)
       {
-        // Upper trianglur matrix
-        for (std::size_t iU = 0; iU < inLU.second; ++iU)
+        for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
         {
-          const std::size_t uik_nkj_first = uik_nkj->first;
-          if (*(do_aik++))
-          {
-            std::copy(A_vector + *aik, A_vector + *aik + n_cells, U_vector + uik_nkj_first);
-            ++aik;
-          }
-          else
-          {
-            std::fill(U_vector + uik_nkj_first, U_vector + uik_nkj_first + n_cells, 0);
-          }
-          for (std::size_t ikj = 0; ikj < uik_nkj->second; ++ikj)
-          {
-            const std::size_t lij_ujk_first = lij_ujk->first;
-            const std::size_t lij_ujk_second = lij_ujk->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              U_vector[uik_nkj_first + i_cell] -= L_vector[lij_ujk_first + i_cell] * U_vector[lij_ujk_second + i_cell];
-            ++lij_ujk;
-          }
-          ++uik_nkj;
-        }
-        // Lower triangular matrix
-        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[lki_nkj->first + i_cell] = 1.0;
-        ++lki_nkj;
-        for (std::size_t iL = 0; iL < inLU.first; ++iL)
-        {
-          const std::size_t lki_nkj_first = lki_nkj->first;
-          if (*(do_aki++))
-          {
-            std::copy(A_vector + *aki, A_vector + *aki + n_cells, L_vector + lki_nkj_first);
-            ++aki;
-          }
-          else
-          {
-            std::fill(L_vector + lki_nkj_first, L_vector + lki_nkj_first + n_cells, 0);
-          }
-          for (std::size_t ikj = 0; ikj < lki_nkj->second; ++ikj)
-          {
-            const std::size_t lkj_uji_first = lkj_uji->first;
-            const std::size_t lkj_uji_second = lkj_uji->second;
-            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-              L_vector[lki_nkj_first + i_cell] -= L_vector[lkj_uji_first + i_cell] * U_vector[lkj_uji_second + i_cell];
-            ++lkj_uji;
-          }
-          const std::size_t uii_deref = *uii;
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          {
-            L_vector[lki_nkj_first + i_cell] /= U_vector[uii_deref + i_cell];
-          }
-          ++lki_nkj;
-          ++uii;
+            U_vector[uij_aij->first+i_cell] = A_vector[uij_aij->second+i_cell];
+          ++uij_aij;
         }
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          L_vector[std::get<0>(lii_nuij_nlij)+i_cell] = 1.0;
+        for (std::size_t i = 0; i < std::get<2>(lii_nuij_nlij); ++i)
+        {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            L_vector[lij_aij->first+i_cell] = A_vector[lij_aij->second+i_cell];
+          ++lij_aij;
+        }
+      }
+      for (auto& fill_uij : fill_uij_)
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          U_vector[fill_uij+i_cell] = 0;
+      for (auto& fill_lij : fill_lij_)
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          L_vector[fill_lij+i_cell] = 0;
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        double Uii_inverse[n_cells];
+        for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+          Uii_inverse[i_cell] = 1.0 / U_vector[std::get<0>(*uii_nj_nk)+i_cell];
+        for (std::size_t ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
+        {
+          for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+            L_vector[*lji+i_cell] = L_vector[*lji+i_cell] * Uii_inverse[i_cell];
+          ++lji;
+        }
+        for (std::size_t ik = 0; ik < std::get<2>(*uii_nj_nk); ++ik)
+        {
+          const std::size_t uik = std::get<2>(*nujk_nljk_uik);
+          for (std::size_t ij = 0; ij < std::get<0>(*nujk_nljk_uik); ++ij)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              U_vector[ujk_lji->first+i_cell] -= L_vector[ujk_lji->second+i_cell] * U_vector[uik+i_cell];
+            ++ujk_lji;
+          }
+          for (std::size_t ij = 0; ij < std::get<1>(*nujk_nljk_uik); ++ij)
+          {
+            for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
+              L_vector[ljk_lji->first+i_cell] -= L_vector[ljk_lji->second+i_cell] * U_vector[uik+i_cell];
+            ++ljk_lji;
+          }
+          ++nujk_nljk_uik;
+        }
+        ++uii_nj_nk;
       }
     }
   }

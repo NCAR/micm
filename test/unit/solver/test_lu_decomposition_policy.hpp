@@ -67,8 +67,7 @@ void check_results(
   }
 }
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
+void print_matrix(const auto& matrix, std::size_t width)
 {
   for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
