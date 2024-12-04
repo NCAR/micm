@@ -266,6 +266,7 @@ namespace micm
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
+      double Uii_inverse[n_cells];
       for (auto& lii_nuij_nlij : lii_nuij_nlij_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
@@ -291,7 +292,6 @@ namespace micm
           L_vector[fill_lij+i_cell] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
-        double Uii_inverse[n_cells];
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           Uii_inverse[i_cell] = 1.0 / U_vector[std::get<0>(*uii_nj_nk)+i_cell];
         for (std::size_t ij = 0; ij < std::get<1>(*uii_nj_nk); ++ij)
