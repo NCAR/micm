@@ -103,12 +103,11 @@ namespace micm
         requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix
-    /// @param H The time step
-    /// @param gamma The gamma value
+    /// @param alpha The alpha value
     /// @param number_densities The number densities
     /// @param stats The solver stats
     /// @param state The state
-    void LinearFactor(double& H, const double gamma, const auto& number_densities, SolverStats& stats, auto& state) const;
+    void LinearFactor(const double alpha, const auto& number_densities, SolverStats& stats, auto& state) const;
 
     /// @brief Computes the scaled norm of the vector errors
     /// @param y the original vector

@@ -66,11 +66,17 @@ namespace micm
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
+      double last_alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
+        // Compute alpha accounting for the last alpha value
+        // This is necessary to avoid the need to re-factor the jacobian
+        double alpha = 1.0 / (H * parameters_.gamma_[0]) - last_alpha;
+
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], Y, stats, state);
+        LinearFactor(alpha, Y, stats, state);
+        last_alpha = alpha;
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
@@ -222,15 +228,13 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
-      double& H,
-      const double gamma,
+      const double alpha,
       const auto& number_densities,
       SolverStats& stats,
       auto& state) const
   {
     MICM_PROFILE_FUNCTION();
 
-    double alpha = 1 / (H * gamma);
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
     linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
