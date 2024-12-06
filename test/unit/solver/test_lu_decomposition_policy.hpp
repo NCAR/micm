@@ -5,7 +5,6 @@
 
 #include <functional>
 #include <random>
-#include <iostream>
 
 template<class MatrixPolicy>
 void CopyToDevice(MatrixPolicy& matrix)
@@ -122,13 +121,6 @@ void testDenseMatrix()
   LuDecompositionPolicy lud = LuDecompositionPolicy(A);
   auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy>(A, 0);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
-  std::cout << "A:" << std::endl;
-  print_matrix(A, 5);
-  std::cout << "L:" << std::endl;
-  print_matrix(LU.first, 5);
-  std::cout << "U:" << std::endl;
-  print_matrix(LU.second, 5);
-
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
