@@ -25,16 +25,21 @@ namespace micm
   /// 
   /// The pseudo-code in C++ for the corresponding dense matrix algorithm for matrix A
   /// and separate lower (upper) triangular matrix L(U) would be:
-  /// 
-  /// for i = 0...n-1                     // Initialize U and L matrices to the A values
-  ///   for j = i...n-1                   // Initialize U matrix including diagonal
-  ///     U[i][j] = A[i][j]
-  ///   L[i][i] = 1                       // Lower triangular matrix is 1 along the diagonal
-  ///   for j = 0...i-1                   // Initialize L matrix excluding diagonal
-  ///     L[i][j] = A[i][j]
-  /// for i = 0...n-1
-  ///   for j = i+1...n-1                 // Multiply column below diagonal
-  ///     L[j][i] = L[j][i] / U[i][i]
+  ///
+  /// L[0][0] = 1.0                       // Set the diagonal of the L matrix to 1
+  /// U[0][0] = A[0][0]                   // Set the U values for the first column
+  /// for i = 1...n-1
+  ///   L[i][0] = A[i][0] / U[0][0]       // Set the L values for the first column
+  ///   U[0][i] = A[0][i]                 // Set the U values for the first row
+  /// for k = 1...n-1
+  ///   for j = 1...k
+  ///     U[j][k] = A[j][k] - L[j][0] * U[0][k]
+  ///   for j = k+1...n-1
+  ///     L[j][k] = A[j][k] - L[j][0] * U[0][k]
+  /// for i = 1...n-1
+  ///   L[i][i] = 1.0                     // Set the diagonal of the L matrix to 1
+  ///   for j = i+1...n-1
+  ///     L[j][i] = L[j][i] / U[i][i]     // Multiply column below diagonal
   ///   for k = i+1...n-1                 // Modify sub-matrix
   ///     for j = i+1...k
   ///       U[j][k] = U[j][k] - L[j][i] * U[i][k]
@@ -54,24 +59,35 @@ namespace micm
   class LuDecompositionMozart
   {
    protected:
-    /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
-    /// used to set the initial value for the L and U matrices
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> lii_nuij_nlij_;
-    /// Index in U.data_ and A.data_ for U[i][j] and A[i][j] for each iteration of the inner (j) loop
-    /// used to set the initial value for the U matrix
-    std::vector<std::pair<std::size_t, std::size_t>> uij_aij_;
-    /// Index in L.data_ and A.data_ for L[i][j] and A[i][j] for each iteration of the inner (j) loop
-    /// used to set the initial value for the L matrix
-    std::vector<std::pair<std::size_t, std::size_t>> lij_aij_;
-    /// Index in U.data_ for each non-zero element in U that is zero in A
-    std::vector<std::size_t> fill_uij_;
-    /// Index in L.data_ for each non-zero element in L that is zero in A
-    std::vector<std::size_t> fill_lij_;
-    /// Index in U.data_ for U[i][i] and the number of elements in the middle (j) and (k) loops
-    /// for each iteration of the outer (i) loop
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> uii_nj_nk_;
-    /// Index in L.data_ for L[j][i] for each iteration of the middle (j) loop
-    /// for the lower triangular matrix
+    /// Index in L.data_, U.data_, and A.data_ for L[0][0], U[0][0], and A[0][0]
+    std::tuple<std::size_t, std::size_t, std::size_t> l00_u00_a00_;
+    /// Index in L.data_ and A.data_ for L[i][0] and A[i][0] (when non-zero) for each iteration
+    /// of the (i) loop for the lower triangular matrix. Also, includes a flag to indicate
+    /// if the value is zero in A
+    std::vector<std::tuple<std::size_t, std::size_t, char>> li0_ai0_doFill_;
+    /// Index in U.data_ and A.data_ for U[0][i] and A[0][i] (when non-zero) for each iteration
+    /// of the (i) loop for the upper triangular matrix. Also, includes a flag to indicate if the
+    /// value is zero in A
+    std::vector<std::tuple<std::size_t, std::size_t, char>> u0i_a0i_doFill_;
+    /// Number of elements in the inner (j) loop for each iteration of the outer (i) loop for the
+    /// upper and lower triangular matrices, and the index in U.data_ for U[0][k]. Also, includes
+    /// a flag to indicate if the value is zero in U[0][k]
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, char>> nujk_nljk_u0k_doFill_;
+    /// Index in U.data_ and A.data_ for U[j][k], A[j][k] (when non-zero), and L[j][0]
+    /// (when non-zero) for each iteration of the inner (j) loop for the upper triangular matrix.
+    /// Also, includes flags to indicate if the value is zero in A, and if the value is zero for
+    /// L[j][0] * U[0][k]
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, char, char>> ujk_ajk_lj0_doFill_skipLU_;
+    /// Index in L.data_ and A.data_ for L[j][k], A[j][k] (when non-zero), L[j][0]
+    /// (when non-zero) for each iteration of the inner (j) loop for the lower triangular matrix.
+    /// Also, includes flags to indicate if the value is zero in A, and if the value is zero for
+    /// L[j][0] * U[0][k]
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, char, char>> ljk_ajk_lj0_doFill_skipLU_;
+    /// Index in L.data_ and U.data_ for L[i][i] and U[i][i] and the number of elements in the
+    /// middle (j) and (k) loops for each iteration of the outer (i) loop
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> lii_uii_nj_nk_;
+    /// Index in L.data_ for L[j][i] for each iteration of the inner (j) loop for the lower
+    /// triangular matrix
     std::vector<std::size_t> lji_;
     /// Number of elements in the inner (j) loops for each iteration of the middle (k) loop for the
     /// upper and lower triangular matrices, and the index in U.data_ for U[j][k] for each iteration
