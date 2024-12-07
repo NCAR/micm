@@ -9,4 +9,4 @@ namespace micm
   /// @brief Alias for the default JIT LU decomposition algorithm
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   using JitLuDecomposition = JitLuDecompositionDoolittle<L>;
-}
+}  // namespace micm

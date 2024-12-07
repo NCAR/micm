@@ -33,7 +33,10 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix, class LuDecompositionPolicy = LuDecomposition>
+  template<
+      class DenseMatrixPolicy = StandardDenseMatrix,
+      class SparseMatrixPolicy = StandardSparseMatrix,
+      class LuDecompositionPolicy = LuDecomposition>
   struct State
   {
     /// Type of the DenseMatrixPolicy

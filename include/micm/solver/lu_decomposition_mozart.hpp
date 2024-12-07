@@ -10,11 +10,11 @@ namespace micm
 
   /// @brief LU decomposer for SparseMatrix following the algorithm from the MOZART model
   ///
-  /// This LU decomposition uses the algorithm from the MOZART chemistry preprocessor at: 
+  /// This LU decomposition uses the algorithm from the MOZART chemistry preprocessor at:
   /// https://github.com/ESCOMP/CHEM_PREPROCESSOR/blob/f923081508f4264e61fcef2753a9898e55d1598e/src/cam_chempp/make_lu_fac.f#L127-L214
   ///
   /// The MOZART function overwrote the A matrix with the L and U matrices. The pseudo-code
-  /// in C++ for the corresponding dense matrix algorithm for matrix A (inline change) would be: 
+  /// in C++ for the corresponding dense matrix algorithm for matrix A (inline change) would be:
   ///
   /// for i = 0...n-1                     // Outer loop over columns of the sparse matrix A
   ///   for j = i+1...n-1                 // Multiply column below diagonal
@@ -22,10 +22,10 @@ namespace micm
   ///   for k = i+1...n-1                 // Modify sub-matrix
   ///     for j = i+1...n-1
   ///       A[j][k] = A[j][k] – A[j][i] * A[i][k]
-  /// 
+  ///
   /// The pseudo-code in C++ for the corresponding dense matrix algorithm for matrix A
   /// and separate lower (upper) triangular matrix L(U) would be:
-  /// 
+  ///
   /// for i = 0...n-1                     // Initialize U and L matrices to the A values
   ///   for j = i...n-1                   // Initialize U matrix including diagonal
   ///     U[i][j] = A[i][j]
