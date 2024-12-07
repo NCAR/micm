@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/solver/doolittle_lu_decomposition.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/temporary_variables.hpp>
 #include <micm/system/conditions.hpp>
 #include <micm/system/system.hpp>
@@ -33,7 +33,7 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix>
+  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix, class LuDecompositionPolicy = LuDecomposition>
   struct State
   {
     /// Type of the DenseMatrixPolicy
