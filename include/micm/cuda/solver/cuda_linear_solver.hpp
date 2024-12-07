@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/cuda/solver/cuda_doolittle_lu_decomposition.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/cuda/solver/cuda_linear_solver.cuh>
 #include <micm/cuda/util/cuda_param.hpp>
-#include <micm/solver/doolittle_lu_decomposition.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 
 namespace micm
 {
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaDoolittleLuDecomposition>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy = CudaLuDecomposition>
   class CudaLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
    public:
@@ -39,7 +39,7 @@ namespace micm
     /// This constructor takes two arguments: a sparse matrix and its values
     /// The base class here takes three arguments: the third argument is
     ///   a lamda function that creates an instance of LuDecompositionPolicy;
-    ///   in this case, we will use the CudaDoolittleLuDecomposition specified at line 15;
+    ///   in this case, we will use the CudaLuDecomposition specified at line 15;
     ///   See line 62 of "linear_solver.inl" for more details about how
     ///   this lamda function works;
     CudaLinearSolver(const SparseMatrixPolicy& matrix, typename SparseMatrixPolicy::value_type initial_value)

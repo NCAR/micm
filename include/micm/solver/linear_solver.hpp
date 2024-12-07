@@ -3,7 +3,7 @@
 #pragma once
 
 #include <micm/profiler/instrumentation.hpp>
-#include <micm/solver/doolittle_lu_decomposition.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
@@ -22,7 +22,7 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy = DoolittleLuDecomposition>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
   class LinearSolver
   {
    protected:

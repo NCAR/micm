@@ -4,7 +4,7 @@
 
 #include <micm/jit/jit_compiler.hpp>
 #include <micm/jit/jit_function.hpp>
-#include <micm/jit/solver/jit_doolittle_lu_decomposition.hpp>
+#include <micm/jit/solver/jit_lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
 #include <micm/util/random_string.hpp>
 #include <micm/util/sparse_matrix.hpp>
@@ -17,7 +17,7 @@ namespace micm
   ///
   /// See LinearSolver class description for algorithm details
   /// The template parameter is the number of blocks (i.e. grid cells) in the block-diagonal matrix
-  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitDoolittleLuDecomposition<L>>
+  template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy = JitLuDecomposition<L>>
   class JitLinearSolver : public LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>
   {
     llvm::orc::ResourceTrackerSP solve_function_resource_tracker_;

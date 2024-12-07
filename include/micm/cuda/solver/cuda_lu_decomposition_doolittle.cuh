@@ -14,15 +14,15 @@ namespace micm
         const CudaMatrixParam& A_param,
         CudaMatrixParam& L_param,
         CudaMatrixParam& U_param,
-        const LuDecomposeParam& devstruct);
+        const LuDecomposeDoolittleParam& devstruct);
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLuDecomposition" to the device;
-    LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct);
+    LuDecomposeDoolittleParam CopyConstData(LuDecomposeDoolittleParam& hoststruct);
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeParam& devstruct);
+    void FreeConstData(LuDecomposeDoolittleParam& devstruct);
 
   }  // end of namespace cuda
 }  // end of namespace micm
