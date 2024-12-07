@@ -109,7 +109,9 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(const Species& species, double concentration)
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetConcentration(
+      const Species& species,
+      double concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -160,7 +162,9 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(const std::string& label, double value)
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetCustomRateParameter(
+      const std::string& label,
+      double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())

@@ -24,7 +24,10 @@ using StandardRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::Matrix<double>,
     micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionDoolittle>;
-using StandardStateTypeDoolittle = micm::State<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionDoolittle>;
+using StandardStateTypeDoolittle = micm::State<
+    micm::Matrix<double>,
+    micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
+    micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
 using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
@@ -34,8 +37,10 @@ using VectorRosenbrockDoolittle = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittle =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionDoolittle>;
+using VectorStateTypeDoolittle = micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionDoolittle>;
 
 using StandardRosenbrockMozart = micm::CpuSolverBuilder<
     micm::RosenbrockSolverParameters,
@@ -43,7 +48,8 @@ using StandardRosenbrockMozart = micm::CpuSolverBuilder<
     micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>,
     micm::LuDecompositionMozart>;
 
-using StandardStateTypeMozart = micm::State<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionMozart>;
+using StandardStateTypeMozart = micm::
+    State<micm::Matrix<double>, micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>, micm::LuDecompositionMozart>;
 
 template<std::size_t L>
 using VectorRosenbrockMozart = micm::CpuSolverBuilder<
@@ -53,8 +59,10 @@ using VectorRosenbrockMozart = micm::CpuSolverBuilder<
     micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozart =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozart>;
+using VectorStateTypeMozart = micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionMozart>;
 
 template<std::size_t L>
 using VectorStateType =
@@ -76,16 +84,26 @@ auto rosenbrock_vector_2 = VectorRosenbrock<2>(micm::RosenbrockSolverParameters:
 auto rosenbrock_vector_3 = VectorRosenbrock<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto rosenbrock_vector_4 = VectorRosenbrock<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
-auto rosenbrock_standard_doolittle = StandardRosenbrockDoolittle(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_1 = VectorRosenbrockDoolittle<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_2 = VectorRosenbrockDoolittle<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_3 = VectorRosenbrockDoolittle<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_doolittle_4 = VectorRosenbrockDoolittle<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_standard_mozart = StandardRosenbrockMozart(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_mozart_1 = VectorRosenbrockMozart<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_mozart_2 = VectorRosenbrockMozart<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_mozart_3 = VectorRosenbrockMozart<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
-auto rosenbrock_vector_mozart_4 = VectorRosenbrockMozart<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_standard_doolittle =
+    StandardRosenbrockDoolittle(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_doolittle_1 =
+    VectorRosenbrockDoolittle<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_doolittle_2 =
+    VectorRosenbrockDoolittle<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_doolittle_3 =
+    VectorRosenbrockDoolittle<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_doolittle_4 =
+    VectorRosenbrockDoolittle<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_standard_mozart =
+    StandardRosenbrockMozart(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_mozart_1 =
+    VectorRosenbrockMozart<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_mozart_2 =
+    VectorRosenbrockMozart<2>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_mozart_3 =
+    VectorRosenbrockMozart<3>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
+auto rosenbrock_vector_mozart_4 =
+    VectorRosenbrockMozart<4>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
@@ -360,7 +378,6 @@ TEST(AnalyticalExamples, E5)
   test_analytical_e5<VectorRosenbrockMozart<3>, VectorStateTypeMozart<3>>(vector_3_mozart, 1e-3);
   auto vector_4_mozart = VectorRosenbrockMozart<4>(params);
   test_analytical_e5<VectorRosenbrockMozart<4>, VectorStateTypeMozart<4>>(vector_4_mozart, 1e-3);
-
 }
 
 TEST(AnalyticalExamples, Oregonator)
@@ -450,7 +467,7 @@ TEST(AnalyticalExamples, HIRES)
   auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   params.relative_tolerance_ = 1e-6;
   params.absolute_tolerance_ = std::vector<double>(8, params.relative_tolerance_ * 1e-2);
-  
+
   auto standard_dootlittle = StandardRosenbrockDoolittle(params);
   test_analytical_hires<StandardRosenbrockDoolittle, StandardStateTypeDoolittle>(standard_dootlittle, 1e-7);
   auto vector_1_dootlittle = VectorRosenbrockDoolittle<1>(params);
