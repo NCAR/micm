@@ -44,7 +44,7 @@ TEST(SparseVectorMatrix, SingleBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[12], 21);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
-  EXPECT_EQ(matrix.GroupSize(matrix.FlatBlockSize()), 5 * 4);
+  EXPECT_EQ(matrix.GroupSize(), 5 * 4);
   EXPECT_EQ(matrix.NumberOfGroups(1), 1);
 }
 
@@ -63,7 +63,7 @@ TEST(SparseVectorMatrix, ConstSingleBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[6], 21);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(matrix.GroupSize(matrix.FlatBlockSize()), 2 * 5);
+  EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(1), 1);
 }
 
@@ -84,6 +84,6 @@ TEST(SparseVectorMatrix, MultiBlockMatrix)
     EXPECT_EQ(matrix.AsVector()[14], 31);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
-  EXPECT_EQ(matrix.GroupSize(matrix.FlatBlockSize()), 2 * 5);
+  EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(4), 2);
 }
