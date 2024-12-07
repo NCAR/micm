@@ -6,16 +6,8 @@ template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testZeroMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
-  auto row_ids = builder.RowIdsVector();
-  auto row_starts = builder.RowStartVector();
 
   EXPECT_EQ(builder.NumberOfElements(), 0);
-  EXPECT_EQ(row_ids.size(), 0);
-  EXPECT_EQ(row_starts.size(), 4);
-  EXPECT_EQ(row_starts[0], 0);
-  EXPECT_EQ(row_starts[1], 0);
-  EXPECT_EQ(row_starts[2], 0);
-  EXPECT_EQ(row_starts[3], 0);
 
   MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
@@ -94,16 +86,8 @@ template<template<class, class> class MatrixPolicy, class OrderingPolicy>
 MatrixPolicy<double, OrderingPolicy> testConstZeroMatrix()
 {
   auto builder = MatrixPolicy<double, OrderingPolicy>::Create(3);
-  auto row_ids = builder.RowIdsVector();
-  auto row_starts = builder.RowStartVector();
 
   EXPECT_EQ(builder.NumberOfElements(), 0);
-  EXPECT_EQ(row_ids.size(), 0);
-  EXPECT_EQ(row_starts.size(), 4);
-  EXPECT_EQ(row_starts[0], 0);
-  EXPECT_EQ(row_starts[1], 0);
-  EXPECT_EQ(row_starts[2], 0);
-  EXPECT_EQ(row_starts[3], 0);
 
   const MatrixPolicy<double, OrderingPolicy> matrix{ builder };
 
@@ -169,42 +153,12 @@ MatrixPolicy<int, OrderingPolicy> testSingleBlockMatrix()
   // 0 X 0 X
   // 0 0 X 0
   {
-    auto row_ids = builder.RowIdsVector();
-    auto row_starts = builder.RowStartVector();
-
     EXPECT_EQ(builder.NumberOfElements(), 5);
-    EXPECT_EQ(row_ids.size(), 5);
-    EXPECT_EQ(row_ids[0], 1);
-    EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 1);
-    EXPECT_EQ(row_ids[3], 3);
-    EXPECT_EQ(row_ids[4], 2);
-    EXPECT_EQ(row_starts.size(), 5);
-    EXPECT_EQ(row_starts[0], 0);
-    EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 2);
-    EXPECT_EQ(row_starts[3], 4);
-    EXPECT_EQ(row_starts[4], 5);
   }
 
   MatrixPolicy<int, OrderingPolicy> matrix{ builder };
 
   {
-    auto& row_ids = matrix.RowIdsVector();
-    auto& row_starts = matrix.RowStartVector();
-    EXPECT_EQ(row_ids.size(), 5);
-    EXPECT_EQ(row_ids[0], 1);
-    EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 1);
-    EXPECT_EQ(row_ids[3], 3);
-    EXPECT_EQ(row_ids[4], 2);
-    EXPECT_EQ(row_starts.size(), 5);
-    EXPECT_EQ(row_starts[0], 0);
-    EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 2);
-    EXPECT_EQ(row_starts[3], 4);
-    EXPECT_EQ(row_starts[4], 5);
-
     auto diagonal_ids = matrix.DiagonalIndices(0);
     EXPECT_EQ(diagonal_ids.size(), 1);
     EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1));
@@ -298,26 +252,9 @@ MatrixPolicy<int, OrderingPolicy> testConstSingleBlockMatrix()
   orig_matrix[0][2][1] = 45;
   orig_matrix[0][3][2] = 42;
   orig_matrix[0][2][3] = 21;
-  auto& row_ids = orig_matrix.RowIdsVector();
-  EXPECT_EQ(row_ids.size(), 5);
   const MatrixPolicy<int, OrderingPolicy> matrix = orig_matrix;
 
   {
-    auto& row_ids = matrix.RowIdsVector();
-    auto& row_starts = matrix.RowStartVector();
-    EXPECT_EQ(row_ids.size(), 5);
-    EXPECT_EQ(row_ids[0], 1);
-    EXPECT_EQ(row_ids[1], 1);
-    EXPECT_EQ(row_ids[2], 1);
-    EXPECT_EQ(row_ids[3], 3);
-    EXPECT_EQ(row_ids[4], 2);
-    EXPECT_EQ(row_starts.size(), 5);
-    EXPECT_EQ(row_starts[0], 0);
-    EXPECT_EQ(row_starts[1], 1);
-    EXPECT_EQ(row_starts[2], 2);
-    EXPECT_EQ(row_starts[3], 4);
-    EXPECT_EQ(row_starts[4], 5);
-
     auto diagonal_ids = matrix.DiagonalIndices(0);
     EXPECT_EQ(diagonal_ids.size(), 1);
     EXPECT_EQ(diagonal_ids[0], matrix.VectorIndex(1, 1));
@@ -383,22 +320,8 @@ MatrixPolicy<int, OrderingPolicy> testMultiBlockMatrix()
   // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
-  auto row_ids = builder.RowIdsVector();
-  auto row_starts = builder.RowStartVector();
 
   EXPECT_EQ(builder.NumberOfElements(), 5 * 3);
-  EXPECT_EQ(row_ids.size(), 5);
-  EXPECT_EQ(row_ids[0], 1);
-  EXPECT_EQ(row_ids[1], 1);
-  EXPECT_EQ(row_ids[2], 1);
-  EXPECT_EQ(row_ids[3], 3);
-  EXPECT_EQ(row_ids[4], 2);
-  EXPECT_EQ(row_starts.size(), 5);
-  EXPECT_EQ(row_starts[0], 0);
-  EXPECT_EQ(row_starts[1], 1);
-  EXPECT_EQ(row_starts[2], 2);
-  EXPECT_EQ(row_starts[3], 4);
-  EXPECT_EQ(row_starts[4], 5);
 
   MatrixPolicy<int, OrderingPolicy> matrix{ builder };
 
@@ -517,9 +440,6 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
   // 0 X 0 0
   // 0 X 0 X
   // 0 0 X 0
-  auto row_ids = builder.RowIdsVector();
-  auto row_starts = builder.RowStartVector();
-
   MatrixPolicy<int, OrderingPolicy> matrix{ builder };
 
   matrix[0][1][1] = 1;

@@ -362,6 +362,6 @@ void testMarkowitzReordering()
 
   EXPECT_EQ(sum_orig, sum_reordered);
   EXPECT_GT(
-      orig_LU.first.RowIdsVector().size() + orig_LU.second.RowIdsVector().size(),
-      reordered_LU.first.RowIdsVector().size() + reordered_LU.second.RowIdsVector().size());
+      orig_LU.first.FlatBlockSize() + orig_LU.second.FlatBlockSize(),
+      reordered_LU.first.FlatBlockSize() + reordered_LU.second.FlatBlockSize());
 }

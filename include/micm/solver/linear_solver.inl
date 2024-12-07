@@ -80,11 +80,10 @@ namespace micm
     for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
     {
       std::size_t nLij = 0;
-      for (std::size_t j_id = lower_matrix.RowStartVector()[i]; j_id < lower_matrix.RowStartVector()[i + 1]; ++j_id)
+      for (std::size_t j = 0; j < i; ++j)
       {
-        std::size_t j = lower_matrix.RowIdsVector()[j_id];
-        if (j >= i)
-          break;
+        if (lower_matrix.IsZero(i, j))
+          continue;
         Lij_yj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, j), j));
         ++nLij;
       }
@@ -94,10 +93,9 @@ namespace micm
     for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
     {
       std::size_t nUij = 0;
-      for (std::size_t j_id = upper_matrix.RowStartVector()[i]; j_id < upper_matrix.RowStartVector()[i + 1]; ++j_id)
+      for (std::size_t j = i + 1; j < upper_matrix.NumColumns(); ++j)
       {
-        std::size_t j = upper_matrix.RowIdsVector()[j_id];
-        if (j <= i)
+        if (upper_matrix.IsZero(i, j))
           continue;
         Uij_xj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, j), j));
         ++nUij;
@@ -180,15 +178,15 @@ namespace micm
       Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
-    const std::size_t n_cells = x.GroupVectorSize();
+    constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
       auto L_group =
-          std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
+          std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
       auto U_group =
-          std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
+          std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
       // Forward Substitution
       {
         auto y_elem = x_group;

@@ -5,76 +5,132 @@
 
 #include <gtest/gtest.h>
 
-using StandardOrdering = micm::SparseMatrixStandardOrdering;
+using StandardOrderingCSR = micm::SparseMatrixStandardOrderingCompressedSparseRow;
+using StandardOrderingCSC = micm::SparseMatrixStandardOrderingCompressedSparseColumn;
 
 TEST(SparseMatrix, ZeroMatrix)
 {
-  testZeroMatrix<micm::SparseMatrix, StandardOrdering>();
+  testZeroMatrix<micm::SparseMatrix, StandardOrderingCSR>();
+  testZeroMatrix<micm::SparseMatrix, StandardOrderingCSC>();
 }
 
 TEST(SparseMatrix, ConstZeroMatrix)
 {
-  testConstZeroMatrix<micm::SparseMatrix, StandardOrdering>();
+  testConstZeroMatrix<micm::SparseMatrix, StandardOrderingCSR>();
+  testConstZeroMatrix<micm::SparseMatrix, StandardOrderingCSC>();
 }
 
 TEST(SparseMatrix, SetScalar)
 {
-  testSetScalar<micm::SparseMatrix, StandardOrdering>();
+  testSetScalar<micm::SparseMatrix, StandardOrderingCSR>();
+  testSetScalar<micm::SparseMatrix, StandardOrderingCSC>();
 }
 
 TEST(SparseMatrix, AddToDiagonal)
 {
-  testAddToDiagonal<micm::SparseMatrix, StandardOrdering>();
+  testAddToDiagonal<micm::SparseMatrix, StandardOrderingCSR>();
+  testAddToDiagonal<micm::SparseMatrix, StandardOrderingCSC>();
 }
 
 TEST(SparseMatrix, SingleBlockMatrix)
 {
-  auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
-
   {
-    std::size_t elem = matrix.VectorIndex(3, 2);
-    EXPECT_EQ(elem, 4);
-    matrix.AsVector()[elem] = 42;
-    EXPECT_EQ(matrix.AsVector()[4], 42);
+    auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrderingCSR>();
+  
+    {
+      std::size_t elem = matrix.VectorIndex(3, 2);
+      EXPECT_EQ(elem, 4);
+      matrix.AsVector()[elem] = 42;
+      EXPECT_EQ(matrix.AsVector()[4], 42);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 3);
+      EXPECT_EQ(elem, 3);
+      matrix.AsVector()[elem] = 21;
+      EXPECT_EQ(matrix.AsVector()[3], 21);
+    }
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 3);
-    EXPECT_EQ(elem, 3);
-    matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[3], 21);
+    auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrderingCSC>();
+  
+    {
+      std::size_t elem = matrix.VectorIndex(3, 2);
+      EXPECT_EQ(elem, 3);
+      matrix.AsVector()[elem] = 42;
+      EXPECT_EQ(matrix.AsVector()[3], 42);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 3);
+      EXPECT_EQ(elem, 4);
+      matrix.AsVector()[elem] = 21;
+      EXPECT_EQ(matrix.AsVector()[4], 21);
+    }
   }
 }
 
 TEST(SparseMatrix, ConstSingleBlockMatrix)
 {
-  auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
   {
-    std::size_t elem = matrix.VectorIndex(3, 2);
-    EXPECT_EQ(elem, 4);
-    EXPECT_EQ(matrix.AsVector()[4], 42);
+    auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, StandardOrderingCSR>();
+    {
+      std::size_t elem = matrix.VectorIndex(3, 2);
+      EXPECT_EQ(elem, 4);
+      EXPECT_EQ(matrix.AsVector()[4], 42);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 3);
+      EXPECT_EQ(elem, 3);
+      EXPECT_EQ(matrix.AsVector()[3], 21);
+    }
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 3);
-    EXPECT_EQ(elem, 3);
-    EXPECT_EQ(matrix.AsVector()[3], 21);
+    auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, StandardOrderingCSC>();
+    {
+      std::size_t elem = matrix.VectorIndex(3, 2);
+      EXPECT_EQ(elem, 3);
+      EXPECT_EQ(matrix.AsVector()[3], 42);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 3);
+      EXPECT_EQ(elem, 4);
+      EXPECT_EQ(matrix.AsVector()[4], 21);
+    }
   }
 }
 
 TEST(SparseMatrix, MultiBlockMatrix)
 {
-  auto matrix = testMultiBlockMatrix<micm::SparseMatrix, StandardOrdering>();
-
   {
-    std::size_t elem = matrix.VectorIndex(0, 2, 3);
-    EXPECT_EQ(elem, 3);
-    matrix.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix.AsVector()[3], 21);
+    auto matrix = testMultiBlockMatrix<micm::SparseMatrix, StandardOrderingCSR>();
+
+    {
+      std::size_t elem = matrix.VectorIndex(0, 2, 3);
+      EXPECT_EQ(elem, 3);
+      matrix.AsVector()[elem] = 21;
+      EXPECT_EQ(matrix.AsVector()[3], 21);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 2, 1);
+      EXPECT_EQ(elem, 12);
+      matrix.AsVector()[elem] = 31;
+      EXPECT_EQ(matrix.AsVector()[12], 31);
+    }
   }
   {
-    std::size_t elem = matrix.VectorIndex(2, 2, 1);
-    EXPECT_EQ(elem, 12);
-    matrix.AsVector()[elem] = 31;
-    EXPECT_EQ(matrix.AsVector()[12], 31);
+    auto matrix = testMultiBlockMatrix<micm::SparseMatrix, StandardOrderingCSC>();
+
+    {
+      std::size_t elem = matrix.VectorIndex(0, 2, 3);
+      EXPECT_EQ(elem, 4);
+      matrix.AsVector()[elem] = 21;
+      EXPECT_EQ(matrix.AsVector()[4], 21);
+    }
+    {
+      std::size_t elem = matrix.VectorIndex(2, 2, 1);
+      EXPECT_EQ(elem, 12);
+      matrix.AsVector()[elem] = 31;
+      EXPECT_EQ(matrix.AsVector()[12], 31);
+    }
   }
 }
 

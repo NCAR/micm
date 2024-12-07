@@ -32,10 +32,6 @@ namespace micm
 
     std::size_t n = matrix.NumRows();
     auto LU = GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
-    const auto& L_row_start = LU.first.RowStartVector();
-    const auto& L_row_ids = LU.first.RowIdsVector();
-    const auto& U_row_start = LU.second.RowStartVector();
-    const auto& U_row_ids = LU.second.RowIdsVector();
     for (std::size_t i = 0; i < n; ++i)
     {
       std::tuple<std::size_t, std::size_t, std::size_t> lii_nuij_nlij(0, 0, 0);
@@ -123,8 +119,6 @@ namespace micm
 
     std::size_t n = A.NumRows();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
-    const auto& row_start = A.RowStartVector();
-    const auto& row_ids = A.RowIdsVector();
     for (std::size_t i = 0; i < n; ++i)
     {
       for (std::size_t j = i; j < n; ++j)
@@ -248,9 +242,9 @@ namespace micm
     const std::size_t n = A.NumRows();
     const std::size_t A_BlockSize = A.NumberOfBlocks();
     constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
-    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
-    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
-    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
+    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize();
+    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize();
+    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize();
     double Uii_inverse[A_GroupVectorSize];
 
     // Loop over groups of blocks

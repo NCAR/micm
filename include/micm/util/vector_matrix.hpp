@@ -223,7 +223,7 @@ namespace micm
       return L * y_dim_;
     }
 
-    constexpr std::size_t GroupVectorSize() const
+    static constexpr std::size_t GroupVectorSize()
     {
       return L;
     }

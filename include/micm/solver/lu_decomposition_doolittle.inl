@@ -32,10 +32,6 @@ namespace micm
 
     std::size_t n = matrix.NumRows();
     auto LU = GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
-    const auto& L_row_start = LU.first.RowStartVector();
-    const auto& L_row_ids = LU.first.RowIdsVector();
-    const auto& U_row_start = LU.second.RowStartVector();
-    const auto& U_row_ids = LU.second.RowIdsVector();
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -43,12 +39,9 @@ namespace micm
       for (std::size_t k = i; k < n; ++k)
       {
         std::size_t nkj = 0;
-        for (std::size_t j_id = L_row_start[i]; j_id < L_row_start[i + 1]; ++j_id)
+        for (std::size_t j = 0; j < i; ++j)
         {
-          std::size_t j = L_row_ids[j_id];
-          if (j >= i)
-            break;
-          if (LU.second.IsZero(j, k))
+          if (LU.first.IsZero(i, j) || LU.second.IsZero(j, k))
             continue;
           ++nkj;
           lij_ujk_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), LU.second.VectorIndex(0, j, k)));
@@ -72,12 +65,9 @@ namespace micm
       for (std::size_t k = i + 1; k < n; ++k)
       {
         std::size_t nkj = 0;
-        for (std::size_t j_id = L_row_start[k]; j_id < L_row_start[k + 1]; ++j_id)
+        for (std::size_t j = 0; j < i; ++j)
         {
-          std::size_t j = L_row_ids[j_id];
-          if (j >= i)
-            break;
-          if (LU.second.IsZero(j, i))
+          if (LU.first.IsZero(k, j) || LU.second.IsZero(j, i))
             continue;
           ++nkj;
           lkj_uji_.push_back(std::make_pair(LU.first.VectorIndex(0, k, j), LU.second.VectorIndex(0, j, i)));
@@ -111,8 +101,6 @@ namespace micm
 
     std::size_t n = A.NumRows();
     std::set<std::pair<std::size_t, std::size_t>> L_ids, U_ids;
-    const auto& row_start = A.RowStartVector();
-    const auto& row_ids = A.RowIdsVector();
     for (std::size_t i = 0; i < n; ++i)
     {
       // Upper triangular matrix
@@ -241,10 +229,10 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     const std::size_t A_BlockSize = A.NumberOfBlocks();
-    const std::size_t A_GroupVectorSize = A.GroupVectorSize();
-    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize(A.FlatBlockSize());
-    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize(L.FlatBlockSize());
-    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize(U.FlatBlockSize());
+    constexpr std::size_t A_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
+    const std::size_t A_GroupSizeOfFlatBlockSize = A.GroupSize();
+    const std::size_t L_GroupSizeOfFlatBlockSize = L.GroupSize();
+    const std::size_t U_GroupSizeOfFlatBlockSize = U.GroupSize();
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < A.NumberOfGroups(A_BlockSize); ++i_group)

@@ -214,7 +214,7 @@ namespace micm
     auto residual_iter = residual.AsVector().begin();
     auto state_iter = state.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
-    const std::size_t L = residual.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
 
