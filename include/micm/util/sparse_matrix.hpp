@@ -24,6 +24,14 @@ namespace micm
     t.NumberOfGroups(0);
   };
 
+  template<typename T>
+  concept SparseMatrixConcept = requires(T t)
+  {
+    t.NumRows();
+    t.NumColumns();
+    t.NumberOfBlocks();
+  };
+
   template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 

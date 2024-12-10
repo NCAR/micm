@@ -68,7 +68,7 @@ namespace micm
     };
 
    public:
-    std::size_t GroupVectorSize() const
+    static constexpr std::size_t GroupVectorSize()
     {
       return L;
     }

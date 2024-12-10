@@ -5,8 +5,8 @@
 #pragma once
 
 #include <micm/jit/process/jit_process_set.hpp>
-#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/jit/solver/jit_lu_decomposition.hpp>
+#include <micm/jit/solver/jit_linear_solver.hpp>
 #include <micm/solver/solver_builder.hpp>
 
 namespace micm
@@ -22,6 +22,7 @@ namespace micm
       VectorMatrix<double, L>,
       SparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       JitProcessSet<L>,
+      JitLuDecomposition<L>,
       JitLinearSolver<L, SparseMatrix<double, SparseMatrixVectorOrdering<L>>, JitLuDecomposition<L>>,
-      State<VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
+      State<VectorMatrix<double, L>, SparseMatrix<double, SparseMatrixVectorOrdering<L>>, JitLuDecomposition<L>>>;
 }  // namespace micm

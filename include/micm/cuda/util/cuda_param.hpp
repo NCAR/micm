@@ -29,9 +29,9 @@ struct ProcessSetParam
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
-///   each constatnt data member from the class "LuDecomposition";
+///   each constatnt data member from the class "LuDecompositionDoolittle";
 /// This struct could be allocated on the host or device;
-struct LuDecomposeParam
+struct LuDecomposeDoolittleParam
 {
   std::pair<std::size_t, std::size_t>* niLU_ = nullptr;
   char* do_aik_ = nullptr;
@@ -54,6 +54,9 @@ struct LuDecomposeParam
   std::size_t lkj_uji_size_;
   std::size_t uii_size_;
 };
+
+/// Alias for the default LU decomposition parameter struct
+using LuDecomposeParam = LuDecomposeDoolittleParam;
 
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "LinearSolver";

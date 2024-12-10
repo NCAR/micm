@@ -6,8 +6,8 @@
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/lu_decomposition.hpp>
+#include <micm/solver/linear_solver.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/system/conditions.hpp>
@@ -33,6 +33,7 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
+      class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
   class SolverBuilder
@@ -40,6 +41,7 @@ namespace micm
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
+    using LuDecompositionPolicyType = LuDecompositionPolicy;
 
    protected:
     SolverParametersPolicy options_;
@@ -113,17 +115,20 @@ namespace micm
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
+  /// @tparam LuDecompositionPolicy Policy for the LU decomposition
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
+      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
+      class LuDecompositionPolicy = LuDecomposition>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet,
-      LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
+      LuDecompositionPolicy,
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
 
 }  // namespace micm
 

@@ -1,5 +1,4 @@
 #include <micm/solver/linear_solver.hpp>
-#include <micm/solver/lu_decomposition.hpp>
 
 #include <gtest/gtest.h>
 

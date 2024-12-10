@@ -57,7 +57,7 @@ namespace micm
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecomposition::Create<SparseMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy>(m); })
   {
   }
 

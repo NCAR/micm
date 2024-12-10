@@ -12,7 +12,7 @@ template<std::size_t L>
 using BuilderType = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 template<std::size_t L>
 using StateType =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::JitLuDecomposition<L>>;
 
 auto two = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
 auto three = BuilderType<1>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
