@@ -272,7 +272,7 @@ namespace micm
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_forcing = forcing.AsVector();
-    const std::size_t L = rate_constants.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     auto v_rate_constants_begin = v_rate_constants.begin();
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
@@ -372,8 +372,7 @@ namespace micm
     const auto& v_rate_constants = rate_constants.AsVector();
     const auto& v_state_variables = state_variables.AsVector();
     auto& v_jacobian = jacobian.AsVector();
-    assert(rate_constants.GroupVectorSize() == jacobian.GroupVectorSize());
-    const std::size_t L = rate_constants.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     std::vector<double> d_rate_d_ind(L, 0);
     auto v_rate_constants_begin = v_rate_constants.begin();
     // loop over all rows
@@ -383,7 +382,7 @@ namespace micm
       auto yield = yields_.begin();
       const std::size_t offset_rc = i_group * rate_constants.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
-      const std::size_t offset_jacobian = i_group * jacobian.GroupSize(jacobian.FlatBlockSize());
+      const std::size_t offset_jacobian = i_group * jacobian.GroupSize();
       auto flat_id = jacobian_flat_ids_.begin();
 
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
