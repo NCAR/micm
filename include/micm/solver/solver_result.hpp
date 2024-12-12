@@ -46,6 +46,12 @@ namespace micm
     /// @brief The number of linear solves
     uint64_t solves_{};
 
+    double addforcing_mean_{};
+    double jacobian_mean_{};
+    double lu_decomp_mean_{};
+    double lu_solver_mean_{};
+    double convergence_check_mean_{};
+    
     /// @brief Set all member variables to zero
     void Reset();
   };

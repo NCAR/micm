@@ -153,11 +153,6 @@ namespace micm
         timer[4] = timer[4] + end_time - start_time;
       } while (!converged && iterations < max_iter);
 
-      std::cout << std::scientific << std::setprecision(2)
-            << "addforcing = " << timer[0] << ", jacobian = " << timer[1] 
-            << ", LU decomp = " << timer[2] << ", LU solver = " << timer[3] 
-            << ", convergence check = " << timer[4] << std::endl;
-      
       if (!converged)
       {
         result.stats_.rejected_++;
@@ -193,6 +188,11 @@ namespace micm
       H = std::min(H, time_step - t);
     }
 
+    result.stats_.addforcing_mean_ += timer[0];
+    result.stats_.jacobian_mean_ += timer[1];
+    result.stats_.lu_decomp_mean_ += timer[2];
+    result.stats_.lu_solver_mean_ += timer[3];
+    result.stats_.convergence_check_mean_ += timer[4];
     result.final_time_ = t;
     return result;
   }
