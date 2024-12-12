@@ -72,8 +72,9 @@ namespace micm
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
 
-    double timer[5] = {0, 0, 0, 0, 0};
+    double timer[6] = {0, 0, 0, 0, 0, 0};
 
+    timer[5] = omp_get_wtime();
     while (t < time_step)
     {
       result.state_ = SolverState::Running;
@@ -96,16 +97,16 @@ namespace micm
         // after the first iteration Yn1 is updated to the new solution
         // so we can use Yn1 to calculate the forcing and jacobian
         // calculate forcing
-        forcing.Fill(0.0);
         double start_time = omp_get_wtime();
+        forcing.Fill(0.0);
         rates_.AddForcingTerms(state.rate_constants_, Yn1, forcing);
         double end_time = omp_get_wtime();
         timer[0] = timer[0] + end_time - start_time;
         result.stats_.function_calls_++;
 
         // calculate the negative jacobian
-        state.jacobian_.Fill(0.0);
         start_time = omp_get_wtime();
+        state.jacobian_.Fill(0.0);
         rates_.SubtractJacobianTerms(state.rate_constants_, Yn1, state.jacobian_);
         result.stats_.jacobian_updates_++;
 
@@ -187,12 +188,14 @@ namespace micm
       // Don't let H go past the time step
       H = std::min(H, time_step - t);
     }
+    timer[5] = omp_get_wtime() - timer[5];
 
-    result.stats_.addforcing_mean_ += timer[0];
-    result.stats_.jacobian_mean_ += timer[1];
-    result.stats_.lu_decomp_mean_ += timer[2];
-    result.stats_.lu_solver_mean_ += timer[3];
-    result.stats_.convergence_check_mean_ += timer[4];
+    result.stats_.addforcing_timing_ = timer[0];
+    result.stats_.jacobian_timing_ = timer[1];
+    result.stats_.lu_decomp_timing_ = timer[2];
+    result.stats_.lu_solver_timing_ = timer[3];
+    result.stats_.convergence_check_timing_ = timer[4];
+    result.stats_.solve_timing_ = timer[5];
     result.final_time_ = t;
     return result;
   }
