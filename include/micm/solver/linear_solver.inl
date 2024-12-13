@@ -108,8 +108,8 @@ namespace micm
   template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
-      SparseMatrixPolicy& lower_matrix,
-      SparseMatrixPolicy& upper_matrix) const
+      LMatrixPolicy& lower_matrix,
+      UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -121,7 +121,7 @@ namespace micm
   requires(
       !VectorizableDense<MatrixPolicy> ||
       !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -175,7 +175,7 @@ namespace micm
   template<class MatrixPolicy>
   requires(VectorizableDense<MatrixPolicy>&&
                VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
+      Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
     constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
