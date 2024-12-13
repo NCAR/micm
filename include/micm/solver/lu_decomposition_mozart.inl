@@ -34,33 +34,33 @@ namespace micm
     auto LU = GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
     for (std::size_t i = 0; i < n; ++i)
     {
-      std::tuple<std::size_t, std::size_t, std::size_t> lii_nuij_nlij(0, 0, 0);
-      std::get<0>(lii_nuij_nlij) = LU.first.VectorIndex(0, i, i);
+      std::tuple<std::size_t, std::size_t, std::size_t> lii_nuji_nlji(0, 0, 0);
+      std::get<0>(lii_nuji_nlji) = LU.first.VectorIndex(0, i, i);
       // set initial values for U matrix
-      for (std::size_t j = i; j < n; ++j)
+      for (std::size_t j = 0; j <= i; ++j)
       {
-        if (matrix.IsZero(i, j))
+        if (matrix.IsZero(j, i))
         {
-          if (!LU.second.IsZero(i, j))
-            fill_uij_.push_back(LU.second.VectorIndex(0, i, j));
+          if (!LU.second.IsZero(j, i))
+            fill_uji_.push_back(LU.second.VectorIndex(0, j, i));
           continue;
         }
-        uij_aij_.push_back(std::make_pair(LU.second.VectorIndex(0, i, j), matrix.VectorIndex(0, i, j)));
-        ++(std::get<1>(lii_nuij_nlij));
+        uji_aji_.push_back(std::make_pair(LU.second.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)));
+        ++(std::get<1>(lii_nuji_nlji));
       }
       // set initial values for L matrix
-      for (std::size_t j = 0; j < i; ++j)
+      for (std::size_t j = i + 1; j < n; ++j)
       {
-        if (matrix.IsZero(i, j))
+        if (matrix.IsZero(j, i))
         {
-          if (!LU.first.IsZero(i, j))
-            fill_lij_.push_back(LU.first.VectorIndex(0, i, j));
+          if (!LU.first.IsZero(j, i))
+            fill_lji_.push_back(LU.first.VectorIndex(0, j, i));
           continue;
         }
-        lij_aij_.push_back(std::make_pair(LU.first.VectorIndex(0, i, j), matrix.VectorIndex(0, i, j)));
-        ++(std::get<2>(lii_nuij_nlij));
+        lji_aji_.push_back(std::make_pair(LU.first.VectorIndex(0, j, i), matrix.VectorIndex(0, j, i)));
+        ++(std::get<2>(lii_nuji_nlji));
       }
-      lii_nuij_nlij_.push_back(lii_nuij_nlij);
+      lii_nuji_nlji_.push_back(lii_nuji_nlji);
     }
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
@@ -177,32 +177,32 @@ namespace micm
       auto A_vector = std::next(A.AsVector().begin(), i_block * A.FlatBlockSize());
       auto L_vector = std::next(L.AsVector().begin(), i_block * L.FlatBlockSize());
       auto U_vector = std::next(U.AsVector().begin(), i_block * U.FlatBlockSize());
-      auto uij_aij = uij_aij_.begin();
-      auto lij_aij = lij_aij_.begin();
+      auto uji_aji = uji_aji_.begin();
+      auto lji_aji = lji_aji_.begin();
       auto uii_nj_nk = uii_nj_nk_.begin();
       auto lji = lji_.begin();
       auto nujk_nljk_uik = nujk_nljk_uik_.begin();
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
       
-      for (auto& lii_nuij_nlij : lii_nuij_nlij_)
+      for (auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
-        for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
+        for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
         {
-          U_vector[uij_aij->first] = A_vector[uij_aij->second];
-          ++uij_aij;
+          U_vector[uji_aji->first] = A_vector[uji_aji->second];
+          ++uji_aji;
         }
-        L_vector[std::get<0>(lii_nuij_nlij)] = 1.0;
-        for (std::size_t i = 0; i < std::get<2>(lii_nuij_nlij); ++i)
+        L_vector[std::get<0>(lii_nuji_nlji)] = 1.0;
+        for (std::size_t i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
         {
-          L_vector[lij_aij->first] = A_vector[lij_aij->second];
-          ++lij_aij;
+          L_vector[lji_aji->first] = A_vector[lji_aji->second];
+          ++lji_aji;
         }
       }
-      for (auto& fill_uij : fill_uij_)
-        U_vector[fill_uij] = 0;
-      for (auto& fill_lij : fill_lij_)
-        L_vector[fill_lij] = 0;
+      for (auto& fill_uji : fill_uji_)
+        U_vector[fill_uji] = 0;
+      for (auto& fill_lji : fill_lji_)
+        L_vector[fill_lji] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
         auto Uii_inverse = 1.0 / U_vector[std::get<0>(*uii_nj_nk)];
@@ -253,37 +253,37 @@ namespace micm
       auto A_vector = std::next(A.AsVector().begin(), i_group * A_GroupSizeOfFlatBlockSize);
       auto L_vector = std::next(L.AsVector().begin(), i_group * L_GroupSizeOfFlatBlockSize);
       auto U_vector = std::next(U.AsVector().begin(), i_group * U_GroupSizeOfFlatBlockSize);
-      auto uij_aij = uij_aij_.begin();
-      auto lij_aij = lij_aij_.begin();
+      auto uji_aji = uji_aji_.begin();
+      auto lji_aji = lji_aji_.begin();
       auto uii_nj_nk = uii_nj_nk_.begin();
       auto lji = lji_.begin();
       auto nujk_nljk_uik = nujk_nljk_uik_.begin();
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
       const std::size_t n_cells = std::min(A_GroupVectorSize, A_BlockSize - i_group * A_GroupVectorSize);
-      for (auto& lii_nuij_nlij : lii_nuij_nlij_)
+      for (auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
-        for (std::size_t i = 0; i < std::get<1>(lii_nuij_nlij); ++i)
+        for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            U_vector[uij_aij->first+i_cell] = A_vector[uij_aij->second+i_cell];
-          ++uij_aij;
+            U_vector[uji_aji->first+i_cell] = A_vector[uji_aji->second+i_cell];
+          ++uji_aji;
         }
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[std::get<0>(lii_nuij_nlij)+i_cell] = 1.0;
-        for (std::size_t i = 0; i < std::get<2>(lii_nuij_nlij); ++i)
+          L_vector[std::get<0>(lii_nuji_nlji)+i_cell] = 1.0;
+        for (std::size_t i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            L_vector[lij_aij->first+i_cell] = A_vector[lij_aij->second+i_cell];
-          ++lij_aij;
+            L_vector[lji_aji->first+i_cell] = A_vector[lji_aji->second+i_cell];
+          ++lji_aji;
         }
       }
-      for (auto& fill_uij : fill_uij_)
+      for (auto& fill_uji : fill_uji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          U_vector[fill_uij+i_cell] = 0;
-      for (auto& fill_lij : fill_lij_)
+          U_vector[fill_uji+i_cell] = 0;
+      for (auto& fill_lji : fill_lji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[fill_lij+i_cell] = 0;
+          L_vector[fill_lji+i_cell] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
