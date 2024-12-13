@@ -49,20 +49,20 @@ namespace micm
     return perm;
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
+      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>(
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(m); })
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
@@ -74,7 +74,7 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
+    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
@@ -105,8 +105,8 @@ namespace micm
     }
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
       SparseMatrixPolicy& lower_matrix,
       SparseMatrixPolicy& upper_matrix) const
@@ -116,11 +116,11 @@ namespace micm
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
   requires(
       !VectorizableDense<MatrixPolicy> ||
-      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
+      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
       Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
@@ -171,10 +171,10 @@ namespace micm
     }
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
   requires(VectorizableDense<MatrixPolicy>&&
-               VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
+               VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
       Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();

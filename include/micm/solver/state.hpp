@@ -33,7 +33,11 @@ namespace micm
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
   };
 
-  template<class DenseMatrixPolicy = StandardDenseMatrix, class SparseMatrixPolicy = StandardSparseMatrix, class LuDecompositionPolicy = LuDecomposition>
+  template<class DenseMatrixPolicy = StandardDenseMatrix,
+           class SparseMatrixPolicy = StandardSparseMatrix,
+           class LuDecompositionPolicy = LuDecomposition, 
+           class LMatrixPolicy = SparseMatrixPolicy,
+           class UMatrixPolicy = SparseMatrixPolicy>
   struct State
   {
     /// Type of the DenseMatrixPolicy
@@ -53,8 +57,8 @@ namespace micm
     std::map<std::string, std::size_t> variable_map_;
     std::map<std::string, std::size_t> custom_rate_parameter_map_;
     std::vector<std::string> variable_names_{};
-    SparseMatrixPolicy lower_matrix_;
-    SparseMatrixPolicy upper_matrix_;
+    LMatrixPolicy lower_matrix_;
+    UMatrixPolicy upper_matrix_;
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;

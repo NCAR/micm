@@ -8,22 +8,22 @@ namespace micm
   {
   }
 
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
   requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionDoolittle::LuDecompositionDoolittle(const SparseMatrixPolicy& matrix)
   {
-    Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
   requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionDoolittle LuDecompositionDoolittle::Create(
       const SparseMatrixPolicy& matrix)
   {
     LuDecompositionDoolittle lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    lu_decomp.Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
   requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecompositionDoolittle::Initialize(
       const SparseMatrixPolicy& matrix,
       auto initial_value)
@@ -31,7 +31,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     std::size_t n = matrix.NumRows();
-    auto LU = GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
+    auto LU = GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value);
     for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
       std::pair<std::size_t, std::size_t> iLU(0, 0);
@@ -92,9 +92,9 @@ namespace micm
     uii_.push_back(LU.second.VectorIndex(0, n - 1, n - 1));
   }
 
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
   requires(
-      SparseMatrixConcept<SparseMatrixPolicy>) inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionDoolittle::
+      SparseMatrixConcept<SparseMatrixPolicy>) inline std::pair<LMatrixPolicy, UMatrixPolicy> LuDecompositionDoolittle::
       GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
@@ -138,25 +138,25 @@ namespace micm
         }
       }
     }
-    auto L_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto L_builder = LMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : L_ids)
     {
       L_builder = L_builder.WithElement(pair.first, pair.second);
     }
-    auto U_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto U_builder = UMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
     for (auto& pair : U_ids)
     {
       U_builder = U_builder.WithElement(pair.first, pair.second);
     }
-    std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LU(L_builder, U_builder);
+    std::pair<LMatrixPolicy, UMatrixPolicy> LU(L_builder, U_builder);
     return LU;
   }
 
   template<class SparseMatrixPolicy>
   requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionDoolittle::Decompose(
       const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
+      auto& L,
+      auto& U) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -223,8 +223,8 @@ namespace micm
   template<class SparseMatrixPolicy>
   requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionDoolittle::Decompose(
       const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
+      auto& L,
+      auto& U) const
   {
     MICM_PROFILE_FUNCTION();
 
