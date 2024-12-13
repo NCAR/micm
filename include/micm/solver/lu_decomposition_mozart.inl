@@ -314,6 +314,7 @@ namespace micm
         ++uii_nj_nk;
       }
     }
+    sleep(10);
   }
 
 }  // namespace micm
