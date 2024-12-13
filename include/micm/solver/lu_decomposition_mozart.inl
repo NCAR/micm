@@ -314,7 +314,6 @@ namespace micm
         ++uii_nj_nk;
       }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
 }  // namespace micm
