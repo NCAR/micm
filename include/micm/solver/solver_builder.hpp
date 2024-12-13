@@ -6,8 +6,8 @@
 #include <micm/process/process_set.hpp>
 #include <micm/solver/backward_euler.hpp>
 #include <micm/solver/backward_euler_solver_parameters.hpp>
-#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
 #include <micm/solver/solver.hpp>
 #include <micm/system/conditions.hpp>

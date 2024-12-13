@@ -1,11 +1,11 @@
 #include "../../solver/test_linear_solver_policy.hpp"
 
-#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/cuda/solver/cuda_linear_solver.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/linear_solver.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
@@ -67,8 +67,7 @@ std::vector<double> linearSolverGenerator(std::size_t number_of_blocks)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  std::pair<SparseMatrixPolicy, SparseMatrixPolicy> lu =
-      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  std::pair<SparseMatrixPolicy, SparseMatrixPolicy> lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
   SparseMatrixPolicy lower_matrix = std::move(lu.first);
   SparseMatrixPolicy upper_matrix = std::move(lu.second);
 
