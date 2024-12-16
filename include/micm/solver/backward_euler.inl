@@ -54,6 +54,10 @@ namespace micm
     // if the last attempt to reduce the timestep fails,
     // accept the current H but do not update the Yn vector
 
+    double timer[6] = {0, 0, 0, 0, 0, 0};
+
+    timer[5] = omp_get_wtime();
+
     using MatrixPolicy = decltype(state.variables_);
 
     SolverResult result;
@@ -72,9 +76,6 @@ namespace micm
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
 
-    double timer[6] = {0, 0, 0, 0, 0, 0};
-
-    timer[5] = omp_get_wtime();
     while (t < time_step)
     {
       result.state_ = SolverState::Running;
