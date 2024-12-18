@@ -13,7 +13,10 @@
 
 constexpr std::size_t L = 3;
 using builderType = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>;
-using stateType = micm::CudaState<builderType::DenseMatrixPolicyType, builderType::SparseMatrixPolicyType, builderType::LuDecompositionPolicyType>;
+using stateType = micm::CudaState<
+    builderType::DenseMatrixPolicyType,
+    builderType::SparseMatrixPolicyType,
+    builderType::LuDecompositionPolicyType>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -22,7 +25,10 @@ auto four_da = builderType(micm::RosenbrockSolverParameters::FourStageDifferenti
 auto six_da = builderType(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
 using builderType1Cell = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, 1>;
-using stateType1Cell = micm::CudaState<builderType1Cell::DenseMatrixPolicyType, builderType1Cell::SparseMatrixPolicyType, builderType::LuDecompositionPolicyType>;
+using stateType1Cell = micm::CudaState<
+    builderType1Cell::DenseMatrixPolicyType,
+    builderType1Cell::SparseMatrixPolicyType,
+    builderType::LuDecompositionPolicyType>;
 
 auto two_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());

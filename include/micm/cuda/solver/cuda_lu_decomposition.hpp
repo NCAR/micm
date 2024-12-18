@@ -8,4 +8,4 @@ namespace micm
 {
   /// @brief Alias for the default CUDA LU decomposition algorithm
   using CudaLuDecomposition = CudaLuDecompositionDoolittle;
-}
+}  // namespace micm
