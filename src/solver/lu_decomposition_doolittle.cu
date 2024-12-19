@@ -295,5 +295,5 @@ namespace micm
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           A_param, L_param, U_param, devstruct);
     }  // end of DecomposeKernelDriver
-  }    // end of namespace cuda
+  }  // end of namespace cuda
 }  // end of namespace micm

@@ -380,5 +380,5 @@ namespace micm
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
     }  // end of NormalizedErrorDriver function
-  }    // namespace cuda
+  }  // namespace cuda
 }  // namespace micm

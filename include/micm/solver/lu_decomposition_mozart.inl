@@ -9,15 +9,15 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionMozart::LuDecompositionMozart(
-      const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart::LuDecompositionMozart(const SparseMatrixPolicy& matrix)
   {
     Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionMozart LuDecompositionMozart::Create(
-      const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart LuDecompositionMozart::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionMozart lu_decomp{};
     lu_decomp.Initialize<SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
@@ -25,9 +25,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecompositionMozart::Initialize(
-      const SparseMatrixPolicy& matrix,
-      auto initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -116,10 +115,10 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline std::
-      pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionMozart::GetLUMatrices(
-          const SparseMatrixPolicy& A,
-          typename SparseMatrixPolicy::value_type initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline std::pair<SparseMatrixPolicy, SparseMatrixPolicy> LuDecompositionMozart::GetLUMatrices(
+      const SparseMatrixPolicy& A,
+      typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -171,10 +170,9 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionMozart::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
+    requires(!VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U)
+      const
   {
     MICM_PROFILE_FUNCTION();
     const std::size_t n = A.NumRows();
@@ -240,10 +238,9 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionMozart::Decompose(
-      const SparseMatrixPolicy& A,
-      SparseMatrixPolicy& L,
-      SparseMatrixPolicy& U) const
+    requires(VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U)
+      const
   {
     MICM_PROFILE_FUNCTION();
 

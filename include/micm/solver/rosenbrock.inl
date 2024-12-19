@@ -196,7 +196,8 @@ namespace micm
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
-      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy>)
+      const double& alpha) const
+    requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -212,7 +213,8 @@ namespace micm
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
-      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
+      const double& alpha) const
+    requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -246,7 +248,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors) const
+    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -281,7 +284,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors) const
+    requires(VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7

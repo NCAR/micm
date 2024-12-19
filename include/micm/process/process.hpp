@@ -85,11 +85,13 @@ namespace micm
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
     template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-    requires(!VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
+      requires(!VectorizableDense<DenseMatrixPolicy>)
+    static void CalculateRateConstants(
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state);
     template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-    requires(VectorizableDense<DenseMatrixPolicy>) static void CalculateRateConstants(
+      requires(VectorizableDense<DenseMatrixPolicy>)
+    static void CalculateRateConstants(
         const std::vector<Process>& processes,
         State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state);
 
@@ -148,7 +150,8 @@ namespace micm
   };
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  requires(!VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
+    requires(!VectorizableDense<DenseMatrixPolicy>)
+  void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state)
   {
@@ -173,7 +176,8 @@ namespace micm
   }
 
   template<class DenseMatrixPolicy, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  requires(VectorizableDense<DenseMatrixPolicy>) void Process::CalculateRateConstants(
+    requires(VectorizableDense<DenseMatrixPolicy>)
+  void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>& state)
   {
