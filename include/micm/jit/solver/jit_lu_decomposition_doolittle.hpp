@@ -35,12 +35,17 @@ namespace micm
 
     ~JitLuDecompositionDoolittle();
 
+    /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
+    /// @param matrix Sparse matrix
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static JitLuDecompositionDoolittle<L> Create(const SparseMatrixPolicy& matrix);
+
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @param lower The lower triangular matrix created by decomposition
     /// @param upper The upper triangular matrix created by decomposition
     template<class SparseMatrixPolicy>
-    void Decompose(const SparseMatrixPolicy &A, SparseMatrixPolicy &lower, SparseMatrixPolicy &upper) const;
+    void Decompose(const SparseMatrixPolicy &A, auto& lower, auto& upper) const;
 
    private:
     /// @brief Generates a function to perform the LU decomposition for a specific matrix sparsity structure

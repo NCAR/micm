@@ -120,15 +120,17 @@ namespace micm
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<double>,
       class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
-      class LuDecompositionPolicy = LuDecomposition>
+      class LuDecompositionPolicy = LuDecomposition,
+      class LMatrixPolicy = SparseMatrixPolicy,
+      class UMatrixPolicy = SparseMatrixPolicy>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet,
       LuDecompositionPolicy,
-      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>>;
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
 
 }  // namespace micm
 
