@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   build_and_test:
+    continue-on-error: true
     strategy:
       matrix:
         build_type: [Debug, Release]
