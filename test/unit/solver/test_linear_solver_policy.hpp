@@ -11,9 +11,7 @@ template<class MatrixPolicy>
 void CopyToDeviceDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -22,9 +20,7 @@ template<class SparseMatrixPolicy>
 void CopyToDeviceSparse(SparseMatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -33,9 +29,7 @@ template<class MatrixPolicy>
 void CopyToHostDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToHost()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToHost() } -> std::same_as<void>;
                 })
     matrix.CopyToHost();
 }
@@ -75,8 +69,7 @@ void print_matrix(const SparseMatrixPolicy& matrix, std::size_t width)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {

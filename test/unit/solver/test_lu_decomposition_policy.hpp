@@ -10,9 +10,7 @@ template<class MatrixPolicy>
 void CopyToDevice(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -21,9 +19,7 @@ template<class MatrixPolicy>
 void CopyToHost(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToHost()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToHost() } -> std::same_as<void>;
                 })
     matrix.CopyToHost();
 }
@@ -78,8 +74,7 @@ void print_matrix(const auto& matrix, std::size_t width)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {

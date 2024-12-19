@@ -17,16 +17,14 @@ namespace micm
 {
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableSparse = requires(T t)
-  {
+  concept VectorizableSparse = requires(T t) {
     t.GroupSize(0);
     t.GroupVectorSize();
     t.NumberOfGroups(0);
   };
 
   template<typename T>
-  concept SparseMatrixConcept = requires(T t)
-  {
+  concept SparseMatrixConcept = requires(T t) {
     t.NumRows();
     t.NumColumns();
     t.NumberOfBlocks();

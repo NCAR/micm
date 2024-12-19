@@ -14,8 +14,8 @@ namespace micm
   }
 
   template<std::size_t L, class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>
-      &JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
+  inline JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy> &
+  JitLinearSolver<L, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(JitLinearSolver &&other)
   {
     LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
     solve_function_resource_tracker_ = std::move(other.solve_function_resource_tracker_);
