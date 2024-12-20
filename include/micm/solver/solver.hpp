@@ -111,6 +111,10 @@ namespace micm
     void CalculateRateConstants(StatePolicy& state)
     {
       Process::CalculateRateConstants<DenseMatrixType>(processes_, state);
+      for(auto& rate : state.rate_constants_.AsVector())
+      {
+        std::cout << "Rate: " << rate << std::endl;
+      }
     }
   };
 
