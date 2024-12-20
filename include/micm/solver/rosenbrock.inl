@@ -216,10 +216,10 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    const std::size_t n_cells = jacobian.GroupVectorSize();
+    constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
+      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize());
       for (const auto& i_elem : jacobian_diagonal_elements_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
@@ -292,7 +292,7 @@ namespace micm
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
     const std::size_t N = Y.NumRows() * Y.NumColumns();
-    const std::size_t L = Y.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t n_vars = parameters_.absolute_tolerance_.size();
 
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();

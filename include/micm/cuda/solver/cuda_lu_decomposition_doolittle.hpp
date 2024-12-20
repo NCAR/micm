@@ -38,10 +38,11 @@ namespace micm
     /// This is the overloaded constructor that takes one argument called "matrix";
     /// We need to specify the type (e.g., double, int, etc) and
     ///   ordering (e.g., vector-stored, non-vector-stored, etc) of the "matrix";
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
     CudaLuDecompositionDoolittle(const SparseMatrixPolicy& matrix)
-        : LuDecompositionDoolittle(LuDecompositionDoolittle::Create<SparseMatrixPolicy>(matrix))
     {
+      Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+
       /// Passing the class itself as an argument is not support by CUDA;
       /// Thus we generate a host struct first to save the pointers to
       ///   the actual data and size of each constant data member;
@@ -81,6 +82,17 @@ namespace micm
       micm::cuda::FreeConstData(this->devstruct_);
     };
 
+    /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
+    /// @param matrix Sparse matrix
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static CudaLuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix)
+    {
+      static_assert(std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>, "SparseMatrixPolicy must be the same as LMatrixPolicy for CUDA LU decomposition");
+      static_assert(std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>, "SparseMatrixPolicy must be the same as UMatrixPolicy for CUDA LU decomposition");
+      CudaLuDecompositionDoolittle lu_decomp(matrix);
+      return lu_decomp;
+    }
+
     /// @brief This is the function to perform an LU decomposition on a given A matrix on the GPU
     /// @param A is the sparse matrix to decompose
     /// @param L is the lower triangular matrix created by decomposition
@@ -88,13 +100,13 @@ namespace micm
     template<class SparseMatrixPolicy>
     requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U) const;
+        auto& L,
+        auto& U) const;
   };
 
   template<class SparseMatrixPolicy>
   requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecompositionDoolittle::
-      Decompose(const SparseMatrixPolicy& A, SparseMatrixPolicy& L, SparseMatrixPolicy& U) const
+      Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue

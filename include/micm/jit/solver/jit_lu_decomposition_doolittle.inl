@@ -26,9 +26,8 @@ namespace micm
   template<std::size_t L>
   inline JitLuDecompositionDoolittle<L>::JitLuDecompositionDoolittle(
       const SparseMatrix<double, SparseMatrixVectorOrdering<L>> &matrix)
-      : LuDecompositionDoolittle(
-            LuDecompositionDoolittle::Create<SparseMatrix<double, SparseMatrixVectorOrdering<L>>>(matrix))
   {
+    using SparseMatrixPolicy = SparseMatrix<double, SparseMatrixVectorOrdering<L>>;
     decompose_function_ = NULL;
     if (matrix.NumberOfBlocks() > L)
     {
@@ -39,6 +38,7 @@ namespace micm
                         std::to_string(L);
       throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
     }
+    Initialize<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
     GenerateDecomposeFunction();
   }
 
@@ -50,6 +50,18 @@ namespace micm
       llvm::ExitOnError exit_on_error;
       exit_on_error(decompose_function_resource_tracker_->remove());
     }
+  }
+
+  template<std::size_t L>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline JitLuDecompositionDoolittle<L> JitLuDecompositionDoolittle<L>::Create(
+    const SparseMatrixPolicy& matrix)
+  {
+    static_assert(std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>, "SparseMatrixPolicy must be the same as LMatrixPolicy for JIT LU decomposition");
+    static_assert(std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>, "SparseMatrixPolicy must be the same as UMatrixPolicy for JIT LU decomposition");
+    JitLuDecompositionDoolittle<L> lu_decomp(matrix);
+    return lu_decomp;
   }
 
   template<std::size_t L>
@@ -210,8 +222,8 @@ namespace micm
   template<class SparseMatrixPolicy>
   void JitLuDecompositionDoolittle<L>::Decompose(
       const SparseMatrixPolicy &A,
-      SparseMatrixPolicy &lower,
-      SparseMatrixPolicy &upper) const
+      auto& lower,
+      auto& upper) const
   {
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
     for (size_t block = 0; block < A.NumberOfBlocks(); ++block)

@@ -27,11 +27,11 @@ namespace micm
   /// and separate lower (upper) triangular matrix L(U) would be:
   ///
   /// for i = 0...n-1                     // Initialize U and L matrices to the A values
-  ///   for j = i...n-1                   // Initialize U matrix including diagonal
-  ///     U[i][j] = A[i][j]
+  ///   for j = 0...i                     // Initialize U matrix including diagonal
+  ///     U[j][i] = A[j][i]
   ///   L[i][i] = 1                       // Lower triangular matrix is 1 along the diagonal
-  ///   for j = 0...i-1                   // Initialize L matrix excluding diagonal
-  ///     L[i][j] = A[i][j]
+  ///   for j = i+1...n-1                 // Initialize L matrix excluding diagonal
+  ///     L[j][i] = A[j][i]
   /// for i = 0...n-1
   ///   for j = i+1...n-1                 // Multiply column below diagonal
   ///     L[j][i] = L[j][i] / U[i][i]
@@ -56,17 +56,17 @@ namespace micm
    protected:
     /// Index in L.data_ for all diagonal elements, and number of iterations of the middle (j) loops
     /// used to set the initial value for the L and U matrices
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> lii_nuij_nlij_;
-    /// Index in U.data_ and A.data_ for U[i][j] and A[i][j] for each iteration of the inner (j) loop
+    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> lii_nuji_nlji_;
+    /// Index in U.data_ and A.data_ for U[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the U matrix
-    std::vector<std::pair<std::size_t, std::size_t>> uij_aij_;
-    /// Index in L.data_ and A.data_ for L[i][j] and A[i][j] for each iteration of the inner (j) loop
+    std::vector<std::pair<std::size_t, std::size_t>> uji_aji_;
+    /// Index in L.data_ and A.data_ for L[j][i] and A[j][i] for each iteration of the inner (j) loop
     /// used to set the initial value for the L matrix
-    std::vector<std::pair<std::size_t, std::size_t>> lij_aij_;
+    std::vector<std::pair<std::size_t, std::size_t>> lji_aji_;
     /// Index in U.data_ for each non-zero element in U that is zero in A
-    std::vector<std::size_t> fill_uij_;
+    std::vector<std::size_t> fill_uji_;
     /// Index in L.data_ for each non-zero element in L that is zero in A
-    std::vector<std::size_t> fill_lij_;
+    std::vector<std::size_t> fill_lji_;
     /// Index in U.data_ for U[i][i] and the number of elements in the middle (j) and (k) loops
     /// for each iteration of the outer (i) loop
     std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> uii_nj_nk_;
@@ -95,21 +95,21 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) LuDecompositionMozart(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionMozart() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) static LuDecompositionMozart Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static std::pair<SparseMatrixPolicy, SparseMatrixPolicy> GetLUMatrices(
+    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+    requires(SparseMatrixConcept<SparseMatrixPolicy>) static std::pair<LMatrixPolicy, UMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value);
 
@@ -120,18 +120,18 @@ namespace micm
     template<class SparseMatrixPolicy>
     requires(!VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U) const;
+        auto& L,
+        auto& U) const;
     template<class SparseMatrixPolicy>
     requires(VectorizableSparse<SparseMatrixPolicy>) void Decompose(
         const SparseMatrixPolicy& A,
-        SparseMatrixPolicy& L,
-        SparseMatrixPolicy& U) const;
+        auto& L,
+        auto& U) const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 
