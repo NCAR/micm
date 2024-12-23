@@ -10,4 +10,7 @@ namespace micm
 {
   /// @brief Alias for the default LU decomposition algorithm
   using LuDecomposition = LuDecompositionDoolittle;
+
+  /// @brief Alias for the default in-place LU decomposition algorithm
+  using LuDecompositionInPlace = LuDecompositionMozartInPlace;
 }  // namespace micm
