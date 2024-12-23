@@ -32,16 +32,16 @@ TEST(SparseVectorCompressedRowMatrix, SingleBlockMatrix)
   auto matrix = testSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
 
   {
-    std::size_t elem = matrix_csr.VectorIndex(3, 2);
+    std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 16);
-    matrix_csr.AsVector()[elem] = 42;
-    EXPECT_EQ(matrix_csr.AsVector()[16], 42);
+    matrix.AsVector()[elem] = 42;
+    EXPECT_EQ(matrix.AsVector()[16], 42);
   }
   {
-    std::size_t elem = matrix_csr.VectorIndex(2, 3);
+    std::size_t elem = matrix.VectorIndex(2, 3);
     EXPECT_EQ(elem, 12);
-    matrix_csr.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix_csr.AsVector()[12], 21);
+    matrix.AsVector()[elem] = 21;
+    EXPECT_EQ(matrix.AsVector()[12], 21);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 4);
   EXPECT_EQ(matrix.GroupSize(), 5 * 4);
@@ -53,14 +53,14 @@ TEST(SparseVectorCompressedRowMatrix, ConstSingleBlockMatrix)
   auto matrix = testConstSingleBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 
   {
-    std::size_t elem = matrix_csr.VectorIndex(3, 2);
+    std::size_t elem = matrix.VectorIndex(3, 2);
     EXPECT_EQ(elem, 8);
-    EXPECT_EQ(matrix_csr.AsVector()[8], 42);
+    EXPECT_EQ(matrix.AsVector()[8], 42);
   }
   {
-    std::size_t elem = matrix_csr.VectorIndex(2, 3);
+    std::size_t elem = matrix.VectorIndex(2, 3);
     EXPECT_EQ(elem, 6);
-    EXPECT_EQ(matrix_csr.AsVector()[6], 21);
+    EXPECT_EQ(matrix.AsVector()[6], 21);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
@@ -72,16 +72,16 @@ TEST(SparseVectorCompressedRowMatrix, MultiBlockMatrix)
   auto matrix = testMultiBlockMatrix<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
 
   {
-    std::size_t elem = matrix_csr.VectorIndex(0, 2, 3);
+    std::size_t elem = matrix.VectorIndex(0, 2, 3);
     EXPECT_EQ(elem, 6);
-    matrix_csr.AsVector()[elem] = 21;
-    EXPECT_EQ(matrix_csr.AsVector()[6], 21);
+    matrix.AsVector()[elem] = 21;
+    EXPECT_EQ(matrix.AsVector()[6], 21);
   }
   {
-    std::size_t elem = matrix_csr.VectorIndex(2, 2, 1);
+    std::size_t elem = matrix.VectorIndex(2, 2, 1);
     EXPECT_EQ(elem, 14);
-    matrix_csr.AsVector()[elem] = 31;
-    EXPECT_EQ(matrix_csr.AsVector()[14], 31);
+    matrix.AsVector()[elem] = 31;
+    EXPECT_EQ(matrix.AsVector()[14], 31);
   }
   EXPECT_EQ(matrix.GroupVectorSize(), 2);
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
