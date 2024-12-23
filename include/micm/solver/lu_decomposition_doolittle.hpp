@@ -89,20 +89,20 @@ namespace micm
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) LuDecompositionDoolittle(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionDoolittle() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) static LuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create sparse L and U matrices for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return L and U Sparse matrices
-    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) static std::pair<LMatrixPolicy, UMatrixPolicy> GetLUMatrices(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value);
@@ -122,10 +122,10 @@ namespace micm
         auto& L,
         auto& U) const;
 
-   private:
+   protected:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
-    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>) void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 

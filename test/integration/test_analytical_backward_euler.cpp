@@ -22,11 +22,25 @@ template<std::size_t L>
 using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionDoolittle>;
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittle =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionDoolittle>;
+using VectorStateTypeDoolittle = micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionDoolittle>;
+
+template<std::size_t L>
+using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
+    micm::BackwardEulerSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
+    micm::LuDecompositionDoolittle>;
+
+template<std::size_t L>
+using VectorStateTypeDoolittleCSC =
+    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>, micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
@@ -43,11 +57,24 @@ template<std::size_t L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozart>;
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozart =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozart>;
+using VectorStateTypeMozart = micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionMozart>;
+
+template<std::size_t L>
+using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
+    micm::BackwardEulerSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>, micm::LuDecompositionMozart>;
+
+template<std::size_t L>
+using VectorStateTypeMozartCSC =
+    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>, micm::LuDecompositionMozart>;
 
 template<std::size_t L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
@@ -90,10 +117,14 @@ TEST(AnalyticalExamples, Troe)
   test_analytical_troe<VectorBackwardEuler<2>, VectorStateType<2>>(backard_euler_vector_2, 1e-6);
   test_analytical_troe<VectorBackwardEuler<3>, VectorStateType<3>>(backard_euler_vector_3, 1e-6);
   test_analytical_troe<VectorBackwardEuler<4>, VectorStateType<4>>(backard_euler_vector_4, 1e-6);
-  test_analytical_troe<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(backward_euler_vector_doolittle_1, 1e-6);
-  test_analytical_troe<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(backward_euler_vector_doolittle_2, 1e-6);
-  test_analytical_troe<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(backward_euler_vector_doolittle_3, 1e-6);
-  test_analytical_troe<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(backward_euler_vector_doolittle_4, 1e-6);
+  test_analytical_troe<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(
+      backward_euler_vector_doolittle_1, 1e-6);
+  test_analytical_troe<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(
+      backward_euler_vector_doolittle_2, 1e-6);
+  test_analytical_troe<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(
+      backward_euler_vector_doolittle_3, 1e-6);
+  test_analytical_troe<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(
+      backward_euler_vector_doolittle_4, 1e-6);
   test_analytical_troe<VectorBackwardEulerDolittleCSC<1>, VectorStateTypeDoolittleCSC<1>>(backward_euler_vector_doolittle_csc_1, 1e-6);
   test_analytical_troe<VectorBackwardEulerDolittleCSC<2>, VectorStateTypeDoolittleCSC<2>>(backward_euler_vector_doolittle_csc_2, 1e-6);
   test_analytical_troe<VectorBackwardEulerDolittleCSC<3>, VectorStateTypeDoolittleCSC<3>>(backward_euler_vector_doolittle_csc_3, 1e-6);
@@ -223,10 +254,14 @@ TEST(AnalyticalExamples, HIRES)
   test_analytical_hires<VectorBackwardEuler<2>, VectorStateType<2>>(backard_euler_vector_2, 1e-1);
   test_analytical_hires<VectorBackwardEuler<3>, VectorStateType<3>>(backard_euler_vector_3, 1e-1);
   test_analytical_hires<VectorBackwardEuler<4>, VectorStateType<4>>(backard_euler_vector_4, 1e-1);
-  test_analytical_hires<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(backward_euler_vector_doolittle_1, 1e-1);
-  test_analytical_hires<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(backward_euler_vector_doolittle_2, 1e-1);
-  test_analytical_hires<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(backward_euler_vector_doolittle_3, 1e-1);
-  test_analytical_hires<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(backward_euler_vector_doolittle_4, 1e-1);
+  test_analytical_hires<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(
+      backward_euler_vector_doolittle_1, 1e-1);
+  test_analytical_hires<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(
+      backward_euler_vector_doolittle_2, 1e-1);
+  test_analytical_hires<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(
+      backward_euler_vector_doolittle_3, 1e-1);
+  test_analytical_hires<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(
+      backward_euler_vector_doolittle_4, 1e-1);
   test_analytical_hires<VectorBackwardEulerMozart<1>, VectorStateTypeMozart<1>>(backward_euler_vector_mozart_1, 1e-1);
   test_analytical_hires<VectorBackwardEulerMozart<2>, VectorStateTypeMozart<2>>(backward_euler_vector_mozart_2, 1e-1);
   test_analytical_hires<VectorBackwardEulerMozart<3>, VectorStateTypeMozart<3>>(backward_euler_vector_mozart_3, 1e-1);
@@ -240,10 +275,14 @@ TEST(AnalyticalExamples, Oregonator)
   test_analytical_oregonator<VectorBackwardEuler<2>, VectorStateType<2>>(backard_euler_vector_2, 1e-3);
   test_analytical_oregonator<VectorBackwardEuler<3>, VectorStateType<3>>(backard_euler_vector_3, 1e-3);
   test_analytical_oregonator<VectorBackwardEuler<4>, VectorStateType<4>>(backard_euler_vector_4, 1e-3);
-  test_analytical_oregonator<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(backward_euler_vector_doolittle_1, 1e-3);
-  test_analytical_oregonator<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(backward_euler_vector_doolittle_2, 1e-3);
-  test_analytical_oregonator<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(backward_euler_vector_doolittle_3, 1e-3);
-  test_analytical_oregonator<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(backward_euler_vector_doolittle_4, 1e-3);
+  test_analytical_oregonator<VectorBackwardEulerDoolittle<1>, VectorStateTypeDoolittle<1>>(
+      backward_euler_vector_doolittle_1, 1e-3);
+  test_analytical_oregonator<VectorBackwardEulerDoolittle<2>, VectorStateTypeDoolittle<2>>(
+      backward_euler_vector_doolittle_2, 1e-3);
+  test_analytical_oregonator<VectorBackwardEulerDoolittle<3>, VectorStateTypeDoolittle<3>>(
+      backward_euler_vector_doolittle_3, 1e-3);
+  test_analytical_oregonator<VectorBackwardEulerDoolittle<4>, VectorStateTypeDoolittle<4>>(
+      backward_euler_vector_doolittle_4, 1e-3);
   test_analytical_oregonator<VectorBackwardEulerMozart<1>, VectorStateTypeMozart<1>>(backward_euler_vector_mozart_1, 1e-3);
   test_analytical_oregonator<VectorBackwardEulerMozart<2>, VectorStateTypeMozart<2>>(backward_euler_vector_mozart_2, 1e-3);
   test_analytical_oregonator<VectorBackwardEulerMozart<3>, VectorStateTypeMozart<3>>(backward_euler_vector_mozart_3, 1e-3);

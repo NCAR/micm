@@ -9,4 +9,4 @@ namespace micm
 {
   /// @brief Alias for the default LU decomposition algorithm
   using LuDecomposition = LuDecompositionDoolittle;
-}
+}  // namespace micm
