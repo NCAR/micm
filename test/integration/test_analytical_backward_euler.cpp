@@ -65,6 +65,25 @@ template<std::size_t L>
 using VectorStateTypeMozartCSC =
     micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>, micm::LuDecompositionMozart>;
 
+template<std::size_t L>
+using VectorBackwardEulerMozartInPlace = micm::SolverBuilder<
+    micm::BackwardEulerSolverParameters,
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::ProcessSet,
+    micm::LuDecompositionMozartInPlace,
+    micm::LinearSolverInPlace<micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozartInPlace>,
+    micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionMozartInPlace>>;
+
+template<std::size_t L>
+using VectorStateTypeMozartInPlace = micm::State<
+    micm::VectorMatrix<double, L>,
+    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+    micm::LuDecompositionMozartInPlace>;
+
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_2 = VectorBackwardEuler<2>(micm::BackwardEulerSolverParameters());
@@ -87,7 +106,10 @@ auto backward_euler_vector_mozart_csc_1 = VectorBackwardEulerMozartCSC<1>(micm::
 auto backward_euler_vector_mozart_csc_2 = VectorBackwardEulerMozartCSC<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_csc_3 = VectorBackwardEulerMozartCSC<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_csc_4 = VectorBackwardEulerMozartCSC<4>(micm::BackwardEulerSolverParameters());
-
+auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<1>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
 
 TEST(AnalyticalExamples, Troe)
 {
@@ -116,6 +138,14 @@ TEST(AnalyticalExamples, Troe)
   test_analytical_troe<VectorBackwardEulerMozartCSC<2>, VectorStateTypeMozartCSC<2>>(backward_euler_vector_mozart_csc_2, 1e-6);
   test_analytical_troe<VectorBackwardEulerMozartCSC<3>, VectorStateTypeMozartCSC<3>>(backward_euler_vector_mozart_csc_3, 1e-6);
   test_analytical_troe<VectorBackwardEulerMozartCSC<4>, VectorStateTypeMozartCSC<4>>(backward_euler_vector_mozart_csc_4, 1e-6);
+  test_analytical_troe<VectorBackwardEulerMozartInPlace<1>, VectorStateTypeMozartInPlace<1>>(
+      backward_euler_vector_mozart_in_place_1, 1e-6);
+  test_analytical_troe<VectorBackwardEulerMozartInPlace<2>, VectorStateTypeMozartInPlace<2>>(
+      backward_euler_vector_mozart_in_place_2, 1e-6);
+  test_analytical_troe<VectorBackwardEulerMozartInPlace<3>, VectorStateTypeMozartInPlace<3>>(
+      backward_euler_vector_mozart_in_place_3, 1e-6);
+  test_analytical_troe<VectorBackwardEulerMozartInPlace<4>, VectorStateTypeMozartInPlace<4>>(
+      backward_euler_vector_mozart_in_place_4, 1e-6);
 }
 
 TEST(AnalyticalExamples, TroeSuperStiffButAnalytical)
