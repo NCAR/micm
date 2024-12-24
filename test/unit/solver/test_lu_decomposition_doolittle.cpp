@@ -29,7 +29,7 @@ TEST(LuDecompositionDoolittle, DiagonalMatrixStandardOrdering)
   testDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionDoolittle>(5);
 }
 
-TEST(LuDecompositionDoolittle, AgnosticToInitialValue)
+TEST(LuDecompositionDoolittle, AgnosticToInitialValueStandardOrdering)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
@@ -62,7 +62,7 @@ TEST(LuDecompositionDoolittle, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionDoolittle>(5);
 }
 
-TEST(LuDecompositionDoolittle, VectorOrderingAgnosticToInitialValue)
+TEST(LuDecompositionDoolittle, AgnosticToInitialValueVectorOrdering)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)

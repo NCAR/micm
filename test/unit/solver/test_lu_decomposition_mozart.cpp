@@ -29,7 +29,7 @@ TEST(LuDecompositionMozart, DiagonalMatrixStandardOrdering)
   testDiagonalMatrix<SparseMatrixTest, micm::LuDecompositionMozart>(5);
 }
 
-TEST(LuDecompositionMozart, AgnosticToInitialValue)
+TEST(LuDecompositionMozart, AgnosticToInitialValueStandardOrdering)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
@@ -62,7 +62,7 @@ TEST(LuDecompositionMozart, DiagonalMatrixVectorOrdering)
   testDiagonalMatrix<Group4SparseVectorMatrix, micm::LuDecompositionMozart>(5);
 }
 
-TEST(LuDecompositionMozart, VectorOrderingAgnosticToInitialValue)
+TEST(LuDecompositionMozart, AgnosticToInitialValueVectorOrdering)
 {
   double initial_values[5] = { -INFINITY, -1.0, 0.0, 1.0, INFINITY };
   for (auto& value : initial_values)
