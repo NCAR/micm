@@ -288,6 +288,27 @@ namespace micm
       }
     }
 
+    /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Max(const T &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      for (auto &y : data_)
+        y = std::max(y, x);
+ 
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Min(const T &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      for (auto &y : data_)
+        y = std::min(y, x);
+    }
+
     void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
