@@ -60,11 +60,24 @@ namespace micm
   class ProcessSet
   {
    protected:
+    /// @brief Process information for use in setting Jacobian elements
+    struct ProcessInfo
+    {
+      std::size_t process_id_;
+      std::size_t independent_id_;
+      std::size_t number_of_dependent_reactants_;
+      std::size_t number_of_products_;
+    };
+
     std::vector<std::size_t> number_of_reactants_;
     std::vector<std::size_t> reactant_ids_;
     std::vector<std::size_t> number_of_products_;
     std::vector<std::size_t> product_ids_;
     std::vector<double> yields_;
+    std::vector<ProcessInfo> jacobian_process_info_;
+    std::vector<std::size_t> jacobian_reactant_ids_;
+    std::vector<std::size_t> jacobian_product_ids_;
+    std::vector<double> jacobian_yields_;
     std::vector<std::size_t> jacobian_flat_ids_;
 
    public:
@@ -82,7 +95,9 @@ namespace micm
     /// @return Jacobian elements as a set of index pairs
     std::set<std::pair<std::size_t, std::size_t>> NonZeroJacobianElements() const;
 
-    /// @brief Sets the indicies for each non-zero Jacobian element in the underlying vector
+    /// @brief Sets the indicies for each non-zero Jacobian element in the underlying vector.
+    ///        Also sets combination of process ids and reactant ids to allow setting of
+    ///        jacobian elements in order by column.
     /// @param matrix The sparse matrix used for the Jacobian
     template<typename OrderingPolicy>
     void SetJacobianFlatIds(const SparseMatrix<double, OrderingPolicy>& matrix);
@@ -132,15 +147,21 @@ namespace micm
         reactant_ids_(),
         number_of_products_(),
         product_ids_(),
-        yields_()
+        yields_(),
+        jacobian_process_info_(),
+        jacobian_reactant_ids_(),
+        jacobian_product_ids_(),
+        jacobian_yields_(),
+        jacobian_flat_ids_()
   {
     MICM_PROFILE_FUNCTION();
 
-    for (auto& process : processes)
+    // Set up process information for forcing calculations
+    for (const auto& process : processes)
     {
       std::size_t number_of_reactants = 0;
       std::size_t number_of_products = 0;
-      for (auto& reactant : process.reactants_)
+      for (const auto& reactant : process.reactants_)
       {
         if (reactant.IsParameterized())
           continue;  // Skip reactants that are parameterizations
@@ -149,7 +170,7 @@ namespace micm
         reactant_ids_.push_back(variable_map.at(reactant.name_));
         ++number_of_reactants;
       }
-      for (auto& product : process.products_)
+      for (const auto& product : process.products_)
       {
         if (product.first.IsParameterized())
           continue;  // Skip products that are parameterizations
@@ -161,6 +182,58 @@ namespace micm
       }
       number_of_reactants_.push_back(number_of_reactants);
       number_of_products_.push_back(number_of_products);
+    }
+
+    // Set up process information for Jacobian calculations
+    std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
+    std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) {
+      return a.second < b.second;
+    });
+    for (const auto& independent_variable : sorted_names)
+    {
+      for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
+      {
+        const auto& process = processes[i_process];
+        // Look for processes that depend on the independent variable
+        bool found = false;
+        for (const auto& reactant : process.reactants_)
+        {
+          if (reactant.name_ == independent_variable.first)
+          {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+          continue;
+        ProcessInfo info;
+        info.process_id_ = i_process;
+        info.independent_id_ = independent_variable.second;
+        info.number_of_dependent_reactants_ = 0;
+        info.number_of_products_ = 0;
+        for (const auto& reactant : process.reactants_)
+        {
+          if (reactant.IsParameterized())
+            continue;  // Skip reactants that are parameterizations
+          if (variable_map.count(reactant.name_) < 1)
+            throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
+          if (variable_map.at(reactant.name_) == independent_variable.second) // skip the independent variable
+            continue;
+          jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+          ++info.number_of_dependent_reactants_;
+        }
+        for (const auto& product : process.products_)
+        {
+          if (product.first.IsParameterized())
+            continue;  // Skip products that are parameterizations
+          if (variable_map.count(product.first.name_) < 1)
+            throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
+          jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
+          jacobian_yields_.push_back(product.second);
+          ++info.number_of_products_;
+        }
+        jacobian_process_info_.push_back(info);
+      }
     }
   };
 
@@ -196,23 +269,15 @@ namespace micm
     MICM_PROFILE_FUNCTION();
 
     jacobian_flat_ids_.clear();
-    auto react_id = reactant_ids_.begin();
-    auto prod_id = product_ids_.begin();
-    for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+    auto react_id = jacobian_reactant_ids_.begin();
+    auto prod_id = jacobian_product_ids_.begin();
+    for (const auto& process_info : jacobian_process_info_)
     {
-      for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
-      {
-        for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-        {
-          jacobian_flat_ids_.push_back(matrix.VectorIndex(0, react_id[i_dep], react_id[i_ind]));
-        }
-        for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-        {
-          jacobian_flat_ids_.push_back(matrix.VectorIndex(0, prod_id[i_dep], react_id[i_ind]));
-        }
-      }
-      react_id += number_of_reactants_[i_rxn];
-      prod_id += number_of_products_[i_rxn];
+      for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_; ++i_dep)
+        jacobian_flat_ids_.push_back(matrix.VectorIndex(0, *(react_id++), process_info.independent_id_));
+      jacobian_flat_ids_.push_back(matrix.VectorIndex(0, process_info.independent_id_, process_info.independent_id_));
+      for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+        jacobian_flat_ids_.push_back(matrix.VectorIndex(0, *(prod_id++), process_info.independent_id_));
     }
   }
 
@@ -322,39 +387,22 @@ namespace micm
       auto cell_rate_constants = rate_constants[i_cell];
       auto cell_state = state_variables[i_cell];
 
-      auto react_id = reactant_ids_.begin();
-      auto yield = yields_.begin();
+      auto react_id = jacobian_reactant_ids_.begin();
+      auto yield = jacobian_yields_.begin();
       auto flat_id = jacobian_flat_ids_.begin();
 
-      // loop over reactions
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      // loop over process-dependent variable pairs
+      for (const auto& process_info : jacobian_process_info_)
       {
-        // loop over number of reactants of a reaction
-        for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
-        {
-          double d_rate_d_ind = cell_rate_constants[i_rxn];
-
-          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-          {
-            if (i_react == i_ind)
-            {
-              continue;
-            }
-            d_rate_d_ind *= cell_state[react_id[i_react]];
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-          {
-            cell_jacobian[*(flat_id++)] += d_rate_d_ind;
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-          {
-            cell_jacobian[*(flat_id++)] -= yield[i_dep] * d_rate_d_ind;
-          }
-        }
-        react_id += number_of_reactants_[i_rxn];
-        yield += number_of_products_[i_rxn];
+        double d_rate_d_ind = cell_rate_constants[process_info.process_id_];
+        for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
+          d_rate_d_ind *= cell_state[*(react_id++)];
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+          cell_jacobian[*(flat_id++)] += d_rate_d_ind;
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+          cell_jacobian[*(flat_id++)] -= *(yield++) * d_rate_d_ind;
       }
-      // increment cell_jacobian after each row
+      // increment cell_jacobian after each grid cell
       cell_jacobian += jacobian.FlatBlockSize();
     }
   }
@@ -378,44 +426,37 @@ namespace micm
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
-      auto react_id = reactant_ids_.begin();
-      auto yield = yields_.begin();
+      auto react_id = jacobian_reactant_ids_.begin();
+      auto yield = jacobian_yields_.begin();
       const std::size_t offset_rc = i_group * rate_constants.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_jacobian = i_group * jacobian.GroupSize();
       auto flat_id = jacobian_flat_ids_.begin();
 
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      for (const auto& process_info : jacobian_process_info_)
       {
-        for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
+        auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (process_info.process_id_ * L);
+        d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
+        for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
-          auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
-          d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-          {
-            if (i_react == i_ind)
-            {
-              continue;
-            }
-            const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-          {
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] += d_rate_d_ind[i_cell];
-            ++flat_id;
-          }
-          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-          {
-            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              v_jacobian[offset_jacobian + *flat_id + i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
-            ++flat_id;
-          }
+          const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
         }
-        react_id += number_of_reactants_[i_rxn];
-        yield += number_of_products_[i_rxn];
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+        {
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            v_jacobian[offset_jacobian + *flat_id + i_cell] += d_rate_d_ind[i_cell];
+          ++flat_id;
+        }
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+        {
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            v_jacobian[offset_jacobian + *flat_id + i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
+          ++flat_id;
+        }
+        react_id += process_info.number_of_dependent_reactants_;
+        yield += process_info.number_of_products_;
       }
     }
   }
