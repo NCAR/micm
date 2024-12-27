@@ -11,9 +11,9 @@
 #include <iterator>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
-#include <tuple>
 
 namespace micm
 {
@@ -64,7 +64,7 @@ namespace micm
     /// @return Size of the compressed data vector
     std::size_t VectorSize(std::size_t number_of_blocks) const
     {
-      return std::ceil((double)number_of_blocks / (double)L) * L *column_ids_.size();
+      return std::ceil((double)number_of_blocks / (double)L) * L * column_ids_.size();
     }
 
     /// @brief Returns the index for a particular element in the compressed data vector
@@ -73,11 +73,7 @@ namespace micm
     /// @param row Index of the row in the block
     /// @param column Index of the column in the block
     /// @return Index of the element in the compressed data vector
-    std::size_t VectorIndex(
-        std::size_t number_of_blocks,
-        std::size_t block,
-        std::size_t row,
-        std::size_t column) const
+    std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
       if (column >= column_start_.size() - 1 || row >= column_start_.size() - 1 || block >= number_of_blocks)
         throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
@@ -93,10 +89,7 @@ namespace micm
     /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
     /// @param data Compressed data vector
     /// @param value Value to add to the diagonal
-    void AddToDiagonal(
-        const std::size_t number_of_blocks,
-        auto& data,
-        const auto value) const
+    void AddToDiagonal(const std::size_t number_of_blocks, auto& data, const auto value) const
     {
       for (std::size_t i_group = 0; i_group < number_of_blocks; i_group += L)
       {
@@ -149,7 +142,6 @@ namespace micm
     }
 
    private:
-
     /// @brief Returns the column ids of each non-zero element in a block
     /// @param block_size Number of rows or columns in each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
@@ -192,11 +184,10 @@ namespace micm
         ++total_elem;
       }
       starts[curr_row + 1] = total_elem;
-      return starts; 
+      return starts;
     }
 
    public:
-
     /// @brief Returns whether a given row and column index is a zero element
     /// @param row Index of the row
     /// @param column Index of the column
@@ -211,4 +202,4 @@ namespace micm
       return (elem == end);
     }
   };
-}
+}  // namespace micm
