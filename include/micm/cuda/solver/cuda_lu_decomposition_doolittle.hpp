@@ -85,10 +85,15 @@ namespace micm
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy, class LMatrixPolicy = SparseMatrixPolicy, class UMatrixPolicy = SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static CudaLuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix)
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    static CudaLuDecompositionDoolittle Create(const SparseMatrixPolicy& matrix)
     {
-      static_assert(std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>, "SparseMatrixPolicy must be the same as LMatrixPolicy for CUDA LU decomposition");
-      static_assert(std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>, "SparseMatrixPolicy must be the same as UMatrixPolicy for CUDA LU decomposition");
+      static_assert(
+          std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>,
+          "SparseMatrixPolicy must be the same as LMatrixPolicy for CUDA LU decomposition");
+      static_assert(
+          std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>,
+          "SparseMatrixPolicy must be the same as UMatrixPolicy for CUDA LU decomposition");
       CudaLuDecompositionDoolittle lu_decomp(matrix);
       return lu_decomp;
     }
@@ -98,15 +103,13 @@ namespace micm
     /// @param L is the lower triangular matrix created by decomposition
     /// @param U is the upper triangular matrix created by decomposition
     template<class SparseMatrixPolicy>
-    requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        const SparseMatrixPolicy& A,
-        auto& L,
-        auto& U) const;
+      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    void Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const;
   };
 
   template<class SparseMatrixPolicy>
-  requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void CudaLuDecompositionDoolittle::
-      Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
+    requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+  void CudaLuDecompositionDoolittle::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     auto L_param = L.AsDeviceParam();  // we need to update lower matrix so it can't be constant and must be an lvalue
     auto U_param = U.AsDeviceParam();  // we need to update upper matrix so it can't be constant and must be an lvalue

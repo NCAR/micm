@@ -25,14 +25,16 @@ namespace micm
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(parameters){};
 
     /// @brief Copy input variables to the device
-    void SyncInputsToDevice() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+    void SyncInputsToDevice()
+      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
     {
       this->variables_.CopyToDevice();
       this->rate_constants_.CopyToDevice();
     }
 
     /// @brief Copy output variables to the host
-    void SyncOutputsToHost() requires(CudaMatrix<DenseMatrixPolicy>&& VectorizableDense<DenseMatrixPolicy>)
+    void SyncOutputsToHost()
+      requires(CudaMatrix<DenseMatrixPolicy> && VectorizableDense<DenseMatrixPolicy>)
     {
       this->variables_.CopyToHost();
     }

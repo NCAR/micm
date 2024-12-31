@@ -80,12 +80,14 @@ namespace micm
     static bool IsConverged(
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
-        const DenseMatrixPolicy& state) requires(!VectorizableDense<DenseMatrixPolicy>);
+        const DenseMatrixPolicy& state)
+      requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     static bool IsConverged(
         const BackwardEulerSolverParameters& parameters,
         const DenseMatrixPolicy& residual,
-        const DenseMatrixPolicy& state) requires(VectorizableDense<DenseMatrixPolicy>);
+        const DenseMatrixPolicy& state)
+      requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm
