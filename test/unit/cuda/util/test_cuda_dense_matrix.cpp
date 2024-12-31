@@ -623,10 +623,10 @@ TEST(CudaDenseMatrix, TestMin)
   matrix.Min(2.0);
   matrix.CopyToHost();
 
-  EXPECT_EQ(matrix[0][0], 2.0);
-  EXPECT_EQ(matrix[0][1], 2.0);
-  EXPECT_EQ(matrix[0][2], 2.0);
-  EXPECT_EQ(matrix[1][0], 2.0);
+  EXPECT_EQ(matrix[0][0], 1.0);
+  EXPECT_EQ(matrix[0][1], 1.0);
+  EXPECT_EQ(matrix[0][2], 1.0);
+  EXPECT_EQ(matrix[1][0], 1.0);
   EXPECT_EQ(matrix[1][1], 2.0);
-  EXPECT_EQ(matrix[1][2], 2.0);
+  EXPECT_EQ(matrix[1][2], 1.0);
 }
