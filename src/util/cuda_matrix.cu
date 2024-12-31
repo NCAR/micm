@@ -49,11 +49,8 @@ namespace micm
     cudaError_t MatrixMax(CudaMatrixParam& param, T val)
     {
       std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      MatrixMaxKernel<<<
-          number_of_blocks,
-          BLOCK_SIZE,
-          0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(param.d_data_, param.number_of_elements_, val);
+      MatrixMaxKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          param.d_data_, param.number_of_elements_, val);
       cudaError_t err = cudaGetLastError();
       return err;
     }
@@ -72,11 +69,8 @@ namespace micm
     cudaError_t MatrixMin(CudaMatrixParam& param, T val)
     {
       std::size_t number_of_blocks = (param.number_of_elements_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      MatrixMinKernel<<<
-          number_of_blocks,
-          BLOCK_SIZE,
-          0,
-          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(param.d_data_, param.number_of_elements_, val);
+      MatrixMinKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+          param.d_data_, param.number_of_elements_, val);
       cudaError_t err = cudaGetLastError();
       return err;
     }

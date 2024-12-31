@@ -296,7 +296,6 @@ namespace micm
 
       for (auto &y : data_)
         y = std::max(y, x);
- 
     }
 
     /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
