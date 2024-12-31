@@ -107,3 +107,13 @@ TEST(Matrix, SetScaler)
 {
   testSetScalar<micm::Matrix>();
 }
+
+TEST(Matrix, Max)
+{
+  testMax<micm::Matrix>();
+}
+
+TEST(Matrix, Min)
+{
+  testMin<micm::Matrix>();
+}

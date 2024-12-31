@@ -185,6 +185,22 @@ namespace micm
           "CUBLAS Daxpy operation failed...");
     }
 
+    /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Max(const T x)
+    {
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::MatrixMax(this->param_, x), "CudaMatrixMax");
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Min(const T x)
+    {
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::MatrixMin(this->param_, x), "CudaMatrixMin");
+    }
+
     // Copy the device data from the other Cuda dense matrix into this one
     void Copy(const CudaDenseMatrix& other)
     {
