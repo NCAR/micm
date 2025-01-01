@@ -118,10 +118,11 @@ namespace micm
 
   template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy> ||
-      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const
+    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+      MatrixPolicy& x,
+      const LMatrixPolicy& lower_matrix,
+      const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -173,9 +174,11 @@ namespace micm
 
   template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy>&&
-               VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
-      Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const
+    requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+      MatrixPolicy& x,
+      const LMatrixPolicy& lower_matrix,
+      const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
     constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
@@ -183,10 +186,8 @@ namespace micm
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group =
-          std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
-      auto U_group =
-          std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
+      auto L_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
+      auto U_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
       // Forward Substitution
       {
         auto y_elem = x_group;

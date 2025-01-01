@@ -31,7 +31,7 @@ TEST(SparseCompressedColumnMatrix, SingleBlockMatrix)
 {
   {
     auto matrix = testSingleBlockMatrix<micm::SparseMatrix, StandardOrdering>();
-  
+
     {
       std::size_t elem = matrix.VectorIndex(3, 2);
       EXPECT_EQ(elem, 3);

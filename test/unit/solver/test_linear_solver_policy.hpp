@@ -11,9 +11,7 @@ template<class MatrixPolicy>
 void CopyToDeviceDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -22,9 +20,7 @@ template<class SparseMatrixPolicy>
 void CopyToDeviceSparse(SparseMatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -33,9 +29,7 @@ template<class MatrixPolicy>
 void CopyToHostDense(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToHost()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToHost() } -> std::same_as<void>;
                 })
     matrix.CopyToHost();
 }
@@ -75,8 +69,7 @@ void print_matrix(const SparseMatrixPolicy& matrix, std::size_t width)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {
@@ -248,7 +241,8 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, initial_value);
+  auto lu =
+      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, initial_value);
   auto lower_matrix = std::move(lu.first);
   auto upper_matrix = std::move(lu.second);
 
@@ -347,10 +341,13 @@ void testMarkowitzReordering()
   SparseMatrixPolicy reordered_jac{ builder };
 
   auto orig_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac);
-  auto reordered_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(reordered_jac);
+  auto reordered_LU_calc =
+      micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(reordered_jac);
 
-  auto orig_LU = orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac, 0.0);
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(reordered_jac, 0.0);
+  auto orig_LU =
+      orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac, 0.0);
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
+      reordered_jac, 0.0);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;

@@ -55,6 +55,9 @@ namespace micm
     
     /// @brief Set all member variables to zero
     void Reset();
+
+    /// @brief Print the solver stats to the console
+    void Print() const;
   };
 
   inline void SolverStats::Reset()
@@ -66,6 +69,17 @@ namespace micm
     rejected_ = 0;
     decompositions_ = 0;
     solves_ = 0;
+  }
+
+  inline void SolverStats::Print() const
+  {
+    std::cout << "Function calls: " << function_calls_ << std::endl;
+    std::cout << "Jacobian updates: " << jacobian_updates_ << std::endl;
+    std::cout << "Number of steps: " << number_of_steps_ << std::endl;
+    std::cout << "Accepted steps: " << accepted_ << std::endl;
+    std::cout << "Rejected steps: " << rejected_ << std::endl;
+    std::cout << "Decompositions: " << decompositions_ << std::endl;
+    std::cout << "Solves: " << solves_ << std::endl;
   }
 
   inline std::string SolverStateToString(const SolverState& state)

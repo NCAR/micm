@@ -97,10 +97,10 @@ namespace micm
     /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(!VectorizableSparse<SparseMatrixPolicy>);
+      requires(!VectorizableSparse<SparseMatrixPolicy>);
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(VectorizableSparse<SparseMatrixPolicy>);
+      requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix
     /// @param alpha The alpha value
@@ -116,10 +116,10 @@ namespace micm
     /// @return
     template<class DenseMatrixPolicy>
     double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
-        requires(!VectorizableDense<DenseMatrixPolicy>);
+      requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors) const
-        requires(VectorizableDense<DenseMatrixPolicy>);
+      requires(VectorizableDense<DenseMatrixPolicy>);
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy>

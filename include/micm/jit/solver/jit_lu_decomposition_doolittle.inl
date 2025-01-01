@@ -38,7 +38,8 @@ namespace micm
                         std::to_string(L);
       throw std::system_error(make_error_code(MicmJitErrc::InvalidMatrix), msg);
     }
-    Initialize<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    Initialize<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
+        matrix, typename SparseMatrixPolicy::value_type());
     GenerateDecomposeFunction();
   }
 
@@ -54,12 +55,15 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>)
-  inline JitLuDecompositionDoolittle<L> JitLuDecompositionDoolittle<L>::Create(
-    const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline JitLuDecompositionDoolittle<L> JitLuDecompositionDoolittle<L>::Create(const SparseMatrixPolicy &matrix)
   {
-    static_assert(std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>, "SparseMatrixPolicy must be the same as LMatrixPolicy for JIT LU decomposition");
-    static_assert(std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>, "SparseMatrixPolicy must be the same as UMatrixPolicy for JIT LU decomposition");
+    static_assert(
+        std::is_same_v<SparseMatrixPolicy, LMatrixPolicy>,
+        "SparseMatrixPolicy must be the same as LMatrixPolicy for JIT LU decomposition");
+    static_assert(
+        std::is_same_v<SparseMatrixPolicy, UMatrixPolicy>,
+        "SparseMatrixPolicy must be the same as UMatrixPolicy for JIT LU decomposition");
     JitLuDecompositionDoolittle<L> lu_decomp(matrix);
     return lu_decomp;
   }
@@ -220,10 +224,7 @@ namespace micm
 
   template<std::size_t L>
   template<class SparseMatrixPolicy>
-  void JitLuDecompositionDoolittle<L>::Decompose(
-      const SparseMatrixPolicy &A,
-      auto& lower,
-      auto& upper) const
+  void JitLuDecompositionDoolittle<L>::Decompose(const SparseMatrixPolicy &A, auto &lower, auto &upper) const
   {
     decompose_function_(A.AsVector().data(), lower.AsVector().data(), upper.AsVector().data());
     for (size_t block = 0; block < A.NumberOfBlocks(); ++block)

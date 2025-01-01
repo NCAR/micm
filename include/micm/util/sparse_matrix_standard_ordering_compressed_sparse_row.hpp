@@ -6,12 +6,12 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <stdexcept>
 #include <iterator>
+#include <set>
+#include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
-#include <set>
-#include <tuple>
 
 namespace micm
 {
@@ -23,7 +23,7 @@ namespace micm
   class SparseMatrixStandardOrderingCompressedSparseRow
   {
     /// @brief Row ids of each non-zero element in a block
-    std::vector<std::size_t> row_ids_; 
+    std::vector<std::size_t> row_ids_;
     /// @brief Start and end indices of each row in a block in row_ids_
     std::vector<std::size_t> row_start_;
     /// @brief Indices along the diagonal of each block
@@ -65,11 +65,7 @@ namespace micm
     /// @param row Index of the row in the block
     /// @param column Index of the column in the block
     /// @return Index of the element in the compressed data vector
-    std::size_t VectorIndex(
-        std::size_t number_of_blocks,
-        std::size_t block,
-        std::size_t row,
-        std::size_t column) const
+    std::size_t VectorIndex(std::size_t number_of_blocks, std::size_t block, std::size_t row, std::size_t column) const
     {
       if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1 || block >= number_of_blocks)
         throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
@@ -85,10 +81,7 @@ namespace micm
     /// @param number_of_blocks Total number of block sub-matrices in the overall matrix
     /// @param data Compressed data vector
     /// @param value Value to add to the diagonal
-    void AddToDiagonal(
-        const std::size_t number_of_blocks,
-        auto& data,
-        auto value) const
+    void AddToDiagonal(const std::size_t number_of_blocks, auto& data, auto value) const
     {
       for (std::size_t block_start = 0; block_start < number_of_blocks * row_ids_.size(); block_start += row_ids_.size())
         for (const auto& i : diagonal_ids_)
@@ -109,12 +102,13 @@ namespace micm
       return indices;
     }
 
-  private:
-
+   private:
     /// @brief Returns the row ids of each non-zero element in a block
     /// @param block_size Number of rows or columns for each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
-    static std::vector<std::size_t> RowIdsVector(const std::size_t block_size, const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+    static std::vector<std::size_t> RowIdsVector(
+        const std::size_t block_size,
+        const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
       std::vector<std::size_t> ids;
       ids.reserve(non_zero_elements.size());
@@ -129,7 +123,9 @@ namespace micm
     /// @brief Returns the start and end indices of each row in a block in row_ids_
     /// @param block_size Number of rows or columns for each block
     /// @param non_zero_elements Set of non-zero elements in the matrix
-    static std::vector<std::size_t> RowStartVector(const std::size_t block_size, const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
+    static std::vector<std::size_t> RowStartVector(
+        const std::size_t block_size,
+        const std::set<std::pair<std::size_t, std::size_t>> non_zero_elements)
     {
       std::vector<std::size_t> starts(block_size + 1, 0);
       std::size_t total_elem = 0;
@@ -144,8 +140,7 @@ namespace micm
       return starts;
     }
 
-  public:
-
+   public:
     /// @brief Returns whether a particular element is always zero
     /// @param row Row index
     /// @param column Column index
