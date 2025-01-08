@@ -61,7 +61,7 @@ namespace micm
     std::size_t max_iter = parameters_.max_number_of_steps_;
     const auto time_step_reductions = parameters_.time_step_reductions_;
 
-    double H = time_step;
+    double H = parameters_.h_start_ == 0.0 ? time_step : parameters_.h_start_;
     double t = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
@@ -214,7 +214,7 @@ namespace micm
     auto residual_iter = residual.AsVector().begin();
     auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
-    const std::size_t L = residual.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
     // evaluate the rows that fit exactly into the vectorizable dimension (L)

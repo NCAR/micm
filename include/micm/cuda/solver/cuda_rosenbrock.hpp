@@ -100,7 +100,7 @@ namespace micm
     /// @param alpha
     template<class SparseMatrixPolicy>
     void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
-        requires(CudaMatrix<SparseMatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>)
+      requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =
           jacobian.AsDeviceParam();  // we need to update jacobian so it can't be constant and must be an lvalue

@@ -66,11 +66,17 @@ namespace micm
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
+      double last_alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
+        // Compute alpha accounting for the last alpha value
+        // This is necessary to avoid the need to re-factor the jacobian
+        double alpha = 1.0 / (H * parameters_.gamma_[0]) - last_alpha;
+
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(H, parameters_.gamma_[0], Y, stats, state);
+        LinearFactor(alpha, Y, stats, state);
+        last_alpha = alpha;
 
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
@@ -190,7 +196,8 @@ namespace micm
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
-      const double& alpha) const requires(!VectorizableSparse<SparseMatrixPolicy>)
+      const double& alpha) const
+    requires(!VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -206,14 +213,15 @@ namespace micm
   template<class SparseMatrixPolicy>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::AlphaMinusJacobian(
       SparseMatrixPolicy& jacobian,
-      const double& alpha) const requires(VectorizableSparse<SparseMatrixPolicy>)
+      const double& alpha) const
+    requires(VectorizableSparse<SparseMatrixPolicy>)
   {
     MICM_PROFILE_FUNCTION();
 
-    const std::size_t n_cells = jacobian.GroupVectorSize();
+    constexpr std::size_t n_cells = SparseMatrixPolicy::GroupVectorSize();
     for (std::size_t i_group = 0; i_group < jacobian.NumberOfGroups(jacobian.NumberOfBlocks()); ++i_group)
     {
-      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize(jacobian.FlatBlockSize()));
+      auto jacobian_vector = std::next(jacobian.AsVector().begin(), i_group * jacobian.GroupSize());
       for (const auto& i_elem : jacobian_diagonal_elements_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
           jacobian_vector[i_elem + i_cell] += alpha;
@@ -222,15 +230,13 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
-      double& H,
-      const double gamma,
+      const double alpha,
       const auto& number_densities,
       SolverStats& stats,
       auto& state) const
   {
     MICM_PROFILE_FUNCTION();
 
-    double alpha = 1 / (H * gamma);
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
     linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
@@ -294,10 +300,9 @@ namespace micm
     const auto& atol = state.GetAbsoluteTolerances();
     auto rtol = state.GetRelativeTolerance();
     const std::size_t N = Y.NumRows() * Y.NumColumns();
-    const std::size_t L = Y.GroupVectorSize();
-    const std::size_t n_vars = atol.size();
-
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
+    const std::size_t n_vars = atol.size();
 
     double errors_over_scale = 0;
     double error = 0;

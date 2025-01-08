@@ -24,6 +24,18 @@ namespace micm
     /// @returns Error code from free-ing data on device, if any
     cudaError_t FreeVector(CudaMatrixParam& vectorMatrix);
 
+    /// @brief Sets all elements in a CUDA matrix to their current value or a specified value, whichever is greater
+    /// @param vectorMatrix Struct containing allocated device memory
+    /// @param val Value to compare with each element in the matrix
+    template<typename T>
+    cudaError_t MatrixMax(CudaMatrixParam& vectorMatrix, T val);
+
+    /// @brief Sets all elements in a CUDA matrix to their current value or a specified value, whichever is lesser
+    /// @param vectorMatrix Struct containing allocated device memory
+    /// @param val Value to compare with each element in the matrix
+    template<typename T>
+    cudaError_t MatrixMin(CudaMatrixParam& vectorMatrix, T val);
+
     /// @brief Copies data from the host to the device
     /// @param vectorMatrix Struct containing allocated device memory
     /// @param h_data Host data to copy from

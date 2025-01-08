@@ -20,6 +20,7 @@ namespace micm
     using SolverType = BackwardEuler<RatesPolicy, LinearSolverPolicy>;
 
     double small_{ 1.0e-40 };
+    double h_start_{ 0.0 };
     size_t max_number_of_steps_{ 11 };
     // The time step reductions are used to determine the time step after a failed solve
     // This default set of time step reductions is used by CAM-Chem

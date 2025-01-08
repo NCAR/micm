@@ -57,8 +57,13 @@ inline std::error_code make_error_code(MicmStateErrc e)
 namespace micm
 {
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy>::State()
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State()
       : conditions_(),
         variables_(),
         custom_rate_parameters_(),
@@ -67,8 +72,14 @@ namespace micm
   {
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline State<DenseMatrixPolicy, SparseMatrixPolicy>::State(const StateParameters& parameters)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
+      const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
         custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
@@ -94,15 +105,21 @@ namespace micm
     jacobian_ = BuildJacobian<SparseMatrixPolicy>(
         parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
 
-    auto lu = LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(jacobian_, 0);
+    auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     lower_matrix_ = lower_matrix;
     upper_matrix_ = upper_matrix;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetConcentrations(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const std::size_t num_grid_cells = conditions_.size();
@@ -110,8 +127,16 @@ namespace micm
       SetConcentration({ pair.first }, pair.second);
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, double concentration)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+      const Species& species,
+      double concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
@@ -121,8 +146,14 @@ namespace micm
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetConcentration(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
       const Species& species,
       const std::vector<double>& concentration)
   {
@@ -136,9 +167,14 @@ namespace micm
       variables_[i][i_species] = concentration[i];
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
-      const std::vector<std::vector<double>>& parameters)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
     if (parameters.size() != variables_.NumRows())
       throw std::system_error(
@@ -153,16 +189,30 @@ namespace micm
     }
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameters(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
+      const std::string& label,
+      double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
@@ -173,8 +223,14 @@ namespace micm
     custom_rate_parameters_[0][param->second] = value;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
       const std::string& label,
       const std::vector<double>& values)
   {
@@ -188,32 +244,58 @@ namespace micm
       custom_rate_parameters_[i][param->second] = values[i];
   }
   
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetRelativeTolerance(double relativeTolerance)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(double relativeTolerance)
   {
     this->relative_tolerance_ = relativeTolerance;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance)
   {
     this->absolute_tolerance_ = absoluteTolerance;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline double State<DenseMatrixPolicy, SparseMatrixPolicy>::GetRelativeTolerance() const
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline double State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::GetRelativeTolerance() const
   {
     return this->relative_tolerance_;
   } 
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline const std::vector<double>& State<DenseMatrixPolicy, SparseMatrixPolicy>::GetAbsoluteTolerances() const
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline const std::vector<double>& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::GetAbsoluteTolerances() const
   {
     return this->absolute_tolerance_;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::PrintHeader()
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintHeader()
   {
     auto largest_str_iter = std::max_element(
         variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
@@ -233,8 +315,14 @@ namespace micm
     std::cout << std::endl;
   }
 
-  template<class DenseMatrixPolicy, class SparseMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy>::PrintState(double time)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintState(
+      double time)
   {
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);

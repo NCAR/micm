@@ -42,17 +42,10 @@ namespace micm
 
   /// Concept for Cuda Matrix
   template<typename MatrixType>
-  concept CudaMatrix = requires(MatrixType t)
-  {
-    {
-      t.CopyToDevice()
-      } -> std::same_as<void>;
-    {
-      t.CopyToHost()
-      } -> std::same_as<void>;
-    {
-      t.AsDeviceParam()
-      } -> std::same_as<CudaMatrixParam>;
+  concept CudaMatrix = requires(MatrixType t) {
+    { t.CopyToDevice() } -> std::same_as<void>;
+    { t.CopyToHost() } -> std::same_as<void>;
+    { t.AsDeviceParam() } -> std::same_as<CudaMatrixParam>;
   };
 
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
@@ -190,6 +183,22 @@ namespace micm
               this->param_.d_data_,
               incy),
           "CUBLAS Daxpy operation failed...");
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Max(const T x)
+    {
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::MatrixMax(this->param_, x), "CudaMatrixMax");
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Min(const T x)
+    {
+      static_assert(std::is_same_v<T, double>);
+      CHECK_CUDA_ERROR(micm::cuda::MatrixMin(this->param_, x), "CudaMatrixMin");
     }
 
     // Copy the device data from the other Cuda dense matrix into this one

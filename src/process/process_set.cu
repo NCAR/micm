@@ -56,8 +56,8 @@ namespace micm
           prod_id_offset += d_number_of_products[i_rxn];
           yield_offset += d_number_of_products[i_rxn];
         }  // end of loop over number of reactions
-      }    // end of checking a valid CUDA thread id
-    }      // end of AddForcingTerms_kernel
+      }  // end of checking a valid CUDA thread id
+    }  // end of AddForcingTerms_kernel
 
     /// This is the CUDA kernel that forms the negative Jacobian matrix (-J) on the device
     __global__ void SubtractJacobianTermsKernel(
@@ -117,8 +117,8 @@ namespace micm
           react_ids_offset += d_number_of_reactants[i_rxn];
           yields_offset += d_number_of_products[i_rxn];
         }  // end of loop over reactions in a grid cell
-      }    // end of checking a CUDA thread id
-    }      // end of SubtractJacobianTermsKernel
+      }  // end of checking a CUDA thread id
+    }  // end of SubtractJacobianTermsKernel
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaProcessSet" to the device,
@@ -303,5 +303,5 @@ namespace micm
           micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           rate_constants_param, state_variables_param, forcing_param, devstruct);
     }  // end of AddForcingTermsKernelDriver
-  }    // namespace cuda
+  }  // namespace cuda
 }  // namespace micm

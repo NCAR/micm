@@ -49,20 +49,20 @@ namespace micm
     return perm;
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value)
-      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>(
+      : LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>(
             matrix,
             initial_value,
             [](const SparseMatrixPolicy& m) -> LuDecompositionPolicy
-            { return LuDecomposition::Create<SparseMatrixPolicy>(m); })
+            { return LuDecompositionPolicy::template Create<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(m); })
   {
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::LinearSolver(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::LinearSolver(
       const SparseMatrixPolicy& matrix,
       typename SparseMatrixPolicy::value_type initial_value,
       const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
@@ -74,17 +74,16 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
 
-    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy>(matrix, initial_value);
+    auto lu = lu_decomp_.template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, initial_value);
     auto lower_matrix = std::move(lu.first);
     auto upper_matrix = std::move(lu.second);
     for (std::size_t i = 0; i < lower_matrix.NumRows(); ++i)
     {
       std::size_t nLij = 0;
-      for (std::size_t j_id = lower_matrix.RowStartVector()[i]; j_id < lower_matrix.RowStartVector()[i + 1]; ++j_id)
+      for (std::size_t j = 0; j < i; ++j)
       {
-        std::size_t j = lower_matrix.RowIdsVector()[j_id];
-        if (j >= i)
-          break;
+        if (lower_matrix.IsZero(i, j))
+          continue;
         Lij_yj_.push_back(std::make_pair(lower_matrix.VectorIndex(0, i, j), j));
         ++nLij;
       }
@@ -94,10 +93,9 @@ namespace micm
     for (std::size_t i = upper_matrix.NumRows() - 1; i != static_cast<std::size_t>(-1); --i)
     {
       std::size_t nUij = 0;
-      for (std::size_t j_id = upper_matrix.RowStartVector()[i]; j_id < upper_matrix.RowStartVector()[i + 1]; ++j_id)
+      for (std::size_t j = i + 1; j < upper_matrix.NumColumns(); ++j)
       {
-        std::size_t j = upper_matrix.RowIdsVector()[j_id];
-        if (j <= i)
+        if (upper_matrix.IsZero(i, j))
           continue;
         Uij_xj_.push_back(std::make_pair(upper_matrix.VectorIndex(0, i, j), j));
         ++nUij;
@@ -107,23 +105,24 @@ namespace micm
     }
   };
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
-  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::Factor(
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Factor(
       const SparseMatrixPolicy& matrix,
-      SparseMatrixPolicy& lower_matrix,
-      SparseMatrixPolicy& upper_matrix) const
+      LMatrixPolicy& lower_matrix,
+      UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
     lu_decomp_.template Decompose<SparseMatrixPolicy>(matrix, lower_matrix, upper_matrix);
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
-  requires(
-      !VectorizableDense<MatrixPolicy> ||
-      !VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
+    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+      MatrixPolicy& x,
+      const LMatrixPolicy& lower_matrix,
+      const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -173,22 +172,22 @@ namespace micm
     }
   }
 
-  template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+  template<class SparseMatrixPolicy, class LuDecompositionPolicy, class LMatrixPolicy, class UMatrixPolicy>
   template<class MatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy>&&
-               VectorizableSparse<SparseMatrixPolicy>) inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy>::
-      Solve(MatrixPolicy& x, const SparseMatrixPolicy& lower_matrix, const SparseMatrixPolicy& upper_matrix) const
+    requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+  inline void LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::Solve(
+      MatrixPolicy& x,
+      const LMatrixPolicy& lower_matrix,
+      const UMatrixPolicy& upper_matrix) const
   {
     MICM_PROFILE_FUNCTION();
-    const std::size_t n_cells = x.GroupVectorSize();
+    constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
       auto x_group = std::next(x.AsVector().begin(), i_group * x.GroupSize());
-      auto L_group =
-          std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize(lower_matrix.FlatBlockSize()));
-      auto U_group =
-          std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize(upper_matrix.FlatBlockSize()));
+      auto L_group = std::next(lower_matrix.AsVector().begin(), i_group * lower_matrix.GroupSize());
+      auto U_group = std::next(upper_matrix.AsVector().begin(), i_group * upper_matrix.GroupSize());
       // Forward Substitution
       {
         auto y_elem = x_group;

@@ -33,6 +33,7 @@ namespace micm
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class RatesPolicy,
+      class LuDecompositionPolicy,
       class LinearSolverPolicy,
       class StatePolicy>
   class SolverBuilder
@@ -40,6 +41,8 @@ namespace micm
    public:
     using DenseMatrixPolicyType = DenseMatrixPolicy;
     using SparseMatrixPolicyType = SparseMatrixPolicy;
+    using LuDecompositionPolicyType = LuDecompositionPolicy;
+    using StatePolicyType = StatePolicy;
 
    protected:
     SolverParametersPolicy options_;
@@ -114,17 +117,22 @@ namespace micm
   /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
+  /// @tparam LuDecompositionPolicy Policy for the LU decomposition
   template<
       class SolverParametersPolicy,
       class DenseMatrixPolicy = Matrix<double>,
-      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>>
+      class SparseMatrixPolicy = SparseMatrix<double, SparseMatrixStandardOrdering>,
+      class LuDecompositionPolicy = LuDecomposition,
+      class LMatrixPolicy = SparseMatrixPolicy,
+      class UMatrixPolicy = SparseMatrixPolicy>
   using CpuSolverBuilder = SolverBuilder<
       SolverParametersPolicy,
       DenseMatrixPolicy,
       SparseMatrixPolicy,
       ProcessSet,
-      LinearSolver<SparseMatrixPolicy, LuDecomposition>,
-      State<DenseMatrixPolicy, SparseMatrixPolicy>>;
+      LuDecompositionPolicy,
+      LinearSolver<SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>,
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
 
 }  // namespace micm
 

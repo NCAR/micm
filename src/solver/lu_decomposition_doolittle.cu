@@ -108,8 +108,8 @@ namespace micm
     }  // end of CUDA kernel
 
     /// This is the function that will copy the constant data
-    ///   members of class "CudaLuDecomposition" to the device
-    LuDecomposeParam CopyConstData(LuDecomposeParam& hoststruct)
+    ///   members of class "CudaDoolittleLuDecomposition" to the device
+    LuDecomposeDoolittleParam CopyConstData(LuDecomposeDoolittleParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
       size_t niLU_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.niLU_size_;
@@ -249,8 +249,8 @@ namespace micm
     }
 
     /// This is the function that will delete the constant data
-    ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeParam& devstruct)
+    ///   members of class "CudaDoolittleLuDecomposition" on the device
+    void FreeConstData(LuDecomposeDoolittleParam& devstruct)
     {
       if (devstruct.niLU_ != nullptr)
         CHECK_CUDA_ERROR(
@@ -295,5 +295,5 @@ namespace micm
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           A_param, L_param, U_param, devstruct);
     }  // end of DecomposeKernelDriver
-  }    // end of namespace cuda
+  }  // end of namespace cuda
 }  // end of namespace micm

@@ -1,4 +1,3 @@
-#include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
@@ -11,9 +10,7 @@ template<class MatrixPolicy>
 void CopyToDevice(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -22,9 +19,7 @@ template<class MatrixPolicy>
 void CopyToHost(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToHost()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToHost() } -> std::same_as<void>;
                 })
     matrix.CopyToHost();
 }
@@ -68,8 +63,7 @@ void check_results(
   }
 }
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
+void print_matrix(const auto& matrix, std::size_t width)
 {
   for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
@@ -80,8 +74,7 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {
@@ -120,8 +113,9 @@ void testDenseMatrix()
   A[0][2][1] = -2;
   A[0][2][2] = 8;
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
@@ -147,8 +141,9 @@ void testRandomMatrix(std::size_t number_of_blocks)
         for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
           A[i_block][i][j] = get_double();
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
@@ -182,9 +177,11 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
           A[i_block][i][j] = A[0][i][j];
       }
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy(A);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
 
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, initial_value);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
+      A, initial_value);
 
   CopyToDevice<SparseMatrixPolicy>(A);
   CopyToDevice<SparseMatrixPolicy>(LU.first);
@@ -214,8 +211,9 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       A[i_block][i][i] = get_double();
 
-  LuDecompositionPolicy lud = LuDecompositionPolicy(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy>(A, 0);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
   lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
       A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });

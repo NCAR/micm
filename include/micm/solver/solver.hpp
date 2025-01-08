@@ -60,7 +60,9 @@ namespace micm
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      return solver_.Solve(time_step, state);
+      auto result = solver_.Solve(time_step, state);
+      state.variables_.Max(0.0);
+      return result;
     }
 
     // Overloaded Solve function to change parameters
