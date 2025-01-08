@@ -140,15 +140,15 @@ using yields = std::pair<micm::Species, double>;
 using SparseMatrixTest = micm::SparseMatrix<double>;
 
 // Test the analytical solution for a simple A -k1-> B -k2-> C system
-template<class BuilderPolicy, class StateType>
+template<class BuilderPolicy>
 void test_simple_system(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
     std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
     std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
-    std::function<void(StateType&)> prepare_for_solve,
-    std::function<void(StateType&)> postpare_for_solve,
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
 {
   auto solver = builder.SetNumberOfGridCells(NUM_CELLS).Build();
@@ -256,15 +256,15 @@ void test_simple_system(
 }
 
 // Test the analytical solution for a simple stiff A1<-fast->A2 -k1-> B -k2-> C system
-template<class BuilderPolicy, class StateType>
+template<class BuilderPolicy>
 void test_simple_stiff_system(
     const std::string& test_label,
     BuilderPolicy builder,
     double absolute_tolerances,
     std::function<double(double temperature, double pressure, double air_density)> calculate_k1,
     std::function<double(double temperature, double pressure, double air_density)> calculate_k2,
-    std::function<void(StateType&)> prepare_for_solve,
-    std::function<void(StateType&)> postpare_for_solve,
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve,
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve,
     std::unordered_map<std::string, std::vector<double>> custom_parameters = {})
 {
   auto solver = builder.SetNumberOfGridCells(NUM_CELLS).Build();
@@ -374,12 +374,12 @@ void test_simple_stiff_system(
 // Specific analytical tests //
 ///////////////////////////////
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_troe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-10,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -416,7 +416,7 @@ void test_analytical_troe(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -440,12 +440,12 @@ void test_analytical_troe(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_troe(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-5,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -503,7 +503,7 @@ void test_analytical_stiff_troe(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "troe",
       builder,
       absolute_tolerances,
@@ -527,12 +527,12 @@ void test_analytical_stiff_troe(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_photolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-6,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -566,7 +566,7 @@ void test_analytical_photolysis(
     { "photoA", std::vector<double>(NUM_CELLS, 2e-3) }, { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -585,12 +585,12 @@ void test_analytical_photolysis(
       custom_parameters);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_photolysis(
     BuilderPolicy builder,
     double absolute_tolerances = 2e-5,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -647,7 +647,7 @@ void test_analytical_stiff_photolysis(
     { "photoB", std::vector<double>(NUM_CELLS, 3e-3) }
   };
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "photolysis",
       builder,
       absolute_tolerances,
@@ -666,12 +666,12 @@ void test_analytical_stiff_photolysis(
       custom_parameters);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_ternary_chemical_activation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-08,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -709,7 +709,7 @@ void test_analytical_ternary_chemical_activation(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -733,12 +733,12 @@ void test_analytical_ternary_chemical_activation(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_ternary_chemical_activation(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -796,7 +796,7 @@ void test_analytical_stiff_ternary_chemical_activation(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "ternary_chemical_activation",
       builder,
       absolute_tolerances,
@@ -820,12 +820,12 @@ void test_analytical_stiff_ternary_chemical_activation(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_tunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-8,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -856,7 +856,7 @@ void test_analytical_tunneling(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -876,12 +876,12 @@ void test_analytical_tunneling(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_tunneling(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -932,7 +932,7 @@ void test_analytical_stiff_tunneling(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "tunneling",
       builder,
       absolute_tolerances,
@@ -952,12 +952,12 @@ void test_analytical_stiff_tunneling(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_arrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-9,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -987,7 +987,7 @@ void test_analytical_arrhenius(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1007,12 +1007,12 @@ void test_analytical_arrhenius(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_arrhenius(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -1064,7 +1064,7 @@ void test_analytical_stiff_arrhenius(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "arrhenius",
       builder,
       absolute_tolerances,
@@ -1084,12 +1084,12 @@ void test_analytical_stiff_arrhenius(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_branched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-13,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1
@@ -1129,7 +1129,7 @@ void test_analytical_branched(
   auto processes = std::vector<micm::Process>{ r1, r2 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_system<BuilderPolicy, StateType>(
+  test_simple_system<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1167,12 +1167,12 @@ void test_analytical_branched(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_stiff_branched(
     BuilderPolicy builder,
     double absolute_tolerances = 1e-6,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> B, k1
@@ -1238,7 +1238,7 @@ void test_analytical_stiff_branched(
   auto processes = std::vector<micm::Process>{ r1, r2, r3, r4, r5 };
   builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase })).SetReactions(processes);
 
-  test_simple_stiff_system<BuilderPolicy, StateType>(
+  test_simple_stiff_system<BuilderPolicy>(
       "branched",
       builder,
       absolute_tolerances,
@@ -1276,12 +1276,12 @@ void test_analytical_stiff_branched(
       postpare_for_solve);
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_robertson(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A -> B, k1 = 0.04
@@ -1423,12 +1423,12 @@ void test_analytical_robertson(
   }
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_oregonator(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * This problem is described in
@@ -1601,12 +1601,12 @@ void test_analytical_oregonator(
   }
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_hires(
     BuilderPolicy builder,
     double absolute_tolerance = 1e-8,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * This problem is described in
@@ -1797,12 +1797,12 @@ void test_analytical_hires(
   }
 }
 
-template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
+template<class BuilderPolicy>
 void test_analytical_e5(
     BuilderPolicy builder,
     double relative_tolerance = 1e-8,
-    std::function<void(StateType&)> prepare_for_solve = [](StateType& state) {},
-    std::function<void(StateType&)> postpare_for_solve = [](StateType& state) {})
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve = [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   /*
    * A1 -> A2 + A3,  k1 = 7.89e-10
