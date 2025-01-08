@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-template<class BuilderPolicy, class StateType = micm::State<>>
+template<class BuilderPolicy, class StateType = BuilderPolicy::StatePolicyType>
 void test_analytical_surface_rxn(
     BuilderPolicy& builder,
     double tolerance = 1e-8,
