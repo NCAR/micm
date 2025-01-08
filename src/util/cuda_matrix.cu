@@ -36,9 +36,6 @@ namespace micm
     }
 
     template<typename T>
-<<<<<<< HEAD
-    cudaError_t CopyToDevice(CudaMatrixParam& param, const std::vector<T>& h_data)
-=======
     __global__ void MatrixMaxKernel(T* d_data, std::size_t number_of_elements, T val)
     {
       std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -80,7 +77,6 @@ namespace micm
 
     template<typename T>
     cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<T>& h_data)
->>>>>>> main
     {
       cudaError_t err = cudaMemcpyAsync(
           param.d_data_,
