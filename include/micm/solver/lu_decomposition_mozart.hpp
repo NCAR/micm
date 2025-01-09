@@ -103,7 +103,7 @@ namespace micm
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
-    template<class SparseMatrixPolicy>
+    template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static LuDecompositionMozart Create(const SparseMatrixPolicy& matrix);
 

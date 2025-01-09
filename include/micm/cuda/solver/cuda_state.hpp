@@ -40,7 +40,7 @@ namespace micm
 
     /// @brief Move constructor
     CudaState(CudaState&& other)
-        : State<DenseMatrixPolicy, SparseMatrixPolicy>(std::move(other))
+        : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(std::move(other))
     {
       absolute_tolerance_param_ = other.absolute_tolerance_param_;
       other.absolute_tolerance_param_.d_data_ = nullptr;
@@ -51,7 +51,7 @@ namespace micm
     {
       if (this != &other)
       {
-        State<DenseMatrixPolicy, SparseMatrixPolicy>::operator=(std::move(other));
+        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::operator=(std::move(other));
         absolute_tolerance_param_ = other.absolute_tolerance_param_;
         other.absolute_tolerance_param_.d_data_ = nullptr;
       }
@@ -60,7 +60,7 @@ namespace micm
 
     void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance) override
     {
-      State<DenseMatrixPolicy, SparseMatrixPolicy>::SetAbsoluteTolerances(absoluteTolerance);
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absoluteTolerance);
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
     }
 
