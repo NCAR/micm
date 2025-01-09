@@ -102,7 +102,7 @@ namespace micm
 
     jacobian_ = BuildJacobian<SparseMatrixPolicy>(
         parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
-    
+
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0);
@@ -110,7 +110,8 @@ namespace micm
     }
     else
     {
-      auto lu = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0);
+      auto lu =
+          LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0);
       auto lower_matrix = std::move(lu.first);
       auto upper_matrix = std::move(lu.second);
       lower_matrix_ = lower_matrix;

@@ -77,11 +77,13 @@ using VectorBackwardEulerMozartInPlace = micm::SolverBuilder<
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
     micm::ProcessSet,
     micm::LuDecompositionMozartInPlace,
-    micm::LinearSolverInPlace<micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozartInPlace>,
+    micm::LinearSolverInPlace<
+        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+        micm::LuDecompositionMozartInPlace>,
     micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozartInPlace>>;
+        micm::VectorMatrix<double, L>,
+        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+        micm::LuDecompositionMozartInPlace>>;
 
 template<std::size_t L>
 using VectorStateTypeMozartInPlace = micm::State<
@@ -96,11 +98,13 @@ using VectorBackwardEulerMozartInPlace = micm::SolverBuilder<
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
     micm::ProcessSet,
     micm::LuDecompositionMozartInPlace,
-    micm::LinearSolverInPlace<micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>, micm::LuDecompositionMozartInPlace>,
+    micm::LinearSolverInPlace<
+        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+        micm::LuDecompositionMozartInPlace>,
     micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozartInPlace>>;
+        micm::VectorMatrix<double, L>,
+        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
+        micm::LuDecompositionMozartInPlace>>;
 
 template<std::size_t L>
 using VectorStateTypeMozartInPlace = micm::State<

@@ -10,9 +10,7 @@ template<class MatrixPolicy>
 void CopyToDevice(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToDevice()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
                 })
     matrix.CopyToDevice();
 }
@@ -21,18 +19,13 @@ template<class MatrixPolicy>
 void CopyToHost(MatrixPolicy& matrix)
 {
   if constexpr (requires {
-                  {
-                    matrix.CopyToHost()
-                    } -> std::same_as<void>;
+                  { matrix.CopyToHost() } -> std::same_as<void>;
                 })
     matrix.CopyToHost();
 }
 
 template<typename T, class SparseMatrixPolicy>
-void check_results(
-    const SparseMatrixPolicy& A,
-    const SparseMatrixPolicy& LU,
-    const std::function<void(const T, const T)> f)
+void check_results(const SparseMatrixPolicy& A, const SparseMatrixPolicy& LU, const std::function<void(const T, const T)> f)
 {
   EXPECT_EQ(A.NumberOfBlocks(), LU.NumberOfBlocks());
   for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
@@ -48,8 +41,7 @@ void check_results(
           {
             result += LU[i_block][k][j];
           }
-          else
-          if (k < i && !(LU.IsZero(i, k) || LU.IsZero(k, j)))
+          else if (k < i && !(LU.IsZero(i, k) || LU.IsZero(k, j)))
           {
             result += LU[i_block][i][k] * LU[i_block][k][j];
           }
@@ -78,8 +70,7 @@ void print_matrix(const auto& matrix, std::size_t width)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {
