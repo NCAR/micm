@@ -60,20 +60,23 @@ namespace micm
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix);
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    LuDecompositionMozartInPlace(const SparseMatrixPolicy& matrix);
 
     ~LuDecompositionMozartInPlace() = default;
 
     /// @brief Create an LU decomposition algorithm for a given sparse matrix policy
     /// @param matrix Sparse matrix
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static LuDecompositionMozartInPlace Create(const SparseMatrixPolicy& matrix);
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    static LuDecompositionMozartInPlace Create(const SparseMatrixPolicy& matrix);
 
     /// @brief Create a combined sparse L and U matrix for a given A matrix
     /// @param A Sparse matrix that will be decomposed
     /// @return combined L and U Sparse matrices
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) static SparseMatrixPolicy GetLUMatrix(
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    static SparseMatrixPolicy GetLUMatrix(
         const SparseMatrixPolicy& A,
         typename SparseMatrixPolicy::value_type initial_value);
 
@@ -81,17 +84,18 @@ namespace micm
     ///        All elements of L and U that are zero in A should be set to zero before calling this function.
     /// @param ALU Sparse matrix to decompose (will be overwritten with L and U matrices)
     template<class SparseMatrixPolicy>
-    requires(!VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        SparseMatrixPolicy& ALU) const;
+      requires(!VectorizableSparse<SparseMatrixPolicy>)
+    void Decompose(SparseMatrixPolicy& ALU) const;
     template<class SparseMatrixPolicy>
-    requires(VectorizableSparse<SparseMatrixPolicy>) void Decompose(
-        SparseMatrixPolicy& ALU) const;
+      requires(VectorizableSparse<SparseMatrixPolicy>)
+    void Decompose(SparseMatrixPolicy& ALU) const;
 
    private:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
     template<class SparseMatrixPolicy>
-    requires(SparseMatrixConcept<SparseMatrixPolicy>) void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    void Initialize(const SparseMatrixPolicy& matrix, auto initial_value);
   };
 
 }  // namespace micm

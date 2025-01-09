@@ -77,13 +77,11 @@ namespace micm
     /// @param x The solution vector
     /// @param LU The LU decomposition of the matrix as a square sparse matrix
     template<class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>) void Solve(
-        MatrixPolicy& x,
-        const SparseMatrixPolicy& lu_matrix) const;
+      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
+    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
     template<class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy>&& VectorizableSparse<SparseMatrixPolicy>) void Solve(
-        MatrixPolicy& x,
-        const SparseMatrixPolicy& lu_matrix) const;
+      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    void Solve(MatrixPolicy& x, const SparseMatrixPolicy& lu_matrix) const;
   };
 
 }  // namespace micm
