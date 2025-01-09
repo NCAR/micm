@@ -179,16 +179,16 @@ namespace micm
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-    
+
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
     {
-      auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);      
+      auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
       const std::size_t n_cells = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
       auto aik_njk = aik_njk_.begin();
       auto aij_ajk = aij_ajk_.begin();
       auto aki_nji = aki_nji_.begin();
-      auto akj_aji = akj_aji_.begin(); 
+      auto akj_aji = akj_aji_.begin();
       for (const auto& nik_nki_aii : nik_nki_aii_)
       {
         for (std::size_t ik = 0; ik < std::get<0>(nik_nki_aii); ++ik)
@@ -213,7 +213,7 @@ namespace micm
             ALU_vector[aki_nji->first + i] /= ALU_vector[std::get<2>(nik_nki_aii) + i];
           ++aki_nji;
         }
-      }   
+      }
     }
   }
 

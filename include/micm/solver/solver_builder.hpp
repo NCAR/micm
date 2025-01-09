@@ -137,7 +137,7 @@ namespace micm
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>>;
 
   /// @brief Builder of CPU-based general solvers with in-place LU decomposition
-  /// @tparam SolverParametersPolicy Parameters for the ODE solver    
+  /// @tparam SolverParametersPolicy Parameters for the ODE solver
   /// @tparam DenseMatrixPolicy Policy for dense matrices
   /// @tparam SparseMatrixPolicy Policy for sparse matrices
   /// @tparam LuDecompositionPolicy Policy for the LU decomposition

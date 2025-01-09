@@ -3,8 +3,8 @@
 #pragma once
 
 #include "lu_decomposition_doolittle.hpp"
-#include "lu_decomposition_mozart.hpp"
 #include "lu_decomposition_doolittle_in_place.hpp"
+#include "lu_decomposition_mozart.hpp"
 #include "lu_decomposition_mozart_in_place.hpp"
 
 #include <micm/util/sparse_matrix.hpp>

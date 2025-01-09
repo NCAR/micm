@@ -99,15 +99,18 @@ auto backward_euler_vector_mozart_csc_1 = VectorBackwardEulerMozartCSC<1>(micm::
 auto backward_euler_vector_mozart_csc_2 = VectorBackwardEulerMozartCSC<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_csc_3 = VectorBackwardEulerMozartCSC<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_csc_4 = VectorBackwardEulerMozartCSC<4>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_1 = VectorBackwardEulerDoolittleInPlace<1>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_2 = VectorBackwardEulerDoolittleInPlace<2>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_3 = VectorBackwardEulerDoolittleInPlace<3>(micm::BackwardEulerSolverParameters());
-auto backward_euler_vector_doolittle_in_place_4 = VectorBackwardEulerDoolittleInPlace<4>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_doolittle_in_place_1 =
+    VectorBackwardEulerDoolittleInPlace<1>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_doolittle_in_place_2 =
+    VectorBackwardEulerDoolittleInPlace<2>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_doolittle_in_place_3 =
+    VectorBackwardEulerDoolittleInPlace<3>(micm::BackwardEulerSolverParameters());
+auto backward_euler_vector_doolittle_in_place_4 =
+    VectorBackwardEulerDoolittleInPlace<4>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_1 = VectorBackwardEulerMozartInPlace<1>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_2 = VectorBackwardEulerMozartInPlace<2>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_3 = VectorBackwardEulerMozartInPlace<3>(micm::BackwardEulerSolverParameters());
 auto backward_euler_vector_mozart_in_place_4 = VectorBackwardEulerMozartInPlace<4>(micm::BackwardEulerSolverParameters());
-
 
 TEST(AnalyticalExamples, Troe)
 {
