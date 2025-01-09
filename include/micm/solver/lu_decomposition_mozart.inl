@@ -8,7 +8,7 @@ namespace micm
   {
   }
 
-  template<class SparseMatrixPolicy>
+  template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
     requires(SparseMatrixConcept<SparseMatrixPolicy>)
   inline LuDecompositionMozart::LuDecompositionMozart(const SparseMatrixPolicy& matrix)
   {
