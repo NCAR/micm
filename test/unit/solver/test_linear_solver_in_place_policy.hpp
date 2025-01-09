@@ -118,21 +118,22 @@ void testDenseMatrix()
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(b);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
-  auto lower_matrix = std::move(lu.first);
-  auto upper_matrix = std::move(lu.second);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  alu.Fill(0);
+  for (std::size_t i = 0; i < A.NumRows(); ++i)
+    for (std::size_t j = 0; j < A.NumColumns(); ++j)
+      if (!A.IsZero(i, j))
+        alu[0][i][j] = A[0][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
 
-  solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Factor(alu);
+  solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -172,20 +173,22 @@ void testRandomMatrix(std::size_t number_of_blocks)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
-  auto lower_matrix = std::move(lu.first);
-  auto upper_matrix = std::move(lu.second);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  alu.Fill(0);
+  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+        if (!A.IsZero(i, j))
+          alu[i_block][i][j] = A[i_block][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
 
-  solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Factor(alu);
+  solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -237,26 +240,26 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
-  auto lu =
-      micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, initial_value);
-  auto lower_matrix = std::move(lu.first);
-  auto upper_matrix = std::move(lu.second);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value);
+  alu.Fill(0);
+  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+        if (!A.IsZero(i, j))
+          alu[i_block][i][j] = A[i_block][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
 
-  solver.Factor(A, lower_matrix, upper_matrix);
+  solver.Factor(alu);
 
   // Only copy the data to the host when it is a CudaMatrix
-  CopyToHostDense<SparseMatrixPolicy>(lower_matrix);
-  CopyToHostDense<SparseMatrixPolicy>(upper_matrix);
+  CopyToHostDense<SparseMatrixPolicy>(alu);
 
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -291,20 +294,22 @@ void testDiagonalMatrix(std::size_t number_of_blocks)
   x = b;
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(A);
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto lu = micm::LuDecomposition::GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
-  auto lower_matrix = std::move(lu.first);
-  auto upper_matrix = std::move(lu.second);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0);
+  alu.Fill(0);
+  for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
+        if (!A.IsZero(i, j))
+          alu[i_block][i][j] = A[i_block][i][j];
 
   // Only copy the data to the device when it is a CudaMatrix
-  CopyToDeviceSparse<SparseMatrixPolicy>(lower_matrix);
-  CopyToDeviceSparse<SparseMatrixPolicy>(upper_matrix);
+  CopyToDeviceSparse<SparseMatrixPolicy>(alu);
 
-  solver.Factor(A, lower_matrix, upper_matrix);
-  solver.template Solve<MatrixPolicy>(x, lower_matrix, upper_matrix);
+  solver.Factor(alu);
+  solver.template Solve<MatrixPolicy>(x, alu);
 
   // Only copy the data to the host when it is a CudaMatrix
   CopyToHostDense<MatrixPolicy>(x);
@@ -340,14 +345,11 @@ void testMarkowitzReordering()
         builder = builder.WithElement(i, j);
   SparseMatrixPolicy reordered_jac{ builder };
 
-  auto orig_LU_calc = micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac);
-  auto reordered_LU_calc =
-      micm::LuDecomposition::Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(reordered_jac);
+  auto orig_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(orig_jac);
+  auto reordered_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(reordered_jac);
 
-  auto orig_LU =
-      orig_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(orig_jac, 0.0);
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
-      reordered_jac, 0.0);
+  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0);
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0);
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;
@@ -358,7 +360,5 @@ void testMarkowitzReordering()
   }
 
   EXPECT_EQ(sum_orig, sum_reordered);
-  EXPECT_GT(
-      orig_LU.first.FlatBlockSize() + orig_LU.second.FlatBlockSize(),
-      reordered_LU.first.FlatBlockSize() + reordered_LU.second.FlatBlockSize());
+  EXPECT_GT(orig_LU.FlatBlockSize(), reordered_LU.FlatBlockSize());
 }

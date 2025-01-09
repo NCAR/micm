@@ -572,3 +572,61 @@ TEST(CudaDenseMatrix, CopyFunction)
     }
   }
 }
+
+TEST(CudaDenseMatrix, TestMax)
+{
+  micm::CudaDenseMatrix<double, 4> matrix{ 2, 3, 0.0 };
+  matrix.CopyToDevice();
+  matrix.Max(2.0);
+  matrix.CopyToHost();
+
+  for (auto& elem : matrix.AsVector())
+  {
+    EXPECT_EQ(elem, 2.0);
+  }
+
+  for (auto& elem : matrix.AsVector())
+  {
+    elem = 1.0;
+  }
+  matrix[1][1] = 3.0;
+  matrix.CopyToDevice();
+  matrix.Max(2.0);
+  matrix.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 2.0);
+  EXPECT_EQ(matrix[0][1], 2.0);
+  EXPECT_EQ(matrix[0][2], 2.0);
+  EXPECT_EQ(matrix[1][0], 2.0);
+  EXPECT_EQ(matrix[1][1], 3.0);
+  EXPECT_EQ(matrix[1][2], 2.0);
+}
+
+TEST(CudaDenseMatrix, TestMin)
+{
+  micm::CudaDenseMatrix<double, 4> matrix{ 2, 3, 0.0 };
+  matrix.CopyToDevice();
+  matrix.Min(2.0);
+  matrix.CopyToHost();
+
+  for (auto& elem : matrix.AsVector())
+  {
+    EXPECT_EQ(elem, 0.0);
+  }
+
+  for (auto& elem : matrix.AsVector())
+  {
+    elem = 1.0;
+  }
+  matrix[1][1] = 3.0;
+  matrix.CopyToDevice();
+  matrix.Min(2.0);
+  matrix.CopyToHost();
+
+  EXPECT_EQ(matrix[0][0], 1.0);
+  EXPECT_EQ(matrix[0][1], 1.0);
+  EXPECT_EQ(matrix[0][2], 1.0);
+  EXPECT_EQ(matrix[1][0], 1.0);
+  EXPECT_EQ(matrix[1][1], 2.0);
+  EXPECT_EQ(matrix[1][2], 1.0);
+}

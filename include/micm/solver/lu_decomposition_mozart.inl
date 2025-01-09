@@ -9,24 +9,25 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionMozart::LuDecompositionMozart(const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart::LuDecompositionMozart(const SparseMatrixPolicy& matrix)
   {
     Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
   }
 
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline LuDecompositionMozart LuDecompositionMozart::Create(
-      const SparseMatrixPolicy& matrix)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline LuDecompositionMozart LuDecompositionMozart::Create(const SparseMatrixPolicy& matrix)
   {
     LuDecompositionMozart lu_decomp{};
-    lu_decomp.Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(matrix, typename SparseMatrixPolicy::value_type());
+    lu_decomp.Initialize<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(
+        matrix, typename SparseMatrixPolicy::value_type());
     return lu_decomp;
   }
 
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  requires(SparseMatrixConcept<SparseMatrixPolicy>) inline void LuDecompositionMozart::Initialize(
-      const SparseMatrixPolicy& matrix,
-      auto initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Initialize(const SparseMatrixPolicy& matrix, auto initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -111,9 +112,10 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy, class LMatrixPolicy, class UMatrixPolicy>
-  requires(
-      SparseMatrixConcept<SparseMatrixPolicy>) inline std::pair<LMatrixPolicy, UMatrixPolicy> LuDecompositionMozart::
-      GetLUMatrices(const SparseMatrixPolicy& A, typename SparseMatrixPolicy::value_type initial_value)
+    requires(SparseMatrixConcept<SparseMatrixPolicy>)
+  inline std::pair<LMatrixPolicy, UMatrixPolicy> LuDecompositionMozart::GetLUMatrices(
+      const SparseMatrixPolicy& A,
+      typename SparseMatrixPolicy::value_type initial_value)
   {
     MICM_PROFILE_FUNCTION();
 
@@ -163,10 +165,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(!VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionMozart::Decompose(
-      const SparseMatrixPolicy& A,
-      auto& L,
-      auto& U) const
+    requires(!VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     MICM_PROFILE_FUNCTION();
     const std::size_t n = A.NumRows();
@@ -184,7 +184,7 @@ namespace micm
       auto nujk_nljk_uik = nujk_nljk_uik_.begin();
       auto ujk_lji = ujk_lji_.begin();
       auto ljk_lji = ljk_lji_.begin();
-      
+
       for (auto& lii_nuji_nlji : lii_nuji_nlji_)
       {
         for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
@@ -232,10 +232,8 @@ namespace micm
   }
 
   template<class SparseMatrixPolicy>
-  requires(VectorizableSparse<SparseMatrixPolicy>) inline void LuDecompositionMozart::Decompose(
-      const SparseMatrixPolicy& A,
-      auto& L,
-      auto& U) const
+    requires(VectorizableSparse<SparseMatrixPolicy>)
+  inline void LuDecompositionMozart::Decompose(const SparseMatrixPolicy& A, auto& L, auto& U) const
   {
     MICM_PROFILE_FUNCTION();
 
@@ -266,24 +264,24 @@ namespace micm
         for (std::size_t i = 0; i < std::get<1>(lii_nuji_nlji); ++i)
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            U_vector[uji_aji->first+i_cell] = A_vector[uji_aji->second+i_cell];
+            U_vector[uji_aji->first + i_cell] = A_vector[uji_aji->second + i_cell];
           ++uji_aji;
         }
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[std::get<0>(lii_nuji_nlji)+i_cell] = 1.0;
+          L_vector[std::get<0>(lii_nuji_nlji) + i_cell] = 1.0;
         for (std::size_t i = 0; i < std::get<2>(lii_nuji_nlji); ++i)
         {
           for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-            L_vector[lji_aji->first+i_cell] = A_vector[lji_aji->second+i_cell];
+            L_vector[lji_aji->first + i_cell] = A_vector[lji_aji->second + i_cell];
           ++lji_aji;
         }
       }
       for (auto& fill_uji : fill_uji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          U_vector[fill_uji+i_cell] = 0;
+          U_vector[fill_uji + i_cell] = 0;
       for (auto& fill_lji : fill_lji_)
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
-          L_vector[fill_lji+i_cell] = 0;
+          L_vector[fill_lji + i_cell] = 0;
       for (std::size_t i = 0; i < n; ++i)
       {
         for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
