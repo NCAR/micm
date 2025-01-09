@@ -15,8 +15,7 @@ using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 template<std::size_t L>
-using VectorStateType =
-    micm::State<micm::VectorMatrix<double, L>, micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
+using VectorStateType = VectorBackwardEuler<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
@@ -26,10 +25,7 @@ using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittle = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionDoolittle>;
+using VectorStateTypeDoolittle = VectorBackwardEulerDoolittle<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
@@ -39,10 +35,7 @@ using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittleCSC = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionDoolittle>;
+using VectorStateTypeDoolittleCSC = VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
@@ -52,10 +45,7 @@ using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozart = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozart>;
+using VectorStateTypeMozart = VectorBackwardEulerMozart<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
@@ -65,52 +55,27 @@ using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozartCSC = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrderingCompressedSparseColumn<L>>,
-    micm::LuDecompositionMozart>;
+using VectorStateTypeMozartCSC = VectorBackwardEulerMozartCSC<L>::StatePolicyType;
 
 template<std::size_t L>
-using VectorBackwardEulerDoolittleInPlace = micm::SolverBuilder<
+using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::ProcessSet,
-    micm::LuDecompositionDoolittleInPlace,
-    micm::LinearSolverInPlace<
-        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-        micm::LuDecompositionDoolittleInPlace>,
-    micm::State<
-        micm::VectorMatrix<double, L>,
-        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-        micm::LuDecompositionDoolittleInPlace>>;
-
-template<std::size_t L>
-using VectorStateTypeDoolittleInPlace = micm::State<
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
     micm::LuDecompositionDoolittleInPlace>;
 
 template<std::size_t L>
-using VectorBackwardEulerMozartInPlace = micm::SolverBuilder<
+using VectorStateTypeDoolittleInPlace = VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
+
+template<std::size_t L>
+using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::BackwardEulerSolverParameters,
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::ProcessSet,
-    micm::LuDecompositionMozartInPlace,
-    micm::LinearSolverInPlace<
-        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-        micm::LuDecompositionMozartInPlace>,
-    micm::State<
-        micm::VectorMatrix<double, L>,
-        micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-        micm::LuDecompositionMozartInPlace>>;
+    micm::LuDecompositionMozartInPlace>;
 
 template<std::size_t L>
-using VectorStateTypeMozartInPlace = micm::State<
-    micm::VectorMatrix<double, L>,
-    micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>,
-    micm::LuDecompositionMozartInPlace>;
+using VectorStateTypeMozartInPlace = VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
