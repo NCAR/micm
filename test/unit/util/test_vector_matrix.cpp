@@ -106,3 +106,19 @@ TEST(VectorMatrix, SetScaler)
   testSetScalar<Group3MatrixAlias>();
   testSetScalar<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, Max)
+{
+  testMax<Group1MatrixAlias>();
+  testMax<Group2MatrixAlias>();
+  testMax<Group3MatrixAlias>();
+  testMax<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, Min)
+{
+  testMin<Group1MatrixAlias>();
+  testMin<Group2MatrixAlias>();
+  testMin<Group3MatrixAlias>();
+  testMin<Group4MatrixAlias>();
+}

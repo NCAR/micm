@@ -195,7 +195,8 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state) requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& state)
+    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = parameters.relative_tolerance_;
@@ -221,7 +222,8 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state) requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& state)
+    requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = parameters.relative_tolerance_;

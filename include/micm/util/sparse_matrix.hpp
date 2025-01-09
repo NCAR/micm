@@ -17,16 +17,14 @@ namespace micm
 {
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableSparse = requires(T t)
-  {
+  concept VectorizableSparse = requires(T t) {
     t.GroupSize();
     t.GroupVectorSize();
     t.NumberOfGroups(0);
   };
 
   template<typename T>
-  concept SparseMatrixConcept = requires(T t)
-  {
+  concept SparseMatrixConcept = requires(T t) {
     t.NumRows();
     t.NumColumns();
     t.NumberOfBlocks();
@@ -55,8 +53,8 @@ namespace micm
     using value_type = T;
 
    protected:
-    std::size_t number_of_blocks_;                       // Number of block sub-matrices in the overall matrix
-    std::size_t block_size_;                             // Size of each block sub-matrix (number of rows or columns per block)
+    std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
+    std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
     std::size_t number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
     std::vector<T> data_;                                // Value of each non-zero matrix element
 
