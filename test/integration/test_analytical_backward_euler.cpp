@@ -15,7 +15,7 @@ using VectorBackwardEuler = micm::CpuSolverBuilder<
     micm::VectorMatrix<double, L>,
     micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>;
 template<std::size_t L>
-using VectorStateType = VectorBackwardEuler<L>::StatePolicyType;
+using VectorStateType = typename VectorBackwardEuler<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
@@ -25,7 +25,7 @@ using VectorBackwardEulerDoolittle = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittle = VectorBackwardEulerDoolittle<L>::StatePolicyType;
+using VectorStateTypeDoolittle = typename VectorBackwardEulerDoolittle<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
@@ -35,7 +35,7 @@ using VectorBackwardEulerDolittleCSC = micm::CpuSolverBuilder<
     micm::LuDecompositionDoolittle>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittleCSC = VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
+using VectorStateTypeDoolittleCSC = typename VectorBackwardEulerDolittleCSC<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
@@ -45,7 +45,7 @@ using VectorBackwardEulerMozart = micm::CpuSolverBuilder<
     micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozart = VectorBackwardEulerMozart<L>::StatePolicyType;
+using VectorStateTypeMozart = typename VectorBackwardEulerMozart<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
@@ -55,7 +55,7 @@ using VectorBackwardEulerMozartCSC = micm::CpuSolverBuilder<
     micm::LuDecompositionMozart>;
 
 template<std::size_t L>
-using VectorStateTypeMozartCSC = VectorBackwardEulerMozartCSC<L>::StatePolicyType;
+using VectorStateTypeMozartCSC = typename VectorBackwardEulerMozartCSC<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
@@ -65,7 +65,7 @@ using VectorBackwardEulerDoolittleInPlace = micm::CpuSolverBuilderInPlace<
     micm::LuDecompositionDoolittleInPlace>;
 
 template<std::size_t L>
-using VectorStateTypeDoolittleInPlace = VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
+using VectorStateTypeDoolittleInPlace = typename VectorBackwardEulerDoolittleInPlace<L>::StatePolicyType;
 
 template<std::size_t L>
 using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
@@ -75,7 +75,7 @@ using VectorBackwardEulerMozartInPlace = micm::CpuSolverBuilderInPlace<
     micm::LuDecompositionMozartInPlace>;
 
 template<std::size_t L>
-using VectorStateTypeMozartInPlace = VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
+using VectorStateTypeMozartInPlace = typename VectorBackwardEulerMozartInPlace<L>::StatePolicyType;
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 auto backard_euler_vector_1 = VectorBackwardEuler<1>(micm::BackwardEulerSolverParameters());
