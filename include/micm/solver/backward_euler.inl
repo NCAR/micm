@@ -54,7 +54,8 @@ namespace micm
     // if the last attempt to reduce the timestep fails,
     // accept the current H but do not update the Yn vector
 
-    using MatrixPolicy = decltype(state.variables_);
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
 
     SolverResult result;
 
@@ -67,7 +68,7 @@ namespace micm
     std::size_t n_convergence_failures = 0;
 
     auto derived_class_temporary_variables =
-        static_cast<BackwardEulerTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+        static_cast<BackwardEulerTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     auto& Yn = derived_class_temporary_variables->Yn_;
     auto& Yn1 = state.variables_;  // Yn1 will hold the new solution at the end of the solve
     auto& forcing = derived_class_temporary_variables->forcing_;
@@ -110,7 +111,14 @@ namespace micm
         // (y_{n+1} - y_n) / H = f(t_{n+1}, y_{n+1})
 
         // try to find the root by factoring and solving the linear system
-        linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        {
+          linear_solver_.Factor(state.jacobian_);
+        }
+        else
+        {
+          linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+        }
         result.stats_.decompositions_++;
 
         // forcing_blk in camchem
@@ -120,7 +128,14 @@ namespace micm
 
         // the result of the linear solver will be stored in forcing
         // this represents the change in the solution
-        linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
+        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        {
+          linear_solver_.Solve(forcing, state.jacobian_);
+        }
+        else
+        {
+          linear_solver_.Solve(forcing, state.lower_matrix_, state.upper_matrix_);
+        }
         result.stats_.solves_++;
 
         // solution_blk in camchem
