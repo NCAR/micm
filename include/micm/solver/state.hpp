@@ -65,10 +65,8 @@ namespace micm
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
-
-    private:
-        double relative_tolerance_;
-        std::vector<double> absolute_tolerance_;
+    double relative_tolerance_;
+    std::vector<double> absolute_tolerance_;
 
     public:
     /// @brief Default constructor
@@ -208,10 +206,6 @@ namespace micm
     /// @param absoluteTolerance absolute tolerance
     virtual void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance);
 
-    double GetRelativeTolerance() const;
-
-    const std::vector<double>& GetAbsoluteTolerances() const;
-    
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
 

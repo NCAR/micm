@@ -281,28 +281,6 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline double State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::GetRelativeTolerance() const
-  {
-    return this->relative_tolerance_;
-  } 
-
-  template<
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
-  inline const std::vector<double>& State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::GetAbsoluteTolerances() const
-  {
-    return this->absolute_tolerance_;
-  }
-
-  template<
-      class DenseMatrixPolicy,
-      class SparseMatrixPolicy,
-      class LuDecompositionPolicy,
-      class LMatrixPolicy,
-      class UMatrixPolicy>
   inline void
   State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintHeader()
   {

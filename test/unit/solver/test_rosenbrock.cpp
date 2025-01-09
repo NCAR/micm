@@ -18,8 +18,8 @@ void testNormalizedErrorDiff(SolverBuilderPolicy builder, std::size_t number_of_
   builder = getSolver(builder);
   auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();  
   auto state = solver.GetState();
-  const std::vector<double>& atol = state.GetAbsoluteTolerances();  
-  double rtol = state.GetRelativeTolerance();
+  const std::vector<double>& atol = state.absolute_tolerance_;
+  double rtol = state.relative_tolerance_;
 
   using MatrixPolicy = decltype(state.variables_);
   auto y_old = MatrixPolicy(number_of_grid_cells, state.state_size_, 7.7);
@@ -107,7 +107,7 @@ TEST(RosenbrockSolver, CanSetTolerances)
                       .SetNumberOfGridCells(number_of_grid_cells)
                       .Build();
     auto state = solver.GetState();
-    auto absolute_tolerances = state.GetAbsoluteTolerances();
+    auto absolute_tolerances = state.absolute_tolerance_;
     EXPECT_EQ(absolute_tolerances.size(), 2);    
     EXPECT_EQ(absolute_tolerances[0], 1.0e-07);
     EXPECT_EQ(absolute_tolerances[1], 1.0e-08);

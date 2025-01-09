@@ -259,8 +259,8 @@ namespace micm
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
-    const auto& atol = state.GetAbsoluteTolerances();
-    const auto& rtol = state.GetRelativeTolerance();
+    const auto& atol = state.absolute_tolerance_;
+    const auto& rtol = state.relative_tolerance_;
     const std::size_t N = Y.AsVector().size();
     const std::size_t n_vars = atol.size();
 
@@ -297,8 +297,8 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
-    const auto& atol = state.GetAbsoluteTolerances();
-    auto rtol = state.GetRelativeTolerance();
+    const auto& atol = state.absolute_tolerance_;
+    auto rtol = state.relative_tolerance_;
     const std::size_t N = Y.NumRows() * Y.NumColumns();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();

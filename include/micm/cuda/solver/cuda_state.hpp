@@ -29,7 +29,7 @@ namespace micm
     CudaState(const StateParameters& parameters)
         : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(parameters)
     {
-      auto& atol = this->GetAbsoluteTolerances();
+      auto& atol = this->absolute_tolerance_;
 
       absolute_tolerance_param_.number_of_elements_ = atol.size();
       absolute_tolerance_param_.number_of_grid_cells_ = 1;
