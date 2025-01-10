@@ -20,44 +20,37 @@
 namespace micm
 {
   template <typename T, std::size_t Alignment>
-  struct aligned_allocator {
+  class AlignedAllocator {
+  public:
       using value_type = T;
 
-      aligned_allocator() noexcept = default;
+      AlignedAllocator() noexcept = default;
 
       template <typename U>
-      aligned_allocator(const aligned_allocator<U, Alignment>&) noexcept {}
+      AlignedAllocator(const AlignedAllocator<U, Alignment>&) noexcept {}
 
       T* allocate(std::size_t n) {
-          if (n == 0) return nullptr;
-
           void* ptr = nullptr;
-          // Allocate memory with the specified alignment
           if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
               throw std::bad_alloc();
           }
           return static_cast<T*>(ptr);
       }
 
-      void deallocate(T* ptr, std::size_t n) noexcept {
-          std::free(ptr);
-      }
-
-      template <typename U>
-      struct rebind {
-          using other = aligned_allocator<U, Alignment>;
-      };
-
-      // Define operator!=
-      bool operator!=(const aligned_allocator& other) const {
-          return !(*this == other);
-      }
-
-      // Define operator==
-      bool operator==(const aligned_allocator& other) const {
-          return true;
+      void deallocate(T* p, std::size_t) noexcept {
+          free(p);
       }
   };
+
+  template <typename T, std::size_t Alignment>
+  bool operator==(const AlignedAllocator<T, Alignment>&, const AlignedAllocator<T, Alignment>&) {
+      return true;
+  }
+
+  template <typename T, std::size_t Alignment>
+  bool operator!=(const AlignedAllocator<T, Alignment>&, const AlignedAllocator<T, Alignment>&) {
+      return false;
+  }
 
   /// @brief A 2D array class with contiguous memory structured to encourage vectorization
   ///
@@ -73,7 +66,7 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
-    using allocator_type = aligned_allocator<T, std::hardware_destructive_interference_size>;
+    using allocator_type = AlignedAllocator<T, 64>;
 
    private:
    protected:
