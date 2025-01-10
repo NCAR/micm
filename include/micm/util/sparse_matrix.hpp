@@ -88,7 +88,7 @@ template <typename T, std::size_t Alignment>
     std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
     std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
     std::size_t number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
-    std::vector<T, aligned_allocator<T, std::hardware_destructive_interference_size>> data_;                                // Value of each non-zero matrix element
+    std::vector<T> data_;                                // Value of each non-zero matrix element
 
    private:
     friend class SparseMatrixBuilder<T, OrderingPolicy>;
