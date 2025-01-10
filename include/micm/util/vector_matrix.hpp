@@ -47,6 +47,16 @@ namespace micm
       struct rebind {
           using other = aligned_allocator<U, Alignment>;
       };
+
+      // Define operator!=
+      bool operator!=(const aligned_allocator& other) const {
+          return !(*this == other);
+      }
+
+      // Define operator==
+      bool operator==(const aligned_allocator& other) const {
+          return true;
+      }
   };
 
   /// @brief A 2D array class with contiguous memory structured to encourage vectorization
