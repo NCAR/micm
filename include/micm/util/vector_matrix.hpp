@@ -11,7 +11,7 @@
 #include <functional>
 #include <system_error>
 #include <vector>
-#include <cstddef>
+#include <memory>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
   #define MICM_DEFAULT_VECTOR_SIZE 4
@@ -19,6 +19,35 @@
 
 namespace micm
 {
+  template <typename T, std::size_t Alignment>
+  struct aligned_allocator {
+      using value_type = T;
+
+      aligned_allocator() noexcept = default;
+
+      template <typename U>
+      aligned_allocator(const aligned_allocator<U, Alignment>&) noexcept {}
+
+      T* allocate(std::size_t n) {
+          if (n == 0) return nullptr;
+
+          void* ptr = nullptr;
+          // Allocate memory with the specified alignment
+          if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
+              throw std::bad_alloc();
+          }
+          return static_cast<T*>(ptr);
+      }
+
+      void deallocate(T* ptr, std::size_t n) noexcept {
+          std::free(ptr);
+      }
+
+      template <typename U>
+      struct rebind {
+          using other = aligned_allocator<U, Alignment>;
+      };
+  };
 
   /// @brief A 2D array class with contiguous memory structured to encourage vectorization
   ///
@@ -37,7 +66,7 @@ namespace micm
 
    private:
    protected:
-    alignas(32) std::vector<T> data_;
+    std::vector<T, aligned_allocator<T, std::hardware_destructive_interference_size>> data_;
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 

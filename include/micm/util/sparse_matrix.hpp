@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include <cstddef>
+#include <memory>
 
 namespace micm
 {
@@ -29,6 +30,36 @@ namespace micm
     t.NumRows();
     t.NumColumns();
     t.NumberOfBlocks();
+  };
+
+template <typename T, std::size_t Alignment>
+  struct aligned_allocator {
+      using value_type = T;
+
+      aligned_allocator() noexcept = default;
+
+      template <typename U>
+      aligned_allocator(const aligned_allocator<U, Alignment>&) noexcept {}
+
+      T* allocate(std::size_t n) {
+          if (n == 0) return nullptr;
+
+          void* ptr = nullptr;
+          // Allocate memory with the specified alignment
+          if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
+              throw std::bad_alloc();
+          }
+          return static_cast<T*>(ptr);
+      }
+
+      void deallocate(T* ptr, std::size_t n) noexcept {
+          std::free(ptr);
+      }
+
+      template <typename U>
+      struct rebind {
+          using other = aligned_allocator<U, Alignment>;
+      };
   };
 
   template<class T, class OrderingPolicy>
@@ -57,7 +88,7 @@ namespace micm
     std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
     std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
     std::size_t number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
-    alignas(32) std::vector<T> data_;                                // Value of each non-zero matrix element
+    std::vector<T, aligned_allocator<T, std::hardware_destructive_interference_size>> data_;                                // Value of each non-zero matrix element
 
    private:
     friend class SparseMatrixBuilder<T, OrderingPolicy>;
