@@ -63,10 +63,11 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
+    using allocator_type = aligned_allocator<T, std::hardware_destructive_interference_size>;
 
    private:
    protected:
-    std::vector<T, aligned_allocator<T, std::hardware_destructive_interference_size>> data_;
+    std::vector<T, allocator_type> data_;
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
@@ -390,12 +391,12 @@ namespace micm
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
-    std::vector<T> &AsVector()
+    std::vector<T, allocator_type> &AsVector()
     {
       return data_;
     }
 
-    const std::vector<T> &AsVector() const
+    const std::vector<T, allocator_type> &AsVector() const
     {
       return data_;
     }
