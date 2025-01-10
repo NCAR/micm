@@ -32,36 +32,6 @@ namespace micm
     t.NumberOfBlocks();
   };
 
-template <typename T, std::size_t Alignment>
-  struct aligned_allocator {
-      using value_type = T;
-
-      aligned_allocator() noexcept = default;
-
-      template <typename U>
-      aligned_allocator(const aligned_allocator<U, Alignment>&) noexcept {}
-
-      T* allocate(std::size_t n) {
-          if (n == 0) return nullptr;
-
-          void* ptr = nullptr;
-          // Allocate memory with the specified alignment
-          if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
-              throw std::bad_alloc();
-          }
-          return static_cast<T*>(ptr);
-      }
-
-      void deallocate(T* ptr, std::size_t n) noexcept {
-          std::free(ptr);
-      }
-
-      template <typename U>
-      struct rebind {
-          using other = aligned_allocator<U, Alignment>;
-      };
-  };
-
   template<class T, class OrderingPolicy>
   class SparseMatrixBuilder;
 
