@@ -40,6 +40,11 @@ namespace micm
       void deallocate(T* p, std::size_t) noexcept {
           free(p);
       }
+
+      template <typename U>
+      struct rebind {
+          using other = AlignedAllocator<U, Alignment>;
+      };
   };
 
   template <typename T, std::size_t Alignment>
