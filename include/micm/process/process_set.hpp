@@ -287,7 +287,7 @@ namespace micm
       const std::size_t offset_rc = i_group * rate_constants.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_forcing = i_group * forcing.GroupSize();
-      std::vector<double> rate(L, 0);
+      std::vector<double, allocator_type> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
