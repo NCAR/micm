@@ -60,12 +60,12 @@ namespace micm
   class ProcessSet
   {
    protected:
-    std::vector<std::size_t> number_of_reactants_;
-    std::vector<std::size_t> reactant_ids_;
-    std::vector<std::size_t> number_of_products_;
-    std::vector<std::size_t> product_ids_;
-    std::vector<double> yields_;
-    std::vector<std::size_t> jacobian_flat_ids_;
+    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> number_of_reactants_;
+    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> reactant_ids_;
+    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> number_of_products_;
+    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> product_ids_;
+    std::vector<double, micm::AlignedAllocator<double, 64>> yields_;
+    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> jacobian_flat_ids_;
 
    public:
     /// @brief Default constructor
