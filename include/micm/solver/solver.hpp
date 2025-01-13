@@ -60,16 +60,16 @@ namespace micm
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      auto result = solver_.Solve(time_step, state);
+      auto result = solver_.Solve(time_step, state, solver_parameters_);
       state.variables_.Max(0.0);
       return result;
     }
 
     // Overloaded Solve function to change parameters
-    SolverResult Solve(double time_step, StatePolicy& state, SolverParametersType& params)
+    SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
     {
-      solver_.parameters_ = params;
-      return solver_.Solve(time_step, state);
+      solver_parameters_ = params;
+      return solver_.Solve(time_step, state, params);
     }
 
     /// @brief Returns the number of grid cells

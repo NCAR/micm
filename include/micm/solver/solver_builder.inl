@@ -423,11 +423,10 @@ namespace micm
                                          .custom_rate_parameter_labels_ = labels,
                                          .nonzero_jacobian_elements_ = nonzero_elements };
                                          
-
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian, number_of_species),
+        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
         state_parameters,
         options,
         this->reactions_);

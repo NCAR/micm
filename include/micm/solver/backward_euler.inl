@@ -43,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state, const BackwardEulerSolverParameters& parameters) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -59,10 +59,10 @@ namespace micm
 
     SolverResult result;
 
-    std::size_t max_iter = parameters_.max_number_of_steps_;
-    const auto time_step_reductions = parameters_.time_step_reductions_;
+    std::size_t max_iter = parameters.max_number_of_steps_;
+    const auto time_step_reductions = parameters.time_step_reductions_;
 
-    double H = parameters_.h_start_ == 0.0 ? time_step : parameters_.h_start_;
+    double H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
     double t = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
@@ -148,7 +148,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
+        converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
       } while (!converged && iterations < max_iter);
 
       if (!converged)

@@ -144,6 +144,8 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
                         .Build();
   auto state = solver.GetState();
   auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  state.variables_[0] = { 1.0, 0.0, 0.0 };
+
   auto solve = solver.Solve(5, state, options);
 
   ASSERT_EQ(solve.final_time_, 5);
@@ -155,6 +157,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   options.h_min_ = 15.0;
   options.max_number_of_steps_ = 6.0;
 
+  state.variables_[0] = { 1.0, 0.0, 0.0 };
   solve = solver.Solve(5, state, options);
 
   ASSERT_EQ(solve.final_time_, 5);
