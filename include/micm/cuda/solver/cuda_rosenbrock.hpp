@@ -65,13 +65,11 @@ namespace micm
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
     CudaRosenbrockSolver(
-        RosenbrockSolverParameters parameters,
         LinearSolverPolicy&& linear_solver,
         RatesPolicy&& rates,
         auto& jacobian,
         const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, CudaRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              parameters,
               std::move(linear_solver),
               std::move(rates),
               jacobian,
