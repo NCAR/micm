@@ -137,16 +137,16 @@ TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
 
 TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
 {
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                         .SetSystem(the_system)
                         .SetReactions(reactions)
                         .SetNumberOfGridCells(1)
                         .Build();
   auto state = solver.GetState();
-  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   state.variables_[0] = { 1.0, 0.0, 0.0 };
 
-  auto solve = solver.Solve(5, state, options);
+  auto solve = solver.Solve(5, state);
 
   ASSERT_EQ(solve.final_time_, 5);
   ASSERT_EQ(solve.stats_.function_calls_, 20);
@@ -165,4 +165,7 @@ TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
   ASSERT_EQ(solve.stats_.jacobian_updates_, 1);
   ASSERT_EQ(solve.stats_.number_of_steps_, 1);
   ASSERT_EQ(solve.stats_.solves_, 3);
+
+  ASSERT_EQ(solver.solver_parameters_.h_min_, 15.0);
+  ASSERT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
 }

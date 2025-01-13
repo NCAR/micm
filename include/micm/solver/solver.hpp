@@ -21,11 +21,11 @@ namespace micm
     using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
 
     StateParameters state_parameters_;
-    SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
 
    public:
     SolverPolicy solver_;
+    SolverParametersType solver_parameters_;
 
     Solver(
         SolverPolicy&& solver,
