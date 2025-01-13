@@ -1547,7 +1547,7 @@ void test_analytical_oregonator(
 
   auto state = solver.GetState();
 
-  state.SetRelativeTolerance(1e-8);
+  state.SetRelativeTolerance(1e-6);
   state.SetAbsoluteTolerances(std::vector<double>(5, state.relative_tolerance_ * 1e-6));
 
   state.SetCustomRateParameter("r1", 1.34 * 0.06);
