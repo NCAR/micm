@@ -294,7 +294,11 @@ namespace micm
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
+          {
+            std::size_t index = offset_state + react_id[i_react] * L + i_cell;
+            assert(index % alignof(double) == 0);
+            rate[i_cell] *= v_state_variables[index];
+          }
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             v_forcing[offset_forcing + react_id[i_react] * L + i_cell] -= rate[i_cell];
