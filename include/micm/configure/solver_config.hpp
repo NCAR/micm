@@ -970,7 +970,7 @@ namespace micm
     SolverParameters GetSolverParams()
     {
       return SolverParameters(
-          std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_), std::move(this->relative_tolerance_));
+          std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_), this->relative_tolerance_);
     }
   };
 }  // namespace micm
