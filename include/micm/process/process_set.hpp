@@ -296,6 +296,10 @@ namespace micm
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          #pragma vector nontemporal
+          #pragma vector aligned
+          #pragma vector always
+          #pragma vector vectorlength(8)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           {
             std::size_t index = offset_state + react_id[i_react] * L + i_cell;
