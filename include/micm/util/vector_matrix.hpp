@@ -73,7 +73,7 @@ namespace micm
     using value_type = T;
 
     template <typename U, std::size_t Alignment>
-    using AlignedAlloc = std::allocator_traits<std::allocator<U>>::rebind_alloc<U>;
+    using AlignedAlloc = typename std::allocator_traits<std::allocator<U>>::template rebind_alloc<U>;
     using allocator_type = AlignedAlloc<T, 32>;
 
    private:
