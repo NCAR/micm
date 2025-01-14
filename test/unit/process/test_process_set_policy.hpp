@@ -44,7 +44,12 @@ void testProcessSet()
 
   micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
-  auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
+  micm::Process r4 = micm::Process::Create()
+                         .SetReactants({ baz, qux })
+                         .SetProducts({ Yields(bar, 1), Yields(quz, 2.5)})
+                         .SetPhase(gas_phase);
+
+  auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -55,37 +60,41 @@ void testProcessSet()
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
 
-  RatesPolicy set = RatesPolicy(std::vector<micm::Process>{ r1, r2, r3 }, state.variable_map_);
+  RatesPolicy set = RatesPolicy(std::vector<micm::Process>{ r1, r2, r3, r4 }, state.variable_map_);
 
   EXPECT_EQ(state.variables_.NumRows(), 2);
   EXPECT_EQ(state.variables_.NumColumns(), 6);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
-  DenseMatrixPolicy rate_constants{ 2, 3 };
-  rate_constants[0] = { 10.0, 20.0, 30.0 };
-  rate_constants[1] = { 110.0, 120.0, 130.0 };
+  state.conditions_[0].air_density_ = 70.0;
+  state.conditions_[1].air_density_ = 80.0;
+  DenseMatrixPolicy rate_constants{ 2, 4 };
+  // the rate constants will have been calculated and combined with
+  // parameterized species before calculating forcing terms
+  rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72};
+  rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72};
 
   DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
   set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
-  EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
-  EXPECT_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
-  EXPECT_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
-  EXPECT_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2);
-  EXPECT_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3);
-  EXPECT_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3);
-  EXPECT_EQ(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4);
-  EXPECT_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4);
-  EXPECT_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
-  EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2); // foo
+  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
+  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3); // bar
+  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3); // baz
+  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_DOUBLE_EQ(forcing[0][3], 1000.0 + 20.0 * 70.0 * 0.72 * 0.2 * 1.4 - 30.0 * 0.4 + 40.0 * 70.0 * 0.72 * 2.5 * 0.3); // quz
+  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
+  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4); // quuz
+  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
   // bar   3    4    5    -    -
   // baz   6    -    7    -    -
-  // quz   -    8    -    9    -
-  // quuz 10    -   11    -    -
+  // quz   -    8    9   10    -
+  // quuz 11    -   12    -    -
 
   auto elem = non_zero_elements.begin();
   compare_pair(*elem, index_pair(0, 0));
@@ -97,6 +106,7 @@ void testProcessSet()
   compare_pair(*(++elem), index_pair(2, 0));
   compare_pair(*(++elem), index_pair(2, 2));
   compare_pair(*(++elem), index_pair(3, 1));
+  compare_pair(*(++elem), index_pair(3, 2));
   compare_pair(*(++elem), index_pair(3, 3));
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
@@ -109,22 +119,24 @@ void testProcessSet()
   set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0);  // foo -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0);
+  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
   EXPECT_DOUBLE_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
   EXPECT_DOUBLE_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0);  // bar -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1);  // bar -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1);
+  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1);  // baz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0);  // quz -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0);
+  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
   EXPECT_DOUBLE_EQ(jacobian[1][3][3], 100.0 + 130.0);
   EXPECT_DOUBLE_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
