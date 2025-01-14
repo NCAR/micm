@@ -90,7 +90,7 @@ namespace micm
     {
       return state_parameters_.number_of_rate_constants_;
     }
-    
+
     StatePolicy GetState() const
     {
       auto state = std::move(StatePolicy(state_parameters_));

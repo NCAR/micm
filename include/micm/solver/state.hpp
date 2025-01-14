@@ -32,7 +32,7 @@ namespace micm
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
     double relative_tolerance_{ 1e-06 };
-    std::vector<double> absolute_tolerance_ {};
+    std::vector<double> absolute_tolerance_{};
   };
 
   template<
@@ -68,7 +68,7 @@ namespace micm
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
 
-    public:
+   public:
     /// @brief Default constructor
     /// Only defined to be used to create default values in types, but a default constructed state is not useable
     State();

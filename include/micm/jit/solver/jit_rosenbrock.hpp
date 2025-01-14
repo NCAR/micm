@@ -68,15 +68,12 @@ namespace micm
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
-    JitRosenbrockSolver(
-        LinearSolverPolicy linear_solver,
-        RatesPolicy rates,
-        auto& jacobian,
-        const size_t number_of_species)
+    JitRosenbrockSolver(LinearSolverPolicy linear_solver, RatesPolicy rates, auto& jacobian, const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
-              jacobian, number_of_species)
+              jacobian,
+              number_of_species)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

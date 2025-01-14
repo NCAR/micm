@@ -34,7 +34,9 @@ namespace micm
       absolute_tolerance_param_.number_of_elements_ = atol.size();
       absolute_tolerance_param_.number_of_grid_cells_ = 1;
 
-      CHECK_CUDA_ERROR(micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_), "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          micm::cuda::MallocVector<double>(absolute_tolerance_param_, absolute_tolerance_param_.number_of_elements_),
+          "cudaMalloc");
       CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, atol), "cudaMemcpyHostToDevice");
     };
 
@@ -61,7 +63,8 @@ namespace micm
     void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance) override
     {
       State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>::SetAbsoluteTolerances(absoluteTolerance);
-      CHECK_CUDA_ERROR(micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
+      CHECK_CUDA_ERROR(
+          micm::cuda::CopyToDevice<double>(absolute_tolerance_param_, absoluteTolerance), "cudaMemcpyHostToDevice");
     }
 
     /// @brief Copy input variables to the device

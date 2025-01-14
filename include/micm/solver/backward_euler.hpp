@@ -43,11 +43,7 @@ namespace micm
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
-    BackwardEuler(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+    BackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates)),
           jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
@@ -74,14 +70,20 @@ namespace micm
     /// @return true if the residual is small enough to stop the iteration
     template<class DenseMatrixPolicy>
     static bool IsConverged(
-      const BackwardEulerSolverParameters& parameters,
-      const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>);
+        const BackwardEulerSolverParameters& parameters,
+        const DenseMatrixPolicy& residual,
+        const DenseMatrixPolicy& Yn1,
+        const std::vector<double>& absolute_tolerance,
+        double relative_tolerance)
+      requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
     static bool IsConverged(
-      const BackwardEulerSolverParameters& parameters,
-      const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>);
+        const BackwardEulerSolverParameters& parameters,
+        const DenseMatrixPolicy& residual,
+        const DenseMatrixPolicy& Yn1,
+        const std::vector<double>& absolute_tolerance,
+        double relative_tolerance)
+      requires(VectorizableDense<DenseMatrixPolicy>);
   };
 
 }  // namespace micm

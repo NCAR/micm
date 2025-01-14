@@ -112,11 +112,19 @@ namespace micm
     /// @param errors The computed errors
     /// @return
     template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors, auto& state) const
-        requires(!VectorizableDense<DenseMatrixPolicy>);
+    double NormalizedError(
+        const DenseMatrixPolicy& y,
+        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& errors,
+        auto& state) const
+      requires(!VectorizableDense<DenseMatrixPolicy>);
     template<class DenseMatrixPolicy>
-    double NormalizedError(const DenseMatrixPolicy& y, const DenseMatrixPolicy& y_new, const DenseMatrixPolicy& errors, auto& state) const
-        requires(VectorizableDense<DenseMatrixPolicy>);
+    double NormalizedError(
+        const DenseMatrixPolicy& y,
+        const DenseMatrixPolicy& y_new,
+        const DenseMatrixPolicy& errors,
+        auto& state) const
+      requires(VectorizableDense<DenseMatrixPolicy>);
   };  // end of Abstract Rosenbrock Solver
 
   template<class RatesPolicy, class LinearSolverPolicy>
@@ -130,11 +138,7 @@ namespace micm
     /// @param jacobian Jacobian matrix
     ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
-    RosenbrockSolver(
-        LinearSolverPolicy&& linear_solver,
-        RatesPolicy&& rates,
-        auto& jacobian,
-        const size_t number_of_species)
+    RosenbrockSolver(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, RosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
               std::move(linear_solver),
               std::move(rates),
