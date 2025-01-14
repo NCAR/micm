@@ -6,7 +6,8 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
       double time_step,
-      auto& state, const RosenbrockSolverParameters& parameters) const noexcept
+      auto& state,
+      const RosenbrockSolverParameters& parameters) const noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
@@ -248,8 +249,9 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors, 
-      auto& state) const requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors,
+      auto& state) const
+    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -271,8 +273,7 @@ namespace micm
     for (std::size_t i = 0; i < N; ++i)
     {
       ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
-      errors_over_scale =
-          _errors[i] / (atol[i % n_vars] + rtol * ymax);
+      errors_over_scale = _errors[i] / (atol[i % n_vars] + rtol * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
@@ -286,8 +287,9 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors, 
-      auto& state) const requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors,
+      auto& state) const
+    requires(VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -310,9 +312,7 @@ namespace micm
     // compute the error over the blocks which fit exactly into the L parameter
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
-      errors_over_scale =
-          *errors_iter / (atol[(i / L) % n_vars] +
-                          rtol * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
+      errors_over_scale = *errors_iter / (atol[(i / L) % n_vars] + rtol * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
       ++y_iter;
       ++ynew_iter;
@@ -329,9 +329,8 @@ namespace micm
         for (std::size_t x = 0; x < remaining_rows; ++x)
         {
           const std::size_t idx = y * L + x;
-          errors_over_scale = errors_iter[idx] /
-                              (atol[y] +
-                               rtol * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
+          errors_over_scale =
+              errors_iter[idx] / (atol[y] + rtol * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
         }
       }

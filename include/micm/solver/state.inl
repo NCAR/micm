@@ -252,14 +252,16 @@ namespace micm
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
-  
+
   template<
       class DenseMatrixPolicy,
       class SparseMatrixPolicy,
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(double relativeTolerance)
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(
+      double relativeTolerance)
   {
     this->relative_tolerance_ = relativeTolerance;
   }
@@ -270,7 +272,9 @@ namespace micm
       class LuDecompositionPolicy,
       class LMatrixPolicy,
       class UMatrixPolicy>
-  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance)
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(
+      const std::vector<double>& absoluteTolerance)
   {
     this->absolute_tolerance_ = absoluteTolerance;
   }

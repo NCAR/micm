@@ -102,7 +102,7 @@ namespace micm
     System system_;
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
-    double relative_tolerance_;    
+    double relative_tolerance_;
 
     SolverParameters(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters&& parameters)
         : system_(system),
@@ -119,10 +119,14 @@ namespace micm
           relative_tolerance_(0)
     {
     }
-    SolverParameters(System&& system, std::vector<Process>&& processes, RosenbrockSolverParameters&& parameters, double relative_tolerance)
+    SolverParameters(
+        System&& system,
+        std::vector<Process>&& processes,
+        RosenbrockSolverParameters&& parameters,
+        double relative_tolerance)
         : system_(system),
           processes_(processes),
-          parameters_(parameters), 
+          parameters_(parameters),
           relative_tolerance_(relative_tolerance)
     {
     }
@@ -284,7 +288,7 @@ namespace micm
       processes_.clear();
 
       // Parse species object array
-      ParseSpeciesArray(species_objects);     
+      ParseSpeciesArray(species_objects);
 
       // Assign the parsed 'Species' to 'Phase'
       std::vector<Species> species_arr;
@@ -970,7 +974,10 @@ namespace micm
     SolverParameters GetSolverParams()
     {
       return SolverParameters(
-          std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_), this->relative_tolerance_);
+          std::move(System(this->gas_phase_, this->phases_)),
+          std::move(this->processes_),
+          std::move(this->parameters_),
+          this->relative_tolerance_);
     }
   };
 }  // namespace micm

@@ -323,7 +323,13 @@ namespace micm
             BLOCK_SIZE,
             BLOCK_SIZE * sizeof(double),
             micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_elements, is_first_call);
+            y_old_param,
+            y_new_param,
+            absolute_tolerance_param,
+            relative_tolerance,
+            devstruct,
+            number_of_elements,
+            is_first_call);
         is_first_call = false;
         while (number_of_blocks > 1)
         {
@@ -337,7 +343,13 @@ namespace micm
                 BLOCK_SIZE,
                 BLOCK_SIZE * sizeof(double),
                 micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-                y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_blocks, is_first_call);
+                y_old_param,
+                y_new_param,
+                absolute_tolerance_param,
+                relative_tolerance,
+                devstruct,
+                number_of_blocks,
+                is_first_call);
             break;
           }
           NormalizedErrorKernel<<<
@@ -345,7 +357,13 @@ namespace micm
               BLOCK_SIZE,
               BLOCK_SIZE * sizeof(double),
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-              y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct, number_of_blocks, is_first_call);
+              y_old_param,
+              y_new_param,
+              absolute_tolerance_param,
+              relative_tolerance,
+              devstruct,
+              number_of_blocks,
+              is_first_call);
           number_of_blocks = new_number_of_blocks;
         }
 

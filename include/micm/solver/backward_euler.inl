@@ -43,7 +43,10 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state, const BackwardEulerSolverParameters& parameters) const
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+      double time_step,
+      auto& state,
+      const BackwardEulerSolverParameters& parameters) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -195,7 +198,10 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1,
+      const std::vector<double>& absolute_tolerance,
+      double relative_tolerance)
+    requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;
@@ -221,7 +227,10 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& Yn1, const std::vector<double>& absolute_tolerance, double relative_tolerance) requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& Yn1,
+      const std::vector<double>& absolute_tolerance,
+      double relative_tolerance)
+    requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
     double rel_tol = relative_tolerance;

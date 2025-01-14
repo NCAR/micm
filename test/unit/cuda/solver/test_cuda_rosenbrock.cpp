@@ -121,7 +121,7 @@ void testNormalizedErrorConst()
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
   auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto state = gpu_solver.GetState();  
+  auto state = gpu_solver.GetState();
   auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;
 

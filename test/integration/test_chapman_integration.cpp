@@ -32,16 +32,16 @@ TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
   // Get solver parameters ('System', the collection of 'Process')
   micm::SolverParameters solver_params = solverConfig.GetSolverParams();
 
-  auto options = solver_params.parameters_;   
+  auto options = solver_params.parameters_;
 
   auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
                     .SetSystem(solver_params.system_)
                     .SetReactions(solver_params.processes_)
-                    .SetIgnoreUnusedSpecies(true)                    
-                    .Build(); 
+                    .SetIgnoreUnusedSpecies(true)
+                    .Build();
 
   micm::State state = solver.GetState();
-  state.SetRelativeTolerance(solver_params.relative_tolerance_); 
+  state.SetRelativeTolerance(solver_params.relative_tolerance_);
   EXPECT_EQ(state.relative_tolerance_, 1.0e-4);
   auto& abs_tol = state.absolute_tolerance_;
 

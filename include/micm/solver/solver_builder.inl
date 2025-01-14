@@ -337,7 +337,7 @@ namespace micm
         }
       }
     }
-  }  
+  }
 
   template<
       class SolverParametersPolicy,
@@ -404,7 +404,7 @@ namespace micm
     }
 
     this->UnusedSpeciesCheck();
-    
+
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
@@ -422,7 +422,7 @@ namespace micm
                                          .variable_names_ = variable_names,
                                          .custom_rate_parameter_labels_ = labels,
                                          .nonzero_jacobian_elements_ = nonzero_elements };
-                                         
+
     this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
 
     return Solver<SolverPolicy, StatePolicy>(
