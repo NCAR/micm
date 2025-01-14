@@ -60,12 +60,12 @@ namespace micm
   class ProcessSet
   {
    protected:
-    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> number_of_reactants_;
-    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> reactant_ids_;
-    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> number_of_products_;
-    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> product_ids_;
-    std::vector<double, micm::AlignedAllocator<double, 64>> yields_;
-    std::vector<std::size_t, micm::AlignedAllocator<size_t, 64>> jacobian_flat_ids_;
+    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> number_of_reactants_;
+    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> reactant_ids_;
+    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> number_of_products_;
+    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> product_ids_;
+    std::vector<double, typename micm::VectorMatrix::AlignedAlloc<double, 32>> yields_;
+    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> jacobian_flat_ids_;
 
    public:
     /// @brief Default constructor

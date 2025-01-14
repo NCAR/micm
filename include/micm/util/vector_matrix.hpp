@@ -71,7 +71,10 @@ namespace micm
     // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
-    using allocator_type = AlignedAllocator<T, 64>;
+
+    template <typename T, std::size_t Alignment>
+    using AlignedAlloc = std::allocator_traits<std::allocator<T>>::rebind_alloc<T>;
+    using allocator_type = AlignedAlloc<T, 32>;
 
    private:
    protected:
