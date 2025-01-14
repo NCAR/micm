@@ -107,14 +107,16 @@ namespace micm
     SolverParameters(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters&& parameters)
         : system_(system),
           processes_(processes),
-          parameters_(parameters)
+          parameters_(parameters),
+          relative_tolerance_(0)
     {
     }
 
     SolverParameters(System&& system, std::vector<Process>&& processes, RosenbrockSolverParameters&& parameters)
         : system_(system),
           processes_(processes),
-          parameters_(parameters)
+          parameters_(parameters),
+          relative_tolerance_(0)
     {
     }
     SolverParameters(System&& system, std::vector<Process>&& processes, RosenbrockSolverParameters&& parameters, double relative_tolerance)
