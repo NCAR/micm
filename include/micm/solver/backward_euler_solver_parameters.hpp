@@ -19,8 +19,6 @@ namespace micm
     template<class RatesPolicy, class LinearSolverPolicy>
     using SolverType = BackwardEuler<RatesPolicy, LinearSolverPolicy>;
 
-    std::vector<double> absolute_tolerance_;
-    double relative_tolerance_{ 1.0e-8 };
     double small_{ 1.0e-40 };
     double h_start_{ 0.0 };
     size_t max_number_of_steps_{ 11 };

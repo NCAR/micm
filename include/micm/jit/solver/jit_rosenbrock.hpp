@@ -65,20 +65,18 @@ namespace micm
     }
 
     /// @brief Builds a Rosenbrock solver for the given system and solver parameters
-    /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
     JitRosenbrockSolver(
-        RosenbrockSolverParameters parameters,
         LinearSolverPolicy linear_solver,
         RatesPolicy rates,
-        auto& jacobian)
+        auto& jacobian,
+        const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian, number_of_species)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

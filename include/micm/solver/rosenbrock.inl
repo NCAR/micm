@@ -6,7 +6,7 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline SolverResult AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::Solve(
       double time_step,
-      auto& state) const noexcept
+      auto& state, const RosenbrockSolverParameters& parameters) const noexcept
   {
     MICM_PROFILE_FUNCTION();
     using MatrixPolicy = decltype(state.variables_);
@@ -20,16 +20,16 @@ namespace micm
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     auto& K = derived_class_temporary_variables->K_;
     auto& Yerror = derived_class_temporary_variables->Yerror_;
-    const double h_max = parameters_.h_max_ == 0.0 ? time_step : std::min(time_step, parameters_.h_max_);
+    const double h_max = parameters.h_max_ == 0.0 ? time_step : std::min(time_step, parameters.h_max_);
     const double h_start =
-        parameters_.h_start_ == 0.0 ? std::max(parameters_.h_min_, DELTA_MIN) : std::min(h_max, parameters_.h_start_);
+        parameters.h_start_ == 0.0 ? std::max(parameters.h_min_, DELTA_MIN) : std::min(h_max, parameters.h_start_);
 
     SolverStats stats;
 
     double present_time = 0.0;
-    double H = std::min(std::max(std::abs(parameters_.h_min_), std::abs(h_start)), std::abs(h_max));
+    double H = std::min(std::max(std::abs(parameters.h_min_), std::abs(h_start)), std::abs(h_max));
 
-    if (std::abs(H) <= 10 * parameters_.round_off_)
+    if (std::abs(H) <= 10 * parameters.round_off_)
       H = DELTA_MIN;
 
     // TODO: the logic above this point should be moved to the constructor and should return an error
@@ -38,15 +38,15 @@ namespace micm
     bool reject_last_h = false;
     bool reject_more_h = false;
 
-    while ((present_time - time_step + parameters_.round_off_) <= 0 && (result.state_ == SolverState::Running))
+    while ((present_time - time_step + parameters.round_off_) <= 0 && (result.state_ == SolverState::Running))
     {
-      if (stats.number_of_steps_ > parameters_.max_number_of_steps_)
+      if (stats.number_of_steps_ > parameters.max_number_of_steps_)
       {
         result.state_ = SolverState::ConvergenceExceededMaxSteps;
         break;
       }
 
-      if (((present_time + 0.1 * H) == present_time) || (H <= parameters_.round_off_))
+      if (((present_time + 0.1 * H) == present_time) || (H <= parameters.round_off_))
       {
         result.state_ = SolverState::StepSizeTooSmall;
         break;
@@ -72,14 +72,14 @@ namespace micm
       {
         // Compute alpha accounting for the last alpha value
         // This is necessary to avoid the need to re-factor the jacobian
-        double alpha = 1.0 / (H * parameters_.gamma_[0]) - last_alpha;
+        double alpha = 1.0 / (H * parameters.gamma_[0]) - last_alpha;
 
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(alpha, Y, stats, state);
         last_alpha = alpha;
 
         // Compute the stages
-        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
+        for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
@@ -88,25 +88,25 @@ namespace micm
           }
           else
           {
-            if (parameters_.new_function_evaluation_[stage])
+            if (parameters.new_function_evaluation_[stage])
             {
               Ynew.Copy(Y);
               for (uint64_t j = 0; j < stage; ++j)
               {
-                Ynew.Axpy(parameters_.a_[stage_combinations + j], K[j]);
+                Ynew.Axpy(parameters.a_[stage_combinations + j], K[j]);
               }
               K[stage].Fill(0);
               rates_.AddForcingTerms(state.rate_constants_, Ynew, K[stage]);
               stats.function_calls_ += 1;
             }
           }
-          if (stage + 1 < parameters_.stages_ && !parameters_.new_function_evaluation_[stage + 1])
+          if (stage + 1 < parameters.stages_ && !parameters.new_function_evaluation_[stage + 1])
           {
             K[stage + 1].Copy(K[stage]);
           }
           for (uint64_t j = 0; j < stage; ++j)
           {
-            K[stage].Axpy(parameters_.c_[stage_combinations + j] / H, K[j]);
+            K[stage].Axpy(parameters.c_[stage_combinations + j] / H, K[j]);
           }
           linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
           stats.solves_ += 1;
@@ -114,22 +114,22 @@ namespace micm
 
         // Compute the new solution
         Ynew.Copy(Y);
-        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Ynew.Axpy(parameters_.m_[stage], K[stage]);
+        for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+          Ynew.Axpy(parameters.m_[stage], K[stage]);
 
         Yerror.Fill(0);
-        for (uint64_t stage = 0; stage < parameters_.stages_; ++stage)
-          Yerror.Axpy(parameters_.e_[stage], K[stage]);
+        for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
+          Yerror.Axpy(parameters.e_[stage], K[stage]);
 
         // Compute the normalized error
-        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror);
+        auto error = static_cast<const Derived*>(this)->NormalizedError(Y, Ynew, Yerror, state);
 
         // New step size is bounded by FacMin <= Hnew/H <= FacMax
         double fac = std::min(
-            parameters_.factor_max_,
+            parameters.factor_max_,
             std::max(
-                parameters_.factor_min_,
-                parameters_.safety_factor_ / std::pow(error, 1 / parameters_.estimator_of_local_order_)));
+                parameters.factor_min_,
+                parameters.safety_factor_ / std::pow(error, 1 / parameters.estimator_of_local_order_)));
         double Hnew = H * fac;
 
         stats.number_of_steps_ += 1;
@@ -147,12 +147,12 @@ namespace micm
           result.state_ = SolverState::InfDetected;
           break;
         }
-        else if ((error < 1) || (H < parameters_.h_min_))
+        else if ((error < 1) || (H < parameters.h_min_))
         {
           stats.accepted_ += 1;
           present_time = present_time + H;
           Y.Copy(Ynew);
-          Hnew = std::max(parameters_.h_min_, std::min(Hnew, h_max));
+          Hnew = std::max(parameters.h_min_, std::min(Hnew, h_max));
           if (reject_last_h)
           {
             // No step size increase after a rejected step
@@ -168,7 +168,7 @@ namespace micm
           // Reject step
           if (reject_more_h)
           {
-            Hnew = H * parameters_.rejection_factor_decrease_;
+            Hnew = H * parameters.rejection_factor_decrease_;
           }
           reject_more_h = reject_last_h;
           reject_last_h = true;
@@ -248,8 +248,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const
-    requires(!VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors, 
+      auto& state) const requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -259,8 +259,10 @@ namespace micm
     auto& _y = Y.AsVector();
     auto& _ynew = Ynew.AsVector();
     auto& _errors = errors.AsVector();
+    const auto& atol = state.absolute_tolerance_;
+    const auto& rtol = state.relative_tolerance_;
     const std::size_t N = Y.AsVector().size();
-    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
+    const std::size_t n_vars = atol.size();
 
     double ymax = 0;
     double errors_over_scale = 0;
@@ -270,7 +272,7 @@ namespace micm
     {
       ymax = std::max(std::abs(_y[i]), std::abs(_ynew[i]));
       errors_over_scale =
-          _errors[i] / (parameters_.absolute_tolerance_[i % n_vars] + parameters_.relative_tolerance_ * ymax);
+          _errors[i] / (atol[i % n_vars] + rtol * ymax);
       error += errors_over_scale * errors_over_scale;
     }
 
@@ -284,8 +286,8 @@ namespace micm
   inline double AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::NormalizedError(
       const DenseMatrixPolicy& Y,
       const DenseMatrixPolicy& Ynew,
-      const DenseMatrixPolicy& errors) const
-    requires(VectorizableDense<DenseMatrixPolicy>)
+      const DenseMatrixPolicy& errors, 
+      auto& state) const requires(VectorizableDense<DenseMatrixPolicy>)
   {
     // Solving Ordinary Differential Equations II, page 123
     // https://link-springer-com.cuucar.idm.oclc.org/book/10.1007/978-3-642-05221-7
@@ -295,11 +297,12 @@ namespace micm
     auto y_iter = Y.AsVector().begin();
     auto ynew_iter = Ynew.AsVector().begin();
     auto errors_iter = errors.AsVector().begin();
+    const auto& atol = state.absolute_tolerance_;
+    auto rtol = state.relative_tolerance_;
     const std::size_t N = Y.NumRows() * Y.NumColumns();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
-    const std::size_t n_vars = parameters_.absolute_tolerance_.size();
-
     const std::size_t whole_blocks = std::floor(Y.NumRows() / Y.GroupVectorSize()) * Y.GroupSize();
+    const std::size_t n_vars = atol.size();
 
     double errors_over_scale = 0;
     double error = 0;
@@ -308,8 +311,8 @@ namespace micm
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
       errors_over_scale =
-          *errors_iter / (parameters_.absolute_tolerance_[(i / L) % n_vars] +
-                          parameters_.relative_tolerance_ * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
+          *errors_iter / (atol[(i / L) % n_vars] +
+                          rtol * std::max(std::abs(*y_iter), std::abs(*ynew_iter)));
       error += errors_over_scale * errors_over_scale;
       ++y_iter;
       ++ynew_iter;
@@ -327,8 +330,8 @@ namespace micm
         {
           const std::size_t idx = y * L + x;
           errors_over_scale = errors_iter[idx] /
-                              (parameters_.absolute_tolerance_[y] +
-                               parameters_.relative_tolerance_ * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
+                              (atol[y] +
+                               rtol * std::max(std::abs(y_iter[idx]), std::abs(ynew_iter[idx])));
           error += errors_over_scale * errors_over_scale;
         }
       }

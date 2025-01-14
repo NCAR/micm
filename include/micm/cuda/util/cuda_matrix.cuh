@@ -41,7 +41,7 @@ namespace micm
     /// @param h_data Host data to copy from
     /// @returns Error code from copying to device from the host, if any
     template<typename T>
-    cudaError_t CopyToDevice(CudaMatrixParam& vectorMatrix, std::vector<T>& h_data);
+    cudaError_t CopyToDevice(CudaMatrixParam& vectorMatrix, const std::vector<T>& h_data);
 
     /// @brief Copies data from the device to the host
     /// @param vectorMatrix Struct containing allocated device memory

@@ -106,25 +106,66 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .Build();
 }
 
-TEST(SolverBuilder, MismatchedToleranceSizeIsCaught)
+TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)
 {
-  auto params = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  // too many
-  params.absolute_tolerance_ = { 1e-6, 1e-6, 1e-6, 1e-6, 1e-6 };
-  EXPECT_ANY_THROW(micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
-                       .SetSystem(the_system)
-                       .SetReactions(reactions)
-                       .SetNumberOfGridCells(1)
-                       .Build(););
+  auto solver = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters{})
+                            .SetSystem(the_system)
+                            .SetReactions(reactions)
+                            .SetNumberOfGridCells(1)
+                            .Build();
+  auto state = solver.GetState();
+  auto options = micm::BackwardEulerSolverParameters();
+  auto solve = solver.Solve(5, state, options);
 
-  constexpr std::size_t L = 4;
-  // too few
-  params.absolute_tolerance_ = { 1e-6, 1e-6 };
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 2);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 2);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 2);
+  ASSERT_EQ(solve.stats_.solves_, 2);
+  
+  options.small_ = 1.0;
+  options.max_number_of_steps_ = 1.0;
 
-  auto builder = micm::CpuSolverBuilder<
-      micm::RosenbrockSolverParameters,
-      micm::VectorMatrix<double, L>,
-      micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<L>>>(params);
+  solve = solver.Solve(5, state, options);
 
-  EXPECT_ANY_THROW(builder.SetSystem(the_system).SetReactions(reactions).SetNumberOfGridCells(1).Build(););
+  ASSERT_EQ(solve.final_time_, 0.03125);
+  ASSERT_EQ(solve.stats_.function_calls_, 6);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 6);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 6);
+  ASSERT_EQ(solve.stats_.solves_, 6);
+}
+
+TEST(SolverBuilder, CanBuildRosenbrockOverloadedSolveMethod)
+{
+  auto options = micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
+                        .SetSystem(the_system)
+                        .SetReactions(reactions)
+                        .SetNumberOfGridCells(1)
+                        .Build();
+  auto state = solver.GetState();
+  state.variables_[0] = { 1.0, 0.0, 0.0 };
+
+  auto solve = solver.Solve(5, state);
+
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 20);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 10);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 10);
+  ASSERT_EQ(solve.stats_.solves_, 30);
+  
+  options.h_min_ = 15.0;
+  options.max_number_of_steps_ = 6.0;
+
+  state.variables_[0] = { 1.0, 0.0, 0.0 };
+  solve = solver.Solve(5, state, options);
+
+  ASSERT_EQ(solve.final_time_, 5);
+  ASSERT_EQ(solve.stats_.function_calls_, 2);
+  ASSERT_EQ(solve.stats_.jacobian_updates_, 1);
+  ASSERT_EQ(solve.stats_.number_of_steps_, 1);
+  ASSERT_EQ(solve.stats_.solves_, 3);
+
+  ASSERT_EQ(solver.solver_parameters_.h_min_, 15.0);
+  ASSERT_EQ(solver.solver_parameters_.max_number_of_steps_, 6.0);
 }
