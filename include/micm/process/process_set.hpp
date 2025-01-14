@@ -59,13 +59,16 @@ namespace micm
   /// @brief Solver function calculators for a collection of processes
   class ProcessSet
   {
+   template <typename T, std::size_t Alignment>
+   using AlignedAlloc = std::allocator_traits<std::allocator<T>>::rebind_alloc<T>;
+
    protected:
-    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> number_of_reactants_;
-    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> reactant_ids_;
-    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> number_of_products_;
-    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> product_ids_;
-    std::vector<double, typename micm::VectorMatrix::AlignedAlloc<double, 32>> yields_;
-    std::vector<std::size_t, typename micm::VectorMatrix::AlignedAlloc<size_t, 32>> jacobian_flat_ids_;
+    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> number_of_reactants_;
+    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> reactant_ids_;
+    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> number_of_products_;
+    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> product_ids_;
+    std::vector<double, AlignedAlloc<double, 32>> yields_;
+    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> jacobian_flat_ids_;
 
    public:
     /// @brief Default constructor
