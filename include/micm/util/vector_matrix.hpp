@@ -72,8 +72,8 @@ namespace micm
     using IntMatrix = VectorMatrix<int, L>;
     using value_type = T;
 
-    template <typename T, std::size_t Alignment>
-    using AlignedAlloc = std::allocator_traits<std::allocator<T>>::rebind_alloc<T>;
+    template <typename U, std::size_t Alignment>
+    using AlignedAlloc = std::allocator_traits<std::allocator<U>>::rebind_alloc<U>;
     using allocator_type = AlignedAlloc<T, 32>;
 
    private:
