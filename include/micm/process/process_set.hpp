@@ -63,12 +63,12 @@ namespace micm
    using AlignedAlloc = typename std::allocator_traits<std::allocator<T>>::template rebind_alloc<T>;
 
    protected:
-    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> number_of_reactants_;
-    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> reactant_ids_;
-    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> number_of_products_;
-    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> product_ids_;
-    std::vector<double, AlignedAlloc<double, 32>> yields_;
-    std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> jacobian_flat_ids_;
+     alignas(64) std::vector<std::size_t, AlignedAlloc<std::size_t, 64>> number_of_reactants_;
+     alignas(64) std::vector<std::size_t, AlignedAlloc<std::size_t, 64>> reactant_ids_;
+     alignas(64) std::vector<std::size_t, AlignedAlloc<std::size_t, 64>> number_of_products_;
+     alignas(64) std::vector<std::size_t, AlignedAlloc<std::size_t, 64>> product_ids_;
+     alignas(64) std::vector<double, AlignedAlloc<double, 64>> yields_;
+     alignas(64) std::vector<std::size_t, AlignedAlloc<std::size_t, 64>> jacobian_flat_ids_;
 
    public:
     /// @brief Default constructor
@@ -290,7 +290,7 @@ namespace micm
       const std::size_t offset_rc = i_group * rate_constants.GroupSize();
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_forcing = i_group * forcing.GroupSize();
-      std::vector<double, typename DenseMatrixPolicy::allocator_type> rate(L, 0);
+      alignas(64) std::vector<double, typename DenseMatrixPolicy::allocator_type> rate(L, 0);
       for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
       {
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);

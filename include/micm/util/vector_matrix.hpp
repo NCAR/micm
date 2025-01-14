@@ -74,11 +74,11 @@ namespace micm
 
     template <typename U, std::size_t Alignment>
     using AlignedAlloc = typename std::allocator_traits<std::allocator<U>>::template rebind_alloc<U>;
-    using allocator_type = AlignedAlloc<T, 32>;
+    using allocator_type = AlignedAlloc<T, 64>;
 
    private:
    protected:
-    std::vector<T, allocator_type> data_;
+    alignas(64) std::vector<T, allocator_type> data_;
     std::size_t x_dim_;  // number of rows
     std::size_t y_dim_;  // number of columns
 
