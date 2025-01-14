@@ -60,7 +60,7 @@ namespace micm
   class ProcessSet
   {
    template <typename T, std::size_t Alignment>
-   using AlignedAlloc = std::allocator_traits<std::allocator<T>>::rebind_alloc<T>;
+   using AlignedAlloc = typename std::allocator_traits<std::allocator<T>>::template rebind_alloc<T>;
 
    protected:
     std::vector<std::size_t, AlignedAlloc<std::size_t, 32>> number_of_reactants_;
