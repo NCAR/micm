@@ -301,16 +301,8 @@ namespace micm
         std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
         for (std::size_t i = 0; i < max_number_of_products_reactants; ++i)
         {
-          std::size_t idx_react_forcing = -999;
-          std::size_t idx_prod_forcing = -999;
-          if (i < number_of_reactants_[i_rxn]) 
-          {
-            idx_react_forcing = offset_forcing + react_id[i] * L;
-          }
-          if (i < number_of_products_[i_rxn])
-          {
-            idx_prod_forcing = offset_forcing + prod_id[i] * L;
-          } 
+          std::size_t idx_react_forcing = (i < number_of_reactants_[i_rxn]) ? offset_forcing + react_id[i] * L : -999;
+          std::size_t idx_prod_forcing = (i < number_of_products_[i_rxn]) ? offset_forcing + prod_id[i] * L : -999;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           {
             if (idx_react_forcing != -999) v_forcing[idx_react_forcing + i_cell] -= rate[i_cell];
