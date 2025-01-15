@@ -292,15 +292,28 @@ namespace micm
       {
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
+        for (std::size_t i = 0; i < max_number_of_products_reactants; ++i)
+        {
+          std::size_t idx_state_variables = -999;
+          std::size_t idx_react_forcing = -999;
+          std::size_t idx_prod_forcing = -999;
+          if (i < number_of_reactants_[i_rxn]) 
+          {
+            idx_state_variables = offset_state + react_id[i] * L;
+            idx_react_forcing = offset_forcing + react_id[i] * L;
+          }
+          if (i < number_of_products_[i_rxn])
+          {
+            idx_prod_forcing = offset_forcing + prod_id[i] * L;
+          {
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_forcing[offset_forcing + react_id[i_react] * L + i_cell] -= rate[i_cell];
-        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
-          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_forcing[offset_forcing + prod_id[i_prod] * L + i_cell] += yield[i_prod] * rate[i_cell];
+          {
+            if (idx_state_variables != -999) rate[i_cell] *= v_state_variables[idx_state_variables + i_cell];
+            if (idx_react_forcing != -999) v_forcing[idx_react_forcing + i_cell] -= rate[i_cell];
+            if (idx_prod_forcing != -999) v_forcing[idx_prod_forcing + i_cell] += yield[i] * rate[i_cell];
+          }
+        }    
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
