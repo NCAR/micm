@@ -306,7 +306,7 @@ namespace micm
           if (i < number_of_products_[i_rxn])
           {
             idx_prod_forcing = offset_forcing + prod_id[i] * L;
-          {
+          } 
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           {
             if (idx_state_variables != -999) rate[i_cell] *= v_state_variables[idx_state_variables + i_cell];
