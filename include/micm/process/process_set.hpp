@@ -300,7 +300,7 @@ namespace micm
           std::size_t index = offset_state + react_id[i_react] * L;
           #pragma omp simd 
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            rate[i_cell] *= v_state_variables[index + icell];
+            rate[i_cell] *= v_state_variables[index + i_cell];
         }
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
