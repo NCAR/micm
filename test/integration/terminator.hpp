@@ -48,6 +48,7 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
                     .SetNumberOfGridCells(number_of_grid_cells)
                     .Build();
   auto state = solver.GetState();
+  state.SetRelativeTolerance(1.0e-8);
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   std::unordered_map<std::string, std::vector<double>> concentrations{ { "Cl2", {} }, { "Cl", {} } };
