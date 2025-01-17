@@ -412,26 +412,21 @@ namespace micm
               continue;
             }
             const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
-            auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
-            auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              *(d_rate_d_ind_it++) *= *(v_state_variables_it++);
+              d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
           }
           for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
-            auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              *(v_jacobian_it++) += *(d_rate_d_ind_it++);
+              v_jacobian_it[i_cell] += d_rate_d_ind[i_cell];
             ++flat_id;
           }
           for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
           {
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
-            auto d_rate_d_ind_it = d_rate_d_ind.begin();
-            auto yield_value = yield[i_dep];
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              *(v_jacobian_it++) -= yield_value * *(d_rate_d_ind_it++);
+              v_jacobian_it[i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
             ++flat_id;
           }
         }
