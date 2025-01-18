@@ -422,26 +422,23 @@ namespace micm
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               *(d_rate_d_ind_it++) *= *(v_state_variables_it++);
           }
-          std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
-          for (std::size_t i_dep = 0; i_dep < max_number_of_products_reactants; ++i_dep)
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
           {
-            std::size_t react_idx_jacobian = offset_jacobian + *flat_id;
-            auto v_jacobian_react_it = v_jacobian.begin() + react_idx_jacobian;
-            std::size_t prod_idx_jacobian = offset_jacobian + *(flat_id + number_of_reactants_[i_rxn]);
-            auto v_jacobian_prod_it = v_jacobian.begin() + prod_idx_jacobian;
-            bool is_react_jacobian = (i_dep < number_of_reactants_[i_rxn]); 
-            bool is_prod_jacobian = (i_dep < number_of_products_[i_rxn]);
-            auto yield_value = yield[i_dep];
+            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
             auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            {
-              if (is_react_jacobian) *(v_jacobian_react_it++) += *d_rate_d_ind_it;
-              if (is_prod_jacobian) *(v_jacobian_prod_it++) -= yield_value * *d_rate_d_ind_it;
-              ++d_rate_d_ind_it;
-            }
+              *(v_jacobian_it++) += *(d_rate_d_ind_it++);
             ++flat_id;
           }
-          flat_id = flat_id + number_of_reactants_[i_rxn] + number_of_products_[i_rxn] - max_number_of_products_reactants;
+          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+          {
+            auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
+            auto d_rate_d_ind_it = d_rate_d_ind.begin();
+            auto yield_value = yield[i_dep];
+            for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+              *(v_jacobian_it++) -= yield_value * *(d_rate_d_ind_it++);
+            ++flat_id;
+          }
         }
         react_id += number_of_reactants_[i_rxn];
         yield += number_of_products_[i_rxn];
