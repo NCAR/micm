@@ -298,7 +298,7 @@ namespace micm
           auto rate_it = rate.begin();
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            *(rate++) *= *(v_state_variables_it++);
+            *(rate_it++) *= *(v_state_variables_it++);
         }
         std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
         for (std::size_t i = 0; i < max_number_of_products_reactants; ++i)
