@@ -294,9 +294,11 @@ namespace micm
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
-          std::size_t idx_state_variables = offset_state + react_id[i_react] * L; 
+          std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
+          auto rate_it = rate.begin();
+          auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            rate[i_cell] *= v_state_variables[idx_state_variables + i_cell];
+            *(rate++) *= *(v_state_variables_it++);
         }
         std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
         for (std::size_t i = 0; i < max_number_of_products_reactants; ++i)
@@ -305,10 +307,12 @@ namespace micm
           std::size_t idx_prod_forcing = (i < number_of_products_[i_rxn]) ? offset_forcing + prod_id[i] * L : std::numeric_limits<std::size_t>::max();
           auto v_forcing_react_it = v_forcing.begin() + idx_react_forcing;
           auto v_forcing_prod_it = v_forcing.begin() + idx_prod_forcing;
+          auto yield_value = (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) ? yield[i] : 0;
+          auto rate_it = rate.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           {
-            if (idx_react_forcing != std::numeric_limits<std::size_t>::max()) v_forcing_react_it[i_cell] -= rate[i_cell];
-            if (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) v_forcing_prod_it[i_cell] += yield[i] * rate[i_cell];
+            if (idx_react_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_react_it++) -= *(rate_it++);
+            if (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_prod_it++) += yield_value * *(rate_it++);
           }
         }
         react_id += number_of_reactants_[i_rxn];
@@ -413,8 +417,9 @@ namespace micm
             }
             const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
             auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
+            auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-              d_rate_d_ind[i_cell] *= v_state_variables_it[i_cell];
+              *(d_rate_d_ind_it++) *= *(v_state_variables_it++);
           }
           std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
           for (std::size_t i_dep = 0; i_dep < max_number_of_products_reactants; ++i_dep)
@@ -425,10 +430,12 @@ namespace micm
             auto v_jacobian_prod_it = v_jacobian.begin() + prod_idx_jacobian;
             bool is_react_jacobian = (i_dep < number_of_reactants_[i_rxn]); 
             bool is_prod_jacobian = (i_dep < number_of_products_[i_rxn]);
+            auto yield_value = yield[i_dep];
+            auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             {
-              if (is_react_jacobian) v_jacobian_react_it[i_cell] += d_rate_d_ind[i_cell];
-              if (is_prod_jacobian) v_jacobian_prod_it[i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
+              if (is_react_jacobian) *(v_jacobian_react_it++) += *(d_rate_d_ind_it++);
+              if (is_prod_jacobian) *(v_jacobian_prod_it++) -= yield_value * *(d_rate_d_ind_it++);
             }
             ++flat_id;
           }
