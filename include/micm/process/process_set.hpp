@@ -311,8 +311,9 @@ namespace micm
           auto rate_it = rate.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
           {
-            if (idx_react_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_react_it++) -= *(rate_it++);
-            if (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_prod_it++) += yield_value * *(rate_it++);
+            if (idx_react_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_react_it++) -= *rate_it;
+            if (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_prod_it++) += yield_value * *rate_it;
+            ++rate_it;
           }
         }
         react_id += number_of_reactants_[i_rxn];
@@ -434,8 +435,9 @@ namespace micm
             auto d_rate_d_ind_it = d_rate_d_ind.begin();
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             {
-              if (is_react_jacobian) *(v_jacobian_react_it++) += *(d_rate_d_ind_it++);
-              if (is_prod_jacobian) *(v_jacobian_prod_it++) -= yield_value * *(d_rate_d_ind_it++);
+              if (is_react_jacobian) *(v_jacobian_react_it++) += *d_rate_d_ind_it;
+              if (is_prod_jacobian) *(v_jacobian_prod_it++) -= yield_value * *d_rate_d_ind_it;
+              ++d_rate_d_ind_it;
             }
             ++flat_id;
           }
