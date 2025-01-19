@@ -148,7 +148,7 @@ namespace micm
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-    double Aii_inverse[ALU_GroupVectorSize];
+    std::vector<double>Aii_inverse(ALU_GroupVectorSize);
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
@@ -160,12 +160,16 @@ namespace micm
       auto ajk_aji = ajk_aji_.begin();
       for (const auto& aii_nji_nki : aii_nji_nki_)
       {
+        auto Aii_inverse_it = Aii_inverse.begin();
+        auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
         for (std::size_t i = 0; i < n_cells; ++i)
-          Aii_inverse[i] = 1.0 / ALU_vector[std::get<0>(aii_nji_nki) + i];
+          *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
+          auto ALU_vector_it = ALU_vector + *aji;
+          auto Aii_inverse_it = Aii_inverse.begin();
           for (std::size_t i = 0; i < n_cells; ++i)
-            ALU_vector[*aji + i] *= Aii_inverse[i];
+            *(ALU_vector_it++) *= *(Aii_inverse_it++);
           ++aji;
         }
         for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
@@ -173,8 +177,11 @@ namespace micm
           const std::size_t aik = std::get<0>(*aik_njk);
           for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
           {
+            auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
+            auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
+            auto ALU_vector_aik_it = ALU_vector + aik;
             for (std::size_t i = 0; i < n_cells; ++i)
-              ALU_vector[ajk_aji->first + i] -= ALU_vector[ajk_aji->second + i] * ALU_vector[aik + i];
+              *(ALU_vector_first_it++) -= *(ALU_vector_second_it++) * *(ALU_vector_aik_it++);
             ++ajk_aji;
           }
           ++aik_njk;
