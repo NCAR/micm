@@ -300,21 +300,20 @@ namespace micm
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(rate_it++) *= *(v_state_variables_it++);
         }
-        std::size_t max_number_of_products_reactants = std::max(number_of_reactants_[i_rxn], number_of_products_[i_rxn]);
-        for (std::size_t i = 0; i < max_number_of_products_reactants; ++i)
+        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
         {
-          std::size_t idx_react_forcing = (i < number_of_reactants_[i_rxn]) ? offset_forcing + react_id[i] * L : std::numeric_limits<std::size_t>::max();
-          std::size_t idx_prod_forcing = (i < number_of_products_[i_rxn]) ? offset_forcing + prod_id[i] * L : std::numeric_limits<std::size_t>::max();
-          auto v_forcing_react_it = v_forcing.begin() + idx_react_forcing;
-          auto v_forcing_prod_it = v_forcing.begin() + idx_prod_forcing;
-          auto yield_value = (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) ? yield[i] : 0;
+          auto v_forcing_it = v_forcing.begin() + offset_forcing + react_id[i_react] * L;
           auto rate_it = rate.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-          {
-            if (idx_react_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_react_it++) -= *rate_it;
-            if (idx_prod_forcing != std::numeric_limits<std::size_t>::max()) *(v_forcing_prod_it++) += yield_value * *rate_it;
-            ++rate_it;
-          }
+            *(v_forcing_it++) -= *(rate_it++);
+        }
+        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+        {
+          auto v_forcing_it = v_forcing.begin() + offset_forcing + prod_id[i_prod] * L;
+          auto rate_it = rate.begin();
+          auto yield_value = yield[i_prod];
+          for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
+            *(v_forcing_it++) += yield_value * *(rate_it++);
         }
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
