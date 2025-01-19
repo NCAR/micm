@@ -288,11 +288,13 @@ namespace micm
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_forcing = i_group * forcing.GroupSize();
       std::vector<double> rate(L, 0);
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      const std::size_t number_of_reactions = number_of_reactants_.size();
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
+        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
           auto rate_it = rate.begin();
@@ -300,14 +302,15 @@ namespace micm
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(rate_it++) *= *(v_state_variables_it++);
         }
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           auto v_forcing_it = v_forcing.begin() + offset_forcing + react_id[i_react] * L;
           auto rate_it = rate.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_forcing_it++) -= *(rate_it++);
         }
-        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+        const std::size_t number_of_products = number_of_products_[i_rxn];
+        for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
         {
           auto v_forcing_it = v_forcing.begin() + offset_forcing + prod_id[i_prod] * L;
           auto rate_it = rate.begin();
@@ -402,14 +405,16 @@ namespace micm
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_jacobian = i_group * jacobian.GroupSize();
       auto flat_id = jacobian_flat_ids_.begin();
-
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      const std::size_t number_of_reactions = number_of_reactants_.size();
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
         auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
-        for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
+        const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
+        const std::size_t number_of_products = number_of_products_[i_rxn];
+        for (std::size_t i_ind = 0; i_ind < number_of_reactants; ++i_ind)
         { 
           d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-          for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+          for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
           {
             if (i_react == i_ind)
             {
@@ -421,7 +426,7 @@ namespace micm
             for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
               *(d_rate_d_ind_it++) *= *(v_state_variables_it++);
           }
-          for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
+          for (std::size_t i_dep = 0; i_dep < number_of_reactants; ++i_dep)
           {
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
             auto d_rate_d_ind_it = d_rate_d_ind.begin();
@@ -429,7 +434,7 @@ namespace micm
               *(v_jacobian_it++) += *(d_rate_d_ind_it++);
             ++flat_id;
           }
-          for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
+          for (std::size_t i_dep = 0; i_dep < number_of_products; ++i_dep)
           {
             auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
             auto d_rate_d_ind_it = d_rate_d_ind.begin();
