@@ -343,7 +343,7 @@ MatrixPolicy<double> testPrint()
   ss << matrix;
   endline << std::endl;
 
-  EXPECT_EQ(ss.str(), "0,0,0"+endline.str()+"0,3,0"+endline.str());
+  EXPECT_EQ(ss.str(), "0,0,0" + endline.str() + "0,3,0" + endline.str());
 
   return matrix;
 }

@@ -8,11 +8,11 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <ostream>
 #include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
-#include <ostream>
 
 namespace micm
 {
@@ -265,29 +265,28 @@ namespace micm
       return *this;
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const SparseMatrix &matrix)
+    friend std::ostream& operator<<(std::ostream& os, const SparseMatrix& matrix)
     {
       for (std::size_t i = 0; i < matrix.number_of_blocks_; ++i)
       {
         os << "Block " << i << std::endl;
         for (std::size_t j = 0; j < matrix.block_size_; ++j)
         {
-          for (std::size_t k = 0; k < matrix.block_size_-1; ++k)
+          for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
           {
             if (matrix.IsZero(j, k))
               os << "0,";
             else
               os << matrix[i][j][k] << ',';
           }
-          if (matrix.IsZero(j, matrix.block_size_-1))
+          if (matrix.IsZero(j, matrix.block_size_ - 1))
             os << "0" << std::endl;
           else
-            os << matrix[i][j][matrix.block_size_-1] << std::endl;
+            os << matrix[i][j][matrix.block_size_ - 1] << std::endl;
         }
       }
       return os;
     }
-
   };
 
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
@@ -336,7 +335,6 @@ namespace micm
     {
       return non_zero_elements_.size() * number_of_blocks_;
     }
-
   };
 
 }  // namespace micm
