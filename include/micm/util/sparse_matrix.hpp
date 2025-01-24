@@ -276,14 +276,14 @@ namespace micm
           for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
           {
             if (matrix.IsZero(j, k))
-              os << std::setw(12) << std::fixed << std::setprecision(6) << "0" << ',';
+              os << std::setw(12) << std::fixed << "0" << ',';
             else
-              os << std::setw(12) << std::fixed << std::setprecision(6) << matrix[i][j][k] << ',';
+              os << std::setw(12) << std::fixed << matrix[i][j][k] << ',';
           }
           if (matrix.IsZero(j, matrix.block_size_ - 1))
-            os << std::setw(12) << std::fixed << std::setprecision(6) << "0" << std::endl;
+            os << std::setw(12) << std::fixed << "0" << std::endl;
           else
-            os << std::setw(12) << std::fixed << std::setprecision(6) << matrix[i][j][matrix.block_size_ - 1] << std::endl;
+            os << std::setw(12) << std::fixed << matrix[i][j][matrix.block_size_ - 1] << std::endl;
         }
       }
       return os;
