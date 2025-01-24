@@ -495,11 +495,21 @@ MatrixPolicy<int, OrderingPolicy> testPrint()
   ss << matrix;
   endline << std::endl;
 
-  std::string expected_output = "Block 0" + endline.str() + "0,24,0,0" + endline.str() + "0,8,0,0" + endline.str() +
-                                "0,24,0,24" + endline.str() + "0,0,24,0" + endline.str() + "Block 1" + endline.str() +
-                                "0,24,0,0" + endline.str() + "0,10,0,0" + endline.str() + "0,24,0,24" + endline.str() +
-                                "0,0,24,0" + endline.str() + "Block 2" + endline.str() + "0,24,0,0" + endline.str() +
-                                "0,12,0,0" + endline.str() + "0,24,0,24" + endline.str() + "0,0,24,0" + endline.str();
+  std::string expected_output = "Block 0" + endline.str() + 
+                                "           0,          24,           0,           0" + endline.str() + 
+                                "           0,           8,           0,           0" + endline.str() + 
+                                "           0,          24,           0,          24" + endline.str() + 
+                                "           0,           0,          24,           0" + endline.str() + 
+                                "Block 1" + endline.str() + 
+                                "           0,          24,           0,           0" + endline.str() + 
+                                "           0,          10,           0,           0" + endline.str() + 
+                                "           0,          24,           0,          24" + endline.str() + 
+                                "           0,           0,          24,           0" + endline.str() + 
+                                "Block 2" + endline.str() + 
+                                "           0,          24,           0,           0" + endline.str() + 
+                                "           0,          12,           0,           0" + endline.str() + 
+                                "           0,          24,           0,          24" + endline.str() + 
+                                "           0,           0,          24,           0" + endline.str();
   EXPECT_EQ(ss.str(), expected_output);
 
   return matrix;

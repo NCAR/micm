@@ -276,9 +276,9 @@ namespace micm
       {
         for (std::size_t j = 0; j < matrix.y_dim_ - 1; ++j)
         {
-          os << matrix[i][j] << ',';
+            os << std::setw(12) << std::fixed << std::setprecision(6) << matrix[i][j] << ',';
         }
-        os << matrix[i][matrix.y_dim_ - 1] << std::endl;
+        os << std::setw(12) << std::fixed << std::setprecision(6) << matrix[i][matrix.y_dim_ - 1] << std::endl;
       }
       return os;
     }
