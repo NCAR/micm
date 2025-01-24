@@ -269,6 +269,20 @@ namespace micm
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
+    // Print the matrix to the output stream
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix)
+    {
+      for (std::size_t i = 0; i < matrix.x_dim_; ++i)
+      {
+      for (std::size_t j = 0; j < matrix.y_dim_-1; ++j)
+      {
+        os << matrix[i][j] << ',';
+      }
+      os << matrix[i][matrix.y_dim_-1] << std::endl;
+      }
+      return os;
+    }
+
     std::vector<T> &AsVector()
     {
       return data_;
