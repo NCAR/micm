@@ -191,10 +191,10 @@ namespace micm
       auto akj_aji = akj_aji_.begin();
       for (const auto& nik_nki_aii : nik_nki_aii_)
       {
-        const std::size_t ik_limit = std::get<0>(nik_nki_aii); 
+        const std::size_t ik_limit = std::get<0>(nik_nki_aii);
         for (std::size_t ik = 0; ik < ik_limit; ++ik)
         {
-          const std::size_t jk_limit = aik_njk->second; 
+          const std::size_t jk_limit = aik_njk->second;
           for (std::size_t jk = 0; jk < jk_limit; ++jk)
           {
             auto ALU_vector_aik_njk_it = ALU_vector + aik_njk->first;
