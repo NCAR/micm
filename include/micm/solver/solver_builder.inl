@@ -409,8 +409,13 @@ namespace micm
     auto nonzero_elements = rates.NonZeroJacobianElements();
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
 
-    rates.SetJacobianFlatIds(jacobian);
     LinearSolverPolicy linear_solver(jacobian, 0);
+    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
+    {
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0);
+      jacobian = std::move(lu);
+    }
+    rates.SetJacobianFlatIds(jacobian);
 
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
