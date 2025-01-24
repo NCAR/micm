@@ -122,3 +122,11 @@ TEST(VectorMatrix, Min)
   testMin<Group3MatrixAlias>();
   testMin<Group4MatrixAlias>();
 }
+
+TEST(VectorMatrix, Print)
+{
+  testPrint<Group1MatrixAlias>();
+  testPrint<Group2MatrixAlias>();
+  testPrint<Group3MatrixAlias>();
+  testPrint<Group4MatrixAlias>();
+}
