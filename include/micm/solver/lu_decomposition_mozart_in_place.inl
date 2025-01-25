@@ -148,7 +148,7 @@ namespace micm
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
     constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-    std::vector<double>Aii_inverse(ALU_GroupVectorSize);
+    std::vector<double> Aii_inverse(ALU_GroupVectorSize);
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
