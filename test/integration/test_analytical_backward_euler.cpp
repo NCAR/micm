@@ -260,6 +260,10 @@ TEST(AnalyticalExamples, HIRES)
   test_analytical_hires(backward_euler_vector_mozart_2, 1e-1);
   test_analytical_hires(backward_euler_vector_mozart_3, 1e-1);
   test_analytical_hires(backward_euler_vector_mozart_4, 1e-1);
+  test_analytical_hires(backward_euler_vector_mozart_in_place_1, 1e-1);
+  test_analytical_hires(backward_euler_vector_mozart_in_place_2, 1e-1);
+  test_analytical_hires(backward_euler_vector_mozart_in_place_3, 1e-1);
+  test_analytical_hires(backward_euler_vector_mozart_in_place_4, 1e-1);
 }
 
 TEST(AnalyticalExamples, Oregonator)
@@ -277,4 +281,8 @@ TEST(AnalyticalExamples, Oregonator)
   test_analytical_oregonator(backward_euler_vector_mozart_2, 1e-3);
   test_analytical_oregonator(backward_euler_vector_mozart_3, 1e-3);
   test_analytical_oregonator(backward_euler_vector_mozart_4, 1e-3);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_1, 1e-3);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_2, 1e-3);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_3, 1e-3);
+  test_analytical_oregonator(backward_euler_vector_mozart_in_place_4, 1e-3);
 }
