@@ -412,7 +412,7 @@ namespace micm
         const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
         const std::size_t number_of_products = number_of_products_[i_rxn];
         for (std::size_t i_ind = 0; i_ind < number_of_reactants; ++i_ind)
-        { 
+        {
           d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
           for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
           {
