@@ -72,17 +72,13 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        double alpha = 0.0;
-        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        {
-          // Compute alpha for AlphaMinusJacobian function 
-          alpha = 1.0 / (H * parameters.gamma_[0]);
-        }
-        else
+        // Compute alpha for AlphaMinusJacobian function 
+        double alpha = 1.0 / (H * parameters.gamma_[0]);
+        if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
         { 
           // Compute alpha accounting for the last alpha value
           // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
-          alpha = 1.0 / (H * parameters.gamma_[0]) - last_alpha;
+          alpha -= last_alpha;
           last_alpha = alpha;
         }
 
