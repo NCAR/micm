@@ -69,10 +69,10 @@ namespace micm
 
       bool accepted = false;
       double last_alpha = 0.0;
-      double alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
+        double alpha = 0.0;
         if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
         {
           // Compute alpha for AlphaMinusJacobian function 
