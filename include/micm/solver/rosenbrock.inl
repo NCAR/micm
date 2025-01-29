@@ -67,18 +67,15 @@ namespace micm
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
-      double last_alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
-      {
-        // Compute alpha accounting for the last alpha value
-        // This is necessary to avoid the need to re-factor the jacobian
-        double alpha = 1.0 / (H * parameters.gamma_[0]) - last_alpha;
+      {        
+        // Compute alpha for AlphaMinusJacobian function 
+        double alpha = 1.0 / (H * parameters.gamma_[0]);
 
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(alpha, Y, stats, state);
-        last_alpha = alpha;
-
+        LinearFactor(alpha, stats, state);
+        
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
@@ -178,6 +175,13 @@ namespace micm
           {
             stats.rejected_ += 1;
           }
+          // Re-generate the Jacobian matrix for the inline LU algorithm
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            state.jacobian_.Fill(0);
+            rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+            stats.jacobian_updates_ += 1; 
+          }
         }
       }
     }
@@ -232,7 +236,6 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
       const double alpha,
-      const auto& number_densities,
       SolverStats& stats,
       auto& state) const
   {
@@ -240,7 +243,14 @@ namespace micm
 
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
-    linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+    if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+    {
+      linear_solver_.Factor(state.jacobian_);
+    }
+    else
+    {
+      linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+    }
     stats.decompositions_ += 1;
   }
 
