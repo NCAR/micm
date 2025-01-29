@@ -68,11 +68,26 @@ namespace micm
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
+      if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+      {
+        double last_alpha = 0.0;
+      }
+      double alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
-      {        
-        // Compute alpha for AlphaMinusJacobian function 
-        double alpha = 1.0 / (H * parameters.gamma_[0]);
+      {
+        if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        {
+          // Compute alpha for AlphaMinusJacobian function 
+          alpha = 1.0 / (H * parameters.gamma_[0]);
+        }
+        else
+        { 
+          // Compute alpha accounting for the last alpha value
+          // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
+          alpha = 1.0 / (H * parameters.gamma_[0]) - last_alpha;
+          last_alpha = alpha;
+        }
 
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(alpha, stats, state);
