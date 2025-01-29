@@ -68,10 +68,7 @@ namespace micm
       stats.jacobian_updates_ += 1;
 
       bool accepted = false;
-      if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-      {
-        double last_alpha = 0.0;
-      }
+      double last_alpha = 0.0;
       double alpha = 0.0;
       //  Repeat step calculation until current step accepted
       while (!accepted)
