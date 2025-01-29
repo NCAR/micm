@@ -10,13 +10,14 @@ namespace micm
       const RosenbrockSolverParameters& parameters) const noexcept
   {
     MICM_PROFILE_FUNCTION();
-    using MatrixPolicy = decltype(state.variables_);
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
 
     SolverResult result{};
     result.state_ = SolverState::Running;
     auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
     auto derived_class_temporary_variables =
-        static_cast<RosenbrockTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+        static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     auto& Ynew = derived_class_temporary_variables->Ynew_;
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     auto& K = derived_class_temporary_variables->K_;
@@ -106,7 +107,14 @@ namespace micm
           {
             K[stage].Axpy(parameters.c_[stage_combinations + j] / H, K[j]);
           }
-          linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            linear_solver_.Solve(K[stage], state.jacobian_);
+          }
+          else
+          {
+            linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
+          }
           stats.solves_ += 1;
         }
 
@@ -240,7 +248,9 @@ namespace micm
       auto& state) const
   {
     MICM_PROFILE_FUNCTION();
-
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
+    
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
     if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
