@@ -101,6 +101,7 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" S
   # If the compiler is MSVC, use /bigobj
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
   message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+  add_compile_options(/bigobj)
 endif()
 
 ################################################################################
