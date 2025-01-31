@@ -230,9 +230,6 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Code of conduct](CODE_OF_CONDUCT.md)
-  - Please read this through to you understand the expectations with how to interact with this project.
-
 - [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
