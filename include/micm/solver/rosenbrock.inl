@@ -72,10 +72,10 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        // Compute alpha for AlphaMinusJacobian function 
+        // Compute alpha for AlphaMinusJacobian function
         double alpha = 1.0 / (H * parameters.gamma_[0]);
         if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
-        { 
+        {
           // Compute alpha accounting for the last alpha value
           // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
           alpha -= last_alpha;
@@ -84,7 +84,7 @@ namespace micm
 
         // Form and factor the rosenbrock ode jacobian
         LinearFactor(alpha, stats, state);
-        
+
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
@@ -196,7 +196,7 @@ namespace micm
           {
             state.jacobian_.Fill(0);
             rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
-            stats.jacobian_updates_ += 1; 
+            stats.jacobian_updates_ += 1;
           }
         }
       }
@@ -258,7 +258,7 @@ namespace micm
     MICM_PROFILE_FUNCTION();
     using DenseMatrixPolicy = decltype(state.variables_);
     using SparseMatrixPolicy = decltype(state.jacobian_);
-    
+
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
     if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
