@@ -10,13 +10,14 @@ namespace micm
       const RosenbrockSolverParameters& parameters) const noexcept
   {
     MICM_PROFILE_FUNCTION();
-    using MatrixPolicy = decltype(state.variables_);
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
 
     SolverResult result{};
     result.state_ = SolverState::Running;
     auto& Y = state.variables_;  // Y will hold the new solution at the end of the solve
     auto derived_class_temporary_variables =
-        static_cast<RosenbrockTemporaryVariables<MatrixPolicy>*>(state.temporary_variables_.get());
+        static_cast<RosenbrockTemporaryVariables<DenseMatrixPolicy>*>(state.temporary_variables_.get());
     auto& Ynew = derived_class_temporary_variables->Ynew_;
     auto& initial_forcing = derived_class_temporary_variables->initial_forcing_;
     auto& K = derived_class_temporary_variables->K_;
@@ -71,14 +72,19 @@ namespace micm
       //  Repeat step calculation until current step accepted
       while (!accepted)
       {
-        // Compute alpha accounting for the last alpha value
-        // This is necessary to avoid the need to re-factor the jacobian
-        double alpha = 1.0 / (H * parameters.gamma_[0]) - last_alpha;
+        // Compute alpha for AlphaMinusJacobian function 
+        double alpha = 1.0 / (H * parameters.gamma_[0]);
+        if constexpr (!LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+        { 
+          // Compute alpha accounting for the last alpha value
+          // This is necessary to avoid the need to re-factor the jacobian for non-inline LU algorithms
+          alpha -= last_alpha;
+          last_alpha = alpha;
+        }
 
         // Form and factor the rosenbrock ode jacobian
-        LinearFactor(alpha, Y, stats, state);
-        last_alpha = alpha;
-
+        LinearFactor(alpha, stats, state);
+        
         // Compute the stages
         for (uint64_t stage = 0; stage < parameters.stages_; ++stage)
         {
@@ -109,7 +115,14 @@ namespace micm
           {
             K[stage].Axpy(parameters.c_[stage_combinations + j] / H, K[j]);
           }
-          linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            linear_solver_.Solve(K[stage], state.jacobian_);
+          }
+          else
+          {
+            linear_solver_.Solve(K[stage], state.lower_matrix_, state.upper_matrix_);
+          }
           stats.solves_ += 1;
         }
 
@@ -178,6 +191,13 @@ namespace micm
           {
             stats.rejected_ += 1;
           }
+          // Re-generate the Jacobian matrix for the inline LU algorithm
+          if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+          {
+            state.jacobian_.Fill(0);
+            rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
+            stats.jacobian_updates_ += 1; 
+          }
         }
       }
     }
@@ -232,15 +252,23 @@ namespace micm
   template<class RatesPolicy, class LinearSolverPolicy, class Derived>
   inline void AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, Derived>::LinearFactor(
       const double alpha,
-      const auto& number_densities,
       SolverStats& stats,
       auto& state) const
   {
     MICM_PROFILE_FUNCTION();
-
+    using DenseMatrixPolicy = decltype(state.variables_);
+    using SparseMatrixPolicy = decltype(state.jacobian_);
+    
     static_cast<const Derived*>(this)->AlphaMinusJacobian(state.jacobian_, alpha);
 
-    linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+    if constexpr (LinearSolverInPlaceConcept<LinearSolverPolicy, DenseMatrixPolicy, SparseMatrixPolicy>)
+    {
+      linear_solver_.Factor(state.jacobian_);
+    }
+    else
+    {
+      linear_solver_.Factor(state.jacobian_, state.lower_matrix_, state.upper_matrix_);
+    }
     stats.decompositions_ += 1;
   }
 
