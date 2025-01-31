@@ -47,10 +47,9 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STR
 endif()
 
 # on Windows with MSVC, add the /bigobj flag to allow for large object files
-if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # If the compiler is MSVC, use /bigobj
+if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows" AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+  # If the compiler is MSVC or Clang on Windows, use /bigobj
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-  message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 endif()
 
 ################################################################################

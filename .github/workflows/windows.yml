@@ -84,6 +84,6 @@ jobs:
       - name: Run CMake
         run: cmake -S . -B build -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -T ClangCL
       - name: Build
-        run: cmake --build build --config Debug --parallel 5
+        run: cmake --build build --config Debug --parallel 10
       - name: Test
         run: cd build ; ctest -j 10 -C Debug --exclude-regex "test-unicode" --output-on-failure
