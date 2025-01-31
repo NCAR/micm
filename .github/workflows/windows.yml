@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run CMake
-        run: cmake -S . -B build -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -T ClangCL
+        run: cmake -S . -B build -D CMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe" -G "Visual Studio 16 2019" -A ${{ matrix.architecture }} -T ClangCL
       - name: Build
         run: cmake --build build --config Debug --parallel 10
       - name: Test
