@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 enum class MicmStateErrc
@@ -91,7 +91,9 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
-        number_of_grid_cells_(parameters.number_of_grid_cells_)
+        number_of_grid_cells_(parameters.number_of_grid_cells_),
+        relative_tolerance_(parameters.relative_tolerance_),
+        absolute_tolerance_(parameters.absolute_tolerance_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
@@ -249,6 +251,32 @@ namespace micm
           make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(
+      double relativeTolerance)
+  {
+    this->relative_tolerance_ = relativeTolerance;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(
+      const std::vector<double>& absoluteTolerance)
+  {
+    this->absolute_tolerance_ = absoluteTolerance;
   }
 
   template<

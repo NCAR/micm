@@ -466,3 +466,41 @@ MatrixPolicy<int, OrderingPolicy> testAddToDiagonal()
 
   return matrix;
 }
+
+template<template<class, class> class MatrixPolicy, class OrderingPolicy>
+MatrixPolicy<int, OrderingPolicy> testPrint()
+{
+  auto builder = MatrixPolicy<int, OrderingPolicy>::Create(4)
+                     .WithElement(0, 1)
+                     .WithElement(3, 2)
+                     .WithElement(0, 1)
+                     .WithElement(2, 3)
+                     .WithElement(1, 1)
+                     .WithElement(2, 1)
+                     .InitialValue(24)
+                     .SetNumberOfBlocks(3);
+  // 0 X 0 0
+  // 0 X 0 0
+  // 0 X 0 X
+  // 0 0 X 0
+  MatrixPolicy<int, OrderingPolicy> matrix{ builder };
+
+  matrix[0][1][1] = 1;
+  matrix[1][1][1] = 3;
+  matrix[2][1][1] = 5;
+
+  matrix.AddToDiagonal(7);
+
+  std::stringstream ss, endline;
+  ss << matrix;
+  endline << std::endl;
+
+  std::string expected_output = "Block 0" + endline.str() + "0,24,0,0" + endline.str() + "0,8,0,0" + endline.str() +
+                                "0,24,0,24" + endline.str() + "0,0,24,0" + endline.str() + "Block 1" + endline.str() +
+                                "0,24,0,0" + endline.str() + "0,10,0,0" + endline.str() + "0,24,0,24" + endline.str() +
+                                "0,0,24,0" + endline.str() + "Block 2" + endline.str() + "0,24,0,0" + endline.str() +
+                                "0,12,0,0" + endline.str() + "0,24,0,24" + endline.str() + "0,0,24,0" + endline.str();
+  EXPECT_EQ(ss.str(), expected_output);
+
+  return matrix;
+}

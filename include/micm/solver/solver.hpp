@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -21,11 +21,11 @@ namespace micm
     using DenseMatrixType = typename StatePolicy::DenseMatrixPolicyType;
 
     StateParameters state_parameters_;
-    SolverParametersType solver_parameters_;
     std::vector<micm::Process> processes_;
 
    public:
     SolverPolicy solver_;
+    SolverParametersType solver_parameters_;
 
     Solver(
         SolverPolicy&& solver,
@@ -60,9 +60,16 @@ namespace micm
 
     SolverResult Solve(double time_step, StatePolicy& state)
     {
-      auto result = solver_.Solve(time_step, state);
+      auto result = solver_.Solve(time_step, state, solver_parameters_);
       state.variables_.Max(0.0);
       return result;
+    }
+
+    // Overloaded Solve function to change parameters
+    SolverResult Solve(double time_step, StatePolicy& state, const SolverParametersType& params)
+    {
+      solver_parameters_ = params;
+      return solver_.Solve(time_step, state, params);
     }
 
     /// @brief Returns the number of grid cells

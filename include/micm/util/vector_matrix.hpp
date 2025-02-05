@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -358,6 +358,20 @@ namespace micm
       if (other.AsVector().size() != this->data_.size())
         throw std::runtime_error("Both vector matrices must have the same size.");
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
+    // Print the VectorMatrix to the output stream
+    friend std::ostream &operator<<(std::ostream &os, const VectorMatrix &matrix)
+    {
+      for (std::size_t i = 0; i < matrix.x_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < matrix.y_dim_ - 1; ++j)
+        {
+          os << matrix[i][j] << ',';
+        }
+        os << matrix[i][matrix.y_dim_ - 1] << std::endl;
+      }
+      return os;
     }
 
     std::vector<T> &AsVector()

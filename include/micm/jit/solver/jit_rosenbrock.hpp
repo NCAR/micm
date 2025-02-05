@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 //
 // Much of this solver was formulated and implemented from this book:
@@ -65,20 +65,15 @@ namespace micm
     }
 
     /// @brief Builds a Rosenbrock solver for the given system and solver parameters
-    /// @param parameters Solver parameters
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
     /// @param jacobian Jacobian matrix
-    JitRosenbrockSolver(
-        RosenbrockSolverParameters parameters,
-        LinearSolverPolicy linear_solver,
-        RatesPolicy rates,
-        auto& jacobian)
+    JitRosenbrockSolver(LinearSolverPolicy linear_solver, RatesPolicy rates, auto& jacobian, const size_t number_of_species)
         : AbstractRosenbrockSolver<RatesPolicy, LinearSolverPolicy, JitRosenbrockSolver<RatesPolicy, LinearSolverPolicy>>(
-              parameters,
               std::move(linear_solver),
               std::move(rates),
-              jacobian)
+              jacobian,
+              number_of_species)
     {
       this->GenerateAlphaMinusJacobian(jacobian);
     }

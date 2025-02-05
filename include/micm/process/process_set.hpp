@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -357,19 +357,36 @@ namespace micm
       const std::size_t offset_state = i_group * state_variables.GroupSize();
       const std::size_t offset_forcing = i_group * forcing.GroupSize();
       std::vector<double> rate(L, 0);
-      for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+      const std::size_t number_of_reactions = number_of_reactants_.size();
+      for (std::size_t i_rxn = 0; i_rxn < number_of_reactions; ++i_rxn)
       {
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+        const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
+        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+        {
+          std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
+          auto rate_it = rate.begin();
+          auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            rate[i_cell] *= v_state_variables[offset_state + react_id[i_react] * L + i_cell];
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
+            *(rate_it++) *= *(v_state_variables_it++);
+        }
+        for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
+        {
+          auto v_forcing_it = v_forcing.begin() + offset_forcing + react_id[i_react] * L;
+          auto rate_it = rate.begin();
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_forcing[offset_forcing + react_id[i_react] * L + i_cell] -= rate[i_cell];
-        for (std::size_t i_prod = 0; i_prod < number_of_products_[i_rxn]; ++i_prod)
+            *(v_forcing_it++) -= *(rate_it++);
+        }
+        const std::size_t number_of_products = number_of_products_[i_rxn];
+        for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
+        {
+          auto v_forcing_it = v_forcing.begin() + offset_forcing + prod_id[i_prod] * L;
+          auto rate_it = rate.begin();
+          auto yield_value = yield[i_prod];
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_forcing[offset_forcing + prod_id[i_prod] * L + i_cell] += yield[i_prod] * rate[i_cell];
+            *(v_forcing_it++) += yield_value * *(rate_it++);
+        }
         react_id += number_of_reactants_[i_rxn];
         prod_id += number_of_products_[i_rxn];
         yield += number_of_products_[i_rxn];
@@ -448,19 +465,23 @@ namespace micm
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
           const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
+          auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            d_rate_d_ind[i_cell] *= v_state_variables[idx_state_variables + i_cell];
+            d_rate_d_ind[i_cell] *= *(v_state_variables_it++);
         }
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
         {
+          auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_jacobian[offset_jacobian + *flat_id + i_cell] += d_rate_d_ind[i_cell];
+            *(v_jacobian_it++) += d_rate_d_ind[i_cell];
           ++flat_id;
         }
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         {
+          auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
+          auto yield_value = yield[i_dep];
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
-            v_jacobian[offset_jacobian + *flat_id + i_cell] -= yield[i_dep] * d_rate_d_ind[i_cell];
+            *(v_jacobian_it++) -= yield_value * d_rate_d_ind[i_cell];
           ++flat_id;
         }
         react_id += process_info.number_of_dependent_reactants_;

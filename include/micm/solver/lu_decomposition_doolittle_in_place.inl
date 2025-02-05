@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 namespace micm
@@ -191,26 +191,38 @@ namespace micm
       auto akj_aji = akj_aji_.begin();
       for (const auto& nik_nki_aii : nik_nki_aii_)
       {
-        for (std::size_t ik = 0; ik < std::get<0>(nik_nki_aii); ++ik)
+        const std::size_t ik_limit = std::get<0>(nik_nki_aii);
+        for (std::size_t ik = 0; ik < ik_limit; ++ik)
         {
-          for (std::size_t jk = 0; jk < aik_njk->second; ++jk)
+          const std::size_t jk_limit = aik_njk->second;
+          for (std::size_t jk = 0; jk < jk_limit; ++jk)
           {
+            auto ALU_vector_aik_njk_it = ALU_vector + aik_njk->first;
+            auto ALU_vector_aij_ajk_first_it = ALU_vector + aij_ajk->first;
+            auto ALU_vector_aij_ajk_second_it = ALU_vector + aij_ajk->second;
             for (std::size_t i = 0; i < n_cells; ++i)
-              ALU_vector[aik_njk->first + i] -= ALU_vector[aij_ajk->first + i] * ALU_vector[aij_ajk->second + i];
+              *(ALU_vector_aik_njk_it++) -= *(ALU_vector_aij_ajk_first_it++) * *(ALU_vector_aij_ajk_second_it++);
             ++aij_ajk;
           }
           ++aik_njk;
         }
-        for (std::size_t ki = 0; ki < std::get<1>(nik_nki_aii); ++ki)
+        const std::size_t ki_limit = std::get<1>(nik_nki_aii);
+        for (std::size_t ki = 0; ki < ki_limit; ++ki)
         {
-          for (std::size_t ji = 0; ji < aki_nji->second; ++ji)
+          const std::size_t ji_limit = aki_nji->second;
+          for (std::size_t ji = 0; ji < ji_limit; ++ji)
           {
+            auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
+            auto ALU_vector_akj_aji_first_it = ALU_vector + akj_aji->first;
+            auto ALU_vector_akj_aji_second_it = ALU_vector + akj_aji->second;
             for (std::size_t i = 0; i < n_cells; ++i)
-              ALU_vector[aki_nji->first + i] -= ALU_vector[akj_aji->first + i] * ALU_vector[akj_aji->second + i];
+              *(ALU_vector_aki_nji_it++) -= *(ALU_vector_akj_aji_first_it++) * *(ALU_vector_akj_aji_second_it++);
             ++akj_aji;
           }
+          auto ALU_vector_aki_nji_it = ALU_vector + aki_nji->first;
+          auto ALU_vector_nik_nki_aii_it = ALU_vector + std::get<2>(nik_nki_aii);
           for (std::size_t i = 0; i < n_cells; ++i)
-            ALU_vector[aki_nji->first + i] /= ALU_vector[std::get<2>(nik_nki_aii) + i];
+            *(ALU_vector_aki_nji_it++) /= *(ALU_vector_nik_nki_aii_it++);
           ++aki_nji;
         }
       }

@@ -331,3 +331,19 @@ MatrixPolicy<double> testMin()
 
   return matrix;
 }
+
+template<template<class> class MatrixPolicy>
+MatrixPolicy<double> testPrint()
+{
+  MatrixPolicy<double> matrix{ 2, 3, 0.0 };
+
+  matrix[1][1] = 3.0;
+
+  std::stringstream ss, endline;
+  ss << matrix;
+  endline << std::endl;
+
+  EXPECT_EQ(ss.str(), "0,0,0" + endline.str() + "0,3,0" + endline.str());
+
+  return matrix;
+}

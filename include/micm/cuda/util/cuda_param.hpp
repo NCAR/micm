@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -90,8 +90,6 @@ struct CudaRosenbrockSolverParam
   // for NormalizedError function
   double* errors_input_ = nullptr;
   double* errors_output_ = nullptr;
-  double* absolute_tolerance_ = nullptr;
-  std::size_t absolute_tolerance_size_;
   std::size_t errors_size_;
   // for AlphaMinusJacobian function
   std::size_t* jacobian_diagonal_elements_ = nullptr;

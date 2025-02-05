@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_matrix.cuh>
 #include <micm/cuda/util/cuda_param.hpp>
@@ -76,7 +76,7 @@ namespace micm
     }
 
     template<typename T>
-    cudaError_t CopyToDevice(CudaMatrixParam& param, std::vector<T>& h_data)
+    cudaError_t CopyToDevice(CudaMatrixParam& param, const std::vector<T>& h_data)
     {
       cudaError_t err = cudaMemcpyAsync(
           param.d_data_,
@@ -140,7 +140,7 @@ namespace micm
     template cudaError_t MallocVector<int>(CudaMatrixParam& param, std::size_t number_of_elements);
     template cudaError_t MatrixMax<double>(CudaMatrixParam& param, double val);
     template cudaError_t MatrixMin<double>(CudaMatrixParam& param, double val);
-    template cudaError_t CopyToDevice<double>(CudaMatrixParam& param, std::vector<double>& h_data);
+    template cudaError_t CopyToDevice<double>(CudaMatrixParam& param, const std::vector<double>& h_data);
     template cudaError_t CopyToHost<double>(CudaMatrixParam& param, std::vector<double>& h_data);
     template cudaError_t CopyToDeviceFromDevice<double>(
         CudaMatrixParam& vectorMatrixDest,

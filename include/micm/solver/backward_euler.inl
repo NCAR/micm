@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 enum class MicmBackwardEulerErrc
 {
@@ -43,7 +43,10 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(double time_step, auto& state) const
+  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+      double time_step,
+      auto& state,
+      const BackwardEulerSolverParameters& parameters) const
   {
     // A fully implicit euler implementation is given by the following equation:
     // y_{n+1} = y_n + H * f(t_{n+1}, y_{n+1})
@@ -59,10 +62,10 @@ namespace micm
 
     SolverResult result;
 
-    std::size_t max_iter = parameters_.max_number_of_steps_;
-    const auto time_step_reductions = parameters_.time_step_reductions_;
+    std::size_t max_iter = parameters.max_number_of_steps_;
+    const auto time_step_reductions = parameters.time_step_reductions_;
 
-    double H = parameters_.h_start_ == 0.0 ? time_step : parameters_.h_start_;
+    double H = parameters.h_start_ == 0.0 ? time_step : parameters.h_start_;
     double t = 0.0;
     std::size_t n_successful_integrations = 0;
     std::size_t n_convergence_failures = 0;
@@ -148,7 +151,7 @@ namespace micm
           continue;
 
         // check for convergence
-        converged = IsConverged(parameters_, forcing, Yn1);
+        converged = IsConverged(parameters, forcing, Yn1, state.absolute_tolerance_, state.relative_tolerance_);
       } while (!converged && iterations < max_iter);
 
       if (!converged)
@@ -195,24 +198,26 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state)
+      const DenseMatrixPolicy& Yn1,
+      const std::vector<double>& absolute_tolerance,
+      double relative_tolerance)
     requires(!VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = parameters.relative_tolerance_;
-    auto& abs_tol = parameters.absolute_tolerance_;
+    double rel_tol = relative_tolerance;
+    auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto state_iter = state.AsVector().begin();
+    auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     const std::size_t n_vars = abs_tol.size();
     for (std::size_t i = 0; i < n_elem; ++i)
     {
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[i % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
         return false;
       }
-      ++residual_iter, ++state_iter;
+      ++residual_iter, ++Yn1_iter;
     }
     return true;
   }
@@ -222,28 +227,29 @@ namespace micm
   inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
-      const DenseMatrixPolicy& state)
+      const DenseMatrixPolicy& Yn1,
+      const std::vector<double>& absolute_tolerance,
+      double relative_tolerance)
     requires(VectorizableDense<DenseMatrixPolicy>)
   {
     double small = parameters.small_;
-    double rel_tol = parameters.relative_tolerance_;
-    auto& abs_tol = parameters.absolute_tolerance_;
+    double rel_tol = relative_tolerance;
+    auto& abs_tol = absolute_tolerance;
     auto residual_iter = residual.AsVector().begin();
-    auto state_iter = state.AsVector().begin();
+    auto Yn1_iter = Yn1.AsVector().begin();
     const std::size_t n_elem = residual.NumRows() * residual.NumColumns();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     const std::size_t n_vars = abs_tol.size();
     const std::size_t whole_blocks = std::floor(residual.NumRows() / L) * residual.GroupSize();
-
     // evaluate the rows that fit exactly into the vectorizable dimension (L)
     for (std::size_t i = 0; i < whole_blocks; ++i)
     {
       if (std::abs(*residual_iter) > small && std::abs(*residual_iter) > abs_tol[(i / L) % n_vars] &&
-          std::abs(*residual_iter) > rel_tol * std::abs(*state_iter))
+          std::abs(*residual_iter) > rel_tol * std::abs(*Yn1_iter))
       {
         return false;
       }
-      ++residual_iter, ++state_iter;
+      ++residual_iter, ++Yn1_iter;
     }
 
     // evaluate the remaining rows
@@ -256,7 +262,7 @@ namespace micm
         for (std::size_t i = offset; i < offset + remaining_rows; ++i)
         {
           if (std::abs(residual_iter[i]) > small && std::abs(residual_iter[i]) > abs_tol[y] &&
-              std::abs(residual_iter[i]) > rel_tol * std::abs(state_iter[i]))
+              std::abs(residual_iter[i]) > rel_tol * std::abs(Yn1_iter[i]))
           {
             return false;
           }

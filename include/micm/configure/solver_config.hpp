@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -102,18 +102,32 @@ namespace micm
     System system_;
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
+    double relative_tolerance_;
 
     SolverParameters(const System& system, std::vector<Process>&& processes, const RosenbrockSolverParameters&& parameters)
         : system_(system),
           processes_(processes),
-          parameters_(parameters)
+          parameters_(parameters),
+          relative_tolerance_(0)
     {
     }
 
     SolverParameters(System&& system, std::vector<Process>&& processes, RosenbrockSolverParameters&& parameters)
         : system_(system),
           processes_(processes),
-          parameters_(parameters)
+          parameters_(parameters),
+          relative_tolerance_(0)
+    {
+    }
+    SolverParameters(
+        System&& system,
+        std::vector<Process>&& processes,
+        RosenbrockSolverParameters&& parameters,
+        double relative_tolerance)
+        : system_(system),
+          processes_(processes),
+          parameters_(parameters),
+          relative_tolerance_(relative_tolerance)
     {
     }
   };
@@ -138,6 +152,7 @@ namespace micm
     std::unordered_map<std::string, Phase> phases_;
     std::vector<Process> processes_;
     RosenbrockSolverParameters parameters_;
+    double relative_tolerance_;
 
     // Common YAML
     inline static const std::string DEFAULT_CONFIG_FILE_JSON = "config.json";
@@ -426,7 +441,7 @@ namespace micm
     void ParseRelativeTolerance(const objectType& object)
     {
       ValidateSchema(object, { "value", "type" }, {});
-      this->parameters_.relative_tolerance_ = object["value"].as<double>();
+      this->relative_tolerance_ = object["value"].as<double>();
     }
 
     void ParseMechanism(const objectType& object)
@@ -959,7 +974,10 @@ namespace micm
     SolverParameters GetSolverParams()
     {
       return SolverParameters(
-          std::move(System(this->gas_phase_, this->phases_)), std::move(this->processes_), std::move(this->parameters_));
+          std::move(System(this->gas_phase_, this->phases_)),
+          std::move(this->processes_),
+          std::move(this->parameters_),
+          this->relative_tolerance_);
     }
   };
 }  // namespace micm

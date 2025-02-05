@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 
 enum class MicmSolverBuilderErrc
@@ -404,14 +404,18 @@ namespace micm
     }
 
     this->UnusedSpeciesCheck();
-    this->SetAbsoluteTolerances(options.absolute_tolerance_, species_map);
 
     RatesPolicy rates(this->reactions_, species_map);
     auto nonzero_elements = rates.NonZeroJacobianElements();
     auto jacobian = BuildJacobian<SparseMatrixPolicy>(nonzero_elements, this->number_of_grid_cells_, number_of_species);
 
-    rates.SetJacobianFlatIds(jacobian);
     LinearSolverPolicy linear_solver(jacobian, 0);
+    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
+    {
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian, 0);
+      jacobian = std::move(lu);
+    }
+    rates.SetJacobianFlatIds(jacobian);
 
     std::vector<std::string> variable_names{ number_of_species };
     for (auto& species_pair : species_map)
@@ -424,8 +428,10 @@ namespace micm
                                          .custom_rate_parameter_labels_ = labels,
                                          .nonzero_jacobian_elements_ = nonzero_elements };
 
+    this->SetAbsoluteTolerances(state_parameters.absolute_tolerance_, species_map);
+
     return Solver<SolverPolicy, StatePolicy>(
-        SolverPolicy(options, std::move(linear_solver), std::move(rates), jacobian),
+        SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
         state_parameters,
         options,
         this->reactions_);

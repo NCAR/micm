@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include "util_example.cpp"
 
@@ -65,14 +65,15 @@ int Run(const char* filepath, const char* initial_conditions, const std::string&
   auto reactions = solver_params.processes_;
 
   auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
-  params.relative_tolerance_ = 0.1;
+  
 
   auto solver = VectorBuilder<L>(params)
                     .SetSystem(chemical_system)
                     .SetReactions(reactions)
                     .Build();
   auto state = solver.GetState();
-
+  state.SetRelativeTolerance(0.1);
+  
   state.conditions_[0].temperature_ = dataMap.environments["temperature"];  // K
   state.conditions_[0].pressure_ = dataMap.environments["pressure"];        // Pa
   state.conditions_[0].air_density_ = dataMap.environments["air_density"];  // mol m-3

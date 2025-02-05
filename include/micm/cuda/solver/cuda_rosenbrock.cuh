@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -41,7 +41,8 @@ namespace micm
         const CudaMatrixParam& y_old_param,
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
-        const RosenbrockSolverParameters& ros_param,
+        const CudaMatrixParam& absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct);
   }  // namespace cuda
 }  // namespace micm

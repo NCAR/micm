@@ -117,3 +117,8 @@ TEST(Matrix, Min)
 {
   testMin<micm::Matrix>();
 }
+
+TEST(Matrix, Print)
+{
+  testPrint<micm::Matrix>();
+}

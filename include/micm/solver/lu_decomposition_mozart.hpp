@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -92,6 +92,12 @@ namespace micm
 
     LuDecompositionMozart(LuDecompositionMozart&& other) = default;
     LuDecompositionMozart& operator=(LuDecompositionMozart&&) = default;
+
+    /// @brief Construct an LU decomposition algorithm for a given sparse matrix
+    /// @param matrix Sparse matrix
+    template<class SparseMatrixPolicy>
+      requires(SparseMatrixConcept<SparseMatrixPolicy>)
+    LuDecompositionMozart(const SparseMatrixPolicy& matrix);
 
     /// @brief Construct an LU decomposition algorithm for a given sparse matrix
     /// @param matrix Sparse matrix

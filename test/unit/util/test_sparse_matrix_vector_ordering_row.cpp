@@ -87,3 +87,11 @@ TEST(SparseVectorCompressedRowMatrix, MultiBlockMatrix)
   EXPECT_EQ(matrix.GroupSize(), 2 * 5);
   EXPECT_EQ(matrix.NumberOfGroups(4), 2);
 }
+
+TEST(SparseVectorCompressedRowMatrix, Print)
+{
+  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<1>>();
+  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<2>>();
+  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<3>>();
+  testPrint<micm::SparseMatrix, micm::SparseMatrixVectorOrderingCompressedSparseRow<4>>();
+}

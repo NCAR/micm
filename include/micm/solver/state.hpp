@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
@@ -31,6 +31,8 @@ namespace micm
     std::vector<std::string> variable_names_{};
     std::vector<std::string> custom_rate_parameter_labels_{};
     std::set<std::pair<std::size_t, std::size_t>> nonzero_jacobian_elements_{};
+    double relative_tolerance_{ 1e-06 };
+    std::vector<double> absolute_tolerance_{};
   };
 
   template<
@@ -63,7 +65,10 @@ namespace micm
     std::size_t state_size_;
     std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
+    double relative_tolerance_;
+    std::vector<double> absolute_tolerance_;
 
+   public:
     /// @brief Default constructor
     /// Only defined to be used to create default values in types, but a default constructed state is not useable
     State();
@@ -89,6 +94,8 @@ namespace micm
       state_size_ = other.state_size_;
       number_of_grid_cells_ = other.number_of_grid_cells_;
       temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+      relative_tolerance_ = other.relative_tolerance_;
+      absolute_tolerance_ = other.absolute_tolerance_;
     }
 
     /// @brief Assignment operator
@@ -111,6 +118,8 @@ namespace micm
         state_size_ = other.state_size_;
         number_of_grid_cells_ = other.number_of_grid_cells_;
         temporary_variables_ = std::make_unique<TemporaryVariables>(*other.temporary_variables_);
+        relative_tolerance_ = other.relative_tolerance_;
+        absolute_tolerance_ = other.absolute_tolerance_;
       }
       return *this;
     }
@@ -130,7 +139,9 @@ namespace micm
           upper_matrix_(std::move(other.upper_matrix_)),
           state_size_(other.state_size_),
           number_of_grid_cells_(other.number_of_grid_cells_),
-          temporary_variables_(std::move(other.temporary_variables_))
+          temporary_variables_(std::move(other.temporary_variables_)),
+          relative_tolerance_(other.relative_tolerance_),
+          absolute_tolerance_(std::move(other.absolute_tolerance_))
     {
     }
 
@@ -161,6 +172,8 @@ namespace micm
       return *this;
     }
 
+    virtual ~State() = default;
+
     /// @brief Set species' concentrations
     /// @param species_to_concentration
     void SetConcentrations(const std::unordered_map<std::string, std::vector<double>>& species_to_concentration);
@@ -184,6 +197,14 @@ namespace micm
     /// @param value new parameter value
     void SetCustomRateParameter(const std::string& label, double value);
     void SetCustomRateParameter(const std::string& label, const std::vector<double>& values);
+
+    /// @brief Set the relative tolerances
+    /// @param relativeTolerance relative tolerance
+    void SetRelativeTolerance(double relativeTolerance);
+
+    /// @brief Set the absolute tolerances per species
+    /// @param absoluteTolerance absolute tolerance
+    virtual void SetAbsoluteTolerances(const std::vector<double>& absoluteTolerance);
 
     /// @brief Print a header of species to display concentrations with respect to time
     void PrintHeader();
