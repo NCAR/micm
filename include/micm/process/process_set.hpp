@@ -214,14 +214,18 @@ namespace micm
         info.independent_id_ = independent_variable.second;
         info.number_of_dependent_reactants_ = 0;
         info.number_of_products_ = 0;
+        found = false;
         for (const auto& reactant : process.reactants_)
         {
           if (reactant.IsParameterized())
             continue;  // Skip reactants that are parameterizations
           if (variable_map.count(reactant.name_) < 1)
             throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-          if (variable_map.at(reactant.name_) == independent_variable.second) // skip the independent variable
+          if (variable_map.at(reactant.name_) == independent_variable.second && !found) // skip the first instance of the independent variable
+          {
+            found = true;
             continue;
+          }
           jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
           ++info.number_of_dependent_reactants_;
         }
