@@ -113,17 +113,18 @@ namespace micm
     micm::ProcessSet::SetJacobianFlatIds(matrix);
 
     ProcessSetParam hoststruct;
-    std::vector<ProcessInfoParam> jacobian_process_info_(this->jacobian_process_info_.size());
+    std::vector<ProcessInfoParam> jacobian_process_info(this->jacobian_process_info_.size());
     std::size_t i_process = 0;
     for (const auto & process_info : this->jacobian_process_info_)
     {
-      jacobian_process_info_[i_process].process_id_ = process_info.process_id_;
-      jacobian_process_info_[i_process].independent_id_ = process_info.independent_id_;
-      jacobian_process_info_[i_process].number_of_dependent_reactants_ = process_info.number_of_dependent_reactants_;
-      jacobian_process_info_[i_process].number_of_products_ = process_info.number_of_products_;
+      jacobian_process_info[i_process].process_id_ = process_info.process_id_;
+      jacobian_process_info[i_process].independent_id_ = process_info.independent_id_;
+      jacobian_process_info[i_process].number_of_dependent_reactants_ = process_info.number_of_dependent_reactants_;
+      jacobian_process_info[i_process].number_of_products_ = process_info.number_of_products_;
+      ++i_process;
     }
-    hoststruct.jacobian_process_info_ = jacobian_process_info_.data();
-    hoststruct.jacobian_process_info_size_ = this->jacobian_process_info_.size();
+    hoststruct.jacobian_process_info_ = jacobian_process_info.data();
+    hoststruct.jacobian_process_info_size_ = jacobian_process_info.size();
     hoststruct.jacobian_reactant_ids_ = this->jacobian_reactant_ids_.data();
     hoststruct.jacobian_reactant_ids_size_ = this->jacobian_reactant_ids_.size();
     hoststruct.jacobian_product_ids_ = this->jacobian_product_ids_.data();

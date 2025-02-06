@@ -78,9 +78,7 @@ namespace micm
       const double* const d_yields = devstruct.jacobian_yields_;
       const size_t* const d_jacobian_flat_ids = devstruct.jacobian_flat_ids_;
       const size_t number_of_grid_cells = rate_constants_param.number_of_grid_cells_;
-      const size_t number_of_process_infos =
-          devstruct.jacobian_process_info_size_ / sizeof(ProcessInfoParam) /
-          rate_constants_param.number_of_grid_cells_;
+      const size_t number_of_process_infos = devstruct.jacobian_process_info_size_;
       const double* const d_rate_constants = rate_constants_param.d_data_;
       const double* const d_state_variables = state_variables_param.d_data_;
       double* const d_jacobian = jacobian_param.d_data_;
