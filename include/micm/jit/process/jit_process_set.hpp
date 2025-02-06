@@ -222,81 +222,74 @@ namespace micm
     llvm::AllocaInst *rate_array = func.builder_->CreateAlloca(
         rate_array_type, llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, 1)), "d_rate_d_ind_array");
 
-    auto react_ids = reactant_ids_.begin();
-    auto yields = yields_.begin();
+    auto react_ids = jacobian_reactant_ids_.begin();
+    auto yields = jacobian_yields_.begin();
     auto flat_id = jacobian_flat_ids_.begin();
-    for (std::size_t i_rxn = 0; i_rxn < number_of_reactants_.size(); ++i_rxn)
+    for (const auto& process_info : jacobian_process_info_)
     {
-      llvm::Value *rc_start = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, i_rxn * L));
-      for (std::size_t i_ind = 0; i_ind < number_of_reactants_[i_rxn]; ++i_ind)
+      llvm::Value *rc_start = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, process_info.process_id_ * L));
+      // save rate constant in d_rate_d_ind for each grid cell
+      auto loop = func.StartLoop("rate constant", 0, L);
+      llvm::Value *ptr_index[1];
+      ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, rc_start);
+      llvm::Value *rate_const = func.GetArrayElement(func.arguments_[0], ptr_index, JitType::Double);
+      llvm::Value *array_index[2];
+      array_index[0] = zero;
+      array_index[1] = loop.index_;
+      llvm::Value *rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
+      func.builder_->CreateStore(rate_const, rate_ptr);
+      func.EndLoop(loop);
+
+      // d_rate_d_ind[i_cell] *= reactant_concentration for each reactant except ind
+      for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
       {
-        // save rate constant in d_rate_d_ind for each grid cell
-        auto loop = func.StartLoop("rate constant", 0, L);
-        llvm::Value *ptr_index[1];
-        ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, rc_start);
-        llvm::Value *rate_const = func.GetArrayElement(func.arguments_[0], ptr_index, JitType::Double);
-        llvm::Value *array_index[2];
-        array_index[0] = zero;
+        loop = func.StartLoop("d_rate_d_ind calc", 0, L);
+        llvm::Value *react_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, react_ids[i_react] * L));
+        ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, react_id);
+        llvm::Value *react_conc = func.GetArrayElement(func.arguments_[1], ptr_index, JitType::Double);
         array_index[1] = loop.index_;
-        llvm::Value *rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
-        func.builder_->CreateStore(rate_const, rate_ptr);
+        rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
+        llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
+        rate = func.builder_->CreateFMul(rate, react_conc, "d_rate_d_ind");
+        func.builder_->CreateStore(rate, rate_ptr);
         func.EndLoop(loop);
-
-        // d_rate_d_ind[i_cell] *= reactant_concentration for each reactant except ind
-        for (std::size_t i_react = 0; i_react < number_of_reactants_[i_rxn]; ++i_react)
-        {
-          if (i_react == i_ind)
-          {
-            continue;
-          }
-          loop = func.StartLoop("d_rate_d_ind calc", 0, L);
-          llvm::Value *react_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, react_ids[i_react] * L));
-          ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, react_id);
-          llvm::Value *react_conc = func.GetArrayElement(func.arguments_[1], ptr_index, JitType::Double);
-          array_index[1] = loop.index_;
-          rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
-          llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
-          rate = func.builder_->CreateFMul(rate, react_conc, "d_rate_d_ind");
-          func.builder_->CreateStore(rate, rate_ptr);
-          func.EndLoop(loop);
-        }
-
-        // set jacobian terms for each reactant jac[i_react][i_ind][i_cell] += d_rate_d_ind[i_cell]
-        for (std::size_t i_dep = 0; i_dep < number_of_reactants_[i_rxn]; ++i_dep)
-        {
-          loop = func.StartLoop("reactant term", 0, L);
-          llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
-          ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, dep_id);
-          llvm::Value *dep_jac_ptr = func.builder_->CreateGEP(double_type, func.arguments_[2].ptr_, ptr_index);
-          llvm::Value *dep_jac = func.builder_->CreateLoad(double_type, dep_jac_ptr, "reactant jacobian term");
-          array_index[1] = loop.index_;
-          rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
-          llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
-          dep_jac = func.builder_->CreateFAdd(dep_jac, rate, "reactant jacobian term");
-          func.builder_->CreateStore(dep_jac, dep_jac_ptr);
-          func.EndLoop(loop);
-        }
-
-        // set jacobian terms for each product jac[i_prod][i_ind][i_cell] -= yield * d_rate_d_ind[i_cell]
-        for (std::size_t i_dep = 0; i_dep < number_of_products_[i_rxn]; ++i_dep)
-        {
-          loop = func.StartLoop("product term", 0, L);
-          llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
-          ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, dep_id);
-          llvm::Value *dep_jac_ptr = func.builder_->CreateGEP(double_type, func.arguments_[2].ptr_, ptr_index);
-          llvm::Value *dep_jac = func.builder_->CreateLoad(double_type, dep_jac_ptr, "product jacobian term");
-          array_index[1] = loop.index_;
-          rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
-          llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
-          llvm::Value *yield = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(yields[i_dep]));
-          rate = func.builder_->CreateFMul(rate, yield, "product yield");
-          dep_jac = func.builder_->CreateFSub(dep_jac, rate, "product jacobian term");
-          func.builder_->CreateStore(dep_jac, dep_jac_ptr);
-          func.EndLoop(loop);
-        }
       }
-      react_ids += number_of_reactants_[i_rxn];
-      yields += number_of_products_[i_rxn];
+
+      // set jacobian terms for each reactant jac[i_react][i_ind][i_cell] += d_rate_d_ind[i_cell]
+      for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+      {
+        loop = func.StartLoop("reactant term", 0, L);
+        llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
+        ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, dep_id);
+        llvm::Value *dep_jac_ptr = func.builder_->CreateGEP(double_type, func.arguments_[2].ptr_, ptr_index);
+        llvm::Value *dep_jac = func.builder_->CreateLoad(double_type, dep_jac_ptr, "reactant jacobian term");
+        array_index[1] = loop.index_;
+        rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
+        llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
+        dep_jac = func.builder_->CreateFAdd(dep_jac, rate, "reactant jacobian term");
+        func.builder_->CreateStore(dep_jac, dep_jac_ptr);
+        func.EndLoop(loop);
+      }
+
+      // set jacobian terms for each product jac[i_prod][i_ind][i_cell] -= yield * d_rate_d_ind[i_cell]
+      for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
+        {
+        loop = func.StartLoop("product term", 0, L);
+        llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
+        ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, dep_id);
+        llvm::Value *dep_jac_ptr = func.builder_->CreateGEP(double_type, func.arguments_[2].ptr_, ptr_index);
+        llvm::Value *dep_jac = func.builder_->CreateLoad(double_type, dep_jac_ptr, "product jacobian term");
+        array_index[1] = loop.index_;
+        rate_ptr = func.builder_->CreateInBoundsGEP(rate_array_type, rate_array, array_index);
+        llvm::Value *rate = func.builder_->CreateLoad(double_type, rate_ptr, "d_rate_d_ind");
+        llvm::Value *yield = llvm::ConstantFP::get(*(func.context_), llvm::APFloat(yields[i_dep]));
+        rate = func.builder_->CreateFMul(rate, yield, "product yield");
+        dep_jac = func.builder_->CreateFSub(dep_jac, rate, "product jacobian term");
+        func.builder_->CreateStore(dep_jac, dep_jac_ptr);
+        func.EndLoop(loop);
+      }
+      react_ids += process_info.number_of_dependent_reactants_;
+      yields += process_info.number_of_products_;
     }
     func.builder_->CreateRetVoid();
 
