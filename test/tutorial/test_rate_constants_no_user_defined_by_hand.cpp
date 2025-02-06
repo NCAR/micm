@@ -33,7 +33,7 @@ int main(const int argc, const char* argv[])
   Process r1 = Process::Create()
                    .SetReactants({ a })
                    .SetProducts({ Yields(b, 1) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 }))
                    .SetPhase(gas_phase);
 
   // a branched reaction has two output pathways

@@ -9,6 +9,15 @@
 // make sure to choose the BLOCK_SIZE from [32, 64, 128, 256, 512, 1024]
 const std::size_t BLOCK_SIZE = 512;
 
+/// This struct holds information about a process for the Jacobian calculation
+struct ProcessInfoParam
+{
+  std::size_t process_id_;
+  std::size_t independent_id_;
+  std::size_t number_of_dependent_reactants_;
+  std::size_t number_of_products_;
+};
+
 /// This struct holds the (1) pointer to, and (2) size of
 ///   each constatnt data member from the class "ProcessSet";
 /// This struct could be allocated on the host or device;
@@ -19,12 +28,20 @@ struct ProcessSetParam
   std::size_t* number_of_products_ = nullptr;
   std::size_t* product_ids_ = nullptr;
   double* yields_ = nullptr;
+  ProcessInfoParam* jacobian_process_info_ = nullptr;
+  std::size_t* jacobian_reactant_ids_ = nullptr;
+  std::size_t* jacobian_product_ids_ = nullptr;
+  double* jacobian_yields_ = nullptr;
   std::size_t* jacobian_flat_ids_ = nullptr;
   std::size_t number_of_reactants_size_;
   std::size_t reactant_ids_size_;
   std::size_t number_of_products_size_;
   std::size_t product_ids_size_;
   std::size_t yields_size_;
+  std::size_t jacobian_process_info_size_;
+  std::size_t jacobian_reactant_ids_size_;
+  std::size_t jacobian_product_ids_size_;
+  std::size_t jacobian_yields_size_;
   std::size_t jacobian_flat_ids_size_;
 };
 

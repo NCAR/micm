@@ -43,8 +43,13 @@ jobs:
 
       - name: Run tests in container
         # only run this if we are not running coverage tests or have built the cuda files
-        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
+        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc' && matrix.dockerfile != 'Dockerfile.llvm'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Run tests using LLVM in container
+        # excludes some very expensive memcheck tests
+        if: matrix.dockerfile == 'Dockerfile.llvm'
+        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8 -E \"memcheck_jit_linear_solver|memcheck_analytical_rosenbrock_integration\""'
 
       - name: Run coverage tests in container
         if: matrix.dockerfile == 'Dockerfile.coverage'

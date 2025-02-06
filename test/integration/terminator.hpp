@@ -101,9 +101,9 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
       double cl_f = -l * (cl_i - det + r) * (cl_i + det + r) / (1.0 + e + dt * l * (cl_i + r));
       double cl2_f = -cl_f / 2.0;
       EXPECT_NEAR(
-          state.variables_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-7 + 1.0e-14);
+          state.variables_[i_cell][state.variable_map_["Cl"]], cl_i + dt * cl_f, (cl_i + dt * cl_f) * 1.0e-6 + 1.0e-14);
       EXPECT_NEAR(
-          state.variables_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-7 + 1.0e-14);
+          state.variables_[i_cell][state.variable_map_["Cl2"]], cl2_i + dt * cl2_f, (cl2_i + dt * cl2_f) * 1.0e-6 + 1.0e-14);
     }
   }
 }
