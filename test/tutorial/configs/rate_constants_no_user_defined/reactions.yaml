@@ -7,7 +7,7 @@ camp-data:
           A: {}
         products:
           B: {}
-        A: 2.15e-1
+        A: 2.15e-4
         B: 0
         C: 110.0
       - type: "BRANCHED"

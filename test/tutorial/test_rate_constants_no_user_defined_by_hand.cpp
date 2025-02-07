@@ -7,6 +7,7 @@
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
+#include <micm/util/constants.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -14,6 +15,10 @@
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
+
+// Conversion factor from moles m-3 to molecules cm-3 for consistency
+// with the configuraion file
+constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
 
 int main(const int argc, const char* argv[])
 {
@@ -33,7 +38,7 @@ int main(const int argc, const char* argv[])
   Process r1 = Process::Create()
                    .SetReactants({ a })
                    .SetProducts({ Yields(b, 1) })
-                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-1, .B_ = 0, .C_ = 110 }))
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 2.15e-4, .B_ = 0, .C_ = 110 }))
                    .SetPhase(gas_phase);
 
   // a branched reaction has two output pathways
@@ -68,7 +73,7 @@ int main(const int argc, const char* argv[])
                    .SetRateConstant(TernaryChemicalActivationRateConstant({ .k0_A_ = 1.2,
                                                                           .k0_B_ = 2.3,
                                                                           .k0_C_ = 302.3,
-                                                                          .kinf_A_ = 2.6,
+                                                                          .kinf_A_ = 2.6 / MOLES_M3_TO_MOLECULES_CM3,
                                                                           .kinf_B_ = -3.1,
                                                                           .kinf_C_ = 402.1,
                                                                           .Fc_ = 0.9,
@@ -80,10 +85,10 @@ int main(const int argc, const char* argv[])
   Process r6 = Process::Create()
                    .SetReactants({ e, e })
                    .SetProducts({ Yields(g, 1) })
-                   .SetRateConstant(TroeRateConstant({ .k0_A_ = 1.2e4,
+                   .SetRateConstant(TroeRateConstant({ .k0_A_ = 1.2e4 * MOLES_M3_TO_MOLECULES_CM3 * MOLES_M3_TO_MOLECULES_CM3,
                                                      .k0_B_ = 167.0,
                                                      .k0_C_ = 3.0,
-                                                     .kinf_A_ = 136.0,
+                                                     .kinf_A_ = 136.0 * MOLES_M3_TO_MOLECULES_CM3,
                                                      .kinf_B_ = 5.0,
                                                      .kinf_C_ = 24.0,
                                                      .Fc_ = 0.9,
@@ -107,6 +112,7 @@ int main(const int argc, const char* argv[])
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].CalculateIdealAirDensity();
 
   state.SetConcentration(a, 1.0);  // mol m-3
   state.SetConcentration(b, 0.0);  // mol m-3

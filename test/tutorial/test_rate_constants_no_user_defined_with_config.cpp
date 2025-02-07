@@ -45,6 +45,7 @@ int main(const int argc, const char* argv[])
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].CalculateIdealAirDensity();
 
   std::unordered_map<std::string, std::vector<double>> intial_concentration = {
     { "A", { 1.0 } },  // mol m-3
