@@ -197,49 +197,42 @@ namespace micm
       for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
       {
         const auto& process = processes[i_process];
-        // Look for processes that depend on the independent variable
-        bool found = false;
-        for (const auto& reactant : process.reactants_)
+        for (const auto& ind_reactant : process.reactants_)
         {
-          if (reactant.name_ == independent_variable.first)
-          {
-            found = true;
-            break;
-          }
-        }
-        if (!found)
-          continue;
-        ProcessInfo info;
-        info.process_id_ = i_process;
-        info.independent_id_ = independent_variable.second;
-        info.number_of_dependent_reactants_ = 0;
-        info.number_of_products_ = 0;
-        found = false;
-        for (const auto& reactant : process.reactants_)
-        {
-          if (reactant.IsParameterized())
-            continue;  // Skip reactants that are parameterizations
-          if (variable_map.count(reactant.name_) < 1)
-            throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
-          if (variable_map.at(reactant.name_) == independent_variable.second && !found) // skip the first instance of the independent variable
-          {
-            found = true;
+          if (ind_reactant.name_ != independent_variable.first)
             continue;
+          ProcessInfo info;
+          info.process_id_ = i_process;
+          info.independent_id_ = independent_variable.second;
+          info.number_of_dependent_reactants_ = 0;
+          info.number_of_products_ = 0;
+          bool found = false;
+          for (const auto& reactant : process.reactants_)
+          {
+            if (reactant.IsParameterized())
+              continue;  // Skip reactants that are parameterizations
+            if (variable_map.count(reactant.name_) < 1)
+              throw std::system_error(make_error_code(MicmProcessSetErrc::ReactantDoesNotExist), reactant.name_);
+            if (variable_map.at(reactant.name_) == independent_variable.second && !found)
+            {
+              found = true;
+              continue;
+            }
+            jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
+            ++info.number_of_dependent_reactants_;
           }
-          jacobian_reactant_ids_.push_back(variable_map.at(reactant.name_));
-          ++info.number_of_dependent_reactants_;
+          for (const auto& product : process.products_)
+          {
+            if (product.first.IsParameterized())
+              continue;  // Skip products that are parameterizations
+            if (variable_map.count(product.first.name_) < 1)
+              throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
+            jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
+            jacobian_yields_.push_back(product.second);
+            ++info.number_of_products_;
+          }
+          jacobian_process_info_.push_back(info);
         }
-        for (const auto& product : process.products_)
-        {
-          if (product.first.IsParameterized())
-            continue;  // Skip products that are parameterizations
-          if (variable_map.count(product.first.name_) < 1)
-            throw std::system_error(make_error_code(MicmProcessSetErrc::ProductDoesNotExist), product.first.name_);
-          jacobian_product_ids_.push_back(variable_map.at(product.first.name_));
-          jacobian_yields_.push_back(product.second);
-          ++info.number_of_products_;
-        }
-        jacobian_process_info_.push_back(info);
       }
     }
   };
