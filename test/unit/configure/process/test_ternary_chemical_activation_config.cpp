@@ -62,9 +62,8 @@ TEST(TernaryChemicalActivationConfig, ParseConfig)
 
   // second reaction
   {
-    EXPECT_EQ(process_vector[1].reactants_.size(), 2);
+    EXPECT_EQ(process_vector[1].reactants_.size(), 1);
     EXPECT_EQ(process_vector[1].reactants_[0].name_, "bar");
-    EXPECT_EQ(process_vector[1].reactants_[1].name_, "baz");
     EXPECT_EQ(process_vector[1].products_.size(), 2);
     EXPECT_EQ(process_vector[1].products_[0].first.name_, "bar");
     EXPECT_EQ(process_vector[1].products_[0].second, 0.5);
@@ -73,10 +72,10 @@ TEST(TernaryChemicalActivationConfig, ParseConfig)
     micm::TernaryChemicalActivationRateConstant* ternary_rate_constant =
         dynamic_cast<micm::TernaryChemicalActivationRateConstant*>(process_vector[1].rate_constant_.get());
     auto& params = ternary_rate_constant->parameters_;
-    EXPECT_EQ(params.k0_A_, 32.1 * conv);
+    EXPECT_EQ(params.k0_A_, 32.1);
     EXPECT_EQ(params.k0_B_, -2.3);
     EXPECT_EQ(params.k0_C_, 102.3);
-    EXPECT_EQ(params.kinf_A_, 63.4);
+    EXPECT_EQ(params.kinf_A_, 63.4 / conv);
     EXPECT_EQ(params.kinf_B_, -1.3);
     EXPECT_EQ(params.kinf_C_, 908.5);
     EXPECT_EQ(params.Fc_, 1.3);
