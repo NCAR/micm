@@ -53,7 +53,10 @@ void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
 {
   builder = getSolver(builder);
   auto solver = builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto jacobian = solver.GetState().jacobian_;
+  auto state = solver.GetState();
+  auto jacobian = state.jacobian_;
+  auto diagonal_elements = state.jacobian_diagonal_elements_;
+
 
   EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
   EXPECT_EQ(jacobian.NumRows(), 5);
@@ -79,7 +82,7 @@ void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
     jacobian[i_cell][4][2] = -53.6;
     jacobian[i_cell][4][4] = -1.0;
   }
-  solver.solver_.AlphaMinusJacobian(jacobian, 42.042);
+  solver.solver_.AlphaMinusJacobian(jacobian, diagonal_elements, 42.042);
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
   {
     EXPECT_NEAR(jacobian[i_cell][0][0], 42.042 - 12.2, 1.0e-5);

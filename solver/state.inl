@@ -1,0 +1,9 @@
+// ...existing code...
+  {
+    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
+  }
+// ...existing code...
+  {
+    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
+  }
+// ...existing code...
