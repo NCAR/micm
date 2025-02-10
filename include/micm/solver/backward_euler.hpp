@@ -40,7 +40,7 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    BackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, const size_t number_of_species)
+    BackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates))
     {
