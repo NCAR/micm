@@ -153,12 +153,12 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("my photolysis rate", photo_rate);
+          solver.CalculateRateConstants(state);
 
           while (elapsed_solve_time < time_step)
           {
             auto result = solver.Solve(time_step - elapsed_solve_time, state);
             elapsed_solve_time = result.final_time_;
-            state.variables_[0] = result.result_.AsVector();
           }
 
           print_state(time_step * (i + 1), state);
@@ -179,6 +179,7 @@ Finally, set and upate the rate constants as needed:
       + // these rates are constant through the simulation
       + state.SetCustomRateParameter("EMIS.my emission rate", emission_rate);
       + state.SetCustomRateParameter("LOSS.my loss rate", loss);
+
         // solve for ten iterations
         for (int i = 0; i < 10; ++i)
         {
@@ -188,12 +189,12 @@ Finally, set and upate the rate constants as needed:
           // solving until we finish
           double elapsed_solve_time = 0;
       +   state.SetCustomRateParameter("PHOTO.my photolysis rate", photo_rate);
+          solver.CalculateRateConstants(state);
 
           while (elapsed_solve_time < time_step)
           {
             auto result = solver.Solve(time_step - elapsed_solve_time, state);
             elapsed_solve_time = result.final_time_;
-            state.variables_[0] = result.result_.AsVector();
           }
 
           print_state(time_step * (i + 1), state);
@@ -208,13 +209,13 @@ the :ref:`Rate constants` tutorial's result.
    :widths: 10, 15, 15, 15, 15, 15, 15, 15
 
      0,   1.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00,   0.00e+00
-   500,   8.54e-01,   4.57e-04,   1.44e-01,   3.05e-09,   4.50e-13,   1.60e-08,   4.40e-03
-  1000,   7.30e-01,   3.90e-04,   2.65e-01,   2.61e-09,   6.07e-13,   1.36e-08,   6.21e-03
-  1500,   6.23e-01,   3.33e-04,   3.66e-01,   2.23e-09,   7.15e-13,   1.16e-08,   8.98e-03
-  2000,   5.32e-01,   2.85e-04,   4.50e-01,   1.90e-09,   7.93e-13,   9.94e-09,   1.26e-02
-  2500,   4.55e-01,   2.43e-04,   5.19e-01,   1.62e-09,   8.51e-13,   8.49e-09,   1.68e-02
-  3000,   3.88e-01,   2.08e-04,   5.76e-01,   1.39e-09,   8.96e-13,   7.26e-09,   2.16e-02
-  3500,   3.32e-01,   1.77e-04,   6.22e-01,   1.18e-09,   9.32e-13,   6.20e-09,   2.68e-02
-  4000,   2.83e-01,   1.52e-04,   6.59e-01,   1.01e-09,   9.59e-13,   5.29e-09,   3.24e-02
-  4500,   2.42e-01,   1.29e-04,   6.89e-01,   8.64e-10,   9.80e-13,   4.52e-09,   3.83e-02
-  5000,   2.07e-01,   1.11e-04,   7.12e-01,   7.38e-10,   9.96e-13,   3.86e-09,   4.44e-02
+   500,   8.54e-01,   4.57e-04,   1.44e-01,   1.55e-04,   6.47e-14,   1.23e-22,   6.44e-04
+  1000,   7.30e-01,   3.90e-04,   2.65e-01,   2.89e-04,   2.53e-13,   2.28e-22,   2.44e-03
+  1500,   6.23e-01,   3.33e-04,   3.66e-01,   4.02e-04,   2.98e-13,   3.18e-22,   5.20e-03
+  2000,   5.32e-01,   2.85e-04,   4.49e-01,   5.00e-04,   3.30e-13,   3.95e-22,   8.77e-03
+  2500,   4.55e-01,   2.43e-04,   5.18e-01,   5.83e-04,   3.55e-13,   4.61e-22,   1.30e-02
+  3000,   3.88e-01,   2.08e-04,   5.75e-01,   6.54e-04,   3.74e-13,   5.17e-22,   1.78e-02
+  3500,   3.32e-01,   1.77e-04,   6.21e-01,   7.14e-04,   3.88e-13,   5.65e-22,   2.30e-02
+  4000,   2.83e-01,   1.52e-04,   6.59e-01,   7.66e-04,   4.00e-13,   6.06e-22,   2.86e-02
+  4500,   2.42e-01,   1.29e-04,   6.88e-01,   8.10e-04,   4.09e-13,   6.41e-22,   3.45e-02
+  5000,   2.07e-01,   1.11e-04,   7.11e-01,   8.48e-04,   4.15e-13,   6.71e-22,   4.06e-02

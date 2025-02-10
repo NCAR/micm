@@ -94,7 +94,7 @@ inline std::error_code make_error_code(MicmConfigErrc e)
 namespace micm
 {
 
-  constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * 6.02214076e23;
+  constexpr double MOLES_M3_TO_MOLECULES_CM3 = 1.0e-6 * constants::AVOGADRO_CONSTANT;
 
   // Solver parameters
   struct SolverParameters
@@ -538,7 +538,8 @@ namespace micm
       {
         parameters.A_ = object["A"].as<double>();
       }
-      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
+      int n_reactants = reactants.size();
+      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 1);
       if (object["B"])
       {
         parameters.B_ = object["B"].as<double>();
@@ -587,7 +588,8 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].as<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size());
+      int n_reactants = reactants.size();
+      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants);
       if (object["k0_B"])
       {
         parameters.k0_B_ = object["k0_B"].as<double>();
@@ -601,7 +603,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].as<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
+      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 1);
       if (object["kinf_B"])
       {
         parameters.kinf_B_ = object["kinf_B"].as<double>();
@@ -640,7 +642,8 @@ namespace micm
         parameters.k0_A_ = object["k0_A"].as<double>();
       }
       // Account for the conversion of reactant concentrations (including M) to molecules cm-3
-      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
+      int n_reactants = reactants.size();
+      parameters.k0_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 1);
       if (object["k0_B"])
       {
         parameters.k0_B_ = object["k0_B"].as<double>();
@@ -654,7 +657,7 @@ namespace micm
         parameters.kinf_A_ = object["kinf_A"].as<double>();
       }
       // Account for terms in denominator and exponent that include [M] but not other reactants
-      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 2);
+      parameters.kinf_A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 2);
       if (object["kinf_B"])
       {
         parameters.kinf_B_ = object["kinf_B"].as<double>();
@@ -697,7 +700,8 @@ namespace micm
       BranchedRateConstantParameters parameters;
       parameters.X_ = object[X].as<double>();
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.X_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
+      int n_reactants = reactants.size();
+      parameters.X_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 1);
       parameters.Y_ = object[Y].as<double>();
       parameters.a0_ = object[A0].as<double>();
       parameters.n_ = object[N].as<int>();
@@ -731,7 +735,8 @@ namespace micm
         parameters.A_ = object["A"].as<double>();
       }
       // Account for the conversion of reactant concentrations to molecules cm-3
-      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, reactants.size() - 1);
+      int n_reactants = reactants.size();
+      parameters.A_ *= std::pow(MOLES_M3_TO_MOLECULES_CM3, n_reactants - 1);
       if (object["B"])
       {
         parameters.B_ = object["B"].as<double>();

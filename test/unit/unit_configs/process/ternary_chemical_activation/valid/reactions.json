@@ -19,8 +19,7 @@
         {
           "type": "TERNARY_CHEMICAL_ACTIVATION",
           "reactants": {
-            "bar" : { },
-            "baz" : { }
+            "bar" : { }
           },
           "products": {
             "bar": { "yield": 0.5 },
