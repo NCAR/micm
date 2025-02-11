@@ -189,9 +189,7 @@ namespace micm
 
     // Set up process information for Jacobian calculations
     std::vector<std::pair<std::string, std::size_t>> sorted_names(variable_map.begin(), variable_map.end());
-    std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) {
-      return a.second < b.second;
-    });
+    std::sort(sorted_names.begin(), sorted_names.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
     for (const auto& independent_variable : sorted_names)
     {
       for (std::size_t i_process = 0; i_process < processes.size(); ++i_process)
@@ -415,7 +413,7 @@ namespace micm
         double d_rate_d_ind = cell_rate_constants[process_info.process_id_];
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
           d_rate_d_ind *= cell_state[*(react_id++)];
-        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
           cell_jacobian[*(flat_id++)] += d_rate_d_ind;
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
           cell_jacobian[*(flat_id++)] -= *(yield++) * d_rate_d_ind;
@@ -463,7 +461,7 @@ namespace micm
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
         }
-        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+        for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
         {
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
