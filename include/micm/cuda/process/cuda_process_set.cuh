@@ -17,10 +17,9 @@ namespace micm
     ///   members of class "CudaProcessSet" on the device
     void FreeConstData(ProcessSetParam& devstruct);
 
-    /// This is the function that will copy the "jacobian_flat_id"
-    ///   of class "ProcessSet" to the device, after the matrix
-    ///   structure is known
-    void CopyJacobiFlatId(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
+    /// This is the function that will copy the information needed
+    /// to calculated Jacobian terms to the device
+    void CopyJacobianParams(ProcessSetParam& hoststruct, ProcessSetParam& devstruct);
 
     /// This is the host function that will call the CUDA kernel
     ///   to calculate the forcing terms

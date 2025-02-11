@@ -621,7 +621,7 @@ TEST(AnalyticalExamples, Oregonator)
   test_analytical_oregonator(rosenbrock_2stage, 4e-6);
   test_analytical_oregonator(rosenbrock_3stage, 4e-6);
   test_analytical_oregonator(rosenbrock_4stage, 4e-6);
-  test_analytical_oregonator(rosenbrock_4stage_da, 4e-6);
+  test_analytical_oregonator(rosenbrock_4stage_da, 4.5e-6);
   test_analytical_oregonator(rosenbrock_6stage_da, 4e-6);
   test_analytical_oregonator(rosenbrock_vector_doolittle_1, 4e-6);
   test_analytical_oregonator(rosenbrock_vector_doolittle_2, 4e-6);

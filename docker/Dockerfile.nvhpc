@@ -39,6 +39,6 @@ RUN mkdir /build \
         -D MICM_ENABLE_CUDA=ON \
         -D MICM_GPU_TYPE="a100" \
         ../micm \
-      && make
+      && make -j 8
 
 WORKDIR /build
