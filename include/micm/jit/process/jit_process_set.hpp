@@ -225,7 +225,7 @@ namespace micm
     auto react_ids = jacobian_reactant_ids_.begin();
     auto yields = jacobian_yields_.begin();
     auto flat_id = jacobian_flat_ids_.begin();
-    for (const auto& process_info : jacobian_process_info_)
+    for (const auto &process_info : jacobian_process_info_)
     {
       llvm::Value *rc_start = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, process_info.process_id_ * L));
       // save rate constant in d_rate_d_ind for each grid cell
@@ -256,7 +256,7 @@ namespace micm
       }
 
       // set jacobian terms for each reactant jac[i_react][i_ind][i_cell] += d_rate_d_ind[i_cell]
-      for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_+1; ++i_dep)
+      for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
       {
         loop = func.StartLoop("reactant term", 0, L);
         llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
@@ -273,7 +273,7 @@ namespace micm
 
       // set jacobian terms for each product jac[i_prod][i_ind][i_cell] -= yield * d_rate_d_ind[i_cell]
       for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
-        {
+      {
         loop = func.StartLoop("product term", 0, L);
         llvm::Value *dep_id = llvm::ConstantInt::get(*(func.context_), llvm::APInt(64, *(flat_id++)));
         ptr_index[0] = func.builder_->CreateNSWAdd(loop.index_, dep_id);

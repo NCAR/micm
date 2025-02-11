@@ -115,7 +115,7 @@ namespace micm
     ProcessSetParam hoststruct;
     std::vector<ProcessInfoParam> jacobian_process_info(this->jacobian_process_info_.size());
     std::size_t i_process = 0;
-    for (const auto & process_info : this->jacobian_process_info_)
+    for (const auto& process_info : this->jacobian_process_info_)
     {
       jacobian_process_info[i_process].process_id_ = process_info.process_id_;
       jacobian_process_info[i_process].independent_id_ = process_info.independent_id_;
