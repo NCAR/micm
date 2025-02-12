@@ -64,12 +64,24 @@ namespace micm
       class LMatrixPolicy,
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State()
-      : conditions_(),
-        variables_(),
+      : variables_(),
         custom_rate_parameters_(),
         rate_constants_(),
-        jacobian_()
+        conditions_(),
+        jacobian_(),
+        jacobian_diagonal_elements_(),
+        variable_map_(),
+        custom_rate_parameter_map_(),
+        variable_names_(),
+        lower_matrix_(),
+        upper_matrix_(),
+        state_size_(0),
+        number_of_grid_cells_(0),
+        temporary_variables_(nullptr),
+        relative_tolerance_(1e-06),
+        absolute_tolerance_()
   {
+    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
   }
 
   template<
@@ -88,6 +100,7 @@ namespace micm
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
         jacobian_(),
+        jacobian_diagonal_elements_(),
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
@@ -119,6 +132,8 @@ namespace micm
       lower_matrix_ = lower_matrix;
       upper_matrix_ = upper_matrix;
     }
+
+    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
   }
 
   template<
