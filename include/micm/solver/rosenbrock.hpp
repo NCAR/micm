@@ -19,7 +19,6 @@
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
-#include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 
@@ -53,7 +52,6 @@ namespace micm
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
-    std::vector<std::size_t> jacobian_diagonal_elements_;
 
     static constexpr double DELTA_MIN = 1.0e-6;
 
@@ -63,8 +61,6 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    /// @param jacobian Jacobian matrix
-    ///
     /// Note: This constructor is not intended to be used directly. Instead, use the SolverBuilder to create a solver
     AbstractRosenbrockSolver(
         LinearSolverPolicy&& linear_solver,
@@ -72,8 +68,7 @@ namespace micm
         auto& jacobian,
         const size_t number_of_species)
         : linear_solver_(std::move(linear_solver)),
-          rates_(std::move(rates)),
-          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
+          rates_(std::move(rates))
     {
     }
 
@@ -93,10 +88,10 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
       requires(!VectorizableSparse<SparseMatrixPolicy>);
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
       requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix

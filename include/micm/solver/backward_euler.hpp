@@ -9,7 +9,6 @@
 #include <micm/solver/solver_result.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/system.hpp>
-#include <micm/util/jacobian.hpp>
 #include <micm/util/matrix.hpp>
 
 #include <algorithm>
@@ -34,7 +33,6 @@ namespace micm
    public:
     LinearSolverPolicy linear_solver_;
     RatesPolicy rates_;
-    std::vector<std::size_t> jacobian_diagonal_elements_;
 
     /// @brief Solver parameters typename
     using ParametersType = BackwardEulerSolverParameters;
@@ -42,11 +40,9 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    /// @param jacobian Jacobian matrix
     BackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
         : linear_solver_(std::move(linear_solver)),
-          rates_(std::move(rates)),
-          jacobian_diagonal_elements_(jacobian.DiagonalIndices(0))
+          rates_(std::move(rates))
     {
     }
 

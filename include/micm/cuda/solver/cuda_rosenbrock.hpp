@@ -79,8 +79,9 @@ namespace micm
       // jacobian.GroupVectorSize() is the same as the number of grid cells for the CUDA implementation
       // the absolute tolerance size is the same as the number of solved variables in one grid cell
       hoststruct.errors_size_ = jacobian.GroupVectorSize() * number_of_species;
-      hoststruct.jacobian_diagonal_elements_ = this->jacobian_diagonal_elements_.data();
-      hoststruct.jacobian_diagonal_elements_size_ = this->jacobian_diagonal_elements_.size();
+      auto diagonal_indices = jacobian.DiagonalIndices(0);
+      hoststruct.jacobian_diagonal_elements_ = diagonal_indices.data();
+      hoststruct.jacobian_diagonal_elements_size_ = diagonal_indices.size();
       // Copy the data from host struct to device struct
       this->devstruct_ = micm::cuda::CopyConstData(hoststruct);
     };
@@ -95,9 +96,10 @@ namespace micm
     /// @brief Computes [alpha * I - jacobian] on the GPU
     /// @tparam SparseMatrixPolicy
     /// @param jacobian Jacobian matrix
+    /// @param jacobian_diagonal_elements Diagonal elements of the Jacobian matrix, not used
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const double& alpha) const
+    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =
