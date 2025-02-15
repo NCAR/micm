@@ -99,7 +99,10 @@ namespace micm
     /// @param jacobian_diagonal_elements Diagonal elements of the Jacobian matrix, not used
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, const std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
+    void AlphaMinusJacobian(
+        SparseMatrixPolicy& jacobian,
+        const std::vector<std::size_t>& jacobian_diagonal_elements,
+        const double& alpha) const
       requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
     {
       auto jacobian_param =

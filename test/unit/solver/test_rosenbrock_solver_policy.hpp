@@ -57,7 +57,6 @@ void testAlphaMinusJacobian(SolverBuilderPolicy builder, std::size_t number_of_g
   auto jacobian = state.jacobian_;
   auto diagonal_elements = state.jacobian_diagonal_elements_;
 
-
   EXPECT_EQ(jacobian.NumberOfBlocks(), number_of_grid_cells);
   EXPECT_EQ(jacobian.NumRows(), 5);
   EXPECT_EQ(jacobian.NumColumns(), jacobian.NumRows());

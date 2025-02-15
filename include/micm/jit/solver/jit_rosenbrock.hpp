@@ -91,7 +91,10 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
+    void AlphaMinusJacobian(
+        SparseMatrixPolicy& jacobian,
+        std::vector<std::size_t>& jacobian_diagonal_elements,
+        const double& alpha) const
     {
       if (jacobian.GroupVectorSize() != jacobian.NumberOfBlocks())
       {

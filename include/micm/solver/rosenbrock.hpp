@@ -88,10 +88,16 @@ namespace micm
     /// @param jacobian Jacobian matrix (dforce_dy)
     /// @param alpha
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
+    void AlphaMinusJacobian(
+        SparseMatrixPolicy& jacobian,
+        std::vector<std::size_t>& jacobian_diagonal_elements,
+        const double& alpha) const
       requires(!VectorizableSparse<SparseMatrixPolicy>);
     template<class SparseMatrixPolicy>
-    void AlphaMinusJacobian(SparseMatrixPolicy& jacobian, std::vector<std::size_t>& jacobian_diagonal_elements, const double& alpha) const
+    void AlphaMinusJacobian(
+        SparseMatrixPolicy& jacobian,
+        std::vector<std::size_t>& jacobian_diagonal_elements,
+        const double& alpha) const
       requires(VectorizableSparse<SparseMatrixPolicy>);
 
     /// @brief Perform the LU decomposition of the matrix
