@@ -24,7 +24,6 @@ jobs:
           - Dockerfile.coverage
           - Dockerfile.llvm
           - Dockerfile.memcheck
-          - Dockerfile.no_json
           - Dockerfile.nvhpc
           - Dockerfile.openmp
           - Dockerfile.intel 
