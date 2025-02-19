@@ -7,7 +7,6 @@ RUN dnf -y update \
         gdb \
         git \
         make \
-        json-devel \
     && dnf clean all
 
 # copy the MICM code
