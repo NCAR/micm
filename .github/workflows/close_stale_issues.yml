@@ -1,4 +1,4 @@
-name: 'Close stale issues and PRs'
+name: 'Close stale issues'
 on:
   schedule:
     # Run every day at 7PM UTC
@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          stale-issue-message: 'This issue is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 5 days.'
-          close-issue-message: 'This issue was closed because it has been stalled for 5 days with no activity.'
-          days-before-stale: 30 # Mark as stale after 30 days of inactivity
-          days-before-close: 5  # Close issue if no activity after 5 days of being stale
+          stale-issue-message: 'This issue is stale because it has been open 180 days with no activity. Remove stale label or comment or this will be closed in 14 days.'
+          close-issue-message: 'This issue was closed because it has been stalled for 14 days with no activity.'
+          days-before-stale: 180 # Mark as stale after 180 days of inactivity
+          days-before-close: 14  # Close issue if no activity after 5 days of being stale
           days-before-pr-close: -1
           # Issues with this label are exempt from being checked if they are stale...
           exempt-issue-labels: Low Priority
