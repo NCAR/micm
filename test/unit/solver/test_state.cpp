@@ -2,6 +2,11 @@
 
 #include <gtest/gtest.h>
 
+TEST(State, DefaultConstructor){
+  EXPECT_NO_THROW(micm::State state);
+  EXPECT_NO_THROW(std::vector<micm::State<>> states(10));
+}
+
 TEST(State, Constructor)
 {
   micm::State state{ micm::StateParameters{

@@ -81,7 +81,6 @@ namespace micm
         relative_tolerance_(1e-06),
         absolute_tolerance_()
   {
-    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
   }
 
   template<
