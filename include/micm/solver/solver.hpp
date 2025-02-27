@@ -24,6 +24,8 @@ namespace micm
     std::vector<micm::Process> processes_;
 
    public:
+    using SolverPolicyType = SolverPolicy;
+    using StatePolicyType = StatePolicy;
     SolverPolicy solver_;
     SolverParametersType solver_parameters_;
 
