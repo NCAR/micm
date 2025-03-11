@@ -20,33 +20,27 @@ namespace micm
    public:
     /// @brief The list of species
     std::vector<Species> species_;
+    std::string name_;
 
-    /// @brief Default constructor
-    Phase()
-        : species_()
-    {
-    }
+    /// @brief Defaulted constructors and assignment operators
+    Phase() = default;
+    Phase(const Phase&) = default;
+    Phase(Phase&&) noexcept = default;
+    Phase& operator=(const Phase&) = default;
+    Phase& operator=(Phase&&) noexcept = default;
 
     /// @brief Create a phase with a set of species
-    /// @param species A unique list of species
-    Phase(const std::vector<Species>& species)
-        : species_(species)
-    {
-    }
-    Phase(const Phase& other)
-        : species_(other.species_)
+     Phase(const std::vector<Species>& species)
+        : name_(),
+          species_(species)
     {
     }
 
-    Phase(Phase&& phase) noexcept
-        : species_(std::move(phase.species_))
+    /// @brief Create a phase with a name and a set of species
+    Phase(const std::string& name, const std::vector<Species>& species)
+        : name_(name),
+          species_(species)
     {
-    }
-
-    Phase& operator=(const Phase& other)
-    {
-      species_ = other.species_;
-      return *this;
     }
 
     /// @brief Returns the number of non-parameterized species
