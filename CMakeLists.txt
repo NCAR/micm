@@ -99,10 +99,3 @@ if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STR
     # If the compiler is Clang, use libc++
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif()
-
-################################################################################
-# Command-line driver examples / Command-line profiler
-
-if(PROJECT_IS_TOP_LEVEL AND MICM_ENABLE_PROFILE)
-  add_subdirectory(examples)
-endif()
