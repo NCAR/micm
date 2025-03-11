@@ -1,4 +1,3 @@
-#include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 
