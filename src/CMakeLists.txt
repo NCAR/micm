@@ -29,12 +29,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "In
   endif ()
 endif ()
 
-
-if(MICM_ENABLE_CONFIG_READER)
-  target_link_libraries(micm INTERFACE yaml-cpp::yaml-cpp)
-  target_compile_definitions(micm INTERFACE USE_YAML)
-endif()
-
 if(MICM_ENABLE_OPENMP)
   target_link_libraries(micm INTERFACE OpenMP::OpenMP_CXX)
 endif()
