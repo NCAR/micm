@@ -12,8 +12,6 @@ TEST(OpenMP, OneSolverManyStates)
 {
   constexpr size_t n_threads = 8;
 
-  SolverConfig solverConfig;
-
   auto a = micm::Species("A");
   auto b = micm::Species("B");
   auto c = micm::Species("C");
