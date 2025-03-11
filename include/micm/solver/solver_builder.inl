@@ -310,30 +310,21 @@ namespace micm
       StatePolicy>::
       SetAbsoluteTolerances(std::vector<double>& tolerances, const std::map<std::string, std::size_t>& species_map) const
   {
-    if (tolerances.size() > 0 && tolerances.size() != species_map.size())
+    tolerances = std::vector<double>(species_map.size(), 1e-3);
+    for (auto& species : system_.gas_phase_.species_)
     {
-      throw std::system_error(
-          make_error_code(MicmSolverBuilderErrc::InvalidToleranceSize), "Invalid absolute tolerance vector size");
+      if (species.HasProperty("absolute tolerance"))
+      {
+        tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
+      }
     }
-    // if the tolerances aren't already set, initialize them and then set based off of information in the system
-    if (tolerances.size() != species_map.size())
+    for (auto& phase : system_.phases_)
     {
-      tolerances = std::vector<double>(species_map.size(), 1e-3);
-      for (auto& species : system_.gas_phase_.species_)
+      for (auto& species : phase.second.species_)
       {
         if (species.HasProperty("absolute tolerance"))
         {
           tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-        }
-      }
-      for (auto& phase : system_.phases_)
-      {
-        for (auto& species : phase.second.species_)
-        {
-          if (species.HasProperty("absolute tolerance"))
-          {
-            tolerances[species_map.at(species.name_)] = species.template GetProperty<double>("absolute tolerance");
-          }
         }
       }
     }

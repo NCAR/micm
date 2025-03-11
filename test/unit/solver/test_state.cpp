@@ -35,6 +35,212 @@ TEST(State, Constructor)
   EXPECT_EQ(state.rate_constants_[0].Size(), 10);
 }
 
+TEST(State, CopyConstructor)
+{
+  micm::State original{ micm::StateParameters{ .number_of_grid_cells_ = 3,
+                                               .number_of_rate_constants_ = 10,
+                                               .variable_names_{ "foo", "bar", "baz", "quz" },
+                                               .custom_rate_parameter_labels_{ "quux", "corge" },
+                                               .relative_tolerance_ = 1e-05,
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } } };
+
+  micm::State copy = original;
+
+  EXPECT_EQ(copy.number_of_grid_cells_, original.number_of_grid_cells_);
+  EXPECT_EQ(copy.variable_names_, original.variable_names_);
+  EXPECT_EQ(copy.custom_rate_parameter_map_, original.custom_rate_parameter_map_);
+  EXPECT_EQ(copy.variables_.NumRows(), original.variables_.NumRows());
+  EXPECT_EQ(copy.variables_.NumColumns(), original.variables_.NumColumns());
+  EXPECT_EQ(copy.custom_rate_parameters_.NumRows(), original.custom_rate_parameters_.NumRows());
+  EXPECT_EQ(copy.custom_rate_parameters_.NumColumns(), original.custom_rate_parameters_.NumColumns());
+  EXPECT_EQ(copy.rate_constants_.NumRows(), original.rate_constants_.NumRows());
+  EXPECT_EQ(copy.rate_constants_.NumColumns(), original.rate_constants_.NumColumns());
+  EXPECT_EQ(copy.relative_tolerance_, original.relative_tolerance_);
+  EXPECT_EQ(copy.absolute_tolerance_, original.absolute_tolerance_);
+
+  for (std::size_t i = 0; i < original.variables_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.variables_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.variables_[i][j], original.variables_[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.custom_rate_parameters_[i][j], original.custom_rate_parameters_[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < original.rate_constants_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.rate_constants_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.rate_constants_[i][j], original.rate_constants_[i][j]);
+    }
+  }
+}
+
+TEST(State, CopyAssignmentOperator)
+{
+  micm::State original{ micm::StateParameters{ .number_of_grid_cells_ = 3,
+                                               .number_of_rate_constants_ = 10,
+                                               .variable_names_{ "foo", "bar", "baz", "quz" },
+                                               .custom_rate_parameter_labels_{ "quux", "corge" },
+                                               .relative_tolerance_ = 1e-05,
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } } };
+
+  micm::State copy;
+  copy = original;
+
+  EXPECT_EQ(copy.number_of_grid_cells_, original.number_of_grid_cells_);
+  EXPECT_EQ(copy.variable_names_, original.variable_names_);
+  EXPECT_EQ(copy.custom_rate_parameter_map_, original.custom_rate_parameter_map_);
+  EXPECT_EQ(copy.variables_.NumRows(), original.variables_.NumRows());
+  EXPECT_EQ(copy.variables_.NumColumns(), original.variables_.NumColumns());
+  EXPECT_EQ(copy.custom_rate_parameters_.NumRows(), original.custom_rate_parameters_.NumRows());
+  EXPECT_EQ(copy.custom_rate_parameters_.NumColumns(), original.custom_rate_parameters_.NumColumns());
+  EXPECT_EQ(copy.rate_constants_.NumRows(), original.rate_constants_.NumRows());
+  EXPECT_EQ(copy.rate_constants_.NumColumns(), original.rate_constants_.NumColumns());
+  EXPECT_EQ(copy.relative_tolerance_, original.relative_tolerance_);
+  EXPECT_EQ(copy.absolute_tolerance_, original.absolute_tolerance_);
+
+  for (std::size_t i = 0; i < original.variables_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.variables_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.variables_[i][j], original.variables_[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < original.custom_rate_parameters_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.custom_rate_parameters_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.custom_rate_parameters_[i][j], original.custom_rate_parameters_[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < original.rate_constants_.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < original.rate_constants_.NumColumns(); ++j)
+    {
+      EXPECT_EQ(copy.rate_constants_[i][j], original.rate_constants_[i][j]);
+    }
+  }
+}
+
+TEST(State, MoveConstructor)
+{
+  micm::State original{ micm::StateParameters{ .number_of_grid_cells_ = 3,
+                                               .number_of_rate_constants_ = 10,
+                                               .variable_names_{ "foo", "bar", "baz", "quz" },
+                                               .custom_rate_parameter_labels_{ "quux", "corge" },
+                                               .relative_tolerance_ = 1e-05,
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } } };
+
+  auto expected_variable_names = original.variable_names_;
+  auto expected_custom_rate_parameter_map = original.custom_rate_parameter_map_;
+  auto expected_variables = original.variables_;
+  auto expected_custom_rate_parameters = original.custom_rate_parameters_;
+  auto expected_rate_constants = original.rate_constants_;
+
+  micm::State moved = std::move(original);
+
+  EXPECT_EQ(moved.number_of_grid_cells_, 3);
+  EXPECT_EQ(moved.variable_names_, expected_variable_names);
+  EXPECT_EQ(moved.custom_rate_parameter_map_, expected_custom_rate_parameter_map);
+  EXPECT_EQ(moved.variables_.NumRows(), 3);
+  EXPECT_EQ(moved.variables_.NumColumns(), 4);
+  EXPECT_EQ(moved.custom_rate_parameters_.NumRows(), 3);
+  EXPECT_EQ(moved.custom_rate_parameters_.NumColumns(), 2);
+  EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
+  EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
+  EXPECT_EQ(moved.relative_tolerance_, 1e-05);
+  EXPECT_EQ(moved.absolute_tolerance_, std::vector<double>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
+
+  for (std::size_t i = 0; i < expected_variables.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_variables.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.variables_[i][j], expected_variables[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.custom_rate_parameters_[i][j], expected_custom_rate_parameters[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < expected_rate_constants.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_rate_constants.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.rate_constants_[i][j], expected_rate_constants[i][j]);
+    }
+  }
+}
+
+TEST(State, MoveAssignmentOperator)
+{
+  micm::State original{ micm::StateParameters{ .number_of_grid_cells_ = 3,
+                                               .number_of_rate_constants_ = 10,
+                                               .variable_names_{ "foo", "bar", "baz", "quz" },
+                                               .custom_rate_parameter_labels_{ "quux", "corge" },
+                                               .relative_tolerance_ = 1e-05,
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } } };
+
+  auto expected_variable_names = original.variable_names_;
+  auto expected_custom_rate_parameter_map = original.custom_rate_parameter_map_;
+  auto expected_variables = original.variables_;
+  auto expected_custom_rate_parameters = original.custom_rate_parameters_;
+  auto expected_rate_constants = original.rate_constants_;
+
+  micm::State moved;
+  moved = std::move(original);
+
+  EXPECT_EQ(moved.number_of_grid_cells_, 3);
+  EXPECT_EQ(moved.variable_names_, expected_variable_names);
+  EXPECT_EQ(moved.custom_rate_parameter_map_, expected_custom_rate_parameter_map);
+  EXPECT_EQ(moved.variables_.NumRows(), 3);
+  EXPECT_EQ(moved.variables_.NumColumns(), 4);
+  EXPECT_EQ(moved.custom_rate_parameters_.NumRows(), 3);
+  EXPECT_EQ(moved.custom_rate_parameters_.NumColumns(), 2);
+  EXPECT_EQ(moved.rate_constants_.NumRows(), 3);
+  EXPECT_EQ(moved.rate_constants_.NumColumns(), 10);
+  EXPECT_EQ(moved.relative_tolerance_, 1e-05);
+  EXPECT_EQ(moved.absolute_tolerance_, std::vector<double>({ 1e-10, 1e-10, 1e-10, 1e-10 }));
+
+  for (std::size_t i = 0; i < expected_variables.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_variables.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.variables_[i][j], expected_variables[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < expected_custom_rate_parameters.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_custom_rate_parameters.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.custom_rate_parameters_[i][j], expected_custom_rate_parameters[i][j]);
+    }
+  }
+
+  for (std::size_t i = 0; i < expected_rate_constants.NumRows(); ++i)
+  {
+    for (std::size_t j = 0; j < expected_rate_constants.NumColumns(); ++j)
+    {
+      EXPECT_EQ(moved.rate_constants_[i][j], expected_rate_constants[i][j]);
+    }
+  }
+}
+
 TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
 {
   micm::State state{ micm::StateParameters{
