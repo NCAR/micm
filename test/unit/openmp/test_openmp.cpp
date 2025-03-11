@@ -1,6 +1,5 @@
 #include "run_solver.hpp"
 
-#include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 
@@ -15,13 +14,32 @@ TEST(OpenMP, OneSolverManyStates)
 
   SolverConfig solverConfig;
 
-  std::string config_path = "./unit_configs/robertson";
-  solverConfig.ReadAndParse(config_path);
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  auto chemical_system = solver_params.system_;
-  auto reactions = solver_params.processes_;
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b, b })
+                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b, c })
+                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
+  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   std::vector<std::vector<double>> results(n_threads);
 
