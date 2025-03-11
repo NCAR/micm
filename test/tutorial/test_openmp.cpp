@@ -66,15 +66,32 @@ int main()
 {
   constexpr size_t n_threads = 3;
 
-  SolverConfig solverConfig;
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
-  std::string config_path = "./configs/robertson";
-  solverConfig.ReadAndParse(config_path);
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  auto chemical_system = solver_params.system_;
-  auto reactions = solver_params.processes_;
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b, b })
+                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b, c })
+                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
+  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   std::vector<std::vector<double>> results(n_threads);
 
