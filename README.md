@@ -86,32 +86,6 @@ cd /build/
 make test
 ```
 
-# Using the MICM executable
-
-A simple driver for MICM is built with the library and can be used to solve a
-chemical system for given initial conditions over one time step.
-
-Just pass the driver the path to the folder containing a valid JSON
-mechanism configuration and the path to a CSV file holding the initial
-conditions.
-
-Several example mechanisms and sets of conditions can be found in the
-`/examples/configs/` folder.
-
-You can use them like this:
-
-```
-micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
-```
-
-The output should be:
-
-```
- time,          O,        O1D,         O2,         O3
-    0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
-   60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
-```
-
 # Using the MICM API
 
 The following example solves the fictitious chemical system:

@@ -18,7 +18,6 @@ RUN mkdir /build \
       && cmake  \
         -D MICM_ENABLE_CLANG_TIDY:BOOL=FALSE \
         -D MICM_ENABLE_OPENMP:BOOL=TRUE \
-        -D MICM_ENABLE_CONFIG_READER:BOOL=TRUE \
         ../micm \
       && make install -j 8
 

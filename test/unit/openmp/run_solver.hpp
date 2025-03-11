@@ -15,9 +15,9 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   double k1 = 0.04;
   double k2 = 3e7;
   double k3 = 1e4;
-  state.SetCustomRateParameter("PHOTO.r1", k1);
-  state.SetCustomRateParameter("PHOTO.r2", k2);
-  state.SetCustomRateParameter("PHOTO.r3", k3);
+  state.SetCustomRateParameter("r1", k1);
+  state.SetCustomRateParameter("r2", k2);
+  state.SetCustomRateParameter("r3", k3);
 
   double temperature = 272.5;  // [K]
   double pressure = 101253.3;  // [Pa]

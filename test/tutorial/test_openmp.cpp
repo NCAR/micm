@@ -1,4 +1,3 @@
-#include <micm/configure/solver_config.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/solver_builder.hpp>
 
@@ -34,9 +33,9 @@ std::vector<double> run_solver_on_thread_with_own_state(auto& solver, auto& stat
   double k1 = 0.04;
   double k2 = 3e7;
   double k3 = 1e4;
-  state.SetCustomRateParameter("PHOTO.r1", k1);
-  state.SetCustomRateParameter("PHOTO.r2", k2);
-  state.SetCustomRateParameter("PHOTO.r3", k3);
+  state.SetCustomRateParameter("r1", k1);
+  state.SetCustomRateParameter("r2", k2);
+  state.SetCustomRateParameter("r3", k3);
 
   double temperature = 272.5;  // [K]
   double pressure = 101253.3;  // [Pa]
@@ -67,15 +66,32 @@ int main()
 {
   constexpr size_t n_threads = 3;
 
-  SolverConfig solverConfig;
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
-  std::string config_path = "./configs/robertson";
-  solverConfig.ReadAndParse(config_path);
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  auto chemical_system = solver_params.system_;
-  auto reactions = solver_params.processes_;
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b, b })
+                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b, c })
+                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
+  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   std::vector<std::vector<double>> results(n_threads);
 
