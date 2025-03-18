@@ -14,77 +14,7 @@
 #include <vector>
 
 using yields = std::pair<micm::Species, double>;
-
 using SparseMatrixTest = micm::SparseMatrix<double>;
-
-#ifdef USE_YAML
-  #include <micm/configure/solver_config.hpp>
-
-TEST(ChapmanIntegration, CanBuildChapmanSystemUsingConfig)
-{
-  micm::SolverConfig solverConfig;  // Set to throw-exception policy
-
-  // Read and parse the configure files
-  // If parsing fails, it could throw exceptions - we probably want to catch them.
-  std::string config_path = "./unit_configs/small_mechanism";
-  EXPECT_NO_THROW(solverConfig.ReadAndParse(config_path));
-
-  // Get solver parameters ('System', the collection of 'Process')
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
-
-  auto options = solver_params.parameters_;
-
-  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(options)
-                    .SetSystem(solver_params.system_)
-                    .SetReactions(solver_params.processes_)
-                    .SetIgnoreUnusedSpecies(true)
-                    .Build();
-
-  micm::State state = solver.GetState();
-  state.SetRelativeTolerance(solver_params.relative_tolerance_);
-  EXPECT_EQ(state.relative_tolerance_, 1.0e-4);
-  auto& abs_tol = state.absolute_tolerance_;
-
-  for (size_t n_grid_cell = 0; n_grid_cell < state.number_of_grid_cells_; ++n_grid_cell)
-  {
-    EXPECT_EQ(abs_tol[state.variable_map_["Ar"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["CO2"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["H2O"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["N2"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["O1D"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["O"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["O2"]], 1.0e-12);
-    EXPECT_EQ(abs_tol[state.variable_map_["O3"]], 1.0e-12);
-  }
-
-  // User gives an input of concentrations
-  std::unordered_map<std::string, std::vector<double>> concentrations = { { "O", { 0.1 } },   { "O1D", { 0.1 } },
-                                                                          { "O2", { 0.1 } },  { "O3", { 0.2 } },
-                                                                          { "Ar", { 0.2 } },  { "N2", { 0.3 } },
-                                                                          { "H2O", { 0.3 } }, { "CO2", { 0.3 } } };
-
-  state.SetConcentrations(concentrations);
-
-  // User gives an input of photolysis rate constants
-  std::unordered_map<std::string, std::vector<double>> photo_rates = { { "PHOTO.O2_1", { 0.1 } },
-                                                                       { "PHOTO.O3_1", { 0.2 } },
-                                                                       { "PHOTO.O3_2", { 0.3 } } };
-
-  state.SetCustomRateParameters(photo_rates);
-
-  state.conditions_[0].temperature_ = 2;
-  state.conditions_[0].pressure_ = 3;
-  state.conditions_[0].air_density_ = 0.2;
-
-  for (double t{}; t < 100; ++t)
-  {
-    state.SetCustomRateParameters(photo_rates);
-    solver.CalculateRateConstants(state);
-    auto result = solver.Solve(30.0, state);
-    // output state
-  }
-}
-#endif
 
 TEST(ChapmanIntegration, CanBuildChapmanSystem)
 {
