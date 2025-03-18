@@ -58,7 +58,7 @@ acceptance/rejection of solutions and the existence of singular matrix.
 
 .. literalinclude:: ../../../test/tutorial/test_solver_results.cpp
   :language: cpp
-  :lines: 69-80
+  :lines: 75-85
 
 .. code-block:: bash
 

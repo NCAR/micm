@@ -7,7 +7,7 @@ MICM supports a subset of the rate constants defined as part of the
 `OpenAtmos Mechanism Configuration <https://open-atmos.github.io/MechanismConfiguration/reactions/index.html>`_
 We will be adding more in the future. 
 The links to the ``micm`` classes below detail the class and methods. Please check the OpenAtmos standard for
-specific on the algorithm implemented for each rate constant type.
+specifics on the algorithm implemented for each rate constant type.
 At present, supported rate constants are:
 
 - :cpp:class:`micm::ArrheniusRateConstant`, `OpenAtmos Arrhenius description <https://open-atmos.github.io/MechanismConfiguration/reactions/arrhenius.html>`_
@@ -16,7 +16,7 @@ At present, supported rate constants are:
 - :cpp:class:`micm::TernaryChemicalActivationRateConstant`, `OpenAtmos Ternay chemical activiation description <https://open-atmos.github.io/MechanismConfiguration/reactions/ternary_chemical_activation.html>`_
 - :cpp:class:`micm::TroeRateConstant`, `OpenAtmos Troe description <https://open-atmos.github.io/MechanismConfiguration/reactions/troe.html>`_
 - :cpp:class:`micm::TunnelingRateConstant`, `OpenAtmos Tunneling description <https://open-atmos.github.io/MechanismConfiguration/reactions/tunneling.html>`_
-- :cpp:class:`micm::UserDefinedRateConstant`, this is a custom type, but this is how photolysis rates are setup `OpenAtmos Photolysis description <https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html>`_
+- :cpp:class:`micm::UserDefinedRateConstant`, this is a custom type, but this is how photolysis, first order loss, and emission rates are setup `OpenAtmos Photolysis description <https://open-atmos.github.io/MechanismConfiguration/reactions/photolysis.html>`_
 
 This tutorial covers all but the last one. See the :ref:`User defined rate constants` tutorial for examples and use
 cases on that.
@@ -46,19 +46,6 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
     .. tab-item:: Build the Mechanism with the API
 
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
-          :language: cpp
-
-    .. tab-item:: OpenAtmos Configuration reading
-
-        .. raw:: html
-
-            <div class="download-div">
-              <a href="../_static/tutorials/rate_constants_no_user_defined.zip" download>
-                <button class="download-button">Download zip configuration</button>
-              </a>
-            </div>
-
-        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
           :language: cpp
 
 Line-by-line explanation
@@ -109,15 +96,6 @@ and our reactions, which will be a vector of :cpp:class:`micm::Process` We will 
           :language: cpp
           :lines: 104-105
 
-    .. tab-item:: OpenAtmos Configuration reading
-
-        After defining a valid OpenAtmos configuration with reactions that ``micm`` supports, configuring the chemical
-        system and the processes is as simple as using the :cpp:class:`micm::SolverConfig` class
-
-        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
-          :language: cpp
-          :lines: 21-32
-
 Now that we have a chemical system and a list of reactions, we can create the RosenbrockSolver.
 There are several ways to configure the solver. Here we are using a three stage solver. More options
 can be found in the :cpp:class:`micm::RosenbrockSolverParameters` and in the :ref:`Solver Configurations` tutorial.
@@ -143,12 +121,6 @@ Initializing the state
         .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_by_hand.cpp
           :language: cpp
           :lines: 111-126
-
-    .. tab-item:: OpenAtmos Configuration reading
-
-        .. literalinclude:: ../../../test/tutorial/test_rate_constants_no_user_defined_with_config.cpp
-          :language: cpp
-          :lines: 44-63
 
 
 Finally, we are ready to pick a timestep and solve the system.
