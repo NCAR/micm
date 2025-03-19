@@ -26,16 +26,6 @@ All of these tutorials are included in our automated tests. Each of them can be 
     $ ./test_rate_constants_user_defined_example_by_hand
 
 
-If you would like to include the json examples, you must configure micm to build with json support.
-
-.. code-block:: console
-  
-    $ cmake -DMICM_ENABLE_CONFIG_READER=ON ..
-    $ make
-    $ ./test_rate_constants_no_user_defined_example_with_config
-    $ ./test_rate_constants_user_defined_example_with_config
-
-
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
@@ -45,7 +35,7 @@ If you would like to include the json examples, you must configure micm to build
    user_defined_rate_constant_tutorial
    multiple_grid_cells
    solver_configurations
-   but_how_fast_is_it
+   solver_results
    openmp
    jit
    vectorized_matrix_solver

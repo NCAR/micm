@@ -79,7 +79,7 @@ Up until now, we've mostly created our :cpp:class:`micm::RosenbrockSolver` solve
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 86
+  :lines: 87-91
 
 The empty angle brackets ``<>`` tell the compiler to use the default template paramters. The first two are most important and
 denote the ``MatrixPolicy`` and ``SparseMatrixPolicy`` to be used when we solve. By default, these are :cpp:class:`micm::Matrix`
@@ -92,7 +92,7 @@ Here, when setting the species, read the double as ``grid cell.species``.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 88-97
+  :lines: 93-104
 
 .. code-block:: bash
 
@@ -113,17 +113,11 @@ But, if we create a vectorized solver, set the same concentrations and print out
 first by species (rows) and then by grid cell (columns).
 Note that we needed to set some partial template specializations at the top of the file to create these.
 
-At the top of the file:
+To create a vectorized solver, we must pass the appropriate templates as the template arguments to the Rosenbrock solver class.
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 14-18
-
-and then we pass these templates as the template arguments to the vectorized Rosenbrock solver 
-
-.. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
-  :language: cpp
-  :lines: 101-112
+  :lines: 106-114
 
 .. code-block:: bash
 
@@ -147,7 +141,7 @@ In fact, you can use the vectorized solver just as you would the regular solver,
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 116-134
+  :lines: 127-145
 
 .. code-block:: bash
 
@@ -187,9 +181,9 @@ diagonal has the same sparsity structure.
 
    * The sparse matrix allows you to select the standard or vector ordering by applying a ordering policy to the :cpp:class:`micm::SparseMatrix` type.
 
-      * :cpp:class:`micm::SparseMatrixStandardOrdering`
+      * :cpp:class:`micm::SparseMatrixStandardOrderingCompressedSparseRow`
 
-      * :cpp:class:`micm::SparseMatrixVectorOrdering`
+      * :cpp:class:`micm::SparseMatrixVectorOrderingCompressedSparseRow`
 
 
 To demonstrate the effects of the ordering policy on sparse matrix objects, we create the same sparse matrix
@@ -210,13 +204,13 @@ We created matrices of strings so the values can be set as ``block.column.row``:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 154-165
+  :lines: 147-161
 
 We can again see the effects of the ordering policy by accessing the underlying data vector directly:
 
 .. literalinclude:: ../../../test/tutorial/test_vectorized_matrix_solver.cpp
   :language: cpp
-  :lines: 167-176
+  :lines: 163-185
 
 .. code-block:: bash
 

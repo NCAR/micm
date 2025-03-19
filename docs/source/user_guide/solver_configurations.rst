@@ -45,14 +45,14 @@ Configuring the rosenbrock solver is as easy as providing the solver with a set 
 
 .. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
   :language: cpp
-  :lines: 121-133
+  :lines: 113-136
 
 After that, the usage is the same as a regular solver. A templated method was used here to run the same solving code
 for each of the different solver configurations.
 
 .. literalinclude:: ../../../test/tutorial/test_solver_configuration.cpp
   :language: cpp
-  :lines: 10-90
+  :lines: 12-82
 
 Running this program should give an output similar to this:
 

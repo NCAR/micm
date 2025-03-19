@@ -36,19 +36,6 @@ the appropriate tab below and be on your way! Otherwise, stick around for a line
     .. literalinclude:: ../../../test/tutorial/test_rate_constants_user_defined_by_hand.cpp
       :language: cpp
 
-  .. tab-item:: OpenAtmos Configuration reading
-
-    .. raw:: html
-
-      <div class="download-div">
-        <a href="../_static/tutorials/rate_constants_user_defined.zip" download>
-          <button class="download-button">Download zip configuration</button>
-        </a>
-      </div>
-
-    .. literalinclude:: ../../../test/tutorial/test_rate_constants_user_defined_with_config.cpp
-      :language: cpp
-
 Line-by-line explanation
 ------------------------
 

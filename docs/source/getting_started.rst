@@ -42,8 +42,6 @@ JIT-compiled chemistry functions, and GPUs. Each of these requires an additional
 Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
-- YAML configuration support
-  - When building micm, you need to enable the YAML option. This will download and configure the `jbeder/yaml-cpp library <https://github.com/jbeder/yaml-cpp>`_  for you. For example: ``cmake -DMICM_ENABLE_CONFIG_READER=ON ..``
 - JIT-compiled chemistry functions 
   - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
@@ -66,30 +64,6 @@ If you would like, you can ssh into a running docker container and edit the file
 
 Run an Example
 --------------
-
-MICM Executable Example
-^^^^^^^^^^^^^^^^^^^^^^^
-
-A simple driver for MICM is built with the library and can be used to solve a
-chemical system for given initial conditions over one time step.
-
-Just pass the driver the path to the folder containing a valid YAMl
-mechanism configuration and the path to a CSV file holding the initial
-conditions.
-
-Several example mechanisms and sets of conditions can be found in the
-``/examples/configs/`` folder.
-
-You can use them like this::
-
-  $ micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
-
-The output should be::
-
-  time,          O,        O1D,         O2,         O3
-     0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
-    60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
-
 
 MICM API Example
 ^^^^^^^^^^^^^^^^
