@@ -46,7 +46,7 @@ namespace micm
       RosenbrockSolver<RatesPolicy, LinearSolverPolicy>::operator=(std::move(other));
       devstruct_ = std::move(other.devstruct_);
       other.devstruct_.errors_input_ = nullptr;
-      other.devstruct_.errors_output_ = nullptr; 
+      other.devstruct_.errors_output_ = nullptr;
       other.devstruct_.jacobian_diagonal_elements_ = nullptr;
       return *this;
     };
