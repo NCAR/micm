@@ -106,9 +106,6 @@ To solve this system save the following code in a file named `foo_chem.cpp`:
 #include <iomanip>
 #include <iostream>
 
-#define _USE_MATH_DEFINES // for C++
-#include <cmath>
-
 using namespace micm;
 
 int main(const int argc, const char *argv[])
