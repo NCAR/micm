@@ -62,12 +62,6 @@ namespace micm
       rates_.AddForcingTerms(state.rate_constants_, Y, initial_forcing);
       stats.function_calls_ += 1;
 
-      // For memory optimization, the initial forcing can be reused for the first stage.
-      // However, we must always copy the initial forcing to the first stage because K[0] 
-      // and the initial forcing are frequently swapped. This ensures the initial forcing 
-      // remains available for reuse.
-      K[0].Copy(initial_forcing);
-
       // compute the negative jacobian at the beginning of the current time
       state.jacobian_.Fill(0);
       rates_.SubtractJacobianTerms(state.rate_constants_, Y, state.jacobian_);
@@ -97,7 +91,7 @@ namespace micm
           double stage_combinations = ((stage + 1) - 1) * ((stage + 1) - 2) / 2;
           if (stage == 0)
           {
-            K[stage].Swap(initial_forcing);
+            K[stage].Copy(initial_forcing);
           }
           else
           {
