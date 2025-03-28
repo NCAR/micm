@@ -212,7 +212,7 @@ namespace micm
     }
 
     // Swap the device data from the other Cuda dense matrix into this one
-    void Swap(const CudaDenseMatrix& other)
+    void Swap(CudaDenseMatrix& other)
     {
       if (other.param_.number_of_elements_ != this->param_.number_of_elements_)
       {
