@@ -218,6 +218,9 @@ namespace micm
       {
         throw std::runtime_error("Both CUDA dense matrices must have the same size.");
       }
+      // We don't swap the memory allocated on the host, we just swap the
+      // device pointers. This is because the device memory will be overwrite
+      // the host memory when the device data is copied to the host.
       std::swap(this->param_.d_data_, other.param_.d_data_);
     }
 
