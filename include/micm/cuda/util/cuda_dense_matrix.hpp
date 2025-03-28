@@ -211,6 +211,19 @@ namespace micm
       CHECK_CUDA_ERROR(micm::cuda::CopyToDeviceFromDevice<T>(this->param_, other.param_), "cudaMemcpyDeviceToDevice");
     }
 
+    // Swap the device data from the other Cuda dense matrix into this one
+    void Swap(CudaDenseMatrix& other)
+    {
+      if (other.param_.number_of_elements_ != this->param_.number_of_elements_)
+      {
+        throw std::runtime_error("Both CUDA dense matrices must have the same size.");
+      }
+      // We don't swap the memory allocated on the host, we just swap the
+      // device pointers. This is because the device memory will be overwrite
+      // the host memory when the device data is copied to the host.
+      std::swap(this->param_.d_data_, other.param_.d_data_);
+    }
+
     /// @brief Set every matrix element to a given value on the GPU
     /// @param val Value to set each element to
     void Fill(T val)
