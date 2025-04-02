@@ -1,9 +1,9 @@
 #include "../../solver/test_lu_decomposition_policy.hpp"
 
-#include <micm/cuda/solver/cuda_lu_decomposition_doolittle.hpp>
+#include <micm/cuda/solver/cuda_lu_decomposition_mozart_in_place.hpp>
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
-#include <micm/solver/lu_decomposition_doolittle.hpp>
+#include <micm/solver/lu_decomposition_mozart_in_place.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 
@@ -46,20 +46,27 @@ void testCudaRandomMatrix(size_t n_grids)
         }
       }
 
-  micm::CudaLuDecompositionDoolittle gpu_lud(gpu_A);
-  auto gpu_LU = micm::CudaLuDecompositionDoolittle::GetLUMatrices(gpu_A, 0);
-  gpu_A.CopyToDevice();
-  gpu_LU.first.CopyToDevice();
-  gpu_LU.second.CopyToDevice();
-  gpu_lud.Decompose<GPUSparseMatrixPolicy>(gpu_A, gpu_LU.first, gpu_LU.second);
-  gpu_LU.first.CopyToHost();
-  gpu_LU.second.CopyToHost();
+  micm::CudaLuDecompositionMozartInPlace gpu_lud(gpu_A);
+  auto gpu_ALU = micm::CudaLuDecompositionMozartInPlace::GetLUMatrices(gpu_A, 0);
+  for (std::size_t i = 0; i < 10; ++i)
+    for (std::size_t j = 0; j < 10; ++j)
+      if (!gpu_A.IsZero(i, j))
+      {
+        gpu_ALU[0][i][j] = gpu_A[0][i][j];
+        for (std::size_t i_block = 1; i_block < n_grids; ++i_block)
+        {
+          gpu_ALU[i_block][i][j] = gpu_ALU[0][i][j];
+        }
+      }
+  gpu_ALU.CopyToDevice();
+  gpu_lud.Decompose<GPUSparseMatrixPolicy>(gpu_ALU);
+  gpu_ALU.CopyToHost();
   check_results<typename GPUSparseMatrixPolicy::value_type, GPUSparseMatrixPolicy>(
-      gpu_A, gpu_LU.first, gpu_LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
+      gpu_A, gpu_ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 
-  micm::LuDecompositionDoolittle cpu_lud = micm::LuDecompositionDoolittle::Create<CPUSparseMatrixPolicy>(cpu_A);
-  auto cpu_LU = micm::LuDecompositionDoolittle::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 0);
-  cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A, cpu_LU.first, cpu_LU.second);
+  micm::LuDecompositionMozartInPlace cpu_lud = micm::LuDecompositionMozartInPlace::Create<CPUSparseMatrixPolicy>(cpu_A);
+  auto cpu_LU = micm::LuDecompositionMozartInPlace::GetLUMatrices<CPUSparseMatrixPolicy>(cpu_A, 0);
+  cpu_lud.Decompose<CPUSparseMatrixPolicy>(cpu_A);
 
   // checking GPU result again CPU
   size_t L_size = cpu_LU.first.AsVector().size();
