@@ -16,29 +16,26 @@ namespace micm
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
-      const std::tuple<std::size_t, std::size_t, std::size_t>* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_
-      const std::size_t* const __restrict__ d_aji = devstruct.aji_;
-      const std::pair<std::size_t, std::size_t>* const __restrict__ d_aik_njk = devstruct.aik_njk_;
-      const std::pair<std::size_t, std::size_t>* const __restrict__ d_ajk_aji = devstruct.ajk_aji_;
+      const std::tuple<std::size_t, std::size_t, std::size_t>* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
+      const std::size_t* __restrict__ d_aji = devstruct.aji_;
+      const std::pair<std::size_t, std::size_t>* __restrict__ d_aik_njk = devstruct.aik_njk_;
+      const std::pair<std::size_t, std::size_t>* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
       const std::size_t d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
-      const std::size_t d_aji_size = devstruct.aji_size_;
-      const std::size_t d_aik_njk_size = devstruct.aik_njk_size_;
-      const std::size_t d_ajk_aji_size = devstruct.ajk_aji_size_;
 
       double* const __restrict__ d_ALU = ALU_param.d_data_;
       const size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
 
       if (tid < number_of_grid_cells)
       {
-        for (std:size_t i = 0; i < d_aii_nji_nki_size; ++i)
+        for (std::size_t i = 0; i < d_aii_nji_nki_size; ++i)
         {
-            auto& d_aii_nji_nki_elem = d_aii_nji_nki_[i];
-            auto& d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
+            auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
+            auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
             auto d_Aii_inverse = 1.0 / d_Aii[tid];
             for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
             {
-                auto& d_ALU_ji = d_ALU + *d_aji;
-                d_ALU_ji *= d_Aii_inverse;
+                auto d_ALU_ji = d_ALU + *d_aji;
+                *d_ALU_ji *= d_Aii_inverse;
                 ++d_aji;
             }
             for (std::size_t ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
@@ -47,9 +44,9 @@ namespace micm
                 const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
                 for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
                 {
-                    auto& d_ALU_first = d_ALU_ + *d_ajk_aji_->first;
-                    auto& d_ALU_second = d_ALU_ + *d_ajk_aji_->second;
-                    auto& d_ALU_aik = d_ALU_ + d_aik_njk_first;
+                    auto d_ALU_first = d_ALU + d_ajk_aji->first;
+                    auto d_ALU_second = d_ALU + d_ajk_aji->second;
+                    auto d_ALU_aik = d_ALU + d_aik_njk_first;
                     *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
                     ++d_ajk_aji;
                 }
@@ -61,7 +58,7 @@ namespace micm
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaDoolittleLuDecomposition" to the device
-    LuDecomposeDoolittleParam CopyConstData(LuDecomposeDoolittleParam& hoststruct)
+    LuDecomposeMozartInPlaceParam CopyConstData(LuDecomposeMozartInPlaceParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
       size_t aii_nji_nki_bytes = sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * hoststruct.aii_nji_nki_size_;
@@ -107,7 +104,7 @@ namespace micm
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaDoolittleLuDecomposition" on the device
-    void FreeConstData(LuDecomposeDoolittleParam& devstruct)
+    void FreeConstData(LuDecomposeMozartInPlaceParam& devstruct)
     {
       if (devstruct.aii_nji_nki_ != nullptr)
         CHECK_CUDA_ERROR(

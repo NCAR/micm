@@ -90,7 +90,7 @@ namespace micm
       requires(VectorizableSparse<SparseMatrixPolicy>)
     void Decompose(SparseMatrixPolicy& ALU) const;
 
-   private:
+   protected:
     /// @brief Initialize arrays for the LU decomposition
     /// @param A Sparse matrix to decompose
     template<class SparseMatrixPolicy>

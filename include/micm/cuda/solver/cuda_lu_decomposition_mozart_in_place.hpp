@@ -92,6 +92,7 @@ namespace micm
     requires(CudaMatrix<SparseMatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
   void CudaLuDecompositionMozartInPlace::Decompose(SparseMatrixPolicy& ALU) const
   {
-    micm::cuda::DecomposeKernelDriver(ALU.AsDeviceParam(), this->devstruct_);
+    auto ALU_param = ALU.AsDeviceParam();
+    micm::cuda::DecomposeKernelDriver(ALU_param, this->devstruct_);
   }
 }  // end of namespace micm
