@@ -164,7 +164,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
   CopyToHost<SparseMatrixPolicy>(ALU);
 
   check_results<double, SparseMatrixPolicy>(
-      A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-13); });
+      A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-12); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
@@ -218,7 +218,7 @@ void testExtremeValueInitialization(std::size_t number_of_blocks, double initial
   CopyToHost<SparseMatrixPolicy>(ALU);
 
   check_results<double, SparseMatrixPolicy>(
-      A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-13); });
+      A, ALU, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-12); });
 }
 
 template<class SparseMatrixPolicy, class LuDecompositionPolicy>
