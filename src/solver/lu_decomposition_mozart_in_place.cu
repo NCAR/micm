@@ -34,7 +34,7 @@ namespace micm
             auto d_Aii_inverse = 1.0 / d_Aii[tid];
             for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
             {
-                auto d_ALU_ji = d_ALU + *d_aji;
+                auto d_ALU_ji = d_ALU + *d_aji + tid;
                 *d_ALU_ji *= d_Aii_inverse;
                 ++d_aji;
             }
@@ -44,9 +44,9 @@ namespace micm
                 const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
                 for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
                 {
-                    auto d_ALU_first = d_ALU + d_ajk_aji->first;
-                    auto d_ALU_second = d_ALU + d_ajk_aji->second;
-                    auto d_ALU_aik = d_ALU + d_aik_njk_first;
+                    auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
+                    auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
+                    auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
                     *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
                     ++d_ajk_aji;
                 }
