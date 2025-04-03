@@ -46,7 +46,7 @@ struct ProcessSetParam
 };
 
 /// This struct holds the (1) pointer to, and (2) size of
-///   each constatnt data member from the class "LuDecompositionMozartInPlace";
+///   each constant data member from the class "LuDecompositionMozartInPlace";
 /// This struct could be allocated on the host or device;
 struct LuDecomposeMozartInPlaceParam
 {
