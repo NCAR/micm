@@ -54,7 +54,7 @@ namespace micm
         const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp)
         : LinearSolverInPlace<SparseMatrixPolicy, LuDecompositionPolicy>(matrix, initial_value, create_lu_decomp)
     {
-      LinearSolverParam hoststruct;
+      LinearSolverInPlaceParam hoststruct;
 
       hoststruct.nLij_ = this->nLij_.data();
       hoststruct.Lij_yj_ = this->Lij_yj_.data();

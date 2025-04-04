@@ -13,22 +13,22 @@ namespace micm
     __global__ void SolveKernel(
         CudaMatrixParam x_param,
         const CudaMatrixParam ALU_param,
-        const LinearSolverParam devstruct)
+        const LinearSolverInPlaceParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
       const std::size_t* const __restrict__ d_nLij = devstruct.nLij_;
-      const std::pair<std::size_t, std::size_t>* const __restrict__ d_Lij_yj = devstruct.Lij_yj_;
+      const std::pair<std::size_t, std::size_t>* __restrict__ d_Lij_yj = devstruct.Lij_yj_;
       const std::pair<std::size_t, std::size_t>* const __restrict__ d_nUij_Uii = devstruct.nUij_Uii_;
-      const std::pair<std::size_t, std::size_t>* const __restrict__ d_Uij_xj = devstruct.Uij_xj_;
-      const std::size_t d_nLij_size = devstruct.nLij_Lii_size_;
+      const std::pair<std::size_t, std::size_t>* __restrict__ d_Uij_xj = devstruct.Uij_xj_;
+      const std::size_t d_nLij_size = devstruct.nLij_size_;
       const std::size_t d_nUij_Uii_size = devstruct.nUij_Uii_size_;
 
       const double* const __restrict__ d_ALU = ALU_param.d_data_;
       double* const d_x = x_param.d_data_;
-      double* const d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
+      double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
       const std::size_t number_of_grid_cells = x_param.number_of_grid_cells_;
       const std::size_t number_of_elements = x_param.number_of_elements_;
       const std::size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
@@ -66,7 +66,7 @@ namespace micm
               d_y[tid] -= d_ALU_ptr[tid] * d_x_ptr[tid];
               ++d_Uij_xj;
             }
-            auto d_ALU_ptr = d_ALU + d_nUij_Uii.second;
+            auto d_ALU_ptr = d_ALU + d_nUij_Uii[i].second;
             d_y[tid] /= d_ALU_ptr[tid];
             d_y -= number_of_grid_cells;
           }
@@ -76,7 +76,7 @@ namespace micm
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLinearSolver" to the device
-    LinearSolverParam CopyConstData(LinearSolverParam& hoststruct)
+    LinearSolverInPlaceParam CopyConstData(LinearSolverInPlaceParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
       size_t nLij_bytes = sizeof(size_t) * hoststruct.nLij_size_;
@@ -85,7 +85,7 @@ namespace micm
       size_t Uij_xj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Uij_xj_size_;
 
       /// Create a struct whose members contain the addresses in the device memory.
-      LinearSolverParam devstruct;
+      LinearSolverInPlaceParam devstruct;
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
               &(devstruct.nLij_), nLij_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
@@ -147,7 +147,7 @@ namespace micm
 
     /// This is the function that will delete the constant data
     ///   members of class "CudaLinearSolver" on the device
-    void FreeConstData(LinearSolverParam& devstruct)
+    void FreeConstData(LinearSolverInPlaceParam& devstruct)
     {
       if (devstruct.nLij_ != nullptr)
         CHECK_CUDA_ERROR(
@@ -166,7 +166,7 @@ namespace micm
     void SolveKernelDriver(
         CudaMatrixParam& x_param,
         const CudaMatrixParam& ALU_param,
-        const LinearSolverParam& devstruct)
+        const LinearSolverInPlaceParam& devstruct)
     {
       size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(

@@ -250,7 +250,7 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
         if (!A.IsZero(i, j))
           alu[i_block][i][j] = A[i_block][i][j];
         else
-          if (!ALU.IsZero(i,j)) ALU[i_block][i][j] = 0;
+          if (!alu.IsZero(i,j)) alu[i_block][i][j] = 0;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(alu);
