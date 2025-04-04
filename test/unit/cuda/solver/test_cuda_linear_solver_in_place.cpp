@@ -19,15 +19,11 @@
 
 using FloatingPointType = double;
 
-using Group10000VectorMatrix = micm::VectorMatrix<FloatingPointType, 10000>;
-
 using Group1CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 1>;
 using Group20CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 20>;
 using Group300CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 300>;
 using Group4000CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 4000>;
 using Group10000CudaDenseMatrix = micm::CudaDenseMatrix<FloatingPointType, 10000>;
-
-using Group10000SparseVectorMatrix = micm::SparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<10000>>;
 
 using Group1CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<1>>;
 using Group20CudaSparseMatrix = micm::CudaSparseMatrix<FloatingPointType, micm::SparseMatrixVectorOrdering<20>>;
