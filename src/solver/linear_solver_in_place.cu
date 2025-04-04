@@ -31,7 +31,6 @@ namespace micm
       double* d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
       const std::size_t number_of_grid_cells = x_param.number_of_grid_cells_;
       const std::size_t number_of_elements = x_param.number_of_elements_;
-      const std::size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
 
       if (tid < number_of_grid_cells)
       {
