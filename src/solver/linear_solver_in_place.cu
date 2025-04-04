@@ -12,66 +12,63 @@ namespace micm
     /// This is the CUDA kernel that performs the "solve" function on the device
     __global__ void SolveKernel(
         CudaMatrixParam x_param,
-        const CudaMatrixParam L_param,
-        const CudaMatrixParam U_param,
+        const CudaMatrixParam ALU_param,
         const LinearSolverParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
       // Local device variables
-      const std::pair<size_t, size_t>* const d_nLij_Lii = devstruct.nLij_Lii_;
-      const std::pair<size_t, size_t>* const d_Lij_yj = devstruct.Lij_yj_;
-      const std::pair<size_t, size_t>* const d_nUij_Uii = devstruct.nUij_Uii_;
-      const std::pair<size_t, size_t>* const d_Uij_xj = devstruct.Uij_xj_;
-      const size_t nLij_Lii_size = devstruct.nLij_Lii_size_;
-      const size_t nUij_Uii_size = devstruct.nUij_Uii_size_;
+      const std::size_t* const __restrict__ d_nLij = devstruct.nLij_;
+      const std::pair<std::size_t, std::size_t>* const __restrict__ d_Lij_yj = devstruct.Lij_yj_;
+      const std::pair<std::size_t, std::size_t>* const __restrict__ d_nUij_Uii = devstruct.nUij_Uii_;
+      const std::pair<std::size_t, std::size_t>* const __restrict__ d_Uij_xj = devstruct.Uij_xj_;
+      const std::size_t d_nLij_size = devstruct.nLij_Lii_size_;
+      const std::size_t d_nUij_Uii_size = devstruct.nUij_Uii_size_;
 
-      const double* const d_L = L_param.d_data_;
-      const double* const d_U = U_param.d_data_;
+      const double* const __restrict__ d_ALU = ALU_param.d_data_;
       double* const d_x = x_param.d_data_;
       double* const d_y = d_x;  // Alias d_x for consistency with equation, but to reuse memory
-      const size_t number_of_grid_cells = x_param.number_of_grid_cells_;
-      const size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
+      const std::size_t number_of_grid_cells = x_param.number_of_grid_cells_;
+      const std::size_t number_of_elements = x_param.number_of_elements_;
+      const std::size_t number_of_species = x_param.number_of_elements_ / number_of_grid_cells;
 
       if (tid < number_of_grid_cells)
       {
-        size_t x_column_index = 0;
-        size_t y_column_index = 0;
-        size_t x_column_backward_index = number_of_species - 1;
-        size_t Lij_yj_index = 0;
-        size_t Uij_xj_index = 0;
-
-        for (size_t j = 0; j < nLij_Lii_size; ++j)
+        // Forward Substitution
         {
-          auto& nLij_Lii_element = d_nLij_Lii[j];
-          d_y[(y_column_index * number_of_grid_cells) + tid] = d_x[(x_column_index++ * number_of_grid_cells) + tid];
-          for (size_t i = 0; i < nLij_Lii_element.first; ++i)
+          for (auto i=0; i<d_nLij_size; ++i)
           {
-            size_t lower_matrix_index = d_Lij_yj[Lij_yj_index].first + tid;
-            size_t y_index = d_Lij_yj[Lij_yj_index].second * number_of_grid_cells + tid;
-            d_y[(y_column_index * number_of_grid_cells) + tid] -= d_L[lower_matrix_index] * d_y[y_index];
-            ++Lij_yj_index;
+            const std::size_t j_lim = d_nLij[i];
+            for (auto j=0; j<j_lim; ++j)
+            {
+              const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
+              const std::size_t d_Lij_yj_second_times_ncells = (*d_Lij_yj).second * number_of_grid_cells;
+              auto d_ALU_ptr = d_ALU + d_Lij_yj_first;
+              auto d_x_ptr = d_x + d_Lij_yj_second_times_ncells;
+              d_y[tid] -= d_ALU_ptr[tid] * d_x_ptr[tid];
+              ++d_Lij_yj;
+            }
+            d_y += number_of_grid_cells;
           }
-          d_y[(y_column_index++ * number_of_grid_cells) + tid] /= d_L[nLij_Lii_element.second + tid];
-        }
-
-        for (size_t k = 0; k < nUij_Uii_size; ++k)
+        }  
+        // Backward Substitution
         {
-          auto& nUij_Uii_element = d_nUij_Uii[k];
-
-          for (size_t i = 0; i < nUij_Uii_element.first; ++i)
+          // d_y will be x_elem in the CPU implementation
+          d_y = d_x + number_of_elements - number_of_grid_cells; 
+          for (auto i=0; i<d_nUij_Uii_size; ++i)
           {
-            size_t upper_matrix_index = d_Uij_xj[Uij_xj_index].first + tid;
-            size_t x_index = d_Uij_xj[Uij_xj_index].second * number_of_grid_cells + tid;
-            d_x[(x_column_backward_index * number_of_grid_cells) + tid] -= d_U[upper_matrix_index] * d_x[x_index];
-            ++Uij_xj_index;
-          }
-          d_x[(x_column_backward_index * number_of_grid_cells) + tid] /= d_U[nUij_Uii_element.second + tid];
-
-          if (x_column_backward_index != 0)
-          {
-            --x_column_backward_index;
+            const std::size_t j_lim = d_nUij_Uii[i].first;
+            for (auto j = 0; j < j_lim; ++j)
+            {
+              auto d_ALU_ptr = d_ALU + (*d_Uij_xj).first;
+              auto d_x_ptr = d_x + (*d_Uij_xj).second * number_of_grid_cells;
+              d_y[tid] -= d_ALU_ptr[tid] * d_x_ptr[tid];
+              ++d_Uij_xj;
+            }
+            auto d_ALU_ptr = d_ALU + d_nUij_Uii.second;
+            d_y[tid] /= d_ALU_ptr[tid];
+            d_y -= number_of_grid_cells;
           }
         }
       }
@@ -82,7 +79,7 @@ namespace micm
     LinearSolverParam CopyConstData(LinearSolverParam& hoststruct)
     {
       /// Calculate the memory space of each constant data member
-      size_t nLij_Lii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nLij_Lii_size_;
+      size_t nLij_bytes = sizeof(size_t) * hoststruct.nLij_size_;
       size_t Lij_yj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Lij_yj_size_;
       size_t nUij_Uii_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.nUij_Uii_size_;
       size_t Uij_xj_bytes = sizeof(std::pair<size_t, size_t>) * hoststruct.Uij_xj_size_;
@@ -91,7 +88,7 @@ namespace micm
       LinearSolverParam devstruct;
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
-              &(devstruct.nLij_Lii_), nLij_Lii_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+              &(devstruct.nLij_), nLij_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
@@ -109,9 +106,9 @@ namespace micm
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
           cudaMemcpyAsync(
-              devstruct.nLij_Lii_,
-              hoststruct.nLij_Lii_,
-              nLij_Lii_bytes,
+              devstruct.nLij_,
+              hoststruct.nLij_,
+              nLij_bytes,
               cudaMemcpyHostToDevice,
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
@@ -140,7 +137,7 @@ namespace micm
               micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMemcpy");
 
-      devstruct.nLij_Lii_size_ = hoststruct.nLij_Lii_size_;
+      devstruct.nLij_size_ = hoststruct.nLij_size_;
       devstruct.Lij_yj_size_ = hoststruct.Lij_yj_size_;
       devstruct.nUij_Uii_size_ = hoststruct.nUij_Uii_size_;
       devstruct.Uij_xj_size_ = hoststruct.Uij_xj_size_;
@@ -152,9 +149,9 @@ namespace micm
     ///   members of class "CudaLinearSolver" on the device
     void FreeConstData(LinearSolverParam& devstruct)
     {
-      if (devstruct.nLij_Lii_ != nullptr)
+      if (devstruct.nLij_ != nullptr)
         CHECK_CUDA_ERROR(
-            cudaFreeAsync(devstruct.nLij_Lii_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+            cudaFreeAsync(devstruct.nLij_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
       if (devstruct.Lij_yj_ != nullptr)
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.Lij_yj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
@@ -168,13 +165,12 @@ namespace micm
 
     void SolveKernelDriver(
         CudaMatrixParam& x_param,
-        const CudaMatrixParam& L_param,
-        const CudaMatrixParam& U_param,
+        const CudaMatrixParam& ALU_param,
         const LinearSolverParam& devstruct)
     {
       size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
-          x_param, L_param, U_param, devstruct);
+          x_param, ALU_param, devstruct);
     }
   }  // namespace cuda
 }  // namespace micm

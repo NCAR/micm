@@ -12,16 +12,15 @@ namespace micm
     ///   to perform the "solve" function on the device
     void SolveKernelDriver(
         CudaMatrixParam& x_param,
-        const CudaMatrixParam& L_param,
-        const CudaMatrixParam& U_param,
-        const LinearSolverParam& devstruct);
+        const CudaMatrixParam& ALU_param,
+        const LinearSolverInPlaceParam& devstruct);
 
     /// This is the function that will copy the constant data
-    ///   members of class "CudaLinearSolver" to the device;
-    LinearSolverParam CopyConstData(LinearSolverParam& hoststruct);
+    ///   members of class "CudaLinearSolverInPlace" to the device;
+    LinearSolverInPlaceParam CopyConstData(LinearSolverInPlaceParam& hoststruct);
 
     /// This is the function that will delete the constant data
-    ///   members of class "CudaLinearSolver" on the device
-    void FreeConstData(LinearSolverParam& devstruct);
+    ///   members of class "CudaLinearSolverInPlace" on the device
+    void FreeConstData(LinearSolverInPlaceParam& devstruct);
   }  // namespace cuda
 }  // namespace micm
