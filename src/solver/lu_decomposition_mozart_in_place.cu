@@ -8,9 +8,7 @@ namespace micm
   namespace cuda
   {
     /// This is the CUDA kernel that performs LU decomposition on the device
-    __global__ void DecomposeKernel(
-        CudaMatrixParam ALU_param,
-        const LuDecomposeParam devstruct)
+    __global__ void DecomposeKernel(CudaMatrixParam ALU_param, const LuDecomposeParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -29,29 +27,29 @@ namespace micm
       {
         for (std::size_t i = 0; i < d_aii_nji_nki_size; ++i)
         {
-            auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
-            auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
-            auto d_Aii_inverse = 1.0 / d_Aii[tid];
-            for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
+          auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
+          auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
+          auto d_Aii_inverse = 1.0 / d_Aii[tid];
+          for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
+          {
+            auto d_ALU_ji = d_ALU + *d_aji + tid;
+            *d_ALU_ji *= d_Aii_inverse;
+            ++d_aji;
+          }
+          for (std::size_t ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
+          {
+            const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
+            const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
+            for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
-                auto d_ALU_ji = d_ALU + *d_aji + tid;
-                *d_ALU_ji *= d_Aii_inverse;
-                ++d_aji;
+              auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
+              auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
+              auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
+              *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
+              ++d_ajk_aji;
             }
-            for (std::size_t ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
-            {
-                const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
-                const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
-                for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
-                {
-                    auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
-                    auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
-                    auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
-                    *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
-                    ++d_ajk_aji;
-                }
-                ++d_aik_njk;
-            }
+            ++d_aik_njk;
+          }
         }
       }
     }  // end of CUDA kernel
@@ -69,29 +67,54 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       LuDecomposeParam devstruct;
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.aii_nji_nki_), aii_nji_nki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocAsync(
+              &(devstruct.aii_nji_nki_), aii_nji_nki_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.aji_), aji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocAsync(&(devstruct.aji_), aji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
               &(devstruct.aik_njk_), aik_njk_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(&(devstruct.ajk_aji_), ajk_aji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocAsync(
+              &(devstruct.ajk_aji_), ajk_aji_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
 
       /// Copy the data from host to device
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.aii_nji_nki_, hoststruct.aii_nji_nki_,aii_nji_nki_bytes,cudaMemcpyHostToDevice,micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),"cudaMemcpy");
+          cudaMemcpyAsync(
+              devstruct.aii_nji_nki_,
+              hoststruct.aii_nji_nki_,
+              aii_nji_nki_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.aji_,hoststruct.aji_,aji_bytes,cudaMemcpyHostToDevice,micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),"cudaMemcpy");
+          cudaMemcpyAsync(
+              devstruct.aji_,
+              hoststruct.aji_,
+              aji_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.aik_njk_,hoststruct.aik_njk_,aik_njk_bytes,cudaMemcpyHostToDevice,micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),"cudaMemcpy");
+          cudaMemcpyAsync(
+              devstruct.aik_njk_,
+              hoststruct.aik_njk_,
+              aik_njk_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
       CHECK_CUDA_ERROR(
-          cudaMemcpyAsync(devstruct.ajk_aji_,hoststruct.ajk_aji_,ajk_aji_bytes,cudaMemcpyHostToDevice,micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),"cudaMemcpy");
+          cudaMemcpyAsync(
+              devstruct.ajk_aji_,
+              hoststruct.ajk_aji_,
+              ajk_aji_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
 
       /// Copy the other data members from host to device
       devstruct.aii_nji_nki_size_ = hoststruct.aii_nji_nki_size_;
@@ -108,7 +131,8 @@ namespace micm
     {
       if (devstruct.aii_nji_nki_ != nullptr)
         CHECK_CUDA_ERROR(
-            cudaFreeAsync(devstruct.aii_nji_nki_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
+            cudaFreeAsync(devstruct.aii_nji_nki_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
       if (devstruct.aji_ != nullptr)
         CHECK_CUDA_ERROR(
             cudaFreeAsync(devstruct.aji_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
@@ -120,9 +144,7 @@ namespace micm
             cudaFreeAsync(devstruct.ajk_aji_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
     }
 
-    void DecomposeKernelDriver(
-        CudaMatrixParam& ALU_param,
-        const LuDecomposeParam& devstruct)
+    void DecomposeKernelDriver(CudaMatrixParam& ALU_param, const LuDecomposeParam& devstruct)
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
