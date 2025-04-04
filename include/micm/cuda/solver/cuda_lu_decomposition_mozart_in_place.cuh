@@ -11,18 +11,16 @@ namespace micm
     /// This is the host function that will call the CUDA kernel
     ///   to perform LU decomposition on the device
     void DecomposeKernelDriver(
-        const CudaMatrixParam& A_param,
-        CudaMatrixParam& L_param,
-        CudaMatrixParam& U_param,
-        const LuDecomposeDoolittleParam& devstruct);
+        CudaMatrixParam& ALU_param,
+        const LuDecomposeMozartInPlaceParam& devstruct);
 
     /// This is the function that will copy the constant data
-    ///   members of class "CudaLuDecomposition" to the device;
-    LuDecomposeDoolittleParam CopyConstData(LuDecomposeDoolittleParam& hoststruct);
+    ///   members of class "CudaLuDecompositionMozartInPlace" to the device;
+    LuDecomposeMozartInPlaceParam CopyConstData(LuDecomposeMozartInPlaceParam& hoststruct);
 
     /// This is the function that will delete the constant data
-    ///   members of class "CudaLuDecomposition" on the device
-    void FreeConstData(LuDecomposeDoolittleParam& devstruct);
+    ///   members of class "CudaLuDecompositionMozartInPlace" on the device
+    void FreeConstData(LuDecomposeMozartInPlaceParam& devstruct);
 
   }  // end of namespace cuda
 }  // end of namespace micm

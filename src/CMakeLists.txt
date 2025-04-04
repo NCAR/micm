@@ -50,6 +50,7 @@ if(MICM_ENABLE_CUDA)
   target_link_libraries(micm_cuda 
     PUBLIC CUDA::cudart CUDA::cublas
   )
+  target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
 endif()
 
