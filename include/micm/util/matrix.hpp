@@ -265,8 +265,15 @@ namespace micm
     void Copy(const Matrix &other)
     {
       if (other.AsVector().size() != this->data_.size())
-        throw std::runtime_error("Both vector matrices must have the same size.");
+        throw std::runtime_error("Both matrices must have the same size.");
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
+    void Swap(Matrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both matrices must have the same size.");
+      data_.swap(other.AsVector());
     }
 
     // Print the matrix to the output stream
