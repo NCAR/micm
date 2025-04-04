@@ -64,15 +64,15 @@ struct LuDecomposeMozartInPlaceParam
 using LuDecomposeParam = LuDecomposeMozartInPlaceParam;
 
 /// This struct holds the (1) pointer to, and (2) size of
-///   each constatnt data member from the class "LinearSolver";
+///   each constatnt data member from the class "LinearSolverInPlace";
 /// This struct could be allocated on the host or device;
-struct LinearSolverParam
+struct LinearSolverInPlaceParam
 {
-  std::pair<std::size_t, std::size_t>* nLij_Lii_ = nullptr;
+  std::size_t* nLij_ = nullptr;
   std::pair<std::size_t, std::size_t>* Lij_yj_ = nullptr;
   std::pair<std::size_t, std::size_t>* nUij_Uii_ = nullptr;
   std::pair<std::size_t, std::size_t>* Uij_xj_ = nullptr;
-  std::size_t nLij_Lii_size_;
+  std::size_t nLij_size_;
   std::size_t Lij_yj_size_;
   std::size_t nUij_Uii_size_;
   std::size_t Uij_xj_size_;

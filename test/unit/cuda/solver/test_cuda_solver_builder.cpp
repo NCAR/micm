@@ -41,7 +41,7 @@ namespace
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
-  auto cuda_rosenbrock = micm::CudaSolverBuilder<micm::CudaRosenbrockSolverParameters, L>(
+  auto cuda_rosenbrock = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>(
                              micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)
