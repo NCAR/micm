@@ -148,7 +148,7 @@ void testRandomMatrix(std::size_t number_of_blocks)
         for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
           A[i_block][i][j] = A[0][i][j];
       }
-  
+
   LuDecompositionPolicy lud = LuDecompositionPolicy::template Create<SparseMatrixPolicy>(A);
   auto ALU = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(A, 0);
   for (std::size_t i = 0; i < size; ++i)
