@@ -1,7 +1,51 @@
-
 ---
-Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm-*,-llvmlibc-*,-bugprone-easily-swappable-parameters'
-CheckOptions: [{ key: misc-non-private-member-variables-in-classes, value: IgnoreClassesWithAllMemberVariablesBeingPublic }]
-WarningsAsErrors: ''
-HeaderFilterRegex: ''
-FormatStyle: none
+# Here is an explanation for why some of the checks are disabled:
+#
+# -readability-identifier-length:
+#  : We want to enable this but this requires large cleanup efforts.
+#
+# -readability-convert-member-functions-to-static:
+#  : This wants to put 'static' in the inlined function defined outside the class definition
+#   but 'static' must be specified inside the class definition.
+
+Checks: >
+  -*,
+  readability-*,
+  -readability-avoid-const-params-in-decls,
+  -readability-magic-numbers,-warnings-as-errors,
+  -readability-isolate-declaration,
+  -readability-avoid-unconditional-preprocessor-if,
+  -readability-identifier-length,
+  -readability-convert-member-functions-to-static,
+  -readability-named-parameter,
+  bugprone-*,
+  -bugprone-signal-handler,
+  cert-*,
+  -cert-err58-cpp,
+  -cert-msc51-cpp,
+
+WarningsAsErrors: '*'
+
+# HeaderFilterRegex: ''
+
+CheckOptions:
+  - key:             readability-identifier-naming.FunctionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.FunctionIgnoredRegexp
+    value:           'name|message|make_error_code'
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ClassIgnoredRegexp
+    value:           'is_error_condition_enum'
+  - key:             readability-identifier-naming.MemberCase
+    value:           aNy_CasE
+  - key:             readability-identifier-naming.MemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.ClassConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           UPPER_CASE
+  - key:             readability-implicit-bool-conversion.AllowIntegerConditions
+    value:           1
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           1

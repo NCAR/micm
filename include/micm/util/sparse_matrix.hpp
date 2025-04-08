@@ -1,11 +1,14 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/util/matrix_error.hpp>
+#include <micm/util/sparse_matrix_standard_ordering.hpp>
+
 #include <algorithm>
 #include <cassert>
-#include <micm/util/sparse_matrix_standard_ordering.hpp>
+#include <iterator>
+#include <ostream>
 #include <set>
 #include <stdexcept>
 #include <utility>
@@ -15,11 +18,17 @@ namespace micm
 {
   /// Concept for vectorizable matrices
   template<typename T>
-  concept VectorizableSparse = requires(T t)
-  {
-    t.GroupSize(0);
+  concept VectorizableSparse = requires(T t) {
+    t.GroupSize();
     t.GroupVectorSize();
     t.NumberOfGroups(0);
+  };
+
+  template<typename T>
+  concept SparseMatrixConcept = requires(T t) {
+    t.NumRows();
+    t.NumColumns();
+    t.NumberOfBlocks();
   };
 
   template<class T, class OrderingPolicy>
@@ -28,25 +37,27 @@ namespace micm
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
   class SparseMatrix;
 
-  template<class T>
-  using StandardSparseMatrix = SparseMatrix<T, SparseMatrixStandardOrdering>;
+  using StandardSparseMatrix = SparseMatrix<double, SparseMatrixStandardOrdering>;
 
   /// @brief A sparse block-diagonal 2D matrix class with contiguous memory
   ///
   /// Each block sub-matrix is square and has the same structure of non-zero elements
   ///
-  /// Sparse matrix data structure follows the Compressed Sparse Row (CSR) pattern
-  ///
   /// The template parameters are the type of the matrix elements and a class that
   /// defines the sizing and ordering of the data elements
-  template<class T, class OrderingPolicy>
+  template<class T = double, class OrderingPolicy>
   class SparseMatrix : public OrderingPolicy
   {
+   public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = SparseMatrix<int, OrderingPolicy>;
+    using value_type = T;
+
    protected:
-    std::size_t number_of_blocks_;        // Number of block sub-matrices in the overall matrix
-    std::vector<std::size_t> row_ids_;    // Row indices of each non-zero element in a block
-    std::vector<std::size_t> row_start_;  // Index in data_ and row_ids_ of the start of each row in a block
-    std::vector<T> data_;                 // Value of each non-zero matrix element
+    std::size_t number_of_blocks_;  // Number of block sub-matrices in the overall matrix
+    std::size_t block_size_;        // Size of each block sub-matrix (number of rows or columns per block)
+    std::size_t number_of_non_zero_elements_per_block_;  // Number of non-zero elements in each block
+    std::vector<T> data_;                                // Value of each non-zero matrix element
 
    private:
     friend class SparseMatrixBuilder<T, OrderingPolicy>;
@@ -69,9 +80,9 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
-        return matrix_.row_start_.size() - 1;
+        return matrix_.block_size_;
       }
 
       T& operator[](std::size_t y)
@@ -94,9 +105,9 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
-        return matrix_.row_start_.size() - 1;
+        return matrix_.block_size_;
       }
 
       const T& operator[](std::size_t y) const
@@ -117,9 +128,9 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
-        return matrix_.row_start_.size() - 1;
+        return matrix_.block_size_;
       }
 
       Proxy operator[](std::size_t x)
@@ -140,9 +151,9 @@ namespace micm
       {
       }
 
-      std::size_t size() const
+      std::size_t Size() const
       {
-        return matrix_.row_start_.size() - 1;
+        return matrix_.block_size_;
       }
 
       ConstProxy operator[](std::size_t x) const
@@ -152,7 +163,7 @@ namespace micm
     };
 
    public:
-    static SparseMatrixBuilder<T, OrderingPolicy> create(std::size_t block_size)
+    static SparseMatrixBuilder<T, OrderingPolicy> Create(std::size_t block_size)
     {
       return SparseMatrixBuilder<T, OrderingPolicy>{ block_size };
     }
@@ -160,21 +171,33 @@ namespace micm
     SparseMatrix() = default;
 
     SparseMatrix(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
-        : number_of_blocks_(builder.number_of_blocks_),
-          row_ids_(builder.RowIdsVector()),
-          row_start_(builder.RowStartVector()),
-          data_(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_)
+        : OrderingPolicy(builder.number_of_blocks_, builder.block_size_, builder.non_zero_elements_),
+          number_of_blocks_(builder.number_of_blocks_),
+          block_size_(builder.block_size_),
+          number_of_non_zero_elements_per_block_(builder.non_zero_elements_.size()),
+          data_(OrderingPolicy::VectorSize(number_of_blocks_), builder.initial_value_)
     {
     }
 
     SparseMatrix<T, OrderingPolicy>& operator=(const SparseMatrixBuilder<T, OrderingPolicy>& builder)
     {
+      OrderingPolicy::operator=(std::make_tuple(builder.number_of_blocks_, builder.block_size_, builder.non_zero_elements_));
       number_of_blocks_ = builder.number_of_blocks_;
-      row_ids_ = builder.RowIdsVector();
-      row_start_ = builder.RowStartVector();
-      data_ = std::vector<T>(OrderingPolicy::VectorSize(number_of_blocks_, row_ids_, row_start_), builder.initial_value_);
+      block_size_ = builder.block_size_;
+      number_of_non_zero_elements_per_block_ = builder.non_zero_elements_.size();
+      data_ = std::vector<T>(OrderingPolicy::VectorSize(number_of_blocks_), builder.initial_value_);
 
       return *this;
+    }
+
+    std::vector<std::size_t> DiagonalIndices(const std::size_t block_id) const
+    {
+      return OrderingPolicy::DiagonalIndices(number_of_blocks_, block_id);
+    }
+
+    void AddToDiagonal(T value)
+    {
+      OrderingPolicy::AddToDiagonal(number_of_blocks_, data_, value);
     }
 
     std::vector<T>& AsVector()
@@ -189,36 +212,41 @@ namespace micm
 
     std::size_t VectorIndex(std::size_t block, std::size_t row, std::size_t column) const
     {
-      return OrderingPolicy::VectorIndex(number_of_blocks_, row_ids_, row_start_, block, row, column);
+      return OrderingPolicy::VectorIndex(number_of_blocks_, block, row, column);
     }
 
     std::size_t VectorIndex(std::size_t row, std::size_t column) const
     {
       if (number_of_blocks_ != 1)
-        throw std::invalid_argument("Multi-block SparseMatrix access must specify block index");
+        throw std::system_error(make_error_code(MicmMatrixErrc::MissingBlockIndex));
       return VectorIndex(0, row, column);
     }
 
-    bool IsZero(std::size_t row, std::size_t column) const
-    {
-      if (row >= row_start_.size() - 1 || column >= row_start_.size() - 1)
-        throw std::invalid_argument("SparseMatrix element out of range");
-      auto begin = std::next(row_ids_.begin(), row_start_[row]);
-      auto end = std::next(row_ids_.begin(), row_start_[row + 1]);
-      auto elem = std::find(begin, end, column);
-      if (elem == end)
-        return true;
-      return false;
-    }
-
-    std::size_t size() const
+    std::size_t NumberOfBlocks() const
     {
       return number_of_blocks_;
     }
 
+    std::size_t NumRows() const
+    {
+      return block_size_;
+    }
+
+    std::size_t NumColumns() const
+    {
+      return block_size_;
+    }
+
     std::size_t FlatBlockSize() const
     {
-      return row_ids_.size();
+      return number_of_non_zero_elements_per_block_;
+    }
+
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
     }
 
     ConstProxyRow operator[](std::size_t b) const
@@ -237,14 +265,27 @@ namespace micm
       return *this;
     }
 
-    const std::vector<std::size_t>& RowStartVector() const
+    friend std::ostream& operator<<(std::ostream& os, const SparseMatrix& matrix)
     {
-      return row_start_;
-    }
-
-    const std::vector<std::size_t>& RowIdsVector() const
-    {
-      return row_ids_;
+      for (std::size_t i = 0; i < matrix.number_of_blocks_; ++i)
+      {
+        os << "Block " << i << std::endl;
+        for (std::size_t j = 0; j < matrix.block_size_; ++j)
+        {
+          for (std::size_t k = 0; k < matrix.block_size_ - 1; ++k)
+          {
+            if (matrix.IsZero(j, k))
+              os << "0,";
+            else
+              os << matrix[i][j][k] << ',';
+          }
+          if (matrix.IsZero(j, matrix.block_size_ - 1))
+            os << "0" << std::endl;
+          else
+            os << matrix[i][j][matrix.block_size_ - 1] << std::endl;
+        }
+      }
+      return os;
     }
   };
 
@@ -270,21 +311,21 @@ namespace micm
       return SparseMatrix<T, OrderingPolicy>(*this);
     }
 
-    SparseMatrixBuilder& number_of_blocks(std::size_t n)
+    SparseMatrixBuilder& SetNumberOfBlocks(std::size_t n)
     {
       number_of_blocks_ = n;
       return *this;
     }
 
-    SparseMatrixBuilder& with_element(std::size_t x, std::size_t y)
+    SparseMatrixBuilder& WithElement(std::size_t x, std::size_t y)
     {
       if (x >= block_size_ || y >= block_size_)
-        throw std::invalid_argument("SparseMatrix element out of range");
+        throw std::system_error(make_error_code(MicmMatrixErrc::ElementOutOfRange));
       non_zero_elements_.insert(std::make_pair(x, y));
       return *this;
     }
 
-    SparseMatrixBuilder& initial_value(T inital_value)
+    SparseMatrixBuilder& InitialValue(T inital_value)
     {
       initial_value_ = inital_value;
       return *this;
@@ -293,33 +334,6 @@ namespace micm
     std::size_t NumberOfElements() const
     {
       return non_zero_elements_.size() * number_of_blocks_;
-    }
-
-    std::vector<std::size_t> RowIdsVector() const
-    {
-      std::vector<std::size_t> ids;
-      ids.reserve(non_zero_elements_.size());
-      std::transform(
-          non_zero_elements_.begin(),
-          non_zero_elements_.end(),
-          std::back_inserter(ids),
-          [](const std::pair<std::size_t, std::size_t>& elem) { return elem.second; });
-      return ids;
-    }
-
-    std::vector<std::size_t> RowStartVector() const
-    {
-      std::vector<std::size_t> starts(block_size_ + 1, 0);
-      std::size_t total_elem = 0;
-      std::size_t curr_row = 0;
-      for (auto& elem : non_zero_elements_)
-      {
-        while (curr_row < elem.first)
-          starts[(curr_row++) + 1] = total_elem;
-        ++total_elem;
-      }
-      starts[curr_row + 1] = total_elem;
-      return starts;
     }
   };
 

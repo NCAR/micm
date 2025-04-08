@@ -1,28 +1,46 @@
+#include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+
 #include <gtest/gtest.h>
 
 #include <functional>
-#include <micm/solver/lu_decomposition.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <random>
 
-template<typename T, template<class> class SparseMatrixPolicy>
+template<class MatrixPolicy>
+void CopyToDevice(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToDevice() } -> std::same_as<void>;
+                })
+    matrix.CopyToDevice();
+}
+
+template<class MatrixPolicy>
+void CopyToHost(MatrixPolicy& matrix)
+{
+  if constexpr (requires {
+                  { matrix.CopyToHost() } -> std::same_as<void>;
+                })
+    matrix.CopyToHost();
+}
+
+template<typename T, class SparseMatrixPolicy>
 void check_results(
-    const SparseMatrixPolicy<T>& A,
-    const SparseMatrixPolicy<T>& L,
-    const SparseMatrixPolicy<T>& U,
+    const SparseMatrixPolicy& A,
+    const SparseMatrixPolicy& L,
+    const SparseMatrixPolicy& U,
     const std::function<void(const T, const T)> f)
 {
-  EXPECT_EQ(A.size(), L.size());
-  EXPECT_EQ(A.size(), U.size());
-  for (std::size_t i_block = 0; i_block < A.size(); ++i_block)
+  EXPECT_EQ(A.NumberOfBlocks(), L.NumberOfBlocks());
+  EXPECT_EQ(A.NumberOfBlocks(), U.NumberOfBlocks());
+  for (std::size_t i_block = 0; i_block < A.NumberOfBlocks(); ++i_block)
   {
-    for (std::size_t i = 0; i < A[i_block].size(); ++i)
+    for (std::size_t i = 0; i < A.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < A[i_block].size(); ++j)
+      for (std::size_t j = 0; j < A.NumColumns(); ++j)
       {
         T result{};
-        for (std::size_t k = 0; k < A[i_block].size(); ++k)
+        for (std::size_t k = 0; k < A.NumRows(); ++k)
         {
           if (!(L.IsZero(i, k) || U.IsZero(k, j)))
           {
@@ -45,20 +63,18 @@ void check_results(
   }
 }
 
-template<typename T, template<class> class SparseMatrixPolicy>
-void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
+void print_matrix(const auto& matrix, std::size_t width)
 {
-  for (std::size_t i_block = 0; i_block < matrix.size(); ++i_block)
+  for (std::size_t i_block = 0; i_block < matrix.NumberOfBlocks(); ++i_block)
   {
     std::cout << "block: " << i_block << std::endl;
-    for (std::size_t i = 0; i < matrix[i_block].size(); ++i)
+    for (std::size_t i = 0; i < matrix.NumRows(); ++i)
     {
-      for (std::size_t j = 0; j < matrix[i_block][i].size(); ++j)
+      for (std::size_t j = 0; j < matrix.NumColumns(); ++j)
       {
         if (matrix.IsZero(i, j))
         {
-          std::cout << " " << std::setfill('-') << std::setw(width) << "-"
-                    << " ";
+          std::cout << " " << std::setfill('-') << std::setw(width) << "-" << " ";
         }
         else
         {
@@ -72,20 +88,20 @@ void print_matrix(const SparseMatrixPolicy<T>& matrix, std::size_t width)
 }
 
 // tests example from https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
-template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-void testDenseMatrix(const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp)
+template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testDenseMatrix()
 {
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(3)
-                                                                .initial_value(1.0e-30)
-                                                                .with_element(0, 0)
-                                                                .with_element(0, 1)
-                                                                .with_element(0, 2)
-                                                                .with_element(1, 0)
-                                                                .with_element(1, 1)
-                                                                .with_element(1, 2)
-                                                                .with_element(2, 0)
-                                                                .with_element(2, 1)
-                                                                .with_element(2, 2));
+  SparseMatrixPolicy A = SparseMatrixPolicy(SparseMatrixPolicy::Create(3)
+                                                .InitialValue(0)
+                                                .WithElement(0, 0)
+                                                .WithElement(0, 1)
+                                                .WithElement(0, 2)
+                                                .WithElement(1, 0)
+                                                .WithElement(1, 1)
+                                                .WithElement(1, 2)
+                                                .WithElement(2, 0)
+                                                .WithElement(2, 1)
+                                                .WithElement(2, 2));
 
   A[0][0][0] = 2;
   A[0][0][1] = -1;
@@ -97,53 +113,27 @@ void testDenseMatrix(const std::function<LuDecompositionPolicy(const SparseMatri
   A[0][2][1] = -2;
   A[0][2][2] = 8;
 
-  LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }
 
-template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-void testSingularMatrix(const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp)
-{
-  SparseMatrixPolicy<double> A = SparseMatrixPolicy<double>(SparseMatrixPolicy<double>::create(2)
-                                                                .initial_value(1.0e-30)
-                                                                .with_element(0, 0)
-                                                                .with_element(0, 1)
-                                                                .with_element(1, 0)
-                                                                .with_element(1, 1));
-
-  A[0][0][0] = 0;
-  A[0][0][1] = 1;
-  A[0][1][0] = 1;
-  A[0][1][1] = 1;
-
-  LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0E-30);
-  bool is_singular{ false };
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
-  EXPECT_TRUE(is_singular);
-  A[0][0][0] = 12;
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second, is_singular);
-  EXPECT_FALSE(is_singular);
-}
-
-template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-void testRandomMatrix(
-    const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp,
-    std::size_t number_of_blocks)
+template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testRandomMatrix(std::size_t number_of_blocks)
 {
   auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(10).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
       if (i == j || gen_bool())
-        builder = builder.with_element(i, j);
+        builder = builder.WithElement(i, j);
 
-  SparseMatrixPolicy<double> A(builder);
+  SparseMatrixPolicy A(builder);
 
   for (std::size_t i = 0; i < 10; ++i)
     for (std::size_t j = 0; j < 10; ++j)
@@ -151,33 +141,80 @@ void testRandomMatrix(
         for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
           A[i_block][i][j] = get_double();
 
-  LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-9); });
 }
 
-template<template<class> class SparseMatrixPolicy, class LuDecompositionPolicy>
-void testDiagonalMatrix(
-    const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<double>&)> create_lu_decomp,
-    std::size_t number_of_blocks)
+template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testExtremeValueInitialization(std::size_t number_of_blocks, double initial_value)
+{
+  auto gen_bool = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+  auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
+  auto size = 10;
+
+  auto builder = SparseMatrixPolicy::Create(10).SetNumberOfBlocks(number_of_blocks).InitialValue(initial_value);
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (i == j || gen_bool())
+        builder = builder.WithElement(i, j);
+
+  SparseMatrixPolicy A(builder);
+
+  // for nvhpc, the lognormal distribution produces significantly different values
+  // for very large numbers of grid cells
+  // To keep the accuracy on the check results function small, we only generat 1 blocks worth of
+  // random values and then copy that into every other block
+  for (std::size_t i = 0; i < size; ++i)
+    for (std::size_t j = 0; j < size; ++j)
+      if (!A.IsZero(i, j))
+      {
+        A[0][i][j] = get_double();
+        for (std::size_t i_block = 1; i_block < number_of_blocks; ++i_block)
+          A[i_block][i][j] = A[0][i][j];
+      }
+
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(
+      A, initial_value);
+
+  CopyToDevice<SparseMatrixPolicy>(A);
+  CopyToDevice<SparseMatrixPolicy>(LU.first);
+  CopyToDevice<SparseMatrixPolicy>(LU.second);
+
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
+
+  CopyToHost<SparseMatrixPolicy>(LU.first);
+  CopyToHost<SparseMatrixPolicy>(LU.second);
+
+  check_results<double, SparseMatrixPolicy>(
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-09); });
+}
+
+template<class SparseMatrixPolicy, class LuDecompositionPolicy>
+void testDiagonalMatrix(std::size_t number_of_blocks)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 4.0), std::default_random_engine());
 
-  auto builder = SparseMatrixPolicy<double>::create(6).number_of_blocks(number_of_blocks).initial_value(1.0e-30);
+  auto builder = SparseMatrixPolicy::Create(6).SetNumberOfBlocks(number_of_blocks).InitialValue(0);
   for (std::size_t i = 0; i < 6; ++i)
-    builder = builder.with_element(i, i);
+    builder = builder.WithElement(i, i);
 
-  SparseMatrixPolicy<double> A(builder);
+  SparseMatrixPolicy A(builder);
 
   for (std::size_t i = 0; i < 6; ++i)
     for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
       A[i_block][i][i] = get_double();
 
-  LuDecompositionPolicy lud = create_lu_decomp(A);
-  auto LU = micm::LuDecomposition::GetLUMatrices(A, 1.0e-30);
-  lud.template Decompose<double, SparseMatrixPolicy>(A, LU.first, LU.second);
+  LuDecompositionPolicy lud =
+      LuDecompositionPolicy::template Create<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A);
+  auto LU = LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, SparseMatrixPolicy, SparseMatrixPolicy>(A, 0);
+  lud.template Decompose<SparseMatrixPolicy>(A, LU.first, LU.second);
   check_results<double, SparseMatrixPolicy>(
-      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-5); });
+      A, LU.first, LU.second, [&](const double a, const double b) -> void { EXPECT_NEAR(a, b, 1.0e-10); });
 }

@@ -16,15 +16,7 @@ If you're looking for a copy and paste, copy below and be on your way! Otherwise
 
 .. tab-set::
 
-    .. tab-item:: OpenAtmos Configuration reading
-
-      .. raw:: html
-
-          <div class="download-div">
-            <a href="../_static/tutorials/robertson.zip" download>
-              <button class="download-button">Download zip configuration</button>
-            </a>
-          </div>
+    .. tab-item:: Build the Mechanism with the API
 
       .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
         :language: cpp
@@ -32,10 +24,11 @@ If you're looking for a copy and paste, copy below and be on your way! Otherwise
 Line-by-line explanation
 ------------------------
 
-At present, the Rosenbrock class is not thread safe. Thread safety is being added and will be available soon in new release.
+The Rosenbrock class is threadsafe. Each thread, however, must have its own unique :cpp:class:`micm::State` object.
+This is because the state object is modified during the solver's run. The state object is passed to the solver's
+`run` method. The solver will modify the state object in place.
 
-Until then, you can run one instance of the Rosenbrock solver on its own thread. Configuration data, at least, can be shared
-across the threads. This tutorial reads a configuraiton file and then configures three solvers, each on their own thread,
+This tutorial createas a mechanism, one rosenbrock method, and then three states, each on their own thread,
 with that same configuration information.
 
 First we need to bring in the necessary imports and use the micm namespace.
@@ -51,12 +44,12 @@ and run the rosenbrock solver.
   :language: cpp
   :lines: 26-63
 
-The main function simply reads the configuration file, sets the number of threads, and then sets up an OpenMP blcok
+The main function simply creates the mechansim, sets the number of threads, and then sets up an OpenMP blcok
 with three threads. The function defined above is called on each thread.
 
 .. literalinclude:: ../../../test/tutorial/test_openmp.cpp
   :language: cpp
-  :lines: 65-107
+  :lines: 65-110
 
 Running this program should give an output similar to this:
 

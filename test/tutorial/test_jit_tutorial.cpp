@@ -1,8 +1,12 @@
+#include <micm/jit/jit_compiler.hpp>
+#include <micm/jit/solver/jit_rosenbrock.hpp>
+#include <micm/jit/solver/jit_solver_parameters.hpp>
+#include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+#include <micm/jit/solver/jit_solver_builder.hpp>
+
 #include <chrono>
 #include <iostream>
-#include <micm/jit/jit_compiler.hpp>
-#include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/solver/rosenbrock.hpp>
 
 // Use our namespace so that this example is easier to read
 using namespace micm;
@@ -12,8 +16,7 @@ constexpr size_t n_grid_cells = 1;
 // partial template specializations
 template<class T>
 using GroupVectorMatrix = micm::VectorMatrix<T, n_grid_cells>;
-template<class T>
-using GroupSparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
+using GroupSparseVectorMatrix = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<n_grid_cells>>;
 
 auto run_solver(auto& solver)
 {
@@ -45,25 +48,19 @@ auto run_solver(auto& solver)
     while (elapsed_solve_time < time_step)
     {
       auto start = std::chrono::high_resolution_clock::now();
-      auto result = solver.template Solve<true>(time_step - elapsed_solve_time, state);
+      solver.CalculateRateConstants(state);
+      auto result = solver.Solve(time_step - elapsed_solve_time, state);
       auto end = std::chrono::high_resolution_clock::now();
       total_solve_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
       elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
 
-      total_stats.function_calls += result.stats_.function_calls;
-      total_stats.jacobian_updates += result.stats_.jacobian_updates;
-      total_stats.number_of_steps += result.stats_.number_of_steps;
-      total_stats.accepted += result.stats_.accepted;
-      total_stats.rejected += result.stats_.rejected;
-      total_stats.decompositions += result.stats_.decompositions;
-      total_stats.solves += result.stats_.solves;
-      total_stats.singular += result.stats_.singular;
-      total_stats.total_update_state_time += result.stats_.total_update_state_time;
-      total_stats.total_forcing_time += result.stats_.total_forcing_time;
-      total_stats.total_jacobian_time += result.stats_.total_jacobian_time;
-      total_stats.total_linear_factor_time += result.stats_.total_linear_factor_time;
-      total_stats.total_linear_solve_time += result.stats_.total_linear_solve_time;
+      total_stats.function_calls_ += result.stats_.function_calls_;
+      total_stats.jacobian_updates_ += result.stats_.jacobian_updates_;
+      total_stats.number_of_steps_ += result.stats_.number_of_steps_;
+      total_stats.accepted_ += result.stats_.accepted_;
+      total_stats.rejected_ += result.stats_.rejected_;
+      total_stats.decompositions_ += result.stats_.decompositions_;
+      total_stats.solves_ += result.stats_.solves_;
     }
   }
 
@@ -80,33 +77,34 @@ int main(const int argc, const char* argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::create()
-                   .reactants({ foo })
-                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ foo })
+                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ foo, bar })
-                   .products({ Yield(baz, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ foo, bar })
+                   .SetProducts({ Yield(baz, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetPhase(gas_phase);
 
   std::vector<Process> reactions{ r1, r2 };
 
-  auto solver_parameters = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(n_grid_cells);
+  auto solver_parameters = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
 
-  RosenbrockSolver<GroupVectorMatrix, GroupSparseVectorMatrix> solver{ chemical_system, reactions, solver_parameters };
-
-  auto jit{ micm::JitCompiler::create() };
-
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(solver_parameters)
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .SetNumberOfGridCells(n_grid_cells)
+                    .Build();
+  
   auto start = std::chrono::high_resolution_clock::now();
-  JitRosenbrockSolver<
-      GroupVectorMatrix,
-      GroupSparseVectorMatrix,
-      JitLinearSolver<n_grid_cells, GroupSparseVectorMatrix>,
-      JitProcessSet<n_grid_cells>>
-      jit_solver(jit.get(), chemical_system, reactions, solver_parameters);
+  auto jit_solver = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, n_grid_cells>(solver_parameters)
+                        .SetSystem(chemical_system)
+                        .SetReactions(reactions)
+                        .SetNumberOfGridCells(n_grid_cells)
+                        .Build();
   auto end = std::chrono::high_resolution_clock::now();
   auto jit_compile_time = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
@@ -125,42 +123,25 @@ int main(const int argc, const char* argv[])
 
   auto result_stats = std::get<1>(result_tuple);
   std::cout << "Standard solve stats: " << std::endl;
-  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
-  std::cout << "\tfunction_calls: " << result_stats.function_calls << std::endl;
-  std::cout << "\tjacobian_updates: " << result_stats.jacobian_updates << std::endl;
-  std::cout << "\tnumber_of_steps: " << result_stats.number_of_steps << std::endl;
-  std::cout << "\taccepted: " << result_stats.accepted << std::endl;
-  std::cout << "\trejected: " << result_stats.rejected << std::endl;
-  std::cout << "\tdecompositions: " << result_stats.decompositions << std::endl;
-  std::cout << "\tsolves: " << result_stats.solves << std::endl;
-  std::cout << "\tsingular: " << result_stats.singular << std::endl;
-  std::cout << "\ttotal_update_state_time: " << result_stats.total_update_state_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_forcing_time: " << result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_jacobian_time: " << result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_factor_time: " << result_stats.total_linear_factor_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_linear_solve_time: " << result_stats.total_linear_solve_time.count() << " nanoseconds" << std::endl
-            << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted_ << std::endl;
+  std::cout << "\tfunction_calls: " << result_stats.function_calls_ << std::endl;
+  std::cout << "\tjacobian_updates: " << result_stats.jacobian_updates_ << std::endl;
+  std::cout << "\tnumber_of_steps: " << result_stats.number_of_steps_ << std::endl;
+  std::cout << "\taccepted: " << result_stats.accepted_ << std::endl;
+  std::cout << "\trejected: " << result_stats.rejected_ << std::endl;
+  std::cout << "\tdecompositions: " << result_stats.decompositions_ << std::endl;
+  std::cout << "\tsolves: " << result_stats.solves_ << std::endl;
 
   auto jit_result_stats = std::get<1>(jit_result_tuple);
   std::cout << "JIT solve stats: " << std::endl;
-  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "\tfunction_calls: " << jit_result_stats.function_calls << std::endl;
-  std::cout << "\tjacobian_updates: " << jit_result_stats.jacobian_updates << std::endl;
-  std::cout << "\tnumber_of_steps: " << jit_result_stats.number_of_steps << std::endl;
-  std::cout << "\taccepted: " << jit_result_stats.accepted << std::endl;
-  std::cout << "\trejected: " << jit_result_stats.rejected << std::endl;
-  std::cout << "\tdecompositions: " << jit_result_stats.decompositions << std::endl;
-  std::cout << "\tsolves: " << jit_result_stats.solves << std::endl;
-  std::cout << "\tsingular: " << jit_result_stats.singular << std::endl;
-  std::cout << "\ttotal_update_state_time: " << jit_result_stats.total_update_state_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_forcing_time: " << jit_result_stats.total_forcing_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_jacobian_time: " << jit_result_stats.total_jacobian_time.count() << " nanoseconds" << std::endl;
-  std::cout << "\ttotal_linear_factor_time: " << jit_result_stats.total_linear_factor_time.count() << " nanoseconds"
-            << std::endl;
-  std::cout << "\ttotal_linear_solve_time: " << jit_result_stats.total_linear_solve_time.count() << " nanoseconds"
-            << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted_ << std::endl;
+  std::cout << "\tfunction_calls: " << jit_result_stats.function_calls_ << std::endl;
+  std::cout << "\tjacobian_updates: " << jit_result_stats.jacobian_updates_ << std::endl;
+  std::cout << "\tnumber_of_steps: " << jit_result_stats.number_of_steps_ << std::endl;
+  std::cout << "\taccepted: " << jit_result_stats.accepted_ << std::endl;
+  std::cout << "\trejected: " << jit_result_stats.rejected_ << std::endl;
+  std::cout << "\tdecompositions: " << jit_result_stats.decompositions_ << std::endl;
+  std::cout << "\tsolves: " << jit_result_stats.solves_ << std::endl;
 
   auto result = std::get<0>(result_tuple);
   auto jit_result = std::get<0>(jit_result_tuple);

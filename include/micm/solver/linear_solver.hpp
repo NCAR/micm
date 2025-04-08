@@ -1,16 +1,37 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-
 #pragma once
 
-#include <cmath>
-#include <functional>
+#include <micm/profiler/instrumentation.hpp>
+#include <micm/solver/linear_solver_in_place.hpp>
 #include <micm/solver/lu_decomposition.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
+#include <micm/util/sparse_matrix_vector_ordering.hpp>
+
+#include <cmath>
+#include <functional>
 
 namespace micm
 {
+
+  /// @brief Concept for in-place linear solver algorithms
+  template<class T, class DenseMatrixPolicy, class SparseMatrixPolicy>
+  concept LinearSolverInPlaceConcept = requires(T t) {
+    { t.Factor(std::declval<SparseMatrixPolicy&>()) };
+    { t.Solve(std::declval<DenseMatrixPolicy&>(), SparseMatrixPolicy{}) };
+  };
+  static_assert(
+      LinearSolverInPlaceConcept<LinearSolverInPlace<StandardSparseMatrix>, StandardDenseMatrix, StandardSparseMatrix>,
+      "LinearSolverInPlace does not meet the LinearSolverInPlaceConcept requirements");
+  static_assert(
+      LinearSolverInPlaceConcept<
+          LinearSolverInPlace<
+              SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>,
+              LuDecompositionMozartInPlace>,
+          VectorMatrix<double, 1>,
+          SparseMatrix<double, SparseMatrixVectorOrderingCompressedSparseRow<1>>>,
+      "LinearSolverInPlace for vector matrices does not meet the LinearSolverInPlaceConcept requirements");
 
   /// @brief Reorders a set of state variables using Diagonal Markowitz algorithm
   /// @param matrix Original matrix non-zero elements
@@ -21,7 +42,11 @@ namespace micm
   /// @brief A general-use block-diagonal sparse-matrix linear solver
   ///
   /// The sparsity pattern of each block in the block diagonal matrix is the same.
-  template<typename T, template<class> class SparseMatrixPolicy, class LuDecompositionPolicy = LuDecomposition>
+  template<
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy = LuDecomposition,
+      class LMatrixPolicy = SparseMatrixPolicy,
+      class UMatrixPolicy = SparseMatrixPolicy>
   class LinearSolver
   {
    protected:
@@ -54,46 +79,38 @@ namespace micm
     /// @brief default constructor
     LinearSolver(){};
 
+    LinearSolver(const LinearSolver&) = delete;
+    LinearSolver& operator=(const LinearSolver&) = delete;
+    LinearSolver(LinearSolver&&) = default;
+    LinearSolver& operator=(LinearSolver&&) = default;
+
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
     /// @param initial_value Initial value for matrix elements
-    LinearSolver(const SparseMatrixPolicy<T>& matrix, T initial_value);
+    LinearSolver(const SparseMatrixPolicy& matrix, typename SparseMatrixPolicy::value_type initial_value);
 
     /// @brief Constructs a linear solver for the sparsity structure of the given matrix
     /// @param matrix Sparse matrix
     /// @param initial_value Initial value for matrix elements
     /// @param create_lu_decomp Function to create an LU Decomposition object that adheres to LuDecompositionPolicy
     LinearSolver(
-        const SparseMatrixPolicy<T>& matrix,
-        T initial_value,
-        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy<T>&)> create_lu_decomp);
+        const SparseMatrixPolicy& matrix,
+        typename SparseMatrixPolicy::value_type initial_value,
+        const std::function<LuDecompositionPolicy(const SparseMatrixPolicy&)> create_lu_decomp);
 
-    /// @brief Decompose the matrix into upper and lower triangular matrices
-    void
-    Factor(const SparseMatrixPolicy<T>& matrix, SparseMatrixPolicy<T>& lower_matrix, SparseMatrixPolicy<T>& upper_matrix);
+    virtual ~LinearSolver() = default;
 
     /// @brief Decompose the matrix into upper and lower triangular matrices
     /// @param matrix Matrix to decompose into lower and upper triangular matrices
-    /// @param is_singular Flag that is set to true if matrix is singular; false otherwise
-    void Factor(
-        const SparseMatrixPolicy<T>& matrix,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix,
-        bool& is_singular);
+    void Factor(const SparseMatrixPolicy& matrix, LMatrixPolicy& lower_matrix, UMatrixPolicy& upper_matrix) const;
 
-    /// @brief Solve for x in Ax = b
-    template<template<class> class MatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<T>> || !VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix);
-    template<template<class> class MatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<T>>&& VectorizableSparse<SparseMatrixPolicy<T>>) void Solve(
-        const MatrixPolicy<T>& b,
-        MatrixPolicy<T>& x,
-        SparseMatrixPolicy<T>& lower_matrix,
-        SparseMatrixPolicy<T>& upper_matrix);
+    /// @brief Solve for x in Ax = b. x should be a copy of b and after Solve finishes x will contain the result
+    template<class MatrixPolicy>
+      requires(!VectorizableDense<MatrixPolicy> || !VectorizableSparse<SparseMatrixPolicy>)
+    void Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const;
+    template<class MatrixPolicy>
+      requires(VectorizableDense<MatrixPolicy> && VectorizableSparse<SparseMatrixPolicy>)
+    void Solve(MatrixPolicy& x, const LMatrixPolicy& lower_matrix, const UMatrixPolicy& upper_matrix) const;
   };
 
 }  // namespace micm

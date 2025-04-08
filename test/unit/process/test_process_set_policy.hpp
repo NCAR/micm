@@ -1,6 +1,7 @@
+#include <micm/process/process.hpp>
+
 #include <gtest/gtest.h>
 
-#include <micm/process/process.hpp>
 #include <random>
 
 using yields = std::pair<micm::Species, double>;
@@ -12,10 +13,8 @@ void compare_pair(const index_pair& a, const index_pair& b)
   EXPECT_EQ(a.second, b.second);
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
-void testProcessSet(const std::function<ProcessSetPolicy(
-                        const std::vector<micm::Process>&,
-                        const micm::State<MatrixPolicy, SparseMatrixPolicy>&)> create_set)
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
+void testProcessSet()
 {
   auto foo = micm::Species("foo");
   auto bar = micm::Species("bar");
@@ -28,20 +27,29 @@ void testProcessSet(const std::function<ProcessSetPolicy(
 
   micm::Phase gas_phase{ std::vector<micm::Species>{ foo, bar, qux, baz, quz, quuz, corge } };
 
-  micm::State<MatrixPolicy, SparseMatrixPolicy> state(
+  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_grid_cells_ = 2,
                              .number_of_rate_constants_ = 3,
                              .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } });
 
-  micm::Process r1 =
-      micm::Process::create().reactants({ foo, baz }).products({ yields(bar, 1), yields(quuz, 2.4) }).phase(gas_phase);
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ foo, baz })
+                         .SetProducts({ Yields(bar, 1), Yields(quuz, 2.4) })
+                         .SetPhase(gas_phase);
 
-  micm::Process r2 =
-      micm::Process::create().reactants({ bar, qux }).products({ yields(foo, 1), yields(quz, 1.4) }).phase(gas_phase);
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ bar, qux })
+                         .SetProducts({ Yields(foo, 1), Yields(quz, 1.4) })
+                         .SetPhase(gas_phase);
 
-  micm::Process r3 = micm::Process::create().reactants({ quz }).products({}).phase(gas_phase);
+  micm::Process r3 = micm::Process::Create().SetReactants({ quz }).SetProducts({}).SetPhase(gas_phase);
 
-  auto used_species = ProcessSetPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3 });
+  micm::Process r4 = micm::Process::Create()
+                         .SetReactants({ baz, qux })
+                         .SetProducts({ Yields(bar, 1), Yields(quz, 2.5) })
+                         .SetPhase(gas_phase);
+
+  auto used_species = RatesPolicy::SpeciesUsed(std::vector<micm::Process>{ r1, r2, r3, r4 });
 
   EXPECT_EQ(used_species.size(), 6);
   EXPECT_TRUE(used_species.contains("foo"));
@@ -52,37 +60,42 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   EXPECT_TRUE(used_species.contains("qux"));
   EXPECT_FALSE(used_species.contains("corge"));
 
-  ProcessSetPolicy set = create_set(std::vector<micm::Process>{ r1, r2, r3 }, state);
+  RatesPolicy set = RatesPolicy(std::vector<micm::Process>{ r1, r2, r3, r4 }, state.variable_map_);
 
-  EXPECT_EQ(state.variables_.size(), 2);
-  EXPECT_EQ(state.variables_[0].size(), 6);
+  EXPECT_EQ(state.variables_.NumRows(), 2);
+  EXPECT_EQ(state.variables_.NumColumns(), 6);
   state.variables_[0] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.0 };
   state.variables_[1] = { 1.1, 1.2, 1.3, 1.4, 1.5, 0.0 };
-  MatrixPolicy<double> rate_constants{ 2, 3 };
-  rate_constants[0] = { 10.0, 20.0, 30.0 };
-  rate_constants[1] = { 110.0, 120.0, 130.0 };
+  state.conditions_[0].air_density_ = 70.0;
+  state.conditions_[1].air_density_ = 80.0;
+  DenseMatrixPolicy rate_constants{ 2, 4 };
+  // the rate constants will have been calculated and combined with
+  // parameterized species before calculating forcing terms
+  rate_constants[0] = { 10.0, 20.0 * 70.0 * 0.72, 30.0, 40.0 * 70.0 * 0.72 };
+  rate_constants[1] = { 110.0, 120.0 * 80.0 * 0.72, 130.0, 140.0 * 80.0 * 0.72 };
 
-  MatrixPolicy<double> forcing{ 2, 5, 1000.0 };
+  DenseMatrixPolicy forcing{ 2, 5, 1000.0 };
 
-  set.template AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
-  EXPECT_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 0.2);
-  EXPECT_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 1.2);
-  EXPECT_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2);
-  EXPECT_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2);
-  EXPECT_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3);
-  EXPECT_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3);
-  EXPECT_EQ(forcing[0][3], 1000.0 + 20.0 * 0.2 * 1.4 - 30.0 * 0.4);
-  EXPECT_EQ(forcing[1][3], 1000.0 + 120.0 * 1.2 * 1.4 - 130.0 * 1.4);
-  EXPECT_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);
-  EXPECT_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
+  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
+  EXPECT_DOUBLE_EQ(forcing[0][0], 1000.0 - 10.0 * 0.1 * 0.3 + 20.0 * 70.0 * 0.72 * 0.2);  // foo
+  EXPECT_DOUBLE_EQ(forcing[1][0], 1000.0 - 110.0 * 1.1 * 1.3 + 120.0 * 80.0 * 0.72 * 1.2);
+  EXPECT_DOUBLE_EQ(forcing[0][1], 1000.0 + 10.0 * 0.1 * 0.3 - 20.0 * 0.2 * 70.0 * 0.72 + 40.0 * 70.0 * 0.72 * 0.3);  // bar
+  EXPECT_DOUBLE_EQ(forcing[1][1], 1000.0 + 110.0 * 1.1 * 1.3 - 120.0 * 1.2 * 80.0 * 0.72 + 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_DOUBLE_EQ(forcing[0][2], 1000.0 - 10.0 * 0.1 * 0.3 - 40.0 * 70.0 * 0.72 * 0.3);  // baz
+  EXPECT_DOUBLE_EQ(forcing[1][2], 1000.0 - 110.0 * 1.1 * 1.3 - 140.0 * 80.0 * 0.72 * 1.3);
+  EXPECT_DOUBLE_EQ(
+      forcing[0][3], 1000.0 + 20.0 * 70.0 * 0.72 * 0.2 * 1.4 - 30.0 * 0.4 + 40.0 * 70.0 * 0.72 * 2.5 * 0.3);  // quz
+  EXPECT_DOUBLE_EQ(forcing[1][3], 1000.0 + 120.0 * 80.0 * 0.72 * 1.2 * 1.4 - 130.0 * 1.4 + 140.0 * 80.0 * 0.72 * 2.5 * 1.3);
+  EXPECT_DOUBLE_EQ(forcing[0][4], 1000.0 + 10.0 * 0.1 * 0.3 * 2.4);  // quuz
+  EXPECT_DOUBLE_EQ(forcing[1][4], 1000.0 + 110.0 * 1.1 * 1.3 * 2.4);
 
   auto non_zero_elements = set.NonZeroJacobianElements();
   // ---- foo  bar  baz  quz  quuz
   // foo   0    1    2    -    -
   // bar   3    4    5    -    -
   // baz   6    -    7    -    -
-  // quz   -    8    -    9    -
-  // quuz 10    -   11    -    -
+  // quz   -    8    9   10    -
+  // quuz 11    -   12    -    -
 
   auto elem = non_zero_elements.begin();
   compare_pair(*elem, index_pair(0, 0));
@@ -94,34 +107,37 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   compare_pair(*(++elem), index_pair(2, 0));
   compare_pair(*(++elem), index_pair(2, 2));
   compare_pair(*(++elem), index_pair(3, 1));
+  compare_pair(*(++elem), index_pair(3, 2));
   compare_pair(*(++elem), index_pair(3, 3));
   compare_pair(*(++elem), index_pair(4, 0));
   compare_pair(*(++elem), index_pair(4, 2));
 
-  auto builder = SparseMatrixPolicy<double>::create(5).number_of_blocks(2).initial_value(100.0);
+  auto builder = SparseMatrixPolicy::Create(5).SetNumberOfBlocks(2).InitialValue(100.0);
   for (auto& elem : non_zero_elements)
-    builder = builder.with_element(elem.first, elem.second);
-  SparseMatrixPolicy<double> jacobian{ builder };
+    builder = builder.WithElement(elem.first, elem.second);
+  SparseMatrixPolicy jacobian{ builder };
   set.SetJacobianFlatIds(jacobian);
-  set.template SubtractJacobianTerms<MatrixPolicy, SparseMatrixPolicy>(rate_constants, state.variables_, jacobian);
+  set.SubtractJacobianTerms(rate_constants, state.variables_, jacobian);
   EXPECT_DOUBLE_EQ(jacobian[0][0][0], 100.0 + 10.0 * 0.3);  // foo -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][0][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0);  // foo -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0);
+  EXPECT_DOUBLE_EQ(jacobian[0][0][1], 100.0 - 20.0 * 70.0 * 0.72);  // foo -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][0][1], 100.0 - 120.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][0][2], 100.0 + 10.0 * 0.1);  // foo -> baz
   EXPECT_DOUBLE_EQ(jacobian[1][0][2], 100.0 + 110.0 * 1.1);
   EXPECT_DOUBLE_EQ(jacobian[0][1][0], 100.0 - 10.0 * 0.3);  // bar -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][1][0], 100.0 - 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0);  // bar -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0);
-  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1);  // bar -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1);
+  EXPECT_DOUBLE_EQ(jacobian[0][1][1], 100.0 + 20.0 * 70.0 * 0.72);  // bar -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][1][1], 100.0 + 120.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][1][2], 100.0 - 10.0 * 0.1 - 40.0 * 70.0 * 0.72);  // bar -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][1][2], 100.0 - 110.0 * 1.1 - 140.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][2][0], 100.0 + 10.0 * 0.3);  // baz -> foo
   EXPECT_DOUBLE_EQ(jacobian[1][2][0], 100.0 + 110.0 * 1.3);
-  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1);  // baz -> baz
-  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1);
-  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0);  // quz -> bar
-  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0);
+  EXPECT_DOUBLE_EQ(jacobian[0][2][2], 100.0 + 10.0 * 0.1 + 40.0 * 70.0 * 0.72);  // baz -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][2][2], 100.0 + 110.0 * 1.1 + 140.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][3][1], 100.0 - 1.4 * 20.0 * 70.0 * 0.72);  // quz -> bar
+  EXPECT_DOUBLE_EQ(jacobian[1][3][1], 100.0 - 1.4 * 120.0 * 80.0 * 0.72);
+  EXPECT_DOUBLE_EQ(jacobian[0][3][2], 100.0 - 2.5 * 40.0 * 70.0 * 0.72);  // quz -> baz
+  EXPECT_DOUBLE_EQ(jacobian[1][3][2], 100.0 - 2.5 * 140.0 * 80.0 * 0.72);
   EXPECT_DOUBLE_EQ(jacobian[0][3][3], 100.0 + 30.0);  // quz -> quz
   EXPECT_DOUBLE_EQ(jacobian[1][3][3], 100.0 + 130.0);
   EXPECT_DOUBLE_EQ(jacobian[0][4][0], 100.0 - 2.4 * 10.0 * 0.3);  // quuz -> foo
@@ -130,14 +146,8 @@ void testProcessSet(const std::function<ProcessSetPolicy(
   EXPECT_DOUBLE_EQ(jacobian[1][4][2], 100.0 - 2.4 * 110.0 * 1.1);
 }
 
-template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy, class ProcessSetPolicy>
-void testRandomSystem(
-    std::size_t n_cells,
-    std::size_t n_reactions,
-    std::size_t n_species,
-    const std::function<
-        ProcessSetPolicy(const std::vector<micm::Process>&, const micm::State<MatrixPolicy, SparseMatrixPolicy>&)>
-        create_set)
+template<class DenseMatrixPolicy, class SparseMatrixPolicy, class RatesPolicy>
+void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t n_species)
 {
   auto get_n_react = std::bind(std::uniform_int_distribution<>(0, 3), std::default_random_engine());
   auto get_n_product = std::bind(std::uniform_int_distribution<>(0, 10), std::default_random_engine());
@@ -152,7 +162,7 @@ void testRandomSystem(
     species_names.push_back(std::to_string(i));
   }
   micm::Phase gas_phase{ species };
-  micm::State<MatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
+  micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
       .number_of_grid_cells_ = n_cells,
       .number_of_rate_constants_ = n_reactions,
       .variable_names_{ species_names },
@@ -170,20 +180,20 @@ void testRandomSystem(
     std::vector<yields> products{};
     for (std::size_t i_prod = 0; i_prod < n_product; ++i_prod)
     {
-      products.push_back(yields(std::to_string(get_species_id()), 1.2));
+      products.push_back(micm::Yields(std::to_string(get_species_id()), 1.2));
     }
-    auto proc = micm::Process(micm::Process::create().reactants(reactants).products(products).phase(gas_phase));
+    auto proc = micm::Process(micm::Process::Create().SetReactants(reactants).SetProducts(products).SetPhase(gas_phase));
     processes.push_back(proc);
   }
-  ProcessSetPolicy set = create_set(processes, state);
+  RatesPolicy set = RatesPolicy(processes, state.variable_map_);
 
   for (auto& elem : state.variables_.AsVector())
     elem = get_double();
 
-  MatrixPolicy<double> rate_constants{ n_cells, n_reactions };
+  DenseMatrixPolicy rate_constants{ n_cells, n_reactions };
   for (auto& elem : rate_constants.AsVector())
     elem = get_double();
-  MatrixPolicy<double> forcing{ n_cells, n_species, 1000.0 };
+  DenseMatrixPolicy forcing{ n_cells, n_species, 1000.0 };
 
-  set.template AddForcingTerms<MatrixPolicy>(rate_constants, state.variables_, forcing);
+  set.template AddForcingTerms<DenseMatrixPolicy>(rate_constants, state.variables_, forcing);
 }

@@ -1,16 +1,18 @@
 #pragma once
 
+#include "chapman_ode_solver.hpp"
+#include "util.hpp"
+
+#include <micm/process/process.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
 #include <random>
 
-#include "chapman_ode_solver.hpp"
-#include "util.hpp"
-
-template<class OdeSolverPolicy>
-void testRateConstants(OdeSolverPolicy& solver)
+template<class SolverPolicy>
+void testRateConstants(SolverPolicy& solver)
 {
   micm::ChapmanODESolver fixed_solver{};
 
@@ -27,7 +29,7 @@ void testRateConstants(OdeSolverPolicy& solver)
   state.conditions_[2].temperature_ = 299.31;  // [K]
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
 
-  solver.UpdateState(state);
+  solver.CalculateRateConstants(state);
 
   for (size_t i{}; i < 3; ++i)
   {
@@ -36,16 +38,16 @@ void testRateConstants(OdeSolverPolicy& solver)
     fixed_state.custom_rate_parameters_[0] = photo_rates[i];
     fixed_solver.UpdateState(fixed_state);
 
-    EXPECT_EQ(state.rate_constants_[i].size(), fixed_state.rate_constants_[0].size());
-    for (size_t j{}; j < state.rate_constants_[i].size(); ++j)
+    EXPECT_EQ(state.rate_constants_.NumColumns(), fixed_state.rate_constants_.NumColumns());
+    for (size_t j{}; j < state.rate_constants_.NumColumns(); ++j)
     {
       EXPECT_EQ(state.rate_constants_[i][j], fixed_state.rate_constants_[0][j]);
     }
   }
 }
 
-template<template<class> class MatrixPolicy, class OdeSolverPolicy>
-void testForcing(OdeSolverPolicy& solver)
+template<class MatrixPolicy, class SolverPolicy>
+void testForcing(SolverPolicy& solver)
 {
   std::random_device rnd_device;
   std::mt19937 engine{ rnd_device() };
@@ -60,19 +62,20 @@ void testForcing(OdeSolverPolicy& solver)
   auto& rate_const_vec = state.rate_constants_.AsVector();
   std::generate(begin(rate_const_vec), end(rate_const_vec), [&]() { return dist(engine); });
 
-  MatrixPolicy<double> forcing(3, 9);
-  solver.CalculateForcing(state.rate_constants_, state.variables_, forcing);
+  MatrixPolicy forcing(3, 9);
+  forcing.Fill(0.0);
+  solver.solver_.rates_.AddForcingTerms(state.rate_constants_, state.variables_, forcing);
 
   for (std::size_t i{}; i < 3; ++i)
   {
     double number_density_air = 1.0;
     std::vector<double> rate_constants = state.rate_constants_[i];
-    std::vector<double> variables(state.variables_[i].size());
-    for (std::size_t j{}; j < state.variables_[i].size(); ++j)
+    std::vector<double> variables(state.variables_.NumColumns());
+    for (std::size_t j{}; j < state.variables_.NumColumns(); ++j)
       variables[j] = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
     std::vector<double> fixed_forcing = fixed_solver.force(rate_constants, variables, number_density_air);
 
-    EXPECT_EQ(forcing[i].size(), fixed_forcing.size());
+    EXPECT_EQ(forcing.NumColumns(), fixed_forcing.size());
     for (std::size_t j{}; j < fixed_forcing.size(); ++j)
     {
       double a = forcing[i][state.variable_map_[fixed_solver.species_names()[j]]];
@@ -81,26 +84,3 @@ void testForcing(OdeSolverPolicy& solver)
     }
   }
 }
-
-template<class T>
-using DenseMatrix = micm::Matrix<T>;
-template<class T>
-using SparseMatrix = micm::SparseMatrix<T>;
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;

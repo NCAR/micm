@@ -1,3 +1,5 @@
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 // clang-format off
 #pragma once
 
@@ -6,23 +8,23 @@ namespace micm {
 extern "C" {
 #endif
 
-  const char* getMicmVersion()
+  inline const char* GetMicmVersion()
   {
-    return "3.4.0";
+    return "3.8.0";
   }
-  unsigned getMicmVersionMajor()
+  inline unsigned GetMicmVersionMajor()
   {
     return 3;
   }
-  unsigned getMicmVersionMinor()
+  inline unsigned GetMicmVersionMinor()
   {
-    return 4+0;
+    return 8+0;
   }
-  unsigned getMicmVersionPatch()
+  inline unsigned GetMicmVersionPatch()
   {
     return 0+0;
   }
-  unsigned getMicmVersionTweak()
+  inline unsigned GetMicmVersionTweak()
   {
     return +0;
   }

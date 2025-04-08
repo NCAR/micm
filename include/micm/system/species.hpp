@@ -1,14 +1,58 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <micm/system/conditions.hpp>
+#include <micm/util/error.hpp>
+
 #include <functional>
 #include <map>
+#include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 
-#include "conditions.hpp"
+enum class MicmSpeciesErrc
+{
+  PropertyNotFound = MICM_SPECIES_ERROR_CODE_PROPERTY_NOT_FOUND,
+  InvalidTypeForProperty = MICM_SPECIES_ERROR_CODE_INVALID_TYPE_FOR_PROPERTY
+};
+
+namespace std
+{
+  template<>
+  struct is_error_condition_enum<MicmSpeciesErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmSpeciesErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_SPECIES;
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmSpeciesErrc>(ev))
+      {
+        case MicmSpeciesErrc::PropertyNotFound: return "Property not found";
+        case MicmSpeciesErrc::InvalidTypeForProperty: return "Invalid type for property";
+        default: return "Unknown error";
+      }
+    }
+  };
+
+  const MicmSpeciesErrorCategory MICM_SPECIES_ERROR{};
+}  // namespace
+
+inline std::error_code make_error_code(MicmSpeciesErrc e)
+{
+  return { static_cast<int>(e), MICM_SPECIES_ERROR };
+}
 
 namespace micm
 {
@@ -21,13 +65,19 @@ namespace micm
     std::string name_;
 
     /// @brief A list of properties of this species
-    std::map<std::string, double> properties_;
+    std::map<std::string, std::string> properties_string_;
+    std::map<std::string, double> properties_double_;
+    std::map<std::string, bool> properties_bool_;
+    std::map<std::string, int> properties_int_;
 
     /// @brief A function that if provided will be used to parameterize
     ///        the concentration of this species during solving.
     ///        Species with this function defined will be excluded from
     ///        the solver state.
     std::function<double(const Conditions)> parameterize_{ nullptr };
+
+    /// @brief Default constructor
+    Species() = default;
 
     /// @brief Copy assignment
     /// @param other species to copy
@@ -49,8 +99,18 @@ namespace micm
     /// @brief Returns whether a species is parameterized
     bool IsParameterized() const;
 
-    /// @brief Return a Species instance parameterized on air density
-    static Species ThirdBody();
+    bool HasProperty(const std::string& key) const;
+
+    /// @brief Set a Species instance parameterized on air density
+    void SetThirdBody();
+
+    /// @brief Return the value of a species property
+    template<class T>
+    T GetProperty(const std::string& key) const;
+
+    /// @brief Set the value of a species property
+    template<class T>
+    void SetProperty(const std::string& key, T value);
   };
 
   inline Species& Species::operator=(const Species& other)
@@ -61,7 +121,10 @@ namespace micm
     }
 
     name_ = other.name_;
-    properties_ = other.properties_;  // This performs a shallow copy
+    properties_string_ = other.properties_string_;
+    properties_double_ = other.properties_double_;
+    properties_int_ = other.properties_int_;
+    properties_bool_ = other.properties_bool_;
     parameterize_ = other.parameterize_;
 
     return *this;
@@ -69,7 +132,10 @@ namespace micm
 
   inline Species::Species(const Species& other)
       : name_(other.name_),
-        properties_(other.properties_),
+        properties_string_(other.properties_string_),
+        properties_double_(other.properties_double_),
+        properties_int_(other.properties_int_),
+        properties_bool_(other.properties_bool_),
         parameterize_(other.parameterize_){};
 
   inline Species::Species(const std::string& name)
@@ -77,17 +143,105 @@ namespace micm
 
   inline Species::Species(const std::string& name, const std::map<std::string, double>& properties)
       : name_(name),
-        properties_(properties){};
+        properties_double_(properties){};
 
   inline bool Species::IsParameterized() const
   {
     return parameterize_ != nullptr;
   }
 
-  inline Species Species::ThirdBody()
+  inline bool Species::HasProperty(const std::string& key) const
   {
-    Species third_body{ "M" };
-    third_body.parameterize_ = [](const Conditions& c) { return c.air_density_; };
-    return third_body;
+    return properties_string_.find(key) != properties_string_.end() ||
+           properties_double_.find(key) != properties_double_.end() ||
+           properties_bool_.find(key) != properties_bool_.end() || properties_int_.find(key) != properties_int_.end();
   }
+
+  inline void Species::SetThirdBody()
+  {
+    parameterize_ = [](const Conditions& c) { return c.air_density_; };
+  }
+
+  template<class T>
+  inline T Species::GetProperty(const std::string& key) const
+  {
+    if constexpr (std::is_same<T, std::string>::value)
+    {
+      try
+      {
+        return properties_string_.at(key);
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+    }
+    else if constexpr (std::is_same<T, double>::value)
+    {
+      try
+      {
+        return properties_double_.at(key);
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+    }
+    else if constexpr (std::is_same<T, bool>::value)
+    {
+      try
+      {
+        return properties_bool_.at(key);
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+    }
+    else if constexpr (std::is_same<T, int>::value)
+    {
+      try
+      {
+        return properties_int_.at(key);
+      }
+      catch (const std::out_of_range& e)
+      {
+        throw std::system_error(
+            make_error_code(MicmSpeciesErrc::PropertyNotFound), "Species: '" + name_ + "' Property: '" + key + "'");
+      }
+    }
+    else
+    {
+      throw std::system_error(make_error_code(MicmSpeciesErrc::InvalidTypeForProperty), "Species: '" + name_ + "'");
+    }
+  }
+
+  template<class T>
+  inline void Species::SetProperty(const std::string& key, T value)
+  {
+    if constexpr (std::is_same<T, std::string>::value || std::is_same<T, const char*>::value)
+    {
+      properties_string_[key] = value;
+    }
+    else if constexpr (std::is_same<T, double>::value)
+    {
+      properties_double_[key] = value;
+    }
+    else if constexpr (std::is_same<T, bool>::value)
+    {
+      properties_bool_[key] = value;
+    }
+    else if constexpr (std::is_same<T, int>::value)
+    {
+      properties_int_[key] = value;
+    }
+    else
+    {
+      throw std::system_error(make_error_code(MicmSpeciesErrc::InvalidTypeForProperty), "Species: '" + name_ + "'");
+    }
+  }
+
 }  // namespace micm

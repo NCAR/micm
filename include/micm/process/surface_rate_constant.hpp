@@ -1,16 +1,15 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <math.h>
-
-#include <cmath>
 #include <micm/process/rate_constant.hpp>
 #include <micm/system/species.hpp>
 #include <micm/util/constants.hpp>
 #include <micm/util/property_keys.hpp>
+
+#include <cmath>
+#include <math.h>
 #include <string>
 
 namespace micm
@@ -38,7 +37,7 @@ namespace micm
     SurfaceRateConstant(const SurfaceRateConstantParameters& parameters);
 
     /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    std::unique_ptr<RateConstant> Clone() const override;
 
     /// @brief Returns labels for the surface rate constant parameters:
     ///        aerosol effective radius [m]
@@ -54,33 +53,34 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions) const override;
+    double Calculate(const Conditions& conditions) const override;
   };
 
   inline SurfaceRateConstant::SurfaceRateConstant(const SurfaceRateConstantParameters& parameters)
       : parameters_(parameters),
-        diffusion_coefficient_(parameters.species_.properties_.at(GAS_DIFFUSION_COEFFICIENT)),
-        mean_free_speed_factor_(8.0 * GAS_CONSTANT / (M_PI * parameters.species_.properties_.at(MOLECULAR_WEIGHT)))
+        diffusion_coefficient_(parameters.species_.GetProperty<double>(property_keys::GAS_DIFFUSION_COEFFICIENT)),
+        mean_free_speed_factor_(
+            8.0 * constants::GAS_CONSTANT /
+            (M_PI * parameters.species_.GetProperty<double>(property_keys::MOLECULAR_WEIGHT)))
   {
   }
 
-  inline std::unique_ptr<RateConstant> SurfaceRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> SurfaceRateConstant::Clone() const
   {
     return std::unique_ptr<RateConstant>{ new SurfaceRateConstant{ *this } };
   }
 
-  inline double SurfaceRateConstant::calculate(const Conditions& conditions) const
+  inline double SurfaceRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw std::runtime_error(
-        "Surface rate constants must be supplied with a radius and number density using the alternative calculate function");
+    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForSurfaceRateConstant), "");
   }
 
-  inline double SurfaceRateConstant::calculate(
+  inline double SurfaceRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {

@@ -1,11 +1,11 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <cmath>
 #include <micm/process/rate_constant.hpp>
 #include <micm/util/constants.hpp>
+
+#include <cmath>
 
 namespace micm
 {
@@ -45,24 +45,24 @@ namespace micm
     BranchedRateConstant(const BranchedRateConstantParameters& parameters);
 
     /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    std::unique_ptr<RateConstant> Clone() const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions) const override;
+    double Calculate(const Conditions& conditions) const override;
 
     /// @brief Calculate the rate constant
     /// @param temperature Temperature in [K]
     /// @param air_number_density Number density in [mol m-3]
     /// @return
-    double calculate(const double& temperature, const double& air_number_density) const;
+    double Calculate(const double& temperature, const double& air_number_density) const;
 
     /// @brief Calculate A(T,[M],n)
     /// @param temperature Temperature in [K]
@@ -79,34 +79,36 @@ namespace micm
 
   inline BranchedRateConstant::BranchedRateConstant(const BranchedRateConstantParameters& parameters)
       : parameters_(parameters),
-        k0_(2.0e-22 * AVOGADRO_CONSTANT * 1.0e-6 * std::exp(parameters_.n_)),
-        z_(A(293.0, 2.45e19 / AVOGADRO_CONSTANT * 1.0e6) * (1.0 - parameters_.a0_) / parameters_.a0_)
+        k0_(2.0e-22 * constants::AVOGADRO_CONSTANT * 1.0e-6 * std::exp(parameters_.n_)),
+        z_(A(293.0, 2.45e19 / constants::AVOGADRO_CONSTANT * 1.0e6) * (1.0 - parameters_.a0_) / parameters_.a0_)
   {
   }
 
-  inline std::unique_ptr<RateConstant> BranchedRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> BranchedRateConstant::Clone() const
   {
     return std::unique_ptr<RateConstant>{ new BranchedRateConstant{ *this } };
   }
 
-  inline double BranchedRateConstant::calculate(
+  inline double BranchedRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {
-    return calculate(conditions.temperature_, conditions.air_density_);
+    return Calculate(conditions.temperature_, conditions.air_density_);
   }
 
-  inline double BranchedRateConstant::calculate(const Conditions& conditions) const
+  inline double BranchedRateConstant::Calculate(const Conditions& conditions) const
   {
-    return calculate(conditions.temperature_, conditions.air_density_);
+    return Calculate(conditions.temperature_, conditions.air_density_);
   }
 
-  inline double BranchedRateConstant::calculate(const double& temperature, const double& air_number_density) const
+  inline double BranchedRateConstant::Calculate(const double& temperature, const double& air_number_density) const
   {
     double pre = parameters_.X_ * std::exp(-parameters_.Y_ / temperature);
     double Atmn = A(temperature, air_number_density);
     if (parameters_.branch_ == BranchedRateConstantParameters::Branch::Alkoxy)
+    {
       return pre * (z_ / (z_ + Atmn));
+    }
     return pre * (Atmn / (Atmn + z_));
   }
 

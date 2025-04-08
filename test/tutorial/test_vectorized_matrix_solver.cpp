@@ -1,23 +1,19 @@
-#include <chrono>
-#include <iomanip>
-#include <iostream>
 #include <micm/process/user_defined_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
 
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+
 // Use our namespace so that this example is easier to read
 using namespace micm;
 
-template<typename T>
-using Group3Matrix = micm::VectorMatrix<T, 3>;
-
-template<typename T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-
-void solve(auto& solver, auto& state)
+void solve(auto& solver, auto& state, std::size_t number_of_grid_cells)
 {
   double k1 = 0.04;
   double k2 = 3e7;
@@ -30,7 +26,7 @@ void solve(auto& solver, auto& state)
   double pressure = 101253.3;  // [Pa]
   double air_density = 1e6;    // [mol m-3]
 
-  for (size_t cell = 0; cell < solver.parameters_.number_of_grid_cells_; ++cell)
+  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {
     state.conditions_[cell].temperature_ = temperature;
     state.conditions_[cell].pressure_ = pressure;
@@ -39,17 +35,21 @@ void solve(auto& solver, auto& state)
 
   double time_step = 100;  // s
 
-  auto result = solver.Solve(time_step, state);
-
-  for (int i = 0; i < 10; ++i)
+  SolverState solver_state = SolverState::Converged;
+  for (int i = 0; i < 10 && solver_state == SolverState::Converged; ++i)
   {
     double elapsed_solve_time = 0;
-    while (elapsed_solve_time < time_step)
+    solver.CalculateRateConstants(state);
+    while (elapsed_solve_time < time_step && solver_state != SolverState::Converged)
     {
       auto result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
+      elapsed_solve_time += result.final_time_;
+      solver_state = result.state_;
     }
+  }
+  if (solver_state != SolverState::Converged)
+  {
+    throw "Solver did not converge";
   }
 }
 
@@ -61,29 +61,34 @@ int main()
 
   Phase gas_phase{ std::vector<Species>{ a, b, c } };
 
-  Process r1 = Process::create()
-                   .reactants({ a })
-                   .products({ yields(b, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r1" }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ a })
+                   .SetProducts({ Yields(b, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r1" }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ b, b })
-                   .products({ yields(b, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r2" }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ b, b })
+                   .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r2" }))
+                   .SetPhase(gas_phase);
 
-  Process r3 = Process::create()
-                   .reactants({ b, c })
-                   .products({ yields(a, 1), yields(c, 1) })
-                   .rate_constant(UserDefinedRateConstant({ .label_ = "r3" }))
-                   .phase(gas_phase);
+  Process r3 = Process::Create()
+                   .SetReactants({ b, c })
+                   .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                   .SetRateConstant(UserDefinedRateConstant({ .label_ = "r3" }))
+                   .SetPhase(gas_phase);
 
-  auto params = RosenbrockSolverParameters::three_stage_rosenbrock_parameters(3, false);
+  auto params = RosenbrockSolverParameters::ThreeStageRosenbrockParameters();
   auto system = System(SystemParameters{ .gas_phase_ = gas_phase });
   auto reactions = std::vector<Process>{ r1, r2, r3 };
+  const std::size_t number_of_grid_cells = 3;
 
-  RosenbrockSolver<> solver{ system, reactions, params };
+  auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
+      .SetSystem(system)
+      .SetReactions(reactions)
+      .SetNumberOfGridCells(number_of_grid_cells)
+      .Build();
 
   auto state = solver.GetState();
 
@@ -98,7 +103,13 @@ int main()
 
   std::cout << std::endl;
 
-  RosenbrockSolver<Group3Matrix, Group3SparseVectorMatrix> vectorized_solver{ system, reactions, params };
+  auto vectorized_solver = CpuSolverBuilder<RosenbrockSolverParameters,
+                                            VectorMatrix<double, 3>,
+                                            SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
+                               .SetSystem(system)
+                               .SetReactions(reactions)
+                               .SetNumberOfGridCells(number_of_grid_cells)
+                               .Build();
 
   auto vectorized_state = vectorized_solver.GetState();
 
@@ -113,10 +124,10 @@ int main()
 
   std::cout << std::endl;
 
-  solve(solver, state);
-  solve(vectorized_solver, vectorized_state);
+  solve(solver, state, number_of_grid_cells);
+  solve(vectorized_solver, vectorized_state, number_of_grid_cells);
 
-  for (size_t cell = 0; cell < params.number_of_grid_cells_; ++cell)
+  for (size_t cell = 0; cell < number_of_grid_cells; ++cell)
   {
     std::cout << "Cell " << cell << std::endl;
     std::cout << std::setw(10) << "Species" << std::setw(20) << "Regular" << std::setw(20) << "Vectorized" << std::endl;
@@ -133,20 +144,20 @@ int main()
     std::cout << std::endl;
   }
 
-  micm::SparseMatrix<std::string> sparse_matrix{ micm::SparseMatrix<std::string>::create(4)
-                                                     .with_element(0, 1)
-                                                     .with_element(2, 1)
-                                                     .with_element(2, 3)
-                                                     .with_element(3, 2)
-                                                     .number_of_blocks(3) };
+  micm::SparseMatrix<std::string> sparse_matrix{ micm::SparseMatrix<std::string>::Create(4)
+                                                     .WithElement(0, 1)
+                                                     .WithElement(2, 1)
+                                                     .WithElement(2, 3)
+                                                     .WithElement(3, 2)
+                                                     .SetNumberOfBlocks(3) };
 
   micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>> sparse_vector_matrix{
-    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::create(4)
-        .with_element(0, 1)
-        .with_element(2, 1)
-        .with_element(2, 3)
-        .with_element(3, 2)
-        .number_of_blocks(3)
+    micm::SparseMatrix<std::string, micm::SparseMatrixVectorOrdering<3>>::Create(4)
+        .WithElement(0, 1)
+        .WithElement(2, 1)
+        .WithElement(2, 3)
+        .WithElement(3, 2)
+        .SetNumberOfBlocks(3)
   };
 
   sparse_matrix[0][0][1] = sparse_vector_matrix[0][0][1] = "0.0.1";

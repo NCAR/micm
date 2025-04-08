@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "test_matrix_policy.hpp"
 
 #include <micm/util/matrix.hpp>
 
-#include "test_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 TEST(Matrix, SmallMatrix)
 {
@@ -93,6 +93,11 @@ TEST(Matrix, AssignmentFromVector)
   testAssignmentFromVector<micm::Matrix>();
 }
 
+TEST(Matrix, Axpy)
+{
+  testAxpy<micm::Matrix>();
+}
+
 TEST(Matrix, ForEach)
 {
   testForEach<micm::Matrix>();
@@ -101,4 +106,19 @@ TEST(Matrix, ForEach)
 TEST(Matrix, SetScaler)
 {
   testSetScalar<micm::Matrix>();
+}
+
+TEST(Matrix, Max)
+{
+  testMax<micm::Matrix>();
+}
+
+TEST(Matrix, Min)
+{
+  testMin<micm::Matrix>();
+}
+
+TEST(Matrix, Print)
+{
+  testPrint<micm::Matrix>();
 }

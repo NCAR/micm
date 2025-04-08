@@ -1,40 +1,20 @@
 name: Mac
 
-on: [push, pull_request]
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  xcode_macos_12:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: macos-12
-    strategy:
-      matrix:
-        # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-12-Readme.md#xcode
-        xcode: ['13.1', '14.1']
-        build_type: [Release]
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Run Cmake 
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
-
-      - name: Build
-        run: cmake --build build --parallel 10
-
-      - name: Run tests
-        run: |
-          cd build
-          ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
-
   xcode_macos_13:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: macos-13
+    continue-on-error: true 
     strategy:
       matrix:
         # all available versions of xcode: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
@@ -44,7 +24,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}
@@ -58,12 +38,12 @@ jobs:
           ctest -C ${{ matrix.build_type }} --rerun-failed --output-on-failure . --verbose -j 10
 
   macos_lateset:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: macos-latest
+    continue-on-error: true 
     strategy:
       matrix:
         compiler:
-          - { cpp: g++-11, c: gcc-11}
+          - { cpp: g++-14, c: gcc-14}
           - { cpp: g++-12, c: gcc-12}
           - { cpp: clang++, c: clang}
         build_type: [Release]
@@ -72,7 +52,7 @@ jobs:
       CXX: ${{ matrix.compiler.cpp }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Cmake 
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.build_type }}

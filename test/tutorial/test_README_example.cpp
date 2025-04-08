@@ -1,7 +1,9 @@
-#include <iomanip>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+
+#include <iomanip>
+#include <iostream>
 
 using namespace micm;
 
@@ -15,33 +17,37 @@ int main(const int argc, const char *argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::create()
-                   .reactants({ foo })
-                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ foo })
+                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ foo, bar })
-                   .products({ Yield(baz, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ foo, bar })
+                   .SetProducts({ Yield(baz, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetPhase(gas_phase);
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].CalculateIdealAirDensity();
   state.SetConcentration(foo, 20.0);           // mol m-3
 
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(500.0, state);
-    state.variables_ = result.result_;
     state.PrintState(i * 500);
   }
 

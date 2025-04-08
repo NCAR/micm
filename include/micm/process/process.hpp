@@ -1,10 +1,7 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <memory>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/process/branched_rate_constant.hpp>
 #include <micm/process/rate_constant.hpp>
@@ -13,11 +10,56 @@
 #include <micm/process/troe_rate_constant.hpp>
 #include <micm/process/tunneling_rate_constant.hpp>
 #include <micm/process/user_defined_rate_constant.hpp>
+#include <micm/profiler/instrumentation.hpp>
+#include <micm/solver/lu_decomposition.hpp>
 #include <micm/solver/state.hpp>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+#include <micm/util/error.hpp>
+
+#include <memory>
 #include <utility>
 #include <vector>
+
+enum class MicmProcessErrc
+{
+  TooManyReactantsForSurfaceReaction = MICM_PROCESS_ERROR_CODE_TOO_MANY_REACTANTS_FOR_SURFACE_REACTION
+};
+
+namespace std
+{
+  template<>
+  struct is_error_condition_enum<MicmProcessErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+  class MicmProcessErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return MICM_ERROR_CATEGORY_PROCESS;
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmProcessErrc>(ev))
+      {
+        case MicmProcessErrc::TooManyReactantsForSurfaceReaction: return "A surface reaction can only have one reactant";
+        default: return "Unknown error";
+      }
+    }
+  };
+
+  const MicmProcessErrorCategory MICM_PROCESS_ERROR{};
+}  // namespace
+
+inline std::error_code make_error_code(MicmProcessErrc e)
+{
+  return { static_cast<int>(e), MICM_PROCESS_ERROR };
+}
 
 namespace micm
 {
@@ -25,7 +67,7 @@ namespace micm
   /// @brief An alias that allows making products easily
   using Yield = std::pair<micm::Species, double>;
 
-  inline Yield yields(micm::Species species, double yield)
+  inline Yield Yields(const micm::Species& species, double yield)
   {
     return Yield(species, yield);
   };
@@ -39,20 +81,32 @@ namespace micm
     std::unique_ptr<RateConstant> rate_constant_;
     Phase phase_;
 
-    /// @brief Update the solver state rate constants
+    /// @brief Recalculate the rate constants for each process for the current state
     /// @param processes The set of processes being solved
     /// @param state The solver state to update
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(!VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+    template<
+        class DenseMatrixPolicy,
+        class SparseMatrixPolicy,
+        class LuDecompositionPolicy,
+        class LMatrixPolicy,
+        class UMatrixPolicy>
+      requires(!VectorizableDense<DenseMatrixPolicy>)
+    static void CalculateRateConstants(
         const std::vector<Process>& processes,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
-    template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-    requires(VectorizableDense<MatrixPolicy<double>>) static void UpdateState(
+        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state);
+    template<
+        class DenseMatrixPolicy,
+        class SparseMatrixPolicy,
+        class LuDecompositionPolicy,
+        class LMatrixPolicy,
+        class UMatrixPolicy>
+      requires(VectorizableDense<DenseMatrixPolicy>)
+    static void CalculateRateConstants(
         const std::vector<Process>& processes,
-        State<MatrixPolicy, SparseMatrixPolicy>& state);
+        State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state);
 
     friend class ProcessBuilder;
-    static ProcessBuilder create();
+    static ProcessBuilder Create();
     Process(ProcessBuilder& builder);
     Process(const Process& other);
 
@@ -70,7 +124,7 @@ namespace micm
       {
         if (reactants_.size() > 1)
         {
-          throw std::runtime_error("A surface rate constant can only have one reactant");
+          throw std::system_error(make_error_code(MicmProcessErrc::TooManyReactantsForSurfaceReaction), "");
         }
       }
     }
@@ -79,7 +133,7 @@ namespace micm
     {
       reactants_ = other.reactants_;
       products_ = other.products_;
-      rate_constant_ = other.rate_constant_->clone();
+      rate_constant_ = other.rate_constant_->Clone();
       phase_ = other.phase_;
 
       return *this;
@@ -99,18 +153,26 @@ namespace micm
     {
       return Process(*this);
     }
-    ProcessBuilder& reactants(const std::vector<Species>& reactants);
-    ProcessBuilder& products(const std::vector<Yield>& products);
-    ProcessBuilder& rate_constant(const RateConstant& rate_constant);
-    ProcessBuilder& phase(const Phase& phase);
+    ProcessBuilder& SetReactants(const std::vector<Species>& reactants);
+    ProcessBuilder& SetProducts(const std::vector<Yield>& products);
+    ProcessBuilder& SetRateConstant(const RateConstant& rate_constant);
+    ProcessBuilder& SetPhase(const Phase& phase);
   };
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(!VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+    requires(!VectorizableDense<DenseMatrixPolicy>)
+  void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
   {
-    for (std::size_t i{}; i < state.custom_rate_parameters_.size(); ++i)
+    MICM_PROFILE_FUNCTION();
+
+    for (std::size_t i{}; i < state.custom_rate_parameters_.NumRows(); ++i)
     {
       const std::vector<double> custom_parameters = state.custom_rate_parameters_[i];
       std::vector<double>::const_iterator custom_parameters_iter = custom_parameters.begin();
@@ -122,29 +184,38 @@ namespace micm
           if (reactant.IsParameterized())
             fixed_reactants *= reactant.parameterize_(state.conditions_[i]);
         state.rate_constants_[i][(i_rate_constant++)] =
-            process.rate_constant_->calculate(state.conditions_[i], custom_parameters_iter) * fixed_reactants;
+            process.rate_constant_->Calculate(state.conditions_[i], custom_parameters_iter) * fixed_reactants;
         custom_parameters_iter += process.rate_constant_->SizeCustomParameters();
       }
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  requires(VectorizableDense<MatrixPolicy<double>>) void Process::UpdateState(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+    requires(VectorizableDense<DenseMatrixPolicy>)
+  void Process::CalculateRateConstants(
       const std::vector<Process>& processes,
-      State<MatrixPolicy, SparseMatrixPolicy>& state)
+      State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>& state)
   {
+    MICM_PROFILE_FUNCTION();
+
     const auto& v_custom_parameters = state.custom_rate_parameters_.AsVector();
     auto& v_rate_constants = state.rate_constants_.AsVector();
-    const std::size_t L = state.rate_constants_.GroupVectorSize();
+    constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state.rate_constants_.NumberOfGroups(); ++i_group)
     {
       std::size_t offset_rc = i_group * state.rate_constants_.GroupSize();
       std::size_t offset_params = i_group * state.custom_rate_parameters_.GroupSize();
+      std::size_t rate_const_size = std::min(L, state.rate_constants_.NumRows() - (i_group * L));
       for (auto& process : processes)
       {
         std::vector<double> params(process.rate_constant_->SizeCustomParameters());
-        for (std::size_t i_cell{}; i_cell < std::min(L, state.rate_constants_.size() - (i_group * L)); ++i_cell)
+        for (std::size_t i_cell{}; i_cell < rate_const_size; ++i_cell)
         {
           for (std::size_t i_param = 0; i_param < params.size(); ++i_param)
           {
@@ -156,7 +227,7 @@ namespace micm
             if (reactant.IsParameterized())
               fixed_reactants *= reactant.parameterize_(state.conditions_[i_group * L + i_cell]);
           v_rate_constants[offset_rc + i_cell] =
-              process.rate_constant_->calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
+              process.rate_constant_->Calculate(state.conditions_[i_group * L + i_cell], custom_parameters_iter) *
               fixed_reactants;
         }
         offset_params += params.size() * L;
@@ -165,7 +236,7 @@ namespace micm
     }
   }
 
-  inline ProcessBuilder Process::create()
+  inline ProcessBuilder Process::Create()
   {
     return ProcessBuilder{};
   };
@@ -178,30 +249,30 @@ namespace micm
   inline Process::Process(const Process& other)
       : reactants_(other.reactants_),
         products_(other.products_),
-        rate_constant_(other.rate_constant_ ? other.rate_constant_->clone() : nullptr),
+        rate_constant_(other.rate_constant_ ? other.rate_constant_->Clone() : nullptr),
         phase_(other.phase_)
   {
   }
 
-  inline ProcessBuilder& ProcessBuilder::reactants(const std::vector<Species>& reactants)
+  inline ProcessBuilder& ProcessBuilder::SetReactants(const std::vector<Species>& reactants)
   {
     reactants_ = reactants;
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::products(const std::vector<Yield>& products)
+  inline ProcessBuilder& ProcessBuilder::SetProducts(const std::vector<Yield>& products)
   {
     products_ = products;
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::rate_constant(const RateConstant& rate_constant)
+  inline ProcessBuilder& ProcessBuilder::SetRateConstant(const RateConstant& rate_constant)
   {
-    rate_constant_ = rate_constant.clone();
+    rate_constant_ = rate_constant.Clone();
     return *this;
   }
 
-  inline ProcessBuilder& ProcessBuilder::phase(const Phase& phase)
+  inline ProcessBuilder& ProcessBuilder::SetPhase(const Phase& phase)
   {
     phase_ = phase;
     return *this;

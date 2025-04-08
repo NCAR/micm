@@ -1,5 +1,3 @@
-#include <gtest/gtest.h>
-
 #include <micm/process/surface_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/state.hpp>
@@ -7,17 +5,22 @@
 #include <micm/system/system.hpp>
 #include <micm/util/constants.hpp>
 
-template<class OdeSolverPolicy>
+#include <gtest/gtest.h>
+
+template<class BuilderPolicy>
 void test_analytical_surface_rxn(
-    const std::function<OdeSolverPolicy(const micm::System&, const std::vector<micm::Process>&)> create_solver)
+    BuilderPolicy& builder,
+    double tolerance = 1e-8,
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> prepare_for_solve =
+        [](typename BuilderPolicy::StatePolicyType& state) {},
+    std::function<void(typename BuilderPolicy::StatePolicyType&)> postpare_for_solve =
+        [](typename BuilderPolicy::StatePolicyType& state) {})
 {
   // parameters, from CAMP/test/unit_rxn_data/test_rxn_surface.F90
   const double mode_GMD = 1.0e-6;            // mode geometric mean diameter [m]
   const double mode_GSD = 0.1;               // mode geometric standard deviation [unitless]
   const double DENSITY_stuff = 1000.0;       // [kg m-3]
   const double DENSITY_more_stuff = 1000.0;  // [kg m-3]
-  const double MW_stuff = 0.5;               // [kg mol-1]
-  const double MW_more_stuff = 0.2;          // [kg mol-1]
   const double MW_foo = 0.04607;             // [kg mol-1]
   const double Dg_foo = 0.95e-5;             // diffusion coefficient [m2 s-1]
   const double rxn_gamma = 2.0e-2;           // [unitless]
@@ -55,24 +58,19 @@ void test_analytical_surface_rxn(
   micm::SurfaceRateConstant surface{ { .label_ = "foo", .species_ = foo, .reaction_probability_ = rxn_gamma } };
 
   // Process
-  micm::Process surface_process = micm::Process::create()
-                                      .reactants({ foo })
-                                      .products({ micm::yields(bar, bar_yield), micm::yields(baz, baz_yield) })
-                                      .rate_constant(surface)
-                                      .phase(gas_phase);
+  micm::Process surface_process = micm::Process::Create()
+                                      .SetReactants({ foo })
+                                      .SetProducts({ micm::Yields(bar, bar_yield), micm::Yields(baz, baz_yield) })
+                                      .SetRateConstant(surface)
+                                      .SetPhase(gas_phase);
 
   auto reactions = std::vector<micm::Process>{ surface_process };
 
   // Solver
-  // micm::RosenbrockSolver<> solver{
-  //   chemical_system, reactions, micm::RosenbrockSolverParameters::three_stage_rosenbrock_parameters()
-  // };
-
-  // Solver
-  OdeSolverPolicy solver = create_solver(chemical_system, reactions);
+  auto solver = builder.SetSystem(chemical_system).SetReactions(reactions).Build();
 
   // State
-  micm::State state = solver.GetState();
+  auto state = solver.GetState();
   state.conditions_[0].temperature_ = temperature;
   state.conditions_[0].pressure_ = pressure;
   state.SetCustomRateParameter("foo.effective radius [m]", radius);
@@ -80,7 +78,7 @@ void test_analytical_surface_rxn(
   state.SetConcentration(foo, conc_foo);
 
   // Surface reaction rate calculation
-  double mean_free_speed = std::sqrt(8.0 * GAS_CONSTANT / (M_PI * MW_foo) * temperature);
+  double mean_free_speed = std::sqrt(8.0 * micm::constants::GAS_CONSTANT / (M_PI * MW_foo) * temperature);
   double k1 = 4.0 * number_conc * M_PI * radius * radius / (radius / Dg_foo + 4.0 / (mean_free_speed * rxn_gamma));
 
   double time_step = 0.1 / k1;  // s
@@ -94,34 +92,23 @@ void test_analytical_surface_rxn(
 
   size_t idx_foo = 0, idx_bar = 1, idx_baz = 2;
 
-  std::cout << std::setw(3) << "i" << std::setw(7) << "time" << std::setw(11) << "anal foo" << std::setw(11) << "model foo"
-            << std::setw(11) << "anal bar" << std::setw(11) << "model bar" << std::setw(11) << "anal baz" << std::setw(11)
-            << "model baz" << std::endl;
-
   for (int i = 1; i <= nstep; ++i)
   {
     double elapsed_solve_time = 0;
+    solver.CalculateRateConstants(state);
 
+    prepare_for_solve(state);
     // first iteration
     auto result = solver.Solve(time_step - elapsed_solve_time, state);
+    postpare_for_solve(state);
     elapsed_solve_time = result.final_time_;
-    state.variables_ = result.result_;
 
-    // further iterations
-    /*
-    while (elapsed_solve_time < time_step)
-    {
-      result = solver.Solve(time_step - elapsed_solve_time, state);
-      elapsed_solve_time = result.final_time_;
-      state.variables_ = result.result_;
-    }
-    */
     EXPECT_EQ(result.state_, (micm::SolverState::Converged));
 
     // Check surface reaction rate calculation
     EXPECT_NEAR(k1, state.rate_constants_.AsVector()[0], 1e-8);
 
-    model_conc[i] = result.result_.AsVector();
+    model_conc[i] = state.variables_.AsVector();
 
     double time = i * time_step;
     analytic_conc[i][idx_foo] = conc_foo * std::exp(-k1 * time);
@@ -129,13 +116,8 @@ void test_analytical_surface_rxn(
     analytic_conc[i][idx_baz] = baz_yield * (1.0 - analytic_conc[i][idx_foo]);
 
     // Check concentrations
-    EXPECT_NEAR(analytic_conc[i][idx_foo], model_conc[i][idx_foo], 1e-5);
-    EXPECT_NEAR(analytic_conc[i][idx_bar], model_conc[i][idx_bar], 1e-5);
-    EXPECT_NEAR(analytic_conc[i][idx_baz], model_conc[i][idx_baz], 1e-5);
-
-    std::cout << std::setw(3) << i << "  " << std::fixed << std::setprecision(2) << std::setw(5) << time << "  "
-              << std::fixed << std::setprecision(7) << analytic_conc[i][idx_foo] << "  " << model_conc[i][idx_foo] << "  "
-              << analytic_conc[i][idx_bar] << "  " << model_conc[i][idx_bar] << "  " << analytic_conc[i][idx_baz] << "  "
-              << model_conc[i][idx_baz] << "  " << std::endl;
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_foo], model_conc[i][idx_foo]), tolerance);
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_bar], model_conc[i][idx_bar]), tolerance);
+    EXPECT_NEAR(0, relative_error(analytic_conc[i][idx_baz], model_conc[i][idx_baz]), tolerance);
   }
 }

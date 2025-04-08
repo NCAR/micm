@@ -1,14 +1,15 @@
+#include "chapman_ode_solver.hpp"
+#include "util.hpp"
+
 #include <micm/util/matrix.hpp>
 #include <micm/util/sparse_matrix.hpp>
 #include <micm/util/sparse_matrix_vector_ordering.hpp>
 #include <micm/util/vector_matrix.hpp>
+
 #include <random>
 
-#include "chapman_ode_solver.hpp"
-#include "util.hpp"
-
-template<class OdeSolverPolicy>
-void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
+template<class SolverPolicy>
+void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
 {
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};
@@ -27,10 +28,10 @@ void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
   state.conditions_[1].pressure_ = 100789.2;   // [Pa]
   state.conditions_[2].temperature_ = 299.31;  // [K]
   state.conditions_[2].pressure_ = 101398.0;   // [Pa]
-  std::vector<std::vector<double>> variables(3, std::vector<double>(fixed_state.variables_[0].size(), 0.0));
+  std::vector<std::vector<double>> variables(3, std::vector<double>(fixed_state.variables_.NumColumns(), 0.0));
   double abs_tol = 0.0;
   for (int i = 0; i < 3; ++i)
-    for (int j = 0; j < fixed_state.variables_[0].size(); ++j)
+    for (int j = 0; j < fixed_state.variables_.NumColumns(); ++j)
     {
       variables[i][j] = get_double();
       abs_tol = std::max(abs_tol, variables[i][j]);
@@ -39,6 +40,7 @@ void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
   abs_tol *= 1.0e-12;
 
   // run solvers
+  solver.CalculateRateConstants(state);
   auto results = solver.Solve(500.0, state);
   micm::ChapmanODESolver::SolverResult fixed_results[3];
   for (int i = 0; i < 3; ++i)
@@ -47,7 +49,7 @@ void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
       fixed_state.custom_rate_parameters_[0][j] = photo_rates[i][j];
     fixed_state.conditions_[0].temperature_ = state.conditions_[i].temperature_;
     fixed_state.conditions_[0].pressure_ = state.conditions_[i].pressure_;
-    for (int j = 0; j < fixed_state.variables_[0].size(); ++j)
+    for (int j = 0; j < fixed_state.variables_.NumColumns(); ++j)
       fixed_state.variables_[0][j] = variables[i][state.variable_map_[fixed_solver.species_names()[j]]];
     fixed_solver.UpdateState(fixed_state);
     fixed_results[i] = fixed_solver.Solve(0.0, 500.0, fixed_state);
@@ -57,31 +59,8 @@ void testSolve(OdeSolverPolicy& solver, double relative_tolerance = 1.0e-8)
   for (int i = 0; i < 3; ++i)
     for (int j = 0; j < fixed_results[i].result_.size(); ++j)
     {
-      double a = results.result_[i][state.variable_map_[fixed_solver.species_names()[j]]];
+      double a = state.variables_[i][state.variable_map_[fixed_solver.species_names()[j]]];
       double b = fixed_results[i].result_[j];
       EXPECT_NEAR(a, b, (std::abs(a) + std::abs(b)) * relative_tolerance + abs_tol);
     }
 }
-
-template<class T>
-using DenseMatrix = micm::Matrix<T>;
-template<class T>
-using SparseMatrix = micm::SparseMatrix<T>;
-
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group2VectorMatrix = micm::VectorMatrix<T, 2>;
-template<class T>
-using Group3VectorMatrix = micm::VectorMatrix<T, 3>;
-template<class T>
-using Group4VectorMatrix = micm::VectorMatrix<T, 4>;
-
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
-template<class T>
-using Group2SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<2>>;
-template<class T>
-using Group3SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<3>>;
-template<class T>
-using Group4SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<4>>;

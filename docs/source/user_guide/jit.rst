@@ -62,7 +62,7 @@ Starting with the header files, we need headers for timing, output, and of cours
 
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 1-5
+  :lines: 1-6
 
 Next, we use our namespace, define our number of gridcells (1 for now), and some
 partial template specializations. We are using our custom vectorized matrix, which
@@ -71,7 +71,7 @@ grid cells to be solved simultaneously.
 
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 7-16
+  :lines: 11-19
 
 Now, all at once, is the function which runs either type of solver. We set all species
 concentrations to 1 :math:`\mathrm{mol\ m^-3}`.
@@ -79,13 +79,13 @@ Additionally, we are collecting all of the solver stats across all solving times
 
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 18-71
+  :lines: 21-68
 
-Finally, the main function which reads the configuration and initializes the jit solver.
+Finally, the main function which defines the mechanism and initializes the jit solver.
 
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 73-113
+  :lines: 72-100
 
 The only additional step here is to make an instance of the :cpp:class:`micm::JitCompiler`
 and pass it as a shared pointer to the :cpp:class:`micm::JitRosenbrockSolver`. We also are
@@ -96,14 +96,13 @@ time here.
 
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 103-113
+  :lines: 102-111
 
 Finally, we run both solvers, output their cumulative stats, and compare their results.
 
-
 .. literalinclude:: ../../../test/tutorial/test_jit_tutorial.cpp
   :language: cpp
-  :lines: 115-181
+  :lines: 113-161
 
 
 The output will be similar to this:
@@ -123,11 +122,6 @@ The output will be similar to this:
           decompositions: 130
           solves: 390
           singular: 0
-          total_update_state_time: 416 nanoseconds
-          total_forcing_time: 14163 nanoseconds
-          total_jacobian_time: 9965 nanoseconds
-          total_linear_factor_time: 24893 nanoseconds
-          total_linear_solve_time: 12842 nanoseconds
 
   JIT solve stats: 
           accepted: 130
@@ -139,8 +133,3 @@ The output will be similar to this:
           decompositions: 130
           solves: 390
           singular: 0
-          total_update_state_time: 458 nanoseconds
-          total_forcing_time: 5036 nanoseconds
-          total_jacobian_time: 2168 nanoseconds
-          total_linear_factor_time: 17958 nanoseconds
-          total_linear_solve_time: 7586 nanoseconds

@@ -1,33 +1,34 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
-#include <chrono>
-#include <iostream>
+#include <micm/cuda/util/cuda_param.hpp>
+#include <micm/cuda/util/cuda_util.cuh>
 #include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/util/cuda_param.hpp>
-#include <vector>
+#include <micm/util/internal_error.hpp>
 
-#include "cublas_v2.h"
+#include <cublas_v2.h>
 
 namespace micm
 {
   namespace cuda
   {
-    /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of matrix J
-    __global__ void AlphaMinusJacobianKernel(double* d_jacobian, const double alpha, CudaRosenbrockSolverParam devstruct)
+    /// CUDA kernel to compute alpha - J[i] for each element i at the diagnoal of Jacobian matrix
+    __global__ void
+    AlphaMinusJacobianKernel(CudaMatrixParam jacobian_param, const double alpha, const CudaRosenbrockSolverParam devstruct)
     {
-      // Global thread ID
+      // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
 
-      // Local variables
+      // Local device variables
+      double* d_jacobian = jacobian_param.d_data_;
       size_t quotient, index_as_remainder;
-      const size_t num_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
-      const size_t num_grid_cells = devstruct.num_grid_cells_;
+      const size_t number_of_diagonal_elements = devstruct.jacobian_diagonal_elements_size_;
+      const size_t number_of_grid_cells = jacobian_param.number_of_grid_cells_;
 
-      if (tid < num_grid_cells * num_diagonal_elements)
+      if (tid < number_of_grid_cells * number_of_diagonal_elements)
       {
-        quotient = tid / num_diagonal_elements;
-        index_as_remainder = tid - num_diagonal_elements * quotient;  // % operator may be more expensive
-        d_jacobian[devstruct.jacobian_diagonal_elements_[index_as_remainder] + quotient] += alpha;
+        quotient = tid / number_of_grid_cells;
+        index_as_remainder = tid - number_of_grid_cells * quotient;  // % operator may be more expensive
+        d_jacobian[devstruct.jacobian_diagonal_elements_[quotient] + index_as_remainder] += alpha;
       }
     }
 
@@ -43,18 +44,31 @@ namespace micm
 
       /// Create a struct whose members contain the addresses in the device memory.
       CudaRosenbrockSolverParam devstruct;
-      cudaMalloc(&(devstruct.errors_input_), errors_bytes);
-      cudaMalloc(&(devstruct.errors_output_), errors_bytes);
-      cudaMalloc(&(devstruct.jacobian_diagonal_elements_), jacobian_diagonal_elements_bytes);
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.errors_input_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.errors_output_), errors_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
+      CHECK_CUDA_ERROR(
+          cudaMallocAsync(
+              &(devstruct.jacobian_diagonal_elements_),
+              jacobian_diagonal_elements_bytes,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMalloc");
 
       /// Copy the data from host to device
-      cudaMemcpy(
-          devstruct.jacobian_diagonal_elements_,
-          hoststruct.jacobian_diagonal_elements_,
-          jacobian_diagonal_elements_bytes,
-          cudaMemcpyHostToDevice);
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.jacobian_diagonal_elements_,
+              hoststruct.jacobian_diagonal_elements_,
+              jacobian_diagonal_elements_bytes,
+              cudaMemcpyHostToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
 
-      devstruct.num_grid_cells_ = hoststruct.num_grid_cells_;
       devstruct.errors_size_ = hoststruct.errors_size_;
       devstruct.jacobian_diagonal_elements_size_ = hoststruct.jacobian_diagonal_elements_size_;
 
@@ -62,26 +76,38 @@ namespace micm
     }
 
     /// This is the function that will delete the constant data
-    ///   members and temporary variables of class "CudaLuDecomposition" on the device
+    ///   members and temporary variables of class "CudaRosenbrockSolverParam" on the device
     void FreeConstData(CudaRosenbrockSolverParam& devstruct)
     {
-      cudaFree(devstruct.errors_input_);
-      cudaFree(devstruct.errors_output_);
-      cudaFree(devstruct.jacobian_diagonal_elements_);
+      if (devstruct.errors_input_ != nullptr)
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.errors_input_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
+      if (devstruct.errors_output_ != nullptr)
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(devstruct.errors_output_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
+      if (devstruct.jacobian_diagonal_elements_ != nullptr)
+        CHECK_CUDA_ERROR(
+            cudaFreeAsync(
+                devstruct.jacobian_diagonal_elements_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaFree");
     }
 
     // Specific CUDA device function to do reduction within a warp
     // Use volatile to prevent compiler optimization (caching in registers)
     // No need to synchronize threads in the same warp
-    __device__ void warpReduce(volatile double* sdata, size_t tid)
+    __device__ void WarpReduce(volatile double* sdata, size_t tid)
     {
       if (BLOCK_SIZE >= 64)
-        sdata[tid] += sdata[tid + 32];
-      sdata[tid] += sdata[tid + 16];
-      sdata[tid] += sdata[tid + 8];
-      sdata[tid] += sdata[tid + 4];
-      sdata[tid] += sdata[tid + 2];
-      sdata[tid] += sdata[tid + 1];
+      {
+        sdata[tid] = sdata[tid] + sdata[tid + 32];
+      }
+      sdata[tid] = sdata[tid] + sdata[tid + 16];
+      sdata[tid] = sdata[tid] + sdata[tid + 8];
+      sdata[tid] = sdata[tid] + sdata[tid + 4];
+      sdata[tid] = sdata[tid] + sdata[tid + 2];
+      sdata[tid] = sdata[tid] + sdata[tid + 1];
     }
 
     // CUDA kernel to compute the scaled norm of the vector errors; CUDA kernel does not take reference as argument
@@ -90,32 +116,34 @@ namespace micm
     __global__ void NormalizedErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
-        const RosenbrockSolverParameters ros_param,
+        const CudaMatrixParam absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct,
         const size_t n,
         bool is_first_call)
     {
-      double* d_y_old = y_old_param.d_data_;
-      double* d_y_new = y_new_param.d_data_;
-      double* d_errors_input = devstruct.errors_input_;
-      double* d_errors_output = devstruct.errors_output_;
-      const double atol = ros_param.absolute_tolerance_;
-      const double rtol = ros_param.relative_tolerance_;
+      const double* const d_y_old = y_old_param.d_data_;
+      const double* const d_y_new = y_new_param.d_data_;
+      double* const d_errors_input = devstruct.errors_input_;
+      double* const d_errors_output = devstruct.errors_output_;
+      const double* const atol = absolute_tolerance_param.d_data_;
+      const double rtol = relative_tolerance;
+      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
       // Declares a dynamically-sized shared memory array.
       // The size of this array is determined at runtime when the kernel is launched.
       // Shared memory is shared among all threads within the same block.
       extern __shared__ double sdata[];
 
-      // Local thread ID within a threadblock
+      // Calculate local thread ID within a threadblock
       size_t l_tid = threadIdx.x;
 
-      // Global thread ID
+      // Calculate global thread ID
       size_t g_tid = blockIdx.x * (BLOCK_SIZE * 2) + threadIdx.x;
 
       if (is_first_call)
       {
-        // Temporary device variables
+        // Local device variables
         double d_ymax, d_scale;
 
         // Load two elements by one thread and do first add of reduction
@@ -125,7 +153,7 @@ namespace micm
           if (g_tid < n)
           {
             d_ymax = max(fabs(d_y_old[g_tid]), fabs(d_y_new[g_tid]));
-            d_scale = atol + rtol * d_ymax;
+            d_scale = atol[g_tid / number_of_grid_cells] + rtol * d_ymax;
             d_errors_input[g_tid] = d_errors_input[g_tid] * d_errors_input[g_tid] / (d_scale * d_scale);
             sdata[l_tid] += d_errors_input[g_tid];
           }
@@ -139,10 +167,14 @@ namespace micm
         // Access the d_errors array directly if it is not the first call
         sdata[l_tid] = 0.0;
         if (g_tid < n)
+        {
           sdata[l_tid] += d_errors_input[g_tid];
+        }
         g_tid += BLOCK_SIZE;
         if (g_tid < n)
+        {
           sdata[l_tid] += d_errors_input[g_tid];
+        }
         __syncthreads();
       }
 
@@ -180,7 +212,9 @@ namespace micm
         __syncthreads();
       }
       if (l_tid < 32)
-        warpReduce(sdata, l_tid);
+      {
+        WarpReduce(sdata, l_tid);
+      }
 
       // Let the thread 0 of this threadblock write its result to output array, inexed by this threadblock
       if (l_tid == 0)
@@ -191,48 +225,43 @@ namespace micm
     __global__ void ScaledErrorKernel(
         const CudaMatrixParam y_old_param,
         const CudaMatrixParam y_new_param,
-        const RosenbrockSolverParameters ros_param,
+        const CudaMatrixParam absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
-      // Temporary device variables
+      // Local device variables
       double d_ymax, d_scale;
-      double* d_y_old = y_old_param.d_data_;
-      double* d_y_new = y_new_param.d_data_;
-      double* d_errors = devstruct.errors_input_;
-      double atol = ros_param.absolute_tolerance_;
-      double rtol = ros_param.relative_tolerance_;
+      const double* const d_y_old = y_old_param.d_data_;
+      const double* const d_y_new = y_new_param.d_data_;
+      double* const d_errors = devstruct.errors_input_;
+      const double* const atol = absolute_tolerance_param.d_data_;
+      const double rtol = relative_tolerance;
       const size_t num_elements = devstruct.errors_size_;
+      const size_t number_of_grid_cells = y_old_param.number_of_grid_cells_;
 
-      // Global thread ID
+      // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
       if (tid < num_elements)
       {
         d_ymax = max(fabs(d_y_old[tid]), fabs(d_y_new[tid]));
-        d_scale = atol + rtol * d_ymax;
+        d_scale = atol[tid / number_of_grid_cells] + rtol * d_ymax;
         d_errors[tid] = d_errors[tid] / d_scale;
       }
     }
 
     // Host code that will launch the AlphaMinusJacobian CUDA kernel
     void AlphaMinusJacobianDriver(
-        double* h_jacobian,
-        const size_t num_elements,
-        const double alpha,
+        CudaMatrixParam& jacobian_param,
+        const double& alpha,
         const CudaRosenbrockSolverParam& devstruct)
     {
-      // device pointers (will not be needed after adding the CudaSparseMatrix class)
-      double* d_jacobian;
-      cudaMalloc(&d_jacobian, sizeof(double) * num_elements);
-      cudaMemcpy(d_jacobian, h_jacobian, sizeof(double) * num_elements, cudaMemcpyHostToDevice);
-
-      // kernel call
-      size_t num_blocks =
-          (devstruct.jacobian_diagonal_elements_size_ * devstruct.num_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      AlphaMinusJacobianKernel<<<num_blocks, BLOCK_SIZE>>>(d_jacobian, alpha, devstruct);
-
-      cudaDeviceSynchronize();
-      cudaMemcpy(h_jacobian, d_jacobian, sizeof(double) * num_elements, cudaMemcpyDeviceToHost);
-      cudaFree(d_jacobian);
+      size_t number_of_blocks =
+          (devstruct.jacobian_diagonal_elements_size_ * jacobian_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
+      AlphaMinusJacobianKernel<<<
+          number_of_blocks,
+          BLOCK_SIZE,
+          0,
+          micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(jacobian_param, alpha, devstruct);
     }
 
     // Host code that will launch the NormalizedError CUDA kernel
@@ -240,69 +269,116 @@ namespace micm
         const CudaMatrixParam& y_old_param,
         const CudaMatrixParam& y_new_param,
         const CudaMatrixParam& errors_param,
-        const RosenbrockSolverParameters& ros_param,
-        cublasHandle_t handle,
+        const CudaMatrixParam& absolute_tolerance_param,
+        const double relative_tolerance,
         CudaRosenbrockSolverParam devstruct)
     {
       double normalized_error;
-      const size_t num_elements = devstruct.errors_size_;
+      const size_t number_of_elements = devstruct.errors_size_;
 
-      if (devstruct.errors_size_ != errors_param.number_of_elements_)
+      if (number_of_elements != errors_param.number_of_elements_)
       {
-        throw std::runtime_error("devstruct.errors_input_ and errors_param have different sizes.");
+        std::string msg = "mismatch in normalized error arrays. Expected: " + std::to_string(number_of_elements) +
+                          " but got: " + std::to_string(errors_param.number_of_elements_);
+        INTERNAL_ERROR(msg.c_str());
       }
-      cudaError_t err =
-          cudaMemcpy(devstruct.errors_input_, errors_param.d_data_, sizeof(double) * num_elements, cudaMemcpyDeviceToDevice);
+      CHECK_CUDA_ERROR(
+          cudaMemcpyAsync(
+              devstruct.errors_input_,
+              errors_param.d_data_,
+              sizeof(double) * number_of_elements,
+              cudaMemcpyDeviceToDevice,
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          "cudaMemcpy");
 
-      if (num_elements > 1000000)
+      if (number_of_elements > 1000000)
       {
         // call cublas APIs
-        size_t num_blocks = (num_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        ScaledErrorKernel<<<num_blocks, BLOCK_SIZE>>>(y_old_param, y_new_param, ros_param, devstruct);
+        size_t number_of_blocks = (number_of_elements + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        ScaledErrorKernel<<<
+            number_of_blocks,
+            BLOCK_SIZE,
+            0,
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+            y_old_param, y_new_param, absolute_tolerance_param, relative_tolerance, devstruct);
         // call cublas function to perform the norm:
         // https://docs.nvidia.com/cuda/cublas/index.html?highlight=dnrm2#cublas-t-nrm2
-        cublasStatus_t stat = cublasDnrm2(handle, num_elements, devstruct.errors_input_, 1, &normalized_error);
-        if (stat != CUBLAS_STATUS_SUCCESS)
-        {
-          printf(cublasGetStatusString(stat));
-          throw std::runtime_error("Error while calling cublasDnrm2.");
-        }
-        normalized_error = normalized_error * std::sqrt(1.0 / num_elements);
+        CHECK_CUBLAS_ERROR(
+            cublasDnrm2(micm::cuda::GetCublasHandle(), number_of_elements, devstruct.errors_input_, 1, &normalized_error),
+            "cublasDnrm2");
+        cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+        normalized_error = normalized_error * std::sqrt(1.0 / number_of_elements);
       }
       else
       {
         // call CUDA implementation
-        size_t num_blocks = std::ceil(std::ceil(num_elements * 1.0 / BLOCK_SIZE) / 2.0);
-        num_blocks = num_blocks < 1 ? 1 : num_blocks;
-        size_t new_blocks;
-        bool is_first_call;
+        size_t number_of_blocks = std::ceil(std::ceil(number_of_elements * 1.0 / BLOCK_SIZE) / 2.0);
+        number_of_blocks = number_of_blocks < 1 ? 1 : number_of_blocks;
+        size_t new_number_of_blocks;
+        bool is_first_call = true;
 
-        is_first_call = true;
         // Kernel call
-        NormalizedErrorKernel<<<num_blocks, BLOCK_SIZE, BLOCK_SIZE * sizeof(double)>>>(
-            y_old_param, y_new_param, ros_param, devstruct, num_elements, is_first_call);
+        NormalizedErrorKernel<<<
+            number_of_blocks,
+            BLOCK_SIZE,
+            BLOCK_SIZE * sizeof(double),
+            micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+            y_old_param,
+            y_new_param,
+            absolute_tolerance_param,
+            relative_tolerance,
+            devstruct,
+            number_of_elements,
+            is_first_call);
         is_first_call = false;
-        while (num_blocks > 1)
+        while (number_of_blocks > 1)
         {
           std::swap(devstruct.errors_input_, devstruct.errors_output_);
           // Update grid size
-          new_blocks = std::ceil(std::ceil(num_blocks * 1.0 / BLOCK_SIZE) / 2.0);
-          if (new_blocks <= 1)
+          new_number_of_blocks = std::ceil(std::ceil(number_of_blocks * 1.0 / BLOCK_SIZE) / 2.0);
+          if (new_number_of_blocks <= 1)
           {
-            NormalizedErrorKernel<<<1, BLOCK_SIZE, BLOCK_SIZE * sizeof(double)>>>(
-                y_old_param, y_new_param, ros_param, devstruct, num_blocks, is_first_call);
+            NormalizedErrorKernel<<<
+                1,
+                BLOCK_SIZE,
+                BLOCK_SIZE * sizeof(double),
+                micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+                y_old_param,
+                y_new_param,
+                absolute_tolerance_param,
+                relative_tolerance,
+                devstruct,
+                number_of_blocks,
+                is_first_call);
             break;
           }
-          NormalizedErrorKernel<<<new_blocks, BLOCK_SIZE, BLOCK_SIZE * sizeof(double)>>>(
-              y_old_param, y_new_param, ros_param, devstruct, num_blocks, is_first_call);
-          num_blocks = new_blocks;
+          NormalizedErrorKernel<<<
+              new_number_of_blocks,
+              BLOCK_SIZE,
+              BLOCK_SIZE * sizeof(double),
+              micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+              y_old_param,
+              y_new_param,
+              absolute_tolerance_param,
+              relative_tolerance,
+              devstruct,
+              number_of_blocks,
+              is_first_call);
+          number_of_blocks = new_number_of_blocks;
         }
-        cudaDeviceSynchronize();
 
-        cudaMemcpy(&normalized_error, &devstruct.errors_output_[0], sizeof(double), cudaMemcpyDeviceToHost);
-        normalized_error = std::sqrt(normalized_error / num_elements);
+        CHECK_CUDA_ERROR(
+            cudaMemcpyAsync(
+                &normalized_error,
+                &devstruct.errors_output_[0],
+                sizeof(double),
+                cudaMemcpyDeviceToHost,
+                micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+            "cudaMemcpy");
+        cudaStreamSynchronize(micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
+        normalized_error = std::sqrt(normalized_error / number_of_elements);
       }  // end of if-else for CUDA/CUBLAS implementation
       return std::max(normalized_error, 1.0e-10);
     }  // end of NormalizedErrorDriver function
-  }    // namespace cuda
+  }  // namespace cuda
 }  // namespace micm

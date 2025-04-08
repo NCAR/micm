@@ -1,30 +1,29 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <stdlib.h>
+#include <micm/jit/jit_compiler.hpp>
+#include <micm/util/random_string.hpp>
+
+#include <llvm/IR/Attributes.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Target/TargetMachine.h>
 
 #include <cassert>
 #include <iostream>
 #include <memory>
-#include <micm/util/random_string.hpp>
-
-#include "jit_compiler.hpp"
-#include "llvm/IR/Attributes.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
+#include <stdlib.h>
 
 namespace micm
 {
@@ -76,7 +75,7 @@ namespace micm
   {
     bool generated_ = false;
     std::string name_;
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
 
    public:
     std::unique_ptr<llvm::LLVMContext> context_;
@@ -90,7 +89,7 @@ namespace micm
     JitFunction() = delete;
 
     friend class JitFunctionBuilder;
-    static JitFunctionBuilder create(std::shared_ptr<JitCompiler> compiler);
+    static JitFunctionBuilder Create();
     JitFunction(JitFunctionBuilder& function_builder);
 
     /// @brief Generates the function
@@ -132,12 +131,12 @@ namespace micm
     void EndLoop(JitLoop& loop);
 
    private:
-    llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name);
+    llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name) const;
   };
 
   class JitFunctionBuilder
   {
-    std::shared_ptr<JitCompiler> compiler_;
+    JitCompiler* compiler_;
     std::string name_;
     std::vector<std::pair<std::string, JitType>> arguments_;
     JitType return_type_{ JitType::Void };
@@ -145,20 +144,20 @@ namespace micm
 
    public:
     JitFunctionBuilder() = delete;
-    JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler);
-    JitFunctionBuilder& name(std::string name);
-    JitFunctionBuilder& arguments(const std::vector<std::pair<std::string, JitType>>& arguments);
-    JitFunctionBuilder& return_type(JitType type);
+    JitFunctionBuilder(JitCompiler& compiler);
+    JitFunctionBuilder& SetName(const std::string& name);
+    JitFunctionBuilder& SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments);
+    JitFunctionBuilder& SetReturnType(JitType type);
   };
 
-  inline JitFunctionBuilder JitFunction::create(std::shared_ptr<JitCompiler> compiler)
+  inline JitFunctionBuilder JitFunction::Create()
   {
-    return JitFunctionBuilder{ compiler };
+    return JitFunctionBuilder{ JitCompiler::GetInstance() };
   }
 
   JitFunction::JitFunction(JitFunctionBuilder& function_builder)
       : generated_(false),
-        name_(function_builder.name_ + generate_random_string()),
+        name_(function_builder.name_ + GenerateRandomString()),
         compiler_(function_builder.compiler_),
         context_(std::make_unique<llvm::LLVMContext>()),
         module_(std::make_unique<llvm::Module>(name_ + " module", *context_)),
@@ -187,7 +186,9 @@ namespace micm
       arg.arg_->setName(arg.name_);
     }
     for (unsigned int i = 0; i < arguments_.size(); ++i)
+    {
       function_->addParamAttr(i, llvm::Attribute::NoAlias);
+    }
 
     // function body
 
@@ -206,7 +207,7 @@ namespace micm
 
   std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> JitFunction::Generate()
   {
-    assert((!generated_) && "JIT Function already generated");
+    assert((!generated_) && static_cast<bool>("JIT Function already generated"));
     std::pair<llvm::orc::ResourceTrackerSP, llvm::JITTargetAddress> ret_val;
     verifyFunction(*function_);
     ret_val.first = compiler_->GetMainJITDylib().createResourceTracker();
@@ -287,28 +288,28 @@ namespace micm
     loop.index_->addIncoming(nextIter, loop.block_);
   }
 
-  inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name)
+  inline llvm::AllocaInst* JitFunction::CreateEntryBlockAlloca(llvm::Type* type, const std::string& var_name) const
   {
     llvm::IRBuilder<> TmpB(&function_->getEntryBlock(), function_->getEntryBlock().begin());
     return TmpB.CreateAlloca(type, 0, var_name.c_str());
   }
 
-  inline JitFunctionBuilder::JitFunctionBuilder(std::shared_ptr<JitCompiler> compiler)
-      : compiler_(compiler){};
+  inline JitFunctionBuilder::JitFunctionBuilder(JitCompiler& compiler)
+      : compiler_(&compiler){};
 
-  inline JitFunctionBuilder& JitFunctionBuilder::name(std::string name)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetName(const std::string& name)
   {
     name_ = name;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::arguments(const std::vector<std::pair<std::string, JitType>>& arguments)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetArguments(const std::vector<std::pair<std::string, JitType>>& arguments)
   {
     arguments_ = arguments;
     return *this;
   }
 
-  inline JitFunctionBuilder& JitFunctionBuilder::return_type(JitType type)
+  inline JitFunctionBuilder& JitFunctionBuilder::SetReturnType(JitType type)
   {
     return_type_ = type;
     return *this;

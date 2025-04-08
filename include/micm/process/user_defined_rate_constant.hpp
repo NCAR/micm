@@ -1,9 +1,9 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
 #include <micm/process/rate_constant.hpp>
+
 #include <string>
 
 namespace micm
@@ -30,7 +30,7 @@ namespace micm
     UserDefinedRateConstant(const UserDefinedRateConstantParameters& parameters);
 
     /// @brief Deep copy
-    std::unique_ptr<RateConstant> clone() const override;
+    std::unique_ptr<RateConstant> Clone() const override;
 
     /// @brief Returns a label for the user-defined rate constant parameter
     /// @return Rate constant label
@@ -44,12 +44,12 @@ namespace micm
     /// @param conditions The current environmental conditions of the chemical system
     /// @param custom_parameters User-defined rate constant parameters
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
+    double Calculate(const Conditions& conditions, std::vector<double>::const_iterator custom_parameters) const override;
 
     /// @brief Calculate the rate constant
     /// @param conditions The current environmental conditions of the chemical system
     /// @return A rate constant based off of the conditions in the system
-    double calculate(const Conditions& conditions) const override;
+    double Calculate(const Conditions& conditions) const override;
   };
 
   inline UserDefinedRateConstant::UserDefinedRateConstant()
@@ -62,18 +62,17 @@ namespace micm
   {
   }
 
-  inline std::unique_ptr<RateConstant> UserDefinedRateConstant::clone() const
+  inline std::unique_ptr<RateConstant> UserDefinedRateConstant::Clone() const
   {
     return std::unique_ptr<RateConstant>{ new UserDefinedRateConstant{ *this } };
   }
 
-  inline double UserDefinedRateConstant::calculate(const Conditions& conditions) const
+  inline double UserDefinedRateConstant::Calculate(const Conditions& conditions) const
   {
-    throw std::runtime_error(
-        "User defined rate constants must be supplied with custom rate parameters using the alternative calculate function");
+    throw std::system_error(make_error_code(MicmRateConstantErrc::MissingArgumentsForUserDefinedRateConstant), "");
   }
 
-  inline double UserDefinedRateConstant::calculate(
+  inline double UserDefinedRateConstant::Calculate(
       const Conditions& conditions,
       std::vector<double>::const_iterator custom_parameters) const
   {

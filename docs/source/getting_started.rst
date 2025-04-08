@@ -37,13 +37,11 @@ Options
 .. image:: _static/options.png
 
 
-MICM can optionally include support for json configuration reading, OpenMP,
+MICM can optionally include support for yaml configuration reading, OpenMP,
 JIT-compiled chemistry functions, and GPUs. Each of these requires an additional library. 
 Some of these libraries can be included automatically with cmake build options,
 others require that you have libraries installed on your system.
 
-- JSON configuration support
-  - When building micm, you need to enable the JSON option. This will download and configure the `nlohmann/jsoncpp library <https://github.com/nlohmann/json>`_  for you. For example: ``cmake -DMICM_ENABLE_JSON=ON ..``
 - JIT-compiled chemistry functions 
   - This requires `LLVM <https://llvm.org/docs/index.html>`_ to be installed with on your system. Once it is, you can include the jit options with ``cmake -DENBABLE_LLVM=ON ..``
 - GPU support
@@ -66,30 +64,6 @@ If you would like, you can ssh into a running docker container and edit the file
 
 Run an Example
 --------------
-
-MICM Executable Example
-^^^^^^^^^^^^^^^^^^^^^^^
-
-A simple driver for MICM is built with the library and can be used to solve a
-chemical system for given initial conditions over one time step.
-
-Just pass the driver the path to the folder containing a valid JSON
-mechanism configuration and the path to a CSV file holding the initial
-conditions.
-
-Several example mechanisms and sets of conditions can be found in the
-``/examples/configs/`` folder.
-
-You can use them like this::
-
-  $ micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
-
-The output should be::
-
-  time,          O,        O1D,         O2,         O3
-     0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
-    60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
-
 
 MICM API Example
 ^^^^^^^^^^^^^^^^

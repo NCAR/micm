@@ -73,7 +73,7 @@ endif()
 ################################################################################
 # google test
 
-if(PROJECT_IS_TOP_LEVEL)
+if(MICM_ENABLE_TESTS)
   FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG be03d00f5f0cc3a997d1a368bee8a1fe93651f48
@@ -92,17 +92,6 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 ################################################################################
-# nlohmann::json
-
-if(MICM_ENABLE_JSON)
-  FetchContent_Declare(json
-      GIT_REPOSITORY https://github.com/nlohmann/json.git
-      GIT_TAG v3.11.2
-  )
-  FetchContent_MakeAvailable(json)
-endif()
-
-################################################################################
 # Docs
 
 if(MICM_BUILD_DOCS)
@@ -113,13 +102,45 @@ endif()
 ################################################################################
 # GPU Support
 
-if(MICM_ENABLE_CUDA)
-  find_package(CUDA REQUIRED)
-  enable_language(CUDA)
-endif()
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+  string(TOLOWER ${MICM_GPU_TYPE} MICM_GPU_TYPE_LOWER)
+  # Data center GPUs
+  set(cuda_arch_map_a100 80)
+  set(cuda_arch_map_v100 70)
+  set(cuda_arch_map_h100 90a)
+  set(cuda_arch_map_h200 90a)
+  set(cuda_arch_map_b100 95)
+  set(cuda_arch_map_b200 95)
+  # Consumer grade GPUs
+  set(cuda_arch_map_turing 75)
 
-if(MICM_ENABLE_OPENACC)
-  find_package(OpenACC REQUIRED)
+  set(cuda_arch_map_all_major all-major)
+  # Setting CUDAARCHS does not override CMAKE_CUDA_ARCHITECTURES or CUDA_ARCHITECTURES
+  # until the current process has returned to the caller site in CMake.
+  set(ENV{CUDAARCHS} ${cuda_arch_map_${MICM_GPU_TYPE_LOWER}})
+
+  if("$ENV{CUDAARCHS}" STREQUAL "")
+    # dynamically create the current options
+    set(arch_options "")
+    foreach(arch IN ITEMS a100 v100 h100 h200 b100 b200 turing)
+      list(APPEND arch_options ${arch})
+    endforeach()
+    message(FATAL_ERROR "${MICM_GPU_TYPE_LOWER} unsupported, current options are ${arch_options}.")
+  endif()
+
+  message(STATUS "GPU architecture found: $ENV{CUDAARCHS}")
+
+  include(CheckLanguage)
+  check_language(CUDA)
+
+  if(NOT CMAKE_CUDA_COMPILER)
+    message(FATAL_ERROR "Unable to find compatiable compiler for CUDA.")
+  endif()
+
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+  set(MICM_ENABLE_CUDA ON)
+  set(CUDA_STANDARD_REQUIRED ON)
 endif()
 
 ################################################################################

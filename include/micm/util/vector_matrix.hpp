@@ -1,15 +1,19 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research,
-//
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
+
+#include <micm/profiler/instrumentation.hpp>
+#include <micm/util/matrix_error.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
+#include <system_error>
 #include <vector>
 
 #ifndef MICM_DEFAULT_VECTOR_SIZE
-#  define MICM_DEFAULT_VECTOR_SIZE 4
+  #define MICM_DEFAULT_VECTOR_SIZE 4
 #endif
 
 namespace micm
@@ -25,6 +29,12 @@ namespace micm
   template<class T, std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   class VectorMatrix
   {
+   public:
+    // Diagonal markowitz reordering requires an int argument, make sure one is always accessible
+    using IntMatrix = VectorMatrix<int, L>;
+    using value_type = T;
+
+   private:
    protected:
     std::vector<T> data_;
     std::size_t x_dim_;  // number of rows
@@ -49,11 +59,14 @@ namespace micm
             y_dim_(y_dim)
       {
       }
-      Proxy &operator=(const std::vector<T> other)
+
+      Proxy &operator=(const std::vector<T> &other)
       {
         if (other.size() < y_dim_)
         {
-          throw std::runtime_error("Matrix row size mismatch in assignment from vector.");
+          std::string msg = "In vector matrix row assignment from std::vector. Got " + std::to_string(other.size()) +
+                            " elements, but expected " + std::to_string(y_dim_);
+          throw std::system_error(make_error_code(MicmMatrixErrc::RowSizeMismatch), msg);
         }
         auto iter = std::next(matrix_.data_.begin(), group_index_ * y_dim_ * L + row_index_);
         std::for_each(
@@ -68,6 +81,7 @@ namespace micm
             });
         return *this;
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -81,10 +95,12 @@ namespace micm
         }
         return vec;
       }
-      std::size_t size() const
+
+      std::size_t Size() const
       {
         return y_dim_;
       }
+
       T &operator[](std::size_t y)
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -106,6 +122,7 @@ namespace micm
             y_dim_(y_dim)
       {
       }
+
       operator std::vector<T>() const
       {
         std::vector<T> vec(y_dim_);
@@ -117,10 +134,12 @@ namespace micm
         }
         return vec;
       }
-      std::size_t size() const
+
+      std::size_t Size() const
       {
         return y_dim_;
       }
+
       const T &operator[](std::size_t y) const
       {
         return matrix_.data_[(group_index_ * y_dim_ + y) * L + row_index_];
@@ -149,7 +168,7 @@ namespace micm
     {
     }
 
-    VectorMatrix(const std::vector<std::vector<T>> other)
+    VectorMatrix(const std::vector<std::vector<T>> &other)
         : x_dim_(other.size()),
           y_dim_(other.size() == 0 ? 0 : other[0].size()),
           data_(
@@ -165,7 +184,9 @@ namespace micm
                 {
                   if (other_row.size() != y_dim)
                   {
-                    throw std::runtime_error("Invalid vector for matrix assignment");
+                    std::string msg = "In vector matrix constructor from std::vector<std::vector>. Got " +
+                                      std::to_string(other_row.size()) + " columns, but expected " + std::to_string(y_dim);
+                    throw std::system_error(make_error_code(MicmMatrixErrc::InvalidVector), msg);
                   }
                   auto iter = std::next(data.begin(), std::floor(i_row / (double)L) * y_dim * L + i_row % L);
                   for (auto &elem : other_row)
@@ -181,9 +202,15 @@ namespace micm
               }())
     {
     }
-    std::size_t size() const
+
+    std::size_t NumRows() const
     {
       return x_dim_;
+    }
+
+    std::size_t NumColumns() const
+    {
+      return y_dim_;
     }
 
     std::size_t NumberOfGroups() const
@@ -196,9 +223,28 @@ namespace micm
       return L * y_dim_;
     }
 
-    constexpr std::size_t GroupVectorSize() const
+    static constexpr std::size_t GroupVectorSize()
     {
       return L;
+    }
+
+    void Print() const
+    {
+      for (std::size_t i = 0; i < x_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < y_dim_; ++j)
+        {
+          std::cout << (*this)[i][j] << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
+
+    /// @brief Set every matrix element to a given value
+    /// @param val Value to set each element to
+    void Fill(T val)
+    {
+      std::fill(data_.begin(), data_.end(), val);
     }
 
     ConstProxy operator[](std::size_t x) const
@@ -217,31 +263,115 @@ namespace micm
       return *this;
     }
 
+    /// @brief For each element in the VectorMatrix x and y, perform y = alpha * x + y,
+    ///        where alpha is a scalar constant.
+    /// @param alpha The scaling scalar to apply to the VectorMatrix x
+    /// @param x The input VectorMatrix
+    void Axpy(const double &alpha, const VectorMatrix &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      auto y_iter = data_.begin();
+      auto x_iter = x.AsVector().begin();
+      const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        *(y_iter++) += alpha * (*(x_iter++));
+      }
+      const std::size_t l = x_dim_ % L;
+      for (std::size_t i = 0; i < y_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < l; ++j)
+        {
+          y_iter[(i * L) + j] += alpha * x_iter[(i * L) + j];
+        }
+      }
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = max(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Max(const T &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      for (auto &y : data_)
+        y = std::max(y, x);
+    }
+
+    /// @brief For each element of the VectorMatrix, perform y = min(y, x), where x is a scalar constant
+    /// @param x The scalar constant to compare against
+    void Min(const T &x)
+    {
+      MICM_PROFILE_FUNCTION();
+
+      for (auto &y : data_)
+        y = std::min(y, x);
+    }
+
     void ForEach(const std::function<void(T &, const T &)> f, const VectorMatrix &a)
     {
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
+      {
         f(*(this_iter++), *(a_iter++));
+      }
       const std::size_t l = x_dim_ % L;
       for (std::size_t y = 0; y < y_dim_; ++y)
+      {
         for (std::size_t x = 0; x < l; ++x)
-          f(this_iter[y * L + x], a_iter[y * L + x]);
+        {
+          f(this_iter[(y * L) + x], a_iter[(y * L) + x]);
+        }
+      }
     }
 
     void ForEach(const std::function<void(T &, const T &, const T &)> f, const VectorMatrix &a, const VectorMatrix &b)
     {
+      MICM_PROFILE_FUNCTION();
+
       auto this_iter = data_.begin();
       auto a_iter = a.AsVector().begin();
       auto b_iter = b.AsVector().begin();
       const std::size_t n = std::floor(x_dim_ / L) * L * y_dim_;
       for (std::size_t i = 0; i < n; ++i)
+      {
         f(*(this_iter++), *(a_iter++), *(b_iter++));
+      }
       const std::size_t l = x_dim_ % L;
-      for (std::size_t y = 0; y < y_dim_; ++y)
-        for (std::size_t x = 0; x < l; ++x)
-          f(this_iter[y * L + x], a_iter[y * L + x], b_iter[y * L + x]);
+      if (l > 0)
+      {
+        for (std::size_t y = 0; y < y_dim_; ++y)
+        {
+          for (std::size_t x = 0; x < l; ++x)
+          {
+            f(this_iter[(y * L) + x], a_iter[(y * L) + x], b_iter[(y * L) + x]);
+          }
+        }
+      }
+    }
+
+    // Copy the values from the other VectorMatrix into this one
+    void Copy(const VectorMatrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both vector matrices must have the same size.");
+      this->data_.assign(other.AsVector().begin(), other.AsVector().end());
+    }
+
+    // Print the VectorMatrix to the output stream
+    friend std::ostream &operator<<(std::ostream &os, const VectorMatrix &matrix)
+    {
+      for (std::size_t i = 0; i < matrix.x_dim_; ++i)
+      {
+        for (std::size_t j = 0; j < matrix.y_dim_ - 1; ++j)
+        {
+          os << matrix[i][j] << ',';
+        }
+        os << matrix[i][matrix.y_dim_ - 1] << std::endl;
+      }
+      return os;
     }
 
     std::vector<T> &AsVector()

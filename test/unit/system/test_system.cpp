@@ -1,8 +1,9 @@
+#include <micm/system/species.hpp>
+#include <micm/system/system.hpp>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <micm/system/species.hpp>
-#include <micm/system/system.hpp>
 
 TEST(System, ConstructorWithAllParameters)
 {

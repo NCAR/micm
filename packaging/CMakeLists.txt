@@ -14,10 +14,6 @@ install(
   PUBLIC_HEADER DESTINATION ${INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-if(MICM_ENABLE_JSON)
-  install(TARGETS nlohmann_json EXPORT micm_Exports)
-endif()
-
 install(
   DIRECTORY
     ${PROJECT_SOURCE_DIR}/include/micm

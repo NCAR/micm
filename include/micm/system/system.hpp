@@ -1,12 +1,11 @@
-/* Copyright (C) 2023-2024 National Center for Atmospheric Research,
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
+// SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <functional>
 #include <micm/system/phase.hpp>
 #include <micm/system/species.hpp>
+
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,7 +30,6 @@ namespace micm
     /// @brief This is a catchall for anything that is not the gas phase.
     std::unordered_map<std::string, Phase> phases_;
 
-   public:
     /// @brief Default constructor
     System()
         : gas_phase_(),

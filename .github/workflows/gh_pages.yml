@@ -1,7 +1,13 @@
 # Build and deploy documentation to GitHub Pages
 name: GitHub Pages
 
-on: [ push, pull_request ]
+on: 
+  push:
+    branches:
+      - main
+      - release
+  pull_request:
+  workflow_dispatch:
 
 env:
   DEFAULT_BRANCH: "release"
@@ -11,7 +17,7 @@ jobs:
     name: Build and deploy to gh-pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
@@ -33,7 +39,7 @@ jobs:
 
       # Clone and set up the old gh-pages branch
       - name: Clone old gh-pages
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch'}}
         run: |
           set -x
           git fetch
@@ -82,7 +88,7 @@ jobs:
       # _gh-pages/branch/$brname (transforming '/' into '--')
       - name: Build and copy documentation (branch)
         if: |
-          contains(github.event_name, 'push') &&
+          (contains(github.event_name, 'push') || contains(github.event_name, 'workflow_dispatch')) &&
           !contains(github.ref, env.DEFAULT_BRANCH)
         run: |
           set -x
@@ -120,7 +126,7 @@ jobs:
       # https://github.com/peaceiris/actions-gh-pages
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch'}}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}

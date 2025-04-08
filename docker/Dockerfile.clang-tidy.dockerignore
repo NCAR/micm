@@ -1,0 +1,16 @@
+# ignore all
+*
+
+# include things to copy
+!CMakeLists.txt
+!src/
+!docs/
+!libs/
+!test/
+!etc/
+!examples/
+!cmake/
+!packaging
+!include/
+!examples
+!.clang-tidy

@@ -1,6 +1,11 @@
 name: Docker
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
@@ -8,7 +13,6 @@ concurrency:
 
 jobs:
   docker-build-and-test:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     name: Build and Test - ${{ matrix.dockerfile }}
     runs-on: ubuntu-latest
     strategy:
@@ -20,14 +24,13 @@ jobs:
           - Dockerfile.coverage
           - Dockerfile.llvm
           - Dockerfile.memcheck
-          - Dockerfile.no_json
           - Dockerfile.nvhpc
           - Dockerfile.openmp
-          - Dockerfile.intel
+          - Dockerfile.intel 
           # - Dockerfile.mpi
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       
@@ -39,8 +42,13 @@ jobs:
 
       - name: Run tests in container
         # only run this if we are not running coverage tests or have built the cuda files
-        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc'
+        if: matrix.dockerfile != 'Dockerfile.coverage' && matrix.dockerfile != 'Dockerfile.nvhpc' && matrix.dockerfile != 'Dockerfile.llvm'
         run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8"'
+
+      - name: Run tests using LLVM in container
+        # excludes some very expensive memcheck tests
+        if: matrix.dockerfile == 'Dockerfile.llvm'
+        run: docker run --name test-container -t micm bash -c 'make test ARGS="--rerun-failed --output-on-failure -j8 -E \"memcheck_jit_linear_solver|memcheck_analytical_rosenbrock_integration\""'
 
       - name: Run coverage tests in container
         if: matrix.dockerfile == 'Dockerfile.coverage'

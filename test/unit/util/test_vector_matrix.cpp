@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "test_matrix_policy.hpp"
 
 #include <micm/util/vector_matrix.hpp>
 
-#include "test_matrix_policy.hpp"
+#include <gtest/gtest.h>
 
 template<class T>
 using Group1MatrixAlias = micm::VectorMatrix<T, 1>;
@@ -83,6 +83,14 @@ TEST(VectorMatrix, AssignmentFromVector)
   testAssignmentFromVector<Group2MatrixAlias>();
 }
 
+TEST(VectorMatrix, Axpy)
+{
+  testAxpy<Group1MatrixAlias>();
+  testAxpy<Group2MatrixAlias>();
+  testAxpy<Group3MatrixAlias>();
+  testAxpy<Group4MatrixAlias>();
+}
+
 TEST(VectorMatrix, ForEach)
 {
   testForEach<Group1MatrixAlias>();
@@ -97,4 +105,28 @@ TEST(VectorMatrix, SetScaler)
   testSetScalar<Group2MatrixAlias>();
   testSetScalar<Group3MatrixAlias>();
   testSetScalar<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, Max)
+{
+  testMax<Group1MatrixAlias>();
+  testMax<Group2MatrixAlias>();
+  testMax<Group3MatrixAlias>();
+  testMax<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, Min)
+{
+  testMin<Group1MatrixAlias>();
+  testMin<Group2MatrixAlias>();
+  testMin<Group3MatrixAlias>();
+  testMin<Group4MatrixAlias>();
+}
+
+TEST(VectorMatrix, Print)
+{
+  testPrint<Group1MatrixAlias>();
+  testPrint<Group2MatrixAlias>();
+  testPrint<Group3MatrixAlias>();
+  testPrint<Group4MatrixAlias>();
 }

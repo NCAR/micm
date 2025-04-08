@@ -1,21 +1,96 @@
-// Copyright (C) 2023-2024 National Center for Atmospheric Research
+// Copyright (C) 2023-2025 National Center for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
+
+enum class MicmStateErrc
+{
+  UnknownSpecies = 1,                                                   // Unknown species
+  UnknownRateConstantParameter = 2,                                     // Unknown rate constant parameter
+  IncorrectNumberOfConcentrationValuesForMultiGridcellState = 3,        // Incorrect number of concentration values
+  IncorrectNumberOfCustomRateParameterValues = 4,                       // Incorrect number of custom rate parameter values
+  IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState = 5,  // Incorrect number of grid cells
+};
+
+namespace std
+{
+  template<>
+  struct is_error_condition_enum<MicmStateErrc> : true_type
+  {
+  };
+}  // namespace std
+
+namespace
+{
+
+  class MicmStateErrorCategory : public std::error_category
+  {
+   public:
+    const char* name() const noexcept override
+    {
+      return "MICM State";
+    }
+    std::string message(int ev) const override
+    {
+      switch (static_cast<MicmStateErrc>(ev))
+      {
+        case MicmStateErrc::UnknownSpecies: return "Unknown species";
+        case MicmStateErrc::UnknownRateConstantParameter: return "Unknown rate constant parameter";
+        case MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState:
+          return "Incorrect number of concentration values for multi-gridcell State";
+        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValues:
+          return "Incorrect number of custom rate parameter values per grid cell";
+        case MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState:
+          return "Incorrect number of custom rate parameter values for multi-gridcell State";
+        default: return "Unknown error";
+      }
+    }
+  };
+
+  const MicmStateErrorCategory micmStateErrorCategory{};
+
+}  // namespace
+
+inline std::error_code make_error_code(MicmStateErrc e)
+{
+  return { static_cast<int>(e), micmStateErrorCategory };
+}
 
 namespace micm
 {
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy>::State()
-      : conditions_(),
-        variables_(),
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State()
+      : variables_(),
         custom_rate_parameters_(),
         rate_constants_(),
-        jacobian_()
+        conditions_(),
+        jacobian_(),
+        jacobian_diagonal_elements_(),
+        variable_map_(),
+        custom_rate_parameter_map_(),
+        variable_names_(),
+        lower_matrix_(),
+        upper_matrix_(),
+        state_size_(0),
+        number_of_grid_cells_(0),
+        temporary_variables_(nullptr),
+        relative_tolerance_(1e-06),
+        absolute_tolerance_()
   {
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline State<MatrixPolicy, SparseMatrixPolicy>::State(const StateParameters& parameters)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
+      const StateParameters& parameters)
       : conditions_(parameters.number_of_grid_cells_),
         variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
         custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
@@ -24,10 +99,13 @@ namespace micm
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
         jacobian_(),
+        jacobian_diagonal_elements_(),
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
-        number_of_grid_cells_(parameters.number_of_grid_cells_)
+        number_of_grid_cells_(parameters.number_of_grid_cells_),
+        relative_tolerance_(parameters.relative_tolerance_),
+        absolute_tolerance_(parameters.absolute_tolerance_)
   {
     std::size_t index = 0;
     for (auto& name : variable_names_)
@@ -36,21 +114,35 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
-    jacobian_ = build_jacobian<SparseMatrixPolicy>(
-      parameters.nonzero_jacobian_elements_,
-      parameters.number_of_grid_cells_,
-      state_size_
-    );
-    
-    auto lu =  LuDecomposition::GetLUMatrices(jacobian_, 1.0e-30);
-    auto lower_matrix = std::move(lu.first);
-    auto upper_matrix = std::move(lu.second);
-    lower_matrix_ = lower_matrix;
-    upper_matrix_ = upper_matrix;
+    jacobian_ = BuildJacobian<SparseMatrixPolicy>(
+        parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
+
+    if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
+    {
+      auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0);
+      jacobian_ = std::move(lu);
+    }
+    else
+    {
+      auto lu =
+          LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0);
+      auto lower_matrix = std::move(lu.first);
+      auto upper_matrix = std::move(lu.second);
+      lower_matrix_ = lower_matrix;
+      upper_matrix_ = upper_matrix;
+    }
+
+    jacobian_diagonal_elements_ = jacobian_.DiagonalIndices(0);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentrations(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentrations(
       const std::unordered_map<std::string, std::vector<double>>& species_to_concentration)
   {
     const std::size_t num_grid_cells = conditions_.size();
@@ -58,121 +150,207 @@ namespace micm
       SetConcentration({ pair.first }, pair.second);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, double concentration)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+      const Species& species,
+      double concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
-    if (variables_.size() != 1)
-      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
+    if (variables_.NumRows() != 1)
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     variables_[0][variable_map_[species.name_]] = concentration;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetConcentration(const Species& species, const std::vector<double>& concentration)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetConcentration(
+      const Species& species,
+      const std::vector<double>& concentration)
   {
     auto var = variable_map_.find(species.name_);
     if (var == variable_map_.end())
-      throw std::invalid_argument("Unknown variable '" + species.name_ + "'");
-    if (variables_.size() != concentration.size())
-      throw std::invalid_argument("Incorrect number of concentration values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownSpecies), species.name_);
+    if (variables_.NumRows() != concentration.size())
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfConcentrationValuesForMultiGridcellState));
     std::size_t i_species = variable_map_[species.name_];
-    for (std::size_t i = 0; i < variables_.size(); ++i)
+    for (std::size_t i = 0; i < variables_.NumRows(); ++i)
       variables_[i][i_species] = concentration[i];
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::UnsafelySetCustomRateParameters(
-      const std::vector<std::vector<double>>& parameters)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::
+      UnsafelySetCustomRateParameters(const std::vector<std::vector<double>>& parameters)
   {
-    if (parameters.size() != variables_.size())
-      throw std::invalid_argument("The number of grid cells configured for micm does not match the number of custom rate parameter values passed to multi-gridcell State");
+    if (parameters.size() != variables_.NumRows())
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
 
-    if (parameters[0].size() != custom_rate_parameters_[0].size())
-      throw std::invalid_argument("The number of custom rate parameters configured for micm does not match the provided number of custom rate parameter values");
+    if (parameters[0].size() != custom_rate_parameters_.NumColumns())
+      throw std::system_error(make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValues));
 
-    for(size_t i = 0; i < number_of_grid_cells_; ++i) {
+    for (size_t i = 0; i < number_of_grid_cells_; ++i)
+    {
       custom_rate_parameters_[i] = parameters[i];
     }
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameters(
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameters(
       const std::unordered_map<std::string, std::vector<double>>& parameters)
   {
     for (auto& pair : parameters)
       SetCustomRateParameter(pair.first, pair.second);
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, double value)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
+      const std::string& label,
+      double value)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
-    if (custom_rate_parameters_.size() != 1)
-      throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
+    if (custom_rate_parameters_.NumRows() != 1)
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
     custom_rate_parameters_[0][param->second] = value;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::SetCustomRateParameter(const std::string& label, const std::vector<double>& values)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetCustomRateParameter(
+      const std::string& label,
+      const std::vector<double>& values)
   {
     auto param = custom_rate_parameter_map_.find(label);
     if (param == custom_rate_parameter_map_.end())
-      throw std::invalid_argument("Unknown rate constant parameter '" + label + "'");
-    if (custom_rate_parameters_.size() != values.size())
-      throw std::invalid_argument("Incorrect number of custom rate parameter values passed to multi-gridcell State");
-    for (std::size_t i = 0; i < custom_rate_parameters_.size(); ++i)
+      throw std::system_error(make_error_code(MicmStateErrc::UnknownRateConstantParameter), label);
+    if (custom_rate_parameters_.NumRows() != values.size())
+      throw std::system_error(
+          make_error_code(MicmStateErrc::IncorrectNumberOfCustomRateParameterValuesForMultiGridcellState));
+    for (std::size_t i = 0; i < custom_rate_parameters_.NumRows(); ++i)
       custom_rate_parameters_[i][param->second] = values[i];
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintHeader()
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetRelativeTolerance(
+      double relativeTolerance)
   {
-    auto largest_str_iter = std::max_element(variable_names_.begin(), variable_names_.end(),
-                                  [](const auto& a, const auto& b) {
-                                      return a.size() < b.size();});
+    this->relative_tolerance_ = relativeTolerance;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::SetAbsoluteTolerances(
+      const std::vector<double>& absoluteTolerance)
+  {
+    this->absolute_tolerance_ = absoluteTolerance;
+  }
+
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void
+  State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintHeader()
+  {
+    auto largest_str_iter = std::max_element(
+        variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
     std::cout << std::setw(6) << "time";
-    if (variables_.size() > 1) {
+    if (variables_.NumRows() > 1)
+    {
       std::cout << "," << std::setw(6) << "grid";
     }
 
-    for(const auto& [species, index] : variable_map_)
+    for (const auto& [species, index] : variable_map_)
     {
       std::cout << "," << std::setw(width) << species;
     }
     std::cout << std::endl;
   }
 
-  template<template<class> class MatrixPolicy, template<class> class SparseMatrixPolicy>
-  inline void State<MatrixPolicy, SparseMatrixPolicy>::PrintState(double time)
+  template<
+      class DenseMatrixPolicy,
+      class SparseMatrixPolicy,
+      class LuDecompositionPolicy,
+      class LMatrixPolicy,
+      class UMatrixPolicy>
+  inline void State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::PrintState(
+      double time)
   {
     std::ios oldState(nullptr);
     oldState.copyfmt(std::cout);
 
-    auto largest_str_iter = std::max_element(variable_names_.begin(), variable_names_.end(),
-                                  [](const auto& a, const auto& b) {
-                                      return a.size() < b.size();});
+    auto largest_str_iter = std::max_element(
+        variable_names_.begin(), variable_names_.end(), [](const auto& a, const auto& b) { return a.size() < b.size(); });
     int largest_str_size = largest_str_iter->size();
     int width = (largest_str_size < 10) ? 11 : largest_str_size + 2;
 
-
-    for(size_t i = 0; i < variables_.size(); ++i) {
+    for (size_t i = 0; i < variables_.NumRows(); ++i)
+    {
       std::cout << std::setw(6) << time << ",";
 
-      if (variables_.size() > 1) {
+      if (variables_.NumRows() > 1)
+      {
         std::cout << std::setw(6) << i << ",";
       }
 
       bool first = true;
-      for(const auto& [species, index] : variable_map_)
+      for (const auto& [species, index] : variable_map_)
       {
-        if (!first) {
+        if (!first)
+        {
           std::cout << ",";
         }
         std::cout << std::scientific << std::setw(width) << std::setprecision(2) << variables_[i][index];
@@ -182,5 +360,4 @@ namespace micm
       std::cout.copyfmt(oldState);
     }
   }
-
 }  // namespace micm

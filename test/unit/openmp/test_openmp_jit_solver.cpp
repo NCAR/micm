@@ -1,47 +1,56 @@
+#include "run_solver.hpp"
+
+#include <micm/jit/jit_compiler.hpp>
+#include <micm/jit/solver/jit_rosenbrock.hpp>
+#include <micm/jit/solver/jit_solver_builder.hpp>
+#include <micm/jit/solver/jit_solver_parameters.hpp>
+#include <micm/util/sparse_matrix.hpp>
+
 #include <gtest/gtest.h>
 #include <omp.h>
 
-#include <micm/configure/solver_config.hpp>
-#include <micm/jit/jit_compiler.hpp>
-#include <micm/solver/jit_rosenbrock.hpp>
-#include <micm/util/sparse_matrix.hpp>
-
-#include "run_solver.hpp"
-
 using namespace micm;
 
-template<class T>
-using Group1VectorMatrix = micm::VectorMatrix<T, 1>;
-template<class T>
-using Group1SparseVectorMatrix = micm::SparseMatrix<T, micm::SparseMatrixVectorOrdering<1>>;
+template<std::size_t L>
+using JitBuilder = JitSolverBuilder<JitRosenbrockSolverParameters, L>;
 
 TEST(OpenMP, JITOneSolverManyStates)
 {
   constexpr size_t n_threads = 8;
 
-  SolverConfig solverConfig;
+  auto a = micm::Species("A");
+  auto b = micm::Species("B");
+  auto c = micm::Species("C");
 
-  std::string config_path = "./unit_configs/robertson";
-  ConfigParseStatus status = solverConfig.ReadAndParse(config_path);
-  if (status != micm::ConfigParseStatus::Success)
-  {
-    throw "Parsing failed";
-  }
+  micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c } };
 
-  micm::SolverParameters solver_params = solverConfig.GetSolverParams();
+  micm::Process r1 = micm::Process::Create()
+                         .SetReactants({ a })
+                         .SetProducts({ Yields(b, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r1" }))
+                         .SetPhase(gas_phase);
 
-  auto chemical_system = solver_params.system_;
-  auto reactions = solver_params.processes_;
+  micm::Process r2 = micm::Process::Create()
+                         .SetReactants({ b, b })
+                         .SetProducts({ Yields(b, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r2" }))
+                         .SetPhase(gas_phase);
+
+  micm::Process r3 = micm::Process::Create()
+                         .SetReactants({ b, c })
+                         .SetProducts({ Yields(a, 1), Yields(c, 1) })
+                         .SetRateConstant(micm::UserDefinedRateConstant({ .label_ = "r3" }))
+                         .SetPhase(gas_phase);
+
+  auto reactions = std::vector<micm::Process>{ r1, r2, r3 };
+  auto chemical_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
 
   std::vector<std::vector<double>> results(n_threads);
 
-  auto jit{ micm::JitCompiler::create() };
-  JitRosenbrockSolver<
-      Group1VectorMatrix,
-      Group1SparseVectorMatrix,
-      JitLinearSolver<1, Group1SparseVectorMatrix>,
-      micm::JitProcessSet<1>>
-      solver(jit.get(), chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters());
+  auto solver = JitBuilder<1>(RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
 #pragma omp parallel num_threads(n_threads)
   {

@@ -14,7 +14,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
 
-Copyright (C) 2018-2024 National Center for Atmospheric Research
+Copyright (C) 2018-2025 National Center for Atmospheric Research
 
 
 <p align="center">
@@ -86,32 +86,6 @@ cd /build/
 make test
 ```
 
-# Using the MICM executable
-
-A simple driver for MICM is built with the library and can be used to solve a
-chemical system for given initial conditions over one time step.
-
-Just pass the driver the path to the folder containing a valid JSON
-mechanism configuration and the path to a CSV file holding the initial
-conditions.
-
-Several example mechanisms and sets of conditions can be found in the
-`/examples/configs/` folder.
-
-You can use them like this:
-
-```
-micm examples/configs/chapman examples/configs/chapman/initial_conditions.csv
-```
-
-The output should be:
-
-```
- time,          O,        O1D,         O2,         O3
-    0,   0.00e+00,   0.00e+00,   7.50e-01,   8.10e-06
-   60,   2.57e-12,   3.49e-22,   7.50e-01,   8.10e-06
-```
-
 # Using the MICM API
 
 The following example solves the fictitious chemical system:
@@ -125,10 +99,12 @@ The `k1` and `k2` rate constants are for Arrhenius reactions. See the [MICM docu
 To solve this system save the following code in a file named `foo_chem.cpp`:
 
 ```c++
-#include <iomanip>
-#include <iostream>
 #include <micm/process/arrhenius_rate_constant.hpp>
 #include <micm/solver/rosenbrock.hpp>
+#include <micm/solver/solver_builder.hpp>
+
+#include <iomanip>
+#include <iostream>
 
 using namespace micm;
 
@@ -142,34 +118,38 @@ int main(const int argc, const char *argv[])
 
   System chemical_system{ SystemParameters{ .gas_phase_ = gas_phase } };
 
-  Process r1 = Process::create()
-                   .reactants({ foo })
-                   .products({ Yield(bar, 0.8), Yield(baz, 0.2) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
-                   .phase(gas_phase);
+  Process r1 = Process::Create()
+                   .SetReactants({ foo })
+                   .SetProducts({ Yield(bar, 0.8), Yield(baz, 0.2) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-3 }))
+                   .SetPhase(gas_phase);
 
-  Process r2 = Process::create()
-                   .reactants({ foo, bar })
-                   .products({ Yield(baz, 1) })
-                   .rate_constant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
-                   .phase(gas_phase);
+  Process r2 = Process::Create()
+                   .SetReactants({ foo, bar })
+                   .SetProducts({ Yield(baz, 1) })
+                   .SetRateConstant(ArrheniusRateConstant({ .A_ = 1.0e-5, .C_ = 110.0 }))
+                   .SetPhase(gas_phase);
 
   std::vector<Process> reactions{ r1, r2 };
 
-  RosenbrockSolver<> solver{ chemical_system, reactions, RosenbrockSolverParameters::three_stage_rosenbrock_parameters() };
+  auto solver = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+                    .SetSystem(chemical_system)
+                    .SetReactions(reactions)
+                    .Build();
 
   State state = solver.GetState();
 
   state.conditions_[0].temperature_ = 287.45;  // K
   state.conditions_[0].pressure_ = 101319.9;   // Pa
+  state.conditions_[0].CalculateIdealAirDensity();
   state.SetConcentration(foo, 20.0);           // mol m-3
 
   state.PrintHeader();
   for (int i = 0; i < 10; ++i)
   {
+    solver.CalculateRateConstants(state);
     auto result = solver.Solve(500.0, state);
-    state.variables_ = result.result_;
-    state.PrintState(i*500);
+    state.PrintState(i * 500);
   }
 
   return 0;
@@ -178,7 +158,7 @@ int main(const int argc, const char *argv[])
 
 To build and run the example using GNU (assuming the default install location):
 ```
-g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.3.1/include -std=c++20
+g++ -o foo_chem foo_chem.cpp -I/usr/local/micm-3.8.0/include -std=c++20
 ./foo_chem
 ```
 
@@ -225,9 +205,6 @@ cutting edge science.
   - Anyone interested in scientific collaboration
 which would add new software functionality should read the [MUSICA software development plan](https://github.com/NCAR/musica/blob/main/docs/Software%20Development%20Plan.pdf).
 
-- [Code of conduct](CODE_OF_CONDUCT.md)
-  - Please read this through to you understand the expectations with how to interact with this project.
-
 - [Contributor's guide](https://ncar.github.io/micm/contributing/index.html)
   - Before submiitting a PR, please thouroughly read this to you understand our expectations. We reserve the right to reject any PR not meeting our guidelines.
 
@@ -240,4 +217,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2024 National Center for Atmospheric Research
+Copyright (C) 2018-2025 National Center for Atmospheric Research
