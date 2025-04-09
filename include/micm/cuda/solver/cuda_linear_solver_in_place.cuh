@@ -10,10 +10,8 @@ namespace micm
   {
     /// This is the host function that will call the CUDA kernel
     ///   to perform the "solve" function on the device
-    void SolveKernelDriver(
-        CudaMatrixParam& x_param,
-        const CudaMatrixParam& ALU_param,
-        const LinearSolverInPlaceParam& devstruct);
+    void
+    SolveKernelDriver(CudaMatrixParam& x_param, const CudaMatrixParam& ALU_param, const LinearSolverInPlaceParam& devstruct);
 
     /// This is the function that will copy the constant data
     ///   members of class "CudaLinearSolverInPlace" to the device;

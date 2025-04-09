@@ -10,10 +10,8 @@ namespace micm
   namespace cuda
   {
     /// This is the CUDA kernel that performs the "solve" function on the device
-    __global__ void SolveKernel(
-        CudaMatrixParam x_param,
-        const CudaMatrixParam ALU_param,
-        const LinearSolverInPlaceParam devstruct)
+    __global__ void
+    SolveKernel(CudaMatrixParam x_param, const CudaMatrixParam ALU_param, const LinearSolverInPlaceParam devstruct)
     {
       // Calculate global thread ID
       size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
@@ -36,10 +34,10 @@ namespace micm
       {
         // Forward Substitution
         {
-          for (auto i=0; i<d_nLij_size; ++i)
+          for (auto i = 0; i < d_nLij_size; ++i)
           {
             const std::size_t j_lim = d_nLij[i];
-            for (auto j=0; j<j_lim; ++j)
+            for (auto j = 0; j < j_lim; ++j)
             {
               const std::size_t d_Lij_yj_first = (*d_Lij_yj).first;
               const std::size_t d_Lij_yj_second_times_ncells = (*d_Lij_yj).second * number_of_grid_cells;
@@ -50,12 +48,12 @@ namespace micm
             }
             d_y += number_of_grid_cells;
           }
-        }  
+        }
         // Backward Substitution
         {
           // d_y will be x_elem in the CPU implementation
-          d_y = d_x + number_of_elements - number_of_grid_cells; 
-          for (auto i=0; i<d_nUij_Uii_size; ++i)
+          d_y = d_x + number_of_elements - number_of_grid_cells;
+          for (auto i = 0; i < d_nUij_Uii_size; ++i)
           {
             const std::size_t j_lim = d_nUij_Uii[i].first;
             for (auto j = 0; j < j_lim; ++j)
@@ -86,8 +84,7 @@ namespace micm
       /// Create a struct whose members contain the addresses in the device memory.
       LinearSolverInPlaceParam devstruct;
       CHECK_CUDA_ERROR(
-          cudaMallocAsync(
-              &(devstruct.nLij_), nLij_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
+          cudaMallocAsync(&(devstruct.nLij_), nLij_bytes, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)),
           "cudaMalloc");
       CHECK_CUDA_ERROR(
           cudaMallocAsync(
@@ -162,10 +159,8 @@ namespace micm
             cudaFreeAsync(devstruct.Uij_xj_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)), "cudaFree");
     }
 
-    void SolveKernelDriver(
-        CudaMatrixParam& x_param,
-        const CudaMatrixParam& ALU_param,
-        const LinearSolverInPlaceParam& devstruct)
+    void
+    SolveKernelDriver(CudaMatrixParam& x_param, const CudaMatrixParam& ALU_param, const LinearSolverInPlaceParam& devstruct)
     {
       size_t number_of_blocks = (x_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SolveKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
