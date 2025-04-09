@@ -42,17 +42,34 @@ TEST(CudaLinearSolverInPlace, DenseMatrixVectorOrderingPolicy)
 TEST(CudaLinearSolverInPlace, RandomMatrixVectorOrderingPolicy)
 {
   testRandomMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(1);
-  testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group20CudaSparseMatrix>>(20);
-  testRandomMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group300CudaSparseMatrix>>(300);
-  testRandomMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group4000CudaSparseMatrix>>(4000);
+  testRandomMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group20CudaSparseMatrix>>(
+      20);
+  testRandomMatrix<
+      Group300CudaDenseMatrix,
+      Group300CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group300CudaSparseMatrix>>(300);
+  testRandomMatrix<
+      Group4000CudaDenseMatrix,
+      Group4000CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group4000CudaSparseMatrix>>(4000);
 }
 
 TEST(CudaLinearSolverInPlace, DiagonalMatrixVectorOrderingPolicy)
 {
-  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(1);
-  testDiagonalMatrix<Group20CudaDenseMatrix, Group20CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group20CudaSparseMatrix>>(20);
-  testDiagonalMatrix<Group300CudaDenseMatrix, Group300CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group300CudaSparseMatrix>>(300);
-  testDiagonalMatrix<Group4000CudaDenseMatrix, Group4000CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group4000CudaSparseMatrix>>(4000);
+  testDiagonalMatrix<Group1CudaDenseMatrix, Group1CudaSparseMatrix, micm::CudaLinearSolverInPlace<Group1CudaSparseMatrix>>(
+      1);
+  testDiagonalMatrix<
+      Group20CudaDenseMatrix,
+      Group20CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group20CudaSparseMatrix>>(20);
+  testDiagonalMatrix<
+      Group300CudaDenseMatrix,
+      Group300CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group300CudaSparseMatrix>>(300);
+  testDiagonalMatrix<
+      Group4000CudaDenseMatrix,
+      Group4000CudaSparseMatrix,
+      micm::CudaLinearSolverInPlace<Group4000CudaSparseMatrix>>(4000);
 }
 
 TEST(CudaLinearSolverInPlace, AgnosticToInitialValue)
