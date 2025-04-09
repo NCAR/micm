@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
-#include <micm/cuda/solver/cuda_linear_solver.hpp>
+#include <micm/cuda/solver/cuda_linear_solver_in_place.hpp>
 #include <micm/cuda/solver/cuda_rosenbrock.cuh>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_param.hpp>

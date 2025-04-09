@@ -244,12 +244,13 @@ void testExtremeInitialValue(std::size_t number_of_blocks, double initial_value)
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, initial_value);
   auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, initial_value);
-  alu.Fill(0);
   for (std::size_t i_block = 0; i_block < number_of_blocks; ++i_block)
     for (std::size_t i = 0; i < A.NumRows(); ++i)
       for (std::size_t j = 0; j < A.NumColumns(); ++j)
         if (!A.IsZero(i, j))
           alu[i_block][i][j] = A[i_block][i][j];
+        else
+          if (!alu.IsZero(i,j)) alu[i_block][i][j] = 0;
 
   // Only copy the data to the device when it is a CudaMatrix
   CopyToDeviceSparse<SparseMatrixPolicy>(alu);
