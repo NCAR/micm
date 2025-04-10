@@ -1,16 +1,4 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/process/branched_rate_constant.hpp>
-#include <micm/process/process.hpp>
-#include <micm/process/ternary_chemical_activation_rate_constant.hpp>
-#include <micm/process/troe_rate_constant.hpp>
-#include <micm/process/tunneling_rate_constant.hpp>
-#include <micm/process/user_defined_rate_constant.hpp>
-#include <micm/solver/backward_euler.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/phase.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/constants.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 
