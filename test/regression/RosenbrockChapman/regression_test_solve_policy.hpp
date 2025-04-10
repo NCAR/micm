@@ -1,11 +1,6 @@
 #include "chapman_ode_solver.hpp"
 #include "util.hpp"
 
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <random>
 
 template<class SolverPolicy>

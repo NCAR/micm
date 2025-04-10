@@ -1,14 +1,5 @@
 #include "terminator.hpp"
 
-#include <micm/process/process.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <gtest/gtest.h>
 
 TEST(RosenbrockSolver, Terminator)

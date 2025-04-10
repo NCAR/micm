@@ -1,5 +1,4 @@
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
+#include <micm/CPU.hpp>
 
 #include <omp.h>
 

@@ -1,6 +1,4 @@
-#include <micm/process/arrhenius_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
+#include <micm/CPU.hpp>
 
 #include <iomanip>
 #include <iostream>

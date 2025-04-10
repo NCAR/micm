@@ -1,10 +1,5 @@
 #include "regression_test_solve_policy.hpp"
 
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <gtest/gtest.h>
 template<std::size_t L>
 using VectorBuilder = micm::CpuSolverBuilder<

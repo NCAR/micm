@@ -1,12 +1,6 @@
 #include "analytical_policy.hpp"
 #include "analytical_surface_rxn_policy.hpp"
 
-#include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
-
 #include <gtest/gtest.h>
 
 template<std::size_t L>
