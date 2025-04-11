@@ -151,13 +151,13 @@ namespace micm
         // Check the error magnitude and adjust step size
         if (std::isnan(error))
         {
-          Y.Copy(Ynew);
+          Y.Swap(Ynew);
           result.state_ = SolverState::NaNDetected;
           break;
         }
         else if (std::isinf(error) == 1)
         {
-          Y.Copy(Ynew);
+          Y.Swap(Ynew);
           result.state_ = SolverState::InfDetected;
           break;
         }
@@ -165,7 +165,7 @@ namespace micm
         {
           stats.accepted_ += 1;
           present_time = present_time + H;
-          Y.Copy(Ynew);
+          Y.Swap(Ynew);
           Hnew = std::max(parameters.h_min_, std::min(Hnew, h_max));
           if (reject_last_h)
           {
