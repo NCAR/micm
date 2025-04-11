@@ -10,8 +10,8 @@
 #include <micm/version.hpp>
 
 namespace micm {
-  using DenseMatrixVector = micm::VectorMatrix<double, MICM_VECTOR_MATRIX_SIZE>;
-  using SparseMatrixVector = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<MICM_VECTOR_MATRIX_SIZE>>;
+  using DenseMatrixVector = micm::VectorMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
+  using SparseMatrixVector = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
   using DenseMatrixStandard = micm::Matrix<double>;
   using SparseMatrixStandard = micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>;
