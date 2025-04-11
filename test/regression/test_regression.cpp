@@ -1,10 +1,5 @@
 #include "regression_policy.hpp"
 
-#include <micm/solver/solver_builder.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/solver/backward_euler_solver_parameters.hpp>
-
 #include <gtest/gtest.h>
 
 auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
