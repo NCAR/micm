@@ -1,9 +1,4 @@
-#include <micm/process/surface_rate_constant.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/state.hpp>
-#include <micm/system/species.hpp>
-#include <micm/system/system.hpp>
-#include <micm/util/constants.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 

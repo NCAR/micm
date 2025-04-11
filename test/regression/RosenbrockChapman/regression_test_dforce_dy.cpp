@@ -1,9 +1,6 @@
 #include "regression_test_dforce_dy_policy.hpp"
 
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/CPU.hpp>
 
 #include <gtest/gtest.h>
 

@@ -4,10 +4,7 @@
 #include "../analytical_policy.hpp"
 #include "../analytical_surface_rxn_policy.hpp"
 
-#include <micm/cuda/solver/cuda_solver_builder.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
-#include <micm/cuda/solver/cuda_state.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
+#include <micm/GPU.hpp>
 
 #include <gtest/gtest.h>
 
