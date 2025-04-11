@@ -360,6 +360,13 @@ namespace micm
       this->data_.assign(other.AsVector().begin(), other.AsVector().end());
     }
 
+    void Swap(VectorMatrix &other)
+    {
+      if (other.AsVector().size() != this->data_.size())
+        throw std::runtime_error("Both vector matrices must have the same size.");
+      data_.swap(other.AsVector());
+    }
+
     // Print the VectorMatrix to the output stream
     friend std::ostream &operator<<(std::ostream &os, const VectorMatrix &matrix)
     {
