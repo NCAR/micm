@@ -12,7 +12,7 @@ auto rosenbrock_2stage = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters
 
 auto backward_euler = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(micm::BackwardEulerSolverParameters());
 
-TEST(RossenbrockRegression, FlowTube)
+TEST(RosenbrockRegression, FlowTube)
 {
   test_flow_tube(rosenbrock_2stage, "expected_results/rosenbrock_wall_loss.csv");
 }
