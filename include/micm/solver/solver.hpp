@@ -22,6 +22,7 @@ namespace micm
 
     StateParameters state_parameters_;
     std::vector<micm::Process> processes_;
+    System system_;
 
    public:
     using SolverPolicyType = SolverPolicy;
@@ -33,11 +34,14 @@ namespace micm
         SolverPolicy&& solver,
         StateParameters state_parameters,
         SolverParametersType solver_parameters,
-        std::vector<micm::Process> processes)
+        std::vector<micm::Process> processes,
+        System system)
         : solver_(std::move(solver)),
           state_parameters_(state_parameters),
           solver_parameters_(solver_parameters),
-          processes_(std::move(processes))
+          processes_(std::move(processes)),
+          system_(std::move(system))
+          
     {
     }
 
@@ -112,6 +116,11 @@ namespace micm
             std::string(typeid(typename SolverPolicy::ParametersType).name()));
       }
       return state;
+    }
+
+    System GetSystem() const
+    {
+      return system_;
     }
 
     std::vector<micm::Process> GetProcesses() const
