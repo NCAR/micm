@@ -83,6 +83,9 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
           .SetReactions(reactions)
           .SetNumberOfGridCells(1)
           .Build();
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
+  EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
 }
 
 TEST(SolverBuilder, CanBuildRosenbrock)
@@ -104,6 +107,10 @@ TEST(SolverBuilder, CanBuildRosenbrock)
                                .SetReactions(reactions)
                                .SetNumberOfGridCells(1)
                                .Build();
+
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
+  EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
+  EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
 }
 
 TEST(SolverBuilder, CanBuildBackwardEulerOverloadedSolverMethod)

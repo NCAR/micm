@@ -52,7 +52,8 @@ namespace micm
         : solver_(std::move(other.solver_)),
           processes_(std::move(other.processes_)),
           state_parameters_(other.state_parameters_),
-          solver_parameters_(other.solver_parameters_)
+          solver_parameters_(other.solver_parameters_),
+          system_(std::move(other.system_))
     {
     }
     Solver& operator=(Solver&& other)
@@ -61,6 +62,7 @@ namespace micm
       state_parameters_ = other.state_parameters_;
       solver_parameters_ = other.solver_parameters_;
       std::swap(this->processes_, other.processes_);
+      std::swap(this->system_, other.system_);
       return *this;
     }
 
@@ -118,7 +120,7 @@ namespace micm
       return state;
     }
 
-    System GetSystem() const
+    System& GetSystem() 
     {
       return system_;
     }
