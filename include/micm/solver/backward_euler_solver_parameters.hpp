@@ -11,13 +11,13 @@ namespace micm
 {
 
   template<class RatesPolicy, class LinearSolverPolicy>
-  class BackwardEuler;
+  class AbstractBackwardEuler;
 
   /// @brief BackwardEuler solver parameters
   struct BackwardEulerSolverParameters
   {
     template<class RatesPolicy, class LinearSolverPolicy>
-    using SolverType = BackwardEuler<RatesPolicy, LinearSolverPolicy>;
+    using SolverType = AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>;
 
     double small_{ 1.0e-40 };
     double h_start_{ 0.0 };

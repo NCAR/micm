@@ -31,48 +31,40 @@ namespace micm
     std::unordered_map<std::string, Phase> phases_;
 
     /// @brief Default constructor
-    System()
-        : gas_phase_(),
-          phases_()
-    {
-    }
+    System() = default;
 
+    /// @brief Parameterized constructor
     System(const Phase& gas_phase, const std::unordered_map<std::string, Phase>& phases)
         : gas_phase_(gas_phase),
           phases_(phases)
     {
     }
 
+    /// @brief Parameterized constructor with move semantics
     System(Phase&& gas_phase, std::unordered_map<std::string, Phase>&& phases)
         : gas_phase_(std::move(gas_phase)),
           phases_(std::move(phases))
     {
     }
 
-    System(const System& other)
-        : gas_phase_(other.gas_phase_),
-          phases_(other.phases_)
-    {
-    }
+    /// @brief Copy constructor
+    System(const System&) = default;
 
-    System(System&& other)
-        : gas_phase_(std::move(other.gas_phase_)),
-          phases_(std::move(other.phases_))
-    {
-    }
+    /// @brief Move constructor
+    System(System&&) = default;
 
+    /// @brief Constructor from SystemParameters
     System(const SystemParameters& parameters)
         : gas_phase_(parameters.gas_phase_),
           phases_(parameters.phases_)
     {
     }
 
-    System& operator=(const System& other)
-    {
-      gas_phase_ = other.gas_phase_;
-      phases_ = other.phases_;
-      return *this;
-    }
+    /// @brief Copy assignment operator
+    System& operator=(const System&) = default;
+
+    /// @brief Move assignment operator
+    System& operator=(System&&) = default;
 
     /// @brief Returns the number of doubles required to store the system state
     size_t StateSize() const;

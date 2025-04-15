@@ -425,7 +425,9 @@ namespace micm
         SolverPolicy(std::move(linear_solver), std::move(rates), jacobian, number_of_species),
         state_parameters,
         options,
-        this->reactions_);
+        this->reactions_,
+        this->system_
+      );
   }
 
 }  // namespace micm

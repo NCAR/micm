@@ -25,12 +25,13 @@ namespace
                          .SetRateConstant(micm::ArrheniusRateConstant({ .A_ = 2.15e-11, .B_ = 0, .C_ = 110 }))
                          .SetPhase(gas_phase);
 
-  micm::Process r2 = micm::Process::Create()
-                         .SetReactants({ b })
-                         .SetProducts({ micm::Yields(c, 1) })
-                         .SetRateConstant(micm::ArrheniusRateConstant(
-                             micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
-                         .SetPhase(gas_phase);
+  micm::Process r2 =
+      micm::Process::Create()
+          .SetReactants({ b })
+          .SetProducts({ micm::Yields(c, 1) })
+          .SetRateConstant(
+              micm::ArrheniusRateConstant(micm::ArrheniusRateConstantParameters{ .A_ = 3.3e-11, .B_ = 0, .C_ = 55 }))
+          .SetPhase(gas_phase);
 
   auto the_system = micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase });
   std::vector<micm::Process> reactions = { r1, r2 };
@@ -64,7 +65,7 @@ void CheckIsConverged()
 {
   using LinearSolverPolicy = micm::LinearSolver<micm::StandardSparseMatrix>;
   using RatesPolicy = micm::ProcessSet;
-  using BackwardEuler = micm::BackwardEuler<RatesPolicy, LinearSolverPolicy>;
+  using BackwardEuler = micm::AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>;
 
   micm::BackwardEulerSolverParameters parameters;
   DenseMatrixPolicy residual{ 4, 3, 0.0 };

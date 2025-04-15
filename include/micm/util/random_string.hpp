@@ -8,7 +8,7 @@
 
 namespace micm
 {
-  std::string GenerateRandomString()
+  inline std::string GenerateRandomString()
   {
     auto now = std::chrono::system_clock::now();
     auto epoch = now.time_since_epoch();

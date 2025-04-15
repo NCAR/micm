@@ -28,7 +28,7 @@ namespace micm
 
   /// @brief An implementation of the fully implicit backward euler method
   template<class RatesPolicy, class LinearSolverPolicy>
-  class BackwardEuler
+  class AbstractBackwardEuler
   {
    public:
     LinearSolverPolicy linear_solver_;
@@ -40,18 +40,22 @@ namespace micm
     /// @brief Default constructor
     /// @param linear_solver Linear solver
     /// @param rates Rates calculator
-    BackwardEuler(LinearSolverPolicy&& linear_solver, RatesPolicy&& rates, auto& jacobian, const size_t number_of_species)
+    AbstractBackwardEuler(
+        LinearSolverPolicy&& linear_solver,
+        RatesPolicy&& rates,
+        auto& jacobian,
+        const size_t number_of_species)
         : linear_solver_(std::move(linear_solver)),
           rates_(std::move(rates))
     {
     }
 
-    BackwardEuler(const BackwardEuler&) = delete;
-    BackwardEuler& operator=(const BackwardEuler&) = delete;
-    BackwardEuler(BackwardEuler&&) = default;
-    BackwardEuler& operator=(BackwardEuler&&) = default;
+    AbstractBackwardEuler(const AbstractBackwardEuler&) = delete;
+    AbstractBackwardEuler& operator=(const AbstractBackwardEuler&) = delete;
+    AbstractBackwardEuler(AbstractBackwardEuler&&) = default;
+    AbstractBackwardEuler& operator=(AbstractBackwardEuler&&) = default;
 
-    virtual ~BackwardEuler() = default;
+    virtual ~AbstractBackwardEuler() = default;
 
     /// @brief Advances the given step over the specified time step
     /// @param time_step Time [s] to advance the state by

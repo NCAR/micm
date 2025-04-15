@@ -43,7 +43,7 @@ inline std::error_code make_error_code(MicmBackwardEulerErrc e)
 namespace micm
 {
   template<class RatesPolicy, class LinearSolverPolicy>
-  inline SolverResult BackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
+  inline SolverResult AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::Solve(
       double time_step,
       auto& state,
       const BackwardEulerSolverParameters& parameters) const
@@ -191,7 +191,7 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
@@ -220,7 +220,7 @@ namespace micm
 
   template<class RatesPolicy, class LinearSolverPolicy>
   template<class DenseMatrixPolicy>
-  inline bool BackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
+  inline bool AbstractBackwardEuler<RatesPolicy, LinearSolverPolicy>::IsConverged(
       const BackwardEulerSolverParameters& parameters,
       const DenseMatrixPolicy& residual,
       const DenseMatrixPolicy& Yn1,
