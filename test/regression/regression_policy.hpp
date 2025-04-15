@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -57,42 +57,49 @@ void writeCSV(
   }
 }
 
-std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(
-  const std::string& filename) {
-    std::ifstream file(filename);
-    if (file.is_open()) {
-        std::vector<std::string> header;
-        std::vector<std::vector<double>> data;
+std::pair<std::vector<std::string>, std::vector<std::vector<double>>> read_csv(const std::string& filename)
+{
+  std::ifstream file(filename);
+  if (file.is_open())
+  {
+    std::vector<std::string> header;
+    std::vector<std::vector<double>> data;
 
-        // Read column headers
-        std::string line;
-        if (std::getline(file, line)) {
-            std::istringstream ss(line);
-            std::string item;
-            while (std::getline(ss, item, ',')) {
-                header.push_back(item);
-            }
-        }
-
-        // Read data rows
-        while (std::getline(file, line)) {
-            std::istringstream ss(line);
-            std::string item;
-            std::vector<double> row;
-            while (std::getline(ss, item, ',')) {
-                row.push_back(std::stod(item));
-            }
-
-            data.push_back(row);
-        }
-
-        file.close();
-        return {header, data};
-    } else {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return {};
+    // Read column headers
+    std::string line;
+    if (std::getline(file, line))
+    {
+      std::istringstream ss(line);
+      std::string item;
+      while (std::getline(ss, item, ','))
+      {
+        header.push_back(item);
+      }
     }
+
+    // Read data rows
+    while (std::getline(file, line))
+    {
+      std::istringstream ss(line);
+      std::string item;
+      std::vector<double> row;
+      while (std::getline(ss, item, ','))
+      {
+        row.push_back(std::stod(item));
+      }
+
+      data.push_back(row);
+    }
+
+    file.close();
+    return { header, data };
   }
+  else
+  {
+    std::cerr << "Error opening file: " << filename << std::endl;
+    return {};
+  }
+}
 
 template<class BuilderPolicy>
 void test_flow_tube(
@@ -107,7 +114,7 @@ void test_flow_tube(
    * SOA1 ->                                , k1 = 0.01
    * SOA2 ->                                , k2 = 0.05
    * O3 + a-pinene -> 0.18 SOA1 + 0.09 SOA2 , k3 = Arrhenius(A=8.8e-17)
-   * 
+   *
    */
 
   auto soa1 = micm::Species("SOA1");
@@ -199,9 +206,9 @@ void test_flow_tube(
   {
     for (size_t j = 0; j < model_concentrations[i].size(); ++j)
     {
-      EXPECT_NEAR(model_concentrations[i][j], data_out[i][j+1], 1e-10)
-          << "Arrays differ at index (" << i << ", " << j << ") with value "
-          << model_concentrations[i][j] << " and expected value " << data_out[i][j+1];
+      EXPECT_NEAR(model_concentrations[i][j], data_out[i][j + 1], 1e-10)
+          << "Arrays differ at index (" << i << ", " << j << ") with value " << model_concentrations[i][j]
+          << " and expected value " << data_out[i][j + 1];
     }
   }
 }
