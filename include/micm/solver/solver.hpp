@@ -41,7 +41,7 @@ namespace micm
           solver_parameters_(solver_parameters),
           processes_(std::move(processes)),
           system_(std::move(system))
-          
+
     {
     }
 
@@ -120,7 +120,7 @@ namespace micm
       return state;
     }
 
-    const System& GetSystem() 
+    const System& GetSystem()
     {
       return system_;
     }

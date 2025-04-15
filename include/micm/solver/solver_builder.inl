@@ -426,8 +426,7 @@ namespace micm
         state_parameters,
         options,
         this->reactions_,
-        this->system_
-      );
+        this->system_);
   }
 
 }  // namespace micm
