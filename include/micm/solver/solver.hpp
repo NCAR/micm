@@ -120,7 +120,7 @@ namespace micm
       return state;
     }
 
-    System& GetSystem() 
+    const System& GetSystem() 
     {
       return system_;
     }
