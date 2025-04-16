@@ -44,7 +44,7 @@ cmake_dependent_option(
   "The GPU type being targeted"
   "a100"
   MICM_ENABLE_CUDA
-  "a100"
+  "ON"
 )
 
 
