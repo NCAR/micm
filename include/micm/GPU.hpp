@@ -25,4 +25,9 @@ namespace micm
 {
   template<std::size_t L>
   using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+
+  using CudaState = micm::CudaState<
+    GpuBuilder::DenseMatrixPolicyType,
+    GpuBuilder::SparseMatrixPolicyType,
+    GpuBuilder::LuDecompositionPolicyType>;
 }
