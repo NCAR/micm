@@ -20,3 +20,9 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_sparse_matrix.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+
+namespace micm
+{
+  template<std::size_t L>
+  using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+}

@@ -1,7 +1,6 @@
 #include "../../solver/test_rosenbrock_solver_policy.hpp"
 
-#include <micm/cuda/solver/cuda_rosenbrock.cuh>
-#include <micm/cuda/solver/cuda_rosenbrock.hpp>
+#include <micm/GPU.hpp>
 #include <micm/cuda/solver/cuda_solver_builder.hpp>
 #include <micm/cuda/solver/cuda_solver_parameters.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
@@ -16,9 +15,6 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-
-template<std::size_t L>
-using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
 
 template<std::size_t L>
 void testAlphaMinusJacobian()
