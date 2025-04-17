@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <random>
 
+template<std::size_t L>
+using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+
 namespace
 {
   auto a = micm::Species("A");
@@ -34,7 +37,7 @@ namespace
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
-  auto cuda_rosenbrock = micm::GpuBuilder<L>(
+  auto cuda_rosenbrock = GpuBuilder<L>(
                              micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)

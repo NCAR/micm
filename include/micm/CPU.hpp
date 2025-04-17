@@ -33,6 +33,5 @@ namespace micm
   using BackwardEulerStandard = Solver<BackwardEulerStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
   using RosenbrockThreeStageBuilder = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrixVector, SparseMatrixVector>;
-      
   using BackwardEulerBuilder = CpuSolverBuilder< BackwardEulerSolverParameters, DenseMatrixVector, SparseMatrixVector, LuDecompositionDoolittle>;
 }  // namespace micm

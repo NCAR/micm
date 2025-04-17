@@ -8,8 +8,11 @@
 
 #include <gtest/gtest.h>
 
+template<std::size_t L>
+using GpuBuilder = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>;
+
 constexpr std::size_t L = 3;
-using builderType = micm::GpuBuilder<L>;
+using builderType = GpuBuilder<L>;
 
 auto two = builderType(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three = builderType(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
@@ -17,7 +20,7 @@ auto four = builderType(micm::RosenbrockSolverParameters::FourStageRosenbrockPar
 auto four_da = builderType(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters());
 auto six_da = builderType(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters());
 
-using builderType1Cell = micm::GpuBuilder<1>;
+using builderType1Cell = GpuBuilder<1>;
 
 auto two_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters());
 auto three_1_cell = builderType1Cell(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
