@@ -24,12 +24,16 @@
 
 namespace micm
 {
-
   template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   using GpuState = CudaState<
       CudaDenseMatrix<double, L>,
       CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
       CudaLuDecompositionMozartInPlace>;
+
+  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  using CudaRosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<CudaProcessSet, CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>>>;
+  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
+  using CudaRosenbrock = Solver<CudaRosenbrockVectorType<L>, GpuState<L>>;
 
   /// @brief Builder of CUDA-based general solvers
   /// @tparam L Vector size
@@ -45,4 +49,5 @@ namespace micm
       CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, 
       CudaLuDecompositionMozartInPlace>,
       GpuState<L>>;
+
 }  // namespace micm

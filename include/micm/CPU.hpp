@@ -11,37 +11,28 @@
 
 namespace micm
 {
-  using DenseMatrixVector = micm::VectorMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
-  using SparseMatrixVector = micm::SparseMatrix<double, micm::SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
+  using DenseMatrixVector = VectorMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
+  using SparseMatrixVector = SparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  using DenseMatrixStandard = micm::Matrix<double>;
-  using SparseMatrixStandard = micm::SparseMatrix<double, micm::SparseMatrixStandardOrdering>;
+  using DenseMatrixStandard = Matrix<double>;
+  using SparseMatrixStandard = SparseMatrix<double, SparseMatrixStandardOrdering>;
 
-  using VectorState = micm::State<DenseMatrixVector, SparseMatrixVector>;
-  using StandardState = micm::State<DenseMatrixStandard, SparseMatrixStandard>;
+  using VectorState = State<DenseMatrixVector, SparseMatrixVector>;
+  using StandardState = State<DenseMatrixStandard, SparseMatrixStandard>;
 
-  using RosenbrockVectorType = typename micm::RosenbrockSolverParameters::
-      template SolverType<micm::ProcessSet, micm::LinearSolver<SparseMatrixVector, micm::LuDecomposition>>;
-  using Rosenbrock = micm::Solver<RosenbrockVectorType, micm::State<DenseMatrixVector, SparseMatrixVector>>;
+  using RosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
+  using Rosenbrock = Solver<RosenbrockVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
-  using RosenbrockStandardType = typename micm::RosenbrockSolverParameters::
-      template SolverType<micm::ProcessSet, micm::LinearSolver<SparseMatrixStandard, micm::LuDecomposition>>;
-  using RosenbrockStandard = micm::Solver<RosenbrockStandardType, micm::State<DenseMatrixStandard, SparseMatrixStandard>>;
+  using RosenbrockStandardType = typename RosenbrockSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
+  using RosenbrockStandard = Solver<RosenbrockStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
-  using BackwardEulerVectorType = typename micm::BackwardEulerSolverParameters::
-      template SolverType<micm::ProcessSet, micm::LinearSolver<SparseMatrixVector, micm::LuDecomposition>>;
-  using BackwardEuler = micm::Solver<BackwardEulerVectorType, micm::State<DenseMatrixVector, SparseMatrixVector>>;
+  using BackwardEulerVectorType = typename BackwardEulerSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
+  using BackwardEuler = Solver<BackwardEulerVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
-  using BackwardEulerStandardType = typename micm::BackwardEulerSolverParameters::
-      template SolverType<micm::ProcessSet, micm::LinearSolver<SparseMatrixStandard, micm::LuDecomposition>>;
-  using BackwardEulerStandard =
-      micm::Solver<BackwardEulerStandardType, micm::State<DenseMatrixStandard, SparseMatrixStandard>>;
+  using BackwardEulerStandardType = typename BackwardEulerSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
+  using BackwardEulerStandard = Solver<BackwardEulerStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
-  using RosenbrockThreeStageBuilder =
-      micm::CpuSolverBuilder<micm::RosenbrockSolverParameters, DenseMatrixVector, SparseMatrixVector>;
-  using BackwardEulerBuilder = micm::CpuSolverBuilder<
-      micm::BackwardEulerSolverParameters,
-      DenseMatrixVector,
-      SparseMatrixVector,
-      micm::LuDecompositionDoolittle>;
+  using RosenbrockThreeStageBuilder = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrixVector, SparseMatrixVector>;
+      
+  using BackwardEulerBuilder = CpuSolverBuilder< BackwardEulerSolverParameters, DenseMatrixVector, SparseMatrixVector, LuDecompositionDoolittle>;
 }  // namespace micm
