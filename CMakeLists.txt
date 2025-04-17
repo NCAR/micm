@@ -35,18 +35,9 @@ option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
-set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
-
 option(MICM_ENABLE_CUDA "Enable CUDA support" OFF)
-
-cmake_dependent_option(
-  MICM_GPU_TYPE
-  "The GPU type being targeted"
-  "a100"
-  MICM_ENABLE_CUDA
-  "ON"
-)
-
+set(MICM_DEFAULT_VECTOR_MATRIX_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
+set(MICM_GPU_TYPE "a100" CACHE STRING "The GPU type being targeted")
 
 # on ubuntu with clang, an incorrect version of the c++ standard library was being linked
 if (${CMAKE_HOST_SYSTEM_NAME} MATCHES "Linux" AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
