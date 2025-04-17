@@ -45,6 +45,8 @@ namespace micm
   {
     /// Type of the DenseMatrixPolicy
     using DenseMatrixPolicyType = DenseMatrixPolicy;
+    using SparseMatrixPolicyType = SparseMatrixPolicy;
+    using LuDecompositionPolicyType = LuDecompositionPolicy;
 
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;

@@ -1,13 +1,6 @@
-#include <micm/cuda/solver/cuda_solver_builder.hpp>
-#include <micm/cuda/solver/cuda_solver_parameters.hpp>
-#include <micm/solver/backward_euler.hpp>
-#include <micm/solver/rosenbrock.hpp>
-#include <micm/solver/rosenbrock_solver_parameters.hpp>
-#include <micm/solver/solver_builder.hpp>
-#include <micm/util/matrix.hpp>
-#include <micm/util/sparse_matrix.hpp>
-#include <micm/util/sparse_matrix_vector_ordering.hpp>
-#include <micm/util/vector_matrix.hpp>
+#include <micm/GPU.hpp>
+#include <micm/Solver.hpp>
+#include <micm/Util.hpp>
 
 #include <gtest/gtest.h>
 
@@ -41,7 +34,7 @@ namespace
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
-  auto cuda_rosenbrock = micm::CudaSolverBuilderInPlace<micm::CudaRosenbrockSolverParameters, L>(
+  auto cuda_rosenbrock = micm::GpuBuilder<L>(
                              micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)
