@@ -34,8 +34,9 @@ namespace micm
       CudaSparseMatrixVector,
       CudaLuDecompositionMozartInPlace>;
 
+  using CudaState = GpuState<MICM_DEFAULT_VECTOR_SIZE>;
   using CudaRosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<CudaProcessSet, CudaLinearSolverInPlace<CudaSparseMatrixVector>>;
-  using CudaRosenbrock = Solver<CudaRosenbrockVectorType, GpuState<MICM_DEFAULT_VECTOR_SIZE>>;
+  using CudaRosenbrock = Solver<CudaRosenbrockVectorType, CudaState>;
 
   using GpuRosenbrockThreeStageBuilder = CudaSolverBuilderInPlace<RosenbrockSolverParameters>;
 }  // namespace micm
