@@ -102,7 +102,7 @@ endif()
 ################################################################################
 # GPU Support
 
-if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
+if(MICM_ENABLE_CUDA)
   string(TOLOWER ${MICM_GPU_TYPE} MICM_GPU_TYPE_LOWER)
   # Data center GPUs
   set(cuda_arch_map_a100 80)
@@ -139,7 +139,6 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
 
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
-  set(MICM_ENABLE_CUDA ON)
   set(CUDA_STANDARD_REQUIRED ON)
 endif()
 
