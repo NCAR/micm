@@ -28,13 +28,11 @@ namespace micm
   using CudaDenseMatrixVector = CudaDenseMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
   using CudaSparseMatrixVector = CudaSparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   using GpuState = CudaState<
       CudaDenseMatrixVector,
       CudaSparseMatrixVector,
       CudaLuDecompositionMozartInPlace>;
 
-  using CudaState = GpuState<MICM_DEFAULT_VECTOR_SIZE>;
   using CudaRosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<CudaProcessSet, CudaLinearSolverInPlace<CudaSparseMatrixVector>>;
   using CudaRosenbrock = Solver<CudaRosenbrockVectorType, CudaState>;
 
