@@ -20,18 +20,23 @@ namespace micm
   using VectorState = State<DenseMatrixVector, SparseMatrixVector>;
   using StandardState = State<DenseMatrixStandard, SparseMatrixStandard>;
 
-  using RosenbrockVectorType = typename RosenbrockSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
+  using RosenbrockVectorType = typename RosenbrockSolverParameters::
+      template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
   using Rosenbrock = Solver<RosenbrockVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
-  using RosenbrockStandardType = typename RosenbrockSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
+  using RosenbrockStandardType = typename RosenbrockSolverParameters::
+      template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
   using RosenbrockStandard = Solver<RosenbrockStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
-  using BackwardEulerVectorType = typename BackwardEulerSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
+  using BackwardEulerVectorType = typename BackwardEulerSolverParameters::
+      template SolverType<ProcessSet, LinearSolver<SparseMatrixVector, LuDecomposition>>;
   using BackwardEuler = Solver<BackwardEulerVectorType, State<DenseMatrixVector, SparseMatrixVector>>;
 
-  using BackwardEulerStandardType = typename BackwardEulerSolverParameters::template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
+  using BackwardEulerStandardType = typename BackwardEulerSolverParameters::
+      template SolverType<ProcessSet, LinearSolver<SparseMatrixStandard, LuDecomposition>>;
   using BackwardEulerStandard = Solver<BackwardEulerStandardType, State<DenseMatrixStandard, SparseMatrixStandard>>;
 
   using RosenbrockThreeStageBuilder = CpuSolverBuilder<RosenbrockSolverParameters, DenseMatrixVector, SparseMatrixVector>;
-  using BackwardEulerBuilder = CpuSolverBuilder< BackwardEulerSolverParameters, DenseMatrixVector, SparseMatrixVector, LuDecompositionDoolittle>;
+  using BackwardEulerBuilder =
+      CpuSolverBuilder<BackwardEulerSolverParameters, DenseMatrixVector, SparseMatrixVector, LuDecompositionDoolittle>;
 }  // namespace micm

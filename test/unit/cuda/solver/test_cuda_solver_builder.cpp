@@ -37,8 +37,7 @@ namespace
 TEST(SolverBuilder, CanBuildCudaSolvers)
 {
   constexpr std::size_t L = 4;
-  auto cuda_rosenbrock = GpuBuilder<L>(
-                             micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
+  auto cuda_rosenbrock = GpuBuilder<L>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)
                              .SetNumberOfGridCells(L)
