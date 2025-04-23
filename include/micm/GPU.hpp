@@ -15,6 +15,7 @@
 #include <micm/cuda/solver/cuda_rosenbrock.cuh>
 #include <micm/cuda/solver/cuda_rosenbrock.hpp>
 #include <micm/cuda/solver/cuda_solver_parameters.hpp>
+#include <micm/cuda/solver/cuda_solver_builder.hpp>
 #include <micm/cuda/solver/cuda_state.hpp>
 #include <micm/cuda/util/cuda_dense_matrix.hpp>
 #include <micm/cuda/util/cuda_matrix.cuh>
@@ -24,25 +25,16 @@
 
 namespace micm
 {
+  using CudaDenseMatrixVector = CudaDenseMatrix<double, MICM_DEFAULT_VECTOR_SIZE>;
+  using CudaSparseMatrixVector = CudaSparseMatrix<double, SparseMatrixVectorOrdering<MICM_DEFAULT_VECTOR_SIZE>>;
 
-  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
   using GpuState = CudaState<
-      CudaDenseMatrix<double, L>,
-      CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>,
+      CudaDenseMatrixVector,
+      CudaSparseMatrixVector,
       CudaLuDecompositionMozartInPlace>;
 
-  /// @brief Builder of CUDA-based general solvers
-  /// @tparam L Vector size
-  ///
-  /// GPU solvers only work with vector-ordered matrices
-  template<std::size_t L = MICM_DEFAULT_VECTOR_SIZE>
-  using GpuBuilder =
-      SolverBuilder<micm::CudaRosenbrockSolverParameters, 
-      typename GpuState<L>::DenseMatrixPolicyType,
-      typename GpuState<L>::SparseMatrixPolicyType,
-      CudaProcessSet, 
-      CudaLuDecompositionMozartInPlace, 
-      CudaLinearSolverInPlace<CudaSparseMatrix<double, SparseMatrixVectorOrdering<L>>, 
-      CudaLuDecompositionMozartInPlace>,
-      GpuState<L>>;
+  using CudaRosenbrockVectorType = typename CudaRosenbrockSolverParameters::template SolverType<CudaProcessSet, CudaLinearSolverInPlace<CudaSparseMatrixVector>>;
+  using CudaRosenbrock = Solver<CudaRosenbrockVectorType, GpuState>;
+
+  using GpuRosenbrockThreeStageBuilder = CudaSolverBuilderInPlace<CudaRosenbrockSolverParameters>;
 }  // namespace micm
