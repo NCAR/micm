@@ -52,12 +52,13 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   )
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
+
+  add_subdirectory(process)
+  add_subdirectory(solver)
+  add_subdirectory(util)
 endif()
 
 if (MICM_ENABLE_PROFILE)
   target_compile_definitions(micm INTERFACE MICM_PROFILE)
 endif()
 
-add_subdirectory(process)
-add_subdirectory(solver)
-add_subdirectory(util)
