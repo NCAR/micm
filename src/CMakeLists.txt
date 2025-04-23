@@ -9,7 +9,7 @@ add_library(musica::micm ALIAS micm)
 
 target_compile_features(micm INTERFACE cxx_std_20)
 
-target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_MATRIX_SIZE})
+target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
 target_include_directories(micm
   INTERFACE
