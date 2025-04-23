@@ -9,7 +9,7 @@ add_library(musica::micm ALIAS micm)
 
 target_compile_features(micm INTERFACE cxx_std_20)
 
-target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_MATRIX_SIZE})
+target_compile_definitions(micm INTERFACE MICM_DEFAULT_VECTOR_SIZE=${MICM_DEFAULT_VECTOR_SIZE})
 
 target_include_directories(micm
   INTERFACE
@@ -41,7 +41,7 @@ if(MICM_ENABLE_LLVM)
   target_link_libraries(micm INTERFACE ${llvm_libs})
 endif()
 
-if(MICM_ENABLE_CUDA)
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_library(micm_cuda)
   add_library(musica::micm_cuda ALIAS micm_cuda)
   target_link_libraries(micm_cuda
@@ -52,12 +52,13 @@ if(MICM_ENABLE_CUDA)
   )
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
   set_property(TARGET micm_cuda PROPERTY CUDA_STANDARD 20)
+
+  add_subdirectory(process)
+  add_subdirectory(solver)
+  add_subdirectory(util)
 endif()
 
 if (MICM_ENABLE_PROFILE)
   target_compile_definitions(micm INTERFACE MICM_PROFILE)
 endif()
 
-add_subdirectory(process)
-add_subdirectory(solver)
-add_subdirectory(util)

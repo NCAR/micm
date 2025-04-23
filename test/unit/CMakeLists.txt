@@ -1,4 +1,4 @@
-if(MICM_ENABLE_CUDA)
+if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   add_subdirectory(cuda)
 endif()
 if(MICM_ENABLE_LLVM)
