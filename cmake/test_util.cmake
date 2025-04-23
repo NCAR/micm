@@ -2,7 +2,7 @@
 # Utility functions for creating tests
 
 if(MICM_ENABLE_MEMCHECK)
-  if(MICM_ENABLE_CUDA)
+  if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     find_program(MEMORYCHECK_COMMAND "compute-sanitizer")
     set(MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --leak-check full --show-backtrace device --launch-timeout=0")
     set(CUDA_MEMORY_CHECK TRUE)
