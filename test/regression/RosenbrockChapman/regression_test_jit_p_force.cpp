@@ -9,12 +9,12 @@
 
 TEST(RegressionJitRosenbrock, VectorRateConstants)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>();
   testRateConstants<>(solver);
 }
 
 TEST(RegressionJitRosenbrock, VectorForcing)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>();
   testForcing<micm::VectorMatrix<double, 3>>(solver);
 }

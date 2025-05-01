@@ -81,10 +81,9 @@ int main()
   auto solver = CpuSolverBuilder<micm::RosenbrockSolverParameters>(params)
       .SetSystem(system)
       .SetReactions(reactions)
-      .SetNumberOfGridCells(number_of_grid_cells)
       .Build();
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(number_of_grid_cells);
 
   state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   state.SetConcentration(b, { 1.2, 2.2, 3.2 });
@@ -102,10 +101,9 @@ int main()
                                             SparseMatrix<double, SparseMatrixVectorOrdering<3>>>(params)
                                .SetSystem(system)
                                .SetReactions(reactions)
-                               .SetNumberOfGridCells(number_of_grid_cells)
                                .Build();
 
-  auto vectorized_state = vectorized_solver.GetState();
+  auto vectorized_state = vectorized_solver.GetState(number_of_grid_cells);
 
   vectorized_state.SetConcentration(a, { 1.1, 2.1, 3.1 });
   vectorized_state.SetConcentration(b, { 1.2, 2.2, 3.2 });

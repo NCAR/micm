@@ -9,7 +9,7 @@ template<std::size_t L>
 using JitBuilder = micm::JitSolverBuilder<micm::JitRosenbrockSolverParameters, L>;
 
 template<std::size_t L>
-auto getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
+auto getTwoStageMultiCellJitChapmanSolver()
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
@@ -17,13 +17,12 @@ auto getTwoStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   return JitBuilder<L>(micm::RosenbrockSolverParameters::TwoStageRosenbrockParameters())
       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .SetIgnoreUnusedSpecies(true)
       .Build();
 }
 
 template<std::size_t L>
-auto getThreeStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
+auto getThreeStageMultiCellJitChapmanSolver()
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
@@ -31,13 +30,12 @@ auto getThreeStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   return JitBuilder<L>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .SetIgnoreUnusedSpecies(true)
       .Build();
 }
 
 template<std::size_t L>
-auto getFourStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
+auto getFourStageMultiCellJitChapmanSolver()
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
@@ -45,13 +43,12 @@ auto getFourStageMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   return JitBuilder<L>(micm::RosenbrockSolverParameters::FourStageRosenbrockParameters())
       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .SetIgnoreUnusedSpecies(true)
       .Build();
 }
 
 template<std::size_t L>
-auto getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
+auto getFourStageDAMultiCellJitChapmanSolver()
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
@@ -59,13 +56,12 @@ auto getFourStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   return JitBuilder<L>(micm::RosenbrockSolverParameters::FourStageDifferentialAlgebraicRosenbrockParameters())
       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .SetIgnoreUnusedSpecies(true)
       .Build();
 }
 
 template<std::size_t L>
-auto getSixStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
+auto getSixStageDAMultiCellJitChapmanSolver()
 {
   micm::Phase gas_phase = createGasPhase();
   std::vector<micm::Process> processes = createProcesses(gas_phase);
@@ -73,7 +69,6 @@ auto getSixStageDAMultiCellJitChapmanSolver(const size_t number_of_grid_cells)
   return JitBuilder<L>(micm::RosenbrockSolverParameters::SixStageDifferentialAlgebraicRosenbrockParameters())
       .SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
       .SetReactions(std::move(processes))
-      .SetNumberOfGridCells(number_of_grid_cells)
       .SetIgnoreUnusedSpecies(true)
       .Build();
 }

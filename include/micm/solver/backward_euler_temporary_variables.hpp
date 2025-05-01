@@ -21,9 +21,9 @@ namespace micm
     BackwardEulerTemporaryVariables& operator=(BackwardEulerTemporaryVariables&& other) = default;
     ~BackwardEulerTemporaryVariables() = default;
 
-    BackwardEulerTemporaryVariables(const auto& state_parameters)
-        : Yn_(state_parameters.number_of_grid_cells_, state_parameters.number_of_species_),
-          forcing_(state_parameters.number_of_grid_cells_, state_parameters.number_of_species_)
+    BackwardEulerTemporaryVariables(const auto& state_parameters, const std::size_t number_of_grid_cells)
+        : Yn_(number_of_grid_cells, state_parameters.number_of_species_),
+          forcing_(number_of_grid_cells, state_parameters.number_of_species_)
     {
     }
   };

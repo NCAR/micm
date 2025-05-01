@@ -90,11 +90,11 @@ namespace micm
       class LMatrixPolicy,
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
-      const StateParameters& parameters)
-      : conditions_(parameters.number_of_grid_cells_),
-        variables_(parameters.number_of_grid_cells_, parameters.variable_names_.size(), 0.0),
-        custom_rate_parameters_(parameters.number_of_grid_cells_, parameters.custom_rate_parameter_labels_.size(), 0.0),
-        rate_constants_(parameters.number_of_grid_cells_, parameters.number_of_rate_constants_, 0.0),
+      const StateParameters& parameters, const std::size_t number_of_grid_cells)
+      : conditions_(number_of_grid_cells),
+        variables_(number_of_grid_cells, parameters.variable_names_.size(), 0.0),
+        custom_rate_parameters_(number_of_grid_cells, parameters.custom_rate_parameter_labels_.size(), 0.0),
+        rate_constants_(number_of_grid_cells, parameters.number_of_rate_constants_, 0.0),
         variable_map_(),
         custom_rate_parameter_map_(),
         variable_names_(parameters.variable_names_),
@@ -103,7 +103,7 @@ namespace micm
         lower_matrix_(),
         upper_matrix_(),
         state_size_(parameters.variable_names_.size()),
-        number_of_grid_cells_(parameters.number_of_grid_cells_),
+        number_of_grid_cells_(number_of_grid_cells),
         relative_tolerance_(parameters.relative_tolerance_),
         absolute_tolerance_(parameters.absolute_tolerance_)
   {
@@ -115,7 +115,7 @@ namespace micm
       custom_rate_parameter_map_[label] = index++;
 
     jacobian_ = BuildJacobian<SparseMatrixPolicy>(
-        parameters.nonzero_jacobian_elements_, parameters.number_of_grid_cells_, state_size_);
+        parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_);
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {

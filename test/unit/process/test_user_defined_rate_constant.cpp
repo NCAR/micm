@@ -7,13 +7,12 @@
 TEST(UserDefinedRateConstant, CalculateWithSystem)
 {
   auto state_parameters_ = micm::StateParameters{
-    .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State state{ state_parameters_, 1 };
   state.custom_rate_parameters_[0][0] = 0.5;
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -25,13 +24,12 @@ TEST(UserDefinedRateConstant, CalculateWithSystem)
 TEST(UserDefinedRateConstant, ConstructorWithRate)
 {
   auto state_parameters_ = micm::StateParameters{
-    .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State state{ state_parameters_, 1 };
   state.custom_rate_parameters_[0][0] = 1.1;
 
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
@@ -43,13 +41,12 @@ TEST(UserDefinedRateConstant, ConstructorWithRate)
 TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
 {
   auto state_parameters_ = micm::StateParameters{
-    .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters_ };
+  micm::State state{ state_parameters_, 1 };
   state.custom_rate_parameters_[0][0] = 1.1;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name" });
@@ -61,13 +58,12 @@ TEST(UserDefinedRateConstant, ConstructorWithRateAndName)
 TEST(UserDefinedRateConstant, CustomScalingFactor)
 {
   auto state_parameters = micm::StateParameters{
-    .number_of_grid_cells_ = 1,
     .number_of_rate_constants_ = 1,
     .variable_names_ = {"user"},
     .custom_rate_parameter_labels_ = { "my rate", },
   };
 
-  micm::State state{ state_parameters };
+  micm::State state{ state_parameters, 1 };
   state.custom_rate_parameters_[0][0] = 1.2;
   std::vector<double>::const_iterator params = state.custom_rate_parameters_[0].begin();
   micm::UserDefinedRateConstant photo({ .label_ = "a name", .scaling_factor_ = 2.0 });

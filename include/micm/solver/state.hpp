@@ -25,7 +25,6 @@ namespace micm
   /// @brief Invariants that can be used to construct a state
   struct StateParameters
   {
-    std::size_t number_of_grid_cells_{ 1 };
     std::size_t number_of_species_{ 0 };
     std::size_t number_of_rate_constants_{ 0 };
     std::vector<std::string> variable_names_{};
@@ -48,6 +47,8 @@ namespace micm
     using SparseMatrixPolicyType = SparseMatrixPolicy;
     using LuDecompositionPolicyType = LuDecompositionPolicy;
 
+    /// @brief The number of grid cells stored in the state
+    std::size_t number_of_grid_cells_{ 1 };
     /// @brief The concentration of chemicals, varies through time
     DenseMatrixPolicy variables_;
     /// @brief Rate paramters particular to user-defined rate constants, may vary in time
@@ -66,7 +67,6 @@ namespace micm
     LMatrixPolicy lower_matrix_;
     UMatrixPolicy upper_matrix_;
     std::size_t state_size_;
-    std::size_t number_of_grid_cells_;
     std::unique_ptr<TemporaryVariables> temporary_variables_;
     double relative_tolerance_;
     std::vector<double> absolute_tolerance_;
@@ -78,7 +78,7 @@ namespace micm
 
     /// @brief Constructor with parameters
     /// @param parameters State dimension information
-    State(const StateParameters& parameters);
+    State(const StateParameters& parameters, const std::size_t number_of_grid_cells);
 
     /// @brief Copy constructor
     /// @param other The state object to be copied
@@ -182,6 +182,13 @@ namespace micm
     }
 
     virtual ~State() = default;
+
+    /// @brief Get the number of grid cells
+    /// @return The number of grid cells
+    std::size_t NumberOfGridCells() const
+    {
+      return number_of_grid_cells_;
+    }
 
     /// @brief Set species' concentrations
     /// @param species_to_concentration

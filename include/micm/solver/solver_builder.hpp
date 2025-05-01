@@ -48,7 +48,6 @@ namespace micm
    protected:
     SolverParametersPolicy options_;
     System system_;
-    std::size_t number_of_grid_cells_ = 1;
     std::vector<Process> reactions_;
     bool ignore_unused_species_ = true;
     bool reorder_state_ = true;
@@ -74,11 +73,6 @@ namespace micm
     /// @param reactions The reactions
     /// @return Updated SolverBuilder
     SolverBuilder& SetReactions(const std::vector<Process>& reactions);
-
-    /// @brief Set the number of grid cells
-    /// @param number_of_grid_cells The number of grid cells
-    /// @return Updated SolverBuilder
-    SolverBuilder& SetNumberOfGridCells(int number_of_grid_cells);
 
     /// @brief Set whether to ignore unused species
     /// @param ignore_unused_species True if unused species should be ignored

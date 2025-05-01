@@ -32,9 +32,9 @@ TEST(JitProcessSet, ForcingFunction)
   micm::Phase gas_phase{ std::vector<micm::Species>{ a, b, c, d, e, f } };
 
   micm::State<ForcingTestVectorMatrix, ForcingTestSparseVectorMatrix> state(
-      micm::StateParameters{ .number_of_grid_cells_ = NUM_GRID_CELLS,
-                             .number_of_rate_constants_ = 3,
-                             .variable_names_{ "A", "B", "C", "D", "E", "F" } });
+      micm::StateParameters{ .number_of_rate_constants_ = 3,
+                             .variable_names_{ "A", "B", "C", "D", "E", "F" } },
+      NUM_GRID_CELLS);
 
   micm::Process r1 =
       micm::Process::Create().SetReactants({ a, b }).SetProducts({ micm::Yield{ d, 3.2 } }).SetPhase(gas_phase);

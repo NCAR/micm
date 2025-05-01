@@ -8,30 +8,30 @@
 
 TEST(RegressionJitRosenbrock, TwoStageSolve)
 {
-  auto solver = getTwoStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getTwoStageMultiCellJitChapmanSolver<3>();
   testSolve<>(solver, 1.0e-2);
 }
 
 TEST(RegressionJitRosenbrock, ThreeStageSolve)
 {
-  auto solver = getThreeStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getThreeStageMultiCellJitChapmanSolver<3>();
   testSolve<>(solver, 1.0e-2);
 }
 
 TEST(RegressionJitRosenbrock, FourStageSolve)
 {
-  auto solver = getFourStageMultiCellJitChapmanSolver<3>(3);
+  auto solver = getFourStageMultiCellJitChapmanSolver<3>();
   testSolve<>(solver, 1.0e-2);
 }
 
 TEST(RegressionJitRosenbrock, FourStageDASolve)
 {
-  auto solver = getFourStageDAMultiCellJitChapmanSolver<3>(3);
+  auto solver = getFourStageDAMultiCellJitChapmanSolver<3>();
   testSolve<>(solver, 1.0e-2);
 }
 
 TEST(RegressionJitRosenbrock, SixStageDASolve)
 {
-  auto solver = getSixStageDAMultiCellJitChapmanSolver<3>(3);
+  auto solver = getSixStageDAMultiCellJitChapmanSolver<3>();
   testSolve<>(solver, 1.0e-2);
 }
