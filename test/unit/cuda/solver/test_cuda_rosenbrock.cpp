@@ -21,13 +21,13 @@ void testAlphaMinusJacobian()
   std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
-  auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
+  auto gpu_solver = gpu_builder.Build();
   auto cpu_builder = micm::CpuSolverBuilder<micm::RosenbrockSolverParameters>(
       micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   cpu_builder = getSolver(cpu_builder);
-  auto cpu_solver = cpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
+  auto cpu_solver = cpu_builder.Build();
 
-  auto gpu_state = gpu_solver.GetState();
+  auto gpu_state = gpu_solver.GetState(number_of_grid_cells);
   auto gpu_jacobian = gpu_state.jacobian_;
   auto gpu_diagonal_elements = gpu_state.jacobian_diagonal_elements_;
   EXPECT_EQ(gpu_jacobian.NumberOfBlocks(), number_of_grid_cells);
@@ -59,7 +59,7 @@ void testAlphaMinusJacobian()
   // Negate the Jacobian matrix (-J) here
   std::transform(gpu_jacobian_vec.cbegin(), gpu_jacobian_vec.cend(), gpu_jacobian_vec.begin(), std::negate<>{});
 
-  auto cpu_state = cpu_solver.GetState();
+  auto cpu_state = cpu_solver.GetState(number_of_grid_cells);
   auto cpu_jacobian = cpu_state.jacobian_;
   auto cpu_diagonal_elements = cpu_state.jacobian_diagonal_elements_;
   for (std::size_t i_cell = 0; i_cell < number_of_grid_cells; ++i_cell)
@@ -119,8 +119,8 @@ void testNormalizedErrorConst()
   std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
-  auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto state = gpu_solver.GetState();
+  auto gpu_solver = gpu_builder.Build();
+  auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;
 
@@ -165,8 +165,8 @@ void testNormalizedErrorDiff()
   std::size_t number_of_grid_cells = L;
   auto gpu_builder = GpuBuilder<L>(micm::CudaRosenbrockSolverParameters::ThreeStageRosenbrockParameters());
   gpu_builder = getSolver(gpu_builder);
-  auto gpu_solver = gpu_builder.SetNumberOfGridCells(number_of_grid_cells).Build();
-  auto state = gpu_solver.GetState();
+  auto gpu_solver = gpu_builder.Build();
+  auto state = gpu_solver.GetState(number_of_grid_cells);
   auto& atol = state.absolute_tolerance_;
   double rtol = state.relative_tolerance_;
   auto y_old = micm::CudaDenseMatrix<double, L>(number_of_grid_cells, state.state_size_, 7.7);

@@ -39,9 +39,8 @@ void TestTerminator(BuilderPolicy& builder, std::size_t number_of_grid_cells)
 
   auto solver = builder.SetSystem(micm::System(micm::SystemParameters{ .gas_phase_ = gas_phase }))
                     .SetReactions(std::vector<micm::Process>{ toy_r1, toy_r2 })
-                    .SetNumberOfGridCells(number_of_grid_cells)
                     .Build();
-  auto state = solver.GetState();
+  auto state = solver.GetState(number_of_grid_cells);
   state.SetRelativeTolerance(1.0e-8);
 
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());

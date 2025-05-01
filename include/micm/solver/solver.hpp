@@ -80,13 +80,6 @@ namespace micm
       return solver_.Solve(time_step, state, params);
     }
 
-    /// @brief Returns the number of grid cells
-    /// @return
-    std::size_t GetNumberOfGridCells() const
-    {
-      return state_parameters_.number_of_grid_cells_;
-    }
-
     /// @brief Returns the number of species
     /// @return
     std::size_t GetNumberOfSpecies() const
@@ -99,17 +92,17 @@ namespace micm
       return state_parameters_.number_of_rate_constants_;
     }
 
-    StatePolicy GetState() const
+    StatePolicy GetState(const std::size_t number_of_grid_cells = 1) const
     {
-      auto state = std::move(StatePolicy(state_parameters_));
+      auto state = std::move(StatePolicy(state_parameters_, number_of_grid_cells));
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
         state.temporary_variables_ =
-            std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_);
+            std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_, number_of_grid_cells);
       }
       else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
       {
-        state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_);
+        state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_, number_of_grid_cells);
       }
       else
       {

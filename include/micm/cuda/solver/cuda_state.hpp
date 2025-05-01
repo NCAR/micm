@@ -26,8 +26,9 @@ namespace micm
 
     /// @brief Constructor which takes the state dimension information as input
     /// @param parameters State dimension information
-    CudaState(const StateParameters& parameters)
-        : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(parameters)
+    /// @param number_of_grid_cells Number of grid cells
+    CudaState(const StateParameters& parameters, const std::size_t number_of_grid_cells)
+        : State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy>(parameters, number_of_grid_cells)
     {
       auto& atol = this->absolute_tolerance_;
 

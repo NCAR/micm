@@ -40,6 +40,6 @@ TEST(SolverBuilder, CanBuildCudaSolvers)
   auto cuda_rosenbrock = GpuBuilder<L>(micm::RosenbrockSolverParameters::ThreeStageRosenbrockParameters())
                              .SetSystem(the_system)
                              .SetReactions(reactions)
-                             .SetNumberOfGridCells(L)
                              .Build();
+  auto state = cuda_rosenbrock.GetState(L);
 }

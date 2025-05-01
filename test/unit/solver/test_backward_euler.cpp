@@ -43,11 +43,10 @@ TEST(BackwardEuler, CanCallSolve)
   auto be = micm::CpuSolverBuilder<micm::BackwardEulerSolverParameters>(params)
                 .SetSystem(the_system)
                 .SetReactions(reactions)
-                .SetNumberOfGridCells(1)
                 .Build();
   double time_step = 1.0;
 
-  auto state = be.GetState();
+  auto state = be.GetState(1);
   state.SetAbsoluteTolerances({ 1e-6, 1e-6, 1e-6 });
 
   state.variables_[0] = { 1.0, 0.0, 0.0 };

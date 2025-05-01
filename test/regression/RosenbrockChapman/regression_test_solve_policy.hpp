@@ -9,8 +9,8 @@ void testSolve(SolverPolicy& solver, double relative_tolerance = 1.0e-8)
   auto get_double = std::bind(std::lognormal_distribution(-2.0, 2.0), std::default_random_engine());
   micm::ChapmanODESolver fixed_solver{};
 
-  auto state = solver.GetState();
-  auto fixed_state = fixed_solver.GetState();
+  auto state = solver.GetState(3);
+  auto fixed_state = fixed_solver.GetState(3);
 
   // set conditions
   const std::vector<std::vector<double>> photo_rates{ { 1.0e-4, 1.0e-5, 1.0e-6 },

@@ -14,7 +14,7 @@ void testJacobian(SolverPolicy& solver)
 
   micm::ChapmanODESolver fixed_solver{};
 
-  auto state = solver.GetState();
+  auto state = solver.GetState(3);
 
   auto& state_vec = state.variables_.AsVector();
   std::generate(state_vec.begin(), state_vec.end(), [&]() { return dist(engine); });
