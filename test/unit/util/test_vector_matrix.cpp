@@ -63,6 +63,16 @@ TEST(VectorMatrix, LoopOverConstVectorMatrix)
   testLoopOverConstMatrix<Group1MatrixAlias>();
 }
 
+TEST(VectorMatrix, Strides)
+{
+  auto matrix3vec = testStrides<Group3MatrixAlias>();
+  EXPECT_EQ(matrix3vec.RowStride(), 1);
+  EXPECT_EQ(matrix3vec.ColumnStride(), 3);
+  auto matrix4vec = testStrides<Group4MatrixAlias>();
+  EXPECT_EQ(matrix4vec.RowStride(), 1);
+  EXPECT_EQ(matrix4vec.ColumnStride(), 4);
+}
+
 TEST(VectorMatrix, ConversionToVector)
 {
   testConversionToVector<Group3MatrixAlias>();

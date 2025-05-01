@@ -196,6 +196,24 @@ namespace micm
       return y_dim_;
     }
 
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent rows for the same column
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent rows for the same column
+    std::size_t RowStride() const
+    {
+      return y_dim_;
+    }
+
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent columns for the same row
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent columns for the same row
+    std::size_t ColumnStride() const
+    {
+      return 1;
+    }
+
     /// @brief Set every matrix element to a given value
     /// @param val Value to set each element to
     void Fill(T val)
