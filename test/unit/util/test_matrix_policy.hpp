@@ -129,7 +129,7 @@ MatrixPolicy<int> testStrides()
   EXPECT_EQ(matrix[2][0], 200);
   EXPECT_EQ(matrix[2][1], 201);
   EXPECT_EQ(matrix[2][2], 202);
-  EXPECT_EQ(matrix[2][3], 203);  
+  EXPECT_EQ(matrix[2][3], 203);
 
   return matrix;
 }
