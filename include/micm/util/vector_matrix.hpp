@@ -213,6 +213,24 @@ namespace micm
       return y_dim_;
     }
 
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent rows for the same column
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent rows for the same column
+    std::size_t RowStride() const
+    {
+      return 1;
+    }
+
+    /// @brief Get the number of elements in the underlying vector between
+    ///        adjacent columns for the same row
+    /// @return The number of elements in the underlying vector between
+    ///         adjacent columns for the same row
+    std::size_t ColumnStride() const
+    {
+      return L;
+    }
+
     std::size_t NumberOfGroups() const
     {
       return std::ceil(x_dim_ / (double)L);

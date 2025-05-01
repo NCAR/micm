@@ -73,6 +73,13 @@ TEST(Matrix, IterateOverMatrix)
   EXPECT_EQ(matrix[2][0], 0);
 }
 
+TEST(Matrix, Strides)
+{
+  auto matrix = testStrides<micm::Matrix>();
+  EXPECT_EQ(matrix.RowStride(), 4);
+  EXPECT_EQ(matrix.ColumnStride(), 1);
+}
+
 TEST(Matrix, ConversionToVector)
 {
   testConversionToVector<micm::Matrix>();
