@@ -11,10 +11,11 @@ TEST(State, DefaultConstructor)
 TEST(State, Constructor)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "quux", "corge" },
-  }, 3 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     3 };
 
   EXPECT_EQ(state.conditions_.size(), 3);
   EXPECT_EQ(state.variable_map_["foo"], 0);
@@ -40,7 +41,8 @@ TEST(State, CopyConstructor)
                                                .variable_names_{ "foo", "bar", "baz", "quz" },
                                                .custom_rate_parameter_labels_{ "quux", "corge" },
                                                .relative_tolerance_ = 1e-05,
-                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } }, 3 };
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } },
+                        3 };
 
   micm::State copy = original;
 
@@ -87,7 +89,8 @@ TEST(State, CopyAssignmentOperator)
                                                .variable_names_{ "foo", "bar", "baz", "quz" },
                                                .custom_rate_parameter_labels_{ "quux", "corge" },
                                                .relative_tolerance_ = 1e-05,
-                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } }, 3 };
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } },
+                        3 };
 
   micm::State copy;
   copy = original;
@@ -135,7 +138,8 @@ TEST(State, MoveConstructor)
                                                .variable_names_{ "foo", "bar", "baz", "quz" },
                                                .custom_rate_parameter_labels_{ "quux", "corge" },
                                                .relative_tolerance_ = 1e-05,
-                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } }, 3 };
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } },
+                        3 };
 
   auto expected_variable_names = original.variable_names_;
   auto expected_custom_rate_parameter_map = original.custom_rate_parameter_map_;
@@ -188,7 +192,8 @@ TEST(State, MoveAssignmentOperator)
                                                .variable_names_{ "foo", "bar", "baz", "quz" },
                                                .custom_rate_parameter_labels_{ "quux", "corge" },
                                                .relative_tolerance_ = 1e-05,
-                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } }, 3 };
+                                               .absolute_tolerance_ = { 1e-10, 1e-10, 1e-10, 1e-10 } },
+                        3 };
 
   auto expected_variable_names = original.variable_names_;
   auto expected_custom_rate_parameter_map = original.custom_rate_parameter_map_;
@@ -239,10 +244,11 @@ TEST(State, MoveAssignmentOperator)
 TEST(State, SettingSingleConcentrationWithInvalidArgumentsThowsException)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "quux", "corge" },
-  }, 3 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     3 };
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, 1.0));
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "foo" }, std::vector<double>{ 1.0, 2.0 }));
   EXPECT_ANY_THROW(state.SetConcentration(micm::Species{ "not foo" }, 1.0));
@@ -253,10 +259,11 @@ TEST(State, SetSingleConcentration)
 {
   {
     micm::State state{ micm::StateParameters{
-        .number_of_rate_constants_ = 10,
-        .variable_names_{ "foo", "bar", "baz", "quz" },
-        .custom_rate_parameter_labels_{ "quux", "corge" },
-    }, 3 };
+                           .number_of_rate_constants_ = 10,
+                           .variable_names_{ "foo", "bar", "baz", "quz" },
+                           .custom_rate_parameter_labels_{ "quux", "corge" },
+                       },
+                       3 };
     std::vector<double> concentrations{ 12.0, 42.0, 35.2 };
     state.SetConcentration(micm::Species{ "bar" }, concentrations);
     for (std::size_t i = 0; i < concentrations.size(); ++i)
@@ -264,10 +271,11 @@ TEST(State, SetSingleConcentration)
   }
   {
     micm::State state{ micm::StateParameters{
-        .number_of_rate_constants_ = 10,
-        .variable_names_{ "foo", "bar", "baz", "quz" },
-        .custom_rate_parameter_labels_{ "quux", "corge" },
-    }, 1 };
+                           .number_of_rate_constants_ = 10,
+                           .variable_names_{ "foo", "bar", "baz", "quz" },
+                           .custom_rate_parameter_labels_{ "quux", "corge" },
+                       },
+                       1 };
     state.SetConcentration(micm::Species{ "bar" }, 324.2);
     EXPECT_EQ(state.variables_[0][state.variable_map_["bar"]], 324.2);
   }
@@ -276,10 +284,11 @@ TEST(State, SetSingleConcentration)
 TEST(State, SettingConcentrationsWithInvalidArguementsThrowsException)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "quux", "corge" },
-  }, 3 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     3 };
 
   std::unordered_map<std::string, std::vector<double>> concentrations = {
     { "FUU", { 0.1 } }, { "bar", { 0.2 } }, { "baz", { 0.3 } }, { "quz", { 0.4 } }
@@ -294,10 +303,11 @@ TEST(State, SetConcentrations)
   uint32_t num_species = 4;
 
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "quux", "corge" },
-  }, num_grid_cells };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "quux", "corge" },
+                     },
+                     num_grid_cells };
 
   std::unordered_map<std::string, std::vector<double>> concentrations = { { "bar", { 0.2, 0.22, 0.222 } },
                                                                           { "baz", { 0.3, 0.33, 0.333 } },
@@ -324,10 +334,11 @@ TEST(State, SetConcentrations)
 TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 3 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     3 };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = {
@@ -340,10 +351,11 @@ TEST(State, SettingCustomRateParameterWithInvalidVectorSizeThrowsException)
 TEST(State, SettingCustomRateParameterWithInvalidLabelThrowsException)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 1 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     1 };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = {
@@ -356,10 +368,11 @@ TEST(State, SettingCustomRateParameterWithInvalidLabelThrowsException)
 TEST(State, SetCustomRateParameter)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 1 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     1 };
 
   state.SetCustomRateParameter("O2", 42.3);
   EXPECT_EQ(state.custom_rate_parameters_[0][1], 42.3);
@@ -370,10 +383,11 @@ TEST(State, SetCustomRateParameters)
   uint32_t num_grid_cells = 3;
 
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, num_grid_cells };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     num_grid_cells };
 
   // user input for custom rate parameters (unordered)
   std::unordered_map<std::string, std::vector<double>> custom_params = { { "O3", { 0.3, 0.33, 0.333 } },
@@ -400,10 +414,11 @@ TEST(State, SetCustomRateParameters)
 TEST(State, UnsafelySetCustomRateParameterOneCell)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 1 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     1 };
 
   std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
@@ -420,10 +435,11 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
   uint32_t num_grid_cells = 3;
 
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, num_grid_cells };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     num_grid_cells };
 
   std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 },
                                                   { 0.1, 0.2, 0.3, 0.4, 0.5 },
@@ -443,10 +459,11 @@ TEST(State, UnsafelySetCustomRateParameterMultiCell)
 TEST(State, UnsafelySetCustomRateParameterCatchesTooFewGridCells)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 2 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     2 };
 
   std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3, 0.4, 0.5 } };
 
@@ -456,10 +473,11 @@ TEST(State, UnsafelySetCustomRateParameterCatchesTooFewGridCells)
 TEST(State, UnsafelySetCustomRateParameterCatchesTooParameters)
 {
   micm::State state{ micm::StateParameters{
-      .number_of_rate_constants_ = 10,
-      .variable_names_{ "foo", "bar", "baz", "quz" },
-      .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
-  }, 2 };
+                         .number_of_rate_constants_ = 10,
+                         .variable_names_{ "foo", "bar", "baz", "quz" },
+                         .custom_rate_parameter_labels_{ "O1", "O2", "O3", "AAA", "BBB" },
+                     },
+                     2 };
 
   std::vector<std::vector<double>> parameters = { { 0.1, 0.2, 0.3 } };
 

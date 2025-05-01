@@ -90,7 +90,8 @@ namespace micm
       class LMatrixPolicy,
       class UMatrixPolicy>
   inline State<DenseMatrixPolicy, SparseMatrixPolicy, LuDecompositionPolicy, LMatrixPolicy, UMatrixPolicy>::State(
-      const StateParameters& parameters, const std::size_t number_of_grid_cells)
+      const StateParameters& parameters,
+      const std::size_t number_of_grid_cells)
       : conditions_(number_of_grid_cells),
         variables_(number_of_grid_cells, parameters.variable_names_.size(), 0.0),
         custom_rate_parameters_(number_of_grid_cells, parameters.custom_rate_parameter_labels_.size(), 0.0),
@@ -114,8 +115,7 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
-    jacobian_ = BuildJacobian<SparseMatrixPolicy>(
-        parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_);
+    jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_);
 
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {

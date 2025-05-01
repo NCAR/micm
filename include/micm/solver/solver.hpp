@@ -97,12 +97,13 @@ namespace micm
       auto state = std::move(StatePolicy(state_parameters_, number_of_grid_cells));
       if constexpr (std::is_convertible_v<typename SolverPolicy::ParametersType, RosenbrockSolverParameters>)
       {
-        state.temporary_variables_ =
-            std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(state_parameters_, solver_parameters_, number_of_grid_cells);
+        state.temporary_variables_ = std::make_unique<RosenbrockTemporaryVariables<DenseMatrixType>>(
+            state_parameters_, solver_parameters_, number_of_grid_cells);
       }
       else if constexpr (std::is_same_v<typename SolverPolicy::ParametersType, BackwardEulerSolverParameters>)
       {
-        state.temporary_variables_ = std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_, number_of_grid_cells);
+        state.temporary_variables_ =
+            std::make_unique<BackwardEulerTemporaryVariables<DenseMatrixType>>(state_parameters_, number_of_grid_cells);
       }
       else
       {

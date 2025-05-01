@@ -29,7 +29,8 @@ void testProcessSet()
 
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state(
       micm::StateParameters{ .number_of_rate_constants_ = 3,
-                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } }, 2);
+                             .variable_names_{ "foo", "bar", "baz", "quz", "quuz", "corge" } },
+      2);
 
   micm::Process r1 = micm::Process::Create()
                          .SetReactants({ foo, baz })
@@ -162,9 +163,10 @@ void testRandomSystem(std::size_t n_cells, std::size_t n_reactions, std::size_t 
   }
   micm::Phase gas_phase{ species };
   micm::State<DenseMatrixPolicy, SparseMatrixPolicy> state{ micm::StateParameters{
-      .number_of_rate_constants_ = n_reactions,
-      .variable_names_{ species_names },
-  }, n_cells };
+                                                                .number_of_rate_constants_ = n_reactions,
+                                                                .variable_names_{ species_names },
+                                                            },
+                                                            n_cells };
   std::vector<micm::Process> processes{};
   for (std::size_t i = 0; i < n_reactions; ++i)
   {
