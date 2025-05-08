@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
+#include <algorithm>
 
 namespace micm
 {
@@ -11,44 +12,60 @@ namespace micm
     __global__ void DecomposeKernel(CudaMatrixParam ALU_param, const LuDecomposeParam devstruct)
     {
       // Calculate global thread ID
-      size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-
+      std::size_t tid = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+      
       // Local device variables
-      const std::tuple<std::size_t, std::size_t, std::size_t>* const __restrict__ d_aii_nji_nki = devstruct.aii_nji_nki_;
-      const std::size_t* __restrict__ d_aji = devstruct.aji_;
-      const std::pair<std::size_t, std::size_t>* __restrict__ d_aik_njk = devstruct.aik_njk_;
-      const std::pair<std::size_t, std::size_t>* __restrict__ d_ajk_aji = devstruct.ajk_aji_;
       const std::size_t d_aii_nji_nki_size = devstruct.aii_nji_nki_size_;
-
       double* const __restrict__ d_ALU = ALU_param.d_data_;
-      const size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
+      const std::size_t number_of_grid_cells = ALU_param.number_of_grid_cells_;
+      const std::size_t max_length = std::max({devstruct.aii_nji_nki_size_, devstruct.aji_size_,
+                                               devstruct.aik_njk_size_, devstruct.ajk_aji_size_});
+      const std::size_t upper_limit = (max_length + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+      // Declare dynamic shared memory
+      extern __shared__ unsigned char shared_memory[];
+      auto* s_aii_nji_nki = reinterpret_cast<std::tuple<std::size_t, std::size_t, std::size_t>*>(shared_memory);
+      auto* s_aji = reinterpret_cast<std::size_t*>(s_aii_nji_nki + devstruct.aii_nji_nki_size_);
+      auto* s_aik_njk = reinterpret_cast<std::pair<std::size_t, std::size_t>*>(s_aji + devstruct.aji_size_);
+      auto* s_ajk_aji = reinterpret_cast<std::pair<std::size_t, std::size_t>*>(s_aik_njk + devstruct.aik_njk_size_);
+
+      std::size_t l_tid = threadIdx.x;
+      for (std::size_t i = 0; i < upper_limit; ++i)
+      {
+        if (l_tid < devstruct.aii_nji_nki_size_) s_aii_nji_nki[l_tid] = devstruct.aii_nji_nki_[l_tid];
+        if (l_tid < devstruct.aji_size_) s_aji[l_tid] = devstruct.aji_[l_tid];
+        if (l_tid < devstruct.aik_njk_size_) s_aik_njk[l_tid] = devstruct.aik_njk_[l_tid];
+        if (l_tid < devstruct.ajk_aji_size_) s_ajk_aji[l_tid] = devstruct.ajk_aji_[l_tid];
+        l_tid += BLOCK_SIZE;
+      }
+      __syncthreads();
 
       if (tid < number_of_grid_cells)
       {
         for (std::size_t i = 0; i < d_aii_nji_nki_size; ++i)
         {
-          auto& d_aii_nji_nki_elem = d_aii_nji_nki[i];
+          auto& d_aii_nji_nki_elem = s_aii_nji_nki[i];
           auto d_Aii = d_ALU + std::get<0>(d_aii_nji_nki_elem);
           auto d_Aii_inverse = 1.0 / d_Aii[tid];
           for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
-            auto d_ALU_ji = d_ALU + *d_aji + tid;
+            auto d_ALU_ji = d_ALU + *s_aji + tid;
             *d_ALU_ji *= d_Aii_inverse;
-            ++d_aji;
+            ++s_aji;
           }
           for (std::size_t ik = 0; ik < std::get<2>(d_aii_nji_nki_elem); ++ik)
           {
-            const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
-            const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
+            const std::size_t d_aik_njk_first = std::get<0>(*s_aik_njk);
+            const std::size_t d_aik_njk_second = std::get<1>(*s_aik_njk);
             for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
-              auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
-              auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
+              auto d_ALU_first = d_ALU + s_ajk_aji->first + tid;
+              auto d_ALU_second = d_ALU + s_ajk_aji->second + tid;
               auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
               *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
-              ++d_ajk_aji;
+              ++s_ajk_aji;
             }
-            ++d_aik_njk;
+            ++s_aik_njk;
           }
         }
       }
@@ -148,7 +165,11 @@ namespace micm
     {
       // Launch the CUDA kernel for LU decomposition
       size_t number_of_blocks = (ALU_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
-      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, 0, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
+      size_t shared_memory_size = sizeof(std::tuple<std::size_t, std::size_t, std::size_t>) * devstruct.aii_nji_nki_size_ +
+                            sizeof(std::size_t) * devstruct.aji_size_ +
+                            sizeof(std::pair<std::size_t, std::size_t>) * devstruct.aik_njk_size_ +
+                            sizeof(std::pair<std::size_t, std::size_t>) * devstruct.ajk_aji_size_;
+      DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, shared_memory_size, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver
   }  // end of namespace cuda
