@@ -14,7 +14,7 @@ Model Independent Chemical Module. MICM can be used to configure and solve atmos
 [![FAIR checklist badge](https://fairsoftwarechecklist.net/badge.svg)](https://fairsoftwarechecklist.net/v0.2?f=31&a=32113&i=22322&r=123)
 
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research-National Center for Atmospheric Research
+Copyright (C) 2018-2025 University Corporation for Atmospheric Research
 
 
 <p align="center">
@@ -217,4 +217,4 @@ installation and usage instructions.
 
 - [Apache 2.0](/LICENSE)
 
-Copyright (C) 2018-2025 University Corporation for Atmospheric Research-National Center for Atmospheric Research
+Copyright (C) 2018-2025 University Corporation for Atmospheric Research

@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 University Corporation for Atmospheric Research-National Center for Atmospheric Research
+// Copyright (C) 2023-2025 University Corporation for Atmospheric Research
 // SPDX-License-Identifier: Apache-2.0
 #include <micm/cuda/util/cuda_util.cuh>
 #include <micm/util/internal_error.hpp>
