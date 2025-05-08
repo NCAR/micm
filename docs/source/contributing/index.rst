@@ -6,7 +6,7 @@ Contributing
 For all proposed changes (bug fixes, new feature, documentation upates, etc.) please file
 an `issue <https://github.com/NCAR/micm/issues/new/choose>`_ detailing what your ask is or what you intend to do.
 
-The NCAR software developers will work with you on that issue to help recommend implementations, work through questions,
+The NSF NCAR software developers will work with you on that issue to help recommend implementations, work through questions,
 or provide other background knowledge.
 
 Testing
