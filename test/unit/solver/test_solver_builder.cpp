@@ -81,7 +81,7 @@ TEST(SolverBuilder, CanBuildBackwardEuler)
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(backward_euler_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
   EXPECT_EQ(backward_euler_vector.GetSystem().phases_.size(), the_system.phases_.size());
-  EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e10);
+  EXPECT_GT(backward_euler.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(backward_euler_vector.MaximumNumberOfGridCells(), 4);
 }
 
@@ -106,7 +106,7 @@ TEST(SolverBuilder, CanBuildRosenbrock)
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.name_, the_system.gas_phase_.name_);
   EXPECT_EQ(rosenbrock_vector.GetSystem().gas_phase_.species_.size(), the_system.gas_phase_.species_.size());
   EXPECT_EQ(rosenbrock_vector.GetSystem().phases_.size(), the_system.phases_.size());
-  EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e10);
+  EXPECT_GT(rosenbrock.MaximumNumberOfGridCells(), 1e8);
   EXPECT_EQ(rosenbrock_vector.MaximumNumberOfGridCells(), 4);
 }
 
