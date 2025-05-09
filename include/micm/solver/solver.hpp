@@ -8,6 +8,7 @@
 #include <micm/solver/rosenbrock.hpp>
 #include <micm/solver/rosenbrock_temporary_variables.hpp>
 #include <micm/solver/solver_result.hpp>
+#include <micm/util/matrix.hpp>
 
 #include <type_traits>
 
@@ -78,6 +79,23 @@ namespace micm
     {
       solver_parameters_ = params;
       return solver_.Solve(time_step, state, params);
+    }
+
+    /// @brief Returns the maximum number of grid cells per state
+    /// @return Number of grid cells
+    /// @details This is the maximum number of grid cells that can fit
+    ///          within one group for vectorized solvers. For non-vectorized solvers,
+    ///          there is no limit other than the maximum size of a std::size_t.
+    std::size_t MaximumNumberOfGridCells() const
+    {
+      if constexpr (VectorizableDense<DenseMatrixType>)
+      {
+        return DenseMatrixType::GroupVectorSize();
+      }
+      else
+      {
+        return std::numeric_limits<std::size_t>::max();
+      }
     }
 
     /// @brief Returns the number of species
