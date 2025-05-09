@@ -3,6 +3,29 @@
 #include <micm/cuda/util/cuda_param.hpp>
 #include <micm/cuda/util/cuda_util.cuh>
 
+#define DEVICE_STATIC_INTRINSIC_QUALIFIERS  static __device__ __forceinline__
+
+#if (defined(_MSC_VER) && defined(_WIN64)) || defined(__LP64__)
+#define PXL_GLOBAL_PTR   "l"
+#else
+#define PXL_GLOBAL_PTR   "r"
+#endif
+
+DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_l1(const void* const ptr)
+{
+  asm("prefetch.global.L1 [%0];" : : PXL_GLOBAL_PTR(ptr));
+}
+
+DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_uniform(const void* const ptr)
+{
+  asm("prefetchu.L1 [%0];" : : PXL_GLOBAL_PTR(ptr));
+}
+
+DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_l2(const void* const ptr)
+{
+  asm("prefetch.global.L2 [%0];" : : PXL_GLOBAL_PTR(ptr));
+}
+
 namespace micm
 {
   namespace cuda
@@ -40,11 +63,23 @@ namespace micm
           {
             const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
             const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
+            auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
             for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
               auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
-              auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
+              if (ijk + 1 < d_aik_njk_second) {
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 1)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 1)->second + tid;
+                __prefetch_global_l1(next_d_ALU_first);
+                __prefetch_global_l1(next_d_ALU_second);
+              }
+              if (ijk + 10 < d_aik_njk_second) {
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 1)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 1)->second + tid;
+                __prefetch_global_l2(next_d_ALU_first);
+                __prefetch_global_l2(next_d_ALU_second);
+              }
               *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
               ++d_ajk_aji;
             }
