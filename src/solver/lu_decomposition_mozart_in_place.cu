@@ -6,21 +6,24 @@
 #define DEVICE_STATIC_INTRINSIC_QUALIFIERS  static __device__ __forceinline__
 
 #if (defined(_MSC_VER) && defined(_WIN64)) || defined(__LP64__)
-#define PXL_GLOBAL_PTR   "l"
+#define PXL_GLOBAL_PTR   "l" // use "l" for 64-bit system
 #else
 #define PXL_GLOBAL_PTR   "r"
 #endif
 
+// This function prefetches data from global memory into the L1 cache of the GPU.
 DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_l1(const void* const ptr)
 {
   asm("prefetch.global.L1 [%0];" : : PXL_GLOBAL_PTR(ptr));
 }
 
+// This function prefetches data into the L1 cache but assumes the data is uniform across threads.
 DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_uniform(const void* const ptr)
 {
   asm("prefetchu.L1 [%0];" : : PXL_GLOBAL_PTR(ptr));
 }
 
+// Purpose: This function prefetches data from global memory into the L2 cache of the GPU.
 DEVICE_STATIC_INTRINSIC_QUALIFIERS void __prefetch_global_l2(const void* const ptr)
 {
   asm("prefetch.global.L2 [%0];" : : PXL_GLOBAL_PTR(ptr));
@@ -69,14 +72,18 @@ namespace micm
               auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
               if (ijk + 1 < d_aik_njk_second) {
-                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 1)->first + tid;
-                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 1)->second + tid;
+                auto next_d_ajk_aji = d_ajk_aji + 1; 
+                auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
+                auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
+                __prefetch_global_uniform(next_d_ajk_aji);
                 __prefetch_global_l1(next_d_ALU_first);
                 __prefetch_global_l1(next_d_ALU_second);
               }
               if (ijk + 10 < d_aik_njk_second) {
-                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 1)->first + tid;
-                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 1)->second + tid;
+                auto next_d_ajk_aji = d_ajk_aji + 10;
+                auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
+                auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
+                __prefetch_global_uniform(next_d_ajk_aji);
                 __prefetch_global_l2(next_d_ALU_first);
                 __prefetch_global_l2(next_d_ALU_second);
               }
