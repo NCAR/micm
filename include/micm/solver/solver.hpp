@@ -83,7 +83,7 @@ namespace micm
 
     /// @brief Returns the maximum number of grid cells per state
     /// @return Number of grid cells
-    /// @details This is the maximum number of grid cells that can that fit
+    /// @details This is the maximum number of grid cells that can fit
     ///          within one group for vectorized solvers. For non-vectorized solvers,
     ///          there is no limit other than the maximum size of a std::size_t.
     std::size_t MaximumNumberOfGridCells() const
