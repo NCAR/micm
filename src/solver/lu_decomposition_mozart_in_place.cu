@@ -77,8 +77,8 @@ namespace micm
               {
                 auto next_d_aik_njk_first = std::get<0>(d_aik_njk + offset);
                 auto next_d_aik_njk_second = std::get<1>(d_aik_njk + offset);
-                __prefetch_global_l1(next_d_aik_njk_first);
-                __prefetch_global_l1(next_d_aik_njk_second);
+                __prefetch_global_l2(next_d_aik_njk_first);
+                __prefetch_global_l2(next_d_aik_njk_second);
               }
             }
             auto d_ALU_aik = *(d_ALU + d_aik_njk_first + tid);
