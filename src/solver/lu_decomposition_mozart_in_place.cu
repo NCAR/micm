@@ -58,7 +58,7 @@ namespace micm
           auto d_Aii_inverse = 1.0 / d_Aii[tid];
           for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
-            for (int offset = 1; offset <= 4; ++offset)
+            for (int offset = 1; offset <= 1; ++offset)
             {
               auto next_d_ALU_ji = d_ALU + *(d_aji + offset) + tid;
               __prefetch_global_l1(next_d_ALU_ji);
@@ -71,12 +71,22 @@ namespace micm
           {
             const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
             const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
-            auto d_ALU_aik = d_ALU + d_aik_njk_first + tid;
+            for (int offset = 1; offset <= 1; ++offset)
+            {
+              if (ik + offset < std::get<2>(d_aii_nji_nki_elem))
+              {
+                auto next_d_aik_njk_first = std::get<0>(d_aik_njk + offset);
+                auto next_d_aik_njk_second = std::get<1>(d_aik_njk + offset);
+                __prefetch_global_l1(next_d_aik_njk_first);
+                __prefetch_global_l1(next_d_aik_njk_second);
+              }
+            }
+            auto d_ALU_aik = *(d_ALU + d_aik_njk_first + tid);
             for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
               auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
-              for (int offset = 1; offset <= 4; ++offset)
+              for (int offset = 1; offset <= 1; ++offset)
               {
                 if (ijk + offset < d_aik_njk_second)
                 {
@@ -86,7 +96,7 @@ namespace micm
                   __prefetch_global_l1(next_d_ALU_second);
                 }
               }
-              *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
+              *d_ALU_first -= *d_ALU_second * d_ALU_aik;
               ++d_ajk_aji;
             }
             ++d_aik_njk;
