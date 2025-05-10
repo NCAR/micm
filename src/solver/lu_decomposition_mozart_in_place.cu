@@ -72,21 +72,37 @@ namespace micm
               auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
               if (ijk + 1 < d_aik_njk_second) {
-                auto next_d_ajk_aji = d_ajk_aji + 1; 
-                __prefetch_global_uniform(next_d_ajk_aji);
-                auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
-                auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 1)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 1)->second + tid;
                 __prefetch_global_l1(next_d_ALU_first);
                 __prefetch_global_l1(next_d_ALU_second);
               }
-              if (ijk + 10 < d_aik_njk_second) {
-                auto next_d_ajk_aji = d_ajk_aji + 10;
-                __prefetch_global_uniform(next_d_ajk_aji);
-                auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
-                auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
-                __prefetch_global_l2(next_d_ALU_first);
-                __prefetch_global_l2(next_d_ALU_second);
+              if (ijk + 2 < d_aik_njk_second) {
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 2)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 2)->second + tid;
+                __prefetch_global_l1(next_d_ALU_first);
+                __prefetch_global_l1(next_d_ALU_second);
               }
+              if (ijk + 3 < d_aik_njk_second) {
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 3)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 3)->second + tid;
+                __prefetch_global_l1(next_d_ALU_first);
+                __prefetch_global_l1(next_d_ALU_second);
+              }
+              if (ijk + 4 < d_aik_njk_second) {
+                auto next_d_ALU_first = d_ALU + (d_ajk_aji + 4)->first + tid;
+                auto next_d_ALU_second = d_ALU + (d_ajk_aji + 4)->second + tid;
+                __prefetch_global_l1(next_d_ALU_first);
+                __prefetch_global_l1(next_d_ALU_second);
+              }
+              // if (ijk + 10 < d_aik_njk_second) {
+              //   auto next_d_ajk_aji = d_ajk_aji + 10;
+              //   __prefetch_global_uniform(next_d_ajk_aji);
+              //   auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
+              //   auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
+              //   __prefetch_global_l2(next_d_ALU_first);
+              //   __prefetch_global_l2(next_d_ALU_second);
+              // }
               *d_ALU_first -= *d_ALU_second * *d_ALU_aik;
               ++d_ajk_aji;
             }
