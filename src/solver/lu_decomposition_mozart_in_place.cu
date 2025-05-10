@@ -58,7 +58,7 @@ namespace micm
           auto d_Aii_inverse = 1.0 / d_Aii[tid];
           for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
-            for (int offset = 1; offset <= 2; ++offset)
+            for (int offset = 1; offset <= 4; ++offset)
             {
               auto next_d_ALU_ji = d_ALU + *(d_aji + offset) + tid;
               __prefetch_global_l1(next_d_ALU_ji);
@@ -76,7 +76,7 @@ namespace micm
             {
               auto d_ALU_first = d_ALU + d_ajk_aji->first + tid;
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
-              for (int offset = 1; offset <= 2; ++offset)
+              for (int offset = 1; offset <= 4; ++offset)
               {
                 if (ijk + offset < d_aik_njk_second)
                 {
