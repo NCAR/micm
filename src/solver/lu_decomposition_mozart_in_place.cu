@@ -73,17 +73,17 @@ namespace micm
               auto d_ALU_second = d_ALU + d_ajk_aji->second + tid;
               if (ijk + 1 < d_aik_njk_second) {
                 auto next_d_ajk_aji = d_ajk_aji + 1; 
+                __prefetch_global_uniform(next_d_ajk_aji);
                 auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
                 auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
-                __prefetch_global_uniform(next_d_ajk_aji);
                 __prefetch_global_l1(next_d_ALU_first);
                 __prefetch_global_l1(next_d_ALU_second);
               }
               if (ijk + 10 < d_aik_njk_second) {
                 auto next_d_ajk_aji = d_ajk_aji + 10;
+                __prefetch_global_uniform(next_d_ajk_aji);
                 auto next_d_ALU_first = d_ALU + next_d_ajk_aji->first + tid;
                 auto next_d_ALU_second = d_ALU + next_d_ajk_aji->second + tid;
-                __prefetch_global_uniform(next_d_ajk_aji);
                 __prefetch_global_l2(next_d_ALU_first);
                 __prefetch_global_l2(next_d_ALU_second);
               }
