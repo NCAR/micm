@@ -169,6 +169,12 @@ namespace micm
                             sizeof(std::size_t) * devstruct.aji_size_ +
                             sizeof(std::pair<std::size_t, std::size_t>) * devstruct.aik_njk_size_ +
                             sizeof(std::pair<std::size_t, std::size_t>) * devstruct.ajk_aji_size_;
+      // Set the maximum shared memory size for the kernel
+      cudaFuncSetAttribute(
+          micm::cuda::DecomposeKernel, 
+          cudaFuncAttributeMaxDynamicSharedMemorySize, 
+          163840  // Set to the maximum shared memory size (163 KB for A100)
+      );
       DecomposeKernel<<<number_of_blocks, BLOCK_SIZE, shared_memory_size, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0)>>>(
           ALU_param, devstruct);
     }  // end of DecomposeKernelDriver
