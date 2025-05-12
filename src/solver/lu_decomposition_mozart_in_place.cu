@@ -58,11 +58,11 @@ namespace micm
           auto d_Aii_inverse = 1.0 / d_Aii[tid];
           for (std::size_t ij = 0; ij < std::get<1>(d_aii_nji_nki_elem); ++ij)
           {
-            for (int offset = 1; offset <= 1; ++offset)
-            {
-              auto next_d_ALU_ji = d_ALU + *(d_aji + offset) + tid;
-              __prefetch_global_l1(next_d_ALU_ji);
-            }
+            // for (int offset = 1; offset <= 1; ++offset)
+            // {
+            //   auto next_d_ALU_ji = d_ALU + *(d_aji + offset) + tid;
+            //   __prefetch_global_l1(next_d_ALU_ji);
+            // }
             auto d_ALU_ji = d_ALU + *d_aji + tid;
             *d_ALU_ji *= d_Aii_inverse;
             ++d_aji;
@@ -71,16 +71,16 @@ namespace micm
           {
             const std::size_t d_aik_njk_first = std::get<0>(*d_aik_njk);
             const std::size_t d_aik_njk_second = std::get<1>(*d_aik_njk);
-            for (int offset = 1; offset <= 1; ++offset)
-            {
-              if (ik + offset < std::get<2>(d_aii_nji_nki_elem))
-              {
-                auto next_d_aik_njk_first = std::get<0>(d_aik_njk + offset);
-                auto next_d_aik_njk_second = std::get<1>(d_aik_njk + offset);
-                __prefetch_global_l2(next_d_aik_njk_first);
-                __prefetch_global_l2(next_d_aik_njk_second);
-              }
-            }
+            // for (int offset = 1; offset <= 1; ++offset)
+            // {
+            //   if (ik + offset < std::get<2>(d_aii_nji_nki_elem))
+            //   {
+            //     auto next_d_aik_njk_first = std::get<0>(d_aik_njk + offset);
+            //     auto next_d_aik_njk_second = std::get<1>(d_aik_njk + offset);
+            //     __prefetch_global_l2(next_d_aik_njk_first);
+            //     __prefetch_global_l2(next_d_aik_njk_second);
+            //   }
+            // }
             auto d_ALU_aik = *(d_ALU + d_aik_njk_first + tid);
             for (std::size_t ijk = 0; ijk < d_aik_njk_second; ++ijk)
             {
