@@ -56,9 +56,12 @@ namespace micm
     using IntMatrix = CudaDenseMatrix<int, L>;
     using value_type = T;
 
-   private:
     /// @brief The device pointer (handle) to the allocated memory on the target device.
     CudaMatrixParam param_;
+
+  //  private:
+  //   /// @brief The device pointer (handle) to the allocated memory on the target device.
+  //   CudaMatrixParam param_;
 
    public:
     CudaDenseMatrix()
