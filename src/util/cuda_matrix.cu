@@ -17,10 +17,8 @@ namespace micm
     cudaError_t MallocVector(CudaMatrixParam& param, std::size_t number_of_elements)
     {
       param.number_of_elements_ = number_of_elements;
-      // cudaError_t err = cudaMallocAsync(
-      //     &(param.d_data_), sizeof(T) * number_of_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
-      cudaError_t err = cudaMallocHost(
-          &(param.d_data_), sizeof(T) * number_of_elements);
+      cudaError_t err = cudaMallocAsync(
+          &(param.d_data_), sizeof(T) * number_of_elements, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       return err;
     }
 
@@ -32,8 +30,7 @@ namespace micm
       {
         return cudaError_t::cudaSuccess;
       }
-      // cudaError_t err = cudaFreeAsync(param.d_data_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
-      cudaError_t err = cudaFreeHost(param.d_data_);
+      cudaError_t err = cudaFreeAsync(param.d_data_, micm::cuda::CudaStreamSingleton::GetInstance().GetCudaStream(0));
       param.d_data_ = nullptr;
       return err;
     }
