@@ -156,6 +156,7 @@ namespace micm
     // Adapted from https://stackoverflow.com/questions/14246976/c-how-to-force-prefetch-data-to-cache-array-loop
     double temp = 0;
     volatile double keep_temp_alive;
+    constexpr std::size_t NUM_PREFETCH = 2;
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
@@ -171,13 +172,14 @@ namespace micm
         auto ALU_vector_it = ALU_vector + std::get<0>(aii_nji_nki);
         for (std::size_t i = 0; i < n_cells; ++i)
           *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, std::get<1>(aii_nji_nki)); ++i)
+          temp += *(ALU_vector + *(aji + i));
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
           auto ALU_vector_it = ALU_vector + *aji;
           auto Aii_inverse_it = Aii_inverse.begin();
-          temp += *ALU_vector_it;
-          if (ij < std::get<1>(aii_nji_nki) - 1)
-            temp += *(ALU_vector + *(aji+1));
+          if ((ij + NUM_PREFETCH) < std::get<1>(aii_nji_nki))
+            temp += *(ALU_vector + *(aji + NUM_PREFETCH));
           for (std::size_t i = 0; i < n_cells; ++i)
             *(ALU_vector_it++) *= *(Aii_inverse_it++);
           ++aji;
@@ -185,23 +187,21 @@ namespace micm
         for (std::size_t ik = 0; ik < std::get<2>(aii_nji_nki); ++ik)
         {
           const std::size_t aik = std::get<0>(*aik_njk);
-          const std::size_t next_aik = aik;
-          if (ik < std::get<2>(aii_nji_nki) - 1)
-            std::get<0>(*(aik_njk+1));
+          for (std::size_t i = 0; i < std::min(NUM_PREFETCH, std::get<1>(*aik_njk)); ++i)
+          {
+            temp += *(ALU_vector + (ajk_aji + i)->first);
+            temp += *(ALU_vector + (ajk_aji + i)->second);
+          }
           for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
           {
 
             auto ALU_vector_first_it = ALU_vector + ajk_aji->first;
             auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
             auto ALU_vector_aik_it = ALU_vector + aik;
-            temp += *ALU_vector_first_it;
-            temp += *ALU_vector_second_it;
-            temp += *ALU_vector_aik_it;
-            if (ijk < std::get<1>(*aik_njk) - 1)
+            if ((ijk + NUM_PREFETCH) < std::get<1>(*aik_njk))
             {
-              temp += *(ALU_vector + (ajk_aji+1)->first);
-              temp += *(ALU_vector + (ajk_aji+1)->second);
-              temp += *(ALU_vector + next_aik);
+              temp += *(ALU_vector + (ajk_aji + NUM_PREFETCH)->first);
+              temp += *(ALU_vector + (ajk_aji + NUM_PREFETCH)->second);
             }
             for (std::size_t i = 0; i < n_cells; ++i)
               *(ALU_vector_first_it++) -= *(ALU_vector_second_it++) * *(ALU_vector_aik_it++);
