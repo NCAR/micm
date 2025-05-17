@@ -156,7 +156,7 @@ namespace micm
     // Adapted from https://stackoverflow.com/questions/14246976/c-how-to-force-prefetch-data-to-cache-array-loop
     double temp = 0;
     volatile double keep_temp_alive;
-    constexpr std::size_t NUM_PREFETCH = 2;
+    constexpr std::size_t NUM_PREFETCH = 3;
 
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
