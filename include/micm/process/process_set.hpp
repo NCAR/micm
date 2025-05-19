@@ -461,6 +461,15 @@ namespace micm
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     std::vector<double> d_rate_d_ind(L, 0);
     auto v_rate_constants_begin = v_rate_constants.begin();
+
+    // prefetching temporary variables
+    // The idea is to try to fetch the next cache line prior to operating on the current one
+    // assuming the vector dimension is about the same as the cache line size
+    // Adapted from https://stackoverflow.com/questions/14246976/c-how-to-force-prefetch-data-to-cache-array-loop
+    double temp = 0;
+    volatile double keep_temp_alive;
+    constexpr std::size_t NUM_PREFETCH = 1;
+
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
@@ -475,27 +484,39 @@ namespace micm
       {
         auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (process_info.process_id_ * L);
         d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_dependent_reactants_); ++i)
+          temp += *(v_state_variables.begin() + offset_state + (react_id[i] * L));
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
           const std::size_t idx_state_variables = offset_state + (react_id[i_react] * L);
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+          if (i_react + NUM_PREFETCH < process_info.number_of_dependent_reactants_)
+            temp += *(v_state_variables.begin() + offset_state + (react_id[i_react + NUM_PREFETCH] * L));
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
         }
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_dependent_reactants_); ++i)
+          temp += *(v_jacobian.begin() + offset_jacobian + *(flat_id + i));
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
         {
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+          if (i_dep + NUM_PREFETCH < process_info.number_of_dependent_reactants_ + 1)
+            temp += *(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH));
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
           ++flat_id;
         }
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_products_); ++i)
+          temp += *(v_jacobian.begin() + offset_jacobian + *(flat_id + i));
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         {
           auto v_jacobian_it = v_jacobian.begin() + offset_jacobian + *flat_id;
           auto yield_value = yield[i_dep];
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
+          if (i_dep + NUM_PREFETCH < process_info.number_of_products_)
+            temp += *(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH));
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
           ++flat_id;
@@ -504,6 +525,7 @@ namespace micm
         yield += process_info.number_of_products_;
       }
     }
+    keep_temp_alive = temp;
   }
 
   inline std::set<std::string> ProcessSet::SpeciesUsed(const std::vector<Process>& processes)
