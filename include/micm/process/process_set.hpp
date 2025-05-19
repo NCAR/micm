@@ -338,6 +338,15 @@ namespace micm
     auto& v_forcing = forcing.AsVector();
     constexpr std::size_t L = DenseMatrixPolicy::GroupVectorSize();
     auto v_rate_constants_begin = v_rate_constants.begin();
+
+    // prefetching temporary variables
+    // The idea is to try to fetch the next cache line prior to operating on the current one
+    // assuming the vector dimension is about the same as the cache line size
+    // Adapted from https://stackoverflow.com/questions/14246976/c-how-to-force-prefetch-data-to-cache-array-loop
+    double temp = 0;
+    volatile double keep_temp_alive;
+    constexpr std::size_t NUM_PREFETCH = 1;
+
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
     {
@@ -354,27 +363,39 @@ namespace micm
         const auto v_rate_subrange_begin = v_rate_constants_begin + offset_rc + (i_rxn * L);
         rate.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
         const std::size_t number_of_reactants = number_of_reactants_[i_rxn];
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, number_of_reactants); ++i)
+          temp += *(v_state_variables.begin() + offset_state + react_id[i] * L);
         for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           std::size_t idx_state_variables = offset_state + react_id[i_react] * L;
           auto rate_it = rate.begin();
           auto v_state_variables_it = v_state_variables.begin() + idx_state_variables;
+          if (i_react + NUM_PREFETCH < number_of_reactants)
+            temp += *(v_state_variables.begin() + offset_state + react_id[i_react + NUM_PREFETCH] * L);
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(rate_it++) *= *(v_state_variables_it++);
         }
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, number_of_reactants); ++i)
+          temp += *(v_forcing.begin() + offset_forcing + react_id[i] * L);
         for (std::size_t i_react = 0; i_react < number_of_reactants; ++i_react)
         {
           auto v_forcing_it = v_forcing.begin() + offset_forcing + react_id[i_react] * L;
           auto rate_it = rate.begin();
+          if (i_react + NUM_PREFETCH < number_of_reactants)
+            temp += *(v_state_variables.begin() + offset_state + react_id[i_react + NUM_PREFETCH] * L);
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_forcing_it++) -= *(rate_it++);
         }
         const std::size_t number_of_products = number_of_products_[i_rxn];
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, number_of_products); ++i)
+          temp += *(v_forcing.begin() + offset_forcing + prod_id[i] * L);
         for (std::size_t i_prod = 0; i_prod < number_of_products; ++i_prod)
         {
           auto v_forcing_it = v_forcing.begin() + offset_forcing + prod_id[i_prod] * L;
           auto rate_it = rate.begin();
           auto yield_value = yield[i_prod];
+          if (i_prod + NUM_PREFETCH < number_of_products)
+            temp += *(v_forcing.begin() + offset_forcing + prod_id[i_prod + NUM_PREFETCH] * L);
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_forcing_it++) += yield_value * *(rate_it++);
         }
@@ -383,6 +404,7 @@ namespace micm
         yield += number_of_products_[i_rxn];
       }
     }
+    keep_temp_alive = temp;
   }
 
   // Forming the Jacobian matrix "J" and returning "-J" to be consistent with the CUDA implementation
