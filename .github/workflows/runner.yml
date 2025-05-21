@@ -15,4 +15,4 @@ jobs:
     runs-on: gha-runner-micm
     steps:
       - name: test1
-        run: ls
+        run: nvidia-smi
