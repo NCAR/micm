@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cmake
+      - name: Install dependencies
         run: |
            apt update
            apt install -y cmake g++
