@@ -126,15 +126,6 @@ namespace micm
   {
     MICM_PROFILE_FUNCTION();
     constexpr std::size_t n_cells = MatrixPolicy::GroupVectorSize();
-
-    // prefetching temporary variables
-    // The idea is to try to fetch the next cache line prior to operating on the current one
-    // assuming the vector dimension is about the same as the cache line size
-    // Adapted from https://stackoverflow.com/questions/14246976/c-how-to-force-prefetch-data-to-cache-array-loop
-    double temp = 0;
-    volatile double keep_temp_alive;
-    constexpr std::size_t NUM_PREFETCH = 1;
-
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < x.NumberOfGroups(); ++i_group)
     {
@@ -146,11 +137,6 @@ namespace micm
         auto Lij_yj = Lij_yj_.begin();
         for (auto& nLij : nLij_)
         {
-          for (std::size_t i = 0; i < std::min(NUM_PREFETCH, nLij); ++i)
-          {
-            temp += *(LU_group + (*(Lij_yj+i)).first);
-            temp += *(x_group  + (*(Lij_yj+i)).second * n_cells);
-          }
           for (std::size_t i = 0; i < nLij; ++i)
           {
             const std::size_t Lij_yj_first = (*Lij_yj).first;
@@ -158,11 +144,6 @@ namespace micm
             auto LU_group_it = LU_group + Lij_yj_first;
             auto x_group_it = x_group + Lij_yj_second_times_n_cells;
             auto y_elem_it = y_elem;
-            if (i + NUM_PREFETCH < nLij)
-            {
-              temp += *(LU_group + (*(Lij_yj + NUM_PREFETCH)).first);
-              temp += *(x_group  + (*(Lij_yj + NUM_PREFETCH)).second * n_cells);
-            }
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               *(y_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
             ++Lij_yj;
@@ -178,11 +159,6 @@ namespace micm
         for (auto& nUij_Uii : nUij_Uii_)
         {
           // x_elem starts out as y_elem from the previous loop
-          for (std::size_t i = 0; i < std::min(NUM_PREFETCH, nUij_Uii.first); ++i)
-          {
-            temp += *(LU_group + (*(Uij_xj+i)).first);
-            temp += *(x_group  + (*(Uij_xj+i)).second * n_cells);
-          }
           for (std::size_t i = 0; i < nUij_Uii.first; ++i)
           {
             const std::size_t Uij_xj_first = (*Uij_xj).first;
@@ -190,11 +166,6 @@ namespace micm
             auto LU_group_it = LU_group + Uij_xj_first;
             auto x_group_it = x_group + Uij_xj_second_times_n_cells;
             auto x_elem_it = x_elem;
-            if (i + NUM_PREFETCH < nUij_Uii.first)
-            {
-              temp += *(LU_group + (*(Uij_xj + NUM_PREFETCH)).first);
-              temp += *(x_group  + (*(Uij_xj + NUM_PREFETCH)).second * n_cells);
-            }
             for (std::size_t i_cell = 0; i_cell < n_cells; ++i_cell)
               *(x_elem_it++) -= *(LU_group_it++) * *(x_group_it++);
             ++Uij_xj;
@@ -211,6 +182,5 @@ namespace micm
         }
       }
     }
-    keep_temp_alive = temp;
   }
 }  // namespace micm
