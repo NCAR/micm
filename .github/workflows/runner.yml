@@ -18,8 +18,8 @@ jobs:
 
       - name: Install cmake
         run: |
-          sudo apt update
-          sudo apt install -y cmake
+           sudo apt update
+           sudo apt install -y cmake g++
 
       - name: Run Cmake 
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
