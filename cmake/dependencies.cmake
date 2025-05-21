@@ -106,6 +106,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
   string(TOLOWER ${MICM_GPU_TYPE} MICM_GPU_TYPE_LOWER)
   # Data center GPUs
   set(cuda_arch_map_a100 80)
+  set(cuda_arch_map_a10 86)
   set(cuda_arch_map_v100 70)
   set(cuda_arch_map_h100 90a)
   set(cuda_arch_map_h200 90a)

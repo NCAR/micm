@@ -14,5 +14,15 @@ jobs:
     name: job1
     runs-on: gha-runner-micm
     steps:
-      - name: test1
-        run: nvidia-smi
+      - uses: actions/checkout@v4
+
+      - name: Run Cmake 
+        run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+
+      - name: Build
+        run: cmake --build build --parallel 10
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --rerun-failed --output-on-failure . --verbose -j 10
