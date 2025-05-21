@@ -14,10 +14,16 @@ jobs:
     name: job1
     runs-on: gha-runner-micm
     steps:
-      - uses: actions/checkout@v4
+      - name: Clone micm repository
+        run: git clone https://github.com/your-org/micm.git .
+
+      - name: Checkout current branch
+        run: |
+          git fetch origin ${{ github.ref }}
+          git checkout ${{ github.ref_name }}
 
       - name: Run Cmake 
-        run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+        run: cmake -S micm -B build -DMICM_GPU_TYPE="a10"
 
       - name: Build
         run: cmake --build build --parallel 10
