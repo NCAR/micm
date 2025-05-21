@@ -13,6 +13,9 @@ jobs:
   job1:
     name: job1
     runs-on: gha-runner-micm
+    container:
+      image: nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
+      options: --gpus all
     steps:
       - uses: actions/checkout@v4
 
