@@ -12,8 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  job1:
-    name: job1
+  cuda_tests:
     runs-on: gha-runner-micm
     container:
       image: nvcr.io/nvidia/nvhpc:23.7-devel-cuda12.2-ubuntu22.04
