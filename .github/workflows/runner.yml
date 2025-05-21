@@ -26,6 +26,10 @@ jobs:
 
       - name: Run Cmake 
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
+      
+      - name: Copy cublas headers
+        run: |
+          cp -r /opt/nvidia/hpc_sdk/*/23.7/cuda/include/* /usr/include/
 
       - name: Build
         run: cmake --build build --parallel 10
