@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install cmake
+        run: |
+          apt update
+          apt install -y cmake
+
       - name: Run Cmake 
         run: cmake -S . -B build -DMICM_GPU_TYPE="a10"
 
