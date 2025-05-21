@@ -1,4 +1,4 @@
-name: Designated Runner
+name: Designated GPU Runner
 
 on: 
   push:
