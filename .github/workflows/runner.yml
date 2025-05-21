@@ -15,7 +15,7 @@ jobs:
     runs-on: gha-runner-micm
     steps:
       - name: Clone micm repository
-        run: git clone https://github.com/your-org/micm.git .
+        run: git clone https://github.com/NCAR/micm.git
 
       - name: Checkout current branch
         run: |
