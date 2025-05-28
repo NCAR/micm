@@ -42,7 +42,7 @@ if(MICM_ENABLE_LLVM)
 endif()
 
 if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
-  add_library(micm_cuda)
+  add_library(micm_cuda SHARED)
   add_library(musica::micm_cuda ALIAS micm_cuda)
   target_link_libraries(micm_cuda
     PRIVATE micm
