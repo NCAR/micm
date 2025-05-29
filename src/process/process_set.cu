@@ -285,9 +285,9 @@ namespace micm
         const ProcessSetParam& devstruct)
     {
       std::cout << "SubtractJacobianTermsKernelDriver called" << std::endl;
-      std::cout << "rate_constants_param (GB) : " << rate_constants_param.number_of_elements_ * 8 / 1024 / 1024 / 1024 << std::endl;
-      std::cout << "state_variables_param (GB) : " << state_variables_param.number_of_elements_ * 8 / 1024 / 1024 / 1024 << std::endl;
-      std::cout << "jacobian_param (GB) : " << jacobian_param.number_of_elements_ * 8 / 1024 / 1024 / 1024 << std::endl;
+      std::cout << "rate_constants_param (GB) : " << rate_constants_param.number_of_elements_ * 8 / 1024.0 / 1024.0 / 1024.0 << std::endl;
+      std::cout << "state_variables_param (GB) : " << state_variables_param.number_of_elements_ * 8 / 1024.0 / 1024.0 / 1024.0 << std::endl;
+      std::cout << "jacobian_param (GB) : " << jacobian_param.number_of_elements_ * 8 / 1024.0 / 1024.0 / 1024.0 << std::endl;
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SubtractJacobianTermsKernel<<<
           number_of_blocks,
@@ -304,9 +304,9 @@ namespace micm
         const ProcessSetParam& devstruct)
     {
       std::cout << "AddForcingTermsKernelDriver called" << std::endl;
-      std::cout << "rate_constants_param (GB) : " << rate_constants_param.number_of_elements_ * 8 / 1024 / 1024 / 1024 << std::endl;
-      std::cout << "state_variables_param (GB) : " << state_variables_param.number_of_elements_ * 8 / 1024 /1024 / 1024 << std::endl;
-      std::cout << "forcing_param (GB) : " << forcing_param.number_of_elements_ * 8 / 1024 / 1024 / 1024 << std::endl;
+      std::cout << "rate_constants_param (GB) : " << rate_constants_param.number_of_elements_ * 8 / 1024.0 / 1024.0 / 1024.0 << std::endl;
+      std::cout << "state_variables_param (GB) : " << state_variables_param.number_of_elements_ * 8 / 1024.0 /1024.0 / 1024.0 << std::endl;
+      std::cout << "forcing_param (GB) : " << forcing_param.number_of_elements_ * 8 / 1024.0 / 1024.0 / 1024.0 << std::endl;
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AddForcingTermsKernel<<<
           number_of_blocks,
