@@ -58,7 +58,7 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     # so the shared library wil be built without linking CUDA libraries
     # and musica will dynamically link them at runtime
     # but, we still need to include the CUDA headers
-    target_include_directories(micm_cuda PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+    target_include_directories(micm_cuda PUBLIC ${CUDAToolkit_INCLUDE_DIRS})
   endif()
 
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
