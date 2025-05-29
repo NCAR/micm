@@ -33,6 +33,7 @@ option(MICM_BUILD_DOCS "Build the documentation" OFF)
 option(MICM_ENABLE_LLVM "Build with LLVM support for JIT-compiling" OFF)
 option(MICM_ENABLE_TESTS "Build the tests" ON)
 option(MICM_ENABLE_PROFILE "Profile MICM Solver" OFF)
+option(MICM_EXPLICTLY_LINK_CUDA "Explicitly link CUDA libraries (for python wheel runtime linking)." ON)
 set(MICM_DEFAULT_VECTOR_SIZE "4" CACHE STRING "Default size for vectorizable matrix types")
 set(MICM_GPU_TYPE "None" CACHE STRING "The GPU type being targeted")
 
