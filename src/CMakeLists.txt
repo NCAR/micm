@@ -52,6 +52,13 @@ if(NOT ${MICM_GPU_TYPE} STREQUAL "None")
     target_link_libraries(micm_cuda 
       PUBLIC CUDA::cudart CUDA::cublas
     )
+  else()
+    # when building a phyton wheel, we don't want to link CUDA libraries
+    # because not all users will have CUDA instaleld
+    # so the shared library wil be built without linking CUDA libraries
+    # and musica will dynamically link them at runtime
+    # but, we still need to include the CUDA headers
+    target_include_directories(micm_cuda PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
   endif()
 
   target_compile_options(micm_cuda PRIVATE --expt-relaxed-constexpr)
