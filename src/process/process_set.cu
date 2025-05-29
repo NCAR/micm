@@ -284,6 +284,10 @@ namespace micm
         CudaMatrixParam& jacobian_param,
         const ProcessSetParam& devstruct)
     {
+      std::cout << "SubtractJacobianTermsKernelDriver called" << std::endl;
+      std::cout << "rate_constants_param.number_of_elements_ : " << rate_constants_param.number_of_elements_ << std::endl;
+      std::cout << "state_variables_param.number_of_elements_ : " << state_variables_param.number_of_elements_ << std::endl;
+      std::cout << "jacobian_param.number_of_elements_ : " << jacobian_param.number_of_elements_ << std::endl;
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       SubtractJacobianTermsKernel<<<
           number_of_blocks,
@@ -299,6 +303,10 @@ namespace micm
         CudaMatrixParam& forcing_param,
         const ProcessSetParam& devstruct)
     {
+      std::cout << "AddForcingTermsKernelDriver called" << std::endl;
+      std::cout << "rate_constants_param.number_of_elements_ : " << rate_constants_param.number_of_elements_ << std::endl;
+      std::cout << "state_variables_param.number_of_elements_ : " << state_variables_param.number_of_elements_ << std::endl;
+      std::cout << "forcing_param.number_of_elements_ : " << forcing_param.number_of_elements_ << std::endl;
       size_t number_of_blocks = (rate_constants_param.number_of_grid_cells_ + BLOCK_SIZE - 1) / BLOCK_SIZE;
       AddForcingTermsKernel<<<
           number_of_blocks,
