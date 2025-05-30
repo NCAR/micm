@@ -121,7 +121,7 @@ namespace micm
         }
       }
     }
-    auto ALU_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(A.NumberOfBlocks()).InitialValue(initial_value);
+    auto ALU_builder = SparseMatrixPolicy::Create(n).SetNumberOfBlocks(number_of_grid_cells).InitialValue(initial_value);
     for (auto& pair : ALU_ids)
     {
       ALU_builder = ALU_builder.WithElement(pair.first, pair.second);

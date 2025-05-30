@@ -122,7 +122,7 @@ void testDenseMatrix()
   CopyToDeviceDense<MatrixPolicy>(x);
 
   LinearSolverPolicy solver = LinearSolverPolicy(A, 0);
-  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, 1);
+  auto alu = micm::LuDecompositionInPlace::GetLUMatrix<SparseMatrixPolicy>(A, 0, A.NumberOfBlocks());
   alu.Fill(0);
   for (std::size_t i = 0; i < A.NumRows(); ++i)
     for (std::size_t j = 0; j < A.NumColumns(); ++j)
@@ -349,8 +349,8 @@ void testMarkowitzReordering()
   auto orig_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(orig_jac);
   auto reordered_LU_calc = micm::LuDecompositionInPlace::Create<SparseMatrixPolicy>(reordered_jac);
 
-  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, 1);
-  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, 1);
+  auto orig_LU = orig_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(orig_jac, 0.0, orig_jac.NumberOfBlocks());
+  auto reordered_LU = reordered_LU_calc.template GetLUMatrix<SparseMatrixPolicy>(reordered_jac, 0.0, reordered_jac.NumberOfBlocks());
 
   std::size_t sum_orig = 0;
   std::size_t sum_reordered = 0;
