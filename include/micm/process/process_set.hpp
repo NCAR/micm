@@ -442,6 +442,7 @@ namespace micm
 
     // How many loop iterations ahead to prefetch
     constexpr std::size_t NUM_PREFETCH = 1;
+    constexpr int LOCALITY = 1;  // Locality for prefetching (0 = don't keep in cache, 3 = keep in all levels of cache )
 
     // loop over all rows
     for (std::size_t i_group = 0; i_group < state_variables.NumberOfGroups(); ++i_group)
@@ -459,7 +460,7 @@ namespace micm
         d_rate_d_ind.assign(v_rate_subrange_begin, v_rate_subrange_begin + L);
 #ifdef __GNUC__
         for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_dependent_reactants_); ++i)
-          __builtin_prefetch(&*(v_state_variables.begin() + offset_state + (react_id[i] * L)), 0, 3);
+          __builtin_prefetch(&*(v_state_variables.begin() + offset_state + (react_id[i] * L)), 0, LOCALITY);
 #endif
         for (std::size_t i_react = 0; i_react < process_info.number_of_dependent_reactants_; ++i_react)
         {
@@ -468,14 +469,14 @@ namespace micm
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
 #ifdef __GNUC__
           if (i_react + NUM_PREFETCH < process_info.number_of_dependent_reactants_)
-            __builtin_prefetch(&*(v_state_variables.begin() + offset_state + (react_id[i_react + NUM_PREFETCH] * L)), 0, 3);
+            __builtin_prefetch(&*(v_state_variables.begin() + offset_state + (react_id[i_react + NUM_PREFETCH] * L)), 0, LOCALITY);
 #endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_d_rate_d_ind_it++) *= *(v_state_variables_it++);
         }
 #ifdef __GNUC__
         for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_dependent_reactants_); ++i)
-          __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), 1, 3);
+          __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), 1, LOCALITY);
 #endif
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_dependent_reactants_ + 1; ++i_dep)
         {
@@ -483,7 +484,7 @@ namespace micm
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
 #ifdef __GNUC__
           if (i_dep + NUM_PREFETCH < process_info.number_of_dependent_reactants_ + 1)
-            __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH)), 1, 3);
+            __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH)), 1, LOCALITY);
 #endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) += *(v_d_rate_d_ind_it++);
@@ -491,7 +492,7 @@ namespace micm
         }
 #ifdef __GNUC__
         for (std::size_t i = 0; i < std::min(NUM_PREFETCH, process_info.number_of_products_); ++i)
-          __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), 1, 3);
+          __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + i)), 1, LOCALITY);
 #endif
         for (std::size_t i_dep = 0; i_dep < process_info.number_of_products_; ++i_dep)
         {
@@ -500,7 +501,7 @@ namespace micm
           auto v_d_rate_d_ind_it = d_rate_d_ind.begin();
 #ifdef __GNUC__
           if (i_dep + NUM_PREFETCH < process_info.number_of_products_)
-            __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH)), 1, 3);
+            __builtin_prefetch(&*(v_jacobian.begin() + offset_jacobian + *(flat_id + NUM_PREFETCH)), 1, LOCALITY);
 #endif
           for (std::size_t i_cell = 0; i_cell < L; ++i_cell)
             *(v_jacobian_it++) -= yield_value * *(v_d_rate_d_ind_it++);
