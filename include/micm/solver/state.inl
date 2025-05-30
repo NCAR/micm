@@ -115,15 +115,15 @@ namespace micm
     for (auto& label : parameters.custom_rate_parameter_labels_)
       custom_rate_parameter_map_[label] = index++;
 
-    jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, 1, state_size_);
-
     if constexpr (LuDecompositionInPlaceConcept<LuDecompositionPolicy, SparseMatrixPolicy>)
     {
+      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, 1, state_size_);
       auto lu = LuDecompositionPolicy::template GetLUMatrix<SparseMatrixPolicy>(jacobian_, 0, number_of_grid_cells);
       jacobian_ = std::move(lu);
     }
     else
     {
+      jacobian_ = BuildJacobian<SparseMatrixPolicy>(parameters.nonzero_jacobian_elements_, number_of_grid_cells, state_size_);
       auto lu =
           LuDecompositionPolicy::template GetLUMatrices<SparseMatrixPolicy, LMatrixPolicy, UMatrixPolicy>(jacobian_, 0, number_of_grid_cells);
       auto lower_matrix = std::move(lu.first);
