@@ -80,7 +80,8 @@ namespace micm
       requires(SparseMatrixConcept<SparseMatrixPolicy>)
     static SparseMatrixPolicy GetLUMatrix(
         const SparseMatrixPolicy& A,
-        typename SparseMatrixPolicy::value_type initial_value);
+        typename SparseMatrixPolicy::value_type initial_value,
+        std::size_t number_of_grid_cells);
 
     /// @brief Perform an LU decomposition on a given A matrix
     /// @param A Sparse matrix to decompose
