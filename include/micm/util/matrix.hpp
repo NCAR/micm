@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/prefetch.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -337,6 +338,16 @@ namespace micm
     typename std::vector<T>::const_iterator end() const noexcept
     {
       return data_.cend();
+    }
+
+    /// @brief Prefetches the data vector
+    /// @param read_or_write 0 for read, 1 for write
+    /// @param locality Locality hint for the prefetch operation
+    void PrefetchData(int read_or_write, int locality = 0) const
+    {
+      if (data_.empty())
+        return;
+      PREFETCH_VECTOR(data_.data(), data_.size(), read_or_write, locality);
     }
   };
 

@@ -146,19 +146,22 @@ namespace micm
 
     const std::size_t n = ALU.NumRows();
     const std::size_t ALU_BlockSize = ALU.NumberOfBlocks();
-    constexpr std::size_t ALU_GroupVectorSize = SparseMatrixPolicy::GroupVectorSize();
+    constexpr std::size_t L = SparseMatrixPolicy::GroupVectorSize();
     const std::size_t ALU_GroupSizeOfFlatBlockSize = ALU.GroupSize();
-    std::vector<double> Aii_inverse(ALU_GroupVectorSize);
+    std::vector<double> Aii_inverse(L);
+
+    // Prefetch vectors to L3
+    ALU.PrefetchData(prefetch::WRITE, prefetch::L3_CACHE);
 
     // How many loop iterations ahead to prefetch
-    constexpr std::size_t NUM_PREFETCH = 1;
-    constexpr int LOCALITY = 1;  // Locality for prefetching (0 = don't keep in cache, 3 = keep in all levels of cache)
-
+    constexpr std::size_t NUM_PREFETCH_L1 = prefetch::L1_CACHE_SIZE / (3 * L * sizeof(double)); // take up 1/3 of L1 cache
+    constexpr std::size_t NUM_PREFETCH_L2 = prefetch::L2_CACHE_SIZE / prefetch::L1_CACHE_SIZE * NUM_PREFETCH_L1;
+    
     // Loop over groups of blocks
     for (std::size_t i_group = 0; i_group < ALU.NumberOfGroups(ALU_BlockSize); ++i_group)
     {
       auto ALU_vector = std::next(ALU.AsVector().begin(), i_group * ALU_GroupSizeOfFlatBlockSize);
-      const std::size_t n_cells = std::min(ALU_GroupVectorSize, ALU_BlockSize - i_group * ALU_GroupVectorSize);
+      const std::size_t n_cells = std::min(L, ALU_BlockSize - i_group * L);
       auto aji = aji_.begin();
       auto aik_njk = aik_njk_.begin();
       auto ajk_aji = ajk_aji_.begin();
@@ -169,16 +172,20 @@ namespace micm
         for (std::size_t i = 0; i < n_cells; ++i)
           *(Aii_inverse_it++) = 1.0 / *(ALU_vector_it++);
 #ifdef __GNUC__
-        for (std::size_t i = 0; i < std::min(NUM_PREFETCH, std::get<1>(aii_nji_nki)); ++i)
-          __builtin_prefetch(&*(ALU_vector + *(aji + i)), 1, LOCALITY);
+        for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, std::get<1>(aii_nji_nki)); ++i)
+          PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + *(aji + i)), L)
+        for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, std::get<1>(aii_nji_nki)); ++i)
+          PREFETCH_VECTOR_L2(prefetch::WRITE, &*(ALU_vector + *(aji + i)), L)
 #endif
         for (std::size_t ij = 0; ij < std::get<1>(aii_nji_nki); ++ij)
         {
           auto ALU_vector_it = ALU_vector + *aji;
           auto Aii_inverse_it = Aii_inverse.begin();
 #ifdef __GNUC__
-          if ((ij + NUM_PREFETCH) < std::get<1>(aii_nji_nki))
-            __builtin_prefetch(&*(ALU_vector + *(aji + NUM_PREFETCH)), 1, LOCALITY);
+          if ((ij + NUM_PREFETCH_L1) < std::get<1>(aii_nji_nki))
+            PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + *(aji + NUM_PREFETCH_L1)), L)
+          if ((ij + NUM_PREFETCH_L2) < std::get<1>(aii_nji_nki))
+            PREFETCH_VECTOR_L2(prefetch::WRITE, &*(ALU_vector + *(aji + NUM_PREFETCH_L2)), L)
 #endif
           for (std::size_t i = 0; i < n_cells; ++i)
             *(ALU_vector_it++) *= *(Aii_inverse_it++);
@@ -188,10 +195,15 @@ namespace micm
         {
           const std::size_t aik = std::get<0>(*aik_njk);
 #ifdef __GNUC__
-          for (std::size_t i = 0; i < std::min(NUM_PREFETCH, std::get<1>(*aik_njk)); ++i)
+          for (std::size_t i = 0; i < std::min(NUM_PREFETCH_L1, std::get<1>(*aik_njk)); ++i)
           {
-            __builtin_prefetch(&*(ALU_vector + (ajk_aji + i)->first), 1, LOCALITY);
-            __builtin_prefetch(&*(ALU_vector + (ajk_aji + i)->second), 0, LOCALITY);
+            PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + (ajk_aji + i)->first), L)
+            PREFETCH_VECTOR_L1(prefetch::READ, &*(ALU_vector + (ajk_aji + i)->second), L)
+          }
+          for (std::size_t i = NUM_PREFETCH_L1; i < std::min(NUM_PREFETCH_L2, std::get<1>(*aik_njk)); ++i)
+          {
+            PREFETCH_VECTOR_L2(prefetch::WRITE, &*(ALU_vector + (ajk_aji + i)->first), L)
+            PREFETCH_VECTOR_L2(prefetch::READ, &*(ALU_vector + (ajk_aji + i)->second), L)
           }
 #endif
           for (std::size_t ijk = 0; ijk < std::get<1>(*aik_njk); ++ijk)
@@ -201,10 +213,15 @@ namespace micm
             auto ALU_vector_second_it = ALU_vector + ajk_aji->second;
             auto ALU_vector_aik_it = ALU_vector + aik;
 #ifdef __GNUC__
-            if ((ijk + NUM_PREFETCH) < std::get<1>(*aik_njk))
+            if ((ijk + NUM_PREFETCH_L1) < std::get<1>(*aik_njk))
             {
-              __builtin_prefetch(&*(ALU_vector + (ajk_aji + NUM_PREFETCH)->first), 1, LOCALITY);
-              __builtin_prefetch(&*(ALU_vector + (ajk_aji + NUM_PREFETCH)->second), 0, LOCALITY);
+              PREFETCH_VECTOR_L1(prefetch::WRITE, &*(ALU_vector + (ajk_aji + NUM_PREFETCH_L1)->first), L)
+              PREFETCH_VECTOR_L1(prefetch::READ, &*(ALU_vector + (ajk_aji + NUM_PREFETCH_L2)->second), L)
+            }
+            if ((ijk + NUM_PREFETCH_L2) < std::get<1>(*aik_njk))
+            {
+              PREFETCH_VECTOR_L2(prefetch::WRITE, &*(ALU_vector + (ajk_aji + NUM_PREFETCH_L2)->first), L)
+              PREFETCH_VECTOR_L2(prefetch::READ, &*(ALU_vector + (ajk_aji + NUM_PREFETCH_L2)->second), L)
             }
 #endif
             for (std::size_t i = 0; i < n_cells; ++i)

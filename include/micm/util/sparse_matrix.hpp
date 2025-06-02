@@ -3,6 +3,7 @@
 #pragma once
 
 #include <micm/util/matrix_error.hpp>
+#include <micm/util/prefetch.hpp>
 #include <micm/util/sparse_matrix_standard_ordering.hpp>
 
 #include <algorithm>
@@ -287,6 +288,17 @@ namespace micm
       }
       return os;
     }
+
+    /// @brief Prefetches the data vector
+    /// @param read_or_write 0 for read, 1 for write
+    /// @param locality Locality hint for the prefetch operation
+    void PrefetchData(int read_or_write, int locality = 0) const
+    {
+      if (data_.empty())
+        return;
+      PREFETCH_VECTOR(data_.data(), data_.size(), read_or_write, locality);
+    }
+
   };
 
   template<class T, class OrderingPolicy = SparseMatrixStandardOrdering>
