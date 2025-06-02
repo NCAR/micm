@@ -413,7 +413,7 @@ namespace micm
     /// @brief Prefetches the data vector
     /// @param read_or_write 0 for read, 1 for write
     /// @param locality Locality hint for the prefetch operation
-    void PrefetchData(int read_or_write, int locality = 0) const
+    void PrefetchData(const int read_or_write, const int locality = 0) const
     {
       if (data_.empty())
         return;

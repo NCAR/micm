@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #pragma once
 
+#include <cstdint>
+
 /// @brief Prefetches data to a specified locality level along the vector dimension for a vectorizable matrix
 /// @param ptr Pointer to the first element to prefetch
 /// @param size Total number of elements to prefetch
