@@ -47,11 +47,11 @@ namespace micm
     constexpr std::size_t MiB = 1024 * KiB;
 
     /// @brief L1 Cache locality hint
-    constexpr int L1_CACHE = 1;
+    constexpr int L1_CACHE = 3;
     /// @brief L2 Cache locality hint
     constexpr int L2_CACHE = 2;
     /// @brief L3 Cache locality hint
-    constexpr int L3_CACHE = 3;
+    constexpr int L3_CACHE = 1;
 
     /// @brief Prefetch read operation
     constexpr int READ = 0;
