@@ -409,16 +409,6 @@ namespace micm
     {
       return data_;
     }
-
-    /// @brief Prefetches the data vector
-    /// @param read_or_write 0 for read, 1 for write
-    /// @param locality Locality hint for the prefetch operation
-    void PrefetchData(const int read_or_write, const int locality = 0) const
-    {
-      if (data_.empty())
-        return;
-      PREFETCH_VECTOR(data_.data(), data_.size(), read_or_write, locality);
-    }
   };
 
 }  // namespace micm

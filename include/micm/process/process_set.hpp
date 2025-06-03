@@ -442,10 +442,10 @@ namespace micm
     auto v_rate_constants_begin = v_rate_constants.begin();
 
     // Prefetch vectors to L3 and L2 cache
-    jacobian.PrefetchData(prefetch::WRITE, prefetch::L3_CACHE);
-    rate_constants.PrefetchData(prefetch::READ, prefetch::L2_CACHE);
-    state_variables.PrefetchData(prefetch::READ, prefetch::L2_CACHE);
-
+    PREFETCH_VECTOR_L3(prefetch::WRITE, jacobian.AsVector().data(), jacobian.AsVector().size());
+    PREFETCH_VECTOR_L2(prefetch::READ, rate_constants.AsVector().data(), rate_constants.AsVector().size());
+    PREFETCH_VECTOR_L2(prefetch::READ, state_variables.AsVector().data(), state_variables.AsVector().size());
+    
     // How many loop iterations ahead to prefetch
     constexpr std::size_t NUM_PREFETCH_L1 = prefetch::L1_CACHE_SIZE / (6 * L * sizeof(double)); // take up 1/6 of L1 cache
     constexpr std::size_t NUM_PREFETCH_L2 = prefetch::L2_CACHE_SIZE / prefetch::L1_CACHE_SIZE * NUM_PREFETCH_L1;

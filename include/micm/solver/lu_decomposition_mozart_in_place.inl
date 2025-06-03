@@ -151,7 +151,7 @@ namespace micm
     std::vector<double> Aii_inverse(L);
 
     // Prefetch vectors to L3
-    ALU.PrefetchData(prefetch::WRITE, prefetch::L3_CACHE);
+    PREFETCH_VECTOR_L3(prefetch::WRITE, ALU.AsVector().data(), ALU.AsVector().size());
 
     // How many loop iterations ahead to prefetch
     constexpr std::size_t NUM_PREFETCH_L1 = prefetch::L1_CACHE_SIZE / (3 * L * sizeof(double)); // take up 1/3 of L1 cache
